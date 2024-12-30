@@ -1,9 +1,10 @@
 ---
-name: 버그 템플릿
-about: 발생한 버그에 대한 내용을 기록하세요.
-title: ''
-labels: ''
+name: Bug report (버그 보고)
+about: 발생한 버그를 보고해주세요.
+title: "[BUG]"
+labels: bug
 assignees: ''
+
 ---
 
 ## 버그 설명

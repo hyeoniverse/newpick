@@ -1,9 +1,10 @@
 ---
-name: 기본 템플릿
+name: To Do (작업)
 about: 작업 내용과 할 일을 기록하세요.
 title: ''
 labels: ''
 assignees: ''
+
 ---
 
 ## 작업 개요

@@ -1,9 +1,10 @@
 ---
-name: 제안 템플릿
-about: 제안할 내용을 기록하세요.
-title: ''
-labels: ''
+name: Feature request (아이디어 제안)
+about: 프로젝트를 위한 아이디어를 제시하세요.
+title: "[SUGGEST]"
+labels: enhancement
 assignees: ''
+
 ---
 
 ## 작업 개요
