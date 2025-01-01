@@ -55,7 +55,8 @@ export const StyledButton = styled.button.withConfig({
     theme.buttonScheme[scheme ?? "secondary"].color};
   background: ${({ theme, scheme }) =>
     theme.buttonScheme[scheme ?? "secondary"].background};
-  border: none;
+  border: ${({ theme, scheme }) =>
+    theme.buttonScheme[scheme ?? "secondary"].border};
   border-radius: ${({ theme }) => theme.borderRadius.flat};
   opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
   pointer-events: ${({ disabled }) => (disabled ? "none" : "auto")};
