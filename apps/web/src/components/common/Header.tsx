@@ -6,6 +6,7 @@ import Navigation from "../header/Navigation";
 import Button from "./Button";
 import Drawer from "../header/Drawer";
 import ThemeSwitcher from "../header/ThemeSwitcher";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isLogin, setIsLogin] = useState(false);
@@ -19,10 +20,12 @@ const Header = () => {
       <div className="inner-header">
         <div className="left-section">
           <Drawer />
-          <Logo>
-            <img src={logo} alt="logo" className="desktop-logo" />
-            <img src={logo_s} alt="logo" className="mobile-logo" />
-          </Logo>
+          <Link to="/">
+            <Logo>
+              <img src={logo} alt="logo" className="desktop-logo" />
+              <img src={logo_s} alt="logo" className="mobile-logo" />
+            </Logo>
+          </Link>
         </div>
         <Navigation />
         <div className="right-section">
@@ -91,6 +94,7 @@ const Logo = styled.div`
   color: ${({ theme }) => theme.color.primary};
   font-size: ${({ theme }) => theme.fontSize.large};
   font-weight: ${({ theme }) => theme.fontWeight.bold};
+  cursor: pointer;
 
   img {
     display: none;

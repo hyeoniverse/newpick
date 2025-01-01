@@ -1,14 +1,18 @@
 import styled from "styled-components";
 import { FaGithub } from "react-icons/fa";
 import logo from "../../assets/logo.svg";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
     <StyledFooter>
       <div className="inner-footer">
-        <Logo>
-          <img src={logo} alt="logo" />
-        </Logo>
+        <Link to="/">
+          <Logo>
+            <img src={logo} alt="logo" />
+          </Logo>
+        </Link>
+
         <div className="footer-menu">
           <a href="#">About</a>
           <a href="#">Privacy Policy</a>
@@ -66,6 +70,8 @@ const StyledFooter = styled.footer`
   }
 `;
 
-const Logo = styled.div``;
+const Logo = styled.div`
+  cursor: pointer;
+`;
 
 export default Footer;
