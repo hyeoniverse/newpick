@@ -228,16 +228,54 @@ export const darkTheme: Theme = {
   ...lightTheme,
   name: "dark",
   color: {
-    primary: "#2705C0", // 더 짙은 노란색 (주요 색상)
-    secondary: "#2F00FF", // 진한 회색 (보조 색상)
-    background: "#222222", // 검은색 (배경 색상)
-    surface: "#424242", // 진한 회색 (표면 색상)
-    disabled: "#757575", // 더 연한 회색 (비활성 색상)
-    success: "#388E3C", // 진한 초록색 (성공 색상)
-    error: "#D32F2F", // 더 진한 빨간색 (오류 색상)
-    warning: "#FFA000", // 중간 노란색 (경고 색상)
-    text: "#FFFFFF", // 흰색 (텍스트 색상)
-    border: "#424242", // 진한 회색 (테두리 색상)
+    primary: "#2705C0",
+    secondary: "#2F00FF",
+    background: "#222222",
+    surface: "#333333",
+    disabled: "#757575",
+    success: "#388E3C",
+    error: "#D32F2F",
+    warning: "#FFA000",
+    text: "#FFFFFF",
+    border: "#2C2C2C",
+  },
+  buttonScheme: {
+    primary: {
+      color: "#FFFFFF",
+      background: "#2705C0",
+      border: "none",
+      hover: {
+        color: "#FFFFFF",
+        background: "#2F00FF",
+      },
+    },
+    secondary: {
+      color: "#FFFFFF",
+      background: "transparent",
+      border: "none",
+      hover: {
+        color: "#2F00FF",
+        background: "transparent",
+      },
+    },
+    outline: {
+      color: "#FFFFFF",
+      background: "transparent",
+      border: "1px solid #FFFFFF",
+      hover: {
+        color: "#2F00FF",
+        background: "transparent",
+      },
+    },
+    danger: {
+      color: "#FFFFFF",
+      background: "#D32F2F",
+      border: "none",
+      hover: {
+        color: "#FFFFFF",
+        background: "#E57373",
+      },
+    },
   },
 };
 
