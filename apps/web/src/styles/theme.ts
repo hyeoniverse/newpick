@@ -52,6 +52,11 @@ interface Theme {
 
   fontSize: Record<FontSize, string>;
   fontWeight: Record<FontWeight, string>;
+  heading: {
+    [key in HeadingSize]: {
+      fontSize: string;
+    };
+  };
 
   borderRadius: Record<BorderRadius, string>;
   shadow: Record<Shadow, string>;
@@ -113,6 +118,20 @@ export const lightTheme: Theme = {
     semiBold: "700",
     bold: "800",
     extraBold: "900",
+  },
+  heading: {
+    extraLarge: {
+      fontSize: "2rem",
+    },
+    large: {
+      fontSize: "1.5rem",
+    },
+    medium: {
+      fontSize: "1.2rem",
+    },
+    small: {
+      fontSize: "1rem",
+    },
   },
   borderRadius: {
     flat: "0",
