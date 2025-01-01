@@ -27,10 +27,12 @@ const Header = () => {
         <Navigation />
         <div className="right-section">
           <ThemeSwitcher className="mobile-hidden" />
-          <Button onClick={toggleLogin}>
+          <Button onClick={toggleLogin} style={{ width: "5rem" }}>
             {isLogin ? "로그아웃" : "로그인"}
           </Button>
-          <Button scheme="primary">구독하기</Button>
+          <Button scheme="primary" style={{ width: "5rem" }}>
+            구독하기
+          </Button>
         </div>
       </div>
     </StyledHeader>
@@ -47,7 +49,7 @@ const StyledHeader = styled.div`
     display: none;
   }
 
-  background: ${({ theme }) => theme.color.surface};
+  background: ${({ theme }) => theme.color.background};
   border-bottom: 1px solid ${({ theme }) => theme.color.border};
 
   .inner-header {
@@ -57,15 +59,11 @@ const StyledHeader = styled.div`
     align-items: center;
 
     margin: 0 auto;
-    padding: 0.5rem 2rem;
+    padding: 0.5rem 1rem;
     gap: 1rem;
 
     width: 100%;
     max-width: ${({ theme }) => theme.layout.width.large};
-
-    @media ${({ theme }) => theme.mediaQuery.mobile} {
-      padding: 0.5rem 1rem;
-    }
   }
 
   .left-section {
