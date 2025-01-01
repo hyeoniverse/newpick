@@ -3,6 +3,8 @@ import { QueryClientProvider } from "react-query";
 import { queryClient } from "./api/queryClient";
 
 import { AppThemeProvider } from "./context/themeContext";
+import Layout from "./components/layout/Layout";
+import Error from "./components/common/Error";
 import Home from "./pages/Home";
 
 const routeList = [
@@ -16,7 +18,8 @@ const router = createBrowserRouter(
   routeList.map((item) => {
     return {
       ...item,
-      element: item.element,
+      element: <Layout>{item.element}</Layout>,
+      errorElement: <Error />,
     };
   })
 );

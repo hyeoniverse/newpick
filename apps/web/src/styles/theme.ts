@@ -5,13 +5,12 @@ export type ColorKey =
   | "secondary" // 보조 색상
   | "background" // 배경 색상
   | "surface" // 표면 색상 ex) 카드, 버튼
-  | "onPrimary" // 주요 색상 텍스트
-  | "onSecondary" // 보조 색상 텍스트
   | "disabled" // 비활성 색상
   | "success" // 성공 색상
   | "error" // 오류 색상
   | "warning" // 경고 색상
-  | "text"; // 텍스트 색상
+  | "text" // 텍스트 색상
+  | "border"; // 테두리 색상
 
 export type HeadingSize = "extraLarge" | "large" | "medium" | "small";
 export type FontSize =
@@ -20,10 +19,18 @@ export type FontSize =
   | "medium"
   | "large"
   | "extraLarge";
+export type FontWeight =
+  | "light"
+  | "regular"
+  | "medium"
+  | "semiBold"
+  | "bold"
+  | "extraBold";
 
 export type BorderRadius =
+  | "flat"
   | "soft"
-  | "moderate"
+  | "medium"
   | "rounded"
   | "capsule"
   | "circle";
@@ -43,6 +50,8 @@ interface Theme {
   name: ThemeName;
   color: Record<ColorKey, string>;
 
+  fontSize: Record<FontSize, string>;
+  fontWeight: Record<FontWeight, string>;
   heading: {
     [key in HeadingSize]: {
       fontSize: string;
@@ -65,11 +74,8 @@ interface Theme {
       background: string;
       border: string;
       hover: {
-        background: string;
-      };
-      disabled: {
         color: string;
-        background: string;
+        background?: string;
       };
     };
   };
@@ -87,35 +93,50 @@ interface Theme {
 export const lightTheme: Theme = {
   name: "light",
   color: {
-    primary: "#FFC107", // 노란색 (주요 색상)
-    secondary: "#FFD54F", // 연한 노란색 (보조 색상)
-    background: "#FFF8E1", // 연한 크림색 (배경 색상)
-    surface: "#FFFFFF", // 흰색 (표면 색상)
-    onPrimary: "#212121", // 검은색 (주요 텍스트 색상)
-    onSecondary: "#212121", // 검은색 (보조 텍스트 색상)
-    disabled: "#BDBDBD", // 회색 (비활성 색상)
-    success: "#8BC34A", // 초록색 (성공 색상)
-    error: "#E57373", // 빨간색 (오류 색상)
-    warning: "#FFB300", // 진한 노란색 (경고 색상)
-    text: "#333333", // 검은색 (텍스트 색상)
+    primary: "#2F00FF",
+    secondary: "#2705C0",
+    background: "#FFFFFF",
+    surface: "#F9F9F9",
+    disabled: "#BDBDBD",
+    success: "#8BC34A",
+    error: "#E57373",
+    warning: "#FFB300",
+    text: "#333333",
+    border: "#E0E0E0",
+  },
+  fontSize: {
+    extraSmall: "0.8rem",
+    small: "1rem",
+    medium: "1.2rem",
+    large: "1.5rem",
+    extraLarge: "2rem",
+  },
+  fontWeight: {
+    light: "400",
+    regular: "500",
+    medium: "600",
+    semiBold: "700",
+    bold: "800",
+    extraBold: "900",
   },
   heading: {
     extraLarge: {
-      fontSize: "2.5rem",
-    },
-    large: {
       fontSize: "2rem",
     },
-    medium: {
+    large: {
       fontSize: "1.5rem",
+    },
+    medium: {
+      fontSize: "1.2rem",
     },
     small: {
       fontSize: "1rem",
     },
   },
   borderRadius: {
+    flat: "0",
     soft: "4px",
-    moderate: "8px",
+    medium: "8px",
     rounded: "16px",
     capsule: "9999px",
     circle: "50%",
@@ -138,7 +159,7 @@ export const lightTheme: Theme = {
     },
     small: {
       fontSize: "1rem",
-      padding: "0.3rem 0.8rem",
+      padding: "0.5rem 0.8rem",
       gap: "0.3rem",
     },
     extraSmall: {
@@ -149,39 +170,29 @@ export const lightTheme: Theme = {
   },
   buttonScheme: {
     primary: {
-      color: "#212121",
-      background: "#FFC107",
+      color: "#FFFFFF",
+      background: "#2F00FF",
       border: "none",
       hover: {
-        background: "#FFB300",
-      },
-      disabled: {
-        color: "#757575",
-        background: "#E0E0E0",
+        color: "#FFFFFF",
+        background: "#2705C0",
       },
     },
     secondary: {
       color: "#212121",
-      background: "#FFD54F",
+      background: "transparent",
       border: "none",
       hover: {
-        background: "#FFCA28",
-      },
-      disabled: {
-        color: "#757575",
-        background: "#E0E0E0",
+        color: "#2F00FF",
+        background: "transparent",
       },
     },
     outline: {
-      color: "#FFC107",
+      color: "#212121",
       background: "transparent",
-      border: "1px solid #FFC107",
+      border: "1px solid #212121",
       hover: {
-        background: "#FFF8E1",
-      },
-      disabled: {
-        color: "#BDBDBD",
-        background: "#E0E0E0",
+        color: "#2F00FF",
       },
     },
     danger: {
@@ -189,11 +200,8 @@ export const lightTheme: Theme = {
       background: "#E57373",
       border: "none",
       hover: {
+        color: "#FFFFFF",
         background: "#D32F2F",
-      },
-      disabled: {
-        color: "#BDBDBD",
-        background: "#E0E0E0",
       },
     },
   },
@@ -220,17 +228,54 @@ export const darkTheme: Theme = {
   ...lightTheme,
   name: "dark",
   color: {
-    primary: "#FFB300", // 더 짙은 노란색 (주요 색상)
-    secondary: "#424242", // 진한 회색 (보조 색상)
-    background: "#212121", // 검은색 (배경 색상)
-    surface: "#424242", // 진한 회색 (표면 색상)
-    onPrimary: "#FFFFFF", // 흰색 (주요 텍스트 색상)
-    onSecondary: "#FFC107", // 노란색 (보조 텍스트 색상)
-    disabled: "#757575", // 더 연한 회색 (비활성 색상)
-    success: "#388E3C", // 진한 초록색 (성공 색상)
-    error: "#D32F2F", // 더 진한 빨간색 (오류 색상)
-    warning: "#FFA000", // 중간 노란색 (경고 색상)
-    text: "#FFFFFF", // 흰색 (텍스트 색상)
+    primary: "#2705C0",
+    secondary: "#2F00FF",
+    background: "#222222",
+    surface: "#333333",
+    disabled: "#757575",
+    success: "#388E3C",
+    error: "#D32F2F",
+    warning: "#FFA000",
+    text: "#FFFFFF",
+    border: "#2C2C2C",
+  },
+  buttonScheme: {
+    primary: {
+      color: "#FFFFFF",
+      background: "#2705C0",
+      border: "none",
+      hover: {
+        color: "#FFFFFF",
+        background: "#2F00FF",
+      },
+    },
+    secondary: {
+      color: "#FFFFFF",
+      background: "transparent",
+      border: "none",
+      hover: {
+        color: "#2F00FF",
+        background: "transparent",
+      },
+    },
+    outline: {
+      color: "#FFFFFF",
+      background: "transparent",
+      border: "1px solid #FFFFFF",
+      hover: {
+        color: "#2F00FF",
+        background: "transparent",
+      },
+    },
+    danger: {
+      color: "#FFFFFF",
+      background: "#D32F2F",
+      border: "none",
+      hover: {
+        color: "#FFFFFF",
+        background: "#E57373",
+      },
+    },
   },
 };
 
