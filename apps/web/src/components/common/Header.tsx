@@ -1,15 +1,18 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { styled } from "styled-components";
 import logo from "../../assets/logo.svg";
 import logo_s from "../../assets/logo_small.svg";
-import Navigation from "../header/Navigation";
 import Button from "./Button";
+import Navigation from "../header/Navigation";
 import Drawer from "../header/Drawer";
+import Dropdown from "./Dropdown";
 import ThemeSwitcher from "../header/ThemeSwitcher";
-import { Link } from "react-router-dom";
+import { FaUserCircle } from "react-icons/fa";
 
 const Header = () => {
   const [isLogin, setIsLogin] = useState(false);
+  const user = null;
 
   const toggleLogin = () => {
     setIsLogin(!isLogin);
@@ -30,9 +33,34 @@ const Header = () => {
         <Navigation />
         <div className="right-section">
           <ThemeSwitcher className="mobile-hidden" />
-          <Button onClick={toggleLogin} style={{ width: "5rem" }}>
-            {isLogin ? "로그아웃" : "로그인"}
-          </Button>
+          {isLogin ? (
+            <Dropdown
+              className="auth"
+              toggleButton={
+                <>
+                  {user ? (
+                    <img className="userCircle" src={user} alt="user" />
+                  ) : (
+                    <FaUserCircle className="userCircle" />
+                  )}
+                </>
+              }
+            >
+              <>
+                <ThemeSwitcher />
+                <Link to="/mypage" className="item">
+                  마이 페이지
+                </Link>
+                <Button onClick={toggleLogin}>로그아웃</Button>
+              </>
+            </Dropdown>
+          ) : (
+            <>
+              <Button onClick={toggleLogin} style={{ width: "5rem" }}>
+                로그인
+              </Button>
+            </>
+          )}
           <Button scheme="primary" style={{ width: "5rem" }}>
             구독하기
           </Button>
@@ -81,6 +109,13 @@ const StyledHeader = styled.div`
     flex-direction: row;
     align-items: center;
     gap: 1rem;
+
+    .userCircle {
+      width: ${({ theme }) => theme.fontSize.large};
+      height: ${({ theme }) => theme.fontSize.large};
+      border-radius: ${({ theme }) => theme.borderRadius.circle};
+      object-fit: cover;
+    }
   }
 
   .mobile-hidden {

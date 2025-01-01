@@ -72,7 +72,7 @@ const StyledDropdown = styled.div<StyleProps>`
   &.auth {
     .panel {
       position: absolute;
-      top: 3.2rem;
+      top: 2.3rem;
       right: 0;
       display: flex;
       flex-direction: column;
@@ -80,36 +80,41 @@ const StyledDropdown = styled.div<StyleProps>`
 
       width: auto;
       height: auto;
-      max-height: ${({ $open }) =>
-        $open ? "300px" : "0"}; /* max-height 애니메이션 */
+      max-height: ${({ $open }) => ($open ? "300px" : "0")};
       padding: ${({ $open }) => ($open ? "1rem" : "0")};
       gap: 0.5rem;
-      font-size: ${({ theme }) => theme.fontSize.medium};
+      font-size: ${({ theme }) => theme.fontSize.small};
 
       background: ${({ theme }) => theme.color.surface};
-      box-shadow: ${({ theme }) => theme.shadow.default};
-      border-radius: ${({ theme }) => theme.borderRadius.default};
+      box-shadow: ${({ theme }) => theme.shadow.medium};
+      border: 1px solid ${({ theme }) => theme.color.border};
+      border-radius: ${({ theme }) => theme.borderRadius.soft};
       z-index: 1000;
       white-space: nowrap;
 
-      transform-origin: top right; /* 애니메이션이 우측 상단에서 시작 */
+      transform-origin: top right;
       opacity: ${({ $open }) => ($open ? "1" : "0")};
       transition:
         max-height 0.5s ease,
-        /* max-height를 부드럽게 조정 */ opacity 0.3s ease,
-        padding 0.3s ease; /* padding도 애니메이션에 포함 */
-      overflow: hidden; /* 콘텐츠가 잘리지 않도록 hidden 설정 */
+        opacity 0.3s ease,
+        padding 0.3s ease;
+      overflow: hidden;
 
       .item {
         display: flex;
         justify-content: center;
         align-items: center;
-        padding: 0.5rem 1.2rem;
+        width: 100%;
+        padding: 0.3rem 1rem;
+        cursor: pointer;
 
         color: ${({ theme }) => theme.color.text};
-        border-radius: ${({ theme }) => theme.borderRadius.default};
-        border-bottom: 1px solid ${({ theme }) => theme.color.border};
-        cursor: pointer;
+        font-size: ${({ theme }) => theme.fontSize.small};
+
+        a {
+          padding: 0;
+          margin: 0;
+        }
 
         &:hover {
           color: ${({ theme }) => theme.color.primary};
@@ -134,7 +139,7 @@ const StyledDropdown = styled.div<StyleProps>`
       left: 0;
       margin-left: -1rem;
       background: ${({ theme }) => theme.color.surface};
-      border-bottom: 1px solid ${({ theme }) => theme.color.border};
+      border: 1px solid ${({ theme }) => theme.color.border};
       box-shadow: ${({ theme }) => theme.shadow.medium};
 
       display: flex;
