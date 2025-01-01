@@ -5,8 +5,6 @@ export type ColorKey =
   | "secondary" // 보조 색상
   | "background" // 배경 색상
   | "surface" // 표면 색상 ex) 카드, 버튼
-  | "onPrimary" // 주요 색상 텍스트
-  | "onSecondary" // 보조 색상 텍스트
   | "disabled" // 비활성 색상
   | "success" // 성공 색상
   | "error" // 오류 색상
@@ -92,16 +90,14 @@ export const lightTheme: Theme = {
   color: {
     primary: "#2F00FF",
     secondary: "#2705C0",
-    background: "#F5F5F5", // 연한 회색 (배경 색상)
-    surface: "#FFFFFF", // 흰색 (표면 색상)
-    onPrimary: "#212121", // 검은색 (주요 텍스트 색상)
-    onSecondary: "#212121", // 검은색 (보조 텍스트 색상)
-    disabled: "#BDBDBD", // 회색 (비활성 색상)
-    success: "#8BC34A", // 초록색 (성공 색상)
-    error: "#E57373", // 빨간색 (오류 색상)
-    warning: "#FFB300", // 진한 노란색 (경고 색상)
-    text: "#333333", // 검은색 (텍스트 색상)
-    border: "#E0E0E0", // 연한 회색 (테두리 색상)
+    background: "#FFFFFF",
+    surface: "#F9F9F9",
+    disabled: "#BDBDBD",
+    success: "#8BC34A",
+    error: "#E57373",
+    warning: "#FFB300",
+    text: "#333333",
+    border: "#E0E0E0",
   },
   fontSize: {
     extraSmall: "0.8rem",
@@ -173,12 +169,11 @@ export const lightTheme: Theme = {
       },
     },
     outline: {
-      color: "#FFC107",
+      color: "#212121",
       background: "transparent",
-      border: "1px solid #FFC107",
+      border: "1px solid #212121",
       hover: {
-        color: "#FFFFFF",
-        background: "#FFF8E1",
+        color: "#2F00FF",
       },
     },
     danger: {
@@ -218,8 +213,6 @@ export const darkTheme: Theme = {
     secondary: "#2F00FF", // 진한 회색 (보조 색상)
     background: "#222222", // 검은색 (배경 색상)
     surface: "#424242", // 진한 회색 (표면 색상)
-    onPrimary: "#FFFFFF", // 흰색 (주요 텍스트 색상)
-    onSecondary: "#FFC107", // 노란색 (보조 텍스트 색상)
     disabled: "#757575", // 더 연한 회색 (비활성 색상)
     success: "#388E3C", // 진한 초록색 (성공 색상)
     error: "#D32F2F", // 더 진한 빨간색 (오류 색상)
