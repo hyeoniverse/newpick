@@ -46,6 +46,7 @@ export const StyledButton = styled.button.withConfig({
   justify-content: center;
   flex-shrink: 0;
   line-height: 1;
+  width: 100%;
 
   font-size: ${({ theme, size }) => theme.button[size ?? "small"].fontSize};
   padding: ${({ theme, size }) => theme.button[size ?? "small"].padding};
