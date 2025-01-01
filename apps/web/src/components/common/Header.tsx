@@ -47,7 +47,7 @@ const Header = () => {
               }
             >
               <>
-                <ThemeSwitcher />
+                <ThemeSwitcher className="desktop-hidden" />
                 <Link to="/mypage" className="item">
                   마이 페이지
                 </Link>
@@ -121,6 +121,14 @@ const StyledHeader = styled.div`
   .mobile-hidden {
     @media ${({ theme }) => theme.mediaQuery.mobile} {
       display: none;
+    }
+  }
+
+  .desktop-hidden {
+    display: none;
+
+    @media ${({ theme }) => theme.mediaQuery.mobile} {
+      display: block;
     }
   }
 `;
