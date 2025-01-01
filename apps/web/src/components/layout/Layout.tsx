@@ -20,16 +20,19 @@ const Layout = ({ children }: Props) => {
 const StyledLayout = styled.div`
   display: flex;
   flex-direction: column;
+  margin: 0 auto;
+  width: 100vw;
   height: 100vh;
 `;
 
 const Content = styled.main`
   width: 100%;
-  margin: 0 auto;
   max-width: ${({ theme }) => theme.layout.width.large};
-  padding: 6rem 2rem;
-  @media screen AND ${({ theme }) => theme.mediaQuery.mobile} {
-    padding: 6rem 1rem;
+  margin: 0 auto;
+  padding: 20px 0;
+
+  @media ${({ theme }) => theme.mediaQuery.mobile} {
+    padding: 20px 12px;
   }
 `;
 

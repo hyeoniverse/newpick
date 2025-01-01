@@ -11,7 +11,6 @@ export const GlobalStyle = createGlobalStyle<Props>`
   @font-face {
     font-family: 'Pretendard';
     src: local('Pretendard'), url(${Pretendard}) format('woff2');
-    font-weight: normal;
   }
 
   * {
@@ -21,8 +20,8 @@ export const GlobalStyle = createGlobalStyle<Props>`
   html,body {
     margin: 0;
     padding: 0;
-    background: ${({ theme }) => theme.color.background};
     color: ${({ theme }) => theme.color.text};
+    background: ${({ theme }) => theme.color.background};
   }
 
   a {

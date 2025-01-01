@@ -11,7 +11,8 @@ export type ColorKey =
   | "success" // 성공 색상
   | "error" // 오류 색상
   | "warning" // 경고 색상
-  | "text"; // 텍스트 색상
+  | "text" // 텍스트 색상
+  | "border"; // 테두리 색상
 
 export type HeadingSize = "extraLarge" | "large" | "medium" | "small";
 export type FontSize =
@@ -20,10 +21,18 @@ export type FontSize =
   | "medium"
   | "large"
   | "extraLarge";
+export type FontWeight =
+  | "light"
+  | "regular"
+  | "medium"
+  | "semiBold"
+  | "bold"
+  | "extraBold";
 
 export type BorderRadius =
+  | "flat"
   | "soft"
-  | "moderate"
+  | "medium"
   | "rounded"
   | "capsule"
   | "circle";
@@ -43,11 +52,8 @@ interface Theme {
   name: ThemeName;
   color: Record<ColorKey, string>;
 
-  heading: {
-    [key in HeadingSize]: {
-      fontSize: string;
-    };
-  };
+  fontSize: Record<FontSize, string>;
+  fontWeight: Record<FontWeight, string>;
 
   borderRadius: Record<BorderRadius, string>;
   shadow: Record<Shadow, string>;
@@ -65,11 +71,8 @@ interface Theme {
       background: string;
       border: string;
       hover: {
-        background: string;
-      };
-      disabled: {
         color: string;
-        background: string;
+        background?: string;
       };
     };
   };
@@ -87,9 +90,9 @@ interface Theme {
 export const lightTheme: Theme = {
   name: "light",
   color: {
-    primary: "#FFC107", // 노란색 (주요 색상)
-    secondary: "#FFD54F", // 연한 노란색 (보조 색상)
-    background: "#FFF8E1", // 연한 크림색 (배경 색상)
+    primary: "#2F00FF",
+    secondary: "#2705C0",
+    background: "#F5F5F5", // 연한 회색 (배경 색상)
     surface: "#FFFFFF", // 흰색 (표면 색상)
     onPrimary: "#212121", // 검은색 (주요 텍스트 색상)
     onSecondary: "#212121", // 검은색 (보조 텍스트 색상)
@@ -98,24 +101,27 @@ export const lightTheme: Theme = {
     error: "#E57373", // 빨간색 (오류 색상)
     warning: "#FFB300", // 진한 노란색 (경고 색상)
     text: "#333333", // 검은색 (텍스트 색상)
+    border: "#E0E0E0", // 연한 회색 (테두리 색상)
   },
-  heading: {
-    extraLarge: {
-      fontSize: "2.5rem",
-    },
-    large: {
-      fontSize: "2rem",
-    },
-    medium: {
-      fontSize: "1.5rem",
-    },
-    small: {
-      fontSize: "1rem",
-    },
+  fontSize: {
+    extraSmall: "0.8rem",
+    small: "1rem",
+    medium: "1.2rem",
+    large: "1.5rem",
+    extraLarge: "2rem",
+  },
+  fontWeight: {
+    light: "400",
+    regular: "500",
+    medium: "600",
+    semiBold: "700",
+    bold: "800",
+    extraBold: "900",
   },
   borderRadius: {
+    flat: "0",
     soft: "4px",
-    moderate: "8px",
+    medium: "8px",
     rounded: "16px",
     capsule: "9999px",
     circle: "50%",
@@ -138,7 +144,7 @@ export const lightTheme: Theme = {
     },
     small: {
       fontSize: "1rem",
-      padding: "0.3rem 0.8rem",
+      padding: "0.5rem 0.8rem",
       gap: "0.3rem",
     },
     extraSmall: {
@@ -149,27 +155,21 @@ export const lightTheme: Theme = {
   },
   buttonScheme: {
     primary: {
-      color: "#212121",
-      background: "#FFC107",
+      color: "#FFFFFF",
+      background: "#2F00FF",
       border: "none",
       hover: {
-        background: "#FFB300",
-      },
-      disabled: {
-        color: "#757575",
-        background: "#E0E0E0",
+        color: "#FFFFFF",
+        background: "#2705C0",
       },
     },
     secondary: {
       color: "#212121",
-      background: "#FFD54F",
+      background: "transparent",
       border: "none",
       hover: {
-        background: "#FFCA28",
-      },
-      disabled: {
-        color: "#757575",
-        background: "#E0E0E0",
+        color: "#2F00FF",
+        background: "transparent",
       },
     },
     outline: {
@@ -177,11 +177,8 @@ export const lightTheme: Theme = {
       background: "transparent",
       border: "1px solid #FFC107",
       hover: {
+        color: "#FFFFFF",
         background: "#FFF8E1",
-      },
-      disabled: {
-        color: "#BDBDBD",
-        background: "#E0E0E0",
       },
     },
     danger: {
@@ -189,11 +186,8 @@ export const lightTheme: Theme = {
       background: "#E57373",
       border: "none",
       hover: {
+        color: "#FFFFFF",
         background: "#D32F2F",
-      },
-      disabled: {
-        color: "#BDBDBD",
-        background: "#E0E0E0",
       },
     },
   },
@@ -220,9 +214,9 @@ export const darkTheme: Theme = {
   ...lightTheme,
   name: "dark",
   color: {
-    primary: "#FFB300", // 더 짙은 노란색 (주요 색상)
-    secondary: "#424242", // 진한 회색 (보조 색상)
-    background: "#212121", // 검은색 (배경 색상)
+    primary: "#2705C0", // 더 짙은 노란색 (주요 색상)
+    secondary: "#2F00FF", // 진한 회색 (보조 색상)
+    background: "#222222", // 검은색 (배경 색상)
     surface: "#424242", // 진한 회색 (표면 색상)
     onPrimary: "#FFFFFF", // 흰색 (주요 텍스트 색상)
     onSecondary: "#FFC107", // 노란색 (보조 텍스트 색상)
@@ -231,6 +225,7 @@ export const darkTheme: Theme = {
     error: "#D32F2F", // 더 진한 빨간색 (오류 색상)
     warning: "#FFA000", // 중간 노란색 (경고 색상)
     text: "#FFFFFF", // 흰색 (텍스트 색상)
+    border: "#424242", // 진한 회색 (테두리 색상)
   },
 };
 
