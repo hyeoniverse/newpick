@@ -151,7 +151,7 @@ export const lightTheme: Theme = {
 		primary: {
 			color: '#FFFFFF',
 			background: '#2705C0',
-			border: 'none',
+			border: '1px solid transparent',
 			hover: {
 				color: '#2705C0',
 				background: 'transparent',
@@ -161,11 +161,11 @@ export const lightTheme: Theme = {
 		secondary: {
 			color: '#000000',
 			background: 'transparent',
-			border: 'none',
+			border: '1px solid transparent',
 			hover: {
 				color: '#2705C0',
 				background: 'trasparent',
-				border: 'none',
+				border: '1px solid transparent',
 			},
 		},
 		outline: {
@@ -175,17 +175,17 @@ export const lightTheme: Theme = {
 			hover: {
 				color: '#FFFFFF',
 				background: '#2705C0',
-				border: 'none',
+				border: '1px solid #2705C0',
 			},
 		},
 		danger: {
 			color: '#FFFFFF',
 			background: '#E57373',
-			border: 'none',
+			border: '1px solid transparent',
 			hover: {
 				color: '#FFFFFF',
 				background: '#D32F2F',
-				border: 'none',
+				border: '1px solid transparent',
 			},
 		},
 	},
