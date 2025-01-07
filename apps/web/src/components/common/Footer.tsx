@@ -1,24 +1,48 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
 import styled from "styled-components";
 import { FaGithub } from "react-icons/fa";
-import logo from "../../assets/logo.svg";
-import { Link } from "react-router-dom";
+
+const logo = "/icons/logo.svg";
+const logo_s = "/icons/logo_small.svg";
 
 const Footer = () => {
   return (
     <StyledFooter>
       <div className="inner-footer">
-        <Link to="/">
+        <Link href="/">
           <Logo>
-            <img src={logo} alt="logo" />
+            <Image
+              src={logo}
+              alt="logo"
+              width={100}
+              height={36}
+              className="desktop-logo"
+              priority
+            />
+            <Image
+              src={logo_s}
+              alt="logo"
+              width={36}
+              height={36}
+              className="mobile-logo"
+              priority
+            />
           </Logo>
         </Link>
 
         <div className="footer-menu">
-          <a href="#">About</a>
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
-          <a href="#">Contact</a>
-          <a href="https://github.com/Devcourse-NewPick" target="_blank">
+          <Link href="#">About</Link>
+          <Link href="#">Privacy Policy</Link>
+          <Link href="#">Terms of Service</Link>
+          <Link href="#">Contact</Link>
+          <a
+            href="https://github.com/Devcourse-NewPick"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             <FaGithub />
           </a>
         </div>
@@ -71,7 +95,27 @@ const StyledFooter = styled.footer`
 `;
 
 const Logo = styled.div`
+  color: ${({ theme }) => theme.color.primary};
+  font-size: ${({ theme }) => theme.fontSize.large};
+  font-weight: ${({ theme }) => theme.fontWeight.bold};
   cursor: pointer;
+
+  img {
+    display: none;
+  }
+  .desktop-logo {
+    display: block;
+  }
+
+  @media ${({ theme }) => theme.mediaQuery.mobile} {
+    .desktop-logo {
+      display: none;
+    }
+
+    .mobile-logo {
+      display: block;
+    }
+  }
 `;
 
 export default Footer;

@@ -1,14 +1,19 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import { styled } from "styled-components";
-import logo from "../../assets/logo.svg";
-import logo_s from "../../assets/logo_small.svg";
-import Button from "./Button";
-import Navigation from "../header/Navigation";
-import Drawer from "../header/Drawer";
-import Dropdown from "./Dropdown";
-import ThemeSwitcher from "../header/ThemeSwitcher";
+
+import styled from "styled-components";
+import Button from "@/components/common/Button";
+import Navigation from "@/components/header/Navigation";
+import Drawer from "@/components/header/Drawer";
+import Dropdown from "@/components/common/Dropdown";
+import ThemeSwitcher from "@/components/header/ThemeSwitcher";
 import { FaUserCircle } from "react-icons/fa";
+
+const logo = "/icons/logo.svg";
+const logo_s = "/icons/logo_small.svg";
 
 const Header = () => {
   const [isLogin, setIsLogin] = useState(false);
@@ -23,10 +28,24 @@ const Header = () => {
       <div className="inner-header">
         <div className="left-section">
           <Drawer />
-          <Link to="/">
+          <Link href="/">
             <Logo>
-              <img src={logo} alt="logo" className="desktop-logo" />
-              <img src={logo_s} alt="logo" className="mobile-logo" />
+              <Image
+                src={logo}
+                alt="logo"
+                width={100}
+                height={36}
+                className="desktop-logo"
+                priority
+              />
+              <Image
+                src={logo_s}
+                alt="logo"
+                width={36}
+                height={36}
+                className="mobile-logo"
+                priority
+              />
             </Logo>
           </Link>
         </div>
@@ -39,7 +58,13 @@ const Header = () => {
               toggleButton={
                 <>
                   {user ? (
-                    <img className="userCircle" src={user} alt="user" />
+                    <Image
+                      className="userCircle"
+                      src={logo}
+                      alt="user"
+                      width={40}
+                      height={40}
+                    />
                   ) : (
                     <FaUserCircle className="userCircle" />
                   )}
@@ -48,7 +73,7 @@ const Header = () => {
             >
               <>
                 <ThemeSwitcher className="desktop-hidden" />
-                <Link to="/mypage" className="item">
+                <Link href="/myPage" className="item">
                   마이 페이지
                 </Link>
                 <Button onClick={toggleLogin}>로그아웃</Button>

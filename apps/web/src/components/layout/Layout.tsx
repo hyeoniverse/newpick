@@ -1,13 +1,14 @@
-import React from "react";
-import styled from "styled-components";
-import Header from "../common/Header";
-import Footer from "../common/Footer";
+"use client";
 
-interface Props {
+import styled from "styled-components";
+import Header from "@/components/common/Header";
+import Footer from "@/components/common/Footer";
+
+interface LayoutProps {
   children: React.ReactNode;
 }
 
-const Layout = ({ children }: Props) => {
+const Layout = ({ children }: LayoutProps) => {
   return (
     <StyledLayout>
       <Header />
@@ -29,7 +30,7 @@ const Content = styled.main`
   width: 100%;
   max-width: ${({ theme }) => theme.layout.width.large};
   margin: 0 auto;
-  padding: 20px 0;
+  padding: 0.5rem 1rem;
 
   @media ${({ theme }) => theme.mediaQuery.mobile} {
     padding: 20px 12px;

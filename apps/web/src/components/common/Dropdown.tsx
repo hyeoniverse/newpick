@@ -1,5 +1,6 @@
-import React from "react";
-import { useEffect, useRef, useState } from "react";
+"use client";
+
+import React, { useEffect, useRef, useState } from "react";
 import styled from "styled-components";
 
 interface Props {
@@ -9,12 +10,12 @@ interface Props {
   className?: string;
 }
 
-function Dropdown({
+const Dropdown = ({
   children,
   toggleButton,
   isOpen = false,
-  className = "",
-}: Props) {
+  className,
+}: Props) => {
   const [open, setOpen] = useState(isOpen);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -33,22 +34,31 @@ function Dropdown({
     return () => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
-  }, [dropdownRef]);
+  }, []);
 
   return (
     <StyledDropdown $open={open} ref={dropdownRef} className={`${className}`}>
       <div onClick={() => setOpen(!open)}>
         {toggleButton &&
-          React.cloneElement(toggleButton as React.ReactElement, {
-            className: open ? "open" : "",
-          })}
+          React.isValidElement(toggleButton) &&
+          (toggleButton.type !== React.Fragment
+            ? React.cloneElement(
+                toggleButton as React.ReactElement<
+                  React.HTMLAttributes<HTMLDivElement>
+                >,
+                {
+                  className: open ? "open" : "",
+                }
+              )
+            : toggleButton)}
       </div>
+
       <div className="panel" onClick={() => setOpen(false)}>
         {children}
       </div>
     </StyledDropdown>
   );
-}
+};
 
 interface StyleProps {
   $open: boolean;
@@ -94,10 +104,7 @@ const StyledDropdown = styled.div<StyleProps>`
 
       transform-origin: top right;
       opacity: ${({ $open }) => ($open ? "1" : "0")};
-      transition:
-        max-height 0.5s ease,
-        opacity 0.3s ease,
-        padding 0.3s ease;
+      transition: max-height 0.5s ease, opacity 0.3s ease, padding 0.3s ease;
       overflow: hidden;
 
       .item {
@@ -128,9 +135,7 @@ const StyledDropdown = styled.div<StyleProps>`
       transform-origin: top;
       transform: ${({ $open }) => ($open ? "scaleY(1)" : "scaleY(0)")};
       opacity: ${({ $open }) => ($open ? "1" : "0")};
-      transition:
-        transform 0.3s ease,
-        opacity 0.3s ease;
+      transition: transform 0.3s ease, opacity 0.3s ease;
       overflow: hidden;
 
       width: 100vw;

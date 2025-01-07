@@ -1,9 +1,11 @@
+"use client";
+
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { ThemeProvider } from "styled-components";
-import { ThemeName, getTheme } from "../styles/theme";
-import { GlobalStyle } from "../styles/GlobalStyle";
+import { ThemeName, getTheme } from "@/styles/theme";
+import { GlobalStyle } from "@/styles/globals";
 
-const DEFAULT_THEME_NAME = "light";
+const DEFAULT_THEME_NAME: ThemeName = "light";
 const THEME_LOCALSTORAGE_KEY = "qru_theme";
 
 interface State {
@@ -11,12 +13,10 @@ interface State {
   toggleTheme: () => void;
 }
 
-export const state = {
-  themeName: DEFAULT_THEME_NAME as ThemeName,
+export const ThemeContext = createContext<State>({
+  themeName: DEFAULT_THEME_NAME,
   toggleTheme: () => {},
-};
-
-export const ThemeContext = createContext<State>(state);
+});
 
 export const AppThemeProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -24,11 +24,9 @@ export const AppThemeProvider: React.FC<{ children: ReactNode }> = ({
   const [themeName, setThemeName] = useState<ThemeName>(DEFAULT_THEME_NAME);
 
   const toggleTheme = () => {
-    setThemeName(themeName === "light" ? "dark" : "light");
-    localStorage.setItem(
-      THEME_LOCALSTORAGE_KEY,
-      themeName === "light" ? "dark" : "light"
-    );
+    const newTheme = themeName === "light" ? "dark" : "light";
+    setThemeName(newTheme);
+    localStorage.setItem(THEME_LOCALSTORAGE_KEY, newTheme);
   };
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { styled } from "styled-components";
 import { NAVIGATION } from "../../constants/navigation";
 
-function Navigation() {
+const Navigation = () => {
   return (
     <StyledNavigation id="navigation">
       <ul>
@@ -11,7 +11,7 @@ function Navigation() {
       </ul>
     </StyledNavigation>
   );
-}
+};
 
 const StyledNavigation = styled.nav`
   display: flex;

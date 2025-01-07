@@ -1,5 +1,7 @@
+"use client";
+
 import styled, { CSSProp } from "styled-components";
-import { ButtonScheme, ButtonSize } from "../../styles/theme";
+import { ButtonScheme, ButtonSize } from "@/styles/theme";
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -12,7 +14,7 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   tooltip?: string;
 }
 
-function Button({
+const Button = ({
   children,
   ref,
   size,
@@ -21,7 +23,7 @@ function Button({
   isLoading,
   tooltip,
   ...props
-}: Props) {
+}: Props) => {
   return (
     <StyledButton
       ref={ref}
@@ -35,7 +37,7 @@ function Button({
       {children}
     </StyledButton>
   );
-}
+};
 
 export const StyledButton = styled.button.withConfig({
   shouldForwardProp: (prop) => !["isLoading", "styles"].includes(prop),
@@ -65,10 +67,7 @@ export const StyledButton = styled.button.withConfig({
 
   white-space: nowrap;
   text-overflow: ellipsis;
-  transition:
-    transform 0.2s ease,
-    box-shadow 0.2s ease,
-    background 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
   -webkit-tap-highlight-color: transparent;
 
   svg {

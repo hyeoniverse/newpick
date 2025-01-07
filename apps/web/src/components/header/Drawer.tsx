@@ -1,10 +1,12 @@
-import { Link } from "react-router-dom";
-import styled from "styled-components";
-import { NAVIGATION } from "../../constants/navigation";
-import Dropdown from "../common/Dropdown";
-import ThemeSwitcher from "./ThemeSwitcher";
+"use client";
 
-function Drawer() {
+import Link from "next/link";
+import styled from "styled-components";
+import { NAVIGATION } from "@/constants/navigation";
+import Dropdown from "@/components/common/Dropdown";
+import ThemeSwitcher from "@/components/header/ThemeSwitcher";
+
+const Drawer = () => {
   return (
     <Dropdown
       toggleButton={
@@ -18,13 +20,13 @@ function Drawer() {
     >
       <ThemeSwitcher />
       {NAVIGATION.map((item, index) => (
-        <Link to={item.link} key={index} className="item">
+        <Link href={item.link} key={index} className="item">
           {item.title}
         </Link>
       ))}
     </Dropdown>
   );
-}
+};
 
 const StyledDrawerButton = styled.div`
   position: relative;

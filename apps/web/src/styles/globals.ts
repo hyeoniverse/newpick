@@ -1,11 +1,14 @@
-import { createGlobalStyle } from "styled-components";
+"use client";
+
 import "sanitize.css";
+import { createGlobalStyle } from "styled-components";
 import { ThemeName } from "./theme";
-import Pretendard from "../assets/fonts/Pretendard.woff2";
 
 interface Props {
   themeName: ThemeName;
 }
+
+const Pretendard = "/fonts/Pretendard.woff2";
 
 export const GlobalStyle = createGlobalStyle<Props>`
   @font-face {
