@@ -1,29 +1,29 @@
-"use client";
+'use client';
 
-import styled from "styled-components";
-import { ColorKey, HeadingSize } from "@/styles/theme"; // 절대 경로 사용
+import styled from 'styled-components';
+import { ColorKey, HeadingSize, FontWeight } from '@/styles/theme'; // 절대 경로 사용
 
 interface Props {
-  children: React.ReactNode;
-  size: HeadingSize;
-  color?: ColorKey;
+	children: React.ReactNode;
+	size: HeadingSize;
+	weight?: FontWeight;
+	color?: ColorKey;
 }
 
-const Title = ({ children, size, color }: Props) => {
-  return (
-    <StyledTitle size={size} color={color}>
-      {children}
-    </StyledTitle>
-  );
+const Title = ({ children, size, weight, color }: Props) => {
+	return (
+		<StyledTitle size={size} weight={weight} color={color}>
+			{children}
+		</StyledTitle>
+	);
 };
 
-const StyledTitle = styled.h1<Omit<Props, "children">>`
-  font-size: ${({ theme, size }) => theme.heading[size].fontSize};
-  font-weight: ${({ theme }) => theme.fontWeight.regular};
-  color: ${({ theme, color }) =>
-    color ? theme.color[color] : theme.color.text};
-  transition: color 0.3s ease;
-  margin: 0;
+const StyledTitle = styled.p<Omit<Props, 'children'>>`
+	font-size: ${({ theme, size }) => theme.heading[size].fontSize};
+	font-weight: ${({ theme, weight }) => theme.fontWeight[weight || 'regular']};
+	color: ${({ theme, color }) => theme.color[color || 'text']};
+	transition: color 0.3s ease;
+	margin: 0;
 `;
 
 export default Title;
