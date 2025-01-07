@@ -139,8 +139,8 @@ const StyledModal = styled.div`
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-		border-radius: ${({ theme }) => theme?.borderRadius?.default || '8px'};
-		box-shadow: ${({ theme }) => theme?.shadow?.default};
+		border-radius: ${({ theme }) => theme?.borderRadius?.medium};
+		box-shadow: ${({ theme }) => theme?.shadow?.medium};
 		background: ${({ theme }) => theme?.color?.background};
 		min-width: 30rem;
 		max-width: 80vw;
@@ -152,13 +152,15 @@ const StyledModal = styled.div`
 
 	.modal-contents {
 		display: flex;
-		border-radius: ${({ theme }) => theme.borderRadius.default || '8px'};
+		flex-direction: column;
 		overflow: hidden;
+		padding: 0.5rem 1rem;
+		border-radius: ${({ theme }) => theme.borderRadius.medium};
 	}
 
 	.modal-close {
 		border: none;
-		color: ${({ theme }) => theme?.color?.onSurface};
+		color: ${({ theme }) => theme?.color?.text};
 		background: transparent;
 		cursor: pointer;
 		position: absolute;
