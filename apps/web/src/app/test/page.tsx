@@ -7,9 +7,10 @@ import styled from 'styled-components';
 import Modal from '@/components/common/Modal';
 import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
-import InputDate from '@/components/common/InputDate';
+import InputText from '@/components/common/InputText';
 import InputCheck from '@/components/common/InputCheck';
 import InputSelect from '@/components/common/InputSelect';
+import InputDate from '@/components/common/InputDate';
 import Loader from '@/components/common/Loader';
 
 const TestPage = () => {
@@ -76,6 +77,12 @@ const TestPage = () => {
 				<Title size="large">Large 타이틀</Title>
 				<Title size="medium">Medium 타이틀</Title>
 				<Title size="small">Small 타이틀</Title>
+			</section>
+
+			<hr />
+			<section>
+				<h2>InputText</h2>
+				<InputText label="테스트 인풋" placeholder="테스트" />
 			</section>
 
 			<hr />
