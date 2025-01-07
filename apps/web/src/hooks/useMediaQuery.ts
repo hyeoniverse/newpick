@@ -1,18 +1,14 @@
-import { getTheme } from "../styles/theme";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react';
+import { getTheme } from '@/styles/theme';
 
 export const useMediaQuery = () => {
-  const [isMobile, setIsMobile] = useState(
-    window.matchMedia(getTheme("light").mediaQuery.mobile).matches
-  );
+	const [isMobile, setIsMobile] = useState(window.matchMedia(getTheme('light').mediaQuery.mobile).matches);
 
-  useEffect(() => {
-    const isMobileQuery = window.matchMedia(
-      getTheme("light").mediaQuery.mobile
-    );
+	useEffect(() => {
+		const isMobileQuery = window.matchMedia(getTheme('light').mediaQuery.mobile);
 
-    setIsMobile(isMobileQuery.matches);
-  }, []);
+		setIsMobile(isMobileQuery.matches);
+	}, []);
 
-  return { isMobile };
+	return { isMobile };
 };
