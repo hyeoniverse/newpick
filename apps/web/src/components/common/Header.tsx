@@ -1,19 +1,21 @@
 'use client';
 
-import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
+import { useModal } from '@/hooks/useModal';
 
 import styled from 'styled-components';
 import Logo from '@/components/common/Logo';
 import Button from '@/components/common/Button';
+import Modal from '@/components/common/Modal';
+import Dropdown from '@/components/common/Dropdown';
 import Navigation from '@/components/header/Navigation';
 import Drawer from '@/components/header/Drawer';
-import Dropdown from '@/components/common/Dropdown';
 import ThemeSwitcher from '@/components/header/ThemeSwitcher';
 import { FaUserCircle } from 'react-icons/fa';
 
 const Header = () => {
+	const { isOpen, modalType, openModal, closeModal } = useModal();
 	const [isLogin, setIsLogin] = useState(false);
 	const user = null;
 
@@ -55,11 +57,16 @@ const Header = () => {
 							로그인
 						</Button>
 					)}
-					<Button scheme="outline" style={{ width: '5rem' }}>
+					<Button scheme="outline" style={{ width: '5rem' }} onClick={() => openModal('subscribe')}>
 						구독하기
 					</Button>
 				</div>
 			</div>
+			{isOpen && modalType === 'subscribe' && (
+				<Modal isOpen={isOpen} onClose={closeModal}>
+					<div>구독하기 모달 내용</div>
+				</Modal>
+			)}
 		</StyledHeader>
 	);
 };
