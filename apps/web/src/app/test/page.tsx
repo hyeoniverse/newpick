@@ -53,19 +53,23 @@ const TestPage = () => {
 			<section>
 				<h2>Button</h2>
 				<h3>Primary</h3>
-				<Button scheme="primary" onClick={() => alert('Primary Button clicked!')}>
+				<Button scheme="primary" onClick={ () => alert('Primary Button clicked!') }>
 					클릭
 				</Button>
 				<h3>Secondary</h3>
-				<Button scheme="secondary" onClick={() => alert('Secondary Button clicked!')}>
+				<Button scheme="secondary" onClick={ () => alert('Secondary Button clicked!') }>
 					클릭
 				</Button>
-				<h3>Outline</h3>
-				<Button scheme="outline" onClick={() => alert('Outline Button clicked!')}>
+				<h3>Mono</h3>
+				<Button scheme="mono" onClick={ () => alert('Mono Button clicked!') }>
+					클릭
+				</Button>
+				<h3>Mono Outline</h3>
+				<Button scheme="monoOutline" onClick={ () => alert('Mono Outline Button clicked!') }>
 					클릭
 				</Button>
 				<h3>Danger</h3>
-				<Button scheme="danger" onClick={() => alert('Text Button clicked!')}>
+				<Button scheme="danger" onClick={ () => alert('Text Button clicked!') }>
 					클릭
 				</Button>
 			</section>
@@ -151,7 +155,7 @@ const StyledTestPage = styled.div`
 
 		p {
 			margin-top: 0.5rem;
-			color: ${({ theme }) => theme.color.secondaryText};
+			color: ${({ theme }) => theme.color.subtext};
 		}
 	}
 

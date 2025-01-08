@@ -43,24 +43,24 @@ const StyledInputText = styled.div`
 		width: 100%;
 		height: fit-content;
 		border: none;
-		outline: none;
-		box-shadow: ${({ theme }) => theme.shadow.light};
+		outline: 1px solid ${({ theme }) => theme.color.line};
+		//box-shadow: ${({ theme }) => theme.shadow.light};
 		overflow: visible;
 		padding: 0.6rem 1.2rem;
 		line-height: 1.8;
 
 		color: ${({ theme }) => theme.color.text};
-		background: ${({ theme }) => theme.color.blur};
+		background: ${({ theme }) => theme.color.background};
 		border-radius: ${({ theme }) => theme.borderRadius.default};
 		font-size: ${({ theme }) => theme.fontSize.small};
 
 		&:focus {
-			box-shadow: ${({ theme }) => theme.shadow.default};
+			//box-shadow: ${({ theme }) => theme.shadow.default};
 			background: ${({ theme }) => theme.color.surface};
 		}
 
 		&::placeholder {
-			color: ${({ theme }) => theme.color.textSecondary};
+			color: ${({ theme }) => theme.color.lightGrey};
 		}
 	}
 `;

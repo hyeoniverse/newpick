@@ -55,13 +55,11 @@ const StyledInputDate = styled.div`
 
 	.custom-datepicker {
 		width: 100%;
-		border: none;
+		border: 1px solid ${({ theme }) => theme.color.line};
 		padding: 0.6rem 1.2rem;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
 		background-color: ${({ theme }) => theme.color.blur};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		color: ${({ theme }) => theme.color.text};
-		box-shadow: ${({ theme }) => theme.shadow.light};
 		outline: none;
 
 		&:hover {
@@ -70,13 +68,12 @@ const StyledInputDate = styled.div`
 
 		&:focus {
 			border-color: ${({ theme }) => theme.color.primary};
-			box-shadow: ${({ theme }) => theme.shadow.medium};
 		}
 	}
 
 	.react-datepicker__header {
-		background-color: ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.onPrimary};
+		background-color: ${({ theme }) => theme.color.secondary};
+		color: ${({ theme }) => theme.color.text};
 		border-bottom: none;
 	}
 

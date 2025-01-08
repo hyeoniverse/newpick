@@ -57,7 +57,7 @@ const Header = () => {
 							로그인
 						</Button>
 					)}
-					<Button scheme="outline" style={{ width: '5rem' }} onClick={() => openModal('subscribe')}>
+					<Button scheme="secondary" style={{ width: '5rem' }} onClick={() => openModal('subscribe')}>
 						구독하기
 					</Button>
 				</div>

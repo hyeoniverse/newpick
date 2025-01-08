@@ -76,7 +76,7 @@ export const StyledButton = styled.button.withConfig({
 		color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].hover.color};
 		background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].hover.background};
 		border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].hover.border};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		// font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 	}
 
 	&[data-tooltip]:hover::after,
@@ -95,7 +95,7 @@ export const StyledButton = styled.button.withConfig({
 		text-align: left;
 
 		background: ${({ theme }) => theme.color.surface};
-		color: ${({ theme }) => theme.color.onSurface};
+		color: ${({ theme }) => theme.color.lightGrey};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		border-radius: ${({ theme }) => theme.borderRadius.medium};
 		box-shadow: ${({ theme }) => theme.shadow.soft};
