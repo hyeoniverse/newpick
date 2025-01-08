@@ -23,7 +23,7 @@ export type BorderRadius = 'flat' | 'soft' | 'medium' | 'rounded' | 'capsule' | 
 export type Shadow = 'light' | 'medium' | 'heavy';
 
 export type ButtonSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
-export type ButtonScheme = 'primary' | 'secondary' | 'mono' | 'monoOutline' | 'danger';
+export type ButtonScheme = 'primary' | 'secondary' | 'mono' | 'monoOutline' | 'danger' | 'default';
 export type LayoutWidth = 'small' | 'medium' | 'large';
 export type MediaQuery = 'mobile' | 'tablet' | 'desktop';
 
@@ -77,7 +77,7 @@ interface Theme {
 export const lightTheme: Theme = {
   name: 'light',
   color: {
-    primary: '#2705C0',
+    primary: '#3610e1',
     secondary: '#5564F1',
     background: '#FFFFFF',
     surface: '#F9F9F9',
@@ -159,25 +159,25 @@ export const lightTheme: Theme = {
     primary: {
       color: '#FFFFFF',
       fontWeight: '700',
-      background: '#2705C0',
-      border: '1px solid #2705C0',
+      background: '#3610e1',
+      border: '1px solid #3610e1',
       hover: {
-        color: '#2705C0',
+        color: '#3610e1',
         fontWeight: '700',
         background: 'transparent',
-        border: '1px solid #2705C0',
+        border: '1px solid #3610e1',
       },
     },
     secondary: {
-      color: '#2705C0',
+      color: '#3610e1',
       fontWeight: '700',
       background: 'transparent',
-      border: '1px solid #2705C0',
+      border: '1px solid #3610e1',
       hover: {
         color: '#ffffff',
         fontWeight: '700',
         background: '#2705C0',
-	      border: '1px solid #2705C0',
+	      border: '1px solid #3610e1',
       },
     },
     mono: {
@@ -216,6 +216,16 @@ export const lightTheme: Theme = {
 	      border: '1px solid #D32F2F',
       },
     },
+    default: {
+      color: '#000000',
+      fontWeight: '700',
+      background: 'transparent',
+      border: 'none',
+      hover: {
+        color: '#3610e1',
+        background: '#f4f1ff'
+      },
+    },
   },
   shadow: {
     light: '0px 1px 3px rgba(0, 0, 0, 0.1)',
@@ -224,15 +234,15 @@ export const lightTheme: Theme = {
   },
   layout: {
     width: {
-      large: '1020px',
-      medium: '760px',
-      small: '320px',
+      large: '1024px',
+      medium: '768px',
+      small: '375px',
     },
   },
   mediaQuery: {
-    mobile: '(max-width: 768px)',
-    tablet: '(max-width: 1024px)',
-    desktop: '(min-width: 1025px)',
+    desktop: '(max-width: 1024px)',
+    tablet: '(max-width: 768px)',
+    mobile: '(max-width: 375px)',
   },
 };
 
@@ -262,14 +272,14 @@ export const darkTheme: Theme = {
 	    border: '1px solid #8C9EFF',
       hover: {
         color: '#8C9EFF',
-        fontWeight: '600',
+        fontWeight: '700',
         background: 'transparent',
         border: '1px solid #8C9EFF',
       },
     },
     secondary: {
       color: '#8C9EFF',
-      fontWeight: '600',
+      fontWeight: '700',
       background: 'transparent',
       border: '1px solid #8C9EFF',
       hover: {
@@ -286,14 +296,14 @@ export const darkTheme: Theme = {
 	    border: '1px solid #808080',
       hover: {
         color: '#f1f1f1',
-        fontWeight: '600',
+        fontWeight: '700',
         background: 'transparent',
         border: '1px solid #808080',
       },
     },
     monoOutline: {
       color: '#f1f1f1',
-      fontWeight: '600',
+      fontWeight: '700',
       background: 'transparent',
       border: '1px solid #f1f1f1',
       hover: {
@@ -305,14 +315,24 @@ export const darkTheme: Theme = {
     },
     danger: {
       color: '#FFFFFF',
-      fontWeight: '600',
+      fontWeight: '700',
       background: '#EF5350',
 	    border: '1px solid #EF5350',
       hover: {
         color: '#FFFFFF',
-	      fontWeight: '600',
+	      fontWeight: '700',
 	      background: '#D32F2F',
 	      border: '1px solid #D32F2F',
+      },
+    },
+    default: {
+      color: '#f1f1f1',
+      fontWeight: '700',
+      background: 'transparent',
+      border: 'none',
+      hover: {
+        color: '#9ca9ff',
+        background: '#0f1d7a'
       },
     },
   },

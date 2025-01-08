@@ -25,6 +25,9 @@ export const GlobalStyle = createGlobalStyle<Props>`
     padding: 0;
     color: ${({ theme }) => theme.color.text};
     background: ${({ theme }) => theme.color.background};
+	  overflow-x: hidden;
+	  overflow-y: hidden;
+
   }
 
   a {

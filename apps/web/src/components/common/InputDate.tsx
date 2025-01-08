@@ -63,10 +63,6 @@ const StyledInputDate = styled.div`
 		color: ${({ theme }) => theme.color.text};
 		outline: none;
 
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-
 		&:focus {
 			border-color: ${({ theme }) => theme.color.primary};
 		}
