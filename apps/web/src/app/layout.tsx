@@ -18,7 +18,7 @@ export default function RootLayout({
 	return (
 		<html lang="ko">
 			<head>
-				<link rel="icon" href="/icons/logo_small.ico" />
+				<link rel="icon" href="/icons/favicon.svg" />
 			</head>
 			<body>
 				<StyledComponentsRegistry>

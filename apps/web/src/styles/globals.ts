@@ -30,4 +30,12 @@ export const GlobalStyle = createGlobalStyle<Props>`
   a {
     text-decoration: none;
   }
+
+  input {
+	  outline: none;
+  }
+  
+  ul, li {
+	  list-style: none;
+  }
 `;

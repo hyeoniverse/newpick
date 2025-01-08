@@ -22,7 +22,7 @@ const StyledLoader = styled.div<{ $size?: string }>`
 	svg {
 		width: ${({ theme, $size }) => ($size ? theme.fontSize[$size] : '4rem')};
 		height: ${({ theme, $size }) => ($size ? theme.fontSize[$size] : '4rem')};
-		fill: ${({ theme }) => theme.color.primary};
+		fill: ${({ theme }) => theme.color.secondary};
 		animation: rotate 1s linear infinite;
 	}
 

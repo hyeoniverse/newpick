@@ -41,10 +41,8 @@ const StyledInputText = styled.div`
 	input {
 		display: flex;
 		width: 100%;
-		height: fit-content;
-		border: none;
-		outline: 1px solid ${({ theme }) => theme.color.line};
-		//box-shadow: ${({ theme }) => theme.shadow.light};
+		height: 3rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
 		overflow: visible;
 		padding: 0.6rem 1.2rem;
 		line-height: 1.8;
@@ -55,8 +53,7 @@ const StyledInputText = styled.div`
 		font-size: ${({ theme }) => theme.fontSize.small};
 
 		&:focus {
-			//box-shadow: ${({ theme }) => theme.shadow.default};
-			background: ${({ theme }) => theme.color.surface};
+			border-color: ${({ theme }) => theme.color.primary};
 		}
 
 		&::placeholder {

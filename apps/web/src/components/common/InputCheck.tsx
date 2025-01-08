@@ -76,14 +76,14 @@ const StyledInputCheck = styled.div<StyleProps>`
 		appearance: none;
 		border-radius: 8px;
 		background: ${({ theme }) => theme.color.blur};
-		box-shadow: ${({ theme }) => theme.shadow.light};
+		border: 1px solid ${({ theme }) => theme.color.border};
 
 		&:checked {
 			background: ${({ theme }) => theme.color.primary};
 		}
 
 		&:focus {
-			box-shadow: ${({ theme }) => theme.shadow.default};
+			// box-shadow: ${({ theme }) => theme.shadow.default};
 		}
 	}
 `;

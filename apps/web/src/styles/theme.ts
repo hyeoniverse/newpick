@@ -46,8 +46,6 @@ interface Theme {
     [key in ButtonSize]: {
       fontSize: string;
 			padding: string;
-      // height: string;
-      // width: string;
       gap?: string;
     };
   };
@@ -134,43 +132,33 @@ export const lightTheme: Theme = {
     extraLarge: {
       fontSize: '1.125rem',
 	    padding: '1rem 2rem',
-      // width: '13.75rem',
-      // height: '3.75rem',
       gap: '0.75rem',
     },
     large: {
       fontSize: '1rem',
 	    padding: '1rem 1.5rem',
-      // width: '12rem',
-      // height: '3.25rem',
       gap: '0.75rem',
     },
     medium: {
       fontSize: '1rem',
 	    padding: '0.8rem 1.2rem',
-      // width: '10.5rem',
-      // height: '3.125rem',
       gap: '0.75rem',
     },
     small: {
       fontSize: '0.875rem',
 	    padding: '0.5rem 0.8rem',
-      // width: '8rem',
-      // height: '2.75rem',
       gap: '0.75rem',
     },
     extraSmall: {
       fontSize: '0.875rem',
 	    padding: '0 0.5rem',
-      // width: '5.75rem',
-      // height: '2.125rem',
       gap: '0.75rem',
     },
   },
   buttonScheme: {
     primary: {
       color: '#FFFFFF',
-      fontWeight: '600',
+      fontWeight: '700',
       background: '#2705C0',
       border: '1px solid #2705C0',
       hover: {
@@ -187,14 +175,14 @@ export const lightTheme: Theme = {
       border: '1px solid #2705C0',
       hover: {
         color: '#ffffff',
-        fontWeight: '600',
+        fontWeight: '700',
         background: '#2705C0',
 	      border: '1px solid #2705C0',
       },
     },
     mono: {
       color: '#ffffff',
-      fontWeight: '600',
+      fontWeight: '700',
       background: '#222222',
 	    border: '1px solid #222222',
       hover: {
@@ -211,7 +199,7 @@ export const lightTheme: Theme = {
       border: '1px solid #999999',
       hover: {
         color: '#ffffff',
-        fontWeight: '600',
+        fontWeight: '700',
         background: '#222222',
 	      border: '1px solid #222222',
       },
@@ -252,19 +240,19 @@ export const darkTheme: Theme = {
   ...lightTheme,
   name: 'dark',
   color: {
-    primary: '#8C9EFF',
-    secondary: '#364ECC',
+    primary: '#9ca9ff',
+    secondary: '#6980ff',
     background: '#121212',
     surface: '#1E1E1E',
     disabled: '#555555',
     success: '#66BB6A',
     error: '#EF5350',
     warning: '#FFB300',
-    text: '#000000',
-    subtext: '#f1f1f1',
-    lightGrey: '#999999',
+    text: '#f1f1f1',
+    subtext: '#a3a3a3',
+    lightGrey: '#606060',
     line: '#2D2D2D',
-    border: '#3C3C3C',
+    border: '#808080',
   },
   buttonScheme: {
     primary: {
@@ -292,27 +280,27 @@ export const darkTheme: Theme = {
       },
     },
     mono: {
-      color: '#f1f1f1',
+      color: '#121212',
       fontWeight: '700',
-      background: '#222222',
-	    border: '1px solid #222222',
+      background: '#f1f1f1',
+	    border: '1px solid #808080',
       hover: {
-        color: '#999999',
+        color: '#f1f1f1',
         fontWeight: '600',
         background: 'transparent',
-        border: '1px solid #444444',
+        border: '1px solid #808080',
       },
     },
     monoOutline: {
-      color: '#999999',
+      color: '#f1f1f1',
       fontWeight: '600',
       background: 'transparent',
-      border: '1px solid #444444',
+      border: '1px solid #f1f1f1',
       hover: {
-        color: '#f1f1f1',
+        color: '#121212',
         fontWeight: '700',
-        background: '#222222',
-	      border: '1px solid #222222',
+        background: '#f1f1f1',
+	      border: '1px solid #808080',
       },
     },
     danger: {
