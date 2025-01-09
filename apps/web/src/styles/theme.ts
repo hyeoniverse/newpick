@@ -4,6 +4,7 @@ export type ColorKey =
   | 'primary' // 주요 색상
   | 'secondary' // 보조 색상
   | 'background' // 배경 색상
+  | 'colorBackground' // 컬러 배경 색상 (연보라)
   | 'surface' // 표면 색상 ex) 카드, 버튼
   | 'disabled' // 비활성 색상
   | 'success' // 성공 색상
@@ -45,7 +46,7 @@ interface Theme {
   button: {
     [key in ButtonSize]: {
       fontSize: string;
-			padding: string;
+      padding: string;
       gap?: string;
     };
   };
@@ -80,6 +81,7 @@ export const lightTheme: Theme = {
     primary: '#3610e1',
     secondary: '#5564F1',
     background: '#FFFFFF',
+    colorBackground: '#f4f1ff',
     surface: '#F9F9F9',
     disabled: '#BDBDBD',
     success: '#8BC34A',
@@ -89,7 +91,7 @@ export const lightTheme: Theme = {
     subtext: '#444444',
     lightGrey: '#999999',
     line: '#d9d9d9',
-    border: '#999999',
+    border: '#d9d9d9',
   },
   fontSize: {
     extraSmall: '0.875rem',
@@ -131,27 +133,27 @@ export const lightTheme: Theme = {
   button: {
     extraLarge: {
       fontSize: '1.125rem',
-	    padding: '1rem 2rem',
+      padding: '1rem 2rem',
       gap: '0.75rem',
     },
     large: {
       fontSize: '1rem',
-	    padding: '1rem 1.5rem',
+      padding: '1rem 1.5rem',
       gap: '0.75rem',
     },
     medium: {
       fontSize: '1rem',
-	    padding: '0.8rem 1.2rem',
+      padding: '0.8rem 1.2rem',
       gap: '0.75rem',
     },
     small: {
       fontSize: '0.875rem',
-	    padding: '0.5rem 0.8rem',
+      padding: '0.5rem 0.8rem',
       gap: '0.75rem',
     },
     extraSmall: {
       fontSize: '0.875rem',
-	    padding: '0 0.5rem',
+      padding: '0 0.5rem',
       gap: '0.75rem',
     },
   },
@@ -177,14 +179,14 @@ export const lightTheme: Theme = {
         color: '#ffffff',
         fontWeight: '700',
         background: '#2705C0',
-	      border: '1px solid #3610e1',
+        border: '1px solid #3610e1',
       },
     },
     mono: {
       color: '#ffffff',
       fontWeight: '700',
       background: '#222222',
-	    border: '1px solid #222222',
+      border: '1px solid #222222',
       hover: {
         color: '#444444',
         fontWeight: '700',
@@ -201,19 +203,19 @@ export const lightTheme: Theme = {
         color: '#ffffff',
         fontWeight: '700',
         background: '#222222',
-	      border: '1px solid #222222',
+        border: '1px solid #222222',
       },
     },
     danger: {
       color: '#FFFFFF',
       fontWeight: '700',
       background: '#E57373',
-	    border: '1px solid #E57373',
+      border: '1px solid #E57373',
       hover: {
         color: '#ffffff',
         fontWeight: '700',
         background: '#D32F2F',
-	      border: '1px solid #D32F2F',
+        border: '1px solid #D32F2F',
       },
     },
     default: {
@@ -223,7 +225,7 @@ export const lightTheme: Theme = {
       border: 'none',
       hover: {
         color: '#3610e1',
-        background: '#f4f1ff'
+        background: '#f4f1ff',
       },
     },
   },
@@ -253,6 +255,7 @@ export const darkTheme: Theme = {
     primary: '#9ca9ff',
     secondary: '#6980ff',
     background: '#121212',
+    colorBackground: '#0f1d7a',
     surface: '#1E1E1E',
     disabled: '#555555',
     success: '#66BB6A',
@@ -262,14 +265,14 @@ export const darkTheme: Theme = {
     subtext: '#a3a3a3',
     lightGrey: '#606060',
     line: '#2D2D2D',
-    border: '#808080',
+    border: '#606060',
   },
   buttonScheme: {
     primary: {
       color: '#121212',
       fontWeight: '700',
       background: '#8C9EFF',
-	    border: '1px solid #8C9EFF',
+      border: '1px solid #8C9EFF',
       hover: {
         color: '#8C9EFF',
         fontWeight: '700',
@@ -286,14 +289,14 @@ export const darkTheme: Theme = {
         color: '#121212',
         fontWeight: '700',
         background: '#8C9EFF',
-	      border: '1px solid #8C9EFF',
+        border: '1px solid #8C9EFF',
       },
     },
     mono: {
       color: '#121212',
       fontWeight: '700',
       background: '#f1f1f1',
-	    border: '1px solid #808080',
+      border: '1px solid #808080',
       hover: {
         color: '#f1f1f1',
         fontWeight: '700',
@@ -310,19 +313,19 @@ export const darkTheme: Theme = {
         color: '#121212',
         fontWeight: '700',
         background: '#f1f1f1',
-	      border: '1px solid #808080',
+        border: '1px solid #808080',
       },
     },
     danger: {
       color: '#FFFFFF',
       fontWeight: '700',
       background: '#EF5350',
-	    border: '1px solid #EF5350',
+      border: '1px solid #EF5350',
       hover: {
         color: '#FFFFFF',
-	      fontWeight: '700',
-	      background: '#D32F2F',
-	      border: '1px solid #D32F2F',
+        fontWeight: '700',
+        background: '#D32F2F',
+        border: '1px solid #D32F2F',
       },
     },
     default: {
@@ -332,7 +335,7 @@ export const darkTheme: Theme = {
       border: 'none',
       hover: {
         color: '#9ca9ff',
-        background: '#0f1d7a'
+        background: '#0f1d7a',
       },
     },
   },

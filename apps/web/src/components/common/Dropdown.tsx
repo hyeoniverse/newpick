@@ -67,7 +67,6 @@ interface StyleProps {
 const StyledDropdown = styled.div<StyleProps>`
     position: relative;
     cursor: pointer;
-    display: none;
 
     button {
         cursor: pointer;
@@ -133,6 +132,8 @@ const StyledDropdown = styled.div<StyleProps>`
     }
 
     &.drawer {
+        display: none;
+
         .panel {
             transform-origin: top;
             transform: ${({$open}) => ($open ? 'scaleY(1)' : 'scaleY(0)')};

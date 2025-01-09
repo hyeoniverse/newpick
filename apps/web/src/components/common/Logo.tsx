@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import styled from 'styled-components';
-import { PCLogo, MoLogo } from '@/components/common/logos/LogoSVG';
+import { PCLogo, MoLogo } from '@/components/common/svg/LogoSVG';
 
 interface Props {
   logoType?: 'footer-logo'; // 허용 가능한 값 명시

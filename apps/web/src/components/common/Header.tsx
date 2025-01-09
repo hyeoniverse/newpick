@@ -34,30 +34,32 @@ const Header = () => {
         <div className="right-section">
           <ThemeSwitcher className="mobile-hidden" />
           {isLogin ? (
-            <Dropdown
-              className="auth"
-              toggleButton={
+              <Dropdown
+                className="auth"
+                toggleButton={
+                  <>
+                    <Button scheme="secondary">
+                      내 정보
+                      <FaUserCircle className="userCircle" />
+                    </Button>
+                  </>
+                }
+              >
                 <>
-                  <Button scheme="secondary">
-                    내 정보
-                    {/*<FaUserCircle className="userCircle" />*/}
+                  <ThemeSwitcher className="desktop-hidden" />
+                  <Link href="/mypage" className="item">마이페이지</Link>
+                  <Button scheme="default" onClick={toggleLogin}>
+                    로그아웃
                   </Button>
                 </>
-              }
-            >
-              <>
-                <ThemeSwitcher className="desktop-hidden" />
-                <Link href="/myPage" className="item">마이페이지</Link>
-                <Button scheme="default" onClick={toggleLogin}>
-                  로그아웃
-                </Button>
-              </>
-            </Dropdown>
-          ) : (
-            <Button scheme="secondary" onClick={toggleLogin} style={{width: '5rem'}}>
-              로그인
-            </Button>
-          )}
+              </Dropdown>
+            )
+            :
+            (
+              <Button scheme="secondary" onClick={toggleLogin} style={{width: '5rem'}}>
+                로그인
+              </Button>
+            )}
           <Button scheme="primary" style={{width: '5rem'}} onClick={() => openModal('subscribe')}>
             구독하기
           </Button>
