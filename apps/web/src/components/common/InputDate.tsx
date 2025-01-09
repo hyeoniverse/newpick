@@ -55,59 +55,62 @@ const StyledInputDate = styled.div`
 
 	.custom-datepicker {
 		width: 100%;
-		border: none;
+		height: 3rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
 		padding: 0.6rem 1.2rem;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
-		background-color: ${({ theme }) => theme.color.blur};
+		background-color: transparent;
 		font-size: ${({ theme }) => theme.fontSize.small};
 		color: ${({ theme }) => theme.color.text};
-		box-shadow: ${({ theme }) => theme.shadow.light};
 		outline: none;
-
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
 
 		&:focus {
 			border-color: ${({ theme }) => theme.color.primary};
-			box-shadow: ${({ theme }) => theme.shadow.medium};
+		}
+
+		&::placeholder {
+			color: ${({ theme }) => theme.color.lightGrey};
 		}
 	}
 
 	.react-datepicker__header {
-		background-color: ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.onPrimary};
+		background-color: ${({ theme }) => theme.color.secondary};
+		color: ${({ theme }) => theme.color.background};
 		border-bottom: none;
 	}
 
 	.react-datepicker__current-month,
 	.react-datepicker-time__header {
 		font-size: ${({ theme }) => theme.fontSize.medium};
+		color: ${({ theme }) => theme.color.background};
+	}
+	
+	.react-datepicker__day-name {
+		color: ${({ theme }) => theme.color.background};;
 	}
 
 	.react-datepicker__day--selected,
 	.react-datepicker__day--keyboard-selected {
-		background-color: ${({ theme }) => theme.color.secondary};
-		color: ${({ theme }) => theme.color.onSecondary};
+		background-color: ${({ theme }) => theme.color.primary};
+		color: ${({ theme }) => theme.color.background};
 		border-radius: ${({ theme }) => theme.borderRadius.small};
 	}
 
 	.react-datepicker__day:hover {
-		background-color: ${({ theme }) => theme.color.background};
-		color: ${({ theme }) => theme.color.onPrimary};
+		background-color: ${({ theme }) => theme.color.secondary};
+		color: ${({ theme }) => theme.color.background};
 	}
 
 	.react-datepicker__year-dropdown,
 	.react-datepicker__month-dropdown {
-		background-color: ${({ theme }) => theme.color.surface};
+		background-color: ${({ theme }) => theme.color.background};
 		color: ${({ theme }) => theme.color.text};
 		border: 1px solid ${({ theme }) => theme.color.border};
 	}
 
 	.react-datepicker__year-option:hover,
 	.react-datepicker__month-option:hover {
-		background-color: ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.onPrimary};
+		background-color: ${({ theme }) => theme.color.secondary};
+		color: ${({ theme }) => theme.color.background};
 	}
 `;
 

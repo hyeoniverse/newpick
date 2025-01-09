@@ -8,7 +8,7 @@ const Footer = () => {
 	return (
 		<StyledFooter>
 			<div className="footer">
-				<Logo />
+				<Logo logoType='footer-logo'/>
 				<div className="footer-menu">
 					<Link className="footer-item" href="#">
 						Privacy Policy
@@ -34,7 +34,7 @@ const StyledFooter = styled.footer`
 
 	width: 100%;
 	margin-top: auto;
-	padding: 4rem 0 3rem 0;
+	padding: 3rem 0;
 	background: ${({ theme }) => theme.color.surface};
 	border-top: 1px solid ${({ theme }) => theme.color.border};
 
@@ -48,6 +48,11 @@ const StyledFooter = styled.footer`
 		width: 100%;
 		max-width: ${({ theme }) => theme.layout.width.large};
 		padding: 0 1rem;
+
+		p {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.lightGrey};
+		}
 	}
 
 	.footer-menu {
@@ -56,8 +61,8 @@ const StyledFooter = styled.footer`
 		gap: 1rem;
 
 		a {
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: ${({ theme }) => theme.color.text};
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.subtext};
 			cursor: pointer;
 
 			&:hover {
@@ -65,6 +70,7 @@ const StyledFooter = styled.footer`
 				color: ${({ theme }) => theme.color.primary};
 			}
 		}
+
 	}
 `;
 

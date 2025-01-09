@@ -99,14 +99,14 @@ const StyledInputSelect = styled.div<StyleProps>`
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.5rem 1rem;
-		box-shadow: ${({ theme }) => theme.shadow.light};
+		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.borderRadius.default};
 		background: ${({ theme }) => theme.color.blur};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		cursor: pointer;
 		line-height: 1.8;
-		height: 2.5rem;
-		z-index: 1000;
+		height: 3rem;
+		z-index: 1000;		
 
 		.select-arrow {
 			margin-left: 0.5rem;
@@ -131,7 +131,6 @@ const StyledInputSelect = styled.div<StyleProps>`
 
 		position: absolute;
 		top: 100%;
-		max-height: 10rem;
 		overflow-y: auto;
 		margin: 0;
 		padding: 0.5rem;
@@ -150,13 +149,13 @@ const StyledInputSelect = styled.div<StyleProps>`
 			white-space: nowrap;
 
 			&.selected {
-				background: ${({ theme }) => theme.color.blur};
-				box-shadow: ${({ theme }) => theme.shadow.light};
+				background: ${({ theme }) => theme.color.primary};
+				color: ${({ theme }) => theme.color.background};
 			}
 
 			&:hover {
 				background: ${({ theme }) => theme.color.secondary};
-				box-shadow: ${({ theme }) => theme.shadow.light};
+				color: ${({ theme }) => theme.color.background};
 			}
 		}
 	}

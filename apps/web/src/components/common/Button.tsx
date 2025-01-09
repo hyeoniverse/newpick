@@ -45,9 +45,9 @@ export const StyledButton = styled.button.withConfig({
 	padding: ${({ theme, size }) => theme.button[size ?? 'small'].padding};
 	gap: ${({ theme, size }) => theme.button[size ?? 'small'].gap};
 
-	color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].color};
-	background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].background};
-	border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].border};
+	color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].color};
+	background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].background};
+	border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].border};
 	border-radius: ${({ theme }) => theme.borderRadius.flat};
 	opacity: ${({ disabled }) => (disabled ? 0.5 : 1)};
 	pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
@@ -67,16 +67,16 @@ export const StyledButton = styled.button.withConfig({
 		height: calc(${({ theme, size }) => theme.button[size ?? 'small'].fontSize} * 1.2);
 
 		&:hover {
-			color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].hover.color};
-			background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].hover.background};
+			color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.color};
+			background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.background};
 		}
 	}
 
 	&:hover {
-		color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].hover.color};
-		background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].hover.background};
-		border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'secondary'].hover.border};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.color};
+		background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.background};
+		border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.border};
+		// font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 	}
 
 	&[data-tooltip]:hover::after,
@@ -95,7 +95,7 @@ export const StyledButton = styled.button.withConfig({
 		text-align: left;
 
 		background: ${({ theme }) => theme.color.surface};
-		color: ${({ theme }) => theme.color.onSurface};
+		color: ${({ theme }) => theme.color.lightGrey};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		border-radius: ${({ theme }) => theme.borderRadius.medium};
 		box-shadow: ${({ theme }) => theme.shadow.soft};
