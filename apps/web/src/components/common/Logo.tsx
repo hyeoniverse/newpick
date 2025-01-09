@@ -12,12 +12,8 @@ const Logo = ({logoType}: Props) => {
   return (
     <Link href="/">
       <StyledLogo>
-        <PCLogo className={logoType === 'footer-logo' ? 'footer-logo desktop-logo' : 'desktop-logo'} />
-        {logoType === 'footer-logo' ?
-          <PCLogo className={logoType === 'footer-logo' ? 'footer-mobile-logo' : 'mobile-logo'} />
-          :
-          <MoLogo className="mobile-logo" />
-        }
+        <PCLogo className={logoType === 'footer-logo' ? 'footer-desktop-logo' : 'desktop-logo'} />
+        <MoLogo className={logoType === 'footer-logo' ? 'footer-mobile-logo' : 'mobile-logo'} />
       </StyledLogo>
     </Link>
   );
@@ -31,7 +27,7 @@ const StyledLogo = styled.div`
     display: flex;
     justify-content: center;
 
-    .mobile-logo {
+    .mobile-logo, .footer-mobile-logo {
         display: none;
     }
 
@@ -39,17 +35,15 @@ const StyledLogo = styled.div`
         height: 22px;
     }
 
-    .footer-logo {
+    .footer-desktop-logo {
         color: ${({theme}) => theme.color.subtext};
         height: 32px;
     }
+    
 
-    .footer-mobile-logo {
-        display: none;
-    }
 
     @media ${({theme}) => theme.mediaQuery.tablet} {
-        .desktop-logo {
+        .desktop-logo, .footer-desktop-logo {
             display: none;
         }
 
@@ -62,7 +56,7 @@ const StyledLogo = styled.div`
         .footer-mobile-logo {
             display: block;
             color: ${({theme}) => theme.color.subtext};
-            height: 32px;
+            height: 48px;
         }
     }
 

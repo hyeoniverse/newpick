@@ -34,7 +34,7 @@ const StyledFooter = styled.footer`
 
 	width: 100%;
 	margin-top: auto;
-	padding: 4rem 0 3rem 0;
+	padding: 3rem 0;
 	background: ${({ theme }) => theme.color.surface};
 	border-top: 1px solid ${({ theme }) => theme.color.border};
 
