@@ -25,6 +25,7 @@ export const GlobalStyle = createGlobalStyle<Props>`
         padding: 0;
         color: ${({theme}) => theme.color.text};
         background: ${({theme}) => theme.color.background};
+        scroll-behavior: smooth;
 
         /* 스크롤바 숨김 처리 (브라우저별 설정) */
         scrollbar-width: none; /* Firefox */
@@ -37,6 +38,7 @@ export const GlobalStyle = createGlobalStyle<Props>`
 
     a {
         text-decoration: none;
+        color: ${({theme}) => theme.color.text};
     }
 
     input {

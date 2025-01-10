@@ -64,10 +64,10 @@ const SubscribeToggleStyled = styled.div`
         width: 14rem;
         font-weight: ${({theme}) => theme.fontWeight.medium};
         cursor: pointer;
-        transition: background-color 0.5s, border-color 0.5s, color 0.5s;
 
         &:hover {
-            opacity: 0.9;
+            color: ${({theme}) => theme.color.primary};
+            border: 1px solid ${({theme}) => theme.color.primary};
             transition: background-color 0.5s, border-color 0.5s, color 0.5s;
         }
 

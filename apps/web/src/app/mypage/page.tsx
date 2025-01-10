@@ -3,10 +3,10 @@
 import styled from "styled-components";
 import Profile from "@/components/mypage/profile/Profile";
 import TabBtn from "@/components/mypage/TabBtn";
-import MySubscribe from "@/components/mypage/MySubscribe";
+import MySubscribe from "@/components/mypage/tabpage/MySubscribe";
 import { useState } from "react";
-import MyBookmark from "@/components/mypage/MyBookmark";
-import MyNewsletterSetting from "@/components/mypage/MyNewsletterSetting";
+import MyBookmark from "@/components/mypage/tabpage/MyBookmark";
+import MyNewsletterSetting from "@/components/mypage/tabpage/MyNewsletterSetting";
 
 function Page() {
   const [ activeTab, setActiveTab ] = useState("subscribe")
