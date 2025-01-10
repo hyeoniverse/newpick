@@ -13,7 +13,6 @@ function TapBtn({ activeTab, setActiveTab }: TabProps) {
         className={activeTab === 'subscribe' ? 'active' : ''}
       >
         구독한 뉴스레터
-        {subsnewsletter.length}
       </button>
       <button
         onClick={() => setActiveTab('subscribe')}
