@@ -1,5 +1,6 @@
 import styled from 'styled-components';
 import SubscribeToggle from '@/components/mypage/profile/SubscribeToggle';
+import { USERKEYWORD } from '@/constants/mypageData';
 
 function Profile() {
   return (
@@ -10,10 +11,9 @@ function Profile() {
           <h4>uerId</h4>
           <p>gmail@gmail.com</p>
           <ul>
-            <li>#keyword1</li>
-            <li>#keyword2</li>
-            <li>#keyword3</li>
-            <li>#key4</li>
+            {USERKEYWORD.map((keyword, i) => (
+              <li key={i}>{keyword.keyword}</li>
+            ))}
           </ul>
         </div>
       </div>
@@ -29,6 +29,7 @@ const ProfileStyled = styled.div`
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    gap: 2rem;
 
     .profile {
         display: flex;
@@ -55,11 +56,24 @@ const ProfileStyled = styled.div`
 
             ul {
                 display: flex;
+                flex-wrap: wrap;
                 flex-direction: row;
-                gap: 0.875rem;
+                gap: 0.125rem 0.875rem;
                 color: ${({theme}) => theme.color.subtext};
+                font-size: ${({theme}) => theme.fontSize.extraSmall};
             }
         }
+        
+        @media screen and ${({ theme }) => theme.mediaQuery.mobile} {
+            flex-direction: column;
+        };
+    }
+
+    @media screen and ${({theme}) => theme.mediaQuery.tablet} {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.25rem;
     }
 `;
 
