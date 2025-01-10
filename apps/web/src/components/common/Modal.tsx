@@ -148,6 +148,9 @@ const StyledModal = styled.div`
 		min-height: 20rem;
 		display: flex;
 		flex-direction: column;
+		
+		align-items: center;
+		justify-content: center;
 	}
 
 	.modal-contents {

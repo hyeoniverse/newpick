@@ -25,8 +25,13 @@ export const GlobalStyle = createGlobalStyle<Props>`
     padding: 0;
     color: ${({ theme }) => theme.color.text};
     background: ${({ theme }) => theme.color.background};
-	  overflow-x: hidden;
-	  overflow-y: hidden;
+
+	  /* 스크롤바 숨김 처리 (브라우저별 설정) */
+	  scrollbar-width: none; /* Firefox */
+	  &::-webkit-scrollbar {
+		  display: none; /* Webkit 기반 브라우저 (Chrome, Safari, Edge) */
+	  }
+	  -ms-overflow-style: none; /* IE, Edge */
 
   }
 

@@ -2,6 +2,7 @@
 
 import styled from 'styled-components';
 import Profile from '@/components/mypage/profile/Profile';
+import TapBtn from '@/components/mypage/TapBtn';
 
 function Page() {
 
@@ -10,6 +11,7 @@ function Page() {
     <PageStyled>
       <p className='title'>마이페이지</p>
       <Profile />
+      <TapBtn/>
 
     </PageStyled>
   );
