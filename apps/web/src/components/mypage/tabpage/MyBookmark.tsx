@@ -97,7 +97,6 @@ const MyBookmarkStyled = styled.div`
     @media (${({ theme }) => theme.mediaQuery.mobile}) {
         grid-template-columns: repeat(1, 1fr);
     }
-
 `;
 
 

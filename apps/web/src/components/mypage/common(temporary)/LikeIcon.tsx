@@ -2,11 +2,6 @@ import { IoMdHeart, IoMdHeartEmpty } from "react-icons/io";
 import { useState } from "react";
 import { IconStyled } from "@/styles/Icons";
 
-interface LikeIconProps {
-  width?: string;
-  height?: string;
-}
-
 function LikeIcon() {
   const [ like, setLike ] = useState(false)
 
@@ -24,6 +19,5 @@ function LikeIcon() {
     </>
   );
 }
-
 
 export default LikeIcon;
