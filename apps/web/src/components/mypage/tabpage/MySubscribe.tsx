@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import SubscribeInfo from "@/components/mypage/tabpage/SubscribeInfo";
 import MySummaryCategory from "@/components/mypage/tabpage/MySummaryCategory";
-import { useEffect, useLayoutEffect, useState } from "react";
+import { useLayoutEffect, useState } from "react";
 
 function MySubscribe() {
   const [ activeCategory, setActiveCategory ] = useState<string>("");
@@ -15,7 +15,7 @@ function MySubscribe() {
     };
 
     const handleScroll = () => {
-      const currentScroll = window.scrollY; // 높이 더하기 빼기 조절
+      const currentScroll = window.scrollY - 110; // 높이 더하기 빼기 조절 (nav 높이값)
       let activeIndex = 0;
 
       for (let i = 0; i < sectionPositions.length; i++) {

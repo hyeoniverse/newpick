@@ -1,17 +1,15 @@
 import styled from "styled-components";
 import { SUMMARYNEWS } from "@/constants/mypageData";
-import { IoIosArrowForward, IoMdHeart, IoMdHeartEmpty } from "react-icons/io";
-import { useState } from "react";
+import { IoIosArrowForward } from "react-icons/io";
 import { LuExternalLink } from "react-icons/lu";
 import { LuLink2 } from "react-icons/lu";
 import Link from "next/link";
+import LikeIcon from "@/components/mypage/common(temporary)/LikeIcon";
+import LinkCopyIcon from "@/components/mypage/common(temporary)/LinkCopyIcon";
+import OrigLinkIcon from "@/components/mypage/common(temporary)/OrigLinkIcon";
+import ThumbImg from "@/components/mypage/common(temporary)/ThumbImg";
 
 function MySummaryCategory() {
-  const [ like, setLike ] = useState(false)
-
-  const handleLike = () => {
-    setLike(!like);
-  }
 
   return (
     <>
@@ -30,19 +28,15 @@ function MySummaryCategory() {
             </div>
 
             <div className="bottom">
-              <p className="text">{news.summary}</p>
-              <div>
-                <img src={news.img} alt="news-img" />
+              <div className="img-section">
+                <ThumbImg src={news.img} />
                 <div className="etc">
-                  {like ?
-                    <div className="icon" onClick={handleLike}><IoMdHeart /></div>
-                    :
-                    <div className="icon" onClick={handleLike}><IoMdHeartEmpty /></div>
-                  }
-                  <div className="icon" onClick={() => {}}><LuLink2 /></div>
-                  <div className="icon" onClick={() => {}}><LuExternalLink /></div>
+                  <LikeIcon />
+                  <LinkCopyIcon />
+                  <OrigLinkIcon />
                 </div>
               </div>
+              <p className="text">{news.summary}</p>
             </div>
 
           </div>
@@ -53,8 +47,6 @@ function MySummaryCategory() {
 }
 
 const MySummaryCategoryStyled = styled.div`
-
-
     @keyframes moveForward {
         0% {
             transform: translateX(0);
@@ -66,6 +58,7 @@ const MySummaryCategoryStyled = styled.div`
 
     .content {
         height: 100%;
+        max-width: 100%;
         margin-top: 3.75rem;
         scroll-margin-top: 7.4rem;
 
@@ -97,14 +90,15 @@ const MySummaryCategoryStyled = styled.div`
                 }
             }
         }
-        
+
         .bottom {
             height: 100%;
             display: flex;
             flex-direction: row;
             gap: 1.25rem;
-
+            
             .text {
+                flex: 2;
                 height: 100%;
                 background-color: ${({theme}) => theme.color.surface};
                 border: 1px solid ${({theme}) => theme.color.border};
@@ -113,46 +107,31 @@ const MySummaryCategoryStyled = styled.div`
                 color: ${({theme}) => theme.color.subtext};
             }
 
-            img {
-                width: 16rem;
-                height: 11.75rem;
-                border-radius: ${({theme}) => theme.borderRadius.medium};
-                margin-bottom: 0.125rem;
-            }
+            .img-section {
+                flex: 1;
 
-            .etc {
-                display: flex;
-                flex-direction: row;
-                padding: 1.25rem;
-                justify-content: center;
-                gap: 1.25rem;
-
-                .icon {
-                    background-color: ${({theme}) => theme.color.colorBackground};
-                    border-radius: ${({theme}) => theme.borderRadius.circle};
-                    width: 2.75rem;
-                    height: 2.75rem;
+                .etc {
                     display: flex;
+                    flex-direction: row;
+                    padding-top: 1.25rem;
                     justify-content: center;
-                    align-items: center;
-                    cursor: pointer;
-
-                    svg {
-                        width: 1.5rem;
-                        height: 1.5rem;
-                        color: ${({theme}) => theme.color.primary};
-
-                        &:hover {
-                            color: ${({theme}) => theme.color.secondary};
-                            transition: all .3s ease;
-                        }
-                    }
+                    gap: 1rem;
                 }
             }
-        }
 
+            @media (max-width: 768px) {
+                    flex-direction: column;
+
+                    .text, .img-section {
+                        flex: none;  /* flex 비율 대신 각자 100% 너비 (혹은 auto) */
+                        width: 100%;
+                    }
+                
+            }
+        }
     }
 
+    
 `;
 
 export default MySummaryCategory;
