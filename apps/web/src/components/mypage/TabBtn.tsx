@@ -42,6 +42,7 @@ const TabBtnStyled = styled.div`
     justify-content: flex-start;
 
     button {
+        cursor: pointer;
         padding: 0.5rem 0;
         width: 12rem;
         background-color: transparent;

@@ -16,7 +16,7 @@ const ThumbImgStyled = styled.img<ThumbImgProps>`
     width: ${(props) => props.width};
     height: ${(props) => props.height || "auto"};
     border-radius: ${({theme}) => theme.borderRadius.medium};
-    margin-bottom: 0.125rem;
+    margin-bottom: 1.25rem;
     display: block;
     max-width: 100%;
 `;

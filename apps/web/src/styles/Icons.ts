@@ -1,10 +1,10 @@
 import styled from "styled-components";
 
-export const IconStyled = styled.div`
-    background-color: ${({theme}) => theme.color.colorBackground};
+export const IconStyled = styled.button`
+    background-color: transparent;
     border-radius: ${({theme}) => theme.borderRadius.circle};
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 2.5rem;
+    height: 2.5rem;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -14,10 +14,10 @@ export const IconStyled = styled.div`
         width: 1.5rem;
         height: 1.5rem;
         color: ${({theme}) => theme.color.primary};
-
-        &:hover {
-            color: ${({theme}) => theme.color.secondary};
-            transition: all .3s ease;
-        }
+    }
+    
+    &:hover {
+        background-color: ${({theme}) => theme.color.colorBackground};
+        transition: all .3s ease;
     }
 `;

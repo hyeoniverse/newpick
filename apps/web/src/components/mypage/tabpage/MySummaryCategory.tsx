@@ -1,8 +1,6 @@
 import styled from "styled-components";
 import { SUMMARYNEWS } from "@/constants/mypageData";
 import { IoIosArrowForward } from "react-icons/io";
-import { LuExternalLink } from "react-icons/lu";
-import { LuLink2 } from "react-icons/lu";
 import Link from "next/link";
 import LikeIcon from "@/components/mypage/common(temporary)/LikeIcon";
 import LinkCopyIcon from "@/components/mypage/common(temporary)/LinkCopyIcon";
@@ -96,7 +94,7 @@ const MySummaryCategoryStyled = styled.div`
             display: flex;
             flex-direction: row;
             gap: 1.25rem;
-            
+
             .text {
                 flex: 2;
                 height: 100%;
@@ -113,25 +111,21 @@ const MySummaryCategoryStyled = styled.div`
                 .etc {
                     display: flex;
                     flex-direction: row;
-                    padding-top: 1.25rem;
                     justify-content: center;
                     gap: 1rem;
                 }
             }
 
             @media (max-width: 768px) {
-                    flex-direction: column;
+                flex-direction: column;
 
-                    .text, .img-section {
-                        flex: none;  /* flex 비율 대신 각자 100% 너비 (혹은 auto) */
-                        width: 100%;
-                    }
-                
+                .text, .img-section {
+                    flex: none; /* flex 비율 대신 각자 100% 너비 (혹은 auto) */
+                    width: 100%;
+                }
             }
         }
     }
-
-    
 `;
 
 export default MySummaryCategory;

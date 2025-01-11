@@ -15,16 +15,15 @@ function LikeIcon() {
   }
 
   return (
-    <IconStyled>
+    <>
       {like ?
-        <div onClick={handleLike}><IoMdHeart /></div>
+        <IconStyled onClick={handleLike}><IoMdHeart /></IconStyled>
         :
-        <div onClick={handleLike}><IoMdHeartEmpty /></div>
+        <IconStyled onClick={handleLike}><IoMdHeartEmpty /></IconStyled>
       }
-    </IconStyled>
+    </>
   );
 }
-
 
 
 export default LikeIcon;
