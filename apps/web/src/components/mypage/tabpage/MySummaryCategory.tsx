@@ -5,8 +5,6 @@ import { useState } from "react";
 import { LuExternalLink } from "react-icons/lu";
 import { LuLink2 } from "react-icons/lu";
 import Link from "next/link";
-import SubscribeInfo from "@/components/mypage/tabpage/SubscribeInfo";
-
 
 function MySummaryCategory() {
   const [ like, setLike ] = useState(false)
@@ -55,7 +53,7 @@ function MySummaryCategory() {
 }
 
 const MySummaryCategoryStyled = styled.div`
-    height: 100%;
+
 
     @keyframes moveForward {
         0% {
@@ -67,10 +65,12 @@ const MySummaryCategoryStyled = styled.div`
     }
 
     .content {
+        height: 100%;
         margin-top: 3.75rem;
-        scroll-margin-top: 7.875rem;
+        scroll-margin-top: 7.4rem;
 
         .top {
+            margin-top: 3.75rem;
             margin-bottom: 1.875rem;
 
             .category-name {
@@ -97,20 +97,20 @@ const MySummaryCategoryStyled = styled.div`
                 }
             }
         }
-
-
+        
         .bottom {
+            height: 100%;
             display: flex;
             flex-direction: row;
             gap: 1.25rem;
 
             .text {
+                height: 100%;
                 background-color: ${({theme}) => theme.color.surface};
                 border: 1px solid ${({theme}) => theme.color.border};
                 border-radius: ${({theme}) => theme.borderRadius.medium};
                 padding: 1.25rem;
                 color: ${({theme}) => theme.color.subtext};
-
             }
 
             img {

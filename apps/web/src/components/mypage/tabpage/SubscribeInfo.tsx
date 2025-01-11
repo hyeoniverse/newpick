@@ -15,6 +15,7 @@ function SubscribeInfo({ activeCategory }: SubscribeInfoProps) {
   const [ isSticky, setIsSticky ] = useState(false);
   const { handleAnchorNavigation } = useMypage();
 
+  // 스크롤 좌우 넓어지는 효과
   useEffect(() => {
     const handleScroll = () => {
       if (!navRef.current) return;
@@ -109,12 +110,13 @@ const ContentsStyled = styled.div`
         justify-content: center;
         gap: 0.2rem 1.25rem;
         color: ${({theme}) => theme.color.subtext};
-
+        
         .category {
-            &.active button {
+            &.active button{
                 color: ${({ theme }) => theme.color.primary};
                 font-weight: ${({ theme }) => theme.fontWeight.medium};
             }
+            
             button {
                 color: ${({ theme }) => theme.color.subtext};
                 cursor: pointer;

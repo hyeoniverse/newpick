@@ -4,60 +4,48 @@ import MySummaryCategory from "@/components/mypage/tabpage/MySummaryCategory";
 import { useEffect, useLayoutEffect, useState } from "react";
 
 function MySubscribe() {
-  const [ activeCategory, setActiveCategory ] = useState<string>('');
-
+  const [ activeCategory, setActiveCategory ] = useState<string>("");
 
   useLayoutEffect(() => {
-    const categories = document.querySelectorAll<HTMLElement>('.content');
+    const categories = document.querySelectorAll<HTMLElement>(".content");
+    let sectionPositions: number[] = [];
 
-    const options = {
-      root: null,
-      rootMargin: '110px 0px 0px 0px',
-      threshold: 0.74,
-    }
-
-    const observerCallback: IntersectionObserverCallback = (entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          setActiveCategory(entry.target.id);
-        }
-      })
-    }
-
-    const observer = new IntersectionObserver(observerCallback, options);
-
-    categories.forEach(category => {
-      observer.observe(category);
-    });
-    //
-    //
-    // if (categories[0]) {
-    //   setActiveCategory(categories[0].id);
-    // }
-
-    // 윈도우 리사이즈 시 옵저버 재설정
-    const handleResize = () => {
-      observer.disconnect();
-      categories.forEach(category => {
-        observer.observe(category);
-      });
+    const calcPositions = () => {
+      sectionPositions = Array.from(categories).map((cat) => cat.offsetTop);
     };
 
-    window.addEventListener('resize', handleResize);
+    const handleScroll = () => {
+      const currentScroll = window.scrollY; // 높이 더하기 빼기 조절
+      let activeIndex = 0;
 
+      for (let i = 0; i < sectionPositions.length; i++) {
+        if (sectionPositions[i] <= currentScroll) {
+          activeIndex = i;
+        }
+      }
+      setActiveCategory(categories[activeIndex]?.id || "");
+    };
+
+    // 처음 셋팅
+    calcPositions();
+    handleScroll();
+
+    // 스크롤, 리사이즈 이벤트 등록
+    window.addEventListener("scroll", handleScroll);
+    window.addEventListener("resize", () => {
+      calcPositions();
+      handleScroll();
+    });
 
     return () => {
-      categories.forEach(category => {
-        observer.unobserve(category);
-      })
-      window.removeEventListener('resize', handleResize);
-
-    }
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", calcPositions);
+    };
   }, []);
 
   return (
     <>
-      <SubscribeInfo activeCategory={activeCategory}/>
+      <SubscribeInfo activeCategory={activeCategory} />
       <MySubscribeStyled>
         <MySummaryCategory />
       </MySubscribeStyled>
@@ -69,7 +57,7 @@ const MySubscribeStyled = styled.div`
     position: relative;
     max-width: 1024px;
     margin: 0 auto;
-    
+
 `;
 
 export default MySubscribe;
