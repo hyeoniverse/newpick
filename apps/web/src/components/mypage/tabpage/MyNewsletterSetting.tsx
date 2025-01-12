@@ -1,42 +1,11 @@
 import styled from "styled-components";
 import { SUMMARYNEWS } from "@/constants/mypageData";
 import Button from "@/components/common/Button";
-import { useState } from "react";
+import useMypage from "@/hooks/useMypage";
 
-interface NewsletterDataProps {
-  id: number;
-  categoryName: string;
-  userId: number;
-  createdAt: string;
-  likes: number;
-  img: string;
-  title: string;
-  summary: string;
-}
 
 function MyNewsletterSetting() {
-  const [ selectCate, setSelectCate ] = useState<string[]>([]);
-
-  const handleSelectCate = (news: NewsletterDataProps) => {
-    const selectedCategory = selectCate.includes(news.categoryName)
-
-    if (!selectedCategory) {
-      setSelectCate([ news.categoryName, ...selectCate ]);
-    } else {
-      setSelectCate(selectCate.filter((el) => el !== news.categoryName))
-    }
-  }
-
-  const handleSelectAll = (e) => {
-
-    console.log(SUMMARYNEWS.length)
-    if (e && selectCate.length !== SUMMARYNEWS.length) {
-      setSelectCate(SUMMARYNEWS.map((cate) => cate.categoryName));
-    } else {
-      setSelectCate([])
-    }
-
-  }
+  const { handleSelectCate, handleSelectAll, allSelectCate, selectCate } = useMypage();
 
   return (
     <MyNewsletterSettingStyled>
@@ -52,8 +21,8 @@ function MyNewsletterSetting() {
         <li>
           <Button
             scheme="default"
-            className="all-category category-btn"
-            onClick={(e) => handleSelectAll(e)}
+            className={allSelectCate ? "active category-btn" : "category-btn"}
+            onClick={() => handleSelectAll()}
           >
             전체
           </Button>
@@ -100,6 +69,7 @@ const MyNewsletterSettingStyled = styled.div`
             background-color: ${({theme}) => theme.color.primary};
             border-radius: ${({theme}) => theme.borderRadius.capsule};
         }
+
     }
 
 `;

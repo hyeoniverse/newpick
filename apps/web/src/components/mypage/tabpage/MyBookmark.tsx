@@ -62,6 +62,7 @@ const MyBookmarkStyled = styled.div`
 
             .title {
                 font-size: ${({theme}) => theme.fontSize.large};
+                line-height: 1.2;
                 margin: 0;
             }
 
