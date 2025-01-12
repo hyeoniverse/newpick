@@ -162,12 +162,12 @@ export const lightTheme: Theme = {
       color: '#ffffff',
       fontWeight: '700',
       background: '#3610e1',
-      border: '1px solid #3610e1',
+      border: 'none',
       hover: {
         color: '#f4f1ff',
         fontWeight: '700',
         background: '#2001af',
-        border: '1px solid #3610e1',
+        border: 'none',
       },
     },
     secondary: {
@@ -186,12 +186,12 @@ export const lightTheme: Theme = {
       color: '#ffffff',
       fontWeight: '700',
       background: '#222222',
-      border: '1px solid #222222',
+      border: 'none',
       hover: {
         color: '#f1f1f1',
         fontWeight: '700',
         background: '#111111',
-        border: '1px solid #111111',
+        border: 'none',
       },
     },
     monoOutline: {
@@ -226,6 +226,7 @@ export const lightTheme: Theme = {
       hover: {
         color: '#3610e1',
         background: '#f4f1ff',
+        border: 'none',
       },
     },
   },
@@ -272,12 +273,12 @@ export const darkTheme: Theme = {
       color: '#121212',
       fontWeight: '700',
       background: '#8C9EFF',
-      border: '1px solid #8C9EFF',
+      border: 'none',
       hover: {
         color: '#000000',
         fontWeight: '700',
         background: '#6c80ed',
-        border: '1px solid #6c80ed',
+        border: 'none',
       },
     },
     secondary: {
@@ -296,12 +297,12 @@ export const darkTheme: Theme = {
       color: '#121212',
       fontWeight: '700',
       background: '#f1f1f1',
-      border: '1px solid #808080',
+      border: 'none',
       hover: {
         color: '#121212',
         fontWeight: '700',
         background: '#d9d9d9',
-        border: '1px solid #d9d9d9',
+        border: 'none',
       },
     },
     monoOutline: {
@@ -336,6 +337,7 @@ export const darkTheme: Theme = {
       hover: {
         color: '#9ca9ff',
         background: '#0f1d7a',
+        border: 'none',
       },
     },
   },

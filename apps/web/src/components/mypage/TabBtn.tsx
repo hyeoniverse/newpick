@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { BOOKMARK, SUBSCRIBE, SUMMARYNEWS } from "@/constants/mypageData";
+import { BOOKMARK, SUBSCRIBE, MYSUMMARYNEWS } from "@/constants/mypageData";
 
 interface TabProps {
   activeTab: string;
@@ -14,7 +14,7 @@ function TabBtn({activeTab, setActiveTab}: TabProps) {
         onClick={() => setActiveTab("subscribe")}
         className={activeTab === "subscribe" ? "active" : ""}
       >
-        <p>구독한 뉴스레터 ({SUMMARYNEWS.length})</p>
+        <p>구독한 뉴스레터 ({MYSUMMARYNEWS.length})</p>
       </button>
       <button
         onClick={() => setActiveTab("bookmark")}

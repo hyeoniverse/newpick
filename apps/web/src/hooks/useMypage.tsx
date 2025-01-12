@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { SUMMARYNEWS } from "@/constants/mypageData";
+import { CATEGORY, MYSUMMARYNEWS, SUBSCRIBECATEGORY } from "@/constants/mypageData";
 
-interface NewsletterDataProps {
+export interface INewsletterData {
   id: number;
   categoryName: string;
   userId?: number;
@@ -10,6 +10,11 @@ interface NewsletterDataProps {
   img: string;
   title: string;
   summary: string;
+}
+
+export interface ICategories {
+  id: number;
+  category: string;
 }
 
 const useMypage = () => {
@@ -24,37 +29,41 @@ const useMypage = () => {
     }
   };
 
-  const handleSelectCate = (news: NewsletterDataProps) => {
+  // 뉴스레터 설정 카테고리 선택
+  const handleSelectCate = (cate: ICategories) => {
     setSelectCate((prev) => {
-      const isSelected = selectCate.includes(news.categoryName)
-      let newSelectCate;
+      const isSelected = selectCate.includes(cate.category)
+      let newSelectCate = [...prev]
 
       if (!isSelected) {
-        newSelectCate = [ ...prev, news.categoryName ];
+        newSelectCate = [ ...newSelectCate, cate.category ];
       } else {
-        newSelectCate = prev.filter((el) => el !== news.categoryName);
+        newSelectCate = prev.filter((el) => el !== cate.category);
       }
+
       // 전체 카테고리와 길이가 같으면 전체 true, 아니면 false
-      if (newSelectCate.length === SUMMARYNEWS.length) {
+      if (newSelectCate.length === CATEGORY.length) {
         setAllSelectCate(true);
       } else {
         setAllSelectCate(false);
       }
 
+      console.log('지금꺼', newSelectCate)
+
       return newSelectCate;
     })
   }
 
+  // 뉴스레터 설정 카테고리 전체 선택
   const handleSelectAll = () => {
 
-    if (selectCate.length < SUMMARYNEWS.length) {
-      setSelectCate(SUMMARYNEWS.map((cate) => cate.categoryName));
-      setAllSelectCate(true);
-    } else if (selectCate.length === SUMMARYNEWS.length) {
+    if (selectCate.length === CATEGORY.length) {
       setSelectCate([])
       setAllSelectCate(false);
+    } else {
+      setSelectCate(CATEGORY.map((cate) => cate.category));
+      setAllSelectCate(true);
     }
-
   }
 
   return {
@@ -62,7 +71,8 @@ const useMypage = () => {
     handleSelectCate,
     handleSelectAll,
     allSelectCate,
-    selectCate
+    selectCate,
+    setSelectCate,
   }
 };
 

@@ -2,7 +2,7 @@
 
 import styled from "styled-components";
 import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { SUMMARYNEWS } from "@/constants/mypageData";
+import { MYSUMMARYNEWS } from "@/constants/mypageData";
 import { useEffect, useRef, useState } from "react";
 import useMypage from "@/hooks/useMypage";
 
@@ -43,7 +43,7 @@ function SubscribeInfo({ activeCategory }: SubscribeInfoProps) {
           <IoIosArrowForward />
         </div>
         <ul className="categories">
-          {SUMMARYNEWS.map((news, index) => (
+          {MYSUMMARYNEWS.map((news, index) => (
             <li key={index} className={`category ${activeCategory === news.categoryName ? "active" : ""}`}>
               <button
                 onClick={(e) => handleAnchorNavigation(e, news.categoryName)}

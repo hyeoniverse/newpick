@@ -2,9 +2,9 @@ import styled from 'styled-components';
 import Button from '@/components/common/Button';
 
 interface ModalProps {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   title?: string;
-  content: string;
+  content?: string;
   outlineButton?: string;
   filledButton?: string;
   onCancelClick?: () => void; // 취소 버튼 클릭 핸들러

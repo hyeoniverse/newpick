@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { SUMMARYNEWS } from "@/constants/mypageData";
+import { MYSUMMARYNEWS } from "@/constants/mypageData";
 import ThumbImg from "@/components/mypage/common(temporary)/ThumbImg";
 import LikeIcon from "@/components/mypage/common(temporary)/LikeIcon";
 import Link from "next/link";
@@ -8,7 +8,7 @@ function MyBookmark() {
   return (
     <>
       <MyBookmarkStyled>
-        {SUMMARYNEWS.map((news, index) => (
+        {MYSUMMARYNEWS.map((news, index) => (
           <div key={index} className="card">
             <Link href={`#`}>
             <ThumbImg src={news.img} />

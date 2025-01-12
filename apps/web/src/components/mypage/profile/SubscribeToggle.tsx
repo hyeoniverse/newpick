@@ -1,10 +1,7 @@
 import styled from "styled-components";
 import { useState } from "react";
-import { LuBellOff, LuBell } from "react-icons/lu";
 import { ToggleIcon } from "@/components/common/svg/ToggleSVG";
 import { useModal } from "@/hooks/useModal";
-import Modal from "@/components/common/Modal";
-import ModalContents from "@/components/common/ModalContents";
 import { useRouter } from "next/navigation"
 
 function SubscribeToggle() {
@@ -29,7 +26,7 @@ function SubscribeToggle() {
         <p>{toggle ? "구독 진행중" : "구독 일시정지 중"}</p>
       </div>
 
-      {/*구독 상태가 아닐 경우 노출 필요*/}
+      {/* 구독 상태가 아닐 경우 노출 필요*/}
       {/*<div className="not-subscribe" onClick={() => openModal('not-subscribe')}>*/}
       {/*  <LuBellOff />*/}
       {/*  <p>구독 상태가 아닙니다.</p>*/}

@@ -60,7 +60,6 @@ export const GlobalStyle = createGlobalStyle<Props>`
         background-color: transparent;
 
         &:focus {
-            border: none;
             outline: none;
         }
     }

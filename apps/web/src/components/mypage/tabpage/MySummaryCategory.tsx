@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { SUMMARYNEWS } from "@/constants/mypageData";
+import { MYSUMMARYNEWS } from "@/constants/mypageData";
 import { IoIosArrowForward } from "react-icons/io";
 import Link from "next/link";
 import LikeIcon from "@/components/mypage/common(temporary)/LikeIcon";
@@ -12,7 +12,7 @@ function MySummaryCategory() {
   return (
     <>
       <MySummaryCategoryStyled>
-        {SUMMARYNEWS.map((news, index) => (
+        {MYSUMMARYNEWS.map((news, index) => (
           <div key={index} className="content" id={news.categoryName}>
 
             <div className="top">
