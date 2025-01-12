@@ -3,6 +3,7 @@ import { MYSUMMARYNEWS } from "@/constants/mypageData";
 import ThumbImg from "@/components/mypage/common(temporary)/ThumbImg";
 import LikeIcon from "@/components/mypage/common(temporary)/LikeIcon";
 import Link from "next/link";
+import NoContentsPage from "@/components/mypage/common(temporary)/NoContentsPage";
 
 function MyBookmark() {
   return (
@@ -11,7 +12,7 @@ function MyBookmark() {
         {MYSUMMARYNEWS.map((news, index) => (
           <div key={index} className="card">
             <Link href={`#`}>
-            <ThumbImg src={news.img} />
+              <ThumbImg src={news.img} />
             </Link>
             <div className="content">
               <Link href={`#`} className="category">{news.categoryName}</Link>
@@ -26,6 +27,11 @@ function MyBookmark() {
           </div>
         ))}
       </MyBookmarkStyled>
+      <NoContentsPage
+        text={`북마크한 뉴스레터가 없습니다. \n 다른 뉴스레터를 찾아보세요.`}
+        btnText={'오늘의 뉴스레터'}
+        moveTo={'/'}
+      />
     </>
   );
 }
@@ -83,19 +89,19 @@ const MyBookmarkStyled = styled.div`
                     margin: 0 1.25rem;
                     height: 1.5rem;
                 }
-                
+
                 .date {
-                    font-size: ${({ theme }) => theme.fontSize.extraSmall};
-                    color: ${({ theme }) => theme.color.lightGrey};
+                    font-size: ${({theme}) => theme.fontSize.extraSmall};
+                    color: ${({theme}) => theme.color.lightGrey};
                 }
             }
         }
     }
-    
-    @media (${({ theme }) => theme.mediaQuery.tablet}) {
+
+    @media (${({theme}) => theme.mediaQuery.tablet}) {
         grid-template-columns: repeat(2, 1fr);
     }
-    @media (${({ theme }) => theme.mediaQuery.mobile}) {
+    @media (${({theme}) => theme.mediaQuery.mobile}) {
         grid-template-columns: repeat(1, 1fr);
     }
 `;

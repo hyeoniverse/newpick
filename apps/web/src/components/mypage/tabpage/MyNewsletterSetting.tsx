@@ -1,4 +1,4 @@
-'use client'
+"use client"
 
 import styled from "styled-components";
 import { CATEGORY, SUBSCRIBECATEGORY } from "@/constants/mypageData";
@@ -9,6 +9,7 @@ import ModalContents from "@/components/common/ModalContents";
 import Modal from "@/components/common/Modal";
 import { LuMailCheck } from "react-icons/lu";
 import { useLayoutEffect, useState } from "react";
+import NoContentsPage from "@/components/mypage/common(temporary)/NoContentsPage";
 
 
 function MyNewsletterSetting() {
@@ -21,62 +22,68 @@ function MyNewsletterSetting() {
     const subscribedNames = SUBSCRIBECATEGORY.map((item) => item.category);
     const uniqueSubscribed = Array.from(new Set(subscribedNames));
     setSelectCate(uniqueSubscribed);
-  }, [SUBSCRIBECATEGORY]);
+  }, [ SUBSCRIBECATEGORY ]);
 
   return (
-    <MyNewsletterSettingStyled>
-      <div className="text">
-        <h3>뉴스레터 설정</h3>
-        <p>
-          선택된 카테고리를 재설정 해주신 후 완료 버튼을 눌러주세요.
-          <br />
-          내일 보내드리는 뉴스레터부터 적용됩니다.
-        </p>
-      </div>
-      <div className="category-section">
-        <div className="all-category">
-          <Button
-            type="button"
-            scheme="default"
-            className={allSelectCate ? "active category-btn" : "category-btn"}
-            onClick={() => handleSelectAll()}
-          >
-            전체
-          </Button>
+    <>
+      <MyNewsletterSettingStyled>
+        <div className="text">
+          <h3>뉴스레터 설정</h3>
+          <p>
+            선택된 카테고리를 재설정 해주신 후 완료 버튼을 눌러주세요.
+            <br />
+            내일 보내드리는 뉴스레터부터 적용됩니다.
+          </p>
         </div>
-        <div className="bar" />
-        <ul className="categories">
-          {CATEGORY.map((cate, index) =>
-            <li key={index}>
-              <Button
-                type="button"
-                scheme="default"
-                onClick={() => {handleSelectCate(cate)}}
-                className={ selectCate.includes(cate.category) ? "category-btn active" : "category-btn"}
-              >
-                {cate.category}
-              </Button>
-            </li>,
-          )}
-        </ul>
-      </div>
-
-      <div className="btn">
-        <Button type="submit" scheme="primary" size="large" onClick={() => openModal("submit")}>설정완료</Button>
-      </div>
-      {/*모달*/}
-      {isOpen && modalType === "submit" && (
-        <Modal isOpen={isOpen} onClose={closeModal}>
-          <ModalContents
-            icon={<LuMailCheck />}
-            title="구독 설정이 완료되었습니다"
-            content={`내일부터 새로운 뉴스레터를 보내드려요.`}
-            filledButton="확인"
-            onConfirmClick={closeModal}
-          />
-        </Modal>
-      )}
-    </MyNewsletterSettingStyled>
+        <div className="category-section">
+          <div className="all-category">
+            <Button
+              type="button"
+              scheme="default"
+              className={allSelectCate ? "active category-btn" : "category-btn"}
+              onClick={() => handleSelectAll()}
+            >
+              전체
+            </Button>
+          </div>
+          <div className="bar" />
+          <ul className="categories">
+            {CATEGORY.map((cate, index) =>
+              <li key={index}>
+                <Button
+                  type="button"
+                  scheme="default"
+                  onClick={() => {handleSelectCate(cate)}}
+                  className={selectCate.includes(cate.category) ? "category-btn active" : "category-btn"}
+                >
+                  {cate.category}
+                </Button>
+              </li>,
+            )}
+          </ul>
+        </div>
+        <div className="btn">
+          <Button type="submit" scheme="primary" size="large" onClick={() => openModal("submit")}>설정완료</Button>
+        </div>
+        {/*모달*/}
+        {isOpen && modalType === "submit" && (
+          <Modal isOpen={isOpen} onClose={closeModal}>
+            <ModalContents
+              icon={<LuMailCheck />}
+              title="구독 설정이 완료되었습니다"
+              content={`내일부터 새로운 뉴스레터를 보내드려요.`}
+              filledButton="확인"
+              onConfirmClick={closeModal}
+            />
+          </Modal>
+        )}
+      </MyNewsletterSettingStyled>
+      <NoContentsPage
+        text={`뉴스레터를 구독이 일시정지 중 입니다. \n 구독을 다시 시작하시겠습니까?`}
+        btnText={"일시정지 해제하기"}
+        onClick={() => {}}
+      />
+    </>
   );
 }
 

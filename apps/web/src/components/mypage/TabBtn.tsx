@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { BOOKMARK, SUBSCRIBE, MYSUMMARYNEWS } from "@/constants/mypageData";
+import { BOOKMARK, MYSUMMARYNEWS } from "@/constants/mypageData";
 
 interface TabProps {
   activeTab: string;

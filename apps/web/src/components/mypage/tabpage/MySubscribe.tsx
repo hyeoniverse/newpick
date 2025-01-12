@@ -2,6 +2,7 @@ import styled from "styled-components";
 import SubscribeInfo from "@/components/mypage/tabpage/SubscribeInfo";
 import MySummaryCategory from "@/components/mypage/tabpage/MySummaryCategory";
 import { useLayoutEffect, useState } from "react";
+import NoContentsPage from "@/components/mypage/common(temporary)/NoContentsPage";
 
 function MySubscribe() {
   const [ activeCategory, setActiveCategory ] = useState<string>("");
@@ -49,6 +50,11 @@ function MySubscribe() {
       <MySubscribeStyled>
         <MySummaryCategory />
       </MySubscribeStyled>
+      <NoContentsPage
+        text={`뉴스레터를 구독 중이 아닙니다. \n 새로운 뉴스레터 구독을 시작해보시겠습니까?`}
+        btnText={"구독 바로가기"}
+        moveTo={"/"}
+      />
     </>
   );
 }
