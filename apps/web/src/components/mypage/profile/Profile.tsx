@@ -1,17 +1,18 @@
-import styled from 'styled-components';
-import SubscribeToggle from '@/components/mypage/profile/SubscribeToggle';
-import { USERKEYWORD } from '@/constants/mypageData';
+import styled from "styled-components";
+import SubscribeToggle from "@/components/mypage/profile/SubscribeToggle";
+import { USER1 } from "@/constants/mypageData";
 
 function Profile() {
+
   return (
     <ProfileStyled>
       <div className="profile">
         <img src="/icons/profile_dummy.jpg" alt="prifile-img" />
         <div className="profile-text">
-          <h4>uerId</h4>
-          <p>gmail@gmail.com</p>
+          <h4>{USER1.name}</h4>
+          <p>{USER1.email}</p>
           <ul>
-            {USERKEYWORD.map((keyword, i) => (
+            {USER1.keyword.map((keyword, i) => (
               <li key={i}>{keyword.keyword}</li>
             ))}
           </ul>
@@ -29,6 +30,7 @@ const ProfileStyled = styled.div`
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
+    width: 100%;
     gap: 2rem;
 
     .profile {
@@ -36,7 +38,7 @@ const ProfileStyled = styled.div`
         flex-direction: row;
         gap: 2rem;
         align-items: center;
-        
+
         img {
             height: 100px;
             width: 100px;
@@ -63,8 +65,8 @@ const ProfileStyled = styled.div`
                 font-size: ${({theme}) => theme.fontSize.extraSmall};
             }
         }
-        
-        @media screen and ${({ theme }) => theme.mediaQuery.mobile} {
+
+        @media screen and ${({theme}) => theme.mediaQuery.mobile} {
             flex-direction: column;
         };
     }

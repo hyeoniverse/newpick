@@ -21,6 +21,7 @@ const useMypage = () => {
   const [ selectCate, setSelectCate ] = useState<string[]>([]);
   const [ allSelectCate, setAllSelectCate ] = useState(false)
 
+  // 구독한 뉴스레터 네비게이션 스크롤 앵커 설정
   const handleAnchorNavigation = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
     e.preventDefault();
     const element = document.getElementById(id);

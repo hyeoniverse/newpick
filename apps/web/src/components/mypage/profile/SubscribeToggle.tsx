@@ -1,16 +1,21 @@
 import styled from "styled-components";
-import { useState } from "react";
+import { useLayoutEffect, useState } from "react";
 import { ToggleIcon } from "@/components/common/svg/ToggleSVG";
 import { useModal } from "@/hooks/useModal";
 import { useRouter } from "next/navigation"
+import { USER1, USER2, USER3 } from "@/constants/mypageData";
+import { LuBell, LuBellOff } from "react-icons/lu";
+import Modal from "@/components/common/Modal";
+import ModalContents from "@/components/common/ModalContents";
 
 function SubscribeToggle() {
   const {isOpen, modalType, openModal, closeModal} = useModal();
-  const [ toggle, setToggle ] = useState(false)
+  const [ subsToggle, setSubsToggle ] = useState(false)
+  const [ notSubsToggle, setNotSubsToggle ] = useState(true)
   const router = useRouter();
 
   const toggleSubscribe = () => {
-    setToggle(!toggle);
+    setSubsToggle(!subsToggle);
   }
 
   const handleConfirm = () => {
@@ -18,33 +23,51 @@ function SubscribeToggle() {
     router.push("/mypage")
   }
 
+  useLayoutEffect(() => {
+    const subscribeState = USER2.subscribe;
+    if (subscribeState === 1) {
+      setSubsToggle(false);
+    }
+    if (subscribeState === 2) {
+      setSubsToggle(true);
+    }
+    if (subscribeState === 3) {
+      setSubsToggle(false);
+      setNotSubsToggle(false);
+    }
+  }, []);
+
   return (
     <SubscribeToggleStyled>
       {/*구독 진행 중에 따라 노출 변경 필요*/}
-      <div className={toggle ? "subscribe-on" : "subscribe-off"} onClick={toggleSubscribe}>
-        <ToggleIcon className="svg" $toggle={toggle} />
-        <p>{toggle ? "구독 진행중" : "구독 일시정지 중"}</p>
+      {notSubsToggle &&
+        <div className={subsToggle ? "subscribe-on" : "subscribe-off"} onClick={toggleSubscribe}>
+        <ToggleIcon className="svg" $toggle={subsToggle} />
+        <p>{subsToggle ? "구독 진행중" : "구독 일시정지 중"}</p>
       </div>
+      }
 
-      {/* 구독 상태가 아닐 경우 노출 필요*/}
-      {/*<div className="not-subscribe" onClick={() => openModal('not-subscribe')}>*/}
-      {/*  <LuBellOff />*/}
-      {/*  <p>구독 상태가 아닙니다.</p>*/}
-      {/*</div>*/}
-      {/*/!*모달*!/*/}
-      {/*{isOpen && modalType === 'not-subscribe' && (*/}
-      {/*  <Modal isOpen={isOpen} onClose={closeModal}>*/}
-      {/*    <ModalContents*/}
-      {/*      icon={<LuBell />}*/}
-      {/*      title="구독 상태가 아닙니다."*/}
-      {/*      content={`새롭게 뉴스레터를 구독해보시겠습니까? 확인을 누르시면 구독페이지로 넘어갑니다.`}*/}
-      {/*      outlineButton="취소"*/}
-      {/*      filledButton="확인"*/}
-      {/*      onCancelClick={closeModal}*/}
-      {/*      onConfirmClick={handleConfirm}*/}
-      {/*    />*/}
-      {/*  </Modal>*/}
-      {/*)}*/}
+      {/*구독 상태가 아닐 경우 노출 필요*/}
+      {!notSubsToggle &&
+        <>
+          <div className="not-subscribe" onClick={() => openModal("not-subscribe")}>
+            <LuBellOff />
+            <p>구독 상태가 아닙니다.</p>
+          </div>
+          {isOpen && modalType === "not-subscribe" && (
+            <Modal isOpen={isOpen} onClose={closeModal}>
+              <ModalContents
+                icon={<LuBell />}
+                title="구독 상태가 아닙니다."
+                content={`새롭게 뉴스레터를 구독해보시겠습니까? 확인을 누르시면 구독페이지로 넘어갑니다.`}
+                outlineButton="취소"
+                filledButton="확인"
+                onCancelClick={closeModal}
+                onConfirmClick={handleConfirm}
+              />
+            </Modal>
+          )}
+        </>}
     </SubscribeToggleStyled>
   );
 }

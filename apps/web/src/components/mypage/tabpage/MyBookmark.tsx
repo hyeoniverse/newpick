@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { MYSUMMARYNEWS } from "@/constants/mypageData";
+import { BOOKMARK, MYSUMMARYNEWS } from "@/constants/mypageData";
 import ThumbImg from "@/components/mypage/common(temporary)/ThumbImg";
 import LikeIcon from "@/components/mypage/common(temporary)/LikeIcon";
 import Link from "next/link";
@@ -8,30 +8,38 @@ import NoContentsPage from "@/components/mypage/common(temporary)/NoContentsPage
 function MyBookmark() {
   return (
     <>
-      <MyBookmarkStyled>
-        {MYSUMMARYNEWS.map((news, index) => (
-          <div key={index} className="card">
-            <Link href={`#`}>
-              <ThumbImg src={news.img} />
-            </Link>
-            <div className="content">
-              <Link href={`#`} className="category">{news.categoryName}</Link>
-              <Link href={`#`} className="title">{news.title}</Link>
-              <p className="subtext">{news.summary}</p>
-              <div className="etc">
-                <div className="date">{news.createdAt}</div>
-                {/*<div className="bar"/>*/}
-                <LikeIcon />
-              </div>
-            </div>
-          </div>
-        ))}
-      </MyBookmarkStyled>
-      <NoContentsPage
-        text={`북마크한 뉴스레터가 없습니다. \n 다른 뉴스레터를 찾아보세요.`}
-        btnText={'오늘의 뉴스레터'}
-        moveTo={'/'}
-      />
+      {BOOKMARK.length > 0 ?
+        (
+          <>
+            <MyBookmarkStyled>
+              {MYSUMMARYNEWS.map((news, index) => (
+                <div key={index} className="card">
+                  <Link href={`#`}>
+                    <ThumbImg src={news.img} />
+                  </Link>
+                  <div className="content">
+                    <Link href={`#`} className="category">{news.categoryName}</Link>
+                    <Link href={`#`} className="title">{news.title}</Link>
+                    <p className="subtext">{news.summary}</p>
+                    <div className="etc">
+                      <div className="date">{news.createdAt}</div>
+                      {/*<div className="bar"/>*/}
+                      <LikeIcon />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </MyBookmarkStyled>
+          </>
+        )
+        :
+        (
+          <NoContentsPage
+            text={`북마크한 뉴스레터가 없습니다. \n 다른 뉴스레터를 찾아보세요.`}
+            btnText={"오늘의 뉴스레터"}
+            moveTo={"/"}
+          />)
+      }
     </>
   );
 }
