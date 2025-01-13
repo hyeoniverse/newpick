@@ -3,6 +3,7 @@
 import styled from "styled-components";
 import Header from "@/components/common/Header";
 import Footer from "@/components/common/Footer";
+import TopBtn from "@/components/common/TopBtn";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -13,6 +14,7 @@ const Layout = ({ children }: LayoutProps) => {
     <StyledLayout>
       <Header />
       <Content>{children}</Content>
+      <TopBtn />
       <Footer />
     </StyledLayout>
   );

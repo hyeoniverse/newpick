@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import { useLayoutEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { ToggleIcon } from "@/components/common/svg/ToggleSVG";
 import { useModal } from "@/hooks/useModal";
 import { useRouter } from "next/navigation"
@@ -23,7 +23,7 @@ function SubscribeToggle() {
     router.push("/mypage")
   }
 
-  useLayoutEffect(() => {
+  useEffect(() => {
     const subscribeState = USER2.subscribe;
     if (subscribeState === 1) {
       setSubsToggle(false);

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CATEGORY, MYSUMMARYNEWS, SUBSCRIBECATEGORY } from "@/constants/mypageData";
+import { CATEGORY } from "@/constants/mypageData";
 
 export interface INewsletterData {
   id: number;

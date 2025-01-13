@@ -6,7 +6,7 @@ import Logo from '@/components/common/Logo';
 
 const Footer = () => {
 	return (
-		<StyledFooter>
+		<StyledFooter id="footer-el">
 			<div className="footer">
 				<Logo logoType='footer-logo'/>
 				<div className="footer-menu">
@@ -33,6 +33,7 @@ const StyledFooter = styled.footer`
 	align-items: center;
 
 	width: 100%;
+	height: 14rem;
 	margin-top: auto;
 	padding: 3rem 0;
 	background: ${({ theme }) => theme.color.surface};
