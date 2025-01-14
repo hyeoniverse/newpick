@@ -4,25 +4,48 @@ import ThumbImg from "@/components/mypage/common(temporary)/ThumbImg";
 import LikeIcon from "@/components/mypage/common(temporary)/LikeIcon";
 import Link from "next/link";
 import NoContentsPage from "@/components/mypage/common(temporary)/NoContentsPage";
+import { useEffect, useState } from "react";
+import { IMySummary } from "@/models/newsDetail";
 
 function MyBookmark() {
+  const [ bookmarkInfo, setBookmarkInfo ] = useState<IMySummary[] | null>(null)
+
+  useEffect(() => {
+    async function fetchImgThumb() {
+
+      console.log("Params:", bookmarkInfo); // 값 확인
+      try {
+        const res = await fetch(`http://localhost:3001/mysummary`);
+        if (!res.ok) {
+          throw new Error("No such news found");
+        }
+        const data = await res.json();
+        setBookmarkInfo(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchImgThumb();
+  }, []);
+
   return (
     <>
       {BOOKMARK.length > 0 ?
         (
           <>
             <MyBookmarkStyled>
-              {MYSUMMARYNEWS.map((news, index) => (
+              {bookmarkInfo && bookmarkInfo.map((info, index) => (
                 <div key={index} className="card">
                   <Link href={`#`}>
-                    <ThumbImg src={news.img} />
+                    <ThumbImg src={info.img} height='13rem'/>
                   </Link>
                   <div className="content">
-                    <Link href={`#`} className="category">{news.categoryName}</Link>
-                    <Link href={`#`} className="title">{news.title}</Link>
-                    <p className="subtext">{news.summary}</p>
+                    <Link href={`#`} className="category">{info.categoryName}</Link>
+                    <Link href={`#`} className="title">{info.title}</Link>
+                    <p className="subtext">{info.summary}</p>
                     <div className="etc">
-                      <div className="date">{news.createdAt}</div>
+                      <div className="date">{info.createdAt}</div>
                       {/*<div className="bar"/>*/}
                       <LikeIcon />
                     </div>
@@ -48,16 +71,18 @@ const MyBookmarkStyled = styled.div`
     display: grid;
     justify-items: start;
     justify-content: start;
-    gap: 2rem;
+    gap: 3rem 2rem;
     grid-template-columns: repeat(3, 1fr);
 
     .card {
         width: auto;
+        height: 100%;
 
         .content {
             display: flex;
             flex-direction: column;
             gap: 0.5rem;
+            margin-top: 1rem;
 
             .category {
                 color: ${({theme}) => theme.color.primary};

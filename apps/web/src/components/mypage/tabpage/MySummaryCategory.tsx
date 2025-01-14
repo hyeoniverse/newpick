@@ -1,40 +1,44 @@
 import styled from "styled-components";
-import { MYSUMMARYNEWS } from "@/constants/mypageData";
 import { IoIosArrowForward } from "react-icons/io";
 import Link from "next/link";
 import LikeIcon from "@/components/mypage/common(temporary)/LikeIcon";
 import LinkCopyIcon from "@/components/mypage/common(temporary)/LinkCopyIcon";
 import OrigLinkIcon from "@/components/mypage/common(temporary)/OrigLinkIcon";
 import ThumbImg from "@/components/mypage/common(temporary)/ThumbImg";
+import { IMySummary } from "@/models/newsDetail";
 
-function MySummaryCategory() {
+interface MySummaryProps {
+  summaryInfo: IMySummary[] | null;
+}
+
+function MySummaryCategory({ summaryInfo }: MySummaryProps) {
 
   return (
     <>
       <MySummaryCategoryStyled>
-        {MYSUMMARYNEWS.map((news, index) => (
-          <div key={index} className="content" id={news.categoryName}>
+        {summaryInfo && summaryInfo.map((info, index) => (
+          <div key={index} className="my-subs-content" id={info.categoryName}>
 
             <div className="top">
               <Link href="/mypage" className="category-name">
-                {news.categoryName}
+                {info.categoryName}
                 <IoIosArrowForward />
               </Link>
               <div className="title-section">
-                <h3 className="title-text">{news.title}</h3>
+                <h3 className="title-text">{info.title}</h3>
               </div>
             </div>
 
             <div className="bottom">
               <div className="img-section">
-                <ThumbImg src={news.img} />
+                <ThumbImg src={info.img || null} height={120}/>
                 <div className="etc">
                   <LikeIcon />
                   <LinkCopyIcon />
                   <OrigLinkIcon />
                 </div>
               </div>
-              <p className="text">{news.summary}</p>
+              <p className="text">{info.summary}</p>
             </div>
 
           </div>
@@ -54,7 +58,7 @@ const MySummaryCategoryStyled = styled.div`
         }
     }
 
-    .content {
+    .my-subs-content {
         height: 100%;
         max-width: 100%;
         margin-top: 3.75rem;
@@ -113,6 +117,7 @@ const MySummaryCategoryStyled = styled.div`
                     flex-direction: row;
                     justify-content: center;
                     gap: 1rem;
+                    margin-top: 1rem;
                 }
             }
 

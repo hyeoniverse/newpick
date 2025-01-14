@@ -5,6 +5,7 @@ import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
 import { MYSUMMARYNEWS } from "@/constants/mypageData";
 import { useEffect, useRef, useState } from "react";
 import useMypage from "@/hooks/useMypage";
+import { IMySummary } from "@/models/newsDetail";
 
 interface SubscribeInfoProps {
   activeCategory: string;
@@ -14,6 +15,26 @@ function SubscribeInfo({ activeCategory }: SubscribeInfoProps) {
   const navRef = useRef<HTMLDivElement>(null);
   const [ isSticky, setIsSticky ] = useState(false);
   const { handleAnchorNavigation } = useMypage();
+  const [ categoryInfo, setCategoryInfo ] = useState<IMySummary[] | null>(null)
+
+  useEffect(() => {
+    async function fetchCategory() {
+
+      try {
+        const res = await fetch(`http://localhost:3001/mysummary`);
+        if (!res.ok) {
+          throw new Error("No such news found");
+        }
+        const data = await res.json();
+        setCategoryInfo(data);
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    fetchCategory();
+  }, []);
+
 
   // 스크롤 좌우 넓어지는 효과
   useEffect(() => {
@@ -43,12 +64,12 @@ function SubscribeInfo({ activeCategory }: SubscribeInfoProps) {
           <IoIosArrowForward />
         </div>
         <ul className="categories">
-          {MYSUMMARYNEWS.map((news, index) => (
-            <li key={index} className={`category ${activeCategory === news.categoryName ? "active" : ""}`}>
+          {categoryInfo && categoryInfo.map((info, index) => (
+            <li key={index} className={`category ${activeCategory === info.categoryName ? "active" : ""}`}>
               <button
-                onClick={(e) => handleAnchorNavigation(e, news.categoryName)}
+                onClick={(e) => handleAnchorNavigation(e, info.categoryName)}
               >
-                {news.categoryName}
+                {info.categoryName}
               </button>
             </li>
           ))}

@@ -1,25 +1,41 @@
 import styled from "styled-components";
-import Image from "next/image";
 
 interface ThumbImgProps {
-  src: string;
-  width?: string;
+  src: string | null;
   height?: string;
 }
 
-function ThumbImg({src, width, height}: ThumbImgProps) {
+// height가 없을 경우 높이값 가변
+function ThumbImg({src, height}: ThumbImgProps) {
   return (
-    <ThumbImgStyled src={src} width={width} height={height} alt="news-img" />
+    <ContainerStyled height={height} >
+      <ThumbImgStyled
+        src={src}
+        alt="news-img"
+        sizes="(max-width: 800px) 100vw, 50vw"
+      />
+    </ContainerStyled>
   );
 }
 
-const ThumbImgStyled = styled.img<ThumbImgProps>`
-    width: ${(props) => props.width};
-    height: ${(props) => props.height || "auto"};
-    border-radius: ${({theme}) => theme.borderRadius.medium};
+const ContainerStyled = styled.div<Omit<ThumbImgProps, "src">>`
+    position: relative;
+    border-radius: ${({ theme }) => theme.borderRadius.medium};
     margin-bottom: 1.25rem;
+    height: ${({ height }) => height || 'auto'};
+    overflow: hidden;
+    aspect-ratio: auto;
+
+`
+
+const ThumbImgStyled = styled.img<ThumbImgProps>`
     display: block;
-    max-width: 100%;
+    object-fit: cover;
+    vertical-align: middle;
+    height: 100%;
+    width: 100%;
+    max-height: 30rem;
+    min-height: 2rem;
 `;
 
 export default ThumbImg;
