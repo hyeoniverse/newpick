@@ -38,7 +38,7 @@ function MyBookmark() {
               {bookmarkInfo && bookmarkInfo.map((info, index) => (
                 <div key={index} className="card">
                   <Link href={`#`}>
-                    <ThumbImg src={info.img} height='13rem'/>
+                    <ThumbImg src={info.img} aspectratio={4/3}/>
                   </Link>
                   <div className="content">
                     <Link href={`#`} className="category">{info.categoryName}</Link>

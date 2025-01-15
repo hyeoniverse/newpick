@@ -31,7 +31,7 @@ function MySubscribeContents({ summaryInfo }: MySummaryProps) {
 
             <div className="bottom">
               <div className="img-section">
-                <ThumbImg src={info.img || null}/>
+                <ThumbImg src={info.img || null} height={'auto'}/>
                 <div className="etc">
                   <LikeIcon />
                   <LinkCopyIcon />

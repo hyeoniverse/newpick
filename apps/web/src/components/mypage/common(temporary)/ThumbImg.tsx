@@ -1,61 +1,73 @@
 import styled from "styled-components";
 import { SyntheticEvent } from "react";
+import Image from "next/image";
 
-interface ThumbImgProps {
-  src: string | null;
+interface ResponsiveImageStyleProps {
+  aspectratio?: number | "auto";
+}
+
+
+interface ThumbImgProps extends ResponsiveImageStyleProps {
+  src?: string | null;
   height?: string;
 }
 
-// height가 없을 경우 높이값 가변
-function ThumbImg({src, height}: ThumbImgProps) {
+function ThumbImg({src, height, aspectratio = "auto"}: ThumbImgProps) {
+
   const imageOnErrorHandler = (e: SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.onerror = null;
-    e.currentTarget.src = "/img/newpick_default_img.jpg";
-  };
-
-  const validSrc = src ?? "/img/newpick_default_img.jpg";
-
+      e.currentTarget.onerror = null;
+      e.currentTarget.src = "/img/newpick_default_img.jpg";
+  }
   return (
-    <ContainerStyled height={height}>
-      <SourceStyled
-        type="image/webp"
-        src={validSrc}
-      />
+    <ContainerStyled height={height} aspectratio={aspectratio}>
+      <SourceStyled />
+      {/*  type="image/webp"*/}
+      {/*  src={validSrc}*/}
+
       <ThumbImgStyled
         src={src}
         alt="news-img"
+        loading="lazy"
+        quality={75}
+        sizes="100vw"
+        fill
         onError={imageOnErrorHandler}
-        loading='lazy'
-
       />
     </ContainerStyled>
   );
 }
 
-const ContainerStyled = styled.picture<Omit<ThumbImgProps, "src">>`
+
+const ThumbImgStyled = styled(Image)<ThumbImgProps>`
+    position: relative !important;
+    display: block;
+    height: unset !important;
+    width: 100%;
+
+    max-height: 24rem;
+    min-height: 2rem;
+
+    object-fit: cover;
+    content-visibility: auto;
+    object-position: center;
+`;
+
+const SourceStyled = styled.source`
+`
+
+const ContainerStyled = styled.div<ThumbImgProps>`
     position: relative;
     display: block;
+
+    overflow: hidden;
     border-radius: ${({theme}) => theme.borderRadius.medium};
     margin-bottom: 1.25rem;
-    height: ${({height}) => height || "auto"};
-    overflow: hidden;
-    aspect-ratio: auto;
-    width: 100%;
-`
 
-const SourceStyled = styled.source<ThumbImgProps>`
-`
+    height: ${({height}) => height};
 
-const ThumbImgStyled = styled.img<ThumbImgProps>`
-    display: block;
-    object-fit: cover;
-    vertical-align: middle;
-    object-position: center;
-    height: 100%;
-    width: 100%;
-    max-height: 28rem;
-    min-height: 2rem;
-    content-visibility : auto;
-`;
+    ${ThumbImgStyled} {
+        aspect-ratio: ${({aspectratio}) => aspectratio};
+    }
+`
 
 export default ThumbImg;
