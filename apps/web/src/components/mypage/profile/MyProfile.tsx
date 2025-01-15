@@ -2,7 +2,7 @@ import styled from "styled-components";
 import SubscribeToggle from "@/components/mypage/profile/SubscribeToggle";
 import { USER1 } from "@/constants/mypageData";
 
-function Profile() {
+function MyProfile() {
 
   return (
     <ProfileStyled>
@@ -79,4 +79,4 @@ const ProfileStyled = styled.div`
     }
 `;
 
-export default Profile;
+export default MyProfile;

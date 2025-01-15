@@ -6,7 +6,7 @@ import NewsletterSubscribe from "@/components/mypage/common(temporary)/Newslette
 import { USER1 } from "@/constants/mypageData";
 
 
-function MyNewsletterSetting() {
+function MyNewsSetting() {
 
   return (
     <MyNewsletterSettingStyled>
@@ -27,4 +27,4 @@ const MyNewsletterSettingStyled = styled.div`
 
 `;
 
-export default MyNewsletterSetting;
+export default MyNewsSetting;

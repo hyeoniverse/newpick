@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import SubscribeInfo from "@/components/mypage/tabpage/SubscribeInfo";
-import MySummaryCategory from "@/components/mypage/tabpage/MySummaryCategory";
+import MySubscribeNav from "@/components/mypage/tabpage/MySubscribeNav";
+import MySubscribeContents from "@/components/mypage/tabpage/MySubscribeContents";
 import { useEffect, useState } from "react";
 import NoContentsPage from "@/components/mypage/common(temporary)/NoContentsPage";
 import { USER1, USER2, USER3 } from "@/constants/mypageData";
@@ -77,9 +77,9 @@ function MySubscribe() {
       {(USER1.subscribe === 1 || USER1.subscribe === 2) ? // 구독 중 이거나 일시정지 중 이거나
         (
           <>
-            <SubscribeInfo activeCategory={activeCategory} />
+            <MySubscribeNav activeCategory={activeCategory} />
             <MySubscribeStyled>
-              <MySummaryCategory  summaryInfo={summaryInfo} />
+              <MySubscribeContents summaryInfo={summaryInfo} />
             </MySubscribeStyled>
           </>
         )

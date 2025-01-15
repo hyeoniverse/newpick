@@ -11,7 +11,7 @@ interface MySummaryProps {
   summaryInfo: IMySummary[] | null;
 }
 
-function MySummaryCategory({ summaryInfo }: MySummaryProps) {
+function MySubscribeContents({ summaryInfo }: MySummaryProps) {
 
   return (
     <>
@@ -31,7 +31,7 @@ function MySummaryCategory({ summaryInfo }: MySummaryProps) {
 
             <div className="bottom">
               <div className="img-section">
-                <ThumbImg src={info.img || null} height={120}/>
+                <ThumbImg src={info.img || null}/>
                 <div className="etc">
                   <LikeIcon />
                   <LinkCopyIcon />
@@ -133,4 +133,4 @@ const MySummaryCategoryStyled = styled.div`
     }
 `;
 
-export default MySummaryCategory;
+export default MySubscribeContents;

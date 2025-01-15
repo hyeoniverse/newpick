@@ -1,12 +1,12 @@
 "use client";
 
 import styled from "styled-components";
-import Profile from "@/components/mypage/profile/Profile";
+import MyProfile from "@/components/mypage/profile/MyProfile";
 import TabBtn from "@/components/mypage/TabBtn";
 import MySubscribe from "@/components/mypage/tabpage/MySubscribe";
 import { useState } from "react";
 import MyBookmark from "@/components/mypage/tabpage/MyBookmark";
-import MyNewsletterSetting from "@/components/mypage/tabpage/MyNewsletterSetting";
+import MyNewsSetting from "@/components/mypage/tabpage/MyNewsSetting";
 
 function Page() {
   const [ activeTab, setActiveTab ] = useState("subscribe")
@@ -14,12 +14,12 @@ function Page() {
   return (
     <PageStyled>
       <p className="title">마이페이지</p>
-      <Profile />
+      <MyProfile />
       <TabBtn activeTab={activeTab} setActiveTab={setActiveTab} />
       <div className="tab-contents">
         {activeTab === "subscribe" && (<MySubscribe />)}
         {activeTab === "bookmark" && (<MyBookmark />)}
-        {activeTab === "newsletterSetting" && (<MyNewsletterSetting />)}
+        {activeTab === "newsletterSetting" && (<MyNewsSetting />)}
       </div>
 
     </PageStyled>

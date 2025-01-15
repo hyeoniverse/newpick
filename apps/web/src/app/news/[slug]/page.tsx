@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import TitleSection from "@/components/newsDetail/TitleSection";
 import { useEffect, useState } from "react";
 import { INewsDetail } from "@/models/newsDetail";
-import { format } from "@/utills/dateformat";
+import { format } from "@/utils/dateFormat";
 
 function NewsletterDetailPage() {
   const [ newsInfo, setNewsInfo ] = useState<INewsDetail | null>(null)

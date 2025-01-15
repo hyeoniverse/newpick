@@ -11,7 +11,7 @@ interface SubscribeInfoProps {
   activeCategory: string;
 }
 
-function SubscribeInfo({ activeCategory }: SubscribeInfoProps) {
+function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
   const navRef = useRef<HTMLDivElement>(null);
   const [ isSticky, setIsSticky ] = useState(false);
   const { handleAnchorNavigation } = useMypage();
@@ -155,4 +155,4 @@ const ContentsStyled = styled.div`
 
 `;
 
-export default SubscribeInfo;
+export default MySubscribeNav;
