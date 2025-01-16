@@ -6,7 +6,9 @@ export class AiSummaryService {
   private readonly openai: OpenAI;
 
   constructor(private configService: ConfigService) {
-    this.openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+    this.openai = new OpenAI({
+      apiKey: this.configService.get('OPENAI_API_KEY'),
+    });
   }
 
   async summarizeText(text: string): Promise<string> {
@@ -18,6 +20,3 @@ export class AiSummaryService {
     return response.choices[0].message?.content.trim() || '';
   }
 }
-
-// **테스트 모킹 추가:**
-// 테스트 시 API 호출을 방지하기 위해 다음과 같은 방식으로 `MockOpenAI` 클래스를 생성하여 의존성 주입합니다.
