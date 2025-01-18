@@ -2,12 +2,23 @@ import { useEffect, useState } from 'react';
 import { getTheme } from '@/styles/theme';
 
 export const useMediaQuery = () => {
-	const [isMobile, setIsMobile] = useState(window.matchMedia(getTheme('light').mediaQuery.mobile).matches);
+	const [isMobile, setIsMobile] = useState(false);
 
 	useEffect(() => {
-		const isMobileQuery = window.matchMedia(getTheme('light').mediaQuery.mobile);
+		if (typeof window !== 'undefined') {
+			const isMobileQuery = window.matchMedia(getTheme('light').mediaQuery.mobile);
 
-		setIsMobile(isMobileQuery.matches);
+			const handleResize = () => {
+				setIsMobile(isMobileQuery.matches);
+			};
+
+			handleResize(); // 초기값 설정
+			isMobileQuery.addEventListener('change', handleResize);
+
+			return () => {
+				isMobileQuery.removeEventListener('change', handleResize);
+			};
+		}
 	}, []);
 
 	return { isMobile };

@@ -57,7 +57,7 @@ const StyledInputText = styled.div`
 		}
 
 		&::placeholder {
-			color: ${({ theme }) => theme.color.lightGrey};
+			color: ${({ theme }) => theme.color.neutral};
 		}
 	}
 `;

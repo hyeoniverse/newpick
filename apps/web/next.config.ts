@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
+	distDir: 'build',
+
 	// Webpack 설정
 	webpack: (config) => {
 		config.module.rules.push({

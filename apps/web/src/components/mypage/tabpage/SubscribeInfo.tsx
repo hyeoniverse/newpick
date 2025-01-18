@@ -1,137 +1,152 @@
-"use client";
+'use client';
 
-import styled from "styled-components";
-import { IoIosArrowBack, IoIosArrowForward } from "react-icons/io";
-import { MYSUMMARYNEWS } from "@/constants/mypageData";
-import { useEffect, useRef, useState } from "react";
-import useMypage from "@/hooks/useMypage";
+import { useEffect, useRef, useState } from 'react';
+import { useHeader } from '@/hooks/useHeader';
+import useMypage from '@/hooks/useMypage';
+import { currentUserData } from '@/mocks/mypage/currentUser';
+
+import styled from 'styled-components';
+import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 
 interface SubscribeInfoProps {
-  activeCategory: string;
+	activeCategory: string;
 }
 
 function SubscribeInfo({ activeCategory }: SubscribeInfoProps) {
-  const navRef = useRef<HTMLDivElement>(null);
-  const [ isSticky, setIsSticky ] = useState(false);
-  const { handleAnchorNavigation } = useMypage();
+	const { headerHeight } = useHeader();
+	const navRef = useRef<HTMLDivElement>(null);
+	const lastScrollY = useRef(0);
+	const [isSticky, setIsSticky] = useState(false);
 
-  // 스크롤 좌우 넓어지는 효과
-  useEffect(() => {
-    const handleScroll = () => {
-      if (!navRef.current) return;
+	const { handleAnchorNavigation } = useMypage();
+	const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+	const { summaries } = currentUserData;
 
-      if (window.scrollY > 365) {
-        setIsSticky(true);
-      } else {
-        setIsSticky(false);
-      }
-    };
-    // 초기 스크롤 상태 확인
-    handleScroll();
+	// 스크롤 방향 감지 및 상태 업데이트
+	useEffect(() => {
+		const handleScroll = () => {
+			const currentScrollY = window.scrollY;
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+			// 특정 위치 이상 스크롤되면 Sticky 활성화
+			setIsSticky(currentScrollY > 365);
 
+			// 현재 스크롤 위치 저장
+			lastScrollY.current = currentScrollY;
+		};
 
-  return (
-    <SubscribeInfoStyled ref={navRef} className={isSticky ? "full-width" : ""}>
-      <ContentsStyled>
-        <div className="date">
-          <IoIosArrowBack />
-          <p>2025.01.01</p>
-          <IoIosArrowForward />
-        </div>
-        <ul className="categories">
-          {MYSUMMARYNEWS.map((news, index) => (
-            <li key={index} className={`category ${activeCategory === news.categoryName ? "active" : ""}`}>
-              <button
-                onClick={(e) => handleAnchorNavigation(e, news.categoryName)}
-              >
-                {news.categoryName}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </ContentsStyled>
-    </SubscribeInfoStyled>
-  );
+		window.addEventListener('scroll', handleScroll);
+		return () => window.removeEventListener('scroll', handleScroll);
+	}, []);
+
+	return (
+		<StyledSubscribeInfo
+			ref={navRef}
+			className={`${isSticky ? 'full-width' : ''}`}
+			$isSticky={isSticky}
+			$paddingTop={headerHeight}
+		>
+			<StyledContents>
+				<div className="date">
+					<IoIosArrowBack />
+					<p>{today}</p>
+					<IoIosArrowForward />
+				</div>
+				<ul className="categories">
+					{summaries.map((news, index) => (
+						<li key={index} className={`category ${activeCategory === news.categoryName ? 'active' : ''}`}>
+							<button onClick={(e) => handleAnchorNavigation(e, news.categoryName)}>
+								{news.categoryName}
+							</button>
+						</li>
+					))}
+				</ul>
+			</StyledContents>
+		</StyledSubscribeInfo>
+	);
 }
 
-const SubscribeInfoStyled = styled.div`
-    position: sticky;
-    width: 100%;
-    margin-top: -40px;
-    top: 0;
-    z-index: 999;
-    background-color: transparent;
-    border-bottom: none;
-    transition: all 0.3s ease;
+interface StyledProps {
+	$isSticky: boolean;
+	$paddingTop: string;
+}
 
-    &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        width: 100%;
-        height: 100%;
-        background-color: ${({theme}) => theme.color.surface};
-        border-bottom: 1px solid ${({theme}) => theme.color.border};
-        transform: translateX(-50%);
-        left: 50%;
-        transition: all 0.3s ease;
-        z-index: -1;
-    }
-    
-    &.full-width::before {
-        width: 100vw;
-    }
+const StyledSubscribeInfo = styled.div<StyledProps>`
+	width: 100%;
+	position: sticky;
+	top: 0;
+	padding-top: ${({ $isSticky, $paddingTop }) => ($isSticky ? $paddingTop : '0')};
+	margin-top: -40px;
+	z-index: 999;
+
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	align-items: center;
+
+	border-bottom: none;
+	transition: all 0.2s ease;
+
+	&::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		width: 100%;
+		height: 100%;
+		background-color: ${({ theme }) => theme.color.surface};
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		transform: translateX(-50%);
+		left: 50%;
+		z-index: -1;
+	}
+
+	&.full-width::before {
+		width: 100vw;
+	}
 `;
 
-const ContentsStyled = styled.div`
-    padding: 1rem;
-    max-width: 1024px;
-    margin: 0 auto;
+const StyledContents = styled.div`
+	padding: 1rem;
+	max-width: ${({ theme }) => theme.layout.width.large};
+	margin: 0 auto;
 
-    .date {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
-        gap: 0.5rem;
-        font-weight: ${({theme}) => theme.fontWeight.bold};
-        font-size: ${({theme}) => theme.fontSize.large};
-        padding-bottom: 1rem;
-    }
+	.date {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		font-size: ${({ theme }) => theme.fontSize.large};
+		padding-bottom: 1rem;
+	}
 
-    .categories {
-        display: flex;
-        flex-direction: row;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 0.2rem 1.25rem;
-        color: ${({theme}) => theme.color.subtext};
-        
-        .category {
-            &.active button{
-                color: ${({ theme }) => theme.color.primary};
-                font-weight: ${({ theme }) => theme.fontWeight.medium};
-            }
-            
-            button {
-                color: ${({ theme }) => theme.color.subtext};
-                cursor: pointer;
-                font-size: ${({ theme }) => theme.fontSize.small};
-                transition: all 0.3s ease;
+	.categories {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.2rem 1.25rem;
+		color: ${({ theme }) => theme.color.subText};
 
-                &:hover {
-                    color: ${({ theme }) => theme.color.primary};
-                    font-weight: ${({ theme }) => theme.fontWeight.medium};
-                }
-            }
-        }
-    }
+		.category {
+			&.active button {
+				color: ${({ theme }) => theme.color.primary};
+				font-weight: ${({ theme }) => theme.fontWeight.medium};
+			}
 
+			button {
+				color: ${({ theme }) => theme.color.subText};
+				cursor: pointer;
+				font-size: ${({ theme }) => theme.fontSize.small};
+				transition: all 0.3s ease;
 
+				&:hover {
+					color: ${({ theme }) => theme.color.primary};
+					font-weight: ${({ theme }) => theme.fontWeight.medium};
+				}
+			}
+		}
+	}
 `;
 
 export default SubscribeInfo;
