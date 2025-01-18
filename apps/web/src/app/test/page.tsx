@@ -4,14 +4,14 @@ import React, { useState } from 'react';
 import { useModal } from '@/hooks/useModal';
 
 import styled from 'styled-components';
-import Modal from '@/components/common/Modal';
+import Modal from '@/components/common/modal/Modal';
 import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
 import InputText from '@/components/common/InputText';
 import InputCheck from '@/components/common/InputCheck';
 import InputSelect from '@/components/common/InputSelect';
 import InputDate from '@/components/common/InputDate';
-import Loader from '@/components/common/Loader';
+import Loader from '@/app/components/common/Loader';
 
 const TestPage = () => {
 	const { isOpen, modalType, openModal, closeModal } = useModal();
@@ -53,23 +53,23 @@ const TestPage = () => {
 			<section>
 				<h2>Button</h2>
 				<h3>Primary</h3>
-				<Button scheme="primary" onClick={ () => alert('Primary Button clicked!') }>
+				<Button scheme="primary" onClick={() => alert('Primary Button clicked!')}>
 					클릭
 				</Button>
 				<h3>Secondary</h3>
-				<Button scheme="secondary" onClick={ () => alert('Secondary Button clicked!') }>
+				<Button scheme="secondary" onClick={() => alert('Secondary Button clicked!')}>
 					클릭
 				</Button>
 				<h3>Mono</h3>
-				<Button scheme="mono" onClick={ () => alert('Mono Button clicked!') }>
+				<Button scheme="mono" onClick={() => alert('Mono Button clicked!')}>
 					클릭
 				</Button>
 				<h3>Mono Outline</h3>
-				<Button scheme="monoOutline" onClick={ () => alert('Mono Outline Button clicked!') }>
+				<Button scheme="monoOutline" onClick={() => alert('Mono Outline Button clicked!')}>
 					클릭
 				</Button>
 				<h3>Danger</h3>
-				<Button scheme="danger" onClick={ () => alert('Text Button clicked!') }>
+				<Button scheme="danger" onClick={() => alert('Text Button clicked!')}>
 					클릭
 				</Button>
 			</section>

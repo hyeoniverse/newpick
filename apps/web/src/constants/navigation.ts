@@ -1,32 +1,22 @@
-import { link } from 'fs';
+import { Navigation } from '@/models/navigation.model';
+import { CATEGORIES } from '@/constants/categories';
 
-export const NAVIGATION = [
+export const NAVIGATION: Navigation[] = [
 	{
-		title: '정치',
-		link: '#menu1',
+		id: 0,
+		title: '시작하기',
+		link: '/start',
 	},
 	{
-		title: '사회',
-		link: '#menu2',
-	},
-	{
-		title: '경제',
-		link: '#menu3',
-	},
-	{
-		title: '테크',
-		link: '#menu4',
-	},
-	{
-		title: '세계',
-		link: '#menu5',
-	},
-	{
-		title: '문화',
-		link: '#menu6',
-	},
-	{
-		title: '스포츠',
-		link: '#menu7',
+		id: 1,
+		title: '뉴스레터',
+		link: '/articles',
+		subItems: [
+			...CATEGORIES.map((category, index) => ({
+				id: index,
+				title: category.title,
+				link: index === 0 ? '/articles' : `/articles/categories/${category.id}`,
+			})),
+		],
 	},
 ];

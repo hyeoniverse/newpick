@@ -1,0 +1,76 @@
+import styled from 'styled-components';
+import { useLayoutEffect, useState } from 'react';
+import { usersData } from '@/mocks/mypage/users';
+
+import SubscribeInfo from '@/components/mypage/tabpage/SubscribeInfo';
+import MySummaryCategory from '@/components/mypage/tabpage/MySummaryCategory';
+import NoContentsPage from '@/components/mypage/common(temporary)/NoContentsPage';
+
+function MySubscribe() {
+	const [activeCategory, setActiveCategory] = useState<string>('');
+	const { USER1 } = usersData;
+
+	useLayoutEffect(() => {
+		const categories = document.querySelectorAll<HTMLElement>('.content');
+		let sectionPositions: number[] = [];
+
+		const calcPositions = () => {
+			sectionPositions = Array.from(categories).map((cat) => cat.offsetTop);
+		};
+
+		const handleScroll = () => {
+			const currentScroll = window.scrollY - 110; // 높이 더하기 빼기 조절 (nav 높이값)
+			let activeIndex = 0;
+
+			for (let i = 0; i < sectionPositions.length; i++) {
+				if (sectionPositions[i] <= currentScroll) {
+					activeIndex = i;
+				}
+			}
+			setActiveCategory(categories[activeIndex]?.id || '');
+		};
+
+		// 처음 셋팅
+		calcPositions();
+		handleScroll();
+
+		// 스크롤, 리사이즈 이벤트 등록
+		window.addEventListener('scroll', handleScroll);
+		window.addEventListener('resize', () => {
+			calcPositions();
+			handleScroll();
+		});
+
+		return () => {
+			window.removeEventListener('scroll', handleScroll);
+			window.removeEventListener('resize', calcPositions);
+		};
+	}, []);
+
+	return (
+		<>
+			{USER1.subscribe === 1 || 2 ? ( // 구독 중 이거나 일시정지 중 이거나
+				<>
+					<SubscribeInfo activeCategory={activeCategory} />
+					<MySubscribeStyled>
+						<MySummaryCategory />
+					</MySubscribeStyled>
+				</>
+			) : (
+				<NoContentsPage
+					text={`뉴스레터를 구독 중이 아닙니다. \n 새로운 뉴스레터 구독을 시작해보시겠습니까?`}
+					btnText={'구독 바로가기'}
+					moveTo={'/'}
+				/>
+			)}
+		</>
+	);
+}
+
+const MySubscribeStyled = styled.div`
+	position: relative;
+	max-width: 1024px;
+	margin: 0 auto;
+`;
+
+export default MySubscribe;
