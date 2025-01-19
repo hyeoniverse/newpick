@@ -4,9 +4,6 @@ import styled from "styled-components";
 import Link from "next/link";
 import ThumbImgRemove from "@/components/common/ThumbImg(remove)";
 import { MYSUMMARYNEWS } from "@/lib/mypageData";
-import LikeIcon from "@/components/common/icon/LikeIcon";
-import OrigLinkIcon from "@/components/common/icon/OrigLinkIcon";
-import MobileLikeLinkButton from "@/components/article/MobileLikeLinkButton";
 
 interface Props {
   flex?: number;
@@ -159,7 +156,6 @@ const PopularNewsletterStyled = styled.div<Props>`
                 }
             }
         }
-        
     }
 
     @media screen and ${({theme}) => theme.mediaQuery.mobile} {
@@ -167,6 +163,4 @@ const PopularNewsletterStyled = styled.div<Props>`
             display: none;
         }
     }
-
-
 `;

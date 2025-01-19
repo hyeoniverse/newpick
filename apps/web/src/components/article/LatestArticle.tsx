@@ -10,7 +10,6 @@ import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation } from "swiper/modules";
 
-
 interface Props {
   className?: string;
 }
