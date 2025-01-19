@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { CATEGORY } from "@/constants/mypageData";
+import { CATEGORY } from "@/lib/mypageData";
 
 export interface INewsletterData {
   id: number;

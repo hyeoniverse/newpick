@@ -1,9 +1,9 @@
 import styled from "styled-components";
-import SubscribeToggle from "@/components/mypage/profile/SubscribeToggle";
-import { USER1 } from "@/constants/mypageData";
+import SubscribeStateToggle from "@/components/common/subscribe/SubscribeStateToggle";
+import { USER1 } from "@/lib/mypageData";
 
 function MyProfile() {
-
+  
   return (
     <ProfileStyled>
       <div className="profile">
@@ -19,7 +19,7 @@ function MyProfile() {
         </div>
       </div>
       <div className="subscribe">
-        <SubscribeToggle />
+        <SubscribeStateToggle />
       </div>
     </ProfileStyled>
   );
@@ -42,7 +42,7 @@ const ProfileStyled = styled.div`
         img {
             height: 100px;
             width: 100px;
-            border: 1px solid ${({theme}) => theme.color.line};
+            border: 1px solid ${({theme}) => theme.color.border};
             border-radius: ${({theme}) => theme.borderRadius.circle};
         }
 
@@ -61,7 +61,7 @@ const ProfileStyled = styled.div`
                 flex-wrap: wrap;
                 flex-direction: row;
                 gap: 0.125rem 0.875rem;
-                color: ${({theme}) => theme.color.subtext};
+                color: ${({theme}) => theme.color.mediumGrey};
                 font-size: ${({theme}) => theme.fontSize.extraSmall};
             }
         }

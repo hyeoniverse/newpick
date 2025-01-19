@@ -41,7 +41,7 @@ const Toast = React.memo(({ id, message, type }: ToastItem) => {
         {type === "error" && <IoIosWarning />}
         {message}
       </p>
-      <Button scheme="secondary" onClick={handleRemoveToast}>
+      <Button scheme="outline" onClick={handleRemoveToast}>
         <IoClose />
       </Button>
     </StyledToast>

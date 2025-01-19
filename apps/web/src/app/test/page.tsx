@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useModal } from '@/hooks/useModal';
 
 import styled from 'styled-components';
-import Modal from '@/components/common/Modal';
+import Modal from '@/components/common/modal/Modal';
 import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
 import InputText from '@/components/common/InputText';
@@ -57,7 +57,7 @@ const TestPage = () => {
 					클릭
 				</Button>
 				<h3>Secondary</h3>
-				<Button scheme="secondary" onClick={ () => alert('Secondary Button clicked!') }>
+				<Button scheme="outline" onClick={ () => alert('Secondary Button clicked!') }>
 					클릭
 				</Button>
 				<h3>Mono</h3>
@@ -155,7 +155,7 @@ const StyledTestPage = styled.div`
 
 		p {
 			margin-top: 0.5rem;
-			color: ${({ theme }) => theme.color.subtext};
+			color: ${({ theme }) => theme.color.mediumGrey};
 		}
 	}
 

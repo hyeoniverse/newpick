@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import '@/styles/globals';
+import '@/styles/global';
 import StyledComponentsRegistry from '@/lib/registry';
 import { AppThemeProvider } from '@/context/themeContext';
 import ToastContainer from '@/components/common/toast/ToastContainer';

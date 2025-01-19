@@ -3,7 +3,7 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { ThemeProvider } from "styled-components";
 import { ThemeName, getTheme } from "@/styles/theme";
-import { GlobalStyle } from "@/styles/globals";
+import { GlobalStyle } from "@/styles/global";
 
 const DEFAULT_THEME_NAME: ThemeName = "light";
 const THEME_LOCALSTORAGE_KEY = "qru_theme";

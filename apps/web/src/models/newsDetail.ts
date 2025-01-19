@@ -1,10 +1,13 @@
 export interface INewsDetail {
   id: number;
   title: string;
+  summary: string;
   content: string;
+  img: string;
   categoryId: number;
   userId: number;
   createdAt: string;
+  likes: number;
   viewcount: number;
 }
 

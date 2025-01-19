@@ -1,4 +1,4 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   webpack: (config) => {
@@ -7,7 +7,7 @@ const nextConfig: NextConfig = {
       issuer: /\.[jt]sx?$/,
       use: [
         {
-          loader: '@svgr/webpack',
+          loader: "@svgr/webpack",
           options: {
             svgoConfig: {
               plugins: {
@@ -33,8 +33,11 @@ module.exports = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'picsum.photos',
-        search: '',
+        hostname: "picsum.photos",
+      },
+      {
+        protocol: 'https',
+        hostname: "imgnews.pstatic.net",
       },
     ],
   },

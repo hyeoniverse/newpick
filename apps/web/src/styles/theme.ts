@@ -3,20 +3,20 @@ export type ThemeName = 'light' | 'dark';
 export type ColorKey =
   | 'primary' // 주요 색상
   | 'secondary' // 보조 색상
+  | 'tertiary' // 세번째 색상
   | 'background' // 배경 색상
-  | 'colorBackground' // 컬러 배경 색상 (연보라)
   | 'surface' // 표면 색상 ex) 카드, 버튼
   | 'disabled' // 비활성 색상
   | 'success' // 성공 색상
   | 'error' // 오류 색상
   | 'warning' // 경고 색상
   | 'text' // 텍스트 색상
-  | 'subtext' // 보조텍스트 색상
-  | 'lightGrey' // 옅은 그레이 색상
-  | 'line' // 분기라인 색상
+  | 'subText' // 보조텍스트 색상
+  | 'neutral' // 옅은 그레이 색상
+  | 'lightGrey' // 그레이 색상
   | 'border'; // 테두리 색상
 
-export type HeadingSize = 'extraLarge' | 'large' | 'medium' | 'small';
+export type HeadingSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
 export type FontSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
 export type FontWeight = 'light' | 'regular' | 'medium' | 'semiBold' | 'bold' | 'extraBold';
 
@@ -24,7 +24,7 @@ export type BorderRadius = 'flat' | 'soft' | 'medium' | 'rounded' | 'capsule' | 
 export type Shadow = 'light' | 'medium' | 'heavy';
 
 export type ButtonSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
-export type ButtonScheme = 'primary' | 'secondary' | 'mono' | 'monoOutline' | 'danger' | 'default';
+export type ButtonScheme = 'primary' | 'secondary' | 'outline' | 'mono' | 'monoOutline' | 'danger' | 'default';
 export type LayoutWidth = 'small' | 'medium' | 'large';
 export type MediaQuery = 'mobile' | 'tablet' | 'desktop';
 
@@ -53,14 +53,14 @@ interface Theme {
   buttonScheme: {
     [key in ButtonScheme]: {
       color: string;
-      fontWeight?: string;
       background: string;
       border: string;
+      fontWeight?: string;
       hover: {
         color: string;
-        fontWeight?: string;
         background?: string;
         border?: string;
+        fontWeight?: string;
       };
     };
   };
@@ -80,17 +80,18 @@ export const lightTheme: Theme = {
   color: {
     primary: '#3610e1',
     secondary: '#5564F1',
+    tertiary: '#f4f1ff',
     background: '#FFFFFF',
-    colorBackground: '#f4f1ff',
     surface: '#F9F9F9',
     disabled: '#BDBDBD',
     success: '#8BC34A',
     error: '#E57373',
     warning: '#FFB300',
     text: '#000000',
-    subtext: '#444444',
+    subText: '#808080',
+    neutral: '#F0F0F0',
+    mediumGrey: '#444444',
     lightGrey: '#999999',
-    line: '#d9d9d9',
     border: '#d9d9d9',
   },
   fontSize: {
@@ -111,17 +112,30 @@ export const lightTheme: Theme = {
   heading: {
     extraLarge: {
       fontSize: '3rem',
+      extraSmall: {
+        fontSize: '1.5rem',
+      },
     },
-    large: {
-      fontSize: '2.25rem',
-    },
-    medium: {
-      fontSize: '2rem',
-    },
-    small: {
-      fontSize: '1.75rem',
-    },
-  },
+      large: {
+        fontSize: '2.25rem',
+        small: {
+          fontSize: '1.75rem',
+        },
+      },
+        medium: {
+          fontSize: '2rem',
+        },
+
+        small: {
+          fontSize: '1.75rem',
+          large: {
+            fontSize: '2.25rem',
+          },
+        },
+          extraLarge: {
+            fontSize: '3rem',
+          },
+        },
   borderRadius: {
     flat: '0',
     soft: '4px',
@@ -162,15 +176,23 @@ export const lightTheme: Theme = {
       color: '#ffffff',
       fontWeight: '700',
       background: '#3610e1',
-      border: 'none',
       hover: {
         color: '#f4f1ff',
         fontWeight: '700',
         background: '#2001af',
-        border: 'none',
       },
     },
     secondary: {
+      color: '#000000',
+      background: 'transparent',
+      border: '1px solid transparent',
+      fontWeight: '500',
+      hover: {
+        color: '#3610e1',
+        background: '#F4F1FF',
+      },
+    },
+    outline: {
       color: '#3610e1',
       fontWeight: '700',
       background: 'transparent',
@@ -186,12 +208,11 @@ export const lightTheme: Theme = {
       color: '#ffffff',
       fontWeight: '700',
       background: '#222222',
-      border: 'none',
+      border: '1px solid transparent',
       hover: {
         color: '#f1f1f1',
         fontWeight: '700',
         background: '#111111',
-        border: 'none',
       },
     },
     monoOutline: {
@@ -222,11 +243,10 @@ export const lightTheme: Theme = {
       color: '#000000',
       fontWeight: '700',
       background: 'transparent',
-      border: 'none',
+      border: '1px solid transparent',
       hover: {
         color: '#3610e1',
         background: '#f4f1ff',
-        border: 'none',
       },
     },
   },
@@ -256,16 +276,17 @@ export const darkTheme: Theme = {
     primary: '#9ca9ff',
     secondary: '#6980ff',
     background: '#121212',
-    colorBackground: '#0f1d7a',
+    tertiary: '#0f1d7a',
     surface: '#1E1E1E',
     disabled: '#555555',
     success: '#66BB6A',
     error: '#EF5350',
     warning: '#FFB300',
     text: '#f1f1f1',
-    subtext: '#a3a3a3',
+    subText: '#a3a3a3',
+    mediumGrey: '#a3a3a3',
     lightGrey: '#606060',
-    line: '#2D2D2D',
+    neutral: '#2D2D2D',
     border: '#606060',
   },
   buttonScheme: {
@@ -273,23 +294,32 @@ export const darkTheme: Theme = {
       color: '#121212',
       fontWeight: '700',
       background: '#8C9EFF',
-      border: 'none',
+      border: '1px solid transparent',
       hover: {
         color: '#000000',
         fontWeight: '700',
         background: '#6c80ed',
-        border: 'none',
       },
     },
     secondary: {
-      color: '#8C9EFF',
+      color: '#f1f1f1',
+      background: 'transparent',
+      border: '1px solid transparent',
+      fontWeight: '500',
+      hover: {
+        color: '#9ca9ff',
+        background: '#0f1d7a',
+      },
+    },
+    outline: {
+      color: '#9ca9ff',
       fontWeight: '700',
       background: 'transparent',
-      border: '1px solid #8C9EFF',
+      border: '1px solid #9ca9ff',
       hover: {
         color: '#8C9EFF',
         fontWeight: '700',
-        background: '#0f1d7a',
+        background: '#9ca9ff',
         border: '1px solid #8C9EFF',
       },
     },
@@ -297,12 +327,11 @@ export const darkTheme: Theme = {
       color: '#121212',
       fontWeight: '700',
       background: '#f1f1f1',
-      border: 'none',
+      border: '1px solid transparent',
       hover: {
         color: '#121212',
         fontWeight: '700',
         background: '#d9d9d9',
-        border: 'none',
       },
     },
     monoOutline: {
@@ -333,11 +362,10 @@ export const darkTheme: Theme = {
       color: '#f1f1f1',
       fontWeight: '700',
       background: 'transparent',
-      border: 'none',
+      border: '1px solid transparent',
       hover: {
         color: '#9ca9ff',
         background: '#0f1d7a',
-        border: 'none',
       },
     },
   },

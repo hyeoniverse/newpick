@@ -63,7 +63,7 @@ const StyledFooter = styled.footer`
 
 		a {
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subtext};
+			color: ${({ theme }) => theme.color.mediumGrey};
 			cursor: pointer;
 
 			&:hover {

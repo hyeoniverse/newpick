@@ -7,7 +7,7 @@ import { useModal } from '@/hooks/useModal';
 import styled from 'styled-components';
 import Logo from '@/components/common/Logo';
 import Button from '@/components/common/Button';
-import Modal from '@/components/common/Modal';
+import Modal from '@/components/common/modal/Modal';
 import Dropdown from '@/components/common/Dropdown';
 import Navigation from '@/components/header/Navigation';
 import Drawer from '@/components/header/Drawer';
@@ -38,7 +38,7 @@ const Header = () => {
                 className="auth"
                 toggleButton={
                   <>
-                    <Button scheme="secondary">
+                    <Button scheme="outline">
                       내 정보
                       <FaUserCircle className="userCircle" />
                     </Button>
