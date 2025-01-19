@@ -44,7 +44,7 @@ const TabButtonStyled = styled.div`
     button {
         cursor: pointer;
         padding: 0.5rem 0;
-        width: 12rem;
+        width: calc(100% / 3);
         background-color: transparent;
         color: ${({theme}) => theme.color.lightGrey};
         font-size: ${({theme}) => theme.fontSize.small};

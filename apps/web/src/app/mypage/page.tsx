@@ -9,7 +9,7 @@ import MyBookmark from "@/components/mypage/inner-page/MyBookmark";
 import MyNewsletterSetting from "@/components/mypage/inner-page/MyNewsletterSetting";
 
 function Page() {
-  const [ activeTab, setActiveTab ] = useState("subscribe")
+  const [ activeTab, setActiveTab ] = useState("subscribe");
 
   return (
     <PageStyled>
@@ -27,7 +27,7 @@ function Page() {
 
 const PageStyled = styled.div`
     margin: 3rem 0 10rem 0;
-
+    
     .title {
         font-size: ${({theme}) => theme.fontSize.large};
         margin-bottom: 1.25rem;

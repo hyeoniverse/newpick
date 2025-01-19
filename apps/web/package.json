@@ -10,6 +10,7 @@
     "server": "json-server --watch ./src/utils/jsonServer/newsletters.json -p 3001"
   },
   "dependencies": {
+    "@faker-js/faker": "^9.4.0",
     "@svgr/webpack": "^8.1.0",
     "@types/react-datepicker": "^6.2.0",
     "dayjs": "^1.11.13",

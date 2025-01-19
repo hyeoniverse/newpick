@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { useEffect, useState } from "react";
-import LikeIcon from "@/components/common/icon/LikeIcon";
-import LinkCopyIcon from "@/components/common/icon/LinkCopyIcon";
+import LikeIcon from "@/components/common/icons/LikeIcon";
+import LinkCopyIcon from "@/components/common/icons/LinkCopyIcon";
 
 interface Props {
   className?: string;

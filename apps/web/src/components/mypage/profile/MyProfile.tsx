@@ -1,82 +1,75 @@
-import styled from "styled-components";
-import SubscribeStateToggle from "@/components/common/subscribe/SubscribeStateToggle";
-import { USER1 } from "@/lib/mypageData";
+import { usersData } from '@/mocks/mypage/users';
+import styled from 'styled-components';
+import Image from '@/components/common/Image';
+import SubscribeToggle from '@/components/common/subscribe/SubscribeToggle';
 
-function MyProfile() {
-  
-  return (
-    <ProfileStyled>
-      <div className="profile">
-        <img src="/icons/profile_dummy.jpg" alt="prifile-img" />
-        <div className="profile-text">
-          <h4>{USER1.name}</h4>
-          <p>{USER1.email}</p>
-          <ul>
-            {USER1.keyword.map((keyword, i) => (
-              <li key={i}>{keyword.keyword}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-      <div className="subscribe">
-        <SubscribeStateToggle />
-      </div>
-    </ProfileStyled>
-  );
+function Profile() {
+	const { USER1 } = usersData;
+
+	return (
+		<ProfileStyled>
+			<div className="profile">
+				<Image src="/icons/profile_dummy.jpg" alt="prifile-img" ratio="square" />
+				<div className="profile-text">
+					<h4>{USER1.name}</h4>
+					<p>{USER1.email}</p>
+					{/* <ul>
+						{USER1.keyword.map((keyword, i) => (
+							<li key={i}>{keyword.keyword}</li>
+						))}
+					</ul> */}
+				</div>
+			</div>
+			<div className="subscribe">
+				<SubscribeToggle />
+			</div>
+		</ProfileStyled>
+	);
 }
 
 const ProfileStyled = styled.div`
-    display: flex;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-    width: 100%;
-    gap: 2rem;
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: flex-start;
+	width: 100%;
+	gap: 2rem;
 
-    .profile {
-        display: flex;
-        flex-direction: row;
-        gap: 2rem;
-        align-items: center;
+	.profile {
+		display: flex;
+		flex-direction: row;
+		gap: 2rem;
+		justify-content: space-between;
+		align-items: flex-start;
+		
+		img {
+			height: 100px;
+			width: 100px;
+			border: 1px solid ${({ theme }) => theme.color.neutral};
+			border-radius: ${({ theme }) => theme.borderRadius.circle};
+		}
 
-        img {
-            height: 100px;
-            width: 100px;
-            border: 1px solid ${({theme}) => theme.color.border};
-            border-radius: ${({theme}) => theme.borderRadius.circle};
-        }
+		.profile-text {
+			h4 {
+				font-size: ${({ theme }) => theme.fontSize.medium};
+			}
 
-        .profile-text {
-            h4 {
-                font-size: ${({theme}) => theme.fontSize.medium};
-            }
+			p {
+				color: ${({ theme }) => theme.color.subText};
+				padding: 0.25rem 0;
+			}
 
-            p {
-                color: ${({theme}) => theme.color.lightGrey};
-                padding: 0.25rem 0;
-            }
-
-            ul {
-                display: flex;
-                flex-wrap: wrap;
-                flex-direction: row;
-                gap: 0.125rem 0.875rem;
-                color: ${({theme}) => theme.color.mediumGrey};
-                font-size: ${({theme}) => theme.fontSize.extraSmall};
-            }
-        }
-
-        @media screen and ${({theme}) => theme.mediaQuery.mobile} {
-            flex-direction: column;
-        };
-    }
-
-    @media screen and ${({theme}) => theme.mediaQuery.tablet} {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.25rem;
-    }
+			ul {
+				display: flex;
+				flex-wrap: wrap;
+				flex-direction: row;
+				gap: 0.125rem 0.875rem;
+				color: ${({ theme }) => theme.color.subText};
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
+	}
 `;
 
-export default MyProfile;
+export default Profile;

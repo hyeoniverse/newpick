@@ -3,7 +3,7 @@ import '@/styles/global';
 import StyledComponentsRegistry from '@/lib/registry';
 import { AppThemeProvider } from '@/context/themeContext';
 import ToastContainer from '@/components/common/toast/ToastContainer';
-import Layout from '@/components/layout/Layout';
+import Layout from '@/components/layout/MainLayout';
 
 export const metadata: Metadata = {
 	title: '뉴픽: NewPick',

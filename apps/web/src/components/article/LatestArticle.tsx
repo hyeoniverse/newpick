@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { MYSUMMARYNEWS } from "@/lib/mypageData";
 import Link from "next/link";
-import LikeIcon from "@/components/common/icon/LikeIcon";
+import LikeIcon from "@/components/common/icons/LikeIcon";
 import BarHeight from "@/components/common/BarHeight";
 import { dateFormatter } from "@/utils/formatter";
 

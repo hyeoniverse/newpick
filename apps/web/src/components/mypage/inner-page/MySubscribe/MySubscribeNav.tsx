@@ -40,7 +40,7 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
     const handleScroll = () => {
       if (!navRef.current) return;
 
-      if (window.scrollY > 364) {
+      if (window.scrollY > 298) {
         setIsSticky(true);
       } else {
         setIsSticky(false);

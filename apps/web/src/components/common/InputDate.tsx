@@ -68,7 +68,7 @@ const StyledInputDate = styled.div`
 		}
 
 		&::placeholder {
-			color: ${({ theme }) => theme.color.lightGrey};
+			color: ${({ theme }) => theme.color.neutral};
 		}
 	}
 
@@ -83,9 +83,9 @@ const StyledInputDate = styled.div`
 		font-size: ${({ theme }) => theme.fontSize.medium};
 		color: ${({ theme }) => theme.color.background};
 	}
-	
+
 	.react-datepicker__day-name {
-		color: ${({ theme }) => theme.color.background};;
+		color: ${({ theme }) => theme.color.background};
 	}
 
 	.react-datepicker__day--selected,

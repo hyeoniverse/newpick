@@ -2,11 +2,12 @@
 
 import styled from "styled-components";
 import MySubscribeNav from "@/components/mypage/inner-page/MySubscribe/MySubscribeNav";
-import MySubscribeContents from "@/components/mypage/inner-page/MySubscribe/MySubscribeContents";
+import MySubscribeContents from "@/components/mypage/inner-page/MySubscribe/MySubscribeSummaryCategory";
 import { useEffect, useState } from "react";
 import NoContentsPage from "@/components/common/NoContentsPage";
 import { USER1 } from "@/lib/mypageData";
 import { IMySummary } from "@/models/newsDetail";
+import MySummaryCategory from "@/components/mypage/inner-page/MySubscribe/MySubscribeSummaryCategory";
 
 function MySubscribe() {
   const [activeCategory, setActiveCategory] = useState<string>("");
@@ -82,7 +83,7 @@ function MySubscribe() {
         <>
           <MySubscribeNav activeCategory={activeCategory} />
           <MySubscribeStyled>
-            <MySubscribeContents summaryInfo={summaryInfo} />
+            <MySummaryCategory summaryInfo={summaryInfo} />
           </MySubscribeStyled>
         </>
       ) : (

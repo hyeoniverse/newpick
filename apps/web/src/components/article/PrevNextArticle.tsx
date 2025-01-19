@@ -2,7 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import MoveButton from "@/components/common/MoveButton";
 import { IoArrowBack, IoArrowForward } from "react-icons/io5";
-import ThumbImgRemove from "@/components/common/ThumbImg(remove)";
+import ThumbImgRemove from "@/components/mypage/inner-page/MySubscribe/HeightAutoImg";
 import Link from "next/link";
 
 interface Props {

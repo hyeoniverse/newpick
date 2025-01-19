@@ -1,37 +1,58 @@
 'use client';
 
-import styled, { CSSProp } from 'styled-components';
+import React from 'react';
+import styled from 'styled-components';
 import { ButtonScheme, ButtonSize } from '@/styles/theme';
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-	children: React.ReactNode;
+	children?: React.ReactNode;
 	ref?: React.Ref<HTMLButtonElement>;
 	size?: ButtonSize;
 	scheme?: ButtonScheme;
 	disabled?: boolean;
 	isLoading?: boolean;
-	styles?: string | CSSProp;
+	icon?: React.ReactNode;
+	iconPosition?: 'left' | 'right';
 	tooltip?: string;
 }
 
-const Button = ({ children, ref, size, scheme, disabled, isLoading, tooltip, ...props }: Props) => {
+const Button = ({
+	children,
+	ref,
+	size,
+	scheme,
+	disabled,
+	isLoading,
+	tooltip,
+	icon,
+	iconPosition = 'right',
+	...props
+}: Props) => {
+	const textContent = React.Children.toArray(children)
+		.filter((child) => typeof child === 'string')
+		.join(' ');
+
 	return (
 		<StyledButton
+			title={textContent}
 			ref={ref}
 			size={size}
 			scheme={scheme}
 			disabled={disabled}
 			isLoading={isLoading}
 			data-tooltip={tooltip}
+			iconPosition={iconPosition}
 			{...props}
 		>
+			{icon && iconPosition === 'left' && <span>{icon}</span>}
 			{children}
+			{icon && iconPosition === 'right' && <span>{icon}</span>}
 		</StyledButton>
 	);
 };
 
 export const StyledButton = styled.button.withConfig({
-	shouldForwardProp: (prop) => !['isLoading', 'styles'].includes(prop),
+	shouldForwardProp: (prop) => !['isLoading', 'iconPosition'].includes(prop),
 })<Omit<Props, 'children'>>`
 	position: relative;
 	display: flex;
@@ -39,9 +60,11 @@ export const StyledButton = styled.button.withConfig({
 	justify-content: center;
 	flex-shrink: 0;
 	line-height: 1;
-	width: 100%;
+	width: fit-content;
+	height: fit-content;
 
 	font-size: ${({ theme, size }) => theme.button[size ?? 'small'].fontSize};
+  font-weight: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].fontWeight};
 	padding: ${({ theme, size }) => theme.button[size ?? 'small'].padding};
 	gap: ${({ theme, size }) => theme.button[size ?? 'small'].gap};
 
@@ -55,28 +78,40 @@ export const StyledButton = styled.button.withConfig({
 
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 	-webkit-tap-highlight-color: transparent;
 
+	a {
+		text-decoration: none;
+		color: inherit;
+		padding: 0;
+		margin: 0;
+	}
+
 	svg {
-		display: flex;
+		width: ${({ theme, size }) => theme.button[size ?? 'small'].fontSize}
+		height: ${({ theme, size }) => theme.button[size ?? 'small'].fontSize}
+		font-size: ${({ theme, size }) => theme.button[size ?? 'small'].fontSize};
+		color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].color};
+
+    display: flex;
 		align-items: center;
 		justify-content: center;
 		line-height: 1;
-		width: calc(${({ theme, size }) => theme.button[size ?? 'small'].fontSize} * 1.2);
-		height: calc(${({ theme, size }) => theme.button[size ?? 'small'].fontSize} * 1.2);
+    padding: 0;
+    margin: 0;
 
-		&:hover {
-			color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.color};
-			background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.background};
-		}
+    transform: scale(1.25);
 	}
 
 	&:hover {
 		color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.color};
 		background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.background};
 		border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.border};
-		// font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		font-weight: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.fontWeight};
+    
+		svg {
+			color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.color};
+		}
 	}
 
 	&[data-tooltip]:hover::after,
@@ -95,7 +130,7 @@ export const StyledButton = styled.button.withConfig({
 		text-align: left;
 
 		background: ${({ theme }) => theme.color.surface};
-		color: ${({ theme }) => theme.color.lightGrey};
+		color: ${({ theme }) => theme.color.neutral};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		border-radius: ${({ theme }) => theme.borderRadius.medium};
 		box-shadow: ${({ theme }) => theme.shadow.soft};
@@ -111,8 +146,6 @@ export const StyledButton = styled.button.withConfig({
 		transform-origin: top;
 		transform: scaleY(0);
 	}
-
-	${({ styles }) => styles || ''}
 `;
 
 export default Button;

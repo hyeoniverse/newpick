@@ -2,7 +2,7 @@
 
 import styled from "styled-components";
 import Link from "next/link";
-import ThumbImgRemove from "@/components/common/ThumbImg(remove)";
+import ThumbImgRemove from "@/components/mypage/inner-page/MySubscribe/HeightAutoImg";
 import { MYSUMMARYNEWS } from "@/lib/mypageData";
 
 interface Props {

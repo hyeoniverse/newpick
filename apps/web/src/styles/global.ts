@@ -33,34 +33,45 @@ export const GlobalStyle = createGlobalStyle<Props>`
         &::-webkit-scrollbar {
             display: none; /* Webkit 기반 브라우저 (Chrome, Safari, Edge) */
         }
+
         -ms-overflow-style: none; /* IE, Edge */
-    }
 
-    a {
-        text-decoration: none;
-        color: ${({theme}) => theme.color.text};
-    }
+        @media ${({theme}) => theme.mediaQuery.mobile} {
+            /* 스크롤바 숨김 처리 (브라우저별 설정) */
+            scrollbar-width: none; /* Firefox */
+            &::-webkit-scrollbar {
+                display: none; /* Webkit 기반 브라우저 (Chrome, Safari, Edge) */
+            }
 
-    input {
-        outline: none;
-    }
+            -ms-overflow-style: none; /* IE, Edge */
+        }
 
-    ul, li {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-    }
+        a {
+            text-decoration: none;
+            color: ${({theme}) => theme.color.text};
+        }
 
-    h1, h2, h3, h4, h5, h6, p {
-        margin: 0;
-    }
-
-    button {
-        border: none;
-        background-color: transparent;
-
-        &:focus {
+        input {
             outline: none;
+        }
+
+        ul, li {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1, h2, h3, h4, h5, h6, p {
+            margin: 0;
+        }
+
+        button {
+            border: none;
+            background-color: transparent;
+
+            &:focus {
+                outline: none;
+            }
         }
     }
 `;

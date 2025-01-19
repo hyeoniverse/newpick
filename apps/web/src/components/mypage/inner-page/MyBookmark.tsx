@@ -1,11 +1,12 @@
 import styled from "styled-components";
-import { BOOKMARK, MYSUMMARYNEWS } from "@/lib/mypageData";
-import ThumbImgRemove from "@/components/common/ThumbImg(remove)";
-import LikeIcon from "@/components/common/icon/LikeIcon";
+import { BOOKMARK } from "@/lib/mypageData";
+import ThumbImgRemove from "@/components/mypage/inner-page/MySubscribe/HeightAutoImg";
+import LikeIcon from "@/components/common/icons/LikeIcon";
 import Link from "next/link";
 import NoContentsPage from "@/components/common/NoContentsPage";
 import { useEffect, useState } from "react";
 import { IMySummary } from "@/models/newsDetail";
+import HeightAutoImg from "@/components/mypage/inner-page/MySubscribe/HeightAutoImg";
 
 function MyBookmark() {
   const [ bookmarkInfo, setBookmarkInfo ] = useState<IMySummary[] | null>(null)
@@ -38,7 +39,7 @@ function MyBookmark() {
               {bookmarkInfo && bookmarkInfo.map((info, index) => (
                 <div key={index} className="card">
                   <Link href={`#`}>
-                    <ThumbImgRemove src={info.img} aspectratio={4/3}/>
+                    <HeightAutoImg src={info.img} aspectratio={4 / 3} />
                   </Link>
                   <div className="content">
                     <Link href={`#`} className="category">{info.categoryName}</Link>
@@ -91,7 +92,8 @@ const MyBookmarkStyled = styled.div`
                 width: max-content;
             }
 
-            .title, .subtext {
+            .title,
+            .subtext {
                 display: -webkit-box;
                 -webkit-box-orient: vertical;
                 -webkit-line-clamp: 2;
@@ -110,7 +112,6 @@ const MyBookmarkStyled = styled.div`
                 color: ${({theme}) => theme.color.mediumGrey}
             }
 
-
             .etc {
                 display: flex;
                 flex-direction: row;
@@ -125,7 +126,7 @@ const MyBookmarkStyled = styled.div`
 
                 .date {
                     font-size: ${({theme}) => theme.fontSize.extraSmall};
-                    color: ${({theme}) => theme.color.lightGrey};
+                    color: ${({theme}) => theme.color.neutral};
                 }
             }
         }
@@ -138,6 +139,5 @@ const MyBookmarkStyled = styled.div`
         grid-template-columns: repeat(1, 1fr);
     }
 `;
-
 
 export default MyBookmark;
