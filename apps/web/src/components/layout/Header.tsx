@@ -73,18 +73,6 @@ const Header = () => {
 				</div>
 				<div className="center-section">
 					<Navigation />
-					{/* {NAVIGATION.map((item, index) => (
-						<div key={`header-nav-${index}`}>
-							<Navigation items={[{ id: item.id, title: item.title, link: item.link }]} />
-							{item.subItems && (
-								<SubNavigation
-									key={`header-sub-nav-${index}`}
-									items={item.subItems}
-									isActive={isHeaderOpen}
-								/>
-							)}
-						</div>
-					))} */}
 				</div>
 				<div className="right-section">
 					<ThemeSwitcher scheme="secondary" className={isAuthenticated ? 'hidden' : 'mobile-hidden'} />
@@ -101,7 +89,7 @@ const Header = () => {
 							<>
 								<ThemeSwitcher className="item" />
 								<Link href="/mypage">
-									<Button className="item">마이페이지</Button>
+									<Button className="item">마이 페이지</Button>
 								</Link>
 								<Button className="item" onClick={handleLogout}>
 									로그아웃
