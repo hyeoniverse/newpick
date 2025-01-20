@@ -11,9 +11,11 @@ export default function Error() {
 			<Title size="large" color="error">
 				페이지를 찾을 수 없습니다.
 			</Title>
-			<Button size="medium" scheme="primary">
-				<Link href="/">홈으로 돌아가기</Link>
-			</Button>
+			<Link href="/">
+				<Button size="medium" scheme="primary">
+					홈으로 돌아가기
+				</Button>
+			</Link>
 		</StyledError>
 	);
 }
