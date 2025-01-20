@@ -89,7 +89,7 @@ const Header = () => {
 							<>
 								<ThemeSwitcher className="item" />
 								<Link href="/mypage">
-									<Button className="item">마이페이지</Button>
+									<Button className="item">마이 페이지</Button>
 								</Link>
 								<Button className="item" onClick={handleLogout}>
 									로그아웃
