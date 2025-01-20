@@ -2,7 +2,7 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { FontSize } from '@/styles/theme'; // Next.js의 절대 경로 기반으로 수정
+import { FontSize } from '@/styles/theme';
 import { BiCheck } from 'react-icons/bi';
 
 interface Props extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onBlur' | 'onChange' | 'size'> {
