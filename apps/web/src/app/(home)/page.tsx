@@ -5,9 +5,9 @@ import { useNewsletter } from '@/hooks/useNewsletter';
 import { styled } from 'styled-components';
 import Title from '@/components/common/Title';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
-import HeroSection from '@/app/( home)/HeroSection';
-import TrendSection from '@/app/( home)/TrendSection';
-import SubscribeSection from '@/app/( home)/SubscribeSection';
+import HeroSection from '@/app/(home)/HeroSection';
+import TrendSection from '@/app/(home)/TrendSection';
+import SubscribeSection from '@/app/(home)/SubscribeSection';
 
 const HomePage = () => {
 	const { newsletters } = useNewsletter();
