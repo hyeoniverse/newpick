@@ -73,18 +73,6 @@ const Header = () => {
 				</div>
 				<div className="center-section">
 					<Navigation />
-					{/* {NAVIGATION.map((item, index) => (
-						<div key={`header-nav-${index}`}>
-							<Navigation items={[{ id: item.id, title: item.title, link: item.link }]} />
-							{item.subItems && (
-								<SubNavigation
-									key={`header-sub-nav-${index}`}
-									items={item.subItems}
-									isActive={isHeaderOpen}
-								/>
-							)}
-						</div>
-					))} */}
 				</div>
 				<div className="right-section">
 					<ThemeSwitcher scheme="secondary" className={isAuthenticated ? 'hidden' : 'mobile-hidden'} />
