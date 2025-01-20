@@ -17,7 +17,7 @@ function NewsletterDetailPage() {
 		async function fetchNewsDetail() {
 			if (params.slug) {
 				try {
-					const res = await fetch(`http://localhost:3001/news/${params.slug}`);
+					const res = await fetch(`http://localhost:1000/news/${params.slug}`);
 					if (!res.ok) {
 						throw new Error('No such news found');
 					}

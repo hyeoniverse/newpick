@@ -16,7 +16,7 @@ function MyBookmark() {
 
       console.log("Params:", bookmarkInfo); // 값 확인
       try {
-        const res = await fetch(`http://localhost:3001/mysummary`);
+        const res = await fetch(`http://localhost:1000/mysummary`);
         if (!res.ok) {
           throw new Error("No such article found");
         }

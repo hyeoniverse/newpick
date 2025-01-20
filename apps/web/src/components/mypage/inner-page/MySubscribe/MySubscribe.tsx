@@ -17,7 +17,7 @@ function MySubscribe() {
   useEffect(() => {
     async function fetchSummary() {
       try {
-        const res = await fetch(`http://localhost:3001/mysummary`);
+        const res = await fetch(`http://localhost:1000/mysummary`);
         if (!res.ok) {
           throw new Error("No such article found");
         }

@@ -5,7 +5,7 @@ export async function GET(request: Request, { params }: { params: { slug: string
 
 	try {
 		console.log('params:', slug);
-		const res = await fetch(`http://localhost:3001/articles/detail/${slug}`, {
+		const res = await fetch(`http://localhost:1000/articles/detail/${slug}`, {
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',

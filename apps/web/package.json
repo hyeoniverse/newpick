@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "server": "json-server --watch ./src/utils/jsonServer/newsletters.json -p 3001"
+    "server": "json-server --watch ./src/utils/jsonServer/newsletters.json -p 1000"
   },
   "dependencies": {
     "@faker-js/faker": "^9.4.0",

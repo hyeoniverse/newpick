@@ -68,7 +68,7 @@ export const StyledButton = styled.button.withConfig({
 	padding: ${({ theme, size }) => theme.button[size ?? 'small'].padding};
 	gap: ${({ theme, size }) => theme.button[size ?? 'small'].gap};
 
-	color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].secondary};
+	color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].color};
 	background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].background};
 	border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].border};
 	border-radius: ${({ theme }) => theme.borderRadius.flat};
