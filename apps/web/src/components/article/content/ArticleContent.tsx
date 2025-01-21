@@ -26,10 +26,7 @@ function ArticleContent({flex, className}: NewsletterContentProps) {
         <h6>6 hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohello</h6>
         <p>hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohello</p>
         <figure>
-          <img src="/img/newpick_default_img.jpg" alt="news-img" />
-          <figcaption>
-            hellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohellohello
-          </figcaption>
+
         </figure>
         <a href="#">https://notefolio.net/service/content/post/86540</a>
         <strong>hellllllllop</strong>

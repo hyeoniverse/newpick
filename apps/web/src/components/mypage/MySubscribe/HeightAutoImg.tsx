@@ -22,7 +22,7 @@ function HeightAutoImg({src, height, className, aspectratio = "auto"}: Props) {
       e.currentTarget.src = "/img/newpick_default_img.jpg";
   }
   return (
-    <ContainerStyled height={height} className={className} aspectratio={aspectratio} >
+    <ContainerStyled height={height} className={className} >
       <SourceStyled />
       {/*  type="image/webp"*/}
       {/*  src={validSrc}*/}
@@ -34,6 +34,7 @@ function HeightAutoImg({src, height, className, aspectratio = "auto"}: Props) {
         quality={75}
         sizes="100vw"
         fill
+        aspectratio={aspectratio}
         onError={imageOnErrorHandler}
       />
     </ContainerStyled>
@@ -53,6 +54,9 @@ const ThumbImgStyled = styled(Image)<Props>`
     object-fit: cover;
     content-visibility: auto;
     object-position: center;
+
+    aspect-ratio: ${({aspectratio}) => aspectratio};
+
 `;
 
 const SourceStyled = styled.source`
@@ -63,10 +67,6 @@ const ContainerStyled = styled.div<Props>`
     border-radius: ${({theme}) => theme.borderRadius.soft};
 
     height: ${({height}) => height};
-
-    ${ThumbImgStyled} {
-        aspect-ratio: ${({aspectratio}) => aspectratio};
-    }
 `
 
 export default HeightAutoImg;

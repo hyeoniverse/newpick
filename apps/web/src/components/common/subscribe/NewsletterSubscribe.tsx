@@ -1,27 +1,27 @@
 "use client";
 
-import styled from "styled-components";
-import Button from "@/components/common/Button";
-import { CATEGORIES } from "@/constants/categories";
-import { currentUserData } from "@/mocks/mypage/currentUser";
-import Modal from "@/components/common/modal/Modal";
-import ModalContents from "@/components/common/modal/ModalContents";
-import { LuMailCheck } from "react-icons/lu";
-import useMypage from "@/hooks/useMypage";
-import { useModal } from "@/hooks/useModal";
-import { useLayoutEffect } from "react";
+import styled from 'styled-components';
+import Button from '@/components/common/Button';
+import { CATEGORIES } from '@/constants/categories';
+import { currentUserData } from '@/mocks/mypage/currentUser';
+import Modal from '@/components/common/modal/Modal';
+import ModalContents from '@/components/common/modal/ModalContents';
+import { LuMailCheck } from 'react-icons/lu';
+import useMypage from '@/hooks/useMypage';
+import { useModal } from '@/hooks/useModal';
+import { useLayoutEffect } from 'react';
 
 function NewsletterSubscribe() {
-  const {handleSelectCategory, handleSelectAll, allSelectCategory, selectCategory, setSelectCategory} = useMypage();
-  const {isOpen, modalType, openModal, closeModal} = useModal();
-  const {subscribedCategories} = currentUserData;
+  const { handleSelectCategory, handleSelectAll, allSelectCategory, selectCategory, setSelectCategory } = useMypage();
+  const { isOpen, modalType, openModal, closeModal } = useModal();
+  const { subscribedCategories } = currentUserData;
 
   // 유저가 구독 중인 카테고리 초기화면
   useLayoutEffect(() => {
     const subscribedNames = subscribedCategories.map((item) => item.categoryName);
     const uniqueSubscribed = Array.from(new Set(subscribedNames));
     setSelectCategory(uniqueSubscribed);
-  }, [ subscribedCategories, setSelectCategory ]);
+  }, [subscribedCategories, setSelectCategory]);
 
   return (
     <NewsletterSubscribeStyled>
@@ -38,7 +38,7 @@ function NewsletterSubscribe() {
           <Button
             type="button"
             scheme="default"
-            className={allSelectCategory ? "active category-btn" : "category-btn"}
+            className={allSelectCategory ? 'active category-btn' : 'category-btn'}
             onClick={() => handleSelectAll()}
           >
             전체
@@ -55,7 +55,7 @@ function NewsletterSubscribe() {
                   handleSelectCategory(category);
                 }}
                 className={
-                  selectCategory.includes(category.title) ? "category-btn active" : "category-btn"
+                  selectCategory.includes(category.title) ? 'category-btn active' : 'category-btn'
                 }
               >
                 {category.title}
@@ -65,12 +65,12 @@ function NewsletterSubscribe() {
         </ul>
       </div>
       <div className="btn">
-        <Button type="submit" scheme="primary" size="large" onClick={() => openModal("submit")}>
+        <Button type="submit" scheme="primary" size="large" onClick={() => openModal('submit')}>
           완료
         </Button>
       </div>
       {/*모달*/}
-      {isOpen && modalType === "submit" && (
+      {isOpen && modalType === 'submit' && (
         <Modal isOpen={isOpen} onClose={closeModal}>
           <ModalContents
             icon={<LuMailCheck />}
@@ -92,12 +92,12 @@ const NewsletterSubscribeStyled = styled.div`
 
     .text {
         h3 {
-            font-size: ${({theme}) => theme.fontSize.large};
+            font-size: ${({ theme }) => theme.fontSize.large};
             margin-bottom: 0.5rem;
         }
 
         p {
-            color: ${({theme}) => theme.color.mediumGrey};
+            color: ${({ theme }) => theme.color.subtext};
         }
     }
 
@@ -105,13 +105,13 @@ const NewsletterSubscribeStyled = styled.div`
         display: flex;
         flex-direction: row;
         gap: 0.875rem;
-        background-color: ${({theme}) => theme.color.surface};
+        background-color: ${({ theme }) => theme.color.surface};
         padding: 2rem;
-        border-top: 1px solid ${({theme}) => theme.color.text};
-        border-bottom: 1px solid ${({theme}) => theme.color.text};
+        border-top: 1px solid ${({ theme }) => theme.color.text};
+        border-bottom: 1px solid ${({ theme }) => theme.color.text};
 
         .bar {
-            border-left: 1px solid ${({theme}) => theme.color.lightGrey};
+            border-left: 1px solid ${({ theme }) => theme.color.lightGrey};
             height: auto;
         }
 
@@ -124,15 +124,15 @@ const NewsletterSubscribeStyled = styled.div`
 
         .category-btn {
             width: max-content;
-            color: ${({theme}) => theme.color.primary};
-            border-radius: ${({theme}) => theme.borderRadius.capsule};
-            border: 1px solid ${({theme}) => theme.color.primary};
+            color: ${({ theme }) => theme.color.primary};
+            border-radius: ${({ theme }) => theme.borderRadius.capsule};
+            border: 1px solid ${({ theme }) => theme.color.primary};
         }
 
         .active {
-            color: ${({theme}) => theme.color.background};
-            background-color: ${({theme}) => theme.color.primary};
-            border-radius: ${({theme}) => theme.borderRadius.capsule};
+            color: ${({ theme }) => theme.color.background};
+            background-color: ${({ theme }) => theme.color.primary};
+            border-radius: ${({ theme }) => theme.borderRadius.capsule};
         }
     }
 

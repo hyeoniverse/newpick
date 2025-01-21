@@ -13,11 +13,6 @@ function Profile() {
 				<div className="profile-text">
 					<h4>{USER1.name}</h4>
 					<p>{USER1.email}</p>
-					{/* <ul>
-						{USER1.keyword.map((keyword, i) => (
-							<li key={i}>{keyword.keyword}</li>
-						))}
-					</ul> */}
 				</div>
 			</div>
 			<div className="subscribe">
