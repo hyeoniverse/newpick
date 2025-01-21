@@ -57,7 +57,7 @@ const TrendSection = ({ newsletters }: Props) => {
 	);
 };
 
-export const StyledTrendSection = styled.section`
+const StyledTrendSection = styled.section`
 	display: flex;
 	flex-direction: column;
 	justify-content: center;

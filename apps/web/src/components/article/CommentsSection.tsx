@@ -88,8 +88,7 @@ const CommentsSectionStyled = styled.section`
                 display: flex;
                 gap: 1rem;
                 align-items: center;
-
-
+                
                 .user-image {
                     width: 2rem;
                     height: 2rem;
@@ -126,7 +125,6 @@ const CommentsSectionStyled = styled.section`
                 color: ${({ theme }) => theme.color.lightGrey};
                 font-size: ${({ theme }) => theme.fontSize.extraSmall};
             }
-
         }
     }
 `;
