@@ -2,7 +2,7 @@
 
 import styled from "styled-components";
 import Link from "next/link";
-import HeightAutoImg from "@/components/mypage/MySubscribe/HeightAutoImg";
+import HeightAutoImg from "@/components/mypage/mySubscribe/HeightAutoImg";
 import { MYSUMMARYNEWS } from "@/lib/mypageData";
 
 interface Props {

@@ -3,7 +3,7 @@
 import styled from "styled-components";
 import MyProfile from "@/components/mypage/profile/MyProfile";
 import TabButton from "@/components/mypage/TabButton";
-import MySubscribe from "@/components/mypage/MySubscribe/MySubscribe";
+import MySubscribe from "@/components/mypage/mySubscribe/MySubscribe";
 import { useState } from "react";
 import MyBookmark from "@/components/mypage/MyBookmark";
 import MyNewsletterSetting from "@/components/mypage/MyNewsletterSetting";

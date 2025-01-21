@@ -97,7 +97,7 @@ const NewsletterSubscribeStyled = styled.div`
         }
 
         p {
-            color: ${({ theme }) => theme.color.subtext};
+            color: ${({ theme }) => theme.color.subText};
         }
     }
 

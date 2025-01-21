@@ -1,12 +1,12 @@
 "use client";
 
 import styled from "styled-components";
-import MySubscribeNav from "@/components/mypage/MySubscribe/MySubscribeNav";
+import MySubscribeNav from "@/components/mypage/mySubscribe/MySubscribeNav";
 import { useEffect, useState } from "react";
 import NoContentsPage from "@/components/common/NoContentsPage";
 import { USER1 } from "@/lib/mypageData";
 import { IMySummary } from "@/models/newsDetail";
-import MySummaryCategory from "@/components/mypage/MySubscribe/MySubscribeSummaryCategory";
+import MySummaryCategory from "@/components/mypage/mySubscribe/MySubscribeSummaryCategory";
 import { usersData } from "@/mocks";
 
 function MySubscribe() {

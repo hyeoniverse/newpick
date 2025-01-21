@@ -7,7 +7,7 @@ import OrigLinkIcon from "@/components/common/icons/OrigLinkIcon";
 import BarWidth from "@/components/common/BarWidth";
 import SummaryTextBox from "@/components/common/article/SummaryTextBox";
 import { currentUserData } from "@/mocks";
-import HeightAutoImg from "@/components/mypage/MySubscribe/HeightAutoImg";
+import HeightAutoImg from "@/components/mypage/mySubscribe/HeightAutoImg";
 
 function MySummaryCategory() {
   const {summaries} = currentUserData;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import MoveButton from "@/components/common/MoveButton";
 import { IoArrowBack, IoArrowForward } from "react-icons/io5";
-import HeightAutoImg from "@/components/mypage/MySubscribe/HeightAutoImg";
+import HeightAutoImg from "@/components/mypage/mySubscribe/HeightAutoImg";
 import Link from "next/link";
 
 interface Props {
