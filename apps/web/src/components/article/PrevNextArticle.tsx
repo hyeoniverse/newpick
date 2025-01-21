@@ -71,7 +71,7 @@ function PrevNextArticle({ className }: Props) {
   );
 }
 
-const PrevNextArticleStyled = styled.div`
+const PrevNextArticleStyled = styled.section`
     border-top: 1px solid ${({theme}) => theme.color.border};
 
     .prev-next {

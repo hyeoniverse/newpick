@@ -7,6 +7,7 @@ import ArticleContent from "@/components/article/content/ArticleContent";
 import PrevNextArticle from "@/components/article/PrevNextArticle";
 import LatestArticle from "@/components/article/LatestArticle";
 import MobileLikeLinkButton from "@/components/article/MobileLikeLinkButton";
+import CommentsSection from '@/components/article/CommentsSection';
 
 interface Props {
   content: string;
@@ -21,6 +22,7 @@ function Article({content}: Props) {
         <PopularArticle className="popular" />
       </div>
       <PrevNextArticle className="prev-next" />
+      <CommentsSection className="comments-section"/>
       <LatestArticle className="latest" />
       <MobileLikeLinkButton className="icons" />
     </ArticleStyled>
@@ -49,6 +51,10 @@ const ArticleStyled = styled.div`
         .popular {
             flex: 1;
         }
+    }
+    
+    .comments-section {
+        margin: 4rem 0;
     }
     
     @media screen and ${({theme}) => theme.mediaQuery.tablet} {

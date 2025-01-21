@@ -59,7 +59,7 @@ interface StyledProps {
 }
 
 const StyledImage = styled.div<StyledProps>`
-	width: fit-content;
+	//width: fit-content;
 	height: fit-content;
 	overflow: hidden;
 	border-radius: ${({ $borderRadius, theme }) => theme.borderRadius[$borderRadius || 'medium']};

@@ -70,7 +70,7 @@ function LatestArticle({ className }: Props) {
   );
 }
 
-const LatestArticleStyled = styled.div`
+const LatestArticleStyled = styled.section`
     position: relative;
     padding: 3rem 0;
     margin: 4rem 0 -4.5rem 0;

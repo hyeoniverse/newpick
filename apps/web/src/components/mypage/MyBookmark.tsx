@@ -1,19 +1,13 @@
-import styled from "styled-components";
-import LikeIcon from "@/components/common/icons/LikeIcon";
-import Link from "next/link";
-import NoContentsPage from "@/components/common/NoContentsPage";
-import { useState } from "react";
-import { IMySummary } from "@/models/newsDetail";
-import HeightAutoImg from "@/components/mypage/mySubscribe/HeightAutoImg";
-import { currentUserData } from "@/mocks";
-import Card from "@/components/common/Card";
-import Text from "@/components/common/Text";
-import Button from "@/components/common/Button";
-import { IoIosHeartEmpty } from "react-icons/io";
-import { StyledTrendSection } from "@/app/( home)/TrendSection";
+import styled from 'styled-components';
+import LikeIcon from '@/components/common/icons/LikeIcon';
+import NoContentsPage from '@/components/common/NoContentsPage';
+import { currentUserData } from '@/mocks';
+import Card from '@/components/common/Card';
+import Text from '@/components/common/Text';
+
 
 function MyBookmark() {
-  const { bookmarks, summaries } = currentUserData;
+  const { summaries } = currentUserData;
 
   return (
     <>
@@ -21,28 +15,28 @@ function MyBookmark() {
           <>
             <MyBookmarkStyled>
               <div className="trend-cards">
-              {summaries.map((info, index) => (
-                <Card
-                key={index}
-                  data={{
-                    id: info.id,
-                    image: info.img,
-                    header: info.categoryName,
-                    main: {
-                      title: info.title,
-                      description: info.summary,
-                    },
-                    footer: (
-                      <>
-                        <Text color="subText">{info.createdAt}</Text>
-                        <div className="right">
-                          <LikeIcon />
-                        </div>
-                      </>
-                    ),
-                  }}
-                />
-              ))}
+                {summaries.map((info, index) => (
+                  <Card
+                    key={index}
+                    data={{
+                      id: info.id,
+                      image: info.img,
+                      header: info.categoryName,
+                      main: {
+                        title: info.title,
+                        description: info.summary,
+                      },
+                      footer: (
+                        <>
+                          <Text color="subText">{info.createdAt}</Text>
+                          <div className="right">
+                            <LikeIcon />
+                          </div>
+                        </>
+                      ),
+                    }}
+                  />
+                ))}
               </div>
             </MyBookmarkStyled>
           </>
@@ -51,8 +45,8 @@ function MyBookmark() {
         (
           <NoContentsPage
             text={`북마크한 뉴스레터가 없습니다. \n 다른 뉴스레터를 찾아보세요.`}
-            btnText={"오늘의 뉴스레터"}
-            moveTo={"/"}
+            btnText={'오늘의 뉴스레터'}
+            moveTo={'/'}
           />)
       }
     </>
@@ -66,7 +60,7 @@ const MyBookmarkStyled = styled.div`
     align-items: flex-start;
     padding: 2rem 0;
     gap: 2rem;
-    
+
     .trend-cards {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -75,7 +69,7 @@ const MyBookmarkStyled = styled.div`
         height: fit-content;
     }
 
-    
+
     // display: grid;
     // justify-items: start;
     // justify-content: start;
@@ -93,9 +87,9 @@ const MyBookmarkStyled = styled.div`
     //         margin-top: 1rem;
     //
     //         .category {
-    //             color: ${({theme}) => theme.color.primary};
-    //             font-size: ${({theme}) => theme.fontSize.extraSmall};
-    //             font-weight: ${({theme}) => theme.fontWeight.medium};
+        //             color: ${({ theme }) => theme.color.primary};
+        //             font-size: ${({ theme }) => theme.fontSize.extraSmall};
+        //             font-weight: ${({ theme }) => theme.fontWeight.medium};
     //             width: max-content;
     //         }
     //
@@ -109,14 +103,14 @@ const MyBookmarkStyled = styled.div`
     //         }
     //
     //         .title {
-    //             font-size: ${({theme}) => theme.fontSize.large};
+        //             font-size: ${({ theme }) => theme.fontSize.large};
     //             line-height: 1.2;
     //             margin: 0;
     //         }
     //
     //         .subText {
-    //             font-size: ${({theme}) => theme.fontSize.extraSmall};
-    //             color: ${({theme}) => theme.color.mediumGrey}
+        //             font-size: ${({ theme }) => theme.fontSize.extraSmall};
+        //             color: ${({ theme }) => theme.color.mediumGrey}
     //         }
     //
     //         .etc {
@@ -126,23 +120,23 @@ const MyBookmarkStyled = styled.div`
     //             justify-content: space-between;
     //
     //             .bar {
-    //                 border-left: 1px solid ${({theme}) => theme.color.border};
+        //                 border-left: 1px solid ${({ theme }) => theme.color.border};
     //                 margin: 0 1.25rem;
     //                 height: 1.5rem;
     //             }
     //
     //             .date {
-    //                 font-size: ${({theme}) => theme.fontSize.extraSmall};
-    //                 color: ${({theme}) => theme.color.neutral};
+        //                 font-size: ${({ theme }) => theme.fontSize.extraSmall};
+        //                 color: ${({ theme }) => theme.color.neutral};
     //             }
     //         }
     //     }
     // }
     //
-    // @media (${({theme}) => theme.mediaQuery.tablet}) {
+        // @media (${({ theme }) => theme.mediaQuery.tablet}) {
     //     grid-template-columns: repeat(2, 1fr);
     // }
-    // @media (${({theme}) => theme.mediaQuery.mobile}) {
+        // @media (${({ theme }) => theme.mediaQuery.mobile}) {
     //     grid-template-columns: repeat(1, 1fr);
     // }
 `;
