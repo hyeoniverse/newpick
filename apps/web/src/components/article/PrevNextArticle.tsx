@@ -2,7 +2,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import MoveButton from "@/components/common/MoveButton";
 import { IoArrowBack, IoArrowForward } from "react-icons/io5";
-import ThumbImgRemove from "@/components/mypage/inner-page/MySubscribe/HeightAutoImg";
+import HeightAutoImg from "@/components/mypage/MySubscribe/HeightAutoImg";
 import Link from "next/link";
 
 interface Props {
@@ -31,7 +31,7 @@ function PrevNextArticle({ className }: Props) {
             onMouseEnter={handleMouseEnter("prev")}
             onMouseLeave={handleMouseLeave}
           >
-            <ThumbImgRemove src="/img/newpick_default_img.jpg" aspectratio={1} />
+            <HeightAutoImg src="/img/newpick_default_img.jpg" aspectratio={1} />
           </Link>
           <Link
             href={"#"}
@@ -54,7 +54,7 @@ function PrevNextArticle({ className }: Props) {
             onMouseEnter={() => setActiveArticle("next")}
             onMouseLeave={() => setActiveArticle(null)}
           >
-            <ThumbImgRemove src="/img/newpick_default_img.jpg" aspectratio={1} />
+            <HeightAutoImg src="/img/newpick_default_img.jpg" aspectratio={1} />
           </Link>
           <Link
             href={"#"}

@@ -1,42 +1,21 @@
 import styled from "styled-components";
-import { BOOKMARK } from "@/lib/mypageData";
-import ThumbImgRemove from "@/components/mypage/inner-page/MySubscribe/HeightAutoImg";
 import LikeIcon from "@/components/common/icons/LikeIcon";
 import Link from "next/link";
 import NoContentsPage from "@/components/common/NoContentsPage";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { IMySummary } from "@/models/newsDetail";
-import HeightAutoImg from "@/components/mypage/inner-page/MySubscribe/HeightAutoImg";
+import HeightAutoImg from "@/components/mypage/MySubscribe/HeightAutoImg";
+import { currentUserData } from "@/mocks";
 
 function MyBookmark() {
-  const [ bookmarkInfo, setBookmarkInfo ] = useState<IMySummary[] | null>(null)
-
-  useEffect(() => {
-    async function fetchImgThumb() {
-
-      console.log("Params:", bookmarkInfo); // 값 확인
-      try {
-        const res = await fetch(`http://localhost:1000/mysummary`);
-        if (!res.ok) {
-          throw new Error("No such article found");
-        }
-        const data = await res.json();
-        setBookmarkInfo(data);
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    fetchImgThumb();
-  }, []);
+  const { bookmarks, summaries } = currentUserData;
 
   return (
     <>
-      {BOOKMARK.length > 0 ?
-        (
+      {bookmarks.length > 0 ? (
           <>
             <MyBookmarkStyled>
-              {bookmarkInfo && bookmarkInfo.map((info, index) => (
+              {summaries.map((info, index) => (
                 <div key={index} className="card">
                   <Link href={`#`}>
                     <HeightAutoImg src={info.img} aspectratio={4 / 3} />
@@ -44,10 +23,9 @@ function MyBookmark() {
                   <div className="content">
                     <Link href={`#`} className="category">{info.categoryName}</Link>
                     <Link href={`#`} className="title">{info.title}</Link>
-                    <p className="subtext">{info.summary}</p>
+                    <p className="subText">{info.summary}</p>
                     <div className="etc">
                       <div className="date">{info.createdAt}</div>
-                      {/*<div className="bar"/>*/}
                       <LikeIcon />
                     </div>
                   </div>
@@ -93,7 +71,7 @@ const MyBookmarkStyled = styled.div`
             }
 
             .title,
-            .subtext {
+            .subText {
                 display: -webkit-box;
                 -webkit-box-orient: vertical;
                 -webkit-line-clamp: 2;
@@ -107,7 +85,7 @@ const MyBookmarkStyled = styled.div`
                 margin: 0;
             }
 
-            .subtext {
+            .subText {
                 font-size: ${({theme}) => theme.fontSize.extraSmall};
                 color: ${({theme}) => theme.color.mediumGrey}
             }

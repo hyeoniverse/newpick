@@ -4,17 +4,12 @@ import Link from "next/link";
 import LikeIcon from "@/components/common/icons/LikeIcon";
 import LinkCopyIcon from "@/components/common/icons/LinkCopyIcon";
 import OrigLinkIcon from "@/components/common/icons/OrigLinkIcon";
-import { IMySummary } from "@/models/newsDetail";
 import BarWidth from "@/components/common/BarWidth";
 import SummaryTextBox from "@/components/common/article/SummaryTextBox";
 import { currentUserData } from "@/mocks";
-import HeightAutoImg from "@/components/mypage/inner-page/MySubscribe/HeightAutoImg";
+import HeightAutoImg from "@/components/mypage/MySubscribe/HeightAutoImg";
 
-export interface MySummaryProps {
-  summaryInfo: IMySummary[] | null;
-}
-
-function MySummaryCategory({summaryInfo}: MySummaryProps) {
+function MySummaryCategory() {
   const {summaries} = currentUserData;
 
   return (

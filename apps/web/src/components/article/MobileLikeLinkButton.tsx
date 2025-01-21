@@ -47,24 +47,24 @@ const MobileLikeLinkButtonStyled = styled.div`
     flex-direction: column;
     height: auto;
     position: fixed;
-    bottom: 6.25rem;
+    bottom: 7.25rem;
     right: 1.5rem;
     z-index: 999;
     gap: 0.75rem;
-    
-    .mobile-icon {
-        height: 4rem;
-        width: 4rem;
-        cursor: pointer;
-        background-color: ${({theme}) => theme.color.background}50;
-        border-radius: ${({theme}) => theme.borderRadius.circle};
-        border: 1px solid ${({theme}) => theme.color.border};
 
-        backdrop-filter: blur(3px);
-        
+    .mobile-icon {
+        height: 2.5rem;
+        width: 2.5rem;
+        cursor: pointer;
+        color: ${({theme}) => theme.color.primary};
+        background: ${({theme}) => theme.color.background};
+        border: 0.5px solid ${({theme}) => theme.color.border};
+        border-radius: ${({theme}) => theme.borderRadius.flat};
+
+        opacity: 0;
         transform: translateY(10px);
         transition: opacity 0.3s ease, transform 0.3s ease;
-        
+
         &.fade-in {
             opacity: 80%;
             transform: translateY(0);
@@ -85,7 +85,7 @@ const MobileLikeLinkButtonStyled = styled.div`
         }
 
     }
-    
+
 `;
 
 export default MobileLikeLinkButton;

@@ -58,7 +58,7 @@ function LatestArticle({ className }: Props) {
                 <p className="title">{article.value.title}</p>
                 <div className="bottom">
                   <LikeIcon />
-                  <BarHeight height="1rem" margin="0.75rem" />
+                  <BarHeight height="1rem" $margin="0.75rem" />
                   <p className="date">{dateFormatter(article.value.createdAt)}</p>
                 </div>
               </Link>

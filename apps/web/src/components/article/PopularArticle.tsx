@@ -2,7 +2,7 @@
 
 import styled from "styled-components";
 import Link from "next/link";
-import ThumbImgRemove from "@/components/mypage/inner-page/MySubscribe/HeightAutoImg";
+import HeightAutoImg from "@/components/mypage/MySubscribe/HeightAutoImg";
 import { MYSUMMARYNEWS } from "@/lib/mypageData";
 
 interface Props {
@@ -11,11 +11,11 @@ interface Props {
 }
 
 function PopularArticle({flex, className}: Props) {
-  
+
   const mappedNewsletter = MYSUMMARYNEWS.map((news, i) => ({index: i, value: news}))
   const sortNewsletter = mappedNewsletter.sort((a, b) => b.value.viewcount - a.value.viewcount);
   const sliceNewsletter = sortNewsletter.slice(0, 5);
-  
+
   return (
     <PopularNewsletterStyled flex={flex} className={className}>
       <h3 className="section-title">지금 인기 아티클 TOP 5</h3>
@@ -31,7 +31,7 @@ function PopularArticle({flex, className}: Props) {
             </Link>
             {news.value.img ?
               <Link href={"#"} className="thum-link">
-                <ThumbImgRemove src={news.value.img} aspectratio={1} />
+                <HeightAutoImg src={news.value.img} aspectratio={1} />
               </Link>
               :
               <div className="thum-empty"/>
@@ -42,8 +42,6 @@ function PopularArticle({flex, className}: Props) {
     </PopularNewsletterStyled>
   );
 }
-
-export default PopularArticle;
 
 const PopularNewsletterStyled = styled.div<Props>`
     position: sticky;
@@ -60,7 +58,6 @@ const PopularNewsletterStyled = styled.div<Props>`
         font-weight: ${({theme}) => theme.fontWeight.semiBold};
         padding: 0 0 1rem 0;
         border-bottom: 1px solid ${({theme}) => theme.color.border};
-        // border-top: 1px solid ${({theme}) => theme.color.border};
     }
 
     .popular-list {
@@ -115,6 +112,8 @@ const PopularNewsletterStyled = styled.div<Props>`
         li:hover .title {
             color: ${({theme}) => theme.color.primary};
         }
+    }
+
 
     @media screen and ${({theme}) => theme.mediaQuery.tablet} {
         display: flex;
@@ -144,6 +143,7 @@ const PopularNewsletterStyled = styled.div<Props>`
                 .thum-empty {
                     flex: 1;
                     aspect-ratio: 1;
+                    height: auto;
                 }
 
                 .text-section {
@@ -164,3 +164,5 @@ const PopularNewsletterStyled = styled.div<Props>`
         }
     }
 `;
+
+export default PopularArticle;
