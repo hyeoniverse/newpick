@@ -101,16 +101,6 @@ const NewsletterPage = () => {
 	// 선택된 정렬 방식에 따라 데이터 정렬
 	const sortedNewsletters = sortNewsletters(loadedNewsletters, selectedSort);
 
-	//   [...loadedNewsletters].sort((a, b) => {
-	// 	if (selectedSort === 'latest') {
-	// 		// 최신순 정렬 (날짜 기준)
-	// 		return new Date(b.date).getTime() - new Date(a.date).getTime();
-	// 	} else {
-	// 		// 인기순 정렬 (예: `likes` 또는 `views` 기준)
-	// 		return (b.likes || 0) - (a.likes || 0);
-	// 	}
-	// });
-
 	return (
 		<StyledNewsletterPage>
 			<HeroSection>
