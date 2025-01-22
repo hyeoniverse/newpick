@@ -1,44 +1,22 @@
 import { create } from 'zustand';
-import { persist, createJSONStorage } from 'zustand/middleware';
-
-interface User {
-	id: number;
-	name: string;
-	email: string;
-}
+import { User } from '@/models/user.model';
 
 interface AuthState {
-	isAuthenticated: boolean;
 	user: User | null;
 	token: string | null;
-	login: (user: User, token: string) => void;
+	isLoading: boolean; // 로그인 상태 확인 중인지 여부
+	setUser: (user: User | null) => void;
+	setToken: (token: string | null) => void;
+	setLoading: (loading: boolean) => void;
 	logout: () => void;
 }
 
-// `typeof window !== 'undefined'` 체크하여 SSR에서 `localStorage` 접근 방지
-const storage =
-	typeof window !== 'undefined'
-		? createJSONStorage(() => localStorage) // 클라이언트 환경에서는 `localStorage` 사용
-		: undefined; // SSR 환경에서는 `undefined`로 설정
-
-export const useAuthStore = create<AuthState>()(
-	persist(
-		(set) => ({
-			isAuthenticated: false,
-			user: null,
-			token: null,
-
-			login: (user, token) => {
-				set({ isAuthenticated: true, user, token });
-			},
-
-			logout: () => {
-				set({ isAuthenticated: false, user: null, token: null });
-			},
-		}),
-		{
-			name: 'auth-storage', // LocalStorage에 저장될 키
-			storage, // SSR 환경에서 `undefined`, 클라이언트에서는 `localStorage`
-		}
-	)
-);
+export const useAuthStore = create<AuthState>((set) => ({
+	user: null,
+	token: null,
+	isLoading: true, // 기본값: true (앱 로드 시 로그인 상태 확인 중)
+	setUser: (user) => set({ user, isLoading: false }),
+	setToken: (token) => set({ token }),
+	setLoading: (loading) => set({ isLoading: loading }),
+	logout: () => set({ user: null, token: null, isLoading: false }),
+}));

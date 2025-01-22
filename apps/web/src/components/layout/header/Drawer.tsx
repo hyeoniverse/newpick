@@ -10,7 +10,7 @@ import Dropdown from '@/components/common/Dropdown';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
 
 const Drawer = () => {
-	const { isAuthenticated } = useAuth();
+	const { user } = useAuth();
 
 	return (
 		<Dropdown
@@ -24,7 +24,7 @@ const Drawer = () => {
 				</StyledDrawerButton>
 			}
 		>
-			{!isAuthenticated && <ThemeSwitcher className="item" />}
+			{!user && <ThemeSwitcher className="item" />}
 			{NAVIGATION.map((item, index) => (
 				<div className="item" key={`drawer-${index}`}>
 					<Button>

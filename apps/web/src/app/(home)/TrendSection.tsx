@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
+import { Suspense, lazy } from 'react';
 import { Newsletter as INewsletter } from '@/models/newsletter.model';
-import useLoadingStore from '@/stores/loadingStore';
 import { filterTodayTrends } from '@/utils/queryNewsletters';
 
 import { styled } from 'styled-components';
@@ -8,17 +7,17 @@ import { IoIosHeartEmpty } from 'react-icons/io';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
-import Card from '@/components/common/Card';
+import Loader from '@/components/common/Loader';
+
+const LazyCard = lazy(() => import('@/components/common/Card'));
 
 interface Props {
 	newsletters: INewsletter[];
 }
 
 const TrendSection = ({ newsletters }: Props) => {
-	const { isLoading } = useLoadingStore();
-	const todayTrends = useMemo(() => filterTodayTrends(newsletters), [newsletters]);
-
-	if (isLoading) return <div>Loading...</div>;
+	const todayTrends = filterTodayTrends(newsletters);
+	const isLoading = newsletters.length === 0;
 
 	return (
 		<StyledTrendSection>
@@ -27,32 +26,40 @@ const TrendSection = ({ newsletters }: Props) => {
 					오늘의 트렌드
 				</Title>
 			</div>
-			<div className="trend-cards">
-				{todayTrends.map((trend, index) => (
-					<Card
-						key={index}
-						data={{
-							id: trend.id,
-							image: trend.image,
-							header: trend.category,
-							main: {
-								title: trend.title,
-								description: trend.summary,
-							},
-							footer: (
-								<>
-									<Text color="subText">{trend.date}</Text>
-									<div className="right">
-										<Button className="rounded-icon-button">
-											<IoIosHeartEmpty />
-										</Button>
-									</div>
-								</>
-							),
-						}}
-					/>
-				))}
-			</div>
+			{isLoading ? (
+				<div className="placeholder">
+					<Loader />
+				</div>
+			) : (
+				<Suspense fallback={<Loader />}>
+					<div className="trend-cards">
+						{todayTrends.map((trend) => (
+							<LazyCard
+								key={trend.id}
+								data={{
+									id: trend.id,
+									image: trend.image,
+									header: trend.category,
+									main: {
+										title: trend.title,
+										description: trend.summary,
+									},
+									footer: (
+										<>
+											<Text color="subText">{trend.date}</Text>
+											<div className="right">
+												<Button className="rounded-icon-button">
+													<IoIosHeartEmpty />
+												</Button>
+											</div>
+										</>
+									),
+								}}
+							/>
+						))}
+					</div>
+				</Suspense>
+			)}
 		</StyledTrendSection>
 	);
 };
@@ -64,6 +71,13 @@ const StyledTrendSection = styled.section`
 	align-items: flex-start;
 	padding: 2rem 0;
 	gap: 2rem;
+
+	.placeholder {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
 
 	.trend-header {
 		width: 100%;
