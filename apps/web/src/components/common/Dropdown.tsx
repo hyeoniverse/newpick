@@ -122,8 +122,16 @@ const StyledDropdown = styled.div`
 				font-size: ${({ theme }) => theme.fontSize.small};
 				cursor: pointer;
 
+				a {
+					width: 100%;
+					height: 100%;
+					padding: 0;
+					margin: 0;
+				}
+
 				button {
 					width: 100%;
+					height: 100%;
 				}
 			}
 
