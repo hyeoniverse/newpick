@@ -1,0 +1,12 @@
+export const TOAST = {
+	DURATION: 5000,
+	DELAY: 300,
+	MAX_TOASTS: 5,
+};
+
+export const POPUP = {
+	WIDTH: 500,
+	HEIGHT: 600,
+	CHECK_INTERVAL: 500,
+	KEY_INCREMENT: 1,
+};

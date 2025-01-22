@@ -2,51 +2,85 @@
 
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { useEffect, useState } from 'react';
-import useToastStore from '@/stores/toastStore';
+import { ToastPosition } from '@/models/toast.model';
+import { useToast } from '@/hooks/useToast';
 import styled from 'styled-components';
 import Toast from '@/components/common/toast/Toast';
+import useMount from '@/hooks/useMount';
 
 const ToastContainer = React.memo(() => {
-	const toasts = useToastStore((state) => state.toasts);
-	const [isMounted, setIsMounted] = useState(false);
-
-	useEffect(() => {
-		setIsMounted(true);
-	}, []);
-
-	if (!isMounted) {
-		return null;
-	}
+	const isMounted = useMount();
+	const { toasts, position } = useToast();
+	if (!isMounted) return null;
 
 	return createPortal(
-		<StyledToastContainer>
+		<StyledToastContainer $position={position}>
 			{toasts.map((toast) => (
-				<Toast key={toast.id} id={toast.id} message={toast.message} type={toast.type} />
+				<Toast
+					key={toast.id}
+					id={toast.id}
+					message={toast.message}
+					type={toast.type}
+					index={toasts.findIndex((t) => t.id === toast.id)}
+				/>
 			))}
 		</StyledToastContainer>,
-		document.body // 브라우저 환경에서만 접근
+		document.body
 	);
 });
 
 ToastContainer.displayName = 'ToastContainer';
 
-const StyledToastContainer = styled.div`
-	pointer-events: none;
+export default ToastContainer;
+
+interface StyledProps {
+	$position: ToastPosition;
+}
+
+const StyledToastContainer = styled.div<StyledProps>`
 	width: 100vw;
-	height: 100vh;
-
+	max-width: 90vw;
 	position: fixed;
-	top: 32px;
-	right: 24px;
 	z-index: 9999;
-
 	display: flex;
 	flex-direction: column;
-	justify-content: flex-start;
-	align-items: flex-end;
+	gap: 0.5rem;
+	pointer-events: none;
 
-	gap: 12px;
+	${({ $position }) => {
+		const positions = {
+			'top-left': `
+				top: 1rem;
+				left: 1rem;
+				align-items: flex-start;
+			`,
+			'top-right': `
+				top: 1rem;
+				right: 1rem;
+				align-items: flex-end;
+			`,
+			'bottom-left': `
+				bottom: 1rem;
+				left: 1rem;
+				align-items: flex-start;
+			`,
+			'bottom-right': `
+				bottom: 1rem;
+				right: 1rem;
+				align-items: flex-end;
+			`,
+			'center-bottom': `
+				bottom: 1rem;
+				left: 50%;
+				transform: translateX(-50%);
+				align-items: center;
+			`,
+		};
+		return positions[$position] || positions['center-bottom'];
+	}}
+
+	> div {
+		transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+		pointer-events: auto;
+	}
 `;
-
-export default ToastContainer;
