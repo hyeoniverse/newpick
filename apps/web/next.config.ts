@@ -15,6 +15,11 @@ const nextConfig: NextConfig = {
 				hostname: 'imgnews.pstatic.net',
 				pathname: '/**',
 			},
+			{
+				protocol: 'https',
+				hostname: 'lh3.googleusercontent.com',
+				pathname: '/**',
+			},
 		],
 	},
 	compiler: {
