@@ -24,7 +24,7 @@ function CommentsSection({ className }: Props) {
 
   return (
     <CommentsSectionStyled className={className}>
-      <Button onClick={handleAuth}>auauauth</Button>
+      {/*<Button onClick={handleAuth}>auth</Button>*/}
       <h3>댓글</h3>
       <div className="input-section">
         <InputText placeholder={auth ? '자유롭게 의견을 남겨보세요.' : '로그인하고 자유롭게 의견을 남겨주세요.'} />
