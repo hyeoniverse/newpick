@@ -1,7 +1,7 @@
 import { usersData } from '@/mocks/mypage/users';
 import styled from 'styled-components';
 import Image from '@/components/common/Image';
-import SubscribeToggle from '@/components/mypage/profile/SubscribeToggle';
+import SubscribeToggle from '@/components/common/subscribe/SubscribeToggle';
 
 function Profile() {
 	const { USER1 } = usersData;
@@ -13,11 +13,6 @@ function Profile() {
 				<div className="profile-text">
 					<h4>{USER1.name}</h4>
 					<p>{USER1.email}</p>
-					{/* <ul>
-						{USER1.keyword.map((keyword, i) => (
-							<li key={i}>{keyword.keyword}</li>
-						))}
-					</ul> */}
 				</div>
 			</div>
 			<div className="subscribe">
@@ -42,7 +37,7 @@ const ProfileStyled = styled.div`
 		gap: 2rem;
 		justify-content: space-between;
 		align-items: flex-start;
-
+		
 		img {
 			height: 100px;
 			width: 100px;

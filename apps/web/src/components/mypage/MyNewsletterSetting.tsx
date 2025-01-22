@@ -1,15 +1,15 @@
-'use client';
+'use client'
 
 import styled from 'styled-components';
-import NoContentsPage from '@/components/mypage/common(temporary)/NoContentsPage';
-import NewsletterSubscribe from '@/components/mypage/common(temporary)/NewsletterSubscribe';
+import NoContentsPage from '@/components/common/NoContentsPage';
+import NewsletterSubscribe from '@/components/common/subscribe/NewsletterSubscribe';
 import { usersData } from '@/mocks/mypage/users';
 
-function MyNewsletterSetting() {
+function MyNewsletterSubscribe() {
 	const { USER1 } = usersData;
 
 	return (
-		<MyNewsletterSettingStyled>
+		<MyNewsletterSubscribeStyled>
 			{USER1.subscribe === 1 ? (
 				<NewsletterSubscribe />
 			) : (
@@ -19,10 +19,10 @@ function MyNewsletterSetting() {
 					onClick={() => {}}
 				/>
 			)}
-		</MyNewsletterSettingStyled>
+		</MyNewsletterSubscribeStyled>
 	);
 }
 
-const MyNewsletterSettingStyled = styled.div``;
+const MyNewsletterSubscribeStyled = styled.div``;
 
-export default MyNewsletterSetting;
+export default MyNewsletterSubscribe;

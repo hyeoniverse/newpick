@@ -1,4 +1,4 @@
-import type { NextConfig } from 'next';
+import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
 	distDir: 'build',
@@ -23,5 +23,20 @@ const nextConfig: NextConfig = {
 		],
 	},
 };
+
+module.exports = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: "picsum.photos",
+      },
+      {
+        protocol: 'https',
+        hostname: "imgnews.pstatic.net",
+      },
+    ],
+  },
+}
 
 export default nextConfig;

@@ -38,7 +38,7 @@ const NoContentsPageStyled = styled.div`
 	align-items: center;
 
 	p {
-		white-space: pre-neutral;
+		white-space: pre-wrap;
 	}
 
 	button {

@@ -2,10 +2,11 @@
 
 import styled from 'styled-components';
 import { useParams } from 'next/navigation';
-import TitleSection from '@/app/articles/detail/[slug]/TitleSection';
+import TitleSection from '@/components/article/content/TitleSection';
 import { useEffect, useState } from 'react';
 import { INewsDetail } from '@/models/newsDetail';
-import { dateFormattter } from '@/utils/formatter';
+import { dateFormatter } from '@/utils/formatter';
+import Article from "@/components/article/Article";
 
 function NewsletterDetailPage() {
 	const [newsInfo, setNewsInfo] = useState<INewsDetail | null>(null);
@@ -16,7 +17,7 @@ function NewsletterDetailPage() {
 		async function fetchNewsDetail() {
 			if (params.slug) {
 				try {
-					const res = await fetch(`/api/news/${params.slug}`);
+					const res = await fetch(`http://localhost:1000/news/${params.slug}`);
 					if (!res.ok) {
 						throw new Error('No such news found');
 					}
@@ -36,14 +37,22 @@ function NewsletterDetailPage() {
 			<TitleSection
 				category={newsInfo?.categoryId}
 				title={newsInfo?.title}
-				date={dateFormattter(newsInfo?.createdAt)}
+				date={dateFormatter(newsInfo?.createdAt)}
 			/>
+			<div className="content-section">
+				<Article
+					content={newsInfo?.summary ? newsInfo.summary : ''}
+				/>
+			</div>
 		</NewsletterDetailPageStyled>
 	);
 }
 
 const NewsletterDetailPageStyled = styled.div`
 	margin: 2.5rem 0;
+
+	height: 100%;
+	width: 100%;
 `;
 
 export default NewsletterDetailPage;

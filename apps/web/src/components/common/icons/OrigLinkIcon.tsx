@@ -1,18 +1,15 @@
-import { LuExternalLink } from 'react-icons/lu';
-import { IconStyled } from '@/styles/Icon';
+import { LuExternalLink } from "react-icons/lu";
+import { IconStyled } from "@/styles/Icon";
 
-// interface LikeIconProps {
-// 	width?: string;
-// 	height?: string;
-// }
+interface Props {
+  className?: string;
+}
 
-function LikeIcon() {
-	return (
-		<IconStyled>
-			<div onClick={() => {}}>
-				<LuExternalLink />
-			</div>
-		</IconStyled>
-	);
+function LikeIcon({ className }: Props) {
+  return (
+    <IconStyled onClick={() => {}} className={className}>
+      <LuExternalLink />
+    </IconStyled>
+  );
 }
 export default LikeIcon;
