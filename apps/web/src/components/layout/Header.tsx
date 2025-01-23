@@ -29,10 +29,6 @@ const Header = () => {
 	const lastScrollY = useRef(0);
 
 	useEffect(() => {
-		console.log('user', user, 'isLoading', isLoading);
-	}, [user, isLoading]);
-
-	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			const handleScroll = () => {
 				const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
