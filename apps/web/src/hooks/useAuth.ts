@@ -3,7 +3,7 @@ import { User } from '@/models/user.model';
 import { API_URL, API_ENDPOINTS } from '@/constants/api';
 import { POPUP, TOKEN } from '@/constants/numbers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '@/stores/authStore';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 // 쿠키에서 `access_token` 가져오는 함수
 const getTokenFromCookies = (): string | null => {
@@ -24,8 +24,11 @@ export const useAuth = () => {
 	const fetchUser = async (): Promise<User> => {
 		const token = getTokenFromCookies();
 		if (!token) throw new Error('No token found');
+		if (!user?.id) {
+			throw new Error('User ID is missing');
+		}
 
-		const res = await fetch(API_ENDPOINTS.AUTH.USER, {
+		const res = await fetch(API_ENDPOINTS.AUTH.USER(user.id), {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -42,7 +45,7 @@ export const useAuth = () => {
 	const { data, isLoading, isError } = useQuery<User | null>({
 		queryKey: ['user'],
 		queryFn: fetchUser,
-		enabled: !!getTokenFromCookies() || !!user,
+		enabled: !!getTokenFromCookies() && !!user?.id,
 		staleTime: 1000 * 60 * 5, // 5분 동안 캐싱 유지
 		retry: 1, // 실패 시 1회만 재시도
 	});
@@ -66,13 +69,14 @@ export const useAuth = () => {
 		window.addEventListener('message', async (event) => {
 			if (event.origin !== API_URL) return;
 			if (event.data?.type === 'oauthSuccess') {
-				const { token } = event.data;
+				const { token, user } = event.data;
 
 				// 쿠키 저장
 				document.cookie = `access_token=${token}; Path=/; Secure; SameSite=Strict; Max-Age=${TOKEN.AGE}`;
 
-				const res = await fetchUser();
-				setUser(res);
+				// Zustand 상태 업데이트
+				setUser(user);
+				queryClient.invalidateQueries({ queryKey: ['user'] });
 			}
 		});
 	};

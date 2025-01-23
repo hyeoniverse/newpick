@@ -5,7 +5,7 @@ export const API_ENDPOINTS = {
 		LOGIN: `${API_URL}/auth/google`,
 		LOGOUT: `${API_URL}/auth/logout`,
 		CALLBACK: `${API_URL}/auth/google/callback`,
-		USER: `${API_URL}/auth/user`,
+		USER: (id: number) => `${API_URL}/auth/users/${id}`,
 	},
 	SUBSCRIBERS: {
 		START: `${API_URL}/subscribers/start`,
