@@ -12,7 +12,7 @@ import InputText from '@/components/common/InputText';
 import InputCheck from '@/components/common/InputCheck';
 import InputSelect from '@/components/common/InputSelect';
 import InputDate from '@/components/common/InputDate';
-import Spinner from '@/components/common/Spinner';
+import Spinner from '@/components/common/loader/Spinner';
 
 const TestPage = () => {
 	const { showToast, setPosition } = useToast();
