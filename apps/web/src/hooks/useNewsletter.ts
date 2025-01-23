@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import useLoadingStore from '@/stores/loadingStore';
-import useNewsletterStore from '@/stores/newsletterStore';
+import useLoadingStore from '@/stores/useLoadingStore';
+import useNewsletterStore from '@/stores/useNewsletterStore';
 
 export const useNewsletter = () => {
 	const { setLoading } = useLoadingStore();
@@ -20,7 +20,7 @@ export const useNewsletter = () => {
 			console.log('newsletters', newsletters);
 			loadData();
 		}
-	}, [initializeNewsletters, setLoading, isDataLoaded]); // `isDataLoaded` 추가하여 불필요한 재실행 방지
+	}, [initializeNewsletters, setLoading, isDataLoaded, newsletters]);
 
 	return { newsletters, initializeNewsletters };
 };
