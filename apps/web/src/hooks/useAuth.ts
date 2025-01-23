@@ -4,6 +4,7 @@ import { API_URL, API_ENDPOINTS } from '@/constants/api';
 import { POPUP, TOKEN } from '@/constants/numbers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useSubscribe } from './useSubscribe';
 
 // 쿠키에서 `access_token` 가져오는 함수
 const getTokenFromCookies = (): string | null => {
@@ -18,6 +19,8 @@ const getTokenFromCookies = (): string | null => {
 
 export const useAuth = () => {
 	const { user, setUser } = useAuthStore();
+	const { subscriptionStatus, isSubscriptionLoading } = useSubscribe();
+
 	const queryClient = useQueryClient();
 
 	// 사용자 정보를 가져오는 비동기 함수
@@ -42,7 +45,12 @@ export const useAuth = () => {
 	};
 
 	// `useQuery`를 활용한 자동 데이터 패칭 (토큰이 존재하는 경우 실행)
-	const { data, isLoading, isError } = useQuery<User | null>({
+	const {
+		data: userData,
+		isLoading: isUserLoading,
+		isError,
+		// refetch: refetchUser,
+	} = useQuery<User | null>({
 		queryKey: ['user'],
 		queryFn: fetchUser,
 		enabled: !!getTokenFromCookies() && !!user?.id,
@@ -51,16 +59,25 @@ export const useAuth = () => {
 	});
 
 	useEffect(() => {
-		if (!isLoading) {
-			if (data) {
+		if (!isUserLoading) {
+			if (userData) {
 				// 데이터가 있으면 로그인
-				setUser(data);
+				setUser(userData);
 			} else {
 				// 데이터가 없으면 즉시 로그아웃
 				setUser(null);
 			}
 		}
-	}, [data, isLoading, setUser]);
+	}, [userData, isUserLoading, setUser]);
+
+	// Zustand 상태 업데이트 (이전 상태와 비교 후 변경)
+	useEffect(() => {
+		if (!isSubscriptionLoading && subscriptionStatus !== undefined) {
+			if (user && user.isSubscribed !== subscriptionStatus) {
+				setUser({ ...user, isSubscribed: subscriptionStatus });
+			}
+		}
+	}, [isSubscriptionLoading, subscriptionStatus, setUser, user]);
 
 	// 로그인 핸들러 (Google OAuth)
 	const handleLogin = async () => {
@@ -77,6 +94,7 @@ export const useAuth = () => {
 				// Zustand 상태 업데이트
 				setUser(user);
 				queryClient.invalidateQueries({ queryKey: ['user'] });
+				queryClient.invalidateQueries({ queryKey: ['subscriptionStatus'] });
 			}
 		});
 	};
@@ -89,6 +107,7 @@ export const useAuth = () => {
 		// Zustand 상태 초기화
 		setUser(null);
 		await queryClient.invalidateQueries({ queryKey: ['user'] });
+		await queryClient.invalidateQueries({ queryKey: ['subscriptionStatus'] });
 
 		const protectedRoutes = ['/mypage'];
 		if (protectedRoutes.includes(window.location.pathname)) {
@@ -96,5 +115,9 @@ export const useAuth = () => {
 		}
 	};
 
-	return { user, isLoading, isError, handleLogin, handleLogout };
+	useEffect(() => {
+		console.log('user', user);
+	}, [user]);
+
+	return { user, isLoading: isUserLoading, isError, handleLogin, handleLogout };
 };

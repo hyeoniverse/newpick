@@ -4,14 +4,15 @@ export interface User {
 	username: string;
 	profileImg?: string;
 	accessToken: string | null;
+	isSubscribed: boolean;
 	interests?: string[];
 	role: 'user' | 'admin';
-	timezone?: string;
 	frequency?: 'daily' | 'weekly' | 'monthly';
 	notificationPreferences?: {
 		email: boolean;
 		web: boolean;
 	};
+	timezone?: string;
 	createdAt?: Date;
 	updatedAt?: Date;
 }
