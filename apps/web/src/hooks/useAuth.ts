@@ -18,7 +18,6 @@ const getTokenFromCookies = (): string | null => {
 export const useAuth = () => {
 	const { user, setUser } = useAuthStore();
 	const queryClient = useQueryClient();
-	if (typeof window === 'undefined') return null;
 
 	// 사용자 정보를 가져오는 비동기 함수
 	const fetchUser = async (): Promise<User> => {
