@@ -12,7 +12,7 @@ import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import CardSlider from '@/components/common/slider/CardSlider';
 import { IoHeartOutline } from 'react-icons/io5';
-import Spinner from '@/components/common/Spinner';
+import Spinner from '@/components/common/loader/Spinner';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Newsletter as INewsletter } from '@/models/newsletter.model';
 
@@ -230,6 +230,10 @@ const HeroSection = styled.section`
 	align-items: flex-start;
 	gap: 1rem;
 	padding: 3rem 0;
+
+	.controls {
+		display: none;
+	}
 
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
 		flex-wrap: wrap;
