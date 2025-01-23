@@ -1,18 +1,21 @@
-import { usersData } from '@/mocks/mypage/users';
+import { useAuth } from '@/hooks/useAuth';
 import styled from 'styled-components';
 import Image from '@/components/common/Image';
 import SubscribeToggle from '@/components/common/subscribe/SubscribeToggle';
 
 function Profile() {
-	const { USER1 } = usersData;
+	const { user } = useAuth();
+
+	// user가 없을 때는 아무것도 렌더링하지 않음 (리다이렉트 전 렌더링 방지)
+	if (!user) return null;
 
 	return (
 		<ProfileStyled>
 			<div className="profile">
-				<Image src="/icons/profile_dummy.jpg" alt="prifile-img" ratio="square" />
+				<Image src={user.profileImg || '/img/profile.jpg'} alt="prifile-img" ratio="square" />
 				<div className="profile-text">
-					<h4>{USER1.name}</h4>
-					<p>{USER1.email}</p>
+					<h4>{user.username}</h4>
+					<p>{user.email}</p>
 				</div>
 			</div>
 			<div className="subscribe">
@@ -37,7 +40,7 @@ const ProfileStyled = styled.div`
 		gap: 2rem;
 		justify-content: space-between;
 		align-items: flex-start;
-		
+
 		img {
 			height: 100px;
 			width: 100px;

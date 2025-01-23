@@ -17,8 +17,6 @@ import { Newsletter as INewsletter } from '@/models/newsletter.model';
 
 const NewsletterPage = () => {
 	const { newsletters } = useNewsletter();
-	console.log('articles page', newsletters);
-
 	const todayTrends = useMemo(() => filterTodayTrends(newsletters), [newsletters]);
 	const topTrends = filterTopTrends(newsletters);
 

@@ -1,17 +1,7 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
 	distDir: 'build',
-	experimental: {
-		turbo: {
-			rules: {
-				'*.svg': {
-					loaders: ['@svgr/webpack'],
-					as: '*.js',
-				},
-			},
-		},
-	},
 	// 이미지 설정
 	images: {
 		remotePatterns: [
@@ -20,23 +10,21 @@ const nextConfig: NextConfig = {
 				hostname: 'picsum.photos',
 				pathname: '/**',
 			},
+			{
+				protocol: 'https',
+				hostname: 'imgnews.pstatic.net',
+				pathname: '/**',
+			},
+			{
+				protocol: 'https',
+				hostname: 'lh3.googleusercontent.com',
+				pathname: '/**',
+			},
 		],
 	},
+	compiler: {
+		styledComponents: true,
+	},
 };
-
-module.exports = {
-  images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: "picsum.photos",
-      },
-      {
-        protocol: 'https',
-        hostname: "imgnews.pstatic.net",
-      },
-    ],
-  },
-}
 
 export default nextConfig;

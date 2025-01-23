@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useEffect, useRef } from 'react';
-import { usersData } from '@/mocks/mypage/users';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
@@ -12,16 +11,18 @@ import { useHeader } from '@/hooks/useHeader';
 import styled from 'styled-components';
 import { FaUserCircle } from 'react-icons/fa';
 import Logo from '@/components/common/Logo';
+import Image from '@/components/common/Image';
 import Button from '@/components/common/Button';
 import Modal from '@/components/common/modal/Modal';
 import Dropdown from '@/components/common/Dropdown';
 import Navigation from '@/components/layout/header/Navigation';
 import Drawer from '@/components/layout/header/Drawer';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
+import Spinner from '../common/Spinner';
+import { IoLogoGoogle } from 'react-icons/io';
 
 const Header = () => {
-	const { USER1 } = usersData;
-	const { isAuthenticated, handleLogin, handleLogout } = useAuth();
+	const { user, login, logout, isLoading } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
 	const { isOpen, modalType, openModal, closeModal } = useModal();
@@ -30,22 +31,13 @@ const Header = () => {
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
 			const handleScroll = () => {
-				const container = document.documentElement || document.body;
-				const currentScrollY = window.scrollY || container.scrollTop || 0;
-				const maxScrollY = container.scrollHeight - container.clientHeight;
+				const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
 
-				// 최상단이면 항상 헤더 보이게
 				if (currentScrollY <= 0) {
 					setHeaderOpen(true);
 					return;
 				}
 
-				// 최하단이면 닫지 않음
-				if (currentScrollY >= maxScrollY) {
-					return;
-				}
-
-				// 일반 스크롤 처리
 				if (currentScrollY > lastScrollY.current) {
 					setHeaderOpen(false);
 					closeDropdown();
@@ -57,10 +49,7 @@ const Header = () => {
 			};
 
 			window.addEventListener('scroll', handleScroll);
-
-			return () => {
-				window.removeEventListener('scroll', handleScroll);
-			};
+			return () => window.removeEventListener('scroll', handleScroll);
 		}
 	}, [setHeaderOpen, closeDropdown]);
 
@@ -75,23 +64,31 @@ const Header = () => {
 					<Navigation />
 				</div>
 				<div className="right-section">
-					<ThemeSwitcher scheme="secondary" className={isAuthenticated ? 'hidden' : 'mobile-hidden'} />
-					{isAuthenticated ? (
+					<ThemeSwitcher scheme="secondary" className={user ? 'hidden' : 'mobile-hidden'} />
+					{isLoading ? (
+						<Spinner size="2.5rem" />
+					) : user ? (
 						<Dropdown
 							type="auth"
 							className="auth"
 							toggleButton={
-								<Button>
-									<FaUserCircle className="userCircle" />
-								</Button>
+								user.profileImg ? (
+									<StyledUserCircle>
+										<Image src={user.profileImg} alt="profile" ratio="square" />
+									</StyledUserCircle>
+								) : (
+									<StyledUserCircle>
+										<FaUserCircle />
+									</StyledUserCircle>
+								)
 							}
 						>
 							<>
 								<ThemeSwitcher className="item" />
 								<Link href="/mypage">
-									<Button className="item">마이 페이지</Button>
+									<Button className="item">내 정보</Button>
 								</Link>
-								<Button className="item" onClick={handleLogout}>
+								<Button className="item" onClick={logout}>
 									로그아웃
 								</Button>
 							</>
@@ -99,18 +96,12 @@ const Header = () => {
 					) : (
 						<>
 							<Button
-								scheme="secondary"
-								onClick={() =>
-									handleLogin(
-										{
-											id: USER1.id,
-											name: USER1.name,
-											email: USER1.email,
-										},
-										'mock'
-									)
-								}
+								scheme="outline"
 								style={{ width: '5rem' }}
+								onClick={login}
+								icon={<IoLogoGoogle />}
+								iconPosition="left"
+								disabled={user !== null}
 							>
 								로그인
 							</Button>
@@ -244,6 +235,17 @@ const StyledHeader = styled.header<StyledProps>`
 			transform: scaleX(1);
 		}
 	}
+`;
+
+const StyledUserCircle = styled.div`
+	position: relative;
+	width: 2.5rem;
+	height: 2.5rem;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	border-radius: 50%;
+	overflow: hidden;
 `;
 
 export default Header;
