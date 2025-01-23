@@ -1,6 +1,11 @@
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Category } from '@/models/category.model';
 import { CATEGORIES } from '@/constants/categories';
+import { useToast } from '@/hooks/useToast';
+import { useInputCheck } from '@/hooks/useInputCheck';
+import { useAuth } from '@/hooks/useAuth';
+import { useSubscribe } from '@/hooks/useSubscribe';
 
 import { styled } from 'styled-components';
 import Title from '@/components/common/Title';
@@ -11,28 +16,73 @@ import CardSlider from '@/components/common/slider/CardSlider';
 import { BiCheck, BiPlus } from 'react-icons/bi';
 
 const SubscribeSection = () => {
+	const { showToast } = useToast();
+	const { isChecked } = useInputCheck('subscribe-agreement');
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+	const { user } = useAuth();
+	const { subscribeMutation } = useSubscribe();
 
-	const handleCategorySelect = (category: string) => {
-		if (category === '전체') {
+	const handleCategorySelect = (category: Category) => {
+		if (category.title === '전체') {
 			if (selectedCategories.includes('전체')) {
 				setSelectedCategories([]);
 			} else {
 				setSelectedCategories(CATEGORIES.map((cat) => cat.title));
 			}
 		} else {
-			const updatedCategories = selectedCategories.includes(category)
-				? selectedCategories.filter((cat) => cat !== category)
-				: [...selectedCategories, category];
+			const updatedCategories = selectedCategories.includes(category.title)
+				? selectedCategories.filter((cat) => cat !== category.title)
+				: [...selectedCategories, category.title];
 
-			if (updatedCategories.includes('전체') && !updatedCategories.includes(category)) {
-				setSelectedCategories(updatedCategories.filter((cat) => cat !== '전체'));
+			if (updatedCategories.includes('전체') && !updatedCategories.includes(category.title)) {
+				setSelectedCategories(updatedCategories.filter((cat) => cat !== 'all') as string[]);
 			} else if (updatedCategories.length === CATEGORIES.length - 1) {
-				setSelectedCategories(CATEGORIES.map((cat) => cat.title));
+				setSelectedCategories(CATEGORIES.map((cat) => cat.name));
 			} else {
 				setSelectedCategories(updatedCategories);
 			}
 		}
+	};
+
+	useEffect(() => {
+		console.log('selectedCategories:', selectedCategories);
+
+		if (user?.interests?.length) {
+			console.log('interests:', user.interests);
+			setSelectedCategories(user.interests);
+		}
+	}, [user?.interests, selectedCategories]);
+
+	const handleSubscribe = (e: React.FormEvent) => {
+		e.preventDefault();
+		if (!user) {
+			showToast('로그인이 필요합니다.', 'info');
+			return;
+		}
+
+		if (!user.id) {
+			console.error('❌ 유효하지 않은 userId:', user.id);
+			showToast('로그인 정보를 불러올 수 없습니다.', 'error');
+			return;
+		}
+
+		if (selectedCategories.length === 0) {
+			showToast('최소 한 개의 카테고리를 선택해야 합니다.', 'warning');
+			return;
+		}
+
+		if (!isChecked) {
+			showToast('약관에 동의해야 구독할 수 있습니다.', 'warning');
+			return;
+		}
+
+		subscribeMutation.mutate(
+			{ email: user.email, userId: user.id },
+			{
+				onSuccess: () => showToast('구독이 완료되었습니다!', 'success'),
+				onError: (error) => showToast(`구독 실패: ${error.message}`, 'error'),
+			}
+		);
 	};
 
 	return (
@@ -51,11 +101,12 @@ const SubscribeSection = () => {
 						<Button
 							key={category.id}
 							scheme={selectedCategories.includes(category.title) ? 'primary' : 'outline'}
-							onClick={() => handleCategorySelect(category.title)}
+							onClick={() => handleCategorySelect(category)}
 							icon={selectedCategories.includes(category.title) ? <BiCheck /> : <BiPlus />}
 							style={{
 								width: '100%',
 							}}
+							disabled={subscribeMutation.isPending}
 						>
 							{selectedCategories.includes(category.title) ? <>Selected</> : <>Select</>}
 						</Button>
@@ -70,17 +121,20 @@ const SubscribeSection = () => {
 				<Text size="small">선택한 분야를 이메일로 보내드릴게요.</Text>
 				<div className="main">
 					<Button
+						type="submit"
 						scheme="primary"
 						style={{
 							width: '100%',
 							marginTop: '0.5rem',
 						}}
+						onClick={handleSubscribe}
+						disabled={subscribeMutation.isPending}
 					>
 						구독 신청
 					</Button>
 				</div>
 				<div className="footer">
-					<InputCheck />
+					<InputCheck name="subscribe-agreement" />
 					<Text size="extraSmall">
 						<Text size="extraSmall" weight="semiBold" color="primary">
 							[필수]&nbsp;
