@@ -1,11 +1,11 @@
 export interface User {
-	accessToken: string | null;
-	// id: number;
-	// role: 'user' | 'admin';
+	id: number;
 	email: string;
 	username: string;
 	profileImg?: string;
+	accessToken: string | null;
 	interests?: string[];
+	// role: 'user' | 'admin';
 	// timezone?: string;
 	// frequency?: 'daily' | 'weekly' | 'monthly';
 	// notificationPreferences?: {

@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
 import { User } from '@/models/user.model';
+import { API_URL, API_ENDPOINTS } from '@/constants/api';
+import { POPUP, TOKEN } from '@/constants/numbers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
-import { API_ENDPOINTS } from '@/constants/api';
 
 // 쿠키에서 `access_token` 가져오는 함수
 const getTokenFromCookies = (): string | null => {
@@ -10,7 +11,7 @@ const getTokenFromCookies = (): string | null => {
 	return (
 		document.cookie
 			.split('; ')
-			.find((row) => row.startsWith('access_token='))
+			.find((row) => row.startsWith(`${TOKEN.ACCESS}=`))
 			?.split('=')[1] || null
 	);
 };
@@ -38,7 +39,7 @@ export const useAuth = () => {
 	};
 
 	// `useQuery`를 활용한 자동 데이터 패칭 (토큰이 존재하는 경우 실행)
-	const { data, isLoading, isError } = useQuery<User, Error>({
+	const { data, isLoading, isError } = useQuery<User | null>({
 		queryKey: ['user'],
 		queryFn: fetchUser,
 		enabled: !!getTokenFromCookies() || !!user,
@@ -60,15 +61,15 @@ export const useAuth = () => {
 
 	// 로그인 핸들러 (Google OAuth)
 	const handleLogin = async () => {
-		window.open(API_ENDPOINTS.AUTH.LOGIN, '_blank', 'width=500,height=600');
+		window.open(API_ENDPOINTS.AUTH.LOGIN, '_blank', `width=${POPUP.WIDTH}, height=${POPUP.HEIGHT}`);
 
 		window.addEventListener('message', async (event) => {
-			if (event.origin !== 'http://localhost:3001') return;
+			if (event.origin !== API_URL) return;
 			if (event.data?.type === 'oauthSuccess') {
 				const { token } = event.data;
 
 				// 쿠키 저장
-				document.cookie = `access_token=${token}; Path=/; Secure; SameSite=Strict; Max-Age=3600`;
+				document.cookie = `access_token=${token}; Path=/; Secure; SameSite=Strict; Max-Age=${TOKEN.AGE}`;
 
 				const res = await fetchUser();
 				setUser(res);
