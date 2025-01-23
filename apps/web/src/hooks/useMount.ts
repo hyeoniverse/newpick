@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import useMountStore from '@/stores/mountStore';
+import useMountStore from '@/stores/useMountStore';
 
-const useMount = () => {
+export const useMount = () => {
 	const { isMounted, setMounted } = useMountStore();
 
 	useEffect(() => {
@@ -10,7 +10,5 @@ const useMount = () => {
 		}
 	}, [isMounted, setMounted]);
 
-	return isMounted;
+	return { isMounted };
 };
-
-export default useMount;

@@ -1,4 +1,4 @@
-import useLoadingStore from '@/stores/loadingStore';
+import useLoadingStore from '@/stores/useLoadingStore';
 
 const useLoading = () => {
 	const { isLoading, setLoading } = useLoadingStore();

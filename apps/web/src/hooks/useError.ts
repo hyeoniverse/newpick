@@ -1,4 +1,4 @@
-import { useErrorStore } from '@/stores/errorStore';
+import { useErrorStore } from '@/stores/useErrorStore';
 import { useToast } from '@/hooks/useToast';
 
 // 전역 에러 상태 관리 + Toast 연동

@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { useDropdownStore } from '@/stores/dropdownStore';
+import { useDropdownStore } from '@/stores/useDropdownStore';
 
 export const useDropdown = (dropdownType: string | string[]) => {
 	const { dropdowns, setOpen, closeAll, getState } = useDropdownStore();
