@@ -11,7 +11,7 @@ import FullWidthPanel from '@/components/common/FullWidthPanel';
 import Card from '@/components/common/Card';
 import CardSlider from '@/components/common/slider/CardSlider';
 import { IoHeartOutline } from 'react-icons/io5';
-import Spinner from '@/components/common/Spinner';
+import Spinner from '@/components/common/loader/Spinner';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Newsletter as INewsletter } from '@/models/newsletter.model';
 

@@ -10,6 +10,7 @@ import { useHeader } from '@/hooks/useHeader';
 
 import styled from 'styled-components';
 import { FaUserCircle } from 'react-icons/fa';
+import Spinner from '@/components/common/loader/Spinner';
 import Logo from '@/components/common/Logo';
 import Image from '@/components/common/Image';
 import Button from '@/components/common/Button';
@@ -18,15 +19,18 @@ import Dropdown from '@/components/common/Dropdown';
 import Navigation from '@/components/layout/header/Navigation';
 import Drawer from '@/components/layout/header/Drawer';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
-import Spinner from '../common/Spinner';
 import { IoLogoGoogle } from 'react-icons/io';
 
 const Header = () => {
-	const { user, login, logout, isLoading } = useAuth();
+	const { user, isLoading, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
 	const { isOpen, modalType, openModal, closeModal } = useModal();
 	const lastScrollY = useRef(0);
+
+	useEffect(() => {
+		console.log('user', user, 'isLoading', isLoading);
+	}, [user, isLoading]);
 
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
@@ -72,7 +76,7 @@ const Header = () => {
 							type="auth"
 							className="auth"
 							toggleButton={
-								user.profileImg ? (
+								user?.profileImg ? (
 									<StyledUserCircle>
 										<Image src={user.profileImg} alt="profile" ratio="square" />
 									</StyledUserCircle>
@@ -88,7 +92,7 @@ const Header = () => {
 								<Link href="/mypage">
 									<Button className="item">내 정보</Button>
 								</Link>
-								<Button className="item" onClick={logout}>
+								<Button className="item" onClick={handleLogout}>
 									로그아웃
 								</Button>
 							</>
@@ -98,10 +102,10 @@ const Header = () => {
 							<Button
 								scheme="outline"
 								style={{ width: '5rem' }}
-								onClick={login}
+								onClick={handleLogin}
 								icon={<IoLogoGoogle />}
 								iconPosition="left"
-								disabled={user !== null}
+								disabled={isLoading}
 							>
 								로그인
 							</Button>

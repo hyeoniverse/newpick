@@ -1,6 +1,7 @@
 export interface User {
-	id: number;
-	role: 'user' | 'admin';
+	accessToken: string | null;
+	// id: number;
+	// role: 'user' | 'admin';
 	email: string;
 	username: string;
 	profileImg?: string;

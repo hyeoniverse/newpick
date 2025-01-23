@@ -7,7 +7,7 @@ import { IoIosHeartEmpty } from 'react-icons/io';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
-import Loader from '@/components/common/Loader';
+import Skeleton from '@/components/common/loader/Skeleton';
 
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
@@ -28,10 +28,10 @@ const TrendSection = ({ newsletters }: Props) => {
 			</div>
 			{isLoading ? (
 				<div className="placeholder">
-					<Loader />
+					<Skeleton />
 				</div>
 			) : (
-				<Suspense fallback={<Loader />}>
+				<Suspense fallback={<Skeleton />}>
 					<div className="trend-cards">
 						{todayTrends.map((trend) => (
 							<LazyCard
