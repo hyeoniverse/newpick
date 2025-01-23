@@ -1,129 +1,105 @@
-'use client';
-
-import { useEffect, useState, useRef, useCallback } from 'react';
-import { flushSync } from 'react-dom';
-import { BASE_URL, API_ENDPOINTS } from '@/constants/api';
-import { POPUP } from '@/constants/numbers';
-import { AUTH_ERRORS } from '@/constants/errors';
+import { useEffect, useState } from 'react';
 import { User } from '@/models/user.model';
+import { useQuery } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
-import { useError } from '@/hooks/useError';
-import { useInterval } from '@/hooks/useInterval';
+import { API_ENDPOINTS } from '@/constants/api';
 
 export const useAuth = () => {
-	const { user, token, isLoading, setUser, setToken, setLoading, logout } = useAuthStore();
-	const { showError } = useError();
-	const [popup, setPopup] = useState<Window | null>(null);
-	const [popupCheckKey, setPopupCheckKey] = useState(0);
-	const hasFetchedUser = useRef(false);
-	const setLoadingRef = useRef(setLoading);
-	const [forceUpdate, setForceUpdate] = useState(0);
+	const { user, login, logout, isAuthenticated } = useAuthStore();
+	const [isLoaded, setIsLoaded] = useState<boolean>(true);
 
-	/** 로그아웃 */
-	const handleLogout = useCallback(() => {
-		localStorage.removeItem('authToken');
-		logout();
-		setForceUpdate((prev) => prev + 1); // 상태 강제 업데이트
-	}, [logout]);
+	// 쿠키에서 `access_token` 가져오는 함수 (memoization 적용)
+	const getTokenFromCookies = (): string | null => {
+		const token = document.cookie
+			.split('; ')
+			.find((row) => row.startsWith('access_token='))
+			?.split('=')[1];
 
-	/** 사용자 정보 가져오기 */
-	const fetchUser = useCallback(
-		async (authToken: string) => {
-			if (hasFetchedUser.current) return;
-			hasFetchedUser.current = true;
-			setLoadingRef.current(true);
+		return token || null;
+	};
 
-			try {
-				const response = await fetch(API_ENDPOINTS.AUTH.USER, {
-					method: 'GET',
-					headers: {
-						'Content-Type': 'application/json',
-						Authorization: `Bearer ${authToken}`,
-					},
-					credentials: 'include',
-				});
+	// 사용자 정보를 가져오는 비동기 함수
+	const fetchUser = async (): Promise<User> => {
+		const token = getTokenFromCookies();
+		if (!token) throw new Error('No token found');
 
-				if (!response.ok) throw new Error(await response.text());
-
-				const userData: User = await response.json();
-				if (!userData) throw new Error(AUTH_ERRORS.FETCH_FAILED);
-
-				flushSync(() => {
-					setUser(userData);
-					setToken(authToken);
-				});
-				setForceUpdate((prev) => prev + 1);
-			} catch (error) {
-				showError((error as Error).message || AUTH_ERRORS.FETCH_FAILED);
-				handleLogout();
-			} finally {
-				setTimeout(() => setLoadingRef.current(false), 0);
-			}
-		},
-		[setUser, setToken, showError, handleLogout]
-	);
-
-	/** 앱 로드 시 저장된 토큰 확인 */
-	useEffect(() => {
-		const storedToken = localStorage.getItem('authToken');
-		if (!storedToken) {
-			setTimeout(() => setLoadingRef.current(false), 0);
-			return;
-		}
-		if (!user && !hasFetchedUser.current) {
-			fetchUser(storedToken);
-		}
-	}, [user, fetchUser]);
-
-	/** OAuth 로그인 */
-	const login = useCallback(() => {
-		const newPopup = window.open(API_ENDPOINTS.AUTH.LOGIN, '_blank', `width=${POPUP.WIDTH},height=${POPUP.HEIGHT}`);
-
-		if (!newPopup) {
-			showError(AUTH_ERRORS.POPUP_BLOCKED);
-			return;
-		}
-
-		setPopup(newPopup);
-		setPopupCheckKey((prev) => prev + 1);
-	}, [showError]);
-
-	/** OAuth 응답 메시지 핸들러 */
-	useEffect(() => {
-		const handleMessage = (event: MessageEvent) => {
-			if (event.origin !== BASE_URL) return;
-
-			if (event.data.type === 'oauthSuccess' && event.data.token) {
-				localStorage.setItem('authToken', event.data.token);
-				fetchUser(event.data.token);
-			} else {
-				showError(AUTH_ERRORS.OAUTH_FAILED);
-			}
-		};
-
-		window.addEventListener('message', handleMessage);
-		return () => window.removeEventListener('message', handleMessage);
-	}, [fetchUser, showError]);
-
-	/** OAuth 팝업 닫힘 감지 */
-	useInterval(
-		() => {
-			if (popup?.closed) {
-				setPopup(null);
-				showError(AUTH_ERRORS.POPUP_CLOSED);
-			}
-		},
-		popup ? POPUP.CHECK_INTERVAL : null,
-		popupCheckKey
-	);
-
-	/** Zustand 상태 변경 감지 (즉시 반영) */
-	useEffect(() => {
-		const unsubscribe = useAuthStore.subscribe((state) => {
-			if (state.user) setForceUpdate((prev) => prev + 1);
+		const res = await fetch(API_ENDPOINTS.AUTH.USER, {
+			method: 'GET',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${token}`,
+			},
 		});
-		return () => unsubscribe();
-	}, []);
 
-	return { user, token, isLoading, login, logout: handleLogout, forceUpdate };
+		if (!res.ok) throw new Error('Failed to fetch user');
+		return res.json();
+	};
+
+	// `useQuery`를 활용한 자동 데이터 패칭 (토큰이 존재하는 경우 실행)
+	const { data, isError, isLoading, refetch } = useQuery<User, Error>({
+		queryKey: ['user'],
+		queryFn: fetchUser,
+		enabled: !!getTokenFromCookies(),
+		staleTime: 1000 * 60 * 5, // 5분 동안 캐싱 유지
+		retry: 1, // 실패 시 1회만 재시도
+	});
+
+	useEffect(() => {
+		if (!isLoading) {
+			if (data) {
+				// 데이터가 있으면 로그인
+				login(data);
+			} else {
+				// 데이터가 없으면 즉시 로그아웃
+				logout();
+			}
+		}
+	}, [data, isLoading, login, logout]);
+
+	useEffect(() => {
+		if (user && !isLoading) {
+			setIsLoaded(true);
+		} else {
+			setIsLoaded(false);
+		}
+	}, [user, isLoading]);
+
+	useEffect(() => {
+		console.log('user', user, 'isAuthenticated', isAuthenticated, 'isLoaded', isLoaded, 'isLoading', isLoading);
+	}, [user, isAuthenticated, isError, isLoaded, isLoading]);
+
+	// 로그인 핸들러 (Google OAuth)
+	const handleLogin = async () => {
+		window.open(API_ENDPOINTS.AUTH.LOGIN, '_blank', 'width=500,height=600');
+
+		window.addEventListener('message', async (event) => {
+			if (event.origin !== 'http://localhost:3001') return;
+			if (event.data?.type === 'oauthSuccess') {
+				const { token } = event.data;
+
+				// 쿠키 저장
+				document.cookie = `access_token=${token}; Path=/; Secure; SameSite=Strict; Max-Age=3600`;
+
+				// Zustand 상태 즉시 업데이트
+				await refetch();
+			}
+		});
+	};
+
+	// 로그아웃 핸들러
+	const handleLogout = async () => {
+		window.open('https://accounts.google.com/logout', '_blank');
+
+		// 쿠키 삭제
+		document.cookie = 'access_token=; Path=/; Max-Age=0';
+
+		// Zustand 상태 초기화
+		logout();
+
+		// 페이지 새로고침 (로그인 상태 초기화)
+		window.location.href = '/';
+	};
+
+	return { user, isAuthenticated, isError, isLoaded, handleLogin, handleLogout };
 };
