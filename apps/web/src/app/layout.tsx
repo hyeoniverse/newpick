@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import '@/styles/global';
 import StyledComponentsRegistry from '@/lib/registry';
-import { AppThemeProvider } from '@/context/themeContext';
+import Providers from '@/components/layout/Providers';
 import ToastContainer from '@/components/common/toast/ToastContainer';
 import Layout from '@/components/layout/MainLayout';
 
@@ -22,10 +22,10 @@ export default function RootLayout({
 			</head>
 			<body>
 				<StyledComponentsRegistry>
-					<AppThemeProvider>
+					<Providers>
 						<Layout>{children}</Layout>
 						<ToastContainer />
-					</AppThemeProvider>
+					</Providers>
 				</StyledComponentsRegistry>
 			</body>
 		</html>
