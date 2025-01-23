@@ -6,18 +6,19 @@ import { API_ENDPOINTS } from '@/constants/api';
 
 // 쿠키에서 `access_token` 가져오는 함수
 const getTokenFromCookies = (): string | null => {
-	if (typeof document === 'undefined') return null;
-	const token = document.cookie
-		.split('; ')
-		.find((row) => row.startsWith('access_token='))
-		?.split('=')[1];
-
-	return token || null;
+	if (typeof window === 'undefined') return null;
+	return (
+		document.cookie
+			.split('; ')
+			.find((row) => row.startsWith('access_token='))
+			?.split('=')[1] || null
+	);
 };
 
 export const useAuth = () => {
 	const { user, setUser } = useAuthStore();
 	const queryClient = useQueryClient();
+	if (typeof window === 'undefined') return null;
 
 	// 사용자 정보를 가져오는 비동기 함수
 	const fetchUser = async (): Promise<User> => {
@@ -58,10 +59,6 @@ export const useAuth = () => {
 		}
 	}, [data, isLoading, setUser]);
 
-	useEffect(() => {
-		console.log('user', user, 'isAuthenticated', isAuthenticated, 'isLoaded', isLoaded, 'isLoading', isLoading);
-	}, [user, isAuthenticated, isError, isLoaded, isLoading]);
-
 	// 로그인 핸들러 (Google OAuth)
 	const handleLogin = async () => {
 		window.open(API_ENDPOINTS.AUTH.LOGIN, '_blank', 'width=500,height=600');
@@ -94,10 +91,6 @@ export const useAuth = () => {
 			window.location.href = '/';
 		}
 	};
-
-	// useEffect(() => {
-	// 	console.log('user', user, 'isLoading', isLoading);
-	// }, [user, isLoading]);
 
 	return { user, isLoading, isError, handleLogin, handleLogout };
 };
