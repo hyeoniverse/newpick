@@ -1,22 +1,23 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { User } from '@/models/user.model';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/authStore';
 import { API_ENDPOINTS } from '@/constants/api';
 
+// 쿠키에서 `access_token` 가져오는 함수
+const getTokenFromCookies = (): string | null => {
+	if (typeof document === 'undefined') return null;
+	const token = document.cookie
+		.split('; ')
+		.find((row) => row.startsWith('access_token='))
+		?.split('=')[1];
+
+	return token || null;
+};
+
 export const useAuth = () => {
-	const { user, login, logout, isAuthenticated } = useAuthStore();
-	const [isLoaded, setIsLoaded] = useState<boolean>(true);
-
-	// 쿠키에서 `access_token` 가져오는 함수 (memoization 적용)
-	const getTokenFromCookies = (): string | null => {
-		const token = document.cookie
-			.split('; ')
-			.find((row) => row.startsWith('access_token='))
-			?.split('=')[1];
-
-		return token || null;
-	};
+	const { user, setUser } = useAuthStore();
+	const queryClient = useQueryClient();
 
 	// 사용자 정보를 가져오는 비동기 함수
 	const fetchUser = async (): Promise<User> => {
@@ -37,10 +38,10 @@ export const useAuth = () => {
 	};
 
 	// `useQuery`를 활용한 자동 데이터 패칭 (토큰이 존재하는 경우 실행)
-	const { data, isError, isLoading, refetch } = useQuery<User, Error>({
+	const { data, isLoading, isError } = useQuery<User, Error>({
 		queryKey: ['user'],
 		queryFn: fetchUser,
-		enabled: !!getTokenFromCookies(),
+		enabled: !!getTokenFromCookies() || !!user,
 		staleTime: 1000 * 60 * 5, // 5분 동안 캐싱 유지
 		retry: 1, // 실패 시 1회만 재시도
 	});
@@ -49,21 +50,13 @@ export const useAuth = () => {
 		if (!isLoading) {
 			if (data) {
 				// 데이터가 있으면 로그인
-				login(data);
+				setUser(data);
 			} else {
 				// 데이터가 없으면 즉시 로그아웃
-				logout();
+				setUser(null);
 			}
 		}
-	}, [data, isLoading, login, logout]);
-
-	useEffect(() => {
-		if (user && !isLoading) {
-			setIsLoaded(true);
-		} else {
-			setIsLoaded(false);
-		}
-	}, [user, isLoading]);
+	}, [data, isLoading, setUser]);
 
 	useEffect(() => {
 		console.log('user', user, 'isAuthenticated', isAuthenticated, 'isLoaded', isLoaded, 'isLoading', isLoading);
@@ -81,25 +74,30 @@ export const useAuth = () => {
 				// 쿠키 저장
 				document.cookie = `access_token=${token}; Path=/; Secure; SameSite=Strict; Max-Age=3600`;
 
-				// Zustand 상태 즉시 업데이트
-				await refetch();
+				const res = await fetchUser();
+				setUser(res);
 			}
 		});
 	};
 
 	// 로그아웃 핸들러
 	const handleLogout = async () => {
-		window.open('https://accounts.google.com/logout', '_blank');
-
 		// 쿠키 삭제
 		document.cookie = 'access_token=; Path=/; Max-Age=0';
 
 		// Zustand 상태 초기화
-		logout();
+		setUser(null);
+		await queryClient.invalidateQueries({ queryKey: ['user'] });
 
-		// 페이지 새로고침 (로그인 상태 초기화)
-		window.location.href = '/';
+		const protectedRoutes = ['/mypage'];
+		if (protectedRoutes.includes(window.location.pathname)) {
+			window.location.href = '/';
+		}
 	};
 
-	return { user, isAuthenticated, isError, isLoaded, handleLogin, handleLogout };
+	// useEffect(() => {
+	// 	console.log('user', user, 'isLoading', isLoading);
+	// }, [user, isLoading]);
+
+	return { user, isLoading, isError, handleLogin, handleLogout };
 };

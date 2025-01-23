@@ -22,11 +22,15 @@ import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
 import { IoLogoGoogle } from 'react-icons/io';
 
 const Header = () => {
-	const { user, isLoaded, handleLogin, handleLogout } = useAuth();
+	const { user, isLoading, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
 	const { isOpen, modalType, openModal, closeModal } = useModal();
 	const lastScrollY = useRef(0);
+
+	useEffect(() => {
+		console.log('user', user, 'isLoading', isLoading);
+	}, [user, isLoading]);
 
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
@@ -65,7 +69,7 @@ const Header = () => {
 				</div>
 				<div className="right-section">
 					<ThemeSwitcher scheme="secondary" className={user ? 'hidden' : 'mobile-hidden'} />
-					{!isLoaded ? (
+					{isLoading ? (
 						<Spinner size="2.5rem" />
 					) : user ? (
 						<Dropdown
@@ -101,7 +105,7 @@ const Header = () => {
 								onClick={handleLogin}
 								icon={<IoLogoGoogle />}
 								iconPosition="left"
-								disabled={user !== null}
+								disabled={isLoading}
 							>
 								로그인
 							</Button>

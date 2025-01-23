@@ -3,6 +3,7 @@ export const BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL as string) || 'htt
 export const API_ENDPOINTS = {
 	AUTH: {
 		LOGIN: `${BASE_URL}/auth/google`,
+		LOGOUT: `${BASE_URL}/auth/logout`,
 		CALLBACK: `${BASE_URL}/auth/google/callback`,
 		USER: `${BASE_URL}/auth/user`,
 	},
