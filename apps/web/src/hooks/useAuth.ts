@@ -4,9 +4,8 @@ import { API_URL, TOKEN, API_ENDPOINTS } from '@/constants/api';
 import { POPUP } from '@/constants/numbers';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useSubscribe } from './useSubscribe';
 
-// 클라이언트에서만 쿠키 값을 가져오도록 `useEffect` 사용
+// 쿠키 값을 가져오는 함수
 const getCookieValue = (name: string): string | null => {
 	if (typeof document === 'undefined') return null;
 	return (
@@ -17,19 +16,19 @@ const getCookieValue = (name: string): string | null => {
 	);
 };
 
-// 쿠키에 `access_token`과 `userId` 저장하는 함수
+// 쿠키 설정 함수
 const setCookie = (name: string, value: string, maxAge: number) => {
 	document.cookie = `${name}=${value}; Path=/; Secure; SameSite=Strict; Max-Age=${maxAge}`;
 };
 
-// 쿠키에서 `access_token`과 `userId` 삭제하는 함수
+// 쿠키 삭제 함수
 const deleteCookie = (name: string) => {
 	document.cookie = `${name}=; Path=/; Max-Age=0`;
 };
 
 export const useAuth = () => {
 	const { user, setUser, isLoading, setIsLoading } = useAuthStore();
-	const {} = useSubscribe();
+	// const {} = useSubscribe();
 	const queryClient = useQueryClient();
 	const [token, setToken] = useState<string | null>(null);
 	const [userId, setUserId] = useState<number | null>(null);
@@ -37,16 +36,28 @@ export const useAuth = () => {
 	// 클라이언트에서만 쿠키 값을 가져오기
 	useEffect(() => {
 		if (typeof window !== 'undefined') {
-			setToken(getCookieValue(TOKEN.ACCESS));
-			const userId = getCookieValue(TOKEN.USER_ID);
-			const parsedUserId = userId ? parseInt(userId, 10) : null;
-			setUserId(parsedUserId);
+			const storedToken = getCookieValue(TOKEN.ACCESS);
+			const storedUserId = getCookieValue(TOKEN.USER_ID);
+			const parsedUserId = storedUserId ? parseInt(storedUserId, 10) : null;
+
+			if (storedToken && parsedUserId) {
+				setToken(storedToken);
+				setUserId(parsedUserId);
+				setIsLoading(true);
+			} else {
+				setUser(null);
+				setToken(null);
+				setUserId(null);
+				setIsLoading(false);
+			}
 		}
-	}, []);
+	}, [setIsLoading, setUser]);
 
 	// 사용자 정보를 가져오는 비동기 함수
-	const fetchUser = async (): Promise<User> => {
-		if (!token || !userId) throw new Error('No token or userId found');
+	const fetchUser = async (): Promise<User | null> => {
+		if (!token || !userId) {
+			return null;
+		}
 
 		const res = await fetch(API_ENDPOINTS.AUTH.USER(userId), {
 			method: 'GET',
@@ -69,36 +80,32 @@ export const useAuth = () => {
 		if (!subscriptionRes.ok) throw new Error('Failed to fetch subscription status');
 		const subscriptionData = await subscriptionRes.json();
 
-		// `isSubscribed` 정보 추가 후 반환
 		return { ...userData, isSubscribed: subscriptionData.active };
 	};
 
 	// `useQuery`를 활용하여 자동으로 사용자 정보 가져오기 (토큰이 존재하는 경우 실행)
-	const { data: userData, status: userStatus } = useQuery<User | null>({
+	const {
+		data: userData,
+		status: userStatus,
+		error: userError,
+	} = useQuery<User | null>({
 		queryKey: ['user'],
 		queryFn: fetchUser,
-		enabled: !!token && !!userId, // 클라이언트에서만 실행하도록 수정
+		enabled: Boolean(token && userId),
 		staleTime: 1000 * 60 * 5,
-		retry: 1, // 실패 시 1회만 재시도
+		retry: 1,
 	});
 
 	// 페이지 새로고침 후 로그인 유지 (사용자 정보 설정)
 	useEffect(() => {
-		if (userStatus === 'success' && userData && JSON.stringify(user) !== JSON.stringify(userData)) {
+		if (userStatus === 'success' && userData) {
 			setUser(userData);
-		} else if (userStatus === 'error') {
+			setIsLoading(false);
+		} else if (userStatus === 'error' || userError) {
 			setUser(null);
-		}
-	}, [userStatus, userData, setUser, user]);
-
-	// 로딩 상태
-	useEffect(() => {
-		if (userStatus === 'pending' && !isLoading) {
-			setIsLoading(true);
-		} else if (userStatus !== 'pending' && isLoading) {
 			setIsLoading(false);
 		}
-	}, [userStatus, setIsLoading, isLoading]);
+	}, [userStatus, userData, setUser, userError, setIsLoading]);
 
 	// 로그인 핸들러 (Google OAuth)
 	const handleLogin = async () => {
@@ -134,6 +141,7 @@ export const useAuth = () => {
 		setUser(null);
 		setToken(null);
 		setUserId(null);
+		setIsLoading(false);
 
 		await queryClient.invalidateQueries({ queryKey: ['user'] });
 		await queryClient.invalidateQueries({ queryKey: ['subscriptionStatus'] });
@@ -144,10 +152,6 @@ export const useAuth = () => {
 			window.location.href = '/';
 		}
 	};
-
-	useEffect(() => {
-		console.log('user', user);
-	}, [user]);
 
 	return { user, isLoading, handleLogin, handleLogout };
 };
