@@ -1,37 +1,29 @@
 'use client';
 
 import React from 'react';
+import { useInputCheck } from '@/hooks/useInputCheck';
+
 import styled from 'styled-components';
 import { FontSize } from '@/styles/theme';
 import { BiCheck } from 'react-icons/bi';
 
 interface Props extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onBlur' | 'onChange' | 'size'> {
-	size?: FontSize;
+	name: string;
 	label?: string;
-	onBlur?: (name: string, checked: boolean) => void;
-	onChange?: (name: string, checked: boolean) => void;
+	size?: FontSize;
 }
+const InputCheck = React.forwardRef<HTMLInputElement, Props>(({ size, label, name, ...props }, ref) => {
+	const { isChecked, toggleChecked } = useInputCheck(name);
 
-const InputCheck = React.forwardRef<HTMLInputElement, Props>(({ size, label, onBlur, onChange, ...props }, ref) => {
-	const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-		const { name, checked } = e.target;
-		if (onBlur) {
-			onBlur(name, checked);
-		}
-	};
-
-	const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		const { name, checked } = e.target;
-		if (onChange) {
-			onChange(name, checked);
-		}
+	const handleChange = () => {
+		toggleChecked();
 	};
 
 	return (
 		<StyledInputCheck $size={size}>
 			{label && <label>{label}</label>}
 			<div className="input-check">
-				<input type="checkbox" ref={ref} onBlur={handleBlur} onChange={handleChange} {...props} />
+				<input type="checkbox" ref={ref} name={name} checked={isChecked} onChange={handleChange} {...props} />
 				<span className="icon">
 					<BiCheck />
 				</span>

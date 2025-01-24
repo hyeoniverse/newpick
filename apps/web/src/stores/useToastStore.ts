@@ -23,7 +23,7 @@ const useToastStore = create<ToastState>((set) => ({
 		};
 
 		set((state) => {
-			// ✅ 최대 개수 초과 시 오래된 토스트 제거
+			// 최대 개수 초과 시 오래된 토스트 제거
 			const updatedToasts = [...state.toasts, newToast];
 			if (updatedToasts.length > TOAST.MAX_TOASTS) {
 				updatedToasts.shift(); // 가장 오래된 토스트 제거

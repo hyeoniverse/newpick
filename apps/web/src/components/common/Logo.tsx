@@ -35,7 +35,7 @@ const StyledLogo = styled.div`
 	.desktop-logo {
 		height: 22px;
 	}
-	
+
 	.footer-desktop-logo {
 		color: ${({ theme }) => theme.color.mediumGrey};
 		height: 32px;
@@ -45,6 +45,11 @@ const StyledLogo = styled.div`
 		.desktop-logo,
 		.footer-desktop-logo {
 			display: none;
+		}
+
+		.mobile-logo {
+			display: block;
+			height: 32px;
 		}
 
 		.footer-mobile-logo {

@@ -3,14 +3,16 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { ToastPosition } from '@/models/toast.model';
+import { useMount } from '@/hooks/useMount';
 import { useToast } from '@/hooks/useToast';
+
 import styled from 'styled-components';
 import Toast from '@/components/common/toast/Toast';
-import useMount from '@/hooks/useMount';
 
 const ToastContainer = React.memo(() => {
-	const isMounted = useMount();
+	const { isMounted } = useMount();
 	const { toasts, position } = useToast();
+
 	if (!isMounted) return null;
 
 	return createPortal(

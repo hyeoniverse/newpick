@@ -1,4 +1,4 @@
-import { useHeaderStore } from '@/stores/headerStore';
+import { useHeaderStore } from '@/stores/useHeaderStore';
 
 export const useHeader = () => {
 	const { isOpen: isHeaderOpen, setOpen: setHeaderOpen, isSubOpen, setSubOpen } = useHeaderStore();

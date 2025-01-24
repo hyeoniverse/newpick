@@ -1,5 +1,5 @@
-import useToastStore from '@/stores/toastStore';
 import { ToastType } from '@/models/toast.model';
+import useToastStore from '@/stores/useToastStore';
 
 export const useToast = () => {
 	const { toasts, addToast, removeToast, setPosition, position } = useToastStore();

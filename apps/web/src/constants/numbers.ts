@@ -7,6 +7,4 @@ export const TOAST = {
 export const POPUP = {
 	WIDTH: 500,
 	HEIGHT: 600,
-	CHECK_INTERVAL: 500,
-	KEY_INCREMENT: 1,
 };
