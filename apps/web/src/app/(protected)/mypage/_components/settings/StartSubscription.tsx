@@ -124,7 +124,7 @@ const StartSubscription = () => {
 					scheme="primary"
 					size="large"
 					onClick={handleStart}
-					disabled={isSubscribed === true && !isChecked}
+					disabled={isSubscribed === null && !isChecked}
 				>
 					완료
 				</Button>
