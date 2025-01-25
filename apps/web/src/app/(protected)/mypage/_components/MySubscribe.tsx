@@ -7,8 +7,8 @@ import { IMySummary } from '@/models/newsDetail';
 
 import styled from 'styled-components';
 import NoContentsPage from '@/components/common/NoContentsPage';
-import MySubscribeNav from '@/app/(protected)/mypage/_components/subscriptions/MySubscribeNav';
-import MySummaryCategory from '@/app/(protected)/mypage/_components/subscriptions/MySubscribeSummaryCategory';
+import MySubscribeNav from '@/app/(protected)/mypage/_components/subscribe/MySubscribeNav';
+import MySummaryCategory from '@/app/(protected)/mypage/_components/subscribe/MySubscribeSummaryCategory';
 
 function MySubscribe() {
 	const { setActiveTab } = useTab();

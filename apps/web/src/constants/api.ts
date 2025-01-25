@@ -21,6 +21,7 @@ export const API_ENDPOINTS = {
 		CANCEL: `${API_URL}/subscribers/cancel`,
 		STATUS: (id: number) => `${API_URL}/subscribers/status?userId=${id}`,
 		HISTORY: (id: number) => `${API_URL}/subscribers/history?userId=${id}`,
+		INTERESTS: `${API_URL}/mypage/interests`,
 	},
 	NEWS: {
 		CRAWL: `${API_URL}/news/crawl`,

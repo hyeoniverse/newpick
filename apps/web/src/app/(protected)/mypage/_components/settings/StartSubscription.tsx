@@ -1,12 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useLayoutEffect } from 'react';
-import { currentUserData } from '@/mocks/mypage/currentUser';
 import { useModal } from '@/hooks/useModal';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
-import useMypage from '@/hooks/useMypage';
+import useSelectInterests from '@/hooks/useSelectInterests';
 
 import styled from 'styled-components';
 import { LuMailCheck, LuMailX } from 'react-icons/lu';
@@ -21,26 +19,27 @@ import Title from '@/components/common/Title';
 const StartSubscription = () => {
 	const {
 		status: isSubscribed,
+		validateSubscribe,
 		handleStart: startSubscription,
 		handleCancel: cancelSubscription,
+		startMutation,
+		updateMutation,
 		cancelMutation,
 	} = useSubscribe();
-	const { isChecked } = useInputCheck('mypage-agreement');
-	const { handleSelectCategory, handleSelectAll, allSelectCategory, selectCategory, setSelectCategory } = useMypage();
+	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
+	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 	const { isOpen, modalType, openModal, closeModal } = useModal();
-	const { subscribedCategories } = currentUserData;
-
-	// 유저가 구독 중인 카테고리 초기화면
-	useLayoutEffect(() => {
-		const subscribedNames = subscribedCategories.map((item) => item.categoryName);
-		const uniqueSubscribed = Array.from(new Set(subscribedNames));
-		setSelectCategory(uniqueSubscribed);
-	}, [subscribedCategories, setSelectCategory]);
 
 	const handleStart = () => {
-		const isSuccess = startSubscription();
-		if (isSuccess) {
-			openModal('submit-start');
+		const isValid = validateSubscribe({ selectedInterests, isChecked });
+		if (isValid) {
+			const isSuccess = startSubscription(selectedInterests);
+
+			console.log('isSuccess:', isSuccess);
+			if (isSuccess) {
+				openModal('submit-start');
+				setChecked(false);
+			}
 		}
 	};
 
@@ -69,9 +68,9 @@ const StartSubscription = () => {
 					)}
 				</div>
 				<Text size="small" color="subText">
-					구독할 카테고리를 선택한 후 완료 버튼을 눌러주세요.
+					구독할 괌심사를 선택한 후 완료 버튼을 눌러주세요.
 					<br />
-					내일 보내드리는 뉴스레터부터 적용됩니다.
+					{isSubscribed !== null && '내일 보내드리는 뉴스레터부터 적용됩니다.'}
 				</Text>
 			</div>
 			<div className="category-section">
@@ -79,8 +78,10 @@ const StartSubscription = () => {
 					<Button
 						type="button"
 						scheme="default"
-						className={allSelectCategory ? 'active category-btn' : 'category-btn'}
-						onClick={() => handleSelectAll()}
+						className={
+							selectedInterests.length === CATEGORIES.length ? 'active category-btn' : 'category-btn'
+						}
+						onClick={() => handleSelectInterests(CATEGORIES[0])}
 					>
 						전체
 					</Button>
@@ -93,10 +94,10 @@ const StartSubscription = () => {
 								type="button"
 								scheme="default"
 								onClick={() => {
-									handleSelectCategory(category);
+									handleSelectInterests(category);
 								}}
 								className={
-									selectCategory.includes(category.title) ? 'category-btn active' : 'category-btn'
+									selectedInterests.includes(category.title) ? 'category-btn active' : 'category-btn'
 								}
 							>
 								{category.title}
@@ -124,9 +125,9 @@ const StartSubscription = () => {
 					scheme="primary"
 					size="large"
 					onClick={handleStart}
-					disabled={isSubscribed === null && !isChecked}
+					disabled={startMutation.isPending || updateMutation.isPending}
 				>
-					완료
+					{isSubscribed === false ? '재시작' : '완료'}
 				</Button>
 			</div>
 			{/*모달*/}

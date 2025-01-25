@@ -1,6 +1,4 @@
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { Category } from '@/models/category.model';
 import { CATEGORIES } from '@/constants/categories';
 import { useToast } from '@/hooks/useToast';
 import { useInputCheck } from '@/hooks/useInputCheck';
@@ -14,78 +12,18 @@ import Button from '@/components/common/Button';
 import InputCheck from '@/components/common/InputCheck';
 import CardSlider from '@/components/common/slider/CardSlider';
 import { BiCheck, BiPlus } from 'react-icons/bi';
+import useSelectInterests from '@/hooks/useSelectInterests';
 
 const SubscribeSection = () => {
+	const { user } = useAuth();
+	const { selectedInterests, handleSelectInterests } = useSelectInterests();
+	const { validateSubscribe, startMutation: subscribeMutation } = useSubscribe();
 	const { showToast } = useToast();
 	const { isChecked } = useInputCheck('subscribe-agreement');
-	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-	const { user } = useAuth();
-	const { startMutation: subscribeMutation } = useSubscribe();
-
-	const handleCategorySelect = (category: Category) => {
-		if (category.title === '전체') {
-			if (selectedCategories.includes('전체')) {
-				setSelectedCategories([]);
-			} else {
-				setSelectedCategories(CATEGORIES.map((cat) => cat.title));
-			}
-		} else {
-			const updatedCategories = selectedCategories.includes(category.title)
-				? selectedCategories.filter((cat) => cat !== category.title)
-				: [...selectedCategories, category.title];
-
-			if (updatedCategories.includes('전체') && !updatedCategories.includes(category.title)) {
-				setSelectedCategories(updatedCategories.filter((cat) => cat !== 'all') as string[]);
-			} else if (updatedCategories.length === CATEGORIES.length - 1) {
-				setSelectedCategories(CATEGORIES.map((cat) => cat.name));
-			} else {
-				setSelectedCategories(updatedCategories);
-			}
-		}
-	};
-
-	useEffect(() => {
-		console.log('selectedCategories:', selectedCategories);
-
-		if (user?.interests?.length) {
-			console.log('interests:', user.interests);
-			setSelectedCategories(user.interests);
-		}
-	}, [user?.interests, selectedCategories]);
-
-	const validateSubscribe = () => {
-		if (!user) {
-			showToast('로그인이 필요합니다.', 'info');
-			return false;
-		}
-
-		if (!user.id) {
-			console.error('❌ 유효하지 않은 userId:', user.id);
-			showToast('로그인 정보를 불러올 수 없습니다.', 'error');
-			return false;
-		}
-
-		if (user.isSubscribed === true) {
-			showToast('이미 구독 중입니다.', 'warning'); // 관심사 기능이 구현되면 해당 관심사에 대해서만 이 에러 발생
-			return false;
-		}
-
-		if (selectedCategories.length === 0) {
-			showToast('최소 한 개의 카테고리를 선택해야 합니다.', 'warning');
-			return false;
-		}
-
-		if (!isChecked) {
-			showToast('약관에 동의해야 구독할 수 있습니다.', 'warning');
-			return false;
-		}
-
-		return true;
-	};
 
 	const handleSubscribe = (e: React.FormEvent) => {
 		e.preventDefault();
-		const formCompleted = validateSubscribe();
+		const formCompleted = validateSubscribe({ selectedInterests, isChecked });
 
 		if (formCompleted) {
 			subscribeMutation.mutate(
@@ -113,15 +51,15 @@ const SubscribeSection = () => {
 					footer: (
 						<Button
 							key={category.id}
-							scheme={selectedCategories.includes(category.title) ? 'primary' : 'outline'}
-							onClick={() => handleCategorySelect(category)}
-							icon={selectedCategories.includes(category.title) ? <BiCheck /> : <BiPlus />}
+							scheme={selectedInterests.includes(category.title) ? 'primary' : 'outline'}
+							onClick={() => handleSelectInterests(category)}
+							icon={selectedInterests.includes(category.title) ? <BiCheck /> : <BiPlus />}
 							style={{
 								width: '100%',
 							}}
 							disabled={subscribeMutation.isPending}
 						>
-							{selectedCategories.includes(category.title) ? <>Selected</> : <>Select</>}
+							{selectedInterests.includes(category.title) ? <>Selected</> : <>Select</>}
 						</Button>
 					),
 				}))}

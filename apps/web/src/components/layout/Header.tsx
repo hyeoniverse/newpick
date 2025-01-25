@@ -107,7 +107,7 @@ const Header = () => {
 								onClick={handleLogin}
 								icon={<IoLogoGoogle />}
 								iconPosition="left"
-								disabled={user !== null}
+								disabled={isLoading}
 							>
 								로그인
 							</Button>

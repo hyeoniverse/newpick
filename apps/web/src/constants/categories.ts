@@ -28,8 +28,8 @@ export const CATEGORIES: Category[] = [
 	},
 	{
 		id: 5,
-		title: '테크',
-		name: 'tech',
+		title: 'IT',
+		name: 'it',
 	},
 	{
 		id: 6,

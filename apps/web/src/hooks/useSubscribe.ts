@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
+import { useCookie } from './useCookie';
 
 // 구독 시작 요청 (POST)
 const startSubscription = async ({ userId }: { userId: number }) => {
@@ -26,7 +27,9 @@ const startSubscription = async ({ userId }: { userId: number }) => {
 
 // 구독 일시정지 (POST)
 const pauseSubscription = async ({ userId }: { userId: number }) => {
-	if (!userId) throw new Error('사용자 ID가 없습니다.');
+	if (!userId) {
+		throw new Error('사용자 ID가 없습니다.');
+	}
 
 	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.PAUSE}`, {
 		method: 'POST',
@@ -44,8 +47,10 @@ const pauseSubscription = async ({ userId }: { userId: number }) => {
 };
 
 // 구독 취소 요청 (DELETE)
-const endSubscription = async ({ userId }: { userId: number }) => {
-	if (!userId) throw new Error('사용자 ID가 없습니다.');
+const cancelSubscription = async ({ userId }: { userId: number }) => {
+	if (!userId) {
+		throw new Error('사용자 ID가 없습니다.');
+	}
 
 	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.CANCEL}`, {
 		method: 'DELETE',
@@ -63,9 +68,7 @@ const endSubscription = async ({ userId }: { userId: number }) => {
 };
 
 // 구독 상태 조회 (GET)
-const fetchSubscriptionStatus = async ({ queryKey }: { queryKey: [string, number | undefined] }) => {
-	const [, userId] = queryKey; // queryKey에서 userId를 추출
-
+const fetchSubscription = async ({ userId }: { userId: number | undefined }) => {
 	if (!userId) {
 		throw new Error('사용자 ID가 없습니다.');
 	}
@@ -86,30 +89,81 @@ const fetchSubscriptionStatus = async ({ queryKey }: { queryKey: [string, number
 	return data.status;
 };
 
-const fetchSubscriptionHistory = async ({ queryKey }: { queryKey: [string, number | undefined] }) => {
-	const [, userId] = queryKey; // queryKey에서 userId를 추출
+// const fetchSubscriptionHistory = async ({ queryKey }: { queryKey: [string, number | undefined] }) => {
+// 	const [, userId] = queryKey; // queryKey에서 userId를 추출
 
-	if (!userId) {
-		throw new Error('사용자 ID가 없습니다.');
+// 	if (!userId) {
+// 		throw new Error('사용자 ID가 없습니다.');
+// 	}
+
+// 	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.HISTORY(userId)}`, {
+// 		method: 'GET',
+// 		credentials: 'include',
+// 		headers: { 'Content-Type': 'application/json' },
+// 	});
+
+// 	if (!response.ok) {
+// 		const errorText = await response.text();
+// 		console.error('❌ 구독 기록 조회 실패:', response.status, errorText);
+// 		throw new Error(`구독 기록 조회 실패: ${errorText}`);
+// 	}
+
+// 	const data = await response.json();
+// 	return data;
+// };
+
+// 구독 관심사 조회 (GET)
+const fetchInterests = async ({ token }: { token: string | null }) => {
+	if (!token) {
+		throw new Error('유효한 토큰이 없습니다.');
 	}
 
-	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.HISTORY(userId)}`, {
+	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.INTERESTS}`, {
 		method: 'GET',
 		credentials: 'include',
-		headers: { 'Content-Type': 'application/json' },
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`,
+		},
 	});
 
 	if (!response.ok) {
 		const errorText = await response.text();
-		console.error('❌ 구독 기록 조회 실패:', response.status, errorText);
-		throw new Error(`구독 기록 조회 실패: ${errorText}`);
+		console.error('❌ 구독 관심사 조회 실패:', response.status, errorText);
+		throw new Error(`구독 관심사 조회 실패: ${errorText}`);
 	}
 
 	const data = await response.json();
 	return data;
 };
 
-// 구독 요청 & 취소 요청을 관리하는 훅
+// 구독 관심사 수정 (PATCH)
+const updateInterests = async ({ token, interests }: { token: string | null; interests: string[] }) => {
+	if (!token || interests.length === 0) {
+		throw new Error('유효한 토큰 또는 관심사가 없습니다.');
+	}
+
+	console.log('수정 중...', interests);
+
+	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.INTERESTS}`, {
+		method: 'PATCH',
+		headers: {
+			'Content-Type': 'application/json',
+			Authorization: `Bearer ${token}`,
+		},
+		body: JSON.stringify({ interests }),
+	});
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		console.error('❌ 구독 관심사 수정 실패:', response.status, errorText);
+		throw new Error(`구독 관심사 수정 실패: ${errorText}`);
+	}
+
+	return response.json();
+};
+
+// 구독 상태 변경 훅
 export const useSubscribeMutation = (refreshSubscriptionStatus: () => void) => {
 	// 구독 요청
 	const startMutation = useMutation({
@@ -137,7 +191,7 @@ export const useSubscribeMutation = (refreshSubscriptionStatus: () => void) => {
 
 	// 구독 취소 요청
 	const cancelMutation = useMutation({
-		mutationFn: endSubscription,
+		mutationFn: cancelSubscription,
 		onSuccess: async () => {
 			// 최신 구독 상태 반영
 			await refreshSubscriptionStatus();
@@ -150,7 +204,7 @@ export const useSubscribeMutation = (refreshSubscriptionStatus: () => void) => {
 	return { startMutation, cancelMutation, pauseMutation };
 };
 
-// 구독 상태 관리 훅
+// 구독 상태 조회 훅
 export const useSubscribeStatus = () => {
 	const { user, setUser } = useAuthStore();
 	const queryClient = useQueryClient();
@@ -160,39 +214,32 @@ export const useSubscribeStatus = () => {
 		data: subscriptionStatus,
 		isLoading: isStatusLoading,
 		refetch: refetchStatus,
-	} = useQuery<string, Error, string, [string, number | undefined]>({
-		queryKey: ['subscriptionStatus', user?.id], // userId를 두 번째 인자로 전달
-		queryFn: fetchSubscriptionStatus, // userId를 queryKey에서 추출하도록 설정
+	} = useQuery<string, Error, string, [string]>({
+		queryKey: ['subscriptionStatus'], // userId를 두 번째 인자로 전달
+		queryFn: () => fetchSubscription({ userId: user?.id }),
 		enabled: !!user?.id, // 사용자가 존재할 때만 실행
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
 	});
 
 	// 구독 기록 조회 쿼리
-	const {
-		data: subscriptionHistory,
-		isLoading: isHistoryLoading,
-		refetch: refetchHistory,
-	} = useQuery<boolean[] | undefined, Error, boolean[] | undefined, [string, number | undefined]>({
-		queryKey: ['subscriptionHistory', user?.id],
-		queryFn: fetchSubscriptionHistory,
-		enabled: !!user?.id,
-		retry: 1,
-		staleTime: 1000 * 60 * 5,
-	});
+	// const {
+	// 	data: subscriptionHistory,
+	// 	isLoading: isHistoryLoading,
+	// 	refetch: refetchHistory,
+	// } = useQuery<boolean[] | undefined, Error, boolean[] | undefined, [string, number | undefined]>({
+	// 	queryKey: ['subscriptionHistory', user?.id],
+	// 	queryFn: fetchSubscriptionHistory,
+	// 	enabled: !!user?.id,
+	// 	retry: 1,
+	// 	staleTime: 1000 * 60 * 5,
+	// });
 
-	// 구독 기록 갱신 함수
+	// 구독 상태 갱신 함수
 	const refreshSubscription = async () => {
-		await queryClient.invalidateQueries({ queryKey: ['subscriptionHistory', user?.id] });
-		const { data } = await refetchHistory();
-
-		if (data?.length === 0) {
-			return undefined;
-		} else {
-			await queryClient.invalidateQueries({ queryKey: ['subscriptionStatus', user?.id] });
-			const { data } = await refetchStatus();
-			return data;
-		}
+		await queryClient.invalidateQueries({ queryKey: ['subscriptionStatus', user?.id] });
+		const { data } = await refetchStatus();
+		return data;
 	};
 
 	const statusRef = useRef<boolean | null>(null);
@@ -200,7 +247,7 @@ export const useSubscribeStatus = () => {
 	// Zustand 상태 업데이트 (구독 상태 변경 시)
 	useEffect(() => {
 		if (user?.id !== undefined) {
-			// 구독 기록이 없으면 구독 상태를 undefined로 설정
+			// 구독 기록이 없으면 유저의 구독 상태를 null로 설정
 			statusRef.current = subscriptionStatus === 'active' ? true : subscriptionStatus === 'paused' ? false : null;
 
 			if (user.isSubscribed !== statusRef.current) {
@@ -208,26 +255,67 @@ export const useSubscribeStatus = () => {
 				setUser(updatedUser);
 			}
 		}
-	}, [subscriptionHistory, subscriptionStatus, user, setUser]);
+	}, [subscriptionStatus, user, setUser]);
 
 	const status = statusRef.current;
-	const isLoading = isStatusLoading || isHistoryLoading;
 
 	return {
 		status,
-		isLoading,
+		isStatusLoading,
 		refreshSubscription,
 	};
+};
+
+export const useSubscribeInterests = () => {
+	const { user } = useAuth();
+	const { getAuthCookies } = useCookie();
+	const { token } = getAuthCookies();
+
+	// 구독 관심사 조회
+	const {
+		data: interests,
+		isLoading: isInterestsLoading,
+		refetch: refetchInterests,
+	} = useQuery<string[], Error, string[], [string]>({
+		queryKey: ['subscriptionInterests'],
+		queryFn: () => fetchInterests({ token: token }),
+		enabled: !!user?.id,
+		retry: 1,
+		staleTime: 1000 * 60 * 5,
+	});
+
+	// 구독 관심사 업데이트
+	const updateMutation = useMutation({
+		mutationFn: updateInterests,
+		onSuccess: async () => {
+			await refetchInterests(); // 최신 관심사 데이터 반영
+		},
+		onError: (error: Error) => {
+			console.error('🚨 관심사 업데이트 실패:', error.message);
+		},
+	});
+
+	return { interests, isInterestsLoading, updateMutation };
 };
 
 // 최종적으로 구독 상태 & 요청을 통합하는 훅
 export const useSubscribe = () => {
 	const { user } = useAuth();
 	const { showToast } = useToast();
-	const { status, isLoading, refreshSubscription } = useSubscribeStatus();
+	const { status, isStatusLoading, refreshSubscription } = useSubscribeStatus();
 	const { startMutation, pauseMutation, cancelMutation } = useSubscribeMutation(refreshSubscription);
+	const { updateMutation } = useSubscribeInterests();
 
-	const validateSubscribe = () => {
+	const { getAuthCookies } = useCookie();
+	const { token } = getAuthCookies();
+
+	const validateSubscribe = ({
+		selectedInterests,
+		isChecked,
+	}: {
+		selectedInterests: string[];
+		isChecked: boolean;
+	}) => {
 		if (!user) {
 			showToast('로그인이 필요합니다.', 'info');
 			return false;
@@ -239,13 +327,52 @@ export const useSubscribe = () => {
 			return false;
 		}
 
-		if (user.isSubscribed === true) {
-			showToast('이미 구독 중입니다.', 'warning'); // 관심사 기능이 구현되면 해당 관심사에 대해서만 이 에러 발생
+		if (selectedInterests.length === 0) {
+			showToast('최소 한 개 이상의 관심사를 선택해야 합니다.', 'warning');
+			return false;
+		}
+
+		if (user.isSubscribed === null && !isChecked) {
+			showToast('약관에 동의해야 구독할 수 있습니다.', 'warning');
+			return false;
+		}
+
+		return true;
+	};
+
+	const handleStart = (newInterests: string[]) => {
+		if (!newInterests || !user?.id) return;
+
+		console.log('newInterests:', newInterests);
+
+		// 관심사 업데이트 먼저 수행
+		updateMutation.mutate(
+			{ token: token, interests: newInterests },
+			{
+				onSuccess: () => {
+					// 관심사 업데이트 후 구독 시작 요청 실행
+					startMutation.mutate(
+						{ userId: user!.id },
+						{
+							onSuccess: () => showToast('구독이 완료되었습니다!', 'success'),
+							onError: () => showToast(`구독에 실패했습니다.`, 'error'),
+						}
+					);
+				},
+				onError: () => {
+					throw new Error('관심사 업데이트에 실패했습니다.');
+				},
+			}
+		);
+
+		if (startMutation.isSuccess) {
+			return true;
+		} else if (updateMutation.isError || startMutation.isError) {
 			return false;
 		}
 	};
 
-	const handleStart = () => {
+	const handleReStart = () => {
 		startMutation.mutate(
 			{ userId: user!.id },
 			{
@@ -281,12 +408,24 @@ export const useSubscribe = () => {
 		}
 	};
 
+	const handleUpdate = (newInterests: string[]) => {
+		if (!user) return;
+
+		updateMutation.mutate(
+			{ token: token, interests: newInterests },
+			{
+				onSuccess: () => showToast('관심사가 업데이트되었습니다.', 'success'),
+				onError: () => showToast('관심사 업데이트에 실패했습니다.', 'error'),
+			}
+		);
+	};
+
 	const handleCancel = () => {
 		cancelMutation.mutate(
 			{ userId: user!.id }, // 현재 로그인한 사용자 ID
 			{
 				onSuccess: () => {
-					showToast('구독이 취소되었습니다.', 'success');
+					showToast('구독이 해제되었습니다.', 'success');
 				},
 				onError: () => {
 					showToast('구독 취소 중 오류가 발생했습니다.', 'error');
@@ -305,7 +444,7 @@ export const useSubscribe = () => {
 		if (status === true) {
 			handlePause();
 		} else {
-			handleStart();
+			handleReStart();
 		}
 	};
 
@@ -313,12 +452,14 @@ export const useSubscribe = () => {
 		startMutation,
 		pauseMutation,
 		cancelMutation,
+		updateMutation,
 		handleStart,
 		handlePause,
 		handleCancel,
+		handleUpdate,
 		toggleSubscribe,
 		status,
-		isLoading,
+		isLoading: isStatusLoading,
 		refreshSubscription,
 		validateSubscribe,
 	};
