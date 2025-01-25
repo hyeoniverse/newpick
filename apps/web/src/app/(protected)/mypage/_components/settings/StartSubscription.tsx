@@ -24,18 +24,16 @@ const StartSubscription = () => {
 		handleCancel: cancelSubscription,
 		cancelMutation,
 	} = useSubscribe();
-	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
+	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
 	const { isOpen, modalType, openModal, closeModal } = useModal();
 
 	const handleSubscribe = () => {
 		const isSuccess = startSubscription({ interests: selectedInterests, isChecked: isChecked });
 
 		if (isSuccess) {
-			if (isSuccess) {
-				openModal('submit-start');
-				setChecked(false);
-			}
+			openModal('submit-start');
+			setChecked(false);
 		}
 	};
 

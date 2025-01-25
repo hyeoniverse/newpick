@@ -7,6 +7,17 @@ const useSelectInterests = () => {
 	const { user } = useAuth();
 	const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
+	// 사용자 관심사 반영 (초기 로드 및 관심사 업데이트 시)
+	useEffect(() => {
+		console.log('refresh');
+
+		if (user?.interests?.length) {
+			setSelectedInterests(user.interests);
+		} else {
+			setSelectedInterests([]);
+		}
+	}, [user?.interests]);
+
 	// 카테고리 선택 / 해제
 	const handleSelectInterests = (category: Category) => {
 		if (category.title === '전체') {

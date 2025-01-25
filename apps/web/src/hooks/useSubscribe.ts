@@ -143,8 +143,6 @@ const updateInterests = async ({ token, interests }: { token: string | null; int
 		throw new Error('유효한 토큰 또는 관심사가 없습니다.');
 	}
 
-	console.log('수정 중...', interests);
-
 	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.INTERESTS}`, {
 		method: 'PATCH',
 		headers: {
@@ -267,7 +265,7 @@ export const useSubscribeStatus = () => {
 };
 
 export const useSubscribeInterests = () => {
-	const { user } = useAuth();
+	const { user, refetchUser } = useAuth();
 	const { getAuthCookies } = useCookie();
 	const { token } = getAuthCookies();
 
@@ -278,7 +276,7 @@ export const useSubscribeInterests = () => {
 		refetch: refetchInterests,
 	} = useQuery<string[], Error, string[], [string]>({
 		queryKey: ['subscriptionInterests'],
-		queryFn: () => fetchInterests({ token: token }),
+		queryFn: () => fetchInterests({ token }),
 		enabled: !!user?.id,
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
@@ -289,6 +287,7 @@ export const useSubscribeInterests = () => {
 		mutationFn: updateInterests,
 		onSuccess: async () => {
 			await refetchInterests(); // 최신 관심사 데이터 반영
+			await refetchUser();
 		},
 		onError: (error: Error) => {
 			console.error('🚨 관심사 업데이트 실패:', error.message);
@@ -300,7 +299,7 @@ export const useSubscribeInterests = () => {
 
 // 최종적으로 구독 상태 & 요청을 통합하는 훅
 export const useSubscribe = () => {
-	const { user } = useAuth();
+	const { user, refetchUser } = useAuth();
 	const { showToast } = useToast();
 	const { status, isStatusLoading, refreshSubscription } = useSubscribeStatus();
 	const { startMutation, pauseMutation, cancelMutation } = useSubscribeMutation(refreshSubscription);
@@ -344,6 +343,7 @@ export const useSubscribe = () => {
 		if (!user) return;
 
 		const isValid = validateSubscribe({ selectedInterests: interests, isChecked: isChecked });
+		if (!isValid) return false;
 
 		// 새로운 구독 시작 or 재시작
 		if ((isValid && user.isSubscribed === null) || user.isSubscribed === false) {
@@ -365,14 +365,15 @@ export const useSubscribe = () => {
 					startMutation.mutate(
 						{ userId: user!.id },
 						{
-							onSuccess: () => showToast('구독이 완료되었습니다!', 'success'),
+							onSuccess: async () => {
+								showToast('구독이 완료되었습니다!', 'success');
+								await refetchUser();
+							},
 							onError: () => showToast(`구독에 실패했습니다.`, 'error'),
 						}
 					);
 				},
-				onError: () => {
-					throw new Error('관심사 업데이트에 실패했습니다.');
-				},
+				onError: () => showToast(`구독에 실패했습니다.`, 'error'),
 			}
 		);
 
@@ -403,8 +404,9 @@ export const useSubscribe = () => {
 		pauseMutation.mutate(
 			{ userId: user!.id }, // 현재 로그인한 사용자 ID
 			{
-				onSuccess: () => {
+				onSuccess: async () => {
 					showToast('구독이 일시정지 되었습니다.', 'success');
+					await refetchUser();
 				},
 				onError: () => {
 					showToast('구독 일시정지 중 오류가 발생했습니다.', 'error');
@@ -425,7 +427,10 @@ export const useSubscribe = () => {
 		updateMutation.mutate(
 			{ token: token, interests: newInterests },
 			{
-				onSuccess: () => showToast('관심사가 업데이트되었습니다.', 'success'),
+				onSuccess: async () => {
+					showToast('관심사가 업데이트되었습니다.', 'success');
+					await refetchUser();
+				},
 				onError: () => showToast('관심사 업데이트에 실패했습니다.', 'error'),
 			}
 		);
@@ -441,8 +446,9 @@ export const useSubscribe = () => {
 		cancelMutation.mutate(
 			{ userId: user!.id }, // 현재 로그인한 사용자 ID
 			{
-				onSuccess: () => {
+				onSuccess: async () => {
 					showToast('구독이 해제되었습니다.', 'success');
+					await refetchUser();
 				},
 				onError: () => {
 					showToast('구독 취소 중 오류가 발생했습니다.', 'error');

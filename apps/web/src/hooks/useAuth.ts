@@ -116,5 +116,15 @@ export const useAuth = () => {
 		}
 	};
 
-	return { user, isLoading: isLoading && userIsLoading && userStatus === 'pending', handleLogin, handleLogout };
+	// useEffect(() => {
+	// 	console.log('User:', user);
+	// }, [user]);
+
+	return {
+		user,
+		isLoading: isLoading && userIsLoading && userStatus === 'pending',
+		handleLogin,
+		handleLogout,
+		refetchUser: () => queryClient.invalidateQueries({ queryKey: ['user'] }),
+	};
 };
