@@ -1,8 +1,6 @@
 import Link from 'next/link';
 import { CATEGORIES } from '@/constants/categories';
-import { useToast } from '@/hooks/useToast';
 import { useInputCheck } from '@/hooks/useInputCheck';
-import { useAuth } from '@/hooks/useAuth';
 import { useSubscribe } from '@/hooks/useSubscribe';
 
 import { styled } from 'styled-components';
@@ -15,24 +13,16 @@ import { BiCheck, BiPlus } from 'react-icons/bi';
 import useSelectInterests from '@/hooks/useSelectInterests';
 
 const SubscribeSection = () => {
-	const { user } = useAuth();
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
-	const { validateSubscribe, startMutation: subscribeMutation } = useSubscribe();
-	const { showToast } = useToast();
+	const { validateSubscribe, handleStart: startSubscription, isChanging: isChangingSubscription } = useSubscribe();
 	const { isChecked } = useInputCheck('subscribe-agreement');
 
 	const handleSubscribe = (e: React.FormEvent) => {
 		e.preventDefault();
-		const formCompleted = validateSubscribe({ selectedInterests, isChecked });
+		const isValid = validateSubscribe({ selectedInterests, isChecked });
 
-		if (formCompleted) {
-			subscribeMutation.mutate(
-				{ userId: user!.id },
-				{
-					onSuccess: () => showToast('구독이 완료되었습니다!', 'success'),
-					onError: (error) => showToast(`구독 실패: ${error.message}`, 'error'),
-				}
-			);
+		if (isValid) {
+			startSubscription(selectedInterests);
 		}
 	};
 
@@ -57,7 +47,7 @@ const SubscribeSection = () => {
 							style={{
 								width: '100%',
 							}}
-							disabled={subscribeMutation.isPending}
+							disabled={isChangingSubscription}
 						>
 							{selectedInterests.includes(category.title) ? <>Selected</> : <>Select</>}
 						</Button>
@@ -79,7 +69,7 @@ const SubscribeSection = () => {
 							marginTop: '0.5rem',
 						}}
 						onClick={handleSubscribe}
-						disabled={subscribeMutation.isPending}
+						disabled={isChangingSubscription}
 					>
 						구독 신청
 					</Button>

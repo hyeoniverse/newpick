@@ -19,11 +19,10 @@ import Title from '@/components/common/Title';
 const StartSubscription = () => {
 	const {
 		status: isSubscribed,
+		isChanging: isChangingSubscription,
 		validateSubscribe,
 		handleStart: startSubscription,
 		handleCancel: cancelSubscription,
-		startMutation,
-		updateMutation,
 		cancelMutation,
 	} = useSubscribe();
 	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
@@ -125,7 +124,7 @@ const StartSubscription = () => {
 					scheme="primary"
 					size="large"
 					onClick={handleStart}
-					disabled={startMutation.isPending || updateMutation.isPending}
+					disabled={isChangingSubscription}
 				>
 					{isSubscribed === false ? '재시작' : '완료'}
 				</Button>

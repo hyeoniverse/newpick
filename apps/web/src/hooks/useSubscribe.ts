@@ -459,6 +459,7 @@ export const useSubscribe = () => {
 		handleUpdate,
 		toggleSubscribe,
 		status,
+		isChanging: startMutation.isPending || pauseMutation.isPending || cancelMutation.isPending,
 		isLoading: isStatusLoading,
 		refreshSubscription,
 		validateSubscribe,
