@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { useEffect } from 'react';
 import { useHeader } from '@/hooks/useHeader';

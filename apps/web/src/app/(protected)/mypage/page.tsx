@@ -37,7 +37,7 @@ export default withAuth(function MyPage() {
 });
 
 const PageStyled = styled.div`
-	margin: 3rem 0 10rem 0;
+	margin-bottom: 10vh;
 
 	.title {
 		${({ theme }) => `
