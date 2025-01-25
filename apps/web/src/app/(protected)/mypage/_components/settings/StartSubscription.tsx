@@ -20,8 +20,7 @@ const StartSubscription = () => {
 	const {
 		status: isSubscribed,
 		isChanging: isChangingSubscription,
-		validateSubscribe,
-		handleStart: startSubscription,
+		handleSubscribe: startSubscription,
 		handleCancel: cancelSubscription,
 		cancelMutation,
 	} = useSubscribe();
@@ -29,12 +28,10 @@ const StartSubscription = () => {
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 	const { isOpen, modalType, openModal, closeModal } = useModal();
 
-	const handleStart = () => {
-		const isValid = validateSubscribe({ selectedInterests, isChecked });
-		if (isValid) {
-			const isSuccess = startSubscription(selectedInterests);
+	const handleSubscribe = () => {
+		const isSuccess = startSubscription({ interests: selectedInterests, isChecked: isChecked });
 
-			console.log('isSuccess:', isSuccess);
+		if (isSuccess) {
 			if (isSuccess) {
 				openModal('submit-start');
 				setChecked(false);
@@ -123,7 +120,7 @@ const StartSubscription = () => {
 					type="submit"
 					scheme="primary"
 					size="large"
-					onClick={handleStart}
+					onClick={handleSubscribe}
 					disabled={isChangingSubscription}
 				>
 					{isSubscribed === false ? '재시작' : '완료'}

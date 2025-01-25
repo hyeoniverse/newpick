@@ -314,7 +314,7 @@ export const useSubscribe = () => {
 		isChecked,
 	}: {
 		selectedInterests: string[];
-		isChecked: boolean;
+		isChecked: boolean | undefined;
 	}) => {
 		if (!user) {
 			showToast('로그인이 필요합니다.', 'info');
@@ -340,12 +340,25 @@ export const useSubscribe = () => {
 		return true;
 	};
 
-	const handleStart = (newInterests: string[]) => {
-		if (!newInterests || !user?.id) return;
+	const handleSubscribe = ({ interests, isChecked }: { interests: string[]; isChecked: boolean | undefined }) => {
+		if (!user) return;
 
+		const isValid = validateSubscribe({ selectedInterests: interests, isChecked: isChecked });
+
+		// 새로운 구독 시작 or 재시작
+		if ((isValid && user.isSubscribed === null) || user.isSubscribed === false) {
+			return handleStart(interests);
+		}
+		// 기존 구독 업데이트
+		else if (isValid && user.isSubscribed === true) {
+			return handleUpdate(interests);
+		}
+	};
+
+	const handleStart = (interests: string[]) => {
 		// 관심사 업데이트 먼저 수행
 		updateMutation.mutate(
-			{ token: token, interests: newInterests },
+			{ token: token, interests: interests },
 			{
 				onSuccess: () => {
 					// 관심사 업데이트 후 구독 시작 요청 실행
@@ -363,7 +376,7 @@ export const useSubscribe = () => {
 			}
 		);
 
-		if (startMutation.isSuccess) {
+		if (startMutation.isSuccess && updateMutation.isSuccess) {
 			return true;
 		} else if (updateMutation.isError || startMutation.isError) {
 			return false;
@@ -416,6 +429,12 @@ export const useSubscribe = () => {
 				onError: () => showToast('관심사 업데이트에 실패했습니다.', 'error'),
 			}
 		);
+
+		if (updateMutation.isSuccess) {
+			return true;
+		} else if (updateMutation.isError) {
+			return false;
+		}
 	};
 
 	const handleCancel = () => {
@@ -451,10 +470,9 @@ export const useSubscribe = () => {
 		pauseMutation,
 		cancelMutation,
 		updateMutation,
-		handleStart,
+		handleSubscribe,
 		handlePause,
 		handleCancel,
-		handleUpdate,
 		toggleSubscribe,
 		status,
 		isChanging: startMutation.isPending || pauseMutation.isPending || cancelMutation.isPending,

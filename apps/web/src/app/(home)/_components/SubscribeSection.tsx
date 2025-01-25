@@ -14,16 +14,16 @@ import useSelectInterests from '@/hooks/useSelectInterests';
 
 const SubscribeSection = () => {
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
-	const { validateSubscribe, handleStart: startSubscription, isChanging: isChangingSubscription } = useSubscribe();
+	const {
+		status: isSubscribed,
+		isChanging: isChangingSubscription,
+		handleSubscribe: startSubscription,
+	} = useSubscribe();
 	const { isChecked } = useInputCheck('subscribe-agreement');
 
 	const handleSubscribe = (e: React.FormEvent) => {
 		e.preventDefault();
-		const isValid = validateSubscribe({ selectedInterests, isChecked });
-
-		if (isValid) {
-			startSubscription(selectedInterests);
-		}
+		startSubscription({ interests: selectedInterests, isChecked: isChecked });
 	};
 
 	return (
@@ -75,14 +75,27 @@ const SubscribeSection = () => {
 					</Button>
 				</div>
 				<div className="subscription-agreement">
-					<InputCheck name="home-agreement" />
 					<Text size="extraSmall">
-						<Text size="extraSmall" weight="semiBold" color="primary">
-							[필수]&nbsp;
-						</Text>
-						NewPick의&nbsp;
-						<Link href="/privacy">이용약관</Link>&nbsp;
-						<Link href="/privacy">개인정보처리방침</Link>&nbsp;에 동의합니다.
+						{isSubscribed === null ? (
+							<>
+								<InputCheck
+									name="home-agreement"
+									disabled={isChangingSubscription || isSubscribed !== null}
+								/>
+								<Text size="extraSmall" weight="semiBold" color="primary">
+									[필수]&nbsp;
+								</Text>
+								NewPick의&nbsp;
+								<Link href="/privacy">이용약관</Link>&nbsp;
+								<Link href="/privacy">개인정보처리방침</Link>&nbsp;에 동의합니다.
+							</>
+						) : (
+							<>
+								<Text size="extraSmall" weight="semiBold" color="primary">
+									이미 약관에 동의하셨습니다.
+								</Text>
+							</>
+						)}
 					</Text>
 				</div>
 			</div>
