@@ -116,10 +116,6 @@ export const useAuth = () => {
 		}
 	};
 
-	// useEffect(() => {
-	// 	console.log('User:', user);
-	// }, [user]);
-
 	return {
 		user,
 		isLoading: isLoading && userIsLoading && userStatus === 'pending',
