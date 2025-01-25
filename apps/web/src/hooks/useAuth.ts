@@ -55,6 +55,7 @@ export const useAuth = () => {
 		data: userData,
 		status: userStatus,
 		error: userError,
+		isLoading: userIsLoading,
 	} = useQuery<User | null>({
 		queryKey: ['user'],
 		queryFn: fetchUser,
@@ -115,5 +116,5 @@ export const useAuth = () => {
 		}
 	};
 
-	return { user, isLoading, handleLogin, handleLogout };
+	return { user, isLoading: isLoading && userIsLoading && userStatus === 'pending', handleLogin, handleLogout };
 };
