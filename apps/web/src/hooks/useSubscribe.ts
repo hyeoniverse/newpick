@@ -343,8 +343,6 @@ export const useSubscribe = () => {
 	const handleStart = (newInterests: string[]) => {
 		if (!newInterests || !user?.id) return;
 
-		console.log('newInterests:', newInterests);
-
 		// 관심사 업데이트 먼저 수행
 		updateMutation.mutate(
 			{ token: token, interests: newInterests },
