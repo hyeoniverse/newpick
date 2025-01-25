@@ -48,7 +48,7 @@ const StyledHeroSection = styled.section`
 	justify-content: space-between;
 	align-items: center;
 	gap: 2rem;
-	padding: 3rem 0 2rem 0;
+	padding: 1rem 0 2rem 0;
 
 	.left-section {
 		width: 100%;

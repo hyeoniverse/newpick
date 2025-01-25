@@ -20,7 +20,7 @@ export default withAuth(function MyPage() {
 	const { activeTab } = useTab();
 
 	return (
-		<PageStyled>
+		<StyledPage>
 			<Title size="extraSmall">마이페이지</Title>
 			<br />
 			<MyProfile />
@@ -32,11 +32,12 @@ export default withAuth(function MyPage() {
 					{activeTab === 'settings' && <MySettings />}
 				</div>
 			</Suspense>
-		</PageStyled>
+		</StyledPage>
 	);
 });
 
-const PageStyled = styled.div`
+const StyledPage = styled.div`
+	margin-top: 1rem;
 	margin-bottom: 10vh;
 
 	.title {
