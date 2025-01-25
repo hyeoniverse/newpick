@@ -109,6 +109,7 @@ const Header = () => {
 						<>
 							<Button
 								scheme="outline"
+								style={{ width: '5rem' }}
 								onClick={handleLogin}
 								icon={<IoLogoGoogle />}
 								iconPosition="left"

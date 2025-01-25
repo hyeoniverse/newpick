@@ -1,8 +1,9 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import { useHeader } from '@/hooks/useHeader';
 import styled from 'styled-components';
-import Header from '@/components/layout/Header';
+const Header = dynamic(() => import('@/components/layout/Header'), { ssr: false });
 import Footer from '@/components/layout/Footer';
 import ScrollButtons from '@/components/common/ScrollButtons';
 
