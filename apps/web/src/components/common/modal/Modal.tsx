@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { IoClose } from 'react-icons/io5';
+import { useMount } from '@/hooks/useMount';
 
 interface Props {
 	children: React.ReactNode; // 모달 내부에 렌더링될 자식 컴포넌트
@@ -12,6 +13,7 @@ interface Props {
 }
 
 function Modal({ children, isOpen, onClose }: Props) {
+	const { isMounted } = useMount();
 	const [isAnimating, setIsAnimating] = useState(false); // 애니메이션 상태
 	const modalRef = useRef<HTMLDivElement | null>(null); // 모달 내부 DOM 요소 참조
 	const previousFocusedElement = useRef<HTMLElement | null>(null); // 모달이 열리기 전 포커스된 요소
@@ -66,14 +68,7 @@ function Modal({ children, isOpen, onClose }: Props) {
 		};
 	}, [isOpen, handleKeydown]);
 
-	// 브라우저 환경에서만 포털 렌더링
-	const [mounted, setMounted] = useState(false);
-	useEffect(() => {
-		setMounted(true); // 브라우저에서 렌더링되었음을 설정
-		return () => setMounted(false); // 컴포넌트 언마운트 시 초기화
-	}, []);
-
-	if (!mounted || (!isOpen && !isAnimating)) return null; // 포털 렌더링 조건
+	if (!isMounted) return null;
 
 	return createPortal(
 		<StyledModal
@@ -88,7 +83,7 @@ function Modal({ children, isOpen, onClose }: Props) {
 				</button>
 			</div>
 		</StyledModal>,
-		document.body // 포털 렌더링 대상 DOM
+		document.body
 	);
 }
 
