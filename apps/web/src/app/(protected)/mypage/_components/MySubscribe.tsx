@@ -84,19 +84,19 @@ function MySubscribe() {
 	// 3) 구독중이면 네비 + 컨텐츠 표시, 아니면 NoContentsPage 표시
 	return (
 		<>
-			{isSubscribed === true ? (
+			{isSubscribed === null ? (
+				<NoContentsPage
+					text={`뉴스레터를 구독 중이 아닙니다. \n 새로운 뉴스레터 구독을 시작해보시겠습니까?`}
+					btnText={'구독 바로가기'}
+					onClick={handleConfirm}
+				/>
+			) : (
 				<>
 					<MySubscribeNav activeCategory={activeCategory} />
 					<MySubscribeStyled>
 						<MySummaryCategory />
 					</MySubscribeStyled>
 				</>
-			) : (
-				<NoContentsPage
-					text={`뉴스레터를 구독 중이 아닙니다. \n 새로운 뉴스레터 구독을 시작해보시겠습니까?`}
-					btnText={'구독 바로가기'}
-					onClick={handleConfirm}
-				/>
 			)}
 		</>
 	);

@@ -19,7 +19,12 @@ import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
 
 const StartSubscription = () => {
-	const { status: isSubscribed, handleSubscribe, handleUnsubscribe } = useSubscribe();
+	const {
+		status: isSubscribed,
+		handleStart: startSubscription,
+		handleCancel: cancelSubscription,
+		cancelMutation,
+	} = useSubscribe();
 	const { isChecked } = useInputCheck('mypage-agreement');
 	const { handleSelectCategory, handleSelectAll, allSelectCategory, selectCategory, setSelectCategory } = useMypage();
 	const { isOpen, modalType, openModal, closeModal } = useModal();
@@ -32,15 +37,15 @@ const StartSubscription = () => {
 		setSelectCategory(uniqueSubscribed);
 	}, [subscribedCategories, setSelectCategory]);
 
-	const handleStartSubscription = () => {
-		const isSuccess = handleSubscribe();
+	const handleStart = () => {
+		const isSuccess = startSubscription();
 		if (isSuccess) {
 			openModal('submit-start');
 		}
 	};
 
-	const handleEndSubscription = () => {
-		handleUnsubscribe();
+	const handleCancel = () => {
+		cancelSubscription();
 		closeModal();
 	};
 
@@ -51,13 +56,13 @@ const StartSubscription = () => {
 					<Title size="extraSmall" weight="semiBold">
 						뉴스레터 설정
 					</Title>
-					{isSubscribed === true && (
+					{isSubscribed !== null && (
 						<Button
 							type="submit"
 							scheme="danger"
 							size="small"
-							onClick={() => openModal('submit-end')}
-							disabled={!isSubscribed}
+							onClick={() => openModal('submit-cancel')}
+							disabled={cancelMutation.isPending}
 						>
 							구독 해지
 						</Button>
@@ -100,7 +105,7 @@ const StartSubscription = () => {
 					))}
 				</ul>
 			</div>
-			{!isSubscribed && (
+			{isSubscribed === null && (
 				<div className="subscription-agreement">
 					<InputCheck name="mypage-agreement" />
 					<Text size="extraSmall">
@@ -118,8 +123,8 @@ const StartSubscription = () => {
 					type="submit"
 					scheme="primary"
 					size="large"
-					onClick={handleStartSubscription}
-					disabled={!isSubscribed && !isChecked}
+					onClick={handleStart}
+					disabled={isSubscribed === true && !isChecked}
 				>
 					완료
 				</Button>
@@ -136,7 +141,7 @@ const StartSubscription = () => {
 					/>
 				</Modal>
 			)}
-			{isOpen && modalType === 'submit-end' && (
+			{isOpen && modalType === 'submit-cancel' && (
 				<Modal isOpen={isOpen} onClose={closeModal}>
 					<ModalContents
 						icon={<LuMailX />}
@@ -145,7 +150,7 @@ const StartSubscription = () => {
 						outlineButton="취소"
 						onCancelClick={closeModal}
 						filledButton="확인"
-						onConfirmClick={handleEndSubscription}
+						onConfirmClick={handleCancel}
 					/>
 				</Modal>
 			)}

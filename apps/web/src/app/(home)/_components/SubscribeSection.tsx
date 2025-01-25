@@ -20,7 +20,7 @@ const SubscribeSection = () => {
 	const { isChecked } = useInputCheck('subscribe-agreement');
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 	const { user } = useAuth();
-	const { subscribeMutation } = useSubscribe();
+	const { startMutation: subscribeMutation } = useSubscribe();
 
 	const handleCategorySelect = (category: Category) => {
 		if (category.title === '전체') {

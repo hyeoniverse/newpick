@@ -24,11 +24,30 @@ const startSubscription = async ({ userId }: { userId: number }) => {
 	return response.json();
 };
 
+// 구독 일시정지 (POST)
+const pauseSubscription = async ({ userId }: { userId: number }) => {
+	if (!userId) throw new Error('사용자 ID가 없습니다.');
+
+	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.PAUSE}`, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ userId }),
+	});
+
+	if (!response.ok) {
+		const errorText = await response.text();
+		console.error('❌ 구독 일시정지 실패:', response.status, errorText);
+		throw new Error(`구독 일시정지 실패: ${errorText}`);
+	}
+
+	return response.json();
+};
+
 // 구독 취소 요청 (DELETE)
 const endSubscription = async ({ userId }: { userId: number }) => {
 	if (!userId) throw new Error('사용자 ID가 없습니다.');
 
-	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.END}`, {
+	const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.CANCEL}`, {
 		method: 'DELETE',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify({ userId }),
@@ -64,7 +83,7 @@ const fetchSubscriptionStatus = async ({ queryKey }: { queryKey: [string, number
 	}
 
 	const data = await response.json();
-	return data.active;
+	return data.status;
 };
 
 const fetchSubscriptionHistory = async ({ queryKey }: { queryKey: [string, number | undefined] }) => {
@@ -93,7 +112,7 @@ const fetchSubscriptionHistory = async ({ queryKey }: { queryKey: [string, numbe
 // 구독 요청 & 취소 요청을 관리하는 훅
 export const useSubscribeMutation = (refreshSubscriptionStatus: () => void) => {
 	// 구독 요청
-	const subscribeMutation = useMutation({
+	const startMutation = useMutation({
 		mutationFn: startSubscription,
 		onSuccess: async () => {
 			// 최신 구독 상태 반영
@@ -104,8 +123,20 @@ export const useSubscribeMutation = (refreshSubscriptionStatus: () => void) => {
 		},
 	});
 
+	// 구독 일시정지 요청
+	const pauseMutation = useMutation({
+		mutationFn: pauseSubscription,
+		onSuccess: async () => {
+			// 최신 구독 상태 반영
+			await refreshSubscriptionStatus();
+		},
+		onError: (error: Error) => {
+			console.error('🚨 구독 일시정지 실패:', error.message);
+		},
+	});
+
 	// 구독 취소 요청
-	const unsubscribeMutation = useMutation({
+	const cancelMutation = useMutation({
 		mutationFn: endSubscription,
 		onSuccess: async () => {
 			// 최신 구독 상태 반영
@@ -116,7 +147,7 @@ export const useSubscribeMutation = (refreshSubscriptionStatus: () => void) => {
 		},
 	});
 
-	return { subscribeMutation, unsubscribeMutation };
+	return { startMutation, cancelMutation, pauseMutation };
 };
 
 // 구독 상태 관리 훅
@@ -129,7 +160,7 @@ export const useSubscribeStatus = () => {
 		data: subscriptionStatus,
 		isLoading: isStatusLoading,
 		refetch: refetchStatus,
-	} = useQuery<boolean, Error, boolean, [string, number | undefined]>({
+	} = useQuery<string, Error, string, [string, number | undefined]>({
 		queryKey: ['subscriptionStatus', user?.id], // userId를 두 번째 인자로 전달
 		queryFn: fetchSubscriptionStatus, // userId를 queryKey에서 추출하도록 설정
 		enabled: !!user?.id, // 사용자가 존재할 때만 실행
@@ -164,14 +195,13 @@ export const useSubscribeStatus = () => {
 		}
 	};
 
-	const statusRef = useRef(subscriptionStatus);
+	const statusRef = useRef<boolean | null>(null);
 
 	// Zustand 상태 업데이트 (구독 상태 변경 시)
 	useEffect(() => {
 		if (user?.id !== undefined) {
 			// 구독 기록이 없으면 구독 상태를 undefined로 설정
-			statusRef.current = subscriptionHistory && subscriptionHistory.length > 0 ? subscriptionStatus : undefined;
-			console.log('status:', statusRef.current);
+			statusRef.current = subscriptionStatus === 'active' ? true : subscriptionStatus === 'paused' ? false : null;
 
 			if (user.isSubscribed !== statusRef.current) {
 				const updatedUser = { ...user, isSubscribed: statusRef.current };
@@ -181,7 +211,6 @@ export const useSubscribeStatus = () => {
 	}, [subscriptionHistory, subscriptionStatus, user, setUser]);
 
 	const status = statusRef.current;
-
 	const isLoading = isStatusLoading || isHistoryLoading;
 
 	return {
@@ -196,7 +225,7 @@ export const useSubscribe = () => {
 	const { user } = useAuth();
 	const { showToast } = useToast();
 	const { status, isLoading, refreshSubscription } = useSubscribeStatus();
-	const { subscribeMutation, unsubscribeMutation } = useSubscribeMutation(refreshSubscription);
+	const { startMutation, pauseMutation, cancelMutation } = useSubscribeMutation(refreshSubscription);
 
 	const validateSubscribe = () => {
 		if (!user) {
@@ -216,8 +245,8 @@ export const useSubscribe = () => {
 		}
 	};
 
-	const handleSubscribe = () => {
-		subscribeMutation.mutate(
+	const handleStart = () => {
+		startMutation.mutate(
 			{ userId: user!.id },
 			{
 				onSuccess: () => showToast('구독이 완료되었습니다!', 'success'),
@@ -225,15 +254,35 @@ export const useSubscribe = () => {
 			}
 		);
 
-		if (subscribeMutation.isSuccess) {
+		if (startMutation.isSuccess) {
 			return true;
-		} else if (subscribeMutation.isError) {
+		} else if (startMutation.isError) {
 			return false;
 		}
 	};
 
-	const handleUnsubscribe = () => {
-		unsubscribeMutation.mutate(
+	const handlePause = () => {
+		pauseMutation.mutate(
+			{ userId: user!.id }, // 현재 로그인한 사용자 ID
+			{
+				onSuccess: () => {
+					showToast('구독이 일시정지 되었습니다.', 'success');
+				},
+				onError: () => {
+					showToast('구독 일시정지 중 오류가 발생했습니다.', 'error');
+				},
+			}
+		);
+
+		if (cancelMutation.isSuccess) {
+			return true;
+		} else if (cancelMutation.isError) {
+			return false;
+		}
+	};
+
+	const handleCancel = () => {
+		cancelMutation.mutate(
 			{ userId: user!.id }, // 현재 로그인한 사용자 ID
 			{
 				onSuccess: () => {
@@ -245,26 +294,28 @@ export const useSubscribe = () => {
 			}
 		);
 
-		if (unsubscribeMutation.isSuccess) {
+		if (cancelMutation.isSuccess) {
 			return true;
-		} else if (unsubscribeMutation.isError) {
+		} else if (cancelMutation.isError) {
 			return false;
 		}
 	};
 
 	const toggleSubscribe = () => {
 		if (status === true) {
-			handleUnsubscribe();
+			handlePause();
 		} else {
-			handleSubscribe();
+			handleStart();
 		}
 	};
 
 	return {
-		subscribeMutation,
-		unsubscribeMutation,
-		handleSubscribe,
-		handleUnsubscribe,
+		startMutation,
+		pauseMutation,
+		cancelMutation,
+		handleStart,
+		handlePause,
+		handleCancel,
 		toggleSubscribe,
 		status,
 		isLoading,

@@ -80,7 +80,11 @@ export const useAuth = () => {
 		if (!subscriptionRes.ok) throw new Error('Failed to fetch subscription status');
 		const subscriptionData = await subscriptionRes.json();
 
-		return { ...userData, isSubscribed: subscriptionData.active };
+		return {
+			...userData,
+			isSubscribed:
+				subscriptionData.status === 'active' ? true : subscriptionData.status === 'paused' ? false : null,
+		};
 	};
 
 	// `useQuery`를 활용하여 자동으로 사용자 정보 가져오기 (토큰이 존재하는 경우 실행)

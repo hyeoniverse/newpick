@@ -25,12 +25,7 @@ function SubscribeToggle() {
 	return (
 		<SubscribeToggleStyled>
 			{/*구독 진행 중에 따라 노출 변경 필요*/}
-			{isSubscribed ? (
-				<div className={isSubscribed === true ? 'subscribe-on' : 'subscribe-off'} onClick={onToggle}>
-					<ToggleIcon className="svg" $toggle={isSubscribed === true} />
-					<p>{isSubscribed === true ? '구독 진행중' : '구독 일시정지 중'}</p>
-				</div>
-			) : (
+			{isSubscribed === null ? (
 				<>
 					<div className="not-subscribe" onClick={() => openModal('not-subscribe')}>
 						<LuBellOff />
@@ -50,6 +45,11 @@ function SubscribeToggle() {
 						</Modal>
 					)}
 				</>
+			) : (
+				<div className={isSubscribed === true ? 'subscribe-on' : 'subscribe-off'} onClick={onToggle}>
+					<ToggleIcon className="svg" $toggle={isSubscribed === true} />
+					<p>{isSubscribed === true ? '구독 진행중' : '구독 일시정지 중'}</p>
+				</div>
 			)}
 		</SubscribeToggleStyled>
 	);
