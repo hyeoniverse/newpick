@@ -95,18 +95,22 @@ function Modal({ children, isOpen, onClose }: Props) {
 const StyledModal = styled.div`
 	@keyframes fade-in {
 		from {
+			visibility: hidden;
 			opacity: 0;
 		}
 		to {
+			visibility: visible;
 			opacity: 1;
 		}
 	}
 
 	@keyframes fade-out {
 		from {
+			visibility: visible;
 			opacity: 1;
 		}
 		to {
+			visibility: hidden;
 			opacity: 0;
 		}
 	}
@@ -148,7 +152,7 @@ const StyledModal = styled.div`
 		min-height: 20rem;
 		display: flex;
 		flex-direction: column;
-		
+
 		align-items: center;
 		justify-content: center;
 	}

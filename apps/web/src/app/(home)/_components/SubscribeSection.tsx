@@ -53,36 +53,49 @@ const SubscribeSection = () => {
 		}
 	}, [user?.interests, selectedCategories]);
 
-	const handleSubscribe = (e: React.FormEvent) => {
-		e.preventDefault();
+	const validateSubscribe = () => {
 		if (!user) {
 			showToast('로그인이 필요합니다.', 'info');
-			return;
+			return false;
 		}
 
 		if (!user.id) {
 			console.error('❌ 유효하지 않은 userId:', user.id);
 			showToast('로그인 정보를 불러올 수 없습니다.', 'error');
-			return;
+			return false;
+		}
+
+		if (user.isSubscribed === true) {
+			showToast('이미 구독 중입니다.', 'warning'); // 관심사 기능이 구현되면 해당 관심사에 대해서만 이 에러 발생
+			return false;
 		}
 
 		if (selectedCategories.length === 0) {
 			showToast('최소 한 개의 카테고리를 선택해야 합니다.', 'warning');
-			return;
+			return false;
 		}
 
 		if (!isChecked) {
 			showToast('약관에 동의해야 구독할 수 있습니다.', 'warning');
-			return;
+			return false;
 		}
 
-		subscribeMutation.mutate(
-			{ email: user.email, userId: user.id },
-			{
-				onSuccess: () => showToast('구독이 완료되었습니다!', 'success'),
-				onError: (error) => showToast(`구독 실패: ${error.message}`, 'error'),
-			}
-		);
+		return true;
+	};
+
+	const handleSubscribe = (e: React.FormEvent) => {
+		e.preventDefault();
+		const formCompleted = validateSubscribe();
+
+		if (formCompleted) {
+			subscribeMutation.mutate(
+				{ userId: user!.id },
+				{
+					onSuccess: () => showToast('구독이 완료되었습니다!', 'success'),
+					onError: (error) => showToast(`구독 실패: ${error.message}`, 'error'),
+				}
+			);
+		}
 	};
 
 	return (
@@ -133,8 +146,8 @@ const SubscribeSection = () => {
 						구독 신청
 					</Button>
 				</div>
-				<div className="footer">
-					<InputCheck name="subscribe-agreement" />
+				<div className="subscription-agreement">
+					<InputCheck name="home-agreement" />
 					<Text size="extraSmall">
 						<Text size="extraSmall" weight="semiBold" color="primary">
 							[필수]&nbsp;
@@ -168,7 +181,7 @@ const StyledSubscribe = styled.section`
 			align-items: center;
 		}
 
-		.footer {
+		.subscription-agreement {
 			display: flex;
 			justify-content: flex-start;
 			align-items: top;

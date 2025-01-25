@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
 		START: `${API_URL}/subscribers/start`,
 		END: `${API_URL}/subscribers/end`,
 		STATUS: (id: number) => `${API_URL}/subscribers/status?userId=${id}`,
+		HISTORY: (id: number) => `${API_URL}/subscribers/history?userId=${id}`,
 	},
 	NEWS: {
 		CRAWL: `${API_URL}/news/crawl`,
