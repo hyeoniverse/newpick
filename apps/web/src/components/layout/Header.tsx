@@ -139,7 +139,7 @@ interface StyledProps {
 
 const StyledHeader = styled.header<StyledProps>`
 	position: fixed;
-	top: ${({ $isFolded }) => ($isFolded ? '0' : '-3rem')};
+	top: ${({ $isFolded }) => ($isFolded ? '0' : '-2.98rem')};
 	left: 0;
 	z-index: 1000;
 
