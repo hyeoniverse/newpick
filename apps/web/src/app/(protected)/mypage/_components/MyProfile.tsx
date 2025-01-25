@@ -3,7 +3,7 @@
 import { useAuth } from '@/hooks/useAuth';
 import styled from 'styled-components';
 import Image from '@/components/common/Image';
-import SubscribeToggle from '@/app/(protected)/mypage/_components/SubscribeToggle';
+import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
 
 function Profile() {
 	const { user } = useAuth();
