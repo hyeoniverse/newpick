@@ -9,8 +9,6 @@ const useSelectInterests = () => {
 
 	// 사용자 관심사 반영 (초기 로드 및 관심사 업데이트 시)
 	useEffect(() => {
-		console.log('refresh');
-
 		if (user?.interests?.length) {
 			setSelectedInterests(user.interests);
 		} else {
