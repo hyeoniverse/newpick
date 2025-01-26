@@ -22,8 +22,10 @@ import Spinner from '@/components/common/loader/Spinner';
 import Navigation from '@/components/layout/header/Navigation';
 import Drawer from '@/components/layout/header/Drawer';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
+import { useMount } from '@/hooks/useMount';
 
 const Header = () => {
+	const { isMounted } = useMount();
 	const { user, isLoading, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
@@ -76,50 +78,58 @@ const Header = () => {
 					<Navigation />
 				</div>
 				<div className="right-section">
-					<ThemeSwitcher scheme="secondary" className={user ? 'hidden' : 'mobile-hidden'} />
-					{isLoading ? (
-						<Spinner size="2.5rem" />
-					) : user ? (
-						<Dropdown
-							type="auth"
-							className="auth"
-							toggleButton={
-								user?.profileImg ? (
-									<StyledUserCircle>
-										<Image src={user.profileImg} alt="profile" ratio="square" />
-									</StyledUserCircle>
-								) : (
-									<StyledUserCircle>
-										<FaUserCircle />
-									</StyledUserCircle>
-								)
-							}
-						>
-							<>
-								<ThemeSwitcher className="item" />
-								<Link href="/mypage">
-									<Button className="item">마이페이지</Button>
-								</Link>
-								<Button className="item" onClick={handleLogout}>
-									로그아웃
-								</Button>
-							</>
-						</Dropdown>
-					) : (
+					{isMounted && (
 						<>
-							<Button
-								scheme="outline"
-								style={{ width: '5rem' }}
-								onClick={handleLogin}
-								icon={<IoLogoGoogle />}
-								iconPosition="left"
-								disabled={isLoading}
-							>
-								로그인
-							</Button>
-							<Button scheme="primary" style={{ width: '5rem' }} onClick={() => openModal('subscribe')}>
-								구독하기
-							</Button>
+							<ThemeSwitcher scheme="secondary" className={user ? 'hidden' : 'mobile-hidden'} />
+							{isLoading ? (
+								<Spinner size="2.5rem" />
+							) : user ? (
+								<Dropdown
+									type="auth"
+									className="auth"
+									toggleButton={
+										user?.profileImg ? (
+											<StyledUserCircle>
+												<Image src={user.profileImg} alt="profile" ratio="square" />
+											</StyledUserCircle>
+										) : (
+											<StyledUserCircle>
+												<FaUserCircle />
+											</StyledUserCircle>
+										)
+									}
+								>
+									<>
+										<ThemeSwitcher className="item" />
+										<Link href="/mypage">
+											<Button className="item">마이페이지</Button>
+										</Link>
+										<Button className="item" onClick={handleLogout}>
+											로그아웃
+										</Button>
+									</>
+								</Dropdown>
+							) : (
+								<>
+									<Button
+										scheme="outline"
+										style={{ width: '5rem' }}
+										onClick={handleLogin}
+										icon={<IoLogoGoogle />}
+										iconPosition="left"
+										disabled={isLoading}
+									>
+										로그인
+									</Button>
+									<Button
+										scheme="primary"
+										style={{ width: '5rem' }}
+										onClick={() => openModal('subscribe')}
+									>
+										구독하기
+									</Button>
+								</>
+							)}
 						</>
 					)}
 				</div>
