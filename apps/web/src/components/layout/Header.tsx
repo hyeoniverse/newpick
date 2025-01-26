@@ -84,31 +84,33 @@ const Header = () => {
 							{isLoading ? (
 								<Spinner size="2.5rem" />
 							) : user ? (
-								<Dropdown
-									type="auth"
-									className="auth"
-									toggleButton={
-										user?.profileImg ? (
-											<StyledUserCircle>
-												<Image src={user.profileImg} alt="profile" ratio="square" />
-											</StyledUserCircle>
-										) : (
-											<StyledUserCircle>
-												<FaUserCircle />
-											</StyledUserCircle>
-										)
-									}
-								>
-									<>
-										<ThemeSwitcher className="item" />
-										<Link href="/mypage">
-											<Button className="item">마이페이지</Button>
-										</Link>
-										<Button className="item" onClick={handleLogout}>
-											로그아웃
-										</Button>
-									</>
-								</Dropdown>
+								<>
+									<Dropdown
+										type="auth"
+										className="auth"
+										toggleButton={
+											user?.profileImg ? (
+												<StyledUserCircle>
+													<Image src={user.profileImg} alt="profile" ratio="square" />
+												</StyledUserCircle>
+											) : (
+												<StyledUserCircle>
+													<FaUserCircle />
+												</StyledUserCircle>
+											)
+										}
+									>
+										<>
+											<ThemeSwitcher className="item" />
+											<Link href="/mypage">
+												<Button className="item">마이페이지</Button>
+											</Link>
+											<Button className="item" onClick={handleLogout}>
+												로그아웃
+											</Button>
+										</>
+									</Dropdown>
+								</>
 							) : (
 								<>
 									<Button
@@ -120,13 +122,6 @@ const Header = () => {
 										disabled={isLoading}
 									>
 										로그인
-									</Button>
-									<Button
-										scheme="primary"
-										style={{ width: '5rem' }}
-										onClick={() => openModal('subscribe')}
-									>
-										구독하기
 									</Button>
 								</>
 							)}
