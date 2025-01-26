@@ -2,10 +2,7 @@ export const API_URL = (process.env.NEXT_PUBLIC_API_URL as string) || 'http://lo
 
 export const TOKEN = {
 	ACCESS: 'access_token',
-	REFRESH: 'refresh_token',
 	USER_ID: 'user_id',
-	AGE: 1000 * 60 * 60, // 1 hour
-	MAX_AGE: 60 * 60 * 24 * 7, // 7 days
 };
 
 export const API_ENDPOINTS = {
