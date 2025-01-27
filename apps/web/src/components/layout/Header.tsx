@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
+import { SCROLL } from '@/constants/numbers';
 import { useAuth } from '@/hooks/useAuth';
-import { useModal } from '@/hooks/useModal';
 import { useDropdown } from '@/hooks/useDropdown';
 import { useHeader } from '@/hooks/useHeader';
 
@@ -15,49 +15,54 @@ import { IoLogoGoogle } from 'react-icons/io';
 import Logo from '@/components/common/Logo';
 import Image from '@/components/common/Image';
 import Button from '@/components/common/Button';
-import Modal from '@/components/common/modal/Modal';
 import Dropdown from '@/components/common/Dropdown';
 import Spinner from '@/components/common/loader/Spinner';
 import Navigation from '@/components/layout/header/Navigation';
 import Drawer from '@/components/layout/header/Drawer';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
+import { useMount } from '@/hooks/useMount';
 
 const Header = () => {
+	const { isMounted } = useMount();
 	const { user, isLoading, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
-	const { isOpen, modalType, openModal, closeModal } = useModal();
 	const lastScrollY = useRef(0);
 
-	useEffect(() => {
-		const handleScroll = () => {
-			const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+	const handleScroll = useCallback(() => {
+		const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+		const documentHeight = document.documentElement.scrollHeight;
+		const windowHeight = window.innerHeight;
 
-			if (currentScrollY <= 0) {
-				setHeaderOpen(true);
-				return;
-			}
+		// 스크롤이 부족한 경우 항상 헤더 표시
+		if (documentHeight <= windowHeight) {
+			setHeaderOpen(true);
+			return;
+		}
 
+		// 페이지 맨 위에서 항상 헤더 표시
+		if (currentScrollY <= 0) {
+			setHeaderOpen(true);
+			return;
+		}
+
+		// 빠른 스크롤 대응: THRESHOLD(10px) 이상의 변화가 있을 때만 감지
+		if (Math.abs(currentScrollY - lastScrollY.current) > SCROLL.THRESHOLD) {
 			if (currentScrollY > lastScrollY.current) {
 				setHeaderOpen(false);
 				closeDropdown();
 			} else {
 				setHeaderOpen(true);
 			}
-
-			lastScrollY.current = currentScrollY;
-		};
-
-		if (typeof window !== 'undefined') {
-			window.addEventListener('scroll', handleScroll);
 		}
 
-		return () => {
-			if (typeof window !== 'undefined') {
-				window.removeEventListener('scroll', handleScroll);
-			}
-		};
+		lastScrollY.current = currentScrollY;
 	}, [setHeaderOpen, closeDropdown]);
+
+	useEffect(() => {
+		window.addEventListener('scroll', handleScroll);
+		return () => window.removeEventListener('scroll', handleScroll);
+	}, [handleScroll]);
 
 	return (
 		<StyledHeader $isFolded={isHeaderOpen}>
@@ -70,59 +75,57 @@ const Header = () => {
 					<Navigation />
 				</div>
 				<div className="right-section">
-					<ThemeSwitcher scheme="secondary" className={user ? 'hidden' : 'mobile-hidden'} />
-					{isLoading ? (
-						<Spinner size="2.5rem" />
-					) : user ? (
-						<Dropdown
-							type="auth"
-							className="auth"
-							toggleButton={
-								user?.profileImg ? (
-									<StyledUserCircle>
-										<Image src={user.profileImg} alt="profile" ratio="square" />
-									</StyledUserCircle>
-								) : (
-									<StyledUserCircle>
-										<FaUserCircle />
-									</StyledUserCircle>
-								)
-							}
-						>
-							<>
-								<ThemeSwitcher className="item" />
-								<Link href="/mypage">
-									<Button className="item">마이페이지</Button>
-								</Link>
-								<Button className="item" onClick={handleLogout}>
-									로그아웃
-								</Button>
-							</>
-						</Dropdown>
-					) : (
+					{isMounted && (
 						<>
-							<Button
-								scheme="outline"
-								style={{ width: '5rem' }}
-								onClick={handleLogin}
-								icon={<IoLogoGoogle />}
-								iconPosition="left"
-								disabled={user !== null}
-							>
-								로그인
-							</Button>
-							<Button scheme="primary" style={{ width: '5rem' }} onClick={() => openModal('subscribe')}>
-								구독하기
-							</Button>
+							<ThemeSwitcher scheme="secondary" className={user ? 'hidden' : 'mobile-hidden'} />
+							{isLoading ? (
+								<Spinner size="2.5rem" />
+							) : user ? (
+								<>
+									<Dropdown
+										type="auth"
+										className="auth"
+										toggleButton={
+											user?.profileImg ? (
+												<StyledUserCircle>
+													<Image src={user.profileImg} alt="profile" ratio="square" />
+												</StyledUserCircle>
+											) : (
+												<StyledUserCircle>
+													<FaUserCircle />
+												</StyledUserCircle>
+											)
+										}
+									>
+										<>
+											<ThemeSwitcher className="item" />
+											<Link href="/mypage">
+												<Button className="item">마이페이지</Button>
+											</Link>
+											<Button className="item" onClick={handleLogout}>
+												로그아웃
+											</Button>
+										</>
+									</Dropdown>
+								</>
+							) : (
+								<>
+									<Button
+										scheme="outline"
+										style={{ width: '5rem' }}
+										onClick={handleLogin}
+										icon={<IoLogoGoogle />}
+										iconPosition="left"
+										disabled={isLoading}
+									>
+										로그인
+									</Button>
+								</>
+							)}
 						</>
 					)}
 				</div>
 			</div>
-			{isOpen && modalType === 'subscribe' && (
-				<Modal isOpen={isOpen} onClose={closeModal}>
-					<div>구독하기 모달 내용</div>
-				</Modal>
-			)}
 		</StyledHeader>
 	);
 };
@@ -133,7 +136,7 @@ interface StyledProps {
 
 const StyledHeader = styled.header<StyledProps>`
 	position: fixed;
-	top: ${({ $isFolded }) => ($isFolded ? '0' : '-3rem')};
+	top: ${({ $isFolded }) => ($isFolded ? '0' : '-2.98rem')};
 	left: 0;
 	z-index: 1000;
 

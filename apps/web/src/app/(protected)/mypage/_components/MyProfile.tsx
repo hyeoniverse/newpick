@@ -1,26 +1,29 @@
+'use client';
+
 import { useAuth } from '@/hooks/useAuth';
 import styled from 'styled-components';
 import Image from '@/components/common/Image';
-import SubscribeToggle from '@/components/common/subscribe/SubscribeToggle';
+import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
 
 function Profile() {
 	const { user } = useAuth();
 
-	// user가 없을 때는 아무것도 렌더링하지 않음 (리다이렉트 전 렌더링 방지)
-	if (!user) return null;
-
 	return (
 		<ProfileStyled>
-			<div className="profile">
-				<Image src={user.profileImg || '/img/profile.jpg'} alt="prifile-img" ratio="square" />
-				<div className="profile-text">
-					<h4>{user.username}</h4>
-					<p>{user.email}</p>
-				</div>
-			</div>
-			<div className="subscribe">
-				<SubscribeToggle />
-			</div>
+			{user && (
+				<>
+					<div className="profile">
+						<Image src={user.profileImg || '/img/profile.jpg'} alt="prifile-img" ratio="square" />
+						<div className="profile-text">
+							<h4>{user.username}</h4>
+							<p>{user.email}</p>
+						</div>
+					</div>
+					<div className="subscribe">
+						<SubscribeToggle />
+					</div>
+				</>
+			)}
 		</ProfileStyled>
 	);
 }

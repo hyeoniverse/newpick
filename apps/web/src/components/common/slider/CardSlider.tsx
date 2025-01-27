@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Card as ICard } from '@/models/card.model';
 import styled from 'styled-components';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -15,66 +15,59 @@ interface Props {
 }
 
 const CardSlider = ({ className, type = 'sub', data }: Props) => {
-	const isMobile = useMediaQuery();
+	const { isMobile } = useMediaQuery();
 	const cardRef = useRef<HTMLDivElement>(null);
 	const cardContainerRef = useRef<HTMLDivElement>(null);
 
 	// 현재 슬라이드 상태
 	const [currentIndex, setCurrentIndex] = useState(0);
-
 	// 연속 클릭 방지 상태
 	const [isScrolling, setIsScrolling] = useState(false);
-
+	// 스와이프 가능 여부
+	const [canScrollLeft, setCanScrollLeft] = useState(false);
+	const [canScrollRight, setCanScrollRight] = useState(true);
 	// 연속 클릭 방지 해제
 	useTimeout(() => setIsScrolling(false), isScrolling ? 500 : null);
 
 	// 스크롤 처리 함수
+	useEffect(() => {
+		const updateScrollState = () => {
+			if (cardContainerRef.current) {
+				const { scrollLeft, scrollWidth, clientWidth } = cardContainerRef.current;
+				setCanScrollLeft(scrollLeft > 0);
+				setCanScrollRight(scrollLeft < scrollWidth - clientWidth);
+			}
+		};
+
+		const cardContainer = cardContainerRef.current;
+		if (cardContainer) {
+			cardContainer.addEventListener('scroll', updateScrollState);
+			updateScrollState(); // 초기값 설정
+		}
+
+		return () => {
+			if (cardContainer) {
+				cardContainer.removeEventListener('scroll', updateScrollState);
+			}
+		};
+	}, []);
+
 	const handleScroll = (direction: 'left' | 'right') => {
-		if (isScrolling) return; // 스크롤 중이면 실행하지 않음
-		setIsScrolling(true); // 스크롤 상태 활성화
+		if (isScrolling) return;
+		setIsScrolling(true);
 
 		if (cardContainerRef.current && cardRef.current) {
-			// 현재 인덱스 업데이트 및 무한 슬라이드 구현
-			if (type === 'main') {
-				const cardWidth =
-					type === 'main'
-						? cardRef.current.offsetWidth
-						: isMobile
-						? cardRef.current.offsetWidth * 2
-						: cardRef.current.offsetWidth;
-				const gap = type === 'main' ? 16 : isMobile ? 24 * 2 : 24;
-				const scrollAmount = cardWidth + gap;
+			const cardWidth = isMobile ? cardRef.current.offsetWidth : cardRef.current.offsetWidth * 2;
+			const gap = isMobile ? 25 : 25 * 2;
+			const scrollAmount = cardWidth + gap;
 
-				setCurrentIndex((prev) => {
-					let newIndex = prev;
-					if (direction === 'left') {
-						newIndex = prev === 0 ? data.length - 1 : prev - 1; // 왼쪽 끝에서 마지막 슬라이드로 이동
-					} else {
-						newIndex = prev === data.length - 1 ? 0 : prev + 1; // 오른쪽 끝에서 첫 번째 슬라이드로 이동
-					}
-
-					// 스크롤 동작
-					cardContainerRef.current?.scrollTo({
-						left: newIndex * scrollAmount,
-						behavior: 'smooth',
-					});
-
-					return newIndex;
-				});
-			} else {
-				const cardWidth = isMobile ? cardRef.current.offsetWidth * 2 : cardRef.current.offsetWidth;
-				const gap = isMobile ? 24 * 2 : 24;
-				const scrollAmount = cardWidth + gap;
-
-				cardContainerRef.current.scrollBy({
-					left: direction === 'left' ? -scrollAmount : scrollAmount,
-					behavior: 'smooth',
-				});
-			}
+			cardContainerRef.current.scrollBy({
+				left: direction === 'left' ? -scrollAmount : scrollAmount,
+				behavior: 'smooth',
+			});
 		}
 	};
 
-	// 특정 슬라이드로 이동
 	const goToSlide = (index: number) => {
 		if (cardContainerRef.current && cardRef.current) {
 			const cardWidth = cardRef.current.offsetWidth;
@@ -105,12 +98,18 @@ const CardSlider = ({ className, type = 'sub', data }: Props) => {
 				)}
 
 				<div className="arrow">
-					<Button className="left" onClick={() => handleScroll('left')}>
-						<IoIosArrowBack />
-					</Button>
-					<Button className="right" onClick={() => handleScroll('right')}>
-						<IoIosArrowForward />
-					</Button>
+					<Button
+						className="left"
+						icon={<IoIosArrowBack />}
+						onClick={() => handleScroll('left')}
+						disabled={!canScrollLeft}
+					/>
+					<Button
+						className="right"
+						icon={<IoIosArrowForward />}
+						onClick={() => handleScroll('right')}
+						disabled={!canScrollRight}
+					/>
 				</div>
 			</div>
 		</StyledCardSlider>
@@ -177,7 +176,6 @@ const StyledCardSlider = styled.div<StyledProps>`
 		gap: 0.5rem;
 
 		.arrow {
-			color: ${({ theme }) => theme.color.subText};
 			display: flex;
 			justify-content: center;
 			align-items: center;
@@ -190,7 +188,16 @@ const StyledCardSlider = styled.div<StyledProps>`
 				border-radius: ${({ theme }) => theme.borderRadius.circle};
 
 				&:hover {
+					svg {
+						color: ${({ theme }) => theme.color.primary};
+					}
 					background: ${({ theme }) => theme.color.tertiary};
+				}
+
+				&:disabled {
+					svg {
+						color: ${({ theme }) => theme.color.neutral};
+					}
 				}
 			}
 		}

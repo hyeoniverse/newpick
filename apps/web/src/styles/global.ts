@@ -1,14 +1,15 @@
-"use client";
+'use client';
 
-import "sanitize.css";
-import { createGlobalStyle } from "styled-components";
-import { ThemeName } from "./theme";
+import 'sanitize.css';
+import { createGlobalStyle } from 'styled-components';
+import { STYLE } from '@/constants/numbers';
+import { ThemeName } from '@/styles/theme';
 
 interface Props {
-  themeName: ThemeName;
+	themeName: ThemeName;
 }
 
-const Pretendard = "/fonts/Pretendard.woff2";
+const Pretendard = '/fonts/Pretendard.woff2';
 
 export const GlobalStyle = createGlobalStyle<Props>`
     @font-face {
@@ -21,48 +22,49 @@ export const GlobalStyle = createGlobalStyle<Props>`
     }
 
     html, body {
-        margin: 0;
-        padding: 0;
-        color: ${({theme}) => theme.color.text};
-        background: ${({theme}) => theme.color.background};
-        scroll-behavior: smooth;
-        
-        @media ${({theme}) => theme.mediaQuery.mobile} {
-            /* 스크롤바 숨김 처리 (브라우저별 설정) */
-            scrollbar-width: none; /* Firefox */
-            &::-webkit-scrollbar {
-                display: none; /* Webkit 기반 브라우저 (Chrome, Safari, Edge) */
-            }
-
-            -ms-overflow-style: none; /* IE, Edge */
+      margin: 0;
+      padding: 0;
+      color: ${({ theme }) => theme.color.text};
+      background: ${({ theme }) => theme.color.background};
+      scroll-behavior: smooth;
+      font-size: ${STYLE.ROOT_FONT_SIZE};
+      
+      @media ${({ theme }) => theme.mediaQuery.mobile} {
+        /* 스크롤바 숨김 처리 (브라우저별 설정) */
+        scrollbar-width: none; /* Firefox */
+        &::-webkit-scrollbar {
+            display: none; /* Webkit 기반 브라우저 (Chrome, Safari, Edge) */
         }
 
-        a {
-            text-decoration: none;
-            color: ${({theme}) => theme.color.text};
-        }
+        -ms-overflow-style: none; /* IE, Edge */
+      }
 
-        input {
-            outline: none;
-        }
+      a {
+          text-decoration: none;
+          color: ${({ theme }) => theme.color.text};
+      }
 
-        ul, li {
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
+      input {
+          outline: none;
+      }
 
-        h1, h2, h3, h4, h5, h6, p {
-            margin: 0;
-        }
+      ul, li {
+          list-style: none;
+          margin: 0;
+          padding: 0;
+      }
 
-        button {
-            border: none;
-            background-color: transparent;
+      h1, h2, h3, h4, h5, h6, p {
+          margin: 0;
+      }
 
-            &:focus {
-                outline: none;
-            }
-        }
+      button {
+          border: none;
+          background-color: transparent;
+
+          &:focus {
+              outline: none;
+          }
+      }
     }
 `;

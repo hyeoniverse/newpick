@@ -4,7 +4,7 @@ export interface User {
 	username: string;
 	profileImg?: string;
 	accessToken: string | null;
-	isSubscribed: boolean;
+	isSubscribed: boolean | null;
 	interests?: string[];
 	role: 'user' | 'admin';
 	frequency?: 'daily' | 'weekly' | 'monthly';

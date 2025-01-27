@@ -1,31 +1,37 @@
-import styled from 'styled-components';
-import { BOOKMARK, MYSUMMARYNEWS } from '@/lib/mypageData';
+'use client';
 
-interface TabProps {
-	activeTab: string;
-	setActiveTab: (activeTab: string) => void;
+import { NavigationItem as INavigationItem } from '@/models/navigation.model';
+import useTabStore from '@/stores/useTabStore';
+import { useEffect } from 'react';
+import styled from 'styled-components';
+
+interface Props {
+	tabs: INavigationItem[];
 }
 
-function TabButton({ activeTab, setActiveTab }: TabProps) {
+export default function TabNavigation({ tabs }: Props) {
+	const { activeTab, setActiveTab } = useTabStore();
+
+	useEffect(() => {
+		setActiveTab(tabs[0].link);
+	}, [setActiveTab, tabs]);
+
+	const handleTabClick = (link: string) => {
+		setActiveTab(link);
+	};
+
 	return (
-		<TabButtonStyled>
-			<button onClick={() => setActiveTab('subscribe')} className={activeTab === 'subscribe' ? 'active' : ''}>
-				<p>구독한 뉴스레터 ({MYSUMMARYNEWS.length})</p>
-			</button>
-			<button onClick={() => setActiveTab('bookmark')} className={activeTab === 'bookmark' ? 'active' : ''}>
-				<p>북마크한 뉴스레터 ({BOOKMARK.length})</p>
-			</button>
-			<button
-				onClick={() => setActiveTab('newsletterSetting')}
-				className={activeTab === 'newsletterSetting' ? 'active' : ''}
-			>
-				<p>뉴스레터 설정</p>
-			</button>
-		</TabButtonStyled>
+		<TabNavigationStyled>
+			{tabs.map(({ id, title, link }) => (
+				<button key={id} className={activeTab === link ? 'active' : ''} onClick={() => handleTabClick(link)}>
+					<span>{title}</span>
+				</button>
+			))}
+		</TabNavigationStyled>
 	);
 }
 
-const TabButtonStyled = styled.div`
+const TabNavigationStyled = styled.div`
 	height: 100%;
 	margin: 60px 0 40px 0;
 	border-bottom: 1px solid ${({ theme }) => theme.color.border};
@@ -36,7 +42,7 @@ const TabButtonStyled = styled.div`
 
 	button {
 		cursor: pointer;
-		padding: 0.5rem 0;
+		padding: 1rem 0;
 		width: calc(100% / 3);
 		background-color: transparent;
 		color: ${({ theme }) => theme.color.lightGrey};
@@ -45,7 +51,7 @@ const TabButtonStyled = styled.div`
 		border-bottom: 1px solid transparent;
 		transition: border-bottom 0.2s ease, color 0.2s ease;
 
-		p {
+		span {
 			height: 100%;
 			display: flex;
 			justify-content: center;
@@ -64,5 +70,3 @@ const TabButtonStyled = styled.div`
 		}
 	}
 `;
-
-export default TabButton;

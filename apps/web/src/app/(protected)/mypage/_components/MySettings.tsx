@@ -1,17 +1,18 @@
-'use client'
+'use client';
+
+import useSubscribe from '@/hooks/useSubscribe';
 
 import styled from 'styled-components';
 import NoContentsPage from '@/components/common/NoContentsPage';
-import NewsletterSubscribe from '@/components/common/subscribe/NewsletterSubscribe';
-import { usersData } from '@/mocks/mypage/users';
+import StartSubscription from '@/app/(protected)/mypage/_components/settings/StartSubscription';
 
 function MyNewsletterSubscribe() {
-	const { USER1 } = usersData;
+	const { status: isSubscribed } = useSubscribe();
 
 	return (
 		<MyNewsletterSubscribeStyled>
-			{USER1.subscribe === 1 ? (
-				<NewsletterSubscribe />
+			{isSubscribed === null || true ? (
+				<StartSubscription />
 			) : (
 				<NoContentsPage
 					text={`뉴스레터 구독이 일시정지 중 입니다. \n 구독을 다시 시작하시겠습니까?`}
