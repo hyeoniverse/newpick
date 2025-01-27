@@ -15,7 +15,7 @@ interface Props {
 }
 
 const CardSlider = ({ className, type = 'sub', data }: Props) => {
-	const isMobile = useMediaQuery();
+	const { isMobile } = useMediaQuery();
 	const cardRef = useRef<HTMLDivElement>(null);
 	const cardContainerRef = useRef<HTMLDivElement>(null);
 
@@ -39,14 +39,15 @@ const CardSlider = ({ className, type = 'sub', data }: Props) => {
 			}
 		};
 
-		if (cardContainerRef.current) {
-			cardContainerRef.current.addEventListener('scroll', updateScrollState);
+		const cardContainer = cardContainerRef.current;
+		if (cardContainer) {
+			cardContainer.addEventListener('scroll', updateScrollState);
 			updateScrollState(); // 초기값 설정
 		}
 
 		return () => {
-			if (cardContainerRef.current) {
-				cardContainerRef.current.removeEventListener('scroll', updateScrollState);
+			if (cardContainer) {
+				cardContainer.removeEventListener('scroll', updateScrollState);
 			}
 		};
 	}, []);
@@ -56,8 +57,8 @@ const CardSlider = ({ className, type = 'sub', data }: Props) => {
 		setIsScrolling(true);
 
 		if (cardContainerRef.current && cardRef.current) {
-			const cardWidth = isMobile ? cardRef.current.offsetWidth * 2 : cardRef.current.offsetWidth;
-			const gap = isMobile ? 24 * 2 : 24;
+			const cardWidth = isMobile ? cardRef.current.offsetWidth : cardRef.current.offsetWidth * 2;
+			const gap = isMobile ? 25 : 25 * 2;
 			const scrollAmount = cardWidth + gap;
 
 			cardContainerRef.current.scrollBy({

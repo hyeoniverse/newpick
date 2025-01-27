@@ -29,6 +29,7 @@ const SubscribeSection = () => {
 	return (
 		<StyledSubscribe>
 			<CardSlider
+				className="quick-subscription"
 				type="sub"
 				data={CATEGORIES.map((category) => ({
 					id: category.id ?? 0,
@@ -75,28 +76,30 @@ const SubscribeSection = () => {
 					</Button>
 				</div>
 				<div className="subscription-agreement">
-					<Text size="extraSmall">
-						{isSubscribed === null ? (
-							<>
-								<InputCheck
-									name="home-agreement"
-									disabled={isChangingSubscription || isSubscribed !== null}
-								/>
+					{isSubscribed === null ? (
+						<>
+							<InputCheck
+								className="agreement-check"
+								name="home-agreement"
+								disabled={isChangingSubscription || isSubscribed !== null}
+							/>
+							<div className="agreement-text">
 								<Text size="extraSmall" weight="semiBold" color="primary">
 									[필수]&nbsp;
 								</Text>
-								NewPick의&nbsp;
+								<Text size="extraSmall">NewPick의&nbsp;</Text>
 								<Link href="/privacy">이용약관</Link>&nbsp;
-								<Link href="/privacy">개인정보처리방침</Link>&nbsp;에 동의합니다.
-							</>
-						) : (
-							<>
-								<Text size="extraSmall" weight="semiBold" color="primary">
-									이미 약관에 동의하셨습니다.
-								</Text>
-							</>
-						)}
-					</Text>
+								<Link href="/privacy">개인정보처리방침</Link>
+								<Text size="extraSmall">에 동의합니다.</Text>
+							</div>
+						</>
+					) : (
+						<>
+							<Text size="extraSmall" weight="semiBold" color="primary">
+								이미 약관에 동의하셨습니다.
+							</Text>
+						</>
+					)}
 				</div>
 			</div>
 		</StyledSubscribe>
@@ -123,58 +126,64 @@ const StyledSubscribe = styled.section`
 		}
 
 		.subscription-agreement {
-			display: flex;
-			justify-content: flex-start;
+			width: 100%;
+			display: inline-flex;
 			align-items: top;
 			gap: 0.5rem;
 			margin-top: 0.5rem;
 			line-height: 1.5;
-			white-space: normal;
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			color: ${({ theme }) => theme.color.subText};
 			text-align: left;
+
+			input {
+				display: inline-flex;
+				vertical-align: middle;
+			}
+
+			span {
+				display: inline-flex;
+				vertical-align: middle;
+				span {
+					white-space: nowrap;
+				}
+			}
+
+			a {
+				color: ${({ theme }) => theme.color.primary};
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+
+				&:hover {
+					text-decoration: underline;
+				}
+			}
 		}
 
-		a {
-			color: ${({ theme }) => theme.color.primary};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			width: 100%;
+		}
+	}
 
-			&:hover {
-				text-decoration: underline;
+	.quick-subscription {
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			.card {
+				min-width: calc(50% - 0.9rem);
+			}
+		}
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			.card {
+				min-width: calc(100% - 0.9rem);
 			}
 		}
 	}
 
 	@media ${({ theme }) => theme.mediaQuery.tablet} {
 		flex-wrap: wrap;
-
-		.subscription-category {
-			width: 100%;
-
-			.subscription-cards .card {
-				min-width: calc(50% - 0.9rem);
-			}
-		}
-
-		.subscription-form {
-			width: 100%;
-		}
 	}
 
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
 		flex-wrap: wrap;
-
-		.subscription-category {
-			width: 100%;
-
-			.subscription-cards .card {
-				min-width: calc(100% - 0.9rem);
-			}
-		}
-
-		.subscription-form {
-			width: 100%;
-		}
 	}
 `;
 

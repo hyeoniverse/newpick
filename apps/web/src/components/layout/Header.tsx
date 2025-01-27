@@ -29,7 +29,7 @@ const Header = () => {
 	const { user, isLoading, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
-	const { isOpen, modalType, openModal, closeModal } = useModal();
+	const { isOpen, modalType, closeModal } = useModal();
 	const lastScrollY = useRef(0);
 
 	const handleScroll = useCallback(() => {
