@@ -1,12 +1,17 @@
+'use client';
+
+import dynamic from 'next/dynamic';
 import { useAuth } from '@/hooks/useAuth';
-import Error from '@/components/common/Error';
 import Spinner from '@/components/common/loader/Spinner';
+import { useMount } from '@/hooks/useMount';
+const Error = dynamic(() => import('@/components/common/Error'), { ssr: false });
 
 const withAuth = <P extends object>(Component: React.FC<P>) => {
 	return function AuthenticatedComponent(props: P) {
+		const { isMounted } = useMount();
 		const { user, isLoading } = useAuth();
 
-		if (isLoading) {
+		if (!isMounted || isLoading) {
 			return <Spinner />;
 		}
 
