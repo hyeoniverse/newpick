@@ -1,5 +1,7 @@
 import styled from 'styled-components';
 import Button from '@/components/common/Button';
+import Title from '@/components/common/Title';
+import Text from '@/components/common/Text';
 
 interface ModalProps {
 	icon?: React.ReactNode;
@@ -24,8 +26,10 @@ function ModalContents({
 		<ModalContentsStyled>
 			<div className="contents">
 				{icon}
-				<h3>{title}</h3>
-				<p>{content}</p>
+				<Title size="extraSmall" weight="semiBold">
+					{title}
+				</Title>
+				<Text size="small">{content}</Text>
 			</div>
 			<div className="btn-section">
 				{outlineButton && (
@@ -60,16 +64,9 @@ const ModalContentsStyled = styled.div`
 			color: ${({ theme }) => theme.color.primary};
 		}
 
-		h1 {
-			margin-bottom: 0.25rem;
-			font-size: ${({ theme }) => theme.fontSize.large};
-		}
-
 		span {
-			max-width: 22rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			word-break: keep-all;
-			color: ${({ theme }) => theme.color.mediumGrey};
+			white-space: pre-line;
+			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 

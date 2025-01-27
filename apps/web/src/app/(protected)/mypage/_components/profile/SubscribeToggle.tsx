@@ -36,7 +36,7 @@ function SubscribeToggle() {
 							<ModalContents
 								icon={<LuBell />}
 								title="구독 상태가 아닙니다."
-								content={`새롭게 뉴스레터를 구독해보시겠습니까? 확인을 누르시면 구독페이지로 넘어갑니다.`}
+								content={`새롭게 뉴스레터를 구독해보시겠습니까?\n확인을 누르시면 구독페이지로 넘어갑니다.`}
 								outlineButton="취소"
 								filledButton="확인"
 								onCancelClick={closeModal}
