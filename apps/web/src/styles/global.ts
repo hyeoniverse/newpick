@@ -1,14 +1,15 @@
-"use client";
+'use client';
 
-import "sanitize.css";
-import { createGlobalStyle } from "styled-components";
-import { ThemeName } from "./theme";
+import 'sanitize.css';
+import { createGlobalStyle } from 'styled-components';
+import { STYLE } from '@/constants/numbers';
+import { ThemeName } from '@/styles/theme';
 
 interface Props {
-  themeName: ThemeName;
+	themeName: ThemeName;
 }
 
-const Pretendard = "/fonts/Pretendard.woff2";
+const Pretendard = '/fonts/Pretendard.woff2';
 
 export const GlobalStyle = createGlobalStyle<Props>`
     @font-face {
@@ -23,11 +24,12 @@ export const GlobalStyle = createGlobalStyle<Props>`
     html, body {
         margin: 0;
         padding: 0;
-        color: ${({theme}) => theme.color.text};
-        background: ${({theme}) => theme.color.background};
+        color: ${({ theme }) => theme.color.text};
+        background: ${({ theme }) => theme.color.background};
         scroll-behavior: smooth;
+        font-size: ${STYLE.ROOT_FONT_SIZE};
         
-        @media ${({theme}) => theme.mediaQuery.mobile} {
+        @media ${({ theme }) => theme.mediaQuery.mobile} {
             /* 스크롤바 숨김 처리 (브라우저별 설정) */
             scrollbar-width: none; /* Firefox */
             &::-webkit-scrollbar {
@@ -39,7 +41,7 @@ export const GlobalStyle = createGlobalStyle<Props>`
 
         a {
             text-decoration: none;
-            color: ${({theme}) => theme.color.text};
+            color: ${({ theme }) => theme.color.text};
         }
 
         input {

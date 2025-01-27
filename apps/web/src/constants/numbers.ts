@@ -20,3 +20,8 @@ export const AUTH = {
 	},
 	STALE_TIME: 1000 * 60 * 5, // 5 minutes
 };
+
+export const STYLE = {
+	HEADER_HEIGHT: '3rem',
+	ROOT_FONT_SIZE: '16px',
+};
