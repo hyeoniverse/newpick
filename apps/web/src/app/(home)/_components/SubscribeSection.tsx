@@ -12,18 +12,39 @@ import CardSlider from '@/components/common/slider/CardSlider';
 import { BiCheck, BiPlus } from 'react-icons/bi';
 import useSelectInterests from '@/hooks/useSelectInterests';
 
+import ModalContents from '@/components/common/modal/ModalContent';
+import { LuMailCheck } from 'react-icons/lu';
+import { useModal } from '@/hooks/useModal';
+import { useToast } from '@/hooks/useToast';
+
 const SubscribeSection = () => {
-	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 	const {
 		status: isSubscribed,
 		isChanging: isChangingSubscription,
 		handleSubscribe: startSubscription,
 	} = useSubscribe();
+	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 	const { isChecked } = useInputCheck('home-agreement');
+	const { openModal, closeModal } = useModal();
+	const { showToast } = useToast();
 
 	const handleSubscribe = (e: React.FormEvent) => {
 		e.preventDefault();
-		startSubscription({ interests: selectedInterests, isChecked: isChecked });
+		const isSuccess = startSubscription({ interests: selectedInterests, isChecked: isChecked });
+
+		if (isSuccess) {
+			openModal(
+				<ModalContents
+					icon={<LuMailCheck />}
+					title="구독 설정이 완료되었습니다"
+					content={`내일부터 새로운 뉴스레터를 보내드려요.`}
+					filledButton="확인"
+					onConfirmClick={closeModal}
+				/>
+			);
+		} else {
+			showToast('구독에 실패했습니다. 다시 시도해주세요.', 'error');
+		}
 	};
 
 	return (
