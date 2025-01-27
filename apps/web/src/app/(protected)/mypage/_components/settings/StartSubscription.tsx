@@ -41,6 +41,7 @@ const StartSubscription = () => {
 				/>
 			);
 			setChecked(false);
+			handleSelectInterests();
 		}
 	};
 
