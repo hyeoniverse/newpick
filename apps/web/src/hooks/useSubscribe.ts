@@ -45,6 +45,7 @@ export const useSubscribeStatus = () => {
 	}, [subscriptionStatus, user, setUser]);
 
 	const refreshSubscription = async () => {
+		await queryClient.invalidateQueries({ queryKey: ['user'] });
 		await queryClient.invalidateQueries({ queryKey: ['subscriptionStatus'] });
 		return await refetchStatus();
 	};
