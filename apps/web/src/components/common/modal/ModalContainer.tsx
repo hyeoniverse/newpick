@@ -1,66 +1,58 @@
 'use client';
 
+import { useModal } from '@/hooks/useModal';
 import styled from 'styled-components';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { IoClose } from 'react-icons/io5';
-import { useMount } from '@/hooks/useMount';
 
 interface Props {
-	children: React.ReactNode; // 모달 내부에 렌더링될 자식 컴포넌트
-	isOpen: boolean; // 모달 열림 상태
-	onClose: () => void; // 모달을 닫을 때 실행되는 함수
+	onClose?: () => void; // 모달을 닫을 때 실행되는 함수
 }
 
-function Modal({ children, isOpen, onClose }: Props) {
-	const { isMounted } = useMount();
-	const [isAnimating, setIsAnimating] = useState(false); // 애니메이션 상태
-	const modalRef = useRef<HTMLDivElement | null>(null); // 모달 내부 DOM 요소 참조
-	const previousFocusedElement = useRef<HTMLElement | null>(null); // 모달이 열리기 전 포커스된 요소
+function Modal({ onClose }: Props) {
+	const { isOpen, content, closeModal } = useModal();
+	const [isAnimating, setIsAnimating] = useState(false);
+	const modalRef = useRef<HTMLDivElement | null>(null);
+	const previousFocusedElement = useRef<HTMLElement | null>(null);
 
-	// 모달 닫기 핸들러
 	const handleClose = () => {
-		setIsAnimating(true); // 닫기 애니메이션 실행
+		setIsAnimating(true);
 	};
 
-	// 모달 외부를 클릭했을 때 닫기
 	const handleOverlayClick = (e: React.MouseEvent) => {
 		if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
 			handleClose();
 		}
 	};
 
-	// ESC 키로 모달 닫기
 	const handleKeydown = useCallback((e: KeyboardEvent) => {
 		if (e.key === 'Escape') {
 			handleClose();
 		}
 	}, []);
 
-	// 애니메이션 종료 시 모달 닫기 처리
 	const handleAnimationEnd = () => {
 		if (isAnimating) {
 			setIsAnimating(false);
-			onClose(); // 부모 컴포넌트에서 전달받은 닫기 함수 호출
+			onClose?.();
+			closeModal();
 		}
 	};
 
 	useEffect(() => {
 		if (isOpen) {
-			// 모달이 열리면 이전 포커스된 요소 저장 및 ESC 키 이벤트 리스너 추가
 			previousFocusedElement.current = document.activeElement as HTMLElement;
 			window.addEventListener('keydown', handleKeydown);
 
 			if (modalRef.current) {
-				modalRef.current.focus(); // 모달 내부에 포커스 설정
+				modalRef.current.focus();
 			}
 		} else {
-			// 모달이 닫히면 ESC 키 이벤트 리스너 제거
 			window.removeEventListener('keydown', handleKeydown);
 		}
 
 		return () => {
-			// 컴포넌트 언마운트 시 ESC 키 이벤트 리스너 제거 및 포커스 복원
 			window.removeEventListener('keydown', handleKeydown);
 			if (previousFocusedElement.current) {
 				previousFocusedElement.current.focus();
@@ -68,7 +60,7 @@ function Modal({ children, isOpen, onClose }: Props) {
 		};
 	}, [isOpen, handleKeydown]);
 
-	if (!isMounted) return null;
+	if (!isOpen && !isAnimating) return null;
 
 	return createPortal(
 		<StyledModal
@@ -77,7 +69,7 @@ function Modal({ children, isOpen, onClose }: Props) {
 			onAnimationEnd={handleAnimationEnd}
 		>
 			<div className="modal-body" ref={modalRef} role="dialog" tabIndex={-1}>
-				<div className="modal-contents">{children}</div>
+				<div className="modal-contents">{content}</div>
 				<button className="modal-close" onClick={handleClose} aria-label="Close modal">
 					<IoClose />
 				</button>
@@ -90,22 +82,18 @@ function Modal({ children, isOpen, onClose }: Props) {
 const StyledModal = styled.div`
 	@keyframes fade-in {
 		from {
-			visibility: hidden;
 			opacity: 0;
 		}
 		to {
-			visibility: visible;
 			opacity: 1;
 		}
 	}
 
 	@keyframes fade-out {
 		from {
-			visibility: visible;
 			opacity: 1;
 		}
 		to {
-			visibility: hidden;
 			opacity: 0;
 		}
 	}
@@ -121,35 +109,44 @@ const StyledModal = styled.div`
 	position: fixed;
 	top: 0;
 	left: 0;
-	width: 100vw;
-	height: 100vh;
+	min-width: 100vw;
+	min-height: 100vh;
 	z-index: 1000;
-	background: rgba(0, 0, 0, 0.6);
+	background: rgba(32, 29, 29, 0.6);
 
-	/* 스크롤바 숨김 처리 (브라우저별 설정) */
-	scrollbar-width: none; /* Firefox */
+	/* Firefox */
+	scrollbar-width: none;
+
+	/* Webkit 기반 브라우저 (Chrome, Safari, Edge) */
 	&::-webkit-scrollbar {
-		display: none; /* Webkit 기반 브라우저 (Chrome, Safari, Edge) */
+		display: none;
 	}
-	-ms-overflow-style: none; /* IE, Edge */
+
+	/* IE, Edge */
+	-ms-overflow-style: none;
 
 	.modal-body {
+		width: fit-content;
+		height: fit-content;
+		min-width: ${({ theme }) => theme.layout.width.small};
+		max-width: ${({ theme }) => theme.layout.width.medium};
+		padding: 2rem;
+
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+
 		position: absolute;
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
-		border-radius: ${({ theme }) => theme?.borderRadius?.medium};
-		box-shadow: ${({ theme }) => theme?.shadow?.medium};
-		background: ${({ theme }) => theme?.color?.background};
-		min-width: 30rem;
-		max-width: 80vw;
-		max-height: 80vh;
-		min-height: 20rem;
-		display: flex;
-		flex-direction: column;
 
-		align-items: center;
-		justify-content: center;
+		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		box-shadow: ${({ theme }) => theme.shadow.medium};
+		background: ${({ theme }) => theme.color.background};
+
+		transition: opacity 0.3s ease-in-out;
 	}
 
 	.modal-contents {
@@ -161,14 +158,14 @@ const StyledModal = styled.div`
 	}
 
 	.modal-close {
+		position: absolute;
+		top: 1rem;
+		right: 1rem;
+
 		border: none;
 		color: ${({ theme }) => theme?.color?.text};
 		background: transparent;
 		cursor: pointer;
-		position: absolute;
-		top: 1rem;
-		right: 1rem;
-		z-index: 1000;
 
 		svg {
 			width: 2rem;

@@ -53,6 +53,7 @@ const ModalContentsStyled = styled.div`
 	align-items: center;
 	justify-content: center;
 	gap: 1.875rem;
+	white-space: pre-line;
 
 	.contents {
 		text-align: center;
@@ -65,7 +66,6 @@ const ModalContentsStyled = styled.div`
 		}
 
 		span {
-			white-space: pre-line;
 			color: ${({ theme }) => theme.color.subText};
 		}
 	}

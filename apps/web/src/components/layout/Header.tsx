@@ -5,7 +5,6 @@ import { useCallback, useEffect, useRef } from 'react';
 
 import { SCROLL } from '@/constants/numbers';
 import { useAuth } from '@/hooks/useAuth';
-import { useModal } from '@/hooks/useModal';
 import { useDropdown } from '@/hooks/useDropdown';
 import { useHeader } from '@/hooks/useHeader';
 
@@ -16,7 +15,6 @@ import { IoLogoGoogle } from 'react-icons/io';
 import Logo from '@/components/common/Logo';
 import Image from '@/components/common/Image';
 import Button from '@/components/common/Button';
-import Modal from '@/components/common/modal/Modal';
 import Dropdown from '@/components/common/Dropdown';
 import Spinner from '@/components/common/loader/Spinner';
 import Navigation from '@/components/layout/header/Navigation';
@@ -29,7 +27,6 @@ const Header = () => {
 	const { user, isLoading, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
-	const { isOpen, modalType, closeModal } = useModal();
 	const lastScrollY = useRef(0);
 
 	const handleScroll = useCallback(() => {
@@ -129,11 +126,6 @@ const Header = () => {
 					)}
 				</div>
 			</div>
-			{isOpen && modalType === 'subscribe' && (
-				<Modal isOpen={isOpen} onClose={closeModal}>
-					<div>구독하기 모달 내용</div>
-				</Modal>
-			)}
 		</StyledHeader>
 	);
 };

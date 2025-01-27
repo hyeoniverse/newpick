@@ -11,8 +11,7 @@ import { LuMailCheck, LuMailX } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import InputCheck from '@/components/common/InputCheck';
-import Modal from '@/components/common/modal/Modal';
-import ModalContents from '@/components/common/modal/ModalContents';
+import ModalContents from '@/components/common/modal/ModalContent';
 import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
 
@@ -26,13 +25,21 @@ const StartSubscription = () => {
 	} = useSubscribe();
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
-	const { isOpen, modalType, openModal, closeModal } = useModal();
+	const { openModal, closeModal } = useModal();
 
 	const handleSubscribe = () => {
 		const isSuccess = startSubscription({ interests: selectedInterests, isChecked: isChecked });
 
 		if (isSuccess) {
-			openModal('submit-start');
+			openModal(
+				<ModalContents
+					icon={<LuMailCheck />}
+					title="구독 설정이 완료되었습니다"
+					content={`내일부터 새로운 뉴스레터를 보내드려요.`}
+					filledButton="확인"
+					onConfirmClick={closeModal}
+				/>
+			);
 			setChecked(false);
 		}
 	};
@@ -54,7 +61,19 @@ const StartSubscription = () => {
 							type="submit"
 							scheme="danger"
 							size="small"
-							onClick={() => openModal('submit-cancel')}
+							onClick={() =>
+								openModal(
+									<ModalContents
+										icon={<LuMailX />}
+										title={`구독을 해지하면 구독과 관련된\n모든 정보가 삭제됩니다.`}
+										content="정말로 해지하시겠습니까?"
+										outlineButton="확인"
+										onCancelClick={handleCancel}
+										filledButton="취소"
+										onConfirmClick={closeModal}
+									/>
+								)
+							}
 							disabled={cancelMutation.isPending}
 						>
 							구독 해지
@@ -102,15 +121,20 @@ const StartSubscription = () => {
 			</div>
 			{isSubscribed === null && (
 				<div className="subscription-agreement">
-					<InputCheck name="mypage-agreement" />
-					<Text size="extraSmall">
+					<InputCheck
+						className="agreement-check"
+						name="mypage-agreement"
+						disabled={isChangingSubscription || isSubscribed !== null}
+					/>
+					<div className="agreement-text">
 						<Text size="extraSmall" weight="semiBold" color="primary">
 							[필수]&nbsp;
 						</Text>
-						NewPick의&nbsp;
+						<Text size="extraSmall">NewPick의&nbsp;</Text>
 						<Link href="/privacy">이용약관</Link>&nbsp;
-						<Link href="/privacy">개인정보처리방침</Link>&nbsp;에 동의합니다.
-					</Text>
+						<Link href="/privacy">개인정보처리방침</Link>
+						<Text size="extraSmall">에 동의합니다.</Text>
+					</div>
 				</div>
 			)}
 			<div className="btn">
@@ -124,31 +148,6 @@ const StartSubscription = () => {
 					{isSubscribed === false ? '재시작' : '완료'}
 				</Button>
 			</div>
-			{/*모달*/}
-			{isOpen && modalType === 'submit-start' && (
-				<Modal isOpen={isOpen} onClose={closeModal}>
-					<ModalContents
-						icon={<LuMailCheck />}
-						title="구독 설정이 완료되었습니다"
-						content={`내일부터 새로운 뉴스레터를 보내드려요.`}
-						filledButton="확인"
-						onConfirmClick={closeModal}
-					/>
-				</Modal>
-			)}
-			{isOpen && modalType === 'submit-cancel' && (
-				<Modal isOpen={isOpen} onClose={closeModal}>
-					<ModalContents
-						icon={<LuMailX />}
-						title="구독을 해지하면 구독과 관련된 모든 정보가 삭제됩니다."
-						content="정말로 해지하시겠습니까?"
-						outlineButton="취소"
-						onCancelClick={closeModal}
-						filledButton="확인"
-						onConfirmClick={handleCancel}
-					/>
-				</Modal>
-			)}
 		</StyeldStartSubscription>
 	);
 };
@@ -218,16 +217,28 @@ const StyeldStartSubscription = styled.div`
 	}
 
 	.subscription-agreement {
-		display: flex;
-		justify-content: flex-start;
+		width: 100%;
+		display: inline-flex;
 		align-items: top;
 		gap: 0.5rem;
 		margin-top: 0.5rem;
 		line-height: 1.5;
-		white-space: normal;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		color: ${({ theme }) => theme.color.subText};
 		text-align: left;
+
+		input {
+			display: inline-flex;
+			vertical-align: middle;
+		}
+
+		span {
+			display: inline-flex;
+			vertical-align: middle;
+			span {
+				white-space: nowrap;
+			}
+		}
 
 		a {
 			color: ${({ theme }) => theme.color.primary};

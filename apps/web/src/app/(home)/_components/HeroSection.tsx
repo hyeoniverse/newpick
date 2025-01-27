@@ -4,11 +4,10 @@ import { bannersData } from '@/mocks/home/index';
 import { styled } from 'styled-components';
 import Title from '@/components/common/Title';
 import Button from '@/components/common/Button';
-import Modal from '@/components/common/modal/Modal';
 import BannerSlider from '@/components/common/slider/BannerSlider';
 
 const HeroSection = () => {
-	const { isOpen, modalType, openModal, closeModal } = useModal();
+	const { openModal } = useModal();
 
 	return (
 		<StyledHeroSection>
@@ -23,18 +22,19 @@ const HeroSection = () => {
 					size="large"
 					scheme="primary"
 					style={{ marginTop: '1rem' }}
-					onClick={() => openModal('explore')}
+					onClick={() =>
+						openModal(
+							<>
+								<Title size="medium">뉴스레터 생성하기</Title>
+								<Button>생성하기</Button>
+							</>
+						)
+					}
 				>
 					AI 뉴스레터 체험하기
 				</Button>
 			</div>
 			<BannerSlider banners={bannersData} />
-			{isOpen && modalType === 'explore' && (
-				<Modal isOpen={isOpen} onClose={closeModal}>
-					<Title size="medium">뉴스레터 생성하기</Title>
-					<Button>생성하기</Button>
-				</Modal>
-			)}
 		</StyledHeroSection>
 	);
 };
