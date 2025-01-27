@@ -16,22 +16,6 @@ function MySubscribe() {
 	const [activeCategory, setActiveCategory] = useState<string>('');
 	const [summaryInfo] = useState<IMySummary[] | null>(null);
 
-	// useEffect(() => {
-	// 	async function fetchSummary() {
-	// 		try {
-	// 			const res = await fetch(`http://localhost:1000/mysummary`);
-	// 			if (!res.ok) {
-	// 				throw new Error('No such article found');
-	// 			}
-	// 			const data = await res.json();
-	// 			setSummaryInfo(data);
-	// 		} catch (err) {
-	// 			console.error(err);
-	// 		}
-	// 	}
-	// 	fetchSummary();
-	// }, []);
-
 	const handleConfirm = () => {
 		setActiveTab('settings');
 	};
@@ -81,12 +65,13 @@ function MySubscribe() {
 		};
 	}, [summaryInfo]);
 
-	// 3) 구독중이면 네비 + 컨텐츠 표시, 아니면 NoContentsPage 표시
+	// 구독중이면 네비 + 컨텐츠 표시, 아니면 NoContentsPage 표시
 	return (
 		<>
 			{isSubscribed === null ? (
 				<NoContentsPage
-					text={`뉴스레터를 구독 중이 아닙니다. \n 새로운 뉴스레터 구독을 시작해보시겠습니까?`}
+					text={`뉴스레터를 구독 중이 아닙니다.
+            새로운 뉴스레터 구독을 시작해보시겠습니까?`}
 					btnText={'구독 바로가기'}
 					onClick={handleConfirm}
 				/>
