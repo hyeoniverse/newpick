@@ -1,70 +1,23 @@
 import { useCallback, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { usePathname, useRouter } from 'next/navigation';
+
 import { User } from '@/models/user.model';
 import { API_URL, API_ENDPOINTS } from '@/constants/api';
 import { AUTH, POPUP } from '@/constants/numbers';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCookie } from '@/hooks/useCookie';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { usePathname, useRouter } from 'next/navigation';
+import { fetchUser } from '@/api/auth';
 
 export const useAuth = () => {
-	const router = useRouter();
-	const pathname = usePathname();
-	const queryClient = useQueryClient();
-	const { user, setUser, isLoading, setIsLoading } = useAuthStore();
 	const { getAuthCookies } = useCookie();
+	const { user, setUser, isLoading, setIsLoading } = useAuthStore();
+
+	const queryClient = useQueryClient();
 	const { token, userId } = getAuthCookies();
 
-	// 사용자 정보를 가져오는 비동기 함수
-	const fetchUser = useCallback(async (): Promise<User | null> => {
-		const { token, userId } = getAuthCookies();
-
-		if (!token || !userId) {
-			console.warn('No token or userId found in cookies');
-			return null;
-		}
-
-		try {
-			const res = await fetch(API_ENDPOINTS.AUTH.USER(userId), {
-				method: 'GET',
-				credentials: 'include',
-				headers: {
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${token}`,
-				},
-			});
-
-			if (!res.ok) {
-				if (res.status === 401) {
-					// 토큰 만료 시 로그아웃 처리
-					setUser(null);
-					alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
-					return null;
-				}
-
-				throw new Error('Failed to fetch user');
-			}
-
-			return await res.json();
-		} catch (error) {
-			console.error(error);
-			return null;
-		}
-	}, [getAuthCookies, setUser]);
-
-	// `useQuery`를 활용하여 자동으로 사용자 정보 가져오기 (토큰이 존재하는 경우 실행)
-	const {
-		data: userData,
-		status: userStatus,
-		error: userError,
-		isLoading: userIsLoading,
-	} = useQuery<User | null>({
-		queryKey: ['user'],
-		queryFn: fetchUser,
-		enabled: !!(token && userId),
-		staleTime: AUTH.STALE_TIME,
-		retry: 1,
-	});
+	const router = useRouter();
+	const pathname = usePathname();
 
 	// 로그인 핸들러 (Google OAuth)
 	const handleLogin = async () => {
@@ -80,12 +33,10 @@ export const useAuth = () => {
 					return;
 				}
 
+				// Zustand 상태 업데이트
 				setUser(user);
 				queryClient.invalidateQueries({ queryKey: ['user'] });
 				queryClient.invalidateQueries({ queryKey: ['subscriptionStatus'] });
-				if (userData) {
-					setUser(userData);
-				}
 			}
 		});
 	};
@@ -120,6 +71,20 @@ export const useAuth = () => {
 		}
 	}, [pathname, queryClient, router, setUser]);
 
+	// `useQuery`를 활용하여 자동으로 사용자 정보 가져오기 (토큰이 존재하는 경우 실행)
+	const {
+		data: userData,
+		status: userStatus,
+		error: userError,
+		isLoading: userIsLoading,
+	} = useQuery<User | null>({
+		queryKey: ['user'],
+		queryFn: () => fetchUser(token as string, userId as number),
+		enabled: true, // 토큰이 없어도 실행
+		staleTime: AUTH.STALE_TIME,
+		retry: 1,
+	});
+
 	// 페이지 새로고침 후 로그인 유지 (사용자 정보 설정)
 	useEffect(() => {
 		if (userStatus === 'success' && userData) {
@@ -132,8 +97,6 @@ export const useAuth = () => {
 	// 주기적으로 토큰 만료 확인
 	useEffect(() => {
 		const interval = setInterval(() => {
-			const { token, userId } = getAuthCookies();
-
 			if (!token && !userId && user) {
 				setUser(null);
 				alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
@@ -141,7 +104,7 @@ export const useAuth = () => {
 		}, AUTH.TOKEN.INTERVAL); // 1분마다 실행
 
 		return () => clearInterval(interval);
-	}, [token, userId, fetchUser, setUser, user, getAuthCookies]);
+	}, [token, userId, setUser, user]);
 
 	return {
 		user,
