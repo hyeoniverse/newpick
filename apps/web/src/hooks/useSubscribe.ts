@@ -1,10 +1,10 @@
 import { API_ENDPOINTS } from '@/constants/api';
+import { useCookie } from '@/hooks/useCookie';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
-import { useCookie } from './useCookie';
 
 // 구독 시작 요청 (POST)
 const startSubscription = async ({ userId }: { userId: number }) => {
