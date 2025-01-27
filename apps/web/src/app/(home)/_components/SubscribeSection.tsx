@@ -19,7 +19,7 @@ const SubscribeSection = () => {
 		isChanging: isChangingSubscription,
 		handleSubscribe: startSubscription,
 	} = useSubscribe();
-	const { isChecked } = useInputCheck('subscribe-agreement');
+	const { isChecked } = useInputCheck('home-agreement');
 
 	const handleSubscribe = (e: React.FormEvent) => {
 		e.preventDefault();
