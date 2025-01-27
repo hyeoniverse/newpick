@@ -21,7 +21,7 @@ const StartSubscription = () => {
 		isChanging: isChangingSubscription,
 		handleSubscribe: startSubscription,
 		handleCancel: cancelSubscription,
-		cancelMutation,
+		isChanging,
 	} = useSubscribe();
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
@@ -74,7 +74,7 @@ const StartSubscription = () => {
 									/>
 								)
 							}
-							disabled={cancelMutation.isPending}
+							disabled={isChanging}
 						>
 							구독 해지
 						</Button>
