@@ -8,23 +8,26 @@ import PrevNextArticle from "@/app/articles/detail/[slug]/_components/PrevNextAr
 import LatestArticle from "@/app/articles/detail/[slug]/_components/LatestArticle";
 import MobileLikeLinkButton from "@/app/articles/detail/[slug]/_components/MobileLikeLinkButton";
 import CommentsSection from '@/app/articles/detail/[slug]/_components/CommentsSection';
+import { IArticleDetail } from '@/models/articleDetail';
 
 interface Props {
   summary: string;
   content: string;
+  popular: IArticleDetail[];
+  latest: IArticleDetail[];
 }
 
-function Article({summary, content}: Props) {
+function Article({summary, content, popular, latest}: Props) {
   return (
     <ArticleStyled>
       <SummaryTextBox>{summary}</SummaryTextBox>
       <div className="content-section">
         <ArticleContent className="content" content={content}/>
-        <PopularArticle className="popular" />
+        <PopularArticle className="popular" popular={popular} />
       </div>
       <PrevNextArticle className="prev-next" />
       <CommentsSection className="comments-section"/>
-      <LatestArticle className="latest" />
+      <LatestArticle className="latest" latest={latest} />
       <MobileLikeLinkButton className="icons" />
     </ArticleStyled>
   );
@@ -34,7 +37,7 @@ const ArticleStyled = styled.div`
     margin: 4rem 0;
     position: relative;
     width: 100%;
-    height: 100%;
+    height: auto;
 
     .content-section {
         display: flex;
@@ -42,8 +45,6 @@ const ArticleStyled = styled.div`
         justify-content: flex-start;
         gap: 2rem;
         margin: 2rem 0;
-        height: 100%;
-
 
         .content {
             flex: 3;

@@ -1,5 +1,3 @@
-'use client'
-
 import styled from "styled-components";
 
 interface Props {
@@ -23,7 +21,7 @@ const SummaryContainerStyled = styled.div<Props>`
     border: 1px solid ${({theme}) => theme.color.border};
     border-radius: ${({theme}) => theme.borderRadius.soft};
     padding: 1.25rem;
-    height: 100%;
+    height: auto;
 `
 
 const SummaryTextBoxStyled = styled.p`

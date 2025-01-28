@@ -9,19 +9,15 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation } from "swiper/modules";
+import { IArticleDetail } from '@/models/articleDetail';
 
 interface Props {
+  latest: IArticleDetail[];
   className?: string;
 }
 
-function LatestArticle({ className }: Props) {
-  
-  const mappedArticle = MYSUMMARYNEWS.map((article, index) => {
-    return ({index: index, value: article});
-  })
-  // latest를 위해 조회수 순으로도 정렬 필요 (추후)
-  const sliceArticle = mappedArticle.slice(0, 9)
-  
+function LatestArticle({ latest, className }: Props) {
+
   return (
     <LatestArticleStyled className={className}>
       <div className="section-title">
@@ -52,14 +48,14 @@ function LatestArticle({ className }: Props) {
             <div className="swiper-button-prev" />
             <div className="swiper-button-next" />
           </div>
-          {sliceArticle.map((article, index) => (
+          {latest.map((article, index) => (
             <SwiperSlide key={index} className="swiper-slide">
               <Link href={"#"}>
-                <p className="title">{article.value.title}</p>
+                <p className="title">{article.title}</p>
                 <div className="bottom">
                   <LikeIcon />
                   <BarHeight height="1rem" $margin="0.75rem" />
-                  <p className="date">{dateFormatter(article.value.createdAt)}</p>
+                  <p className="date">{dateFormatter(article.createdAt)}</p>
                 </div>
               </Link>
             </SwiperSlide>

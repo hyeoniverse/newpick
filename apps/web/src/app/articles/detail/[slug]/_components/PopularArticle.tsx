@@ -1,36 +1,33 @@
-'use client';
-
 import styled from 'styled-components';
 import Link from 'next/link';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
-import { MYSUMMARYNEWS } from '@/lib/mypageData';
+import { IArticleDetail } from '@/models/articleDetail';
+import { dateFormatter } from '@/utils/formatter';
 
 interface Props {
+	popular: IArticleDetail[];
 	flex?: number;
 	className?: string;
 }
 
-function PopularArticle({ flex, className }: Props) {
-	const mappedNewsletter = MYSUMMARYNEWS.map((news, i) => ({ index: i, value: news }));
-	const sortNewsletter = mappedNewsletter.sort((a, b) => b.value.viewcount - a.value.viewcount);
-	const sliceNewsletter = sortNewsletter.slice(0, 5);
+function PopularArticle({ popular, flex, className }: Props) {
 
 	return (
 		<PopularNewsletterStyled flex={flex} className={className}>
 			<h3 className="section-title">지금 인기 아티클 TOP 5</h3>
 			<ul className="popular-list">
-				{sliceNewsletter.map((news, index) => (
+				{popular.map((article, index) => (
 					<li key={index}>
 						<p className="index">{index + 1}</p>
-						<Link href={'#'} className="text-section">
+						<Link href={`/articles/detail/${article.id}`} className="text-section">
 							<div>
-								<p className="title">{news.value.title}</p>
-								<p className="date">{news.value.createdAt}</p>
+								<p className="title">{article.title}</p>
+								<p className="date">{dateFormatter(article.createdAt)}</p>
 							</div>
 						</Link>
-						{news.value.img ? (
-							<Link href={'#'} className="thum-link">
-								<HeightAutoImg src={news.value.img} aspectratio={1} />
+						{article.imageUrl ? (
+							<Link href={`/articles/detail/${article.id}`} className="thum-link">
+								<HeightAutoImg src={article.imageUrl} aspectratio={1} />
 							</Link>
 						) : (
 							<div className="thum-empty" />
@@ -42,11 +39,11 @@ function PopularArticle({ flex, className }: Props) {
 	);
 }
 
-const PopularNewsletterStyled = styled.div<Props>`
+const PopularNewsletterStyled = styled.div<Omit<Props, 'popular'>>`
 	position: sticky;
 	overflow: auto;
 	height: 100%;
-	top: 1rem;
+	top: 4rem;
 
 	.index {
 		color: ${({ theme }) => theme.color.mediumGrey};

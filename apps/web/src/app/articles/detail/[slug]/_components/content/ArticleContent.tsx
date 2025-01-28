@@ -1,16 +1,22 @@
+'use client'
+
 import styled from "styled-components";
-import DefaultImg from "@/components/common/DefaultImg";
 import SubscribeInduce from "@/app/articles/detail/[slug]/_components/content/SubscribeInduce";
+import Image from '@/components/common/Image';
 
 interface NewsletterContentProps {
   content: string;
   flex?: number;
   className?: string;
+  articleImage?: string;
 }
 
-function ArticleContent({content, flex, className}: NewsletterContentProps) {
+function ArticleContent({content, flex, className, articleImage}: NewsletterContentProps) {
   return (
     <ContainerStyled flex={flex} className={className}>
+      {articleImage &&
+      <Image src={articleImage} alt={'image'} />
+      }
       <NewsletterContentStyled>
           <div
             dangerouslySetInnerHTML={{ __html: content }}
@@ -22,7 +28,7 @@ function ArticleContent({content, flex, className}: NewsletterContentProps) {
   );
 }
 
-const ContainerStyled = styled.div<NewsletterContentProps>`
+const ContainerStyled = styled.div<Omit<NewsletterContentProps, 'content'>>`
     position: relative;
     display: flex;
     flex-direction: column;

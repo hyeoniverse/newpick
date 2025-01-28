@@ -29,6 +29,7 @@ export const API_ENDPOINTS = {
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
 		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
+		LIST: (limit: number, offset: number) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
 	},
 	MAIL: {
 		SEND: `${API_URL}/mail/send`,

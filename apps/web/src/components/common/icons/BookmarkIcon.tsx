@@ -1,3 +1,5 @@
+'use client'
+
 import { useState } from "react";
 import { useTheme } from 'styled-components';
 import { IconStyled } from "@/styles/Icon";

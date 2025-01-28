@@ -1,5 +1,5 @@
-export function stripCodeFence(content: string, language: string = 'html'): string {
-  const codeFenceStart = `\`\`\`${language}\n`;
+export function stripCodeFence(content: string = '', language: string = 'html'): string {
+  const codeFenceStart = `\`\`\`${language}`;
   const codeFenceEnd = '```';
 
   if (content.startsWith(codeFenceStart) && content.endsWith(codeFenceEnd)) {
