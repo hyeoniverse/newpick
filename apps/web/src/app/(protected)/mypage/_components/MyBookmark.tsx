@@ -1,5 +1,5 @@
 import styled from 'styled-components';
-import LikeIcon from '@/components/common/icons/LikeIcon';
+import LikeIcon from '@/components/common/icons/BookmarkIcon';
 import NoContentsPage from '@/components/common/NoContentsPage';
 import { currentUserData } from '@/mocks';
 import Card from '@/components/common/Card';

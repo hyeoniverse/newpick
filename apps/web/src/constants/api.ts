@@ -27,8 +27,8 @@ export const API_ENDPOINTS = {
 		GET_BY_ID: (id: string) => `${API_URL}/news/${id}`,
 	},
 	NEWSLETTER: {
-		BASE: `${API_URL}/newsletter`,
-		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletter?page=${page}&limit=${limit}`,
+		BASE: `${API_URL}/newsletters`,
+		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
 	},
 	MAIL: {
 		SEND: `${API_URL}/mail/send`,

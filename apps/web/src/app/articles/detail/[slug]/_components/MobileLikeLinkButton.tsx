@@ -1,6 +1,6 @@
 import styled from "styled-components";
 import { useEffect, useState } from "react";
-import LikeIcon from "@/components/common/icons/LikeIcon";
+import LikeIcon from "@/components/common/icons/BookmarkIcon";
 import LinkCopyIcon from "@/components/common/icons/LinkCopyIcon";
 
 interface Props {

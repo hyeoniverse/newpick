@@ -1,58 +1,53 @@
-'use client';
-
-import styled from 'styled-components';
-import { useParams } from 'next/navigation';
-import TitleSection from '@/components/article/content/TitleSection';
-import { useEffect, useState } from 'react';
-import { INewsDetail } from '@/models/newsDetail';
+import Article from '@/app/articles/detail/[slug]/_components/Article';
+import API_ENDPOINTS from '@/constants/api';
+import TitleSection from '@/app/articles/detail/[slug]/_components/content/TitleSection';
 import { dateFormatter } from '@/utils/formatter';
-import Article from "@/components/article/Article";
+import { IArticleDetail } from '@/models/articleDetail';
+import { stripCodeFence } from '@/utils/stripCodeFence';
 
-function NewsletterDetailPage() {
-	const [newsInfo, setNewsInfo] = useState<INewsDetail | null>(null);
-	const params = useParams();
+export default async function NewsletterDetailPage({
+	params,
+}: {
+	params: {slug: string};
+}) {
+	const { slug } = (await params);
+	console.log(slug);
 
-	useEffect(() => {
-		console.log('Params:', typeof params.slug); // 값 확인
-		async function fetchNewsDetail() {
-			if (params.slug) {
-				try {
-					const res = await fetch(`http://localhost:1000/news/${params.slug}`);
-					if (!res.ok) {
-						throw new Error('No such news found');
-					}
-					const data = await res.json();
-					setNewsInfo(data);
-				} catch (err) {
-					console.error(err);
-				}
-			}
-		}
+	const res = await fetch(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`);
 
-		fetchNewsDetail();
-	}, [params]);
+	if (!res.ok) {
+		throw new Error('Failed to fetch detail');
+	}
+	console.log("dsdfsdfsdfsdfsdfs", res, "Datenow", Date.now());
+
+	const data = await res.json();
+	const article: IArticleDetail = data.data;
+
+	const cleanContentAsHTML = stripCodeFence(article.contentAsHTML, 'html');
+
+	console.log('article', article);
 
 	return (
-		<NewsletterDetailPageStyled>
+		<>
 			<TitleSection
-				category={newsInfo?.categoryId}
-				title={newsInfo?.title}
-				date={dateFormatter(newsInfo?.createdAt)}
+				category={article.categoryId}
+				title={article.title}
+				date={dateFormatter(article.createdAt)}
 			/>
 			<div className="content-section">
 				<Article
-					content={newsInfo?.summary ? newsInfo.summary : ''}
+					summary={article.content ? article.content : ''}
+					content={cleanContentAsHTML}
 				/>
 			</div>
-		</NewsletterDetailPageStyled>
+		</>
 	);
 }
 
-const NewsletterDetailPageStyled = styled.div`
-	margin: 2.5rem 0;
-
-	height: 100%;
-	width: 100%;
-`;
-
-export default NewsletterDetailPage;
+//
+// const NewsletterDetailPageStyled = styled.div`
+// 	//margin: 2.5rem 0;
+//     //
+// 	//height: 100%;
+// 	//width: 100%;
+// `;

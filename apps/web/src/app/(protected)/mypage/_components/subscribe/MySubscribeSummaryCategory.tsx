@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { IoIosArrowForward } from 'react-icons/io';
 import Link from 'next/link';
-import LikeIcon from '@/components/common/icons/LikeIcon';
+import LikeIcon from '@/components/common/icons/BookmarkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import BarWidth from '@/components/common/BarWidth';

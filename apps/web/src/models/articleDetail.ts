@@ -1,14 +1,13 @@
-export interface INewsDetail {
+export interface IArticleDetail {
   id: number;
   title: string;
-  summary: string;
   content: string;
-  img: string;
+  contentAsHTML: string;
+  imageUrl: string | null;
   categoryId: number;
-  userId: number;
-  createdAt: string;
-  likes: number;
   viewcount: number;
+  usedNews: string;
+  createdAt: string;
 }
 
 export interface IMySummary {

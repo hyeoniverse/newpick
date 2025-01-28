@@ -2,23 +2,24 @@
 
 import styled from "styled-components";
 import SummaryTextBox from "@/components/common/article/SummaryTextBox";
-import PopularArticle from "@/components/article/PopularArticle";
-import ArticleContent from "@/components/article/content/ArticleContent";
-import PrevNextArticle from "@/components/article/PrevNextArticle";
-import LatestArticle from "@/components/article/LatestArticle";
-import MobileLikeLinkButton from "@/components/article/MobileLikeLinkButton";
-import CommentsSection from '@/components/article/CommentsSection';
+import PopularArticle from "@/app/articles/detail/[slug]/_components/PopularArticle";
+import ArticleContent from "@/app/articles/detail/[slug]/_components/content/ArticleContent";
+import PrevNextArticle from "@/app/articles/detail/[slug]/_components/PrevNextArticle";
+import LatestArticle from "@/app/articles/detail/[slug]/_components/LatestArticle";
+import MobileLikeLinkButton from "@/app/articles/detail/[slug]/_components/MobileLikeLinkButton";
+import CommentsSection from '@/app/articles/detail/[slug]/_components/CommentsSection';
 
 interface Props {
+  summary: string;
   content: string;
 }
 
-function Article({content}: Props) {
+function Article({summary, content}: Props) {
   return (
     <ArticleStyled>
-      <SummaryTextBox>{content}</SummaryTextBox>
+      <SummaryTextBox>{summary}</SummaryTextBox>
       <div className="content-section">
-        <ArticleContent className="content" />
+        <ArticleContent className="content" content={content}/>
         <PopularArticle className="popular" />
       </div>
       <PrevNextArticle className="prev-next" />
@@ -50,6 +51,7 @@ const ArticleStyled = styled.div`
 
         .popular {
             flex: 1;
+            margin-top: 2rem;
         }
     }
     

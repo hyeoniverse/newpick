@@ -2,11 +2,13 @@
 
 import styled from "styled-components";
 import { IoArrowBack } from "react-icons/io5";
-import LikeIcon from "@/components/common/icons/LikeIcon";
+import LikeIcon from "@/components/common/icons/BookmarkIcon";
 import LinkCopyIcon from "@/components/common/icons/LinkCopyIcon";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import MoveButton from "@/components/common/MoveButton";
+import { useEffect, useState } from 'react';
+import { INewsDetail } from '@/models/articleDetail';
 
 interface TitleSectionProps {
   category?: number;
