@@ -1,6 +1,4 @@
 import Article from '@/app/articles/detail/[slug]/_components/Article';
-import TitleSection from '@/app/articles/detail/[slug]/_components/content/TitleSection';
-import { dateFormatter } from '@/utils/formatter';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 import { getArticleContent, getArticleList, getPopularArticles } from '@/services/articleService';
 

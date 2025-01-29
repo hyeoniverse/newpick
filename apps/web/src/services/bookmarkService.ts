@@ -9,10 +9,10 @@ export async function getUserBookmarks(): Promise<BookmarkItem[]> {
   return await fetchUserBookmarksApi();
 }
 
-export async function addUserBookmark(userId: number, newsId: number): Promise<BookmarkItem> {
-  return await addBookmarkApi(userId, newsId);
+export async function addUserBookmark(newsId: number): Promise<BookmarkItem> {
+  return await addBookmarkApi(newsId);
 }
 
-export async function removeUserBookmark(userId: number, newsId: number): Promise<{ success: boolean }> {
-  return await removeBookmarkApi(userId, newsId);
+export async function removeUserBookmark(newsId: number): Promise<{ success: boolean }> {
+  return await removeBookmarkApi(newsId);
 }
