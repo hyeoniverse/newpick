@@ -2,14 +2,15 @@
 
 import styled from "styled-components";
 import { useEffect, useState } from "react";
-import LikeIcon from "@/components/common/icons/BookmarkIcon";
 import LinkCopyIcon from "@/components/common/icons/LinkCopyIcon";
+import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 
 interface Props {
   className?: string;
+  newsId: number;
 }
 
-function MobileLikeLinkButton({className}: Props) {
+function MobileLikeLinkButton({className, newsId}: Props) {
   const [ showButton, setShowButton ] = useState(false)
 
   useEffect(() => {
@@ -38,7 +39,7 @@ function MobileLikeLinkButton({className}: Props) {
 
   return (
     <MobileLikeLinkButtonStyled className={className}>
-      <LikeIcon className={`mobile-icon blur ${showButton ? "fade-in " : "fade-out"}`} />
+      <BookmarkIcon newsId={newsId} className={`mobile-icon blur ${showButton ? "fade-in " : "fade-out"}`} />
       <LinkCopyIcon className={`mobile-icon blur ${showButton ? "fade-in " : "fade-out"}`} />
     </MobileLikeLinkButtonStyled>
   );

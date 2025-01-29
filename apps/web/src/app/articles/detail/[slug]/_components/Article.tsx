@@ -9,16 +9,39 @@ import LatestArticle from "@/app/articles/detail/[slug]/_components/LatestArticl
 import MobileLikeLinkButton from "@/app/articles/detail/[slug]/_components/MobileLikeLinkButton";
 import CommentsSection from '@/app/articles/detail/[slug]/_components/CommentsSection';
 import { IArticleDetail } from '@/models/articleDetail';
+import MoveButton from '@/components/common/MoveButton';
+import { IoArrowBack } from 'react-icons/io5';
+import Link from 'next/link';
+import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
+import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
+import { useRouter } from 'next/navigation';
 
 interface Props {
+  article: IArticleDetail;
   summary: string;
   content: string;
   popular: IArticleDetail[];
   latest: IArticleDetail[];
+  newsId: number;
 }
 
-function Article({summary, content, popular, latest}: Props) {
+function Article({article, summary, content, popular, latest, newsId}: Props) {
+  const router = useRouter();
+
   return (
+    <>
+    <TitleSectionStyled>
+      <MoveButton onClick={() => router.back()} text="이전으로" frontIcon={<IoArrowBack/>}/>
+      <div className="title-section">
+        <Link href={'#'} className="category">{article.categoryId}</Link>
+        <h1 className="title">{article.title}</h1>
+        <p className="date">{article.createdAt}</p>
+        <div className="icons">
+          <BookmarkIcon newsId={article.id}/>
+          <LinkCopyIcon />
+        </div>
+      </div>
+    </TitleSectionStyled>
     <ArticleStyled>
       <SummaryTextBox>{summary}</SummaryTextBox>
       <div className="content-section">
@@ -28,8 +51,9 @@ function Article({summary, content, popular, latest}: Props) {
       <PrevNextArticle className="prev-next" />
       <CommentsSection className="comments-section"/>
       <LatestArticle className="latest" latest={latest} />
-      <MobileLikeLinkButton className="icons" />
+      <MobileLikeLinkButton className="icons" newsId={newsId} />
     </ArticleStyled>
+    </>
   );
 }
 
@@ -89,6 +113,48 @@ const ArticleStyled = styled.div`
     .latest {
         order: 3;
     }
+`;
+
+
+const TitleSectionStyled = styled.div`
+    margin-top: 4rem;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+    .title-section {
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 0.25rem;
+        margin: 1.25rem 0;
+
+        .category {
+            color: ${({theme}) => theme.color.primary};
+            font-weight: ${({theme}) => theme.fontWeight.medium};
+        }
+        
+        .title {
+            word-break: auto-phrase;
+        }
+        
+        .icons {
+            display: flex;
+            flex-direction: row;
+            gap: 1rem;
+            justify-content: center;
+            align-items: center;
+            margin-top: 0.75rem;
+        }
+
+        .date {
+            color: ${({theme}) => theme.color.lightGrey};
+            font-size: ${({theme}) => theme.fontSize.extraSmall};
+        }
+    }
+
 `;
 
 export default Article;

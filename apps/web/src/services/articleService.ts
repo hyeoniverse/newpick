@@ -1,4 +1,4 @@
-import { fetchArticle, fetchArticleList } from '@/lib/article.api';
+import { fetchArticle, fetchArticleList } from '@/lib/articleApi';
 import { IArticleDetail } from '@/models/articleDetail';
 
 export const getArticleContent = async (slug: string) => {

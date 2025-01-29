@@ -1,7 +1,6 @@
 import styled from "styled-components";
-import { MYSUMMARYNEWS } from "@/lib/mypageData";
 import Link from "next/link";
-import LikeIcon from "@/components/common/icons/BookmarkIcon";
+import BookmarkIcon from "@/components/common/icons/BookmarkIcon";
 import BarHeight from "@/components/common/BarHeight";
 import { dateFormatter } from "@/utils/formatter";
 
@@ -53,7 +52,7 @@ function LatestArticle({ latest, className }: Props) {
               <Link href={"#"}>
                 <p className="title">{article.title}</p>
                 <div className="bottom">
-                  <LikeIcon />
+                  <BookmarkIcon newsId={article.id} />
                   <BarHeight height="1rem" $margin="0.75rem" />
                   <p className="date">{dateFormatter(article.createdAt)}</p>
                 </div>

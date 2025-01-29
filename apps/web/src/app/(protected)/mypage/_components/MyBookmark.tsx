@@ -1,54 +1,80 @@
 import styled from 'styled-components';
-import LikeIcon from '@/components/common/icons/BookmarkIcon';
+import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import NoContentsPage from '@/components/common/NoContentsPage';
-import { currentUserData } from '@/mocks';
 import Card from '@/components/common/Card';
 import Text from '@/components/common/Text';
-
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useBookmarkStore } from '@/stores/useBookmarkStore';
+import { useEffect } from 'react';
 
 function MyBookmark() {
-  const { summaries } = currentUserData;
+  const { user } = useAuthStore();
+  const {
+    bookmarks,
+    isLoading,
+    error,
+    fetchBookmarks,
+  } = useBookmarkStore();
+  console.log("bookmarkItems");
+
+  useEffect(() => {
+    if (user) {
+      fetchBookmarks();
+    }
+  }, [user, fetchBookmarks]);
+
+  if (!user) {
+    return <div>로그인 후 이용해주세요.</div>;
+  }
+
+  if (isLoading) {
+    return <div>북마크를 불러오는 중입니다...</div>;
+  }
+
+  if (error) {
+    return <div>에러가 발생했습니다: {error}</div>;
+  }
+
+  if (bookmarks.length === 0) {
+    return (
+      <NoContentsPage
+        text={`북마크한 뉴스레터가 없습니다.\n 다른 뉴스레터를 찾아보세요.`}
+        btnText={'오늘의 뉴스레터'}
+        moveTo={'/'}
+      />
+    );
+  }
 
   return (
     <>
-      {summaries.length > 0 ? (
-          <>
-            <MyBookmarkStyled>
-              <div className="trend-cards">
-                {summaries.map((info, index) => (
-                  <Card
-                    key={index}
-                    data={{
-                      id: info.id,
-                      image: info.img,
-                      header: info.categoryName,
-                      main: {
-                        title: info.title,
-                        description: info.summary,
-                      },
-                      footer: (
-                        <>
-                          <Text color="subText">{info.createdAt}</Text>
-                          <div className="right">
-                            <LikeIcon />
-                          </div>
-                        </>
-                      ),
-                    }}
-                  />
-                ))}
-              </div>
-            </MyBookmarkStyled>
-          </>
-        )
-        :
-        (
-          <NoContentsPage
-            text={`북마크한 뉴스레터가 없습니다. \n 다른 뉴스레터를 찾아보세요.`}
-            btnText={'오늘의 뉴스레터'}
-            moveTo={'/'}
-          />)
-      }
+      <MyBookmarkStyled>
+        <div className="trend-cards">
+          {bookmarks.map((item) => (
+            <Card
+              key={item.newsId}
+              data={{
+                id: item.newsId,
+                image: 'info.newsletterId',
+                header: `newsletterId: ${item.newsletterId}`,
+                main: {
+                  title: `News #${item.newsId}`,
+                  description: `Rating: ${item.rating}`,
+                },
+                footer: (
+                  <>
+                    <Text color="subText">
+                      {item.newsId}
+                    </Text>
+                    <div className="right">
+                      <BookmarkIcon newsId={item.newsId} />
+                    </div>
+                  </>
+                ),
+              }}
+            />
+          ))}
+        </div>
+      </MyBookmarkStyled>
     </>
   );
 }

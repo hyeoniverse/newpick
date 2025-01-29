@@ -2,7 +2,7 @@
 
 import styled from "styled-components";
 import { IoArrowBack } from "react-icons/io5";
-import LikeIcon from "@/components/common/icons/BookmarkIcon";
+import BookmarkIcon from "@/components/common/icons/BookmarkIcon";
 import LinkCopyIcon from "@/components/common/icons/LinkCopyIcon";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -25,7 +25,7 @@ function TitleSection({title, date, category}: TitleSectionProps) {
         <h1 className="title">{title}</h1>
         <p className="date">{date}</p>
         <div className="icons">
-          <LikeIcon />
+          <BookmarkIcon newsId={}/>
           <LinkCopyIcon />
         </div>
       </div>

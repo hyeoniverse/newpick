@@ -47,7 +47,11 @@ export const API_ENDPOINTS = {
 		BASE: `${API_URL}/feedback`,
 		PAGINATED: (newsletterId: number, page: number, limit: number) =>
 			`${API_URL}/feedback?newsletterId=${newsletterId}&page=${page}&limit=${limit}`,
+		BOOKMARK: `${API_URL}/feedback/bookmark`,
 	},
+	MYPAGE: {
+		BOOKMARKS: `${API_URL}/mypage/bookmarks`,
+	}
 };
 
 export default API_ENDPOINTS;

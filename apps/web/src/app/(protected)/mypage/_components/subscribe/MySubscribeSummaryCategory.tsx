@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import { IoIosArrowForward } from 'react-icons/io';
 import Link from 'next/link';
-import LikeIcon from '@/components/common/icons/BookmarkIcon';
+import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import BarWidth from '@/components/common/BarWidth';
@@ -30,7 +30,7 @@ function MySummaryCategory() {
 							<div className="img-section">
 								<HeightAutoImg src={info.img || null} height={'auto'} />
 								<div className="etc">
-									<LikeIcon />
+									<BookmarkIcon />
 									<LinkCopyIcon />
 									<OrigLinkIcon />
 								</div>
