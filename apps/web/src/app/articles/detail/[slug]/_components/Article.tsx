@@ -23,9 +23,11 @@ interface Props {
   popular: IArticleDetail[];
   latest: IArticleDetail[];
   newsId: number;
+  prev: IArticleDetail | null;
+  next: IArticleDetail | null;
 }
 
-function Article({article, summary, content, popular, latest, newsId}: Props) {
+function Article({article, summary, content, popular, latest, newsId, prev, next}: Props) {
   const router = useRouter();
 
   return (
@@ -48,7 +50,7 @@ function Article({article, summary, content, popular, latest, newsId}: Props) {
         <ArticleContent className="content" content={content}/>
         <PopularArticle className="popular" popular={popular} />
       </div>
-      <PrevNextArticle className="prev-next" />
+      <PrevNextArticle className="prev-next" prev={prev} next={next} />
       <CommentsSection className="comments-section"/>
       <LatestArticle className="latest" latest={latest} />
       <MobileLikeLinkButton className="icons" newsId={newsId} />

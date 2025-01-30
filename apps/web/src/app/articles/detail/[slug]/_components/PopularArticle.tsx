@@ -3,6 +3,7 @@ import Link from 'next/link';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import { IArticleDetail } from '@/models/articleDetail';
 import { dateFormatter } from '@/utils/formatter';
+import { getFirstImage } from '@/utils/getFirstImage';
 
 interface Props {
 	popular: IArticleDetail[];
@@ -27,7 +28,7 @@ function PopularArticle({ popular, flex, className }: Props) {
 						</Link>
 						{article.imageUrl ? (
 							<Link href={`/articles/detail/${article.id}`} className="thum-link">
-								<HeightAutoImg src={article.imageUrl} aspectratio={1} />
+								<HeightAutoImg src={getFirstImage(article.imageUrl)} aspectratio={1} />
 							</Link>
 						) : (
 							<div className="thum-empty" />

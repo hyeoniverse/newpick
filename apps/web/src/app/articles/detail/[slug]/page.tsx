@@ -5,7 +5,8 @@ import { getArticleContent, getArticleList, getPopularArticles } from '@/service
 export default async function NewsletterDetailPage({ params }: { params: { slug: string }; }) {
   const { slug } = (await params);
 
-  const articleContent = await getArticleContent(slug);
+  const articleInfo = await getArticleContent(slug);
+  const articleContent = articleInfo.newsletter;
   const articleContentHTML = stripCodeFence(articleContent.contentAsHTML, 'html');
 
   const popularArticles = await getPopularArticles(100);
@@ -13,11 +14,6 @@ export default async function NewsletterDetailPage({ params }: { params: { slug:
 
   return (
     <>
-      {/*<TitleSection*/}
-      {/*  category={articleContent.categoryId}*/}
-      {/*  title={articleContent.title}*/}
-      {/*  date={dateFormatter(articleContent.createdAt)}*/}
-      {/*/>*/}
       <Article
         article={articleContent}
         summary={articleContent.content ? articleContent.content : ''}
@@ -25,6 +21,8 @@ export default async function NewsletterDetailPage({ params }: { params: { slug:
         popular={popularArticles}
         latest={latestArticles}
         newsId={articleContent.id}
+        prev={articleInfo.previousNewsletter}
+        next={articleInfo.nextNewsletter}
       />
     </>
   );

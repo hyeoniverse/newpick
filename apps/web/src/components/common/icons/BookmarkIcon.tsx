@@ -20,7 +20,7 @@ export default function BookmarkIcon({ newsId, className }: BookmarkIconProps) {
 	const removeBookmarkMutation = useRemoveBookmarkMutation();
 	const { showToast } = useToast();
 
-	const isBookmarked = bookmarks?.some((b) => b.newsId === newsId);
+	const isBookmarked = bookmarks?.some((b) => b.id === newsId);
 
 	const handleToggle = async () => {
 		if (!user) {

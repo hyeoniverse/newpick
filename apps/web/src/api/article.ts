@@ -17,12 +17,12 @@ export const fetchArticle = async (slug: string) => {
   if (!response.ok) {
     throw new Error('아티클을 불러오는데 실패했습니다.');
   }
-  const dataDetail = await response.json();
+  const data = await response.json();
 
   // 빈 데이터의 백엔드 전송 필요
-  if (dataDetail.statusCode !== 200 || !dataDetail.data) {
+  if (data.statusCode !== 200 || !data.data) {
     notFound();
   }
 
-  return dataDetail;
+  return data.data;
 }

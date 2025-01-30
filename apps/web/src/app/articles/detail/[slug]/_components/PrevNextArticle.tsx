@@ -6,138 +6,164 @@ import MoveButton from '@/components/common/MoveButton';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import Link from 'next/link';
+import { IArticleDetail } from '@/models/articleDetail';
+import { dateFormatter } from '@/utils/formatter';
 
 interface Props {
 	className?: string;
+	prev: IArticleDetail | null;
+	next: IArticleDetail | null;
 }
 
-function PrevNextArticle({ className }: Props) {
+function PrevNextArticle({ className, prev, next }: Props) {
 	const [activeArticle, setActiveArticle] = useState<string | null>(null);
 
-	const handleMouseEnter = (articleType: 'prev' | 'next') => () => {
-		setActiveArticle(articleType);
-	};
+	const handleMouseEnter = (type: 'prev' | 'next') => () => setActiveArticle(type);
+	const handleMouseLeave = () => setActiveArticle(null);
 
-	const handleMouseLeave = () => {
-		setActiveArticle(null);
+	const renderArticle = (article: IArticleDetail | null, type: 'prev' | 'next') => {
+		const isPrev = type === 'prev';
+		const isDisabled = !article;
+		const href = isDisabled ? '#' : `/articles/detail/${article?.id}`;
+		const text = isPrev ? '이전글' : '다음글';
+		const icon = isPrev ? <IoArrowBack /> : <IoArrowForward />;
+		const isActive = activeArticle === type;
+
+		const title = article ? article.title : isPrev ? '이전글이 없습니다.' : '다음글이 없습니다.';
+		const date = article ? dateFormatter(article.createdAt) : '';
+		const src = article?.imageUrl;
+
+		if (!isDisabled) {
+			return (
+				<li className={`prev-next ${type} ${isActive ? 'active' : ''}`}>
+					<Link
+						href={href}
+						className="link"
+						onMouseEnter={handleMouseEnter(type)}
+						onMouseLeave={handleMouseLeave}
+					>
+						{isPrev ? (
+							<MoveButton className="btn" text={text} frontIcon={icon} />
+						) : (
+							<MoveButton className="btn" text={text} backIcon={icon} />
+						)}
+
+						<div className="img">
+							<HeightAutoImg src={src} aspectratio={1} />
+						</div>
+						<div className="text-section">
+							<p className="title">{title}</p>
+							<p className="date">{date}</p>
+						</div>
+					</Link>
+				</li>
+			);
+		}
+
+		return (
+			<li className={`prev-next ${type} disabled`}>
+				<div className="link">
+					{isPrev ? (
+						<MoveButton className="btn" text={text} frontIcon={icon} disabled />
+					) : (
+						<MoveButton className="btn" text={text} backIcon={icon} disabled />
+					)}
+					<div className="img">
+						<HeightAutoImg src={src} aspectratio={1} />
+					</div>
+					<div className="text-section">
+						<p className="title">{title}</p>
+						<p className="date">{date}</p>
+					</div>
+				</div>
+			</li>
+		);
 	};
 
 	return (
 		<PrevNextArticleStyled className={className}>
 			<ul>
-				<li className={`prev-next prev ${activeArticle === 'prev' ? 'active' : ''}`}>
-					<MoveButton onClick={() => {}} text="이전글" frontIcon={<IoArrowBack />} className="btn" />
-					<Link
-						href={'#'}
-						className="img"
-						onMouseEnter={handleMouseEnter('prev')}
-						onMouseLeave={handleMouseLeave}
-					>
-						<HeightAutoImg src="/img/newpick_default_img.jpg" aspectratio={1} />
-					</Link>
-					<Link
-						href={'#'}
-						className="text-section"
-						onMouseEnter={() => setActiveArticle('prev')}
-						onMouseLeave={() => setActiveArticle(null)}
-					>
-						<p className="title">
-							틀 임 리스트 타이틀 임 리스트 타이틀 임리스트 타이틀 임 리스트 타이틀 임 리스트 타이틀
-							임리스트 타이틀 임 리스트 타이틀 임 리스트 타이틀 임리스트 타이틀 임 리스트 타이틀 임 리스트
-							타이틀 임리스트 타이틀 임 리스트 타이틀 임 리스트 타이틀 임리스트 타이틀 임 리스트 타이틀 임
-							리스트 타이틀 임리스트 타이틀 임 리스트 타이틀 임 리스트 타이틀 임리스트 타이틀 임 리스트
-							타이틀 임 리스트 타이틀 임리스트 타이틀 임{' '}
-						</p>
-						<p className="date">2025-01-02</p>
-					</Link>
-				</li>
-
-				<li className={`prev-next next ${activeArticle === 'next' ? 'active' : ''}`}>
-					<MoveButton onClick={() => {}} text="다음글" backIcon={<IoArrowForward />} className="btn" />
-					<Link
-						href={'#'}
-						className="img"
-						onMouseEnter={() => setActiveArticle('next')}
-						onMouseLeave={() => setActiveArticle(null)}
-					>
-						<HeightAutoImg src="/img/newpick_default_img.jpg" aspectratio={1} />
-					</Link>
-					<Link
-						href={'#'}
-						className="text-section"
-						onMouseEnter={() => setActiveArticle('next')}
-						onMouseLeave={() => setActiveArticle(null)}
-					>
-						<p className="title">틀 임 리스트 타이틀 임 리스트 타이틀 임리스트 타이틀 </p>
-						<p className="date">2025-01-02</p>
-					</Link>
-				</li>
+				{renderArticle(prev, 'prev')}  {/* 이전글 */}
+				{renderArticle(next, 'next')}  {/* 다음글 */}
 			</ul>
 		</PrevNextArticleStyled>
 	);
 }
 
 const PrevNextArticleStyled = styled.section`
-	border-top: 1px solid ${({ theme }) => theme.color.border};
+  border-top: 1px solid ${({ theme }) => theme.color.border};
 
-	.prev-next {
-		display: flex;
-		flex-direction: row;
-		gap: 1.5rem;
-		align-items: center;
-		height: fit-content;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-		padding: 2.5rem 1rem;
+  ul {
+    li.prev-next {
+      display: flex;
+      flex-direction: row;
+      gap: 1.5rem;
+      align-items: center;
+      height: fit-content;
+      border-bottom: 1px solid ${({ theme }) => theme.color.border};
+      padding: 2.5rem 1rem;
 
-		.btn {
-			flex: 0.8;
-		}
+      .link {
+        display: contents;
 
-		.img {
-			flex: 1.2;
-			margin: 0;
-		}
+        .btn {
+          flex: 0.8;
+        }
 
-		.text-section {
-			flex: 8;
+        .img {
+          flex: 1.2;
+          margin: 0;
+        }
 
-			.title {
-				color: ${({ theme }) => theme.color.mediumGrey};
-				font-size: ${({ theme }) => theme.fontSize.medium};
-				font-weight: ${({ theme }) => theme.fontWeight.medium};
-				margin-bottom: 0.5rem;
+        .text-section {
+          flex: 8;
 
-				overflow: hidden;
-				text-overflow: ellipsis;
+          .title {
+            color: ${({ theme }) => theme.color.mediumGrey};
+            font-size: ${({ theme }) => theme.fontSize.medium};
+            font-weight: ${({ theme }) => theme.fontWeight.medium};
+            margin-bottom: 0.5rem;
 
-				display: -webkit-box;
-				-webkit-line-clamp: 1;
-				-webkit-box-orient: vertical;
-			}
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+          }
 
-			.date {
-				color: ${({ theme }) => theme.color.lightGrey};
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			}
-		}
-	}
+          .date {
+            color: ${({ theme }) => theme.color.lightGrey};
+            font-size: ${({ theme }) => theme.fontSize.extraSmall};
+          }
+        }
+      }
 
-	.active {
-		background-color: ${({ theme }) => theme.color.surface};
-	}
+      &.active {
+        background-color: ${({ theme }) => theme.color.surface};
+      }
 
-	@media screen and ${({ theme }) => theme.mediaQuery.tablet} {
-		.prev-next {
-			flex-direction: column;
-			align-items: flex-start;
-			padding: 1.5rem 1rem;
-			gap: 1rem;
-		}
+      &.disabled {
+        opacity: 0.5;
+        pointer-events: none;
+      }
+    }
+  }
 
-		.img {
-			display: none;
-		}
-	}
+  @media screen and ${({ theme }) => theme.mediaQuery.tablet} {
+    ul {
+      display: flex;
+      flex-direction: column;
+
+      li.prev-next {
+        padding: 1.5rem 1rem;
+        gap: 1rem;
+
+        .img {
+          display: none;
+        }
+      }
+    }
+  }
 `;
 
 export default PrevNextArticle;

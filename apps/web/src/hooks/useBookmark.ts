@@ -6,17 +6,15 @@ import {
   removeBookmarkApi,
 } from '@/api/bookmark';
 import { useCookie } from '@/hooks/useCookie';
-import { useAuthStore } from '@/stores/useAuthStore';
 import { useToast } from '@/hooks/useToast';
 
 // 북마크 목록 조회
-export function useBookmarksList() {
+export const useBookmarksList = () => {
   const { getAuthCookies } = useCookie();
   const { token, userId } = getAuthCookies();
-  const toast = useToast();
 
   return useQuery<IBookmarkItem[]>({
-    queryKey: ['myBookmarks'],
+    queryKey: ['bookmarks'],
     queryFn: async () => {
       if (!token) throw new Error('No token found');
       return fetchUserBookmarksApi();
@@ -26,36 +24,39 @@ export function useBookmarksList() {
 }
 
 // 북마크 추가
-export function useAddBookmarkMutation() {
+export const useAddBookmarkMutation = () => {
   const { getAuthCookies } = useCookie();
   const { token } = getAuthCookies();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (newsId: number) => {
       if (!token) throw new Error('No token found');
-      return addBookmarkApi(token, newsId);
+      return addBookmarkApi(newsId);
     },
     onSuccess: () => {
-      // 성공 시, 북마크 목록 invalidate
-      queryClient.invalidateQueries(['myBookmarks']);
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      showToast('북마크가 추가되었습니다.', 'success');
     },
   });
 }
 
 // 북마크 삭제
-export function useRemoveBookmarkMutation() {
+export const useRemoveBookmarkMutation = () => {
   const { getAuthCookies } = useCookie();
   const { token } = getAuthCookies();
+  const { showToast } = useToast();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (newsId: number) => {
       if (!token) throw new Error('No token found');
-      return removeBookmarkApi(token, newsId);
+      return removeBookmarkApi(newsId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(['myBookmarks']);
+      queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+      showToast('북마크가 삭제되었습니다.', 'success');
     },
   });
 }

@@ -1,10 +1,9 @@
 import { fetchArticle, fetchArticleList } from '@/api/article';
-import { IArticleDetail } from '@/models/articleDetail';
+import { IArticleInfo } from '@/models/articleDetail';
 
 export const getArticleContent = async (slug: string) => {
-  const data = await fetchArticle(slug);
-  const article: IArticleDetail = data.data;
-  return article;
+  const data: IArticleInfo = await fetchArticle(slug);
+  return data;
 }
 
 export const getPopularArticles = async (limit: number = 5) => {

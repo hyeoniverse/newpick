@@ -6,21 +6,13 @@ import NoContentsPage from '@/components/common/NoContentsPage';
 import Card from '@/components/common/Card';
 import Text from '@/components/common/Text';
 import { useAuthStore } from '@/stores/useAuthStore';
-// import { useBookmarkStore } from '@/stores/useBookmarkStore';
-import { useEffect } from 'react';
 import { useBookmarksList } from '@/hooks/useBookmark';
 import { dateFormatter } from '@/utils/formatter';
-import { bookmarkFirstImage } from '@/utils/getFirstImage';
+import { getFirstImage } from '@/utils/getFirstImage';
 
 function MyBookmark() {
   const { user } = useAuthStore();
   const { data: bookmarks, isLoading, isError, error } = useBookmarksList();
-  console.log("IBookmarkItems");
-
-  // 사용자 로그인 확인
-  useEffect(() => {
-    // user가 없으면 처리하기
-  }, [user]);
 
   if (!user) {
     return <div>로그인 후 이용해주세요.</div>;
@@ -53,7 +45,7 @@ function MyBookmark() {
               key={bookmark.id}
               data={{
                 id: bookmark.id,
-                image: `${bookmarkFirstImage(bookmark.newsImg)}`,
+                image: `${getFirstImage(bookmark.newsImg)}`,
                 header: `category`,
                 main: {
                   title: bookmark.newsTitle,
