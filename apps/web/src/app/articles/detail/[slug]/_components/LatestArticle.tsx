@@ -49,10 +49,10 @@ function LatestArticle({ latest, className }: Props) {
           </div>
           {latest.map((article, index) => (
             <SwiperSlide key={index} className="swiper-slide">
-              <Link href={"#"}>
+              <Link href={`/articles/detail/${article.id}`} >
                 <p className="title">{article.title}</p>
                 <div className="bottom">
-                  <BookmarkIcon newsId={article.id} />
+                  <BookmarkIcon newsId={article.id} newsletterId={article.id} />
                   <BarHeight height="1rem" $margin="0.75rem" />
                   <p className="date">{dateFormatter(article.createdAt)}</p>
                 </div>

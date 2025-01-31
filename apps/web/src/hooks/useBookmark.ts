@@ -8,6 +8,11 @@ import {
 import { useCookie } from '@/hooks/useCookie';
 import { useToast } from '@/hooks/useToast';
 
+interface BookmarkVariables {
+  newsId: number;
+  newsletterId: number;
+}
+
 // 북마크 목록 조회
 export const useBookmarksList = () => {
   const { getAuthCookies } = useCookie();
@@ -30,10 +35,10 @@ export const useAddBookmarkMutation = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (newsId: number) => {
+  return useMutation<IBookmarkItem, Error, BookmarkVariables>({
+    mutationFn: async ({ newsId, newsletterId }) => {
       if (!token) throw new Error('No token found');
-      return addBookmarkApi(newsId);
+      return addBookmarkApi(newsId, newsletterId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
@@ -49,10 +54,10 @@ export const useRemoveBookmarkMutation = () => {
   const { showToast } = useToast();
   const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: async (newsId: number) => {
+  return useMutation<{ success: boolean }, Error, BookmarkVariables>({
+    mutationFn: async ({ newsId, newsletterId }) => {
       if (!token) throw new Error('No token found');
-      return removeBookmarkApi(newsId);
+      return removeBookmarkApi(newsId, newsletterId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['bookmarks'] });

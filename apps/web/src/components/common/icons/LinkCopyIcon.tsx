@@ -1,13 +1,32 @@
 import { LuLink2 } from "react-icons/lu";
 import { IconStyled } from "@/styles/Icon";
+import { useToast } from '@/hooks/useToast';
 
 interface Props {
   className?: string;
+  id: number;
 }
 
-function LinkCopyIcon({className}: Props) {
+function LinkCopyIcon({className, id}: Props) {
+  const {showToast} = useToast();
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('주소가 복사되었습니다.', 'success')
+    } catch (error) {
+      console.error('주소 복사 실패: ',error);
+    }
+  }
+
+  const handleCopyClick = () => {
+    const url = `${process.env.NEXT_PUBLIC_FRONT_URL}/articles/detail/${id}`
+    console.log(url)
+    copyToClipboard(url);
+  }
+
   return (
-    <IconStyled onClick={() => {}} className={className}>
+    <IconStyled onClick={handleCopyClick} className={className}>
       <LuLink2 />
     </IconStyled>
   );

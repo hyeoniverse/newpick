@@ -30,7 +30,7 @@ function MySummaryCategory() {
 							<div className="img-section">
 								<HeightAutoImg src={info.img || null} height={'auto'} />
 								<div className="etc">
-									<BookmarkIcon newsId={info.id}/>
+									<BookmarkIcon newsId={info.id} newsletterId={info.id}/>
 									<LinkCopyIcon />
 									<OrigLinkIcon />
 								</div>

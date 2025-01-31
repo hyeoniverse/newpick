@@ -24,7 +24,7 @@ export async function fetchUserBookmarksApi(): Promise<IBookmarkItem[]> {
   }
 }
 
-export async function addBookmarkApi(newsId: number): Promise<IBookmarkItem> {
+export async function addBookmarkApi(newsId: number, newsletterId: number): Promise<IBookmarkItem> {
   try {
     const response = await fetch(API_ENDPOINTS.FEEDBACK.BOOKMARK, {
       method: 'POST',
@@ -32,7 +32,7 @@ export async function addBookmarkApi(newsId: number): Promise<IBookmarkItem> {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ newsId }),
+      body: JSON.stringify({ newsId, newsletterId }),
     });
     if (!response.ok) {
       throw new Error('북마크를 추가하는데 실패했습니다.');
@@ -44,7 +44,7 @@ export async function addBookmarkApi(newsId: number): Promise<IBookmarkItem> {
   }
 }
 
-export async function removeBookmarkApi(newsId: number): Promise<{ success: boolean }> {
+export async function removeBookmarkApi(newsId: number, newsletterId: number): Promise<{ success: boolean }> {
   try {
     const response = await fetch(API_ENDPOINTS.FEEDBACK.BOOKMARK, {
       method: 'DELETE',
@@ -52,7 +52,7 @@ export async function removeBookmarkApi(newsId: number): Promise<{ success: bool
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ newsId }),
+      body: JSON.stringify({ newsId, newsletterId }),
     });
     if (!response.ok) {
       throw new Error('북마크를 삭제하는데 실패했습니다.');

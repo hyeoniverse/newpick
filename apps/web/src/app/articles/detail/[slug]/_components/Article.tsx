@@ -1,13 +1,13 @@
-"use client"
+'use client'
 
-import styled from "styled-components";
-import SummaryTextBox from "@/components/common/article/SummaryTextBox";
-import PopularArticle from "@/app/articles/detail/[slug]/_components/PopularArticle";
-import ArticleContent from "@/app/articles/detail/[slug]/_components/content/ArticleContent";
-import PrevNextArticle from "@/app/articles/detail/[slug]/_components/PrevNextArticle";
-import LatestArticle from "@/app/articles/detail/[slug]/_components/LatestArticle";
-import MobileLikeLinkButton from "@/app/articles/detail/[slug]/_components/MobileLikeLinkButton";
-import CommentsSection from '@/app/articles/detail/[slug]/_components/CommentsSection';
+import styled from 'styled-components';
+import SummaryTextBox from '@/components/common/article/SummaryTextBox';
+import PopularArticle from '@/app/articles/detail/[slug]/_components/PopularArticle';
+import ArticleContent from '@/app/articles/detail/[slug]/_components/content/ArticleContent';
+import PrevNextArticle from '@/app/articles/detail/[slug]/_components/PrevNextArticle';
+import LatestArticle from '@/app/articles/detail/[slug]/_components/LatestArticle';
+import MobileLikeLinkButton from '@/app/articles/detail/[slug]/_components/MobileLikeLinkButton';
+import { useParams } from 'next/navigation';
 import { IArticleDetail } from '@/models/articleDetail';
 import MoveButton from '@/components/common/MoveButton';
 import { IoArrowBack } from 'react-icons/io5';
@@ -27,34 +27,34 @@ interface Props {
   next: IArticleDetail | null;
 }
 
-function Article({article, summary, content, popular, latest, newsId, prev, next}: Props) {
+function Article({ article, summary, content, popular, latest, newsId, prev, next }: Props) {
   const router = useRouter();
 
   return (
     <>
-    <TitleSectionStyled>
-      <MoveButton onClick={() => router.back()} text="이전으로" frontIcon={<IoArrowBack/>}/>
-      <div className="title-section">
-        <Link href={'#'} className="category">{article.categoryId}</Link>
-        <h1 className="title">{article.title}</h1>
-        <p className="date">{article.createdAt}</p>
-        <div className="icons">
-          <BookmarkIcon newsId={article.id}/>
-          <LinkCopyIcon />
+      <TitleSectionStyled>
+        <MoveButton onClick={() => router.back()} text="이전으로" frontIcon={<IoArrowBack />} />
+        <div className="title-section">
+          <Link href={`/articles/categories/${article.categoryId}`} className="category">{article.categoryId}</Link>
+          <h1 className="title">{article.title}</h1>
+          <p className="date">{article.createdAt}</p>
+          <div className="icons">
+            <BookmarkIcon newsId={article.id} newsletterId={article.id} />
+            <LinkCopyIcon id={article.id} />
+          </div>
         </div>
-      </div>
-    </TitleSectionStyled>
-    <ArticleStyled>
-      <SummaryTextBox>{summary}</SummaryTextBox>
-      <div className="content-section">
-        <ArticleContent className="content" content={content}/>
-        <PopularArticle className="popular" popular={popular} />
-      </div>
-      <PrevNextArticle className="prev-next" prev={prev} next={next} />
-      <CommentsSection className="comments-section"/>
-      <LatestArticle className="latest" latest={latest} />
-      <MobileLikeLinkButton className="icons" newsId={newsId} />
-    </ArticleStyled>
+      </TitleSectionStyled>
+      <ArticleStyled>
+        <SummaryTextBox>{summary}</SummaryTextBox>
+        <div className="content-section">
+          <ArticleContent className="content" content={content} />
+          <PopularArticle className="popular" popular={popular} />
+        </div>
+        <PrevNextArticle className="prev-next" prev={prev} next={next} />
+        {/*<CommentsSection className="comments-section"/>*/}
+        <LatestArticle className="latest" latest={latest} />
+        <MobileLikeLinkButton className="icons" newsId={newsId} />
+      </ArticleStyled>
     </>
   );
 }
@@ -81,12 +81,12 @@ const ArticleStyled = styled.div`
             margin-top: 2rem;
         }
     }
-    
+
     .comments-section {
         margin: 4rem 0;
     }
-    
-    @media screen and ${({theme}) => theme.mediaQuery.tablet} {
+
+    @media screen and ${({ theme }) => theme.mediaQuery.tablet} {
         display: flex;
         flex-direction: column;
 
@@ -94,7 +94,7 @@ const ArticleStyled = styled.div`
             flex-direction: column;
 
             .content {
-                border-bottom: 1px solid ${({theme}) => theme.color.border};
+                border-bottom: 1px solid ${({ theme }) => theme.color.border};
                 margin-bottom: 2rem;
             }
 
@@ -134,14 +134,14 @@ const TitleSectionStyled = styled.div`
         margin: 1.25rem 0;
 
         .category {
-            color: ${({theme}) => theme.color.primary};
-            font-weight: ${({theme}) => theme.fontWeight.medium};
+            color: ${({ theme }) => theme.color.primary};
+            font-weight: ${({ theme }) => theme.fontWeight.medium};
         }
-        
+
         .title {
             word-break: auto-phrase;
         }
-        
+
         .icons {
             display: flex;
             flex-direction: row;
@@ -152,8 +152,8 @@ const TitleSectionStyled = styled.div`
         }
 
         .date {
-            color: ${({theme}) => theme.color.lightGrey};
-            font-size: ${({theme}) => theme.fontSize.extraSmall};
+            color: ${({ theme }) => theme.color.lightGrey};
+            font-size: ${({ theme }) => theme.fontSize.extraSmall};
         }
     }
 

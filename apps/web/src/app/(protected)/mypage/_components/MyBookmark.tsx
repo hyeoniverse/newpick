@@ -1,4 +1,4 @@
-"use client"
+'use client'
 
 import styled from 'styled-components';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
@@ -41,28 +41,29 @@ function MyBookmark() {
       <MyBookmarkStyled>
         <div className="trend-cards">
           {bookmarks.map((bookmark) => (
-            <Card
-              key={bookmark.id}
-              data={{
-                id: bookmark.id,
-                image: `${getFirstImage(bookmark.newsImg)}`,
-                header: `category`,
-                main: {
-                  title: bookmark.newsTitle,
-                  description: bookmark.newsSummary,
-                },
-                footer: (
-                  <>
-                    <Text color="subText">
-                      {dateFormatter(bookmark.newsCreatedAt)}
-                    </Text>
-                    <div className="right">
-                      <BookmarkIcon newsId={bookmark.id} />
-                    </div>
-                  </>
-                ),
-              }}
-            />
+              <Card
+                key={bookmark.id}
+                data={{
+                  id: bookmark.id,
+                  url: `/articles/detail/${bookmark.id}`,
+                  image: `${getFirstImage(bookmark.newsImg)}`,
+                  header: `category`,
+                  main: {
+                    title: bookmark.newsTitle,
+                    description: bookmark.newsSummary,
+                  },
+                  footer: (
+                    <>
+                      <Text color="subText">
+                        {dateFormatter(bookmark.newsCreatedAt)}
+                      </Text>
+                      <div className="right">
+                        <BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
+                      </div>
+                    </>
+                  ),
+                }}
+              />
           ))}
         </div>
       </MyBookmarkStyled>

@@ -9,10 +9,11 @@ import { useAddBookmarkMutation, useBookmarksList, useRemoveBookmarkMutation } f
 
 interface BookmarkIconProps {
 	newsId: number;  // 아티클 ID
+	newsletterId: number;
 	className?: string;
 }
 
-export default function BookmarkIcon({ newsId, className }: BookmarkIconProps) {
+export default function BookmarkIcon({ newsId, className, newsletterId }: BookmarkIconProps) {
 	const theme = useTheme();
 	const { user } = useAuthStore();
 	const { data: bookmarks } = useBookmarksList();
@@ -30,9 +31,9 @@ export default function BookmarkIcon({ newsId, className }: BookmarkIconProps) {
 
 		try {
 			if (isBookmarked) {
-				await removeBookmarkMutation.mutateAsync(newsId);
+				await removeBookmarkMutation.mutateAsync({ newsId, newsletterId });
 			} else {
-				await addBookmarkMutation.mutateAsync(newsId);
+				await addBookmarkMutation.mutateAsync({ newsId, newsletterId });
 			}
 		} catch (error: any) {
 			showToast(error.message || '북마크 설정에 실패했습니다.', 'error');
