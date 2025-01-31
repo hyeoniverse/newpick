@@ -14,8 +14,6 @@ import InputCheck from '@/components/common/InputCheck';
 import ModalContents from '@/components/common/modal/ModalContent';
 import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
-import { useAuth } from '@/hooks/useAuth';
-import { useEffect } from 'react';
 
 interface Props {
 	status: boolean;
@@ -23,8 +21,6 @@ interface Props {
 }
 
 export default function StartSubscription({ status, interests }: Props) {
-	const { user } = useAuth();
-
 	const {
 		status: isSubscribed = status,
 		isChanging: isChangingSubscription,
@@ -57,10 +53,6 @@ export default function StartSubscription({ status, interests }: Props) {
 		handleSelectInterests();
 		closeModal();
 	};
-
-	useEffect(() => {
-		console.log('📌 user: ', user);
-	}, [user]);
 
 	return (
 		<StyeldStartSubscription>
