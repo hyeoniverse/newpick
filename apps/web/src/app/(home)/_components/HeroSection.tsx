@@ -8,7 +8,7 @@ import Title from '@/components/common/Title';
 import Button from '@/components/common/Button';
 import BannerSlider from '@/components/common/slider/BannerSlider';
 
-const HeroSection = () => {
+export default function HeroSection() {
 	const { openModal } = useModal();
 
 	return (
@@ -26,10 +26,12 @@ const HeroSection = () => {
 					style={{ marginTop: '1rem' }}
 					onClick={() =>
 						openModal(
-							<>
-								<Title size="medium">뉴스레터 생성하기</Title>
-								<Button>생성하기</Button>
-							</>
+							<StyledTrial>
+								<Title size="large">뉴스레터 생성하기</Title>
+								<Button size="medium" scheme="primary">
+									생성하기
+								</Button>
+							</StyledTrial>
 						)
 					}
 				>
@@ -39,7 +41,7 @@ const HeroSection = () => {
 			<BannerSlider banners={bannersData} />
 		</StyledHeroSection>
 	);
-};
+}
 
 const StyledHeroSection = styled.section`
 	width: 100%;
@@ -74,4 +76,13 @@ const StyledHeroSection = styled.section`
 	}
 `;
 
-export default HeroSection;
+const StyledTrial = styled.div`
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 1rem;
+	padding: 2rem;
+`;

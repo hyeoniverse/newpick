@@ -3,7 +3,6 @@
 import Link from 'next/link';
 import { useCallback, useEffect, useRef } from 'react';
 
-import { User as IUser } from '@/models/user.model';
 import { SCROLL } from '@/constants/numbers';
 import { useAuth } from '@/hooks/useAuth';
 import { useDropdown } from '@/hooks/useDropdown';
@@ -22,12 +21,8 @@ import Navigation from '@/components/layout/header/Navigation';
 import Drawer from '@/components/layout/header/Drawer';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
 
-interface Props {
-	initialUser: IUser;
-}
-
-export default function Header({ initialUser }: Props) {
-	const { user = initialUser, isLoading, handleLogin, handleLogout } = useAuth();
+export default function Header() {
+	const { user, isLoading, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
 	const lastScrollY = useRef(0);
@@ -78,33 +73,7 @@ export default function Header({ initialUser }: Props) {
 					<Navigation />
 				</div>
 				<div className="right-section">
-					{initialUser ? (
-						<Dropdown
-							type="auth"
-							className="auth"
-							toggleButton={
-								user?.profileImg ? (
-									<StyledUserCircle>
-										<Image src={user.profileImg} alt="profile" ratio="square" />
-									</StyledUserCircle>
-								) : (
-									<StyledUserCircle>
-										<FaUserCircle />
-									</StyledUserCircle>
-								)
-							}
-						>
-							<>
-								<ThemeSwitcher className="item" />
-								<Link href="/mypage">
-									<Button className="item">마이페이지</Button>
-								</Link>
-								<Button className="item" onClick={handleLogout}>
-									로그아웃
-								</Button>
-							</>
-						</Dropdown>
-					) : isLoading ? (
+					{isLoading ? (
 						<Spinner size="2.5rem" />
 					) : user ? (
 						<Dropdown
@@ -125,9 +94,7 @@ export default function Header({ initialUser }: Props) {
 							<>
 								<ThemeSwitcher className="item" />
 								<Link href="/mypage">
-									<Button as="a" className="item">
-										마이페이지
-									</Button>
+									<Button className="item">마이페이지</Button>
 								</Link>
 								<Button className="item" onClick={handleLogout}>
 									로그아웃

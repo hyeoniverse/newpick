@@ -1,16 +1,14 @@
 'use client';
 
-import { User as IUser } from '@/models/user.model';
+import { useAuth } from '@/hooks/useAuth';
 import styled from 'styled-components';
 import Image from '@/components/common/Image';
 import Text from '@/components/common/Text';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
 
-interface Props {
-	user: IUser;
-}
+function Profile() {
+	const { user } = useAuth();
 
-function Profile({ user }: Props) {
 	return (
 		<ProfileStyled>
 			{user && (
@@ -25,7 +23,7 @@ function Profile({ user }: Props) {
 						</div>
 					</div>
 					<div className="subscribe">
-						<SubscribeToggle user={user} />
+						<SubscribeToggle />
 					</div>
 				</>
 			)}

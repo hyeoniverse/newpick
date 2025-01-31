@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { useModal } from '@/hooks/useModal';
 import { CATEGORIES } from '@/constants/categories';
+import { useAuth } from '@/hooks/useAuth';
+import { useModal } from '@/hooks/useModal';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import useSelectInterests from '@/hooks/useSelectInterests';
 
@@ -15,19 +16,15 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
 
-interface Props {
-	status: boolean;
-	interests: string[];
-}
-
-export default function StartSubscription({ status, interests }: Props) {
+export default function StartSubscription() {
+	const { user } = useAuth();
 	const {
-		status: isSubscribed = status,
+		status: isSubscribed = user?.isSubscribed,
 		isChanging: isChangingSubscription,
 		handleSubscribe: startSubscription,
 		handleCancel: cancelSubscription,
 	} = useSubscribe();
-	const { selectedInterests = interests, handleSelectInterests } = useSelectInterests();
+	const { selectedInterests = user?.interests || [], handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
 	const { openModal, closeModal } = useModal();
 

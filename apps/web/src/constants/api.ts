@@ -2,7 +2,7 @@ export const BACK_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:300
 // API 요청이 SSR(서버)인지 CSR(클라이언트)인지 판단하여 적절한 API URL 반환
 export const getApiUrl = () => (typeof window === 'undefined' ? BACK_URL : '/api');
 // export const API_URL = getApiUrl();
-const API_URL = BACK_URL;
+export const API_URL = BACK_URL;
 export const PROTECTED = ['/mypage', '/subscribers', '/feedback']; // 로그인이 필요한 경로
 
 export const TOKEN = {
@@ -38,13 +38,10 @@ export const API_ENDPOINTS = {
 		BASE: `${API_URL}/newsletters`,
 		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
 		LIST: (limit: number, offset: number) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
+		TRIAL: () => `${API_URL}/ai-summary/summarize`,
 	},
 	MAIL: {
 		SEND: () => `${API_URL}/mail/send`,
-	},
-	AI_SUMMARY: {
-		GET_NEWS: () => `${API_URL}/ai-summary/get-news`,
-		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
 	},
 	AI_LOG: {
 		BASE: () => `${API_URL}/ai/log`,
@@ -59,7 +56,7 @@ export const API_ENDPOINTS = {
 	},
 	MYPAGE: {
 		BOOKMARKS: `${API_URL}/mypage/bookmarks`,
-	}
+	},
 };
 
 export default API_ENDPOINTS;
