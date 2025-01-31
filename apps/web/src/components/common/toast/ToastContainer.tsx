@@ -41,7 +41,6 @@ interface StyledProps {
 
 const StyledToastContainer = styled.div<StyledProps>`
 	width: 100vw;
-	max-width: 90vw;
 	position: fixed;
 	z-index: 9999;
 	display: flex;

@@ -16,7 +16,7 @@ function PopularArticle({ flex, className }: Props) {
 	const sliceNewsletter = sortNewsletter.slice(0, 5);
 
 	return (
-		<PopularNewsletterStyled flex={flex} className={className}>
+		<PopularNewsletterStyled $flex={flex} className={className}>
 			<h3 className="section-title">지금 인기 아티클 TOP 5</h3>
 			<ul className="popular-list">
 				{sliceNewsletter.map((news, index) => (
@@ -42,7 +42,11 @@ function PopularArticle({ flex, className }: Props) {
 	);
 }
 
-const PopularNewsletterStyled = styled.div<Props>`
+interface StyledProps {
+	$flex?: number;
+}
+
+const PopularNewsletterStyled = styled.div<StyledProps>`
 	position: sticky;
 	overflow: auto;
 	height: 100%;

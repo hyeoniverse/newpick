@@ -1,4 +1,9 @@
-export const API_URL = (process.env.NEXT_PUBLIC_API_URL as string) || 'http://localhost:3001';
+export const BACK_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'; // 백엔드 서버
+// API 요청이 SSR(서버)인지 CSR(클라이언트)인지 판단하여 적절한 API URL 반환
+export const getApiUrl = () => (typeof window === 'undefined' ? BACK_URL : '/api');
+// export const API_URL = getApiUrl();
+const API_URL = BACK_URL;
+export const PROTECTED = ['/mypage', '/subscribers', '/feedback']; // 로그인이 필요한 경로
 
 export const TOKEN = {
 	ACCESS: 'access_token',
@@ -7,43 +12,46 @@ export const TOKEN = {
 
 export const API_ENDPOINTS = {
 	AUTH: {
-		LOGIN: `${API_URL}/auth/google`,
-		LOGOUT: `${API_URL}/auth/logout`,
-		CALLBACK: `${API_URL}/auth/google/callback`,
-		USER: (id: number) => `${API_URL}/auth/users/${id}`,
+		LOGIN: () => `${API_URL}/auth/google`,
+		LOGOUT: () => `${API_URL}/auth/logout`,
+		CALLBACK: () => `${API_URL}/auth/google/callback`,
+		REFRESH: () => `${API_URL}/auth/refresh`,
+	},
+	MY: {
+		PROFILE: () => `${API_URL}/mypage/profile`,
 	},
 	SUBSCRIBERS: {
-		START: `${API_URL}/subscribers/start`,
-		PAUSE: `${API_URL}/subscribers/pause`,
-		CANCEL: `${API_URL}/subscribers/cancel`,
-		STATUS: (id: number) => `${API_URL}/subscribers/status?userId=${id}`,
-		HISTORY: (id: number) => `${API_URL}/subscribers/history?userId=${id}`,
-		INTERESTS: `${API_URL}/mypage/interests`,
+		STATUS: () => `${API_URL}/subscribers/status`,
+		HISTORY: () => `${API_URL}/subscribers/history`,
+		INTERESTS: () => `${API_URL}/mypage/interests`,
+		START: () => `${API_URL}/subscribers/start`,
+		PAUSE: () => `${API_URL}/subscribers/pause`,
+		CANCEL: () => `${API_URL}/subscribers/cancel`,
 	},
 	NEWS: {
-		CRAWL: `${API_URL}/news/crawl`,
+		CRAWL: () => `${API_URL}/news/crawl`,
 		GET_BY_CATEGORY: (category: string, page: number, limit: number) =>
 			`${API_URL}/news?category=${category}&page=${page}&limit=${limit}`,
 		GET_BY_ID: (id: string) => `${API_URL}/news/${id}`,
 	},
 	NEWSLETTER: {
-		BASE: `${API_URL}/newsletter`,
+		BASE: () => `${API_URL}/newsletter`,
 		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletter?page=${page}&limit=${limit}`,
 	},
 	MAIL: {
-		SEND: `${API_URL}/mail/send`,
+		SEND: () => `${API_URL}/mail/send`,
 	},
 	AI_SUMMARY: {
-		GET_NEWS: `${API_URL}/ai-summary/get-news`,
-		SUMMARIZE: `${API_URL}/ai-summary/summarize`,
+		GET_NEWS: () => `${API_URL}/ai-summary/get-news`,
+		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
 	},
 	AI_LOG: {
-		BASE: `${API_URL}/ai/log`,
+		BASE: () => `${API_URL}/ai/log`,
 		PAGINATED: (newsId: number, page: number, limit: number) =>
 			`${API_URL}/ai/log?newsId=${newsId}&page=${page}&limit=${limit}`,
 	},
 	FEEDBACK: {
-		BASE: `${API_URL}/feedback`,
+		BASE: () => `${API_URL}/feedback`,
 		PAGINATED: (newsletterId: number, page: number, limit: number) =>
 			`${API_URL}/feedback?newsletterId=${newsletterId}&page=${page}&limit=${limit}`,
 	},

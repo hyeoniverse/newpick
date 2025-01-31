@@ -4,6 +4,7 @@ import styled, { CSSProp } from 'styled-components';
 import { ColorKey, FontWeight, FontSize } from '@/styles/theme';
 
 interface Props {
+	as?: 'span' | 'p';
 	className?: string;
 	children: React.ReactNode;
 	size?: FontSize;
@@ -11,9 +12,9 @@ interface Props {
 	color?: ColorKey;
 }
 
-const Text = ({ className, children, size = 'medium', weight = 'light', color = 'text' }: Props) => {
+const Text = ({ as = 'span', className, children, size = 'medium', weight = 'light', color = 'text' }: Props) => {
 	return (
-		<StyledText className={className} $size={size} $weight={weight} $color={color}>
+		<StyledText as={as} className={className} $size={size} $weight={weight} $color={color}>
 			{children}
 		</StyledText>
 	);

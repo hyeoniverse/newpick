@@ -110,13 +110,14 @@ const StyledToast = styled.div<StyledProps>`
 	justify-content: space-between;
 	align-items: center;
 	padding: 0.5rem 1.5rem;
+	margin: 0.5rem;
 	border: 1px solid ${({ theme }) => theme.color.border};
 	border-radius: ${({ theme }) => theme.borderRadius.default};
 	box-shadow: ${({ theme }) => theme.shadow.default};
 	gap: 1rem;
 	transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, max-height 0.3s ease-in-out,
 		margin-bottom 0.3s ease-in-out;
-	transform: translateY(${({ $index }) => $index * 10}px);
+	transform: translateY(${({ $index }) => -$index * 5}px);
 	opacity: 1;
 	overflow: hidden;
 

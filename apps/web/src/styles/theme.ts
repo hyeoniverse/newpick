@@ -137,22 +137,22 @@ export const lightTheme: Theme = {
 	},
 	button: {
 		extraLarge: {
-			fontSize: '1.125rem',
+			fontSize: '1.75rem',
 			padding: '1rem 2rem',
 			gap: '0.75rem',
 		},
 		large: {
-			fontSize: '1rem',
+			fontSize: '1.5rem',
 			padding: '1rem 1.5rem',
 			gap: '0.75rem',
 		},
 		medium: {
-			fontSize: '1rem',
+			fontSize: '1.25rem',
 			padding: '0.8rem 1.2rem',
 			gap: '0.75rem',
 		},
 		small: {
-			fontSize: '0.875rem',
+			fontSize: '1rem',
 			padding: '0.5rem 0.8rem',
 			gap: '0.75rem',
 		},

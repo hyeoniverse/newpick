@@ -1,5 +1,6 @@
 'use client';
 
+import { User as IUser } from '@/models/user.model';
 import { useHeader } from '@/hooks/useHeader';
 import styled from 'styled-components';
 import Header from '@/components/layout/Header';
@@ -8,14 +9,15 @@ import ScrollButtons from '@/components/common/ScrollButtons';
 
 interface Props {
 	children: React.ReactNode;
+	initialUser: IUser;
 }
 
-const Layout = ({ children }: Props) => {
+const Layout = ({ children, initialUser }: Props) => {
 	const { headerHeight } = useHeader();
 
 	return (
 		<StyledLayout $headerHeight={headerHeight}>
-			<Header />
+			<Header initialUser={initialUser} />
 			<Content className="content">{children}</Content>
 			<ScrollButtons />
 			<Footer />

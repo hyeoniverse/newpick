@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect, useState } from 'react';
 import useLoadingStore from '@/stores/useLoadingStore';
 import useNewsletterStore from '@/stores/useNewsletterStore';

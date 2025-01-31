@@ -1,50 +1,27 @@
-'use client';
-
-import { lazy, Suspense } from 'react';
 import { MYPAGE_NAVIGATION } from '@/constants/navigation';
+import { fetchUserWithSubscription } from '@/api/user';
 
-import styled from 'styled-components';
-import withAuth from '@/hoc/withAuth';
-import Skeleton from '@/components/common/loader/Skeleton';
+import styles from '@/app/(protected)/mypage/mypage.module.css';
 import Title from '@/components/common/Title';
 import MyProfile from '@/app/(protected)/mypage/_components/MyProfile';
 import TabNavigation from '@/components/common/TabNavgation';
-import { useTab } from '@/hooks/useTab';
+import MyTabs from '@/app/(protected)/mypage/_components/MyTabs';
+import { redirect } from 'next/navigation';
 
-// React.lazy를 활용한 동적 import
-const MySubscribe = lazy(() => import('@/app/(protected)/mypage/_components/MySubscribe'));
-const MyBookmark = lazy(() => import('@/app/(protected)/mypage/_components/MyBookmark'));
-const MySettings = lazy(() => import('@/app/(protected)/mypage/_components/MySettings'));
-
-export default withAuth(function MyPage() {
-	const { activeTab } = useTab();
+export default async function MyPage() {
+	const user = await fetchUserWithSubscription();
+	if (!user) {
+		console.warn('🔒 사용자 정보 없음 → 로그인 페이지로 리디렉션');
+		redirect('/');
+	}
 
 	return (
-		<StyledPage>
+		<div className={styles.myPage}>
 			<Title size="extraSmall">마이페이지</Title>
 			<br />
-			<MyProfile />
+			<MyProfile user={user} />
 			<TabNavigation tabs={MYPAGE_NAVIGATION} />
-			<Suspense fallback={<Skeleton />}>
-				<div className="tab-contents">
-					{activeTab === 'subscriptions' && <MySubscribe />}
-					{activeTab === 'bookmarks' && <MyBookmark />}
-					{activeTab === 'settings' && <MySettings />}
-				</div>
-			</Suspense>
-		</StyledPage>
+			<MyTabs status={user.isSubscribed} interests={user.interests} />
+		</div>
 	);
-});
-
-const StyledPage = styled.div`
-	margin-top: 1rem;
-	margin-bottom: 10vh;
-
-	.title {
-		${({ theme }) => `
-			font-size: ${theme.fontSize.large};
-			font-weight: ${theme.fontWeight.medium};
-		`}
-		margin-bottom: 1.25rem;
-	}
-`;
+}

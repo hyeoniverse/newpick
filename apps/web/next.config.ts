@@ -30,6 +30,15 @@ const nextConfig: NextConfig = {
 	compiler: {
 		styledComponents: true,
 	},
+	// API 프록시 설정
+	async rewrites() {
+		return [
+			{
+				source: '/api/:path*', // 프론트엔드에서 '/api/...'로 요청하면
+				destination: 'http://localhost:3001/:path*', // 백엔드로 프록시
+			},
+		];
+	},
 };
 
 export default nextConfig;

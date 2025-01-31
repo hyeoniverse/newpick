@@ -71,6 +71,10 @@ const StyledInputCheck = styled.div<StyleProps>`
 			input {
 				background: ${({ theme }) => theme.color.tertiary};
 			}
+
+			input:checked {
+				background: ${({ theme }) => theme.color.secondary};
+			}
 		}
 	}
 

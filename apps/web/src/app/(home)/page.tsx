@@ -1,21 +1,16 @@
-'use client';
-
-import { useNewsletter } from '@/hooks/useNewsletter';
-import { styled } from 'styled-components';
 import Title from '@/components/common/Title';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
 import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
+import styles from '@/app/(home)/home.module.css';
 
-const HomePage = () => {
-	const { newsletters } = useNewsletter();
-
+export default async function HomePage() {
 	return (
-		<StyledHomePage>
+		<div className={styles.homePage}>
 			<HeroSection />
 			<hr />
-			<TrendSection newsletters={newsletters} />
+			<TrendSection />
 
 			<FullWidthPanel>
 				<Title size="extraLarge" weight="bold" color="background">
@@ -24,25 +19,6 @@ const HomePage = () => {
 			</FullWidthPanel>
 
 			<SubscribeSection />
-		</StyledHomePage>
+		</div>
 	);
-};
-
-const StyledHomePage = styled.div`
-	width: 100%;
-	gap: 2rem;
-
-	hr {
-		width: 100%;
-		border: none;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-		margin: 0;
-		padding: 0;
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.tablet} {
-		padding: 0 1rem;
-	}
-`;
-
-export default HomePage;
+}

@@ -1,3 +1,5 @@
+'use client';
+
 import { IoMdHeart, IoMdHeartEmpty } from 'react-icons/io';
 import { useState } from 'react';
 import { IconStyled } from '@/styles/Icon';

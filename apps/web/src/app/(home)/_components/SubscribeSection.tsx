@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
@@ -15,7 +17,6 @@ import useSelectInterests from '@/hooks/useSelectInterests';
 import ModalContents from '@/components/common/modal/ModalContent';
 import { LuMailCheck } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
-import { useToast } from '@/hooks/useToast';
 
 const SubscribeSection = () => {
 	const {
@@ -26,11 +27,10 @@ const SubscribeSection = () => {
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 	const { isChecked } = useInputCheck('home-agreement');
 	const { openModal, closeModal } = useModal();
-	const { showToast } = useToast();
 
-	const handleSubscribe = (e: React.FormEvent) => {
+	const handleSubscribe = async (e: React.FormEvent) => {
 		e.preventDefault();
-		const isSuccess = startSubscription({ interests: selectedInterests, isChecked: isChecked });
+		const isSuccess = await startSubscription({ interests: selectedInterests, isChecked: isChecked });
 
 		if (isSuccess) {
 			openModal(
@@ -42,8 +42,6 @@ const SubscribeSection = () => {
 					onConfirmClick={closeModal}
 				/>
 			);
-		} else {
-			showToast('구독에 실패했습니다. 다시 시도해주세요.', 'error');
 		}
 	};
 
