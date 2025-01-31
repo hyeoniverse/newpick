@@ -9,20 +9,15 @@ const MySubscribe = lazy(() => import('@/app/(protected)/mypage/_components/MySu
 const MyBookmark = lazy(() => import('@/app/(protected)/mypage/_components/MyBookmark'));
 const MySettings = lazy(() => import('@/app/(protected)/mypage/_components/MySettings'));
 
-interface Props {
-	status: boolean;
-	interests: string[];
-}
-
-function MyTabs({ status, interests }: Props) {
+function MyTabs() {
 	const { activeTab } = useTab();
 
 	return (
 		<Suspense fallback={<Skeleton />}>
 			<div className="tab-contents">
-				{activeTab === 'subscriptions' && <MySubscribe status={status} />}
+				{activeTab === 'subscriptions' && <MySubscribe />}
 				{activeTab === 'bookmarks' && <MyBookmark />}
-				{activeTab === 'settings' && <MySettings status={status} interests={interests} />}
+				{activeTab === 'settings' && <MySettings />}
 			</div>
 		</Suspense>
 	);

@@ -1,6 +1,5 @@
 'use client';
 
-import { User as IUser } from '@/models/user.model';
 import { useHeader } from '@/hooks/useHeader';
 import styled from 'styled-components';
 import Header from '@/components/layout/Header';
@@ -9,21 +8,20 @@ import ScrollButtons from '@/components/common/ScrollButtons';
 
 interface Props {
 	children: React.ReactNode;
-	initialUser: IUser;
 }
 
-const Layout = ({ children, initialUser }: Props) => {
+export default function Layout({ children }: Props) {
 	const { headerHeight } = useHeader();
 
 	return (
 		<StyledLayout $headerHeight={headerHeight}>
-			<Header initialUser={initialUser} />
+			<Header />
 			<Content className="content">{children}</Content>
 			<ScrollButtons />
 			<Footer />
 		</StyledLayout>
 	);
-};
+}
 
 interface StyledProps {
 	$headerHeight: string;
@@ -59,5 +57,3 @@ const Content = styled.main`
 	max-width: ${({ theme }) => theme.layout.width.large};
 	margin: 0 auto;
 `;
-
-export default Layout;

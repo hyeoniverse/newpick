@@ -1,11 +1,25 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { User as IUser } from '@/models/user.model';
+import { useAuthStore } from '@/stores/useAuthStore';
 import { AppThemeProvider } from '@/components/providers/AppThemeProvider';
 
-export default function Providers({ children }: { children: React.ReactNode }) {
+interface Props {
+	children: React.ReactNode;
+	initialUser: IUser | null;
+}
+
+export default function Providers({ children, initialUser }: Props) {
 	const [queryClient] = useState(() => new QueryClient());
+	const setUser = useAuthStore((state) => state.setUser);
+
+	useEffect(() => {
+		if (initialUser) {
+			setUser(initialUser);
+		}
+	}, [initialUser, setUser]);
 
 	return (
 		<AppThemeProvider>

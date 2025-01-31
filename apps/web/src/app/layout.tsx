@@ -1,11 +1,12 @@
 import type { Metadata } from 'next';
+import { fetchUserWithSubscription } from '@/api/user';
+
 import '@/styles/global';
 import StyledComponentsRegistry from '@/lib/registry';
 import Providers from '@/components/providers/Providers';
 import Layout from '@/components/layout/MainLayout';
 import ToastContainer from '@/components/common/toast/ToastContainer';
 import ModalContainer from '@/components/common/modal/ModalContainer';
-import { fetchUserWithSubscription } from '@/api/user';
 
 export const metadata: Metadata = {
 	title: '뉴픽: NewPick',
@@ -26,8 +27,8 @@ export default async function RootLayout({
 			</head>
 			<body>
 				<StyledComponentsRegistry>
-					<Providers>
-						<Layout initialUser={user}>{children}</Layout>
+					<Providers initialUser={user}>
+						<Layout>{children}</Layout>
 						<ToastContainer />
 						<ModalContainer />
 					</Providers>

@@ -9,14 +9,12 @@ import styled from 'styled-components';
 import NoContentsPage from '@/components/common/NoContentsPage';
 import MySubscribeNav from '@/app/(protected)/mypage/_components/subscribe/MySubscribeNav';
 import MySummaryCategory from '@/app/(protected)/mypage/_components/subscribe/MySubscribeSummaryCategory';
+import { useAuth } from '@/hooks/useAuth';
 
-interface Props {
-	status: boolean;
-}
-
-export default function MySubscribe({ status }: Props) {
+export default function MySubscribe() {
+	const { user } = useAuth();
 	const { setActiveTab } = useTab();
-	const { status: isSubscribed = status } = useSubscribe();
+	const { status: isSubscribed = user?.isSubscribed } = useSubscribe();
 	const [activeCategory, setActiveCategory] = useState<string>('');
 	const [summaryInfo] = useState<IMySummary[] | null>(null);
 
