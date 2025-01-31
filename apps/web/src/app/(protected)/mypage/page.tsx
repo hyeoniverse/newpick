@@ -1,6 +1,6 @@
 'use client';
 
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { MYPAGE_NAVIGATION } from '@/constants/navigation';
 
 import styled from 'styled-components';
@@ -10,6 +10,7 @@ import Title from '@/components/common/Title';
 import MyProfile from '@/app/(protected)/mypage/_components/MyProfile';
 import TabNavigation from '@/components/common/TabNavgation';
 import { useTab } from '@/hooks/useTab';
+import { useSearchParams } from 'next/navigation';
 
 // React.lazy를 활용한 동적 import
 const MySubscribe = lazy(() => import('@/app/(protected)/mypage/_components/MySubscribe'));
@@ -17,7 +18,15 @@ const MyBookmark = lazy(() => import('@/app/(protected)/mypage/_components/MyBoo
 const MySettings = lazy(() => import('@/app/(protected)/mypage/_components/MySettings'));
 
 export default withAuth(function MyPage() {
-	const { activeTab } = useTab();
+	const { activeTab, setActiveTab } = useTab();
+	const searchParams = useSearchParams();
+	const tab = searchParams.get('tab');
+
+	useEffect(() => {
+		if (tab) {
+			setActiveTab(tab);
+		}
+	}, [tab, setActiveTab]);
 
 	return (
 		<StyledPage>

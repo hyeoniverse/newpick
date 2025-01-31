@@ -1,7 +1,6 @@
 import styled from "styled-components";
-import { MYSUMMARYNEWS } from "@/lib/mypageData";
 import Link from "next/link";
-import LikeIcon from "@/components/common/icons/LikeIcon";
+import BookmarkIcon from "@/components/common/icons/BookmarkIcon";
 import BarHeight from "@/components/common/BarHeight";
 import { dateFormatter } from "@/utils/formatter";
 
@@ -9,19 +8,15 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import "swiper/css";
 import "swiper/css/navigation";
 import { Navigation } from "swiper/modules";
+import { IArticleDetail } from '@/models/articleDetail';
 
 interface Props {
+  latest: IArticleDetail[];
   className?: string;
 }
 
-function LatestArticle({ className }: Props) {
-  
-  const mappedArticle = MYSUMMARYNEWS.map((article, index) => {
-    return ({index: index, value: article});
-  })
-  // latest를 위해 조회수 순으로도 정렬 필요 (추후)
-  const sliceArticle = mappedArticle.slice(0, 9)
-  
+function LatestArticle({ latest, className }: Props) {
+
   return (
     <LatestArticleStyled className={className}>
       <div className="section-title">
@@ -52,16 +47,16 @@ function LatestArticle({ className }: Props) {
             <div className="swiper-button-prev" />
             <div className="swiper-button-next" />
           </div>
-          {sliceArticle.map((article, index) => (
+          {latest.map((article, index) => (
             <SwiperSlide key={index} className="swiper-slide">
-              <Link href={"#"}>
-                <p className="title">{article.value.title}</p>
-                <div className="bottom">
-                  <LikeIcon />
-                  <BarHeight height="1rem" $margin="0.75rem" />
-                  <p className="date">{dateFormatter(article.value.createdAt)}</p>
-                </div>
+              <Link href={`/articles/detail/${article.id}`} >
+                <p className="title" >{article.title}</p>
               </Link>
+              <div className="bottom">
+                  <BookmarkIcon newsId={article.id} newsletterId={article.id} />
+                  <BarHeight height="1rem" $margin="0.75rem" />
+                  <p className="date">{dateFormatter(article.createdAt)}</p>
+                </div>
             </SwiperSlide>
           ))}
         </Swiper>
@@ -96,34 +91,38 @@ const LatestArticleStyled = styled.section`
             color: ${({theme}) => theme.color.background};
         }
     }
-
-    .title {
-        font-size: ${({theme}) => theme.fontSize.medium};
-        font-weight: ${({theme}) => theme.fontWeight.medium};
-        word-break: break-word;
-        margin-bottom: 0.5rem;
-        height: 3.25rem;
-
-        overflow: hidden;
-        text-overflow: ellipsis;
-
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-    }
-
-    .bottom {
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-start;
-        align-items: center;
-
-        .date {
-            font-size: ${({theme}) => theme.fontSize.extraSmall};
-        }
-    }
-
+    
     .swiper-container {
+        .swiper-slide {
+            display: flex;
+            flex-direction: column;
+            
+            .title {
+                font-size: ${({theme}) => theme.fontSize.medium};
+                font-weight: ${({theme}) => theme.fontWeight.medium};
+                word-break: break-word;
+                margin-bottom: 0.5rem;
+                height: 3.25rem;
+
+                overflow: hidden;
+                text-overflow: ellipsis;
+
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+            }
+
+            .bottom {
+                display: flex;
+                flex-direction: row;
+                justify-content: flex-start;
+                align-items: center;
+
+                .date {
+                    font-size: ${({theme}) => theme.fontSize.extraSmall};
+                }
+            }
+        }
         .arrow {
             display: flex;
             flex-direction: row;

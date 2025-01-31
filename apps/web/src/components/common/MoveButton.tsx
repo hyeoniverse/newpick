@@ -8,9 +8,10 @@ interface Props {
   backIcon?: React.ReactNode;
   className?: string;
   width?: string;
+  disabled?: boolean;
 }
 
-function MoveButton({onClick, frontIcon, backIcon, text, className, width}: Props) {
+function MoveButton({onClick, frontIcon, backIcon, text, className, width, disabled}: Props) {
   
   return (
     <MoveButtonStyled
@@ -18,6 +19,7 @@ function MoveButton({onClick, frontIcon, backIcon, text, className, width}: Prop
       onClick={onClick}
       className={className}
       width={width}
+      disabled={disabled}
     >
       
       {frontIcon}

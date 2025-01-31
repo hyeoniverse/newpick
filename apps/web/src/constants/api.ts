@@ -27,8 +27,9 @@ export const API_ENDPOINTS = {
 		GET_BY_ID: (id: string) => `${API_URL}/news/${id}`,
 	},
 	NEWSLETTER: {
-		BASE: `${API_URL}/newsletter`,
-		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletter?page=${page}&limit=${limit}`,
+		BASE: `${API_URL}/newsletters`,
+		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
+		LIST: (limit: number, offset: number) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
 	},
 	MAIL: {
 		SEND: `${API_URL}/mail/send`,
@@ -46,7 +47,11 @@ export const API_ENDPOINTS = {
 		BASE: `${API_URL}/feedback`,
 		PAGINATED: (newsletterId: number, page: number, limit: number) =>
 			`${API_URL}/feedback?newsletterId=${newsletterId}&page=${page}&limit=${limit}`,
+		BOOKMARK: `${API_URL}/feedback/bookmark`,
 	},
+	MYPAGE: {
+		BOOKMARKS: `${API_URL}/mypage/bookmarks`,
+	}
 };
 
 export default API_ENDPOINTS;

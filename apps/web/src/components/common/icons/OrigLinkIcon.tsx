@@ -5,11 +5,11 @@ interface Props {
   className?: string;
 }
 
-function LikeIcon({ className }: Props) {
+function LinkIcon({ className }: Props) {
   return (
     <IconStyled onClick={() => {}} className={className}>
       <LuExternalLink />
     </IconStyled>
   );
 }
-export default LikeIcon;
+export default LinkIcon;

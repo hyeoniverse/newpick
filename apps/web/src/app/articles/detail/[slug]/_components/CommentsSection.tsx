@@ -1,3 +1,5 @@
+'use client'
+
 import styled from 'styled-components';
 import InputText from '@/components/common/InputText';
 import Button from '@/components/common/Button';

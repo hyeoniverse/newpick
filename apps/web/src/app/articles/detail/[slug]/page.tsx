@@ -1,58 +1,29 @@
-'use client';
+import Article from '@/app/articles/detail/[slug]/_components/Article';
+import { stripCodeFence } from '@/utils/stripCodeFence';
+import { getArticleContent, getArticleList, getPopularArticles } from '@/hooks/useArticle';
 
-import styled from 'styled-components';
-import { useParams } from 'next/navigation';
-import TitleSection from '@/components/article/content/TitleSection';
-import { useEffect, useState } from 'react';
-import { INewsDetail } from '@/models/newsDetail';
-import { dateFormatter } from '@/utils/formatter';
-import Article from "@/components/article/Article";
+export default async function NewsletterDetailPage({ params }: { params: { slug: string }; }) {
+  const { slug } = (await params);
 
-function NewsletterDetailPage() {
-	const [newsInfo, setNewsInfo] = useState<INewsDetail | null>(null);
-	const params = useParams();
+  const articleInfo = await getArticleContent(slug);
+  const articleContent = articleInfo.newsletter;
+  const articleContentHTML = stripCodeFence(articleContent.contentAsHTML, 'html');
 
-	useEffect(() => {
-		console.log('Params:', typeof params.slug); // 값 확인
-		async function fetchNewsDetail() {
-			if (params.slug) {
-				try {
-					const res = await fetch(`http://localhost:1000/news/${params.slug}`);
-					if (!res.ok) {
-						throw new Error('No such news found');
-					}
-					const data = await res.json();
-					setNewsInfo(data);
-				} catch (err) {
-					console.error(err);
-				}
-			}
-		}
+  const popularArticles = await getPopularArticles(100);
+  const latestArticles = await getArticleList(9);
 
-		fetchNewsDetail();
-	}, [params]);
-
-	return (
-		<NewsletterDetailPageStyled>
-			<TitleSection
-				category={newsInfo?.categoryId}
-				title={newsInfo?.title}
-				date={dateFormatter(newsInfo?.createdAt)}
-			/>
-			<div className="content-section">
-				<Article
-					content={newsInfo?.summary ? newsInfo.summary : ''}
-				/>
-			</div>
-		</NewsletterDetailPageStyled>
-	);
+  return (
+    <>
+      <Article
+        article={articleContent}
+        summary={articleContent.content ? articleContent.content : ''}
+        content={articleContentHTML}
+        popular={popularArticles}
+        latest={latestArticles}
+        newsId={articleContent.id}
+        prev={articleInfo.previousNewsletter}
+        next={articleInfo.nextNewsletter}
+      />
+    </>
+  );
 }
-
-const NewsletterDetailPageStyled = styled.div`
-	margin: 2.5rem 0;
-
-	height: 100%;
-	width: 100%;
-`;
-
-export default NewsletterDetailPage;

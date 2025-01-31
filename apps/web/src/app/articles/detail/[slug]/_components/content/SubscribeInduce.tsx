@@ -1,15 +1,44 @@
+'use client'
+
 import styled from "styled-components";
 import Button from "@/components/common/Button";
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { useTab } from '@/hooks/useTab';
+import { useEffect, useState } from 'react';
 
 interface Props {
   className?: string;
 }
 
 function SubscribeInduce({ className }: Props) {
+  const router = useRouter();
+  const { user, handleLogin } = useAuth();
+  const { setActiveTab } = useTab();
+  const [isSubscribeClicked, setIsSubscribeClicked] = useState(false);
+
+  useEffect(() => {
+    if (isSubscribeClicked && user) {
+      setActiveTab('settings');
+      router.push(`/mypage?tab=settings`);
+      setIsSubscribeClicked(false);
+    }
+  }, [user, isSubscribeClicked, setActiveTab, router]);
+
+  const onClickSubscribe = () => {
+    if (user) {
+      setActiveTab('settings');
+      router.push(`/mypage?tab=settings`);
+    } else {
+      setIsSubscribeClicked(true);
+      handleLogin();
+    }
+  }
+
   return (
     <SubscribeInduceStyled className={className}>
       <p>뉴픽이 보내드리는 뉴스레터를 구독해보세요!</p>
-      <Button scheme="primary" size="medium">구독하기</Button>
+      <Button scheme="primary" size="medium" onClick={onClickSubscribe}>구독하기</Button>
     </SubscribeInduceStyled>
   );
 }

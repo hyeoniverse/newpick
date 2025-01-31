@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useTab } from '@/hooks/useTab';
 import useSubscribe from '@/hooks/useSubscribe';
-import { IMySummary } from '@/models/newsDetail';
+import { IMySummary } from '@/models/articleDetail';
 
 import styled from 'styled-components';
 import NoContentsPage from '@/components/common/NoContentsPage';

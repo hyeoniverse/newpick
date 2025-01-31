@@ -3,6 +3,7 @@
 import styled from "styled-components";
 import { SyntheticEvent } from "react";
 import Image from "next/image";
+import { getFirstImage } from '@/utils/getFirstImage';
 
 interface ResponsiveImageStyleProps {
   aspectratio?: number | "auto";
@@ -23,16 +24,12 @@ function HeightAutoImg({src, height, className, aspectratio = "auto"}: Props) {
   }
   return (
     <ContainerStyled height={height} className={className} >
-      <SourceStyled />
-      {/*  type="image/webp"*/}
-      {/*  src={validSrc}*/}
-
       <ThumbImgStyled
-        src={src}
+        src={src ? getFirstImage(src) : "/img/newpick_default_img.jpg"}
         alt="news-img"
         loading="lazy"
         quality={75}
-        sizes="100vw"
+        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         fill
         aspectratio={aspectratio}
         onError={imageOnErrorHandler}
@@ -40,7 +37,6 @@ function HeightAutoImg({src, height, className, aspectratio = "auto"}: Props) {
     </ContainerStyled>
   );
 }
-
 
 const ThumbImgStyled = styled(Image)<Props>`
     position: relative !important;
@@ -59,10 +55,8 @@ const ThumbImgStyled = styled(Image)<Props>`
 
 `;
 
-const SourceStyled = styled.source`
-`
-
 const ContainerStyled = styled.div<Props>`
+    position: relative;
     overflow: hidden;
     border-radius: ${({theme}) => theme.borderRadius.soft};
 
