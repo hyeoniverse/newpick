@@ -1,6 +1,6 @@
 import Article from '@/app/articles/detail/[slug]/_components/Article';
 import { stripCodeFence } from '@/utils/stripCodeFence';
-import { getArticleContent, getArticleList, getPopularArticles } from '@/services/articleService';
+import { getArticleContent, getArticleList, getPopularArticles } from '@/hooks/useArticle';
 
 export default async function NewsletterDetailPage({ params }: { params: { slug: string }; }) {
   const { slug } = (await params);
