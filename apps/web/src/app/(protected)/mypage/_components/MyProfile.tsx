@@ -1,13 +1,16 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
+import { User as IUser } from '@/models/user.model';
 import styled from 'styled-components';
 import Image from '@/components/common/Image';
+import Text from '@/components/common/Text';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
 
-function Profile() {
-	const { user } = useAuth();
+interface Props {
+	user: IUser;
+}
 
+function Profile({ user }: Props) {
 	return (
 		<ProfileStyled>
 			{user && (
@@ -15,12 +18,14 @@ function Profile() {
 					<div className="profile">
 						<Image src={user.profileImg || '/img/profile.jpg'} alt="prifile-img" ratio="square" />
 						<div className="profile-text">
-							<h4>{user.username}</h4>
-							<p>{user.email}</p>
+							<Text weight="semiBold">{user.username}</Text>
+							<Text as="p" color="subText">
+								{user.email}
+							</Text>
 						</div>
 					</div>
 					<div className="subscribe">
-						<SubscribeToggle />
+						<SubscribeToggle user={user} />
 					</div>
 				</>
 			)}
@@ -52,12 +57,7 @@ const ProfileStyled = styled.div`
 		}
 
 		.profile-text {
-			h4 {
-				font-size: ${({ theme }) => theme.fontSize.medium};
-			}
-
 			p {
-				color: ${({ theme }) => theme.color.subText};
 				padding: 0.25rem 0;
 			}
 

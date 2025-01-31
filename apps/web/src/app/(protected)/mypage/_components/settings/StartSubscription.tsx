@@ -14,21 +14,29 @@ import InputCheck from '@/components/common/InputCheck';
 import ModalContents from '@/components/common/modal/ModalContent';
 import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
+import { useAuth } from '@/hooks/useAuth';
+import { useEffect } from 'react';
 
-const StartSubscription = () => {
+interface Props {
+	status: boolean;
+	interests: string[];
+}
+
+export default function StartSubscription({ status, interests }: Props) {
+	const { user } = useAuth();
+
 	const {
-		status: isSubscribed,
+		status: isSubscribed = status,
 		isChanging: isChangingSubscription,
 		handleSubscribe: startSubscription,
 		handleCancel: cancelSubscription,
-		isChanging,
 	} = useSubscribe();
-	const { selectedInterests, handleSelectInterests } = useSelectInterests();
+	const { selectedInterests = interests, handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
 	const { openModal, closeModal } = useModal();
 
-	const handleSubscribe = () => {
-		const isSuccess = startSubscription({ interests: selectedInterests, isChecked: isChecked });
+	const handleSubscribe = async () => {
+		const isSuccess = await startSubscription({ interests: selectedInterests, isChecked: isChecked });
 
 		if (isSuccess) {
 			openModal(
@@ -41,14 +49,18 @@ const StartSubscription = () => {
 				/>
 			);
 			setChecked(false);
-			handleSelectInterests();
 		}
 	};
 
-	const handleCancel = () => {
-		cancelSubscription();
+	const handleCancel = async () => {
+		await cancelSubscription();
+		handleSelectInterests();
 		closeModal();
 	};
+
+	useEffect(() => {
+		console.log('📌 user: ', user);
+	}, [user]);
 
 	return (
 		<StyeldStartSubscription>
@@ -75,7 +87,7 @@ const StartSubscription = () => {
 									/>
 								)
 							}
-							disabled={isChanging}
+							disabled={isChangingSubscription}
 						>
 							구독 해지
 						</Button>
@@ -142,7 +154,7 @@ const StartSubscription = () => {
 				<Button
 					type="submit"
 					scheme="primary"
-					size="large"
+					size="medium"
 					onClick={handleSubscribe}
 					disabled={isChangingSubscription}
 				>
@@ -151,7 +163,7 @@ const StartSubscription = () => {
 			</div>
 		</StyeldStartSubscription>
 	);
-};
+}
 
 const StyeldStartSubscription = styled.div`
 	display: flex;
@@ -251,5 +263,3 @@ const StyeldStartSubscription = styled.div`
 		}
 	}
 `;
-
-export default StartSubscription;

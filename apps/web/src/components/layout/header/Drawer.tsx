@@ -1,5 +1,3 @@
-'use client';
-
 import Link from 'next/link';
 import { NAVIGATION } from '@/constants/navigation';
 import { useAuth } from '@/hooks/useAuth';

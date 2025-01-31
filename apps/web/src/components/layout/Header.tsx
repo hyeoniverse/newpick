@@ -1,8 +1,9 @@
-'use client';
+'use clinet';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef } from 'react';
 
+import { User as IUser } from '@/models/user.model';
 import { SCROLL } from '@/constants/numbers';
 import { useAuth } from '@/hooks/useAuth';
 import { useDropdown } from '@/hooks/useDropdown';
@@ -20,11 +21,13 @@ import Spinner from '@/components/common/loader/Spinner';
 import Navigation from '@/components/layout/header/Navigation';
 import Drawer from '@/components/layout/header/Drawer';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
-import { useMount } from '@/hooks/useMount';
 
-const Header = () => {
-	const { isMounted } = useMount();
-	const { user, isLoading, handleLogin, handleLogout } = useAuth();
+interface Props {
+	initialUser: IUser;
+}
+
+export default function Header({ initialUser }: Props) {
+	const { user = initialUser, isLoading, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
 	const lastScrollY = useRef(0);
@@ -75,60 +78,80 @@ const Header = () => {
 					<Navigation />
 				</div>
 				<div className="right-section">
-					{isMounted && (
-						<>
-							<ThemeSwitcher scheme="secondary" className={user ? 'hidden' : 'mobile-hidden'} />
-							{isLoading ? (
-								<Spinner size="2.5rem" />
-							) : user ? (
-								<>
-									<Dropdown
-										type="auth"
-										className="auth"
-										toggleButton={
-											user?.profileImg ? (
-												<StyledUserCircle>
-													<Image src={user.profileImg} alt="profile" ratio="square" />
-												</StyledUserCircle>
-											) : (
-												<StyledUserCircle>
-													<FaUserCircle />
-												</StyledUserCircle>
-											)
-										}
-									>
-										<>
-											<ThemeSwitcher className="item" />
-											<Link href="/mypage">
-												<Button className="item">마이페이지</Button>
-											</Link>
-											<Button className="item" onClick={handleLogout}>
-												로그아웃
-											</Button>
-										</>
-									</Dropdown>
-								</>
-							) : (
-								<>
-									<Button
-										scheme="outline"
-										style={{ width: '5rem' }}
-										onClick={handleLogin}
-										icon={<IoLogoGoogle />}
-										iconPosition="left"
-										disabled={isLoading}
-									>
-										로그인
+					{initialUser ? (
+						<Dropdown
+							type="auth"
+							className="auth"
+							toggleButton={
+								user?.profileImg ? (
+									<StyledUserCircle>
+										<Image src={user.profileImg} alt="profile" ratio="square" />
+									</StyledUserCircle>
+								) : (
+									<StyledUserCircle>
+										<FaUserCircle />
+									</StyledUserCircle>
+								)
+							}
+						>
+							<>
+								<ThemeSwitcher className="item" />
+								<Link href="/mypage">
+									<Button className="item">마이페이지</Button>
+								</Link>
+								<Button className="item" onClick={handleLogout}>
+									로그아웃
+								</Button>
+							</>
+						</Dropdown>
+					) : isLoading ? (
+						<Spinner size="2.5rem" />
+					) : user ? (
+						<Dropdown
+							type="auth"
+							className="auth"
+							toggleButton={
+								user?.profileImg ? (
+									<StyledUserCircle>
+										<Image src={user.profileImg} alt="profile" ratio="square" />
+									</StyledUserCircle>
+								) : (
+									<StyledUserCircle>
+										<FaUserCircle />
+									</StyledUserCircle>
+								)
+							}
+						>
+							<>
+								<ThemeSwitcher className="item" />
+								<Link href="/mypage">
+									<Button as="a" className="item">
+										마이페이지
 									</Button>
-								</>
-							)}
+								</Link>
+								<Button className="item" onClick={handleLogout}>
+									로그아웃
+								</Button>
+							</>
+						</Dropdown>
+					) : (
+						<>
+							<Button
+								scheme="outline"
+								onClick={handleLogin}
+								icon={<IoLogoGoogle />}
+								iconPosition="left"
+								disabled={isLoading}
+							>
+								로그인
+							</Button>
 						</>
 					)}
 				</div>
 			</div>
 		</StyledHeader>
 	);
-};
+}
 
 interface StyledProps {
 	$isFolded: boolean;
@@ -256,5 +279,3 @@ const StyledUserCircle = styled.div`
 	border-radius: 50%;
 	overflow: hidden;
 `;
-
-export default Header;

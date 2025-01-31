@@ -3,9 +3,9 @@
 import React, { useState } from 'react';
 import { useToast } from '@/hooks/useToast';
 import { useModal } from '@/hooks/useModal';
+import { useInputCheck } from '@/hooks/useInputCheck';
 
 import styled from 'styled-components';
-import Modal from '@/components/common/modal/Modal';
 import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
 import InputText from '@/components/common/InputText';
@@ -16,19 +16,14 @@ import Spinner from '@/components/common/loader/Spinner';
 
 const TestPage = () => {
 	const { showToast, setPosition } = useToast();
-	const { isOpen, modalType, openModal, closeModal } = useModal();
+	const { openModal } = useModal();
+	const { isChecked } = useInputCheck('testCheckbox');
 	const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-	const [isChecked, setIsChecked] = useState(false);
 	const [selectedOption, setSelectedOption] = useState('');
 
 	const handleDateChange = (date: Date | null) => {
 		setSelectedDate(date);
 		console.log('Selected Date:', date);
-	};
-
-	const handleCheckboxChange = (name: string, checked: boolean) => {
-		setIsChecked(checked);
-		console.log(`Checkbox ${name} is now`, checked ? 'Checked' : 'Unchecked');
 	};
 
 	const handleSelectChange = (value: string) => {
@@ -68,22 +63,42 @@ const TestPage = () => {
 
 			<section>
 				<h2>Modal</h2>
-				<Button onClick={() => openModal('test')}>Open Test Modal</Button>
-				{isOpen && modalType === 'test' && (
-					<Modal isOpen={isOpen} onClose={closeModal}>
-						<h2>Test Modal</h2>
-						<p>모달 내용</p>
-					</Modal>
-				)}
+				<Button
+					onClick={() =>
+						openModal(
+							<>
+								<h2>Test Modal</h2>
+								<p>모달 내용</p>
+							</>
+						)
+					}
+				>
+					Open Test Modal
+				</Button>
 			</section>
 
 			<hr />
 			<section>
 				<h2>Button</h2>
-				<Button scheme="primary" onClick={() => alert('Primary Button clicked!')}>
+				<Button scheme="default" onClick={() => alert('Success Button clicked!')}>
 					클릭
 				</Button>
 				<Button scheme="secondary" onClick={() => alert('Secondary Button clicked!')}>
+					클릭
+				</Button>
+				<Button scheme="primary" onClick={() => alert('Primary Button clicked!')}>
+					클릭
+				</Button>
+				<Button scheme="outline" onClick={() => alert('Outline Button clicked!')}>
+					클릭
+				</Button>
+				<Button scheme="mono" onClick={() => alert('Mono Button clicked!')}>
+					클릭
+				</Button>
+				<Button scheme="monoOutline" onClick={() => alert('Warning Button clicked!')}>
+					클릭
+				</Button>
+				<Button scheme="danger" onClick={() => alert('Danger Button clicked!')}>
 					클릭
 				</Button>
 			</section>
@@ -113,12 +128,7 @@ const TestPage = () => {
 			<hr />
 			<section>
 				<h2>InputCheck</h2>
-				<InputCheck
-					name="testCheckbox"
-					label="테스트 체크박스"
-					onChange={handleCheckboxChange}
-					checked={isChecked}
-				/>
+				<InputCheck name="testCheckbox" />
 				<p>체크 상태: {isChecked ? '체크됨' : '체크 안 됨'}</p>
 			</section>
 
@@ -159,7 +169,12 @@ const StyledTestPage = styled.div`
 	}
 
 	section {
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
 		margin-bottom: 2rem;
+		gap: 0.5rem;
 
 		h2 {
 			font-size: 1.5rem;

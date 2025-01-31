@@ -1,11 +1,9 @@
-'use client';
-
-import React, { useContext } from 'react';
-import { ThemeContext } from '@/context/themeContext';
+import React from 'react';
 import { CSSProperties } from 'react';
 import { MdLightMode, MdDarkMode } from 'react-icons/md';
-import Button from '@/components/common/Button';
 import { ButtonScheme } from '@/styles/theme';
+import { useTheme } from '@/hooks/useTheme';
+import Button from '@/components/common/Button';
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 	scheme?: ButtonScheme;
@@ -13,7 +11,7 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const ThemeSwitcher = ({ className, scheme, styles }: Props) => {
-	const { themeName, toggleTheme } = useContext(ThemeContext);
+	const { themeName, toggleTheme } = useTheme();
 
 	return (
 		<Button className={className} scheme={scheme} onClick={toggleTheme} style={styles}>

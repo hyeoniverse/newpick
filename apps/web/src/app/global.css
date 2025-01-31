@@ -1,0 +1,50 @@
+/* 기본 테마 (Light Mode) */
+:root {
+	--primary: #3610e1;
+	--secondary: #5564f1;
+	--tertiary: #f4f1ff;
+	--background: #ffffff;
+	--surface: #f9f9f9;
+	--disabled: #bdbdbd;
+	--success: #8bc34a;
+	--error: #e57373;
+	--warning: #ffb300;
+	--text: #000000;
+	--subText: #808080;
+	--neutral: #f0f0f0;
+	--mediumGrey: #444444;
+	--lightGrey: #999999;
+	--border: #d9d9d9;
+}
+
+/* 다크 모드 */
+[data-theme='dark'] {
+	--primary: #9ca9ff;
+	--secondary: #6980ff;
+	--tertiary: #0f1d7a;
+	--background: #121212;
+	--surface: #1e1e1e;
+	--disabled: #555555;
+	--success: #66bb6a;
+	--error: #ef5350;
+	--warning: #ffb300;
+	--text: #f1f1f1;
+	--subText: #a3a3a3;
+	--neutral: #2d2d2d;
+	--mediumGrey: #a3a3a3;
+	--lightGrey: #606060;
+	--border: #606060;
+}
+
+/* 반응형 (하드코딩 없이 CSS 변수 사용) */
+:root {
+	--breakpoint-mobile: 425px;
+	--breakpoint-tablet: 768px;
+	--breakpoint-desktop: 1024px;
+}
+
+@media (max-width: var(--breakpoint-tablet)) {
+	body {
+		font-size: 16px;
+	}
+}

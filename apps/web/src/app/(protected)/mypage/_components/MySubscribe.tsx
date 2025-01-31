@@ -10,9 +10,13 @@ import NoContentsPage from '@/components/common/NoContentsPage';
 import MySubscribeNav from '@/app/(protected)/mypage/_components/subscribe/MySubscribeNav';
 import MySummaryCategory from '@/app/(protected)/mypage/_components/subscribe/MySubscribeSummaryCategory';
 
-function MySubscribe() {
+interface Props {
+	status: boolean;
+}
+
+export default function MySubscribe({ status }: Props) {
 	const { setActiveTab } = useTab();
-	const { status: isSubscribed } = useSubscribe();
+	const { status: isSubscribed = status } = useSubscribe();
 	const [activeCategory, setActiveCategory] = useState<string>('');
 	const [summaryInfo] = useState<IMySummary[] | null>(null);
 
@@ -92,5 +96,3 @@ const MySubscribeStyled = styled.div`
 	max-width: 1024px;
 	margin: 0 auto;
 `;
-
-export default MySubscribe;

@@ -1,12 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { JSX } from 'react';
 import styled from 'styled-components';
 import { ButtonScheme, ButtonSize } from '@/styles/theme';
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-	children?: React.ReactNode;
+	as?: keyof JSX.IntrinsicElements;
 	ref?: React.Ref<HTMLButtonElement>;
+	children?: React.ReactNode;
 	size?: ButtonSize;
 	scheme?: ButtonScheme;
 	disabled?: boolean;
@@ -17,6 +18,7 @@ interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const Button = ({
+	as = 'button',
 	children,
 	ref,
 	size,
@@ -34,6 +36,7 @@ const Button = ({
 
 	return (
 		<StyledButton
+			as={as}
 			title={textContent}
 			ref={ref}
 			size={size}
@@ -64,25 +67,14 @@ export const StyledButton = styled.button.withConfig({
 	height: fit-content;
 
 	font-size: ${({ theme, size }) => theme.button[size ?? 'small'].fontSize};
-  font-weight: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].fontWeight};
 	padding: ${({ theme, size }) => theme.button[size ?? 'small'].padding};
 	gap: ${({ theme, size }) => theme.button[size ?? 'small'].gap};
+  font-weight: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].fontWeight};
 
 	color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].color};
 	background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].background};
 	border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].border};
 	border-radius: ${({ theme }) => theme.borderRadius.flat};
-  // &::after {
-	// 	content: '';
-	// 	position: absolute;
-	// 	top: 0;
-	// 	left: 0;
-	// 	width: 100%;
-	// 	height: 100%;
-	// 	background: rgba(0, 0, 0, 0.3); /* 반투명 검은색 */
-	// 	opacity: ${({ disabled }) => (disabled ? 1 : 0)};
-	// 	transition: opacity 0.3s ease-in-out;
-	// }
   opacity: ${({ disabled }) => (disabled ? 0.8 : 1)};
 	pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
 	cursor: ${({ disabled }) => (disabled ? 'none' : 'pointer')};

@@ -5,8 +5,8 @@ import { ToastItem, ToastType, ToastPosition } from '@/models/toast.model';
 interface ToastState {
 	toasts: ToastItem[];
 	position: ToastPosition;
-	addToast: (message: string, type?: ToastType, duration?: number) => number;
-	removeToast: (id: number) => void;
+	addToast: (message: string, type?: ToastType, duration?: number) => string;
+	removeToast: (id: string) => void;
 	setPosition: (position: ToastPosition) => void;
 }
 
@@ -14,9 +14,9 @@ const useToastStore = create<ToastState>((set) => ({
 	toasts: [],
 	position: 'center-bottom',
 
-	addToast: (message, type = 'info', duration = TOAST.DURATION): number => {
+	addToast: (message, type = 'info', duration = TOAST.DURATION): string => {
 		const newToast: ToastItem = {
-			id: Date.now(),
+			id: crypto.randomUUID(),
 			message,
 			type,
 			duration,
@@ -34,7 +34,7 @@ const useToastStore = create<ToastState>((set) => ({
 		return newToast.id;
 	},
 
-	removeToast: (id: number) =>
+	removeToast: (id: string) =>
 		set((state) => ({
 			toasts: state.toasts.filter((toast) => toast.id !== id),
 		})),

@@ -1,18 +1,21 @@
 'use client';
 
 import useSubscribe from '@/hooks/useSubscribe';
-
-import styled from 'styled-components';
 import NoContentsPage from '@/components/common/NoContentsPage';
 import StartSubscription from '@/app/(protected)/mypage/_components/settings/StartSubscription';
 
-function MyNewsletterSubscribe() {
-	const { status: isSubscribed } = useSubscribe();
+interface Props {
+	status: boolean;
+	interests: string[];
+}
+
+export default function MyNewsletterSubscribe({ status, interests }: Props) {
+	const { status: isSubscribed = status } = useSubscribe();
 
 	return (
-		<MyNewsletterSubscribeStyled>
+		<div>
 			{isSubscribed === null || true ? (
-				<StartSubscription />
+				<StartSubscription status={status} interests={interests} />
 			) : (
 				<NoContentsPage
 					text={`뉴스레터 구독이 일시정지 중 입니다. \n 구독을 다시 시작하시겠습니까?`}
@@ -20,10 +23,6 @@ function MyNewsletterSubscribe() {
 					onClick={() => {}}
 				/>
 			)}
-		</MyNewsletterSubscribeStyled>
+		</div>
 	);
 }
-
-const MyNewsletterSubscribeStyled = styled.div``;
-
-export default MyNewsletterSubscribe;

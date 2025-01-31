@@ -1,5 +1,7 @@
+'use client';
+
 import { Suspense, lazy } from 'react';
-import { Newsletter as INewsletter } from '@/models/newsletter.model';
+import { useNewsletter } from '@/hooks/useNewsletter';
 import { filterTodayTrends } from '@/utils/queryNewsletters';
 
 import { styled } from 'styled-components';
@@ -11,11 +13,8 @@ import Skeleton from '@/components/common/loader/Skeleton';
 
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
-interface Props {
-	newsletters: INewsletter[];
-}
-
-const TrendSection = ({ newsletters }: Props) => {
+const TrendSection = () => {
+	const { newsletters } = useNewsletter();
 	const todayTrends = filterTodayTrends(newsletters);
 	const isLoading = newsletters.length === 0;
 

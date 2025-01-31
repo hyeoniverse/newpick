@@ -1,3 +1,6 @@
+'use client';
+
+import { User as IUser } from '@/models/user.model';
 import { useSubscribe } from '@/hooks/useSubscribe';
 import { useModal } from '@/hooks/useModal';
 import { useTab } from '@/hooks/useTab';
@@ -7,9 +10,13 @@ import { LuBell, LuBellOff } from 'react-icons/lu';
 import { ToggleIcon } from '@/components/common/svg/ToggleSVG';
 import ModalContents from '@/components/common/modal/ModalContent';
 
-function SubscribeToggle() {
+interface Props {
+	user: IUser;
+}
+
+function SubscribeToggle({ user }: Props) {
 	const { setActiveTab } = useTab();
-	const { status: isSubscribed, toggleSubscribe } = useSubscribe();
+	const { status: isSubscribed = user.isSubscribed, toggleSubscribe } = useSubscribe();
 	const { openModal, closeModal } = useModal();
 
 	const onToggle = () => {

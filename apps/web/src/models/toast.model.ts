@@ -2,7 +2,7 @@ export type ToastPosition = 'top-left' | 'top-right' | 'bottom-left' | 'bottom-r
 export type ToastType = 'info' | 'success' | 'warning' | 'error';
 
 export interface ToastItem {
-	id: number;
+	id: string;
 	message: string;
 	type: ToastType;
 	duration?: number;
