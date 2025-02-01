@@ -273,7 +273,7 @@ export const darkTheme: Theme = {
 		neutral: '#2D2D2D',
 		mediumGrey: '#a3a3a3',
 		lightGrey: '#606060',
-		border: '#606060',
+		border: '#333333',
 	},
 	buttonScheme: {
 		primary: {
