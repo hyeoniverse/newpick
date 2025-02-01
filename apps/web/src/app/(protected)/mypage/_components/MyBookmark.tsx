@@ -12,14 +12,15 @@ import { getFirstImage } from '@/utils/getFirstImage';
 
 function MyBookmark() {
   const { user } = useAuthStore();
-  const { data: bookmarks, isLoading, isError, error } = useBookmarksList();
+  const { data: bookmarks, isError, error } = useBookmarksList();
 
   if (!user) {
-    return <div>로그인 후 이용해주세요.</div>;
-  }
-
-  if (isLoading) {
-    return <div>북마크를 불러오는 중입니다...</div>;
+    return (
+      <NoContentsPage
+      text={`권한이 없습니다. \n 로그인 후 이용해주세요.`}
+      btnText={'메인으로'}
+      moveTo={'/'}
+    />)
   }
 
   if (isError) {
@@ -47,7 +48,7 @@ function MyBookmark() {
                   id: bookmark.id,
                   url: `/articles/detail/${bookmark.id}`,
                   image: `${getFirstImage(bookmark.newsImg)}`,
-                  header: `category`,
+                  header: bookmark.category.name,
                   main: {
                     title: bookmark.newsTitle,
                     description: bookmark.newsSummary,
