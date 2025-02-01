@@ -3,13 +3,18 @@
 import { useModal } from '@/hooks/useModal';
 import { bannersData } from '@/mocks/home/index';
 
-import { styled } from 'styled-components';
+import styled from 'styled-components';
 import Title from '@/components/common/Title';
 import Button from '@/components/common/Button';
 import BannerSlider from '@/components/common/slider/BannerSlider';
+import Trial from '@/app/(home)/_components/Trial';
 
 export default function HeroSection() {
 	const { openModal } = useModal();
+
+	const handleOpenModal = () => {
+		openModal(<Trial />);
+	};
 
 	return (
 		<StyledHeroSection>
@@ -20,21 +25,7 @@ export default function HeroSection() {
 						원하는 분야만 골라보는 나만의 뉴스
 					</Title>
 				</div>
-				<Button
-					size="large"
-					scheme="primary"
-					style={{ marginTop: '1rem' }}
-					onClick={() =>
-						openModal(
-							<StyledTrial>
-								<Title size="large">뉴스레터 생성하기</Title>
-								<Button size="medium" scheme="primary">
-									생성하기
-								</Button>
-							</StyledTrial>
-						)
-					}
-				>
+				<Button size="large" scheme="primary" style={{ marginTop: '1rem' }} onClick={handleOpenModal}>
 					AI 뉴스레터 체험하기
 				</Button>
 			</div>
@@ -74,15 +65,4 @@ const StyledHeroSection = styled.section`
 	@media ${({ theme }) => theme.mediaQuery.tablet} {
 		flex-wrap: wrap;
 	}
-`;
-
-const StyledTrial = styled.div`
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: center;
-	gap: 1rem;
-	padding: 2rem;
 `;

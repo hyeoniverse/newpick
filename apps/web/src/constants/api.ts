@@ -38,7 +38,7 @@ export const API_ENDPOINTS = {
 		BASE: `${API_URL}/newsletters`,
 		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
 		LIST: (limit: number, offset: number) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
-		TRIAL: () => `${API_URL}/ai-summary/summarize`,
+		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
 	},
 	MAIL: {
 		SEND: () => `${API_URL}/mail/send`,
