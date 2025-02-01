@@ -1,5 +1,5 @@
 import { fetchArticle, fetchArticleList } from '@/api/article';
-import { IArticleInfo } from '@/models/articleDetail';
+import { IArticleInfo } from '@/models/article.model';
 
 export const getArticleContent = async (slug: string) => {
   const data: IArticleInfo = await fetchArticle(slug);

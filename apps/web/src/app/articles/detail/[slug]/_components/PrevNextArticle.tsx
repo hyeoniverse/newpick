@@ -6,7 +6,7 @@ import MoveButton from '@/components/common/MoveButton';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import Link from 'next/link';
-import { IArticleDetail } from '@/models/articleDetail';
+import { IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 
 interface Props {

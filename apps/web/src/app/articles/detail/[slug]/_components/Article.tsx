@@ -8,7 +8,7 @@ import PrevNextArticle from '@/app/articles/detail/[slug]/_components/PrevNextAr
 import LatestArticle from '@/app/articles/detail/[slug]/_components/LatestArticle';
 import MobileLikeLinkButton from '@/app/articles/detail/[slug]/_components/MobileLikeLinkButton';
 import { useParams } from 'next/navigation';
-import { IArticleDetail } from '@/models/articleDetail';
+import { IArticleDetail } from '@/models/article.model';
 import MoveButton from '@/components/common/MoveButton';
 import { IoArrowBack } from 'react-icons/io5';
 import Link from 'next/link';
