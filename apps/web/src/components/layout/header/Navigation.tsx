@@ -80,7 +80,6 @@ const StyledNavigation = styled.nav`
 
 			.sub-navigation {
 				width: 100vw;
-
 				position: fixed;
 				top: 3rem;
 				left: 0;
@@ -90,6 +89,7 @@ const StyledNavigation = styled.nav`
 				flex-direction: row;
 				justify-content: center;
 				align-items: center;
+				padding: 0 1rem;
 
 				background: ${({ theme }) => theme.color.surface};
 				border-top: 1px solid ${({ theme }) => theme.color.border};
