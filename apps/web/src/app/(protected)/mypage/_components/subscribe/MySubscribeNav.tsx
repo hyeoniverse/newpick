@@ -71,9 +71,9 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 		>
 			<ContentsStyled>
 				<div className="date">
-					<IoIosArrowBack />
+					{/*<IoIosArrowBack />*/}
 					<p>{today}</p>
-					<IoIosArrowForward />
+					{/*<IoIosArrowForward />*/}
 				</div>
 				<ul className="categories">
 					{userArticles.length > 0 &&

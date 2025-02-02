@@ -44,8 +44,8 @@ const ThumbImgStyled = styled(Image)<Props>`
     height: unset !important;
     width: 100%;
 
-    max-height: 24rem;
-    min-height: 2rem;
+    //max-height: 24rem;
+    //min-height: 2rem;
 
     object-fit: cover;
     content-visibility: auto;

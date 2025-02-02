@@ -13,9 +13,7 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
   fetchCategories: async () => {
     try {
       const response = await fetchCategories();
-      // 응답 구조에 맞게 배열을 추출합니다.
-      // 예를 들어, 응답이 { data: [...] } 형태라면:
-      const dataArray: Category[] = response.data || response; // response.data가 없으면 response 자체가 배열일 수 있음
+      const dataArray: Category[] = response.data || response;
       if (!Array.isArray(dataArray)) {
         throw new Error('Invalid categories data structure');
       }

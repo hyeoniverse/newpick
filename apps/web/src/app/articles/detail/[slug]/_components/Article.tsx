@@ -7,7 +7,6 @@ import ArticleContent from '@/app/articles/detail/[slug]/_components/content/Art
 import PrevNextArticle from '@/app/articles/detail/[slug]/_components/PrevNextArticle';
 import LatestArticle from '@/app/articles/detail/[slug]/_components/LatestArticle';
 import MobileLikeLinkButton from '@/app/articles/detail/[slug]/_components/MobileLikeLinkButton';
-import { useParams } from 'next/navigation';
 import { IArticleDetail } from '@/models/article.model';
 import MoveButton from '@/components/common/MoveButton';
 import { IoArrowBack } from 'react-icons/io5';
@@ -15,6 +14,8 @@ import Link from 'next/link';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import { useRouter } from 'next/navigation';
+import { useCategoryStore } from '@/stores/useCategoryStore';
+import { useEffect } from 'react';
 
 interface Props {
   article: IArticleDetail;
@@ -29,13 +30,19 @@ interface Props {
 
 function Article({ article, summary, content, popular, latest, newsId, prev, next }: Props) {
   const router = useRouter();
+  const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
+  useEffect(() => {
+    if (Object.keys(categories).length === 0) {
+      fetchCategories();
+    }
+  }, [categories, fetchCategories]);
   return (
     <>
       <TitleSectionStyled>
         <MoveButton onClick={() => router.back()} text="이전으로" frontIcon={<IoArrowBack />} />
         <div className="title-section">
-          <Link href={`/articles/categories/${article.categoryId}`} className="category">{article.categoryId}</Link>
+          <Link href={`/articles/categories/${article.categoryId}`} className="category">{getCategoryName(article.categoryId)}</Link>
           <h1 className="title">{article.title}</h1>
           <p className="date">{article.createdAt}</p>
           <div className="icons">
@@ -47,7 +54,7 @@ function Article({ article, summary, content, popular, latest, newsId, prev, nex
       <ArticleStyled>
         <SummaryTextBox>{summary}</SummaryTextBox>
         <div className="content-section">
-          <ArticleContent className="content" content={content} />
+          <ArticleContent className="content" content={content} articleImage={article.imageUrl ?? ""} />
           <PopularArticle className="popular" popular={popular} />
         </div>
         <PrevNextArticle className="prev-next" prev={prev} next={next} />

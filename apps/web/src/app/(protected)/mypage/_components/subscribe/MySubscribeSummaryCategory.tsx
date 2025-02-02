@@ -18,7 +18,6 @@ function MySummaryCategory() {
 
 	useEffect(() => {
 		fetchUserArticles(user?.interests ?? []);
-		// 카테고리 데이터가 아직 없으면 fetch (한 번만 실행됨)
 		if (Object.keys(categories).length === 0) {
 			fetchCategories();
 		}
@@ -35,7 +34,7 @@ function MySummaryCategory() {
 					userArticles.map((article) => (
 					<div key={article.id} className="my-subs-content" id={`section-${article.id}`} data-categoryid={article.categoryId}>
 						<div className="top">
-							<Link href="/mypage" className="category-name">
+							<Link href={`/articles/categories/${article.categoryId}`} className="category-name">
 								{getCategoryName(article.categoryId)}
 								<IoIosArrowForward />
 							</Link>
