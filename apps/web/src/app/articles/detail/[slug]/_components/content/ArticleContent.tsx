@@ -2,7 +2,6 @@
 
 import styled from "styled-components";
 import SubscribeInduce from "@/app/articles/detail/[slug]/_components/content/SubscribeInduce";
-import Image from '@/components/common/Image';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 
 interface NewsletterContentProps {

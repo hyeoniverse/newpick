@@ -26,7 +26,7 @@ function TitleSection({title, date, category}: TitleSectionProps) {
         <p className="date">{date}</p>
         <div className="icons">
           {/*<BookmarkIcon newsId={}/>*/}
-          <LinkCopyIcon />
+          {/*<LinkCopyIcon />*/}
         </div>
       </div>
     </TitleSectionStyled>
