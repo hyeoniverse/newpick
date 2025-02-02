@@ -3,39 +3,55 @@ import { IoIosArrowForward } from 'react-icons/io';
 import Link from 'next/link';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
-import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import BarWidth from '@/components/common/BarWidth';
 import SummaryTextBox from '@/components/common/article/SummaryTextBox';
-import { currentUserData } from '@/mocks';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useArticleStore } from '@/stores/useMySubscribeStore';
+import { useEffect } from 'react';
+import { useCategoryStore } from '@/stores/useCategoryStore';
 
 function MySummaryCategory() {
-	const { summaries } = currentUserData;
+	const { user } = useAuthStore();
+  const { userArticles, loading, error, fetchUserArticles } = useArticleStore();
+	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
+
+	useEffect(() => {
+		fetchUserArticles(user?.interests ?? []);
+		if (Object.keys(categories).length === 0) {
+			fetchCategories();
+		}
+	}, [user?.interests, fetchUserArticles, categories, fetchCategories]);
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
 
 	return (
 		<>
 			<MySummaryCategoryStyled>
-				{summaries.map((info, index) => (
-					<div key={index} className="my-subs-content" id={info.categoryName}>
+				{userArticles.length > 0 &&
+					userArticles.map((article) => (
+					<div key={article.id} className="my-subs-content" id={`section-${article.id}`} data-categoryid={article.categoryId}>
 						<div className="top">
-							<Link href="/mypage" className="category-name">
-								{info.categoryName}
+							<Link href={`/articles/categories/${article.categoryId}`} className="category-name">
+								{getCategoryName(article.categoryId)}
 								<IoIosArrowForward />
 							</Link>
-							<div className="title-section">
-								<h3 className="title-text">{info.title}</h3>
-							</div>
+							<Link href={`/articles/detail/${article.id}`} className="title-section">
+								<h3 className="title-text">{article.title}</h3>
+							</Link>
 						</div>
 						<div className="bottom">
 							<div className="img-section">
-								<HeightAutoImg src={info.img || null} height={'auto'} />
+								<HeightAutoImg src={article.imageUrl || null} height={'auto'} />
 								<div className="etc">
-									<BookmarkIcon newsId={info.id} newsletterId={info.id}/>
-									<LinkCopyIcon />
-									<OrigLinkIcon />
+									<BookmarkIcon newsId={article.id} newsletterId={article.id}/>
+									<LinkCopyIcon id={article.id} />
+									{/*<OrigLinkIcon />*/}
 								</div>
 							</div>
-							<SummaryTextBox flex={3}>{info.summary}</SummaryTextBox>
+							<SummaryTextBox flex={3}>{article.content}</SummaryTextBox>
 						</div>
 						<BarWidth width={'100%'} className="bar" />
 					</div>
@@ -114,7 +130,7 @@ const MySummaryCategoryStyled = styled.div`
                         flex: none; /* flex 비율 대신 각자 100% 너비 (혹은 auto) */
                         width: 100%;
                     }
-                
+
             }
         }
     }

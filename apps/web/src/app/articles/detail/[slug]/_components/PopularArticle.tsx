@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import Link from 'next/link';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
-import { IArticleDetail } from '@/models/articleDetail';
+import { IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
 

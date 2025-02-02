@@ -57,6 +57,10 @@ export const API_ENDPOINTS = {
 	MYPAGE: {
 		BOOKMARKS: `${API_URL}/mypage/bookmarks`,
 	},
+	CATEGORY: {
+		BASE: `${API_URL}/category`,
+		GET_BY_ID: (id: string) => `${API_URL}/category/${id}`,
+	}
 };
 
 export default API_ENDPOINTS;

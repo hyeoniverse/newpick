@@ -4,7 +4,7 @@ import { API_ENDPOINTS } from '@/constants/api';
 /**
  * 사용자의 관심사를 조회하는 API
  */
-export const fetchInterests = async (): Promise<string[]> => {
+export const fetchInterests = async (): Promise<number[]> => {
 	const response = await fetch(API_ENDPOINTS.SUBSCRIBERS.INTERESTS(), {
 		method: 'GET',
 		credentials: 'include',

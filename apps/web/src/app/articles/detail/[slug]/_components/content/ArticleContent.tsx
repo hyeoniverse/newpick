@@ -2,7 +2,7 @@
 
 import styled from "styled-components";
 import SubscribeInduce from "@/app/articles/detail/[slug]/_components/content/SubscribeInduce";
-import Image from '@/components/common/Image';
+import HeightAutoImg from '@/components/common/HeightAutoImg';
 
 interface NewsletterContentProps {
   content: string;
@@ -15,7 +15,9 @@ function ArticleContent({content, flex, className, articleImage}: NewsletterCont
   return (
     <ContainerStyled flex={flex} className={className}>
       {articleImage &&
-      <Image src={articleImage} alt={'image'} />
+        <div className='image-wrapper'>
+        <HeightAutoImg src={articleImage} height={'auto'} />
+        </div>
       }
       <NewsletterContentStyled>
           <div
@@ -32,6 +34,9 @@ const ContainerStyled = styled.div<Omit<NewsletterContentProps, 'content'>>`
     position: relative;
     display: flex;
     flex-direction: column;
+    height: 100%;
+    max-width: 100%;
+
 `
 
 const NewsletterContentStyled = styled.article`

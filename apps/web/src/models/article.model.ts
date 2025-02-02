@@ -3,6 +3,7 @@ export interface IArticleInfo {
   previousNewsletter: IArticleDetail | null;
   nextNewsletter: IArticleDetail | null;
 }
+
 export interface IArticleDetail {
   id: number;
   title: string;

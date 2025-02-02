@@ -6,6 +6,7 @@ import TabNavigation from '@/components/common/TabNavgation';
 import MyTabs from '@/app/(protected)/mypage/_components/MyTabs';
 
 export default async function MyPage() {
+
 	return (
 		<div className={styles.myPage}>
 			<Title size="extraSmall">마이페이지</Title>

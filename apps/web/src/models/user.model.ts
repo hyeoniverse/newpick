@@ -5,7 +5,7 @@ export interface User {
 	profileImg?: string;
 	accessToken: string | null;
 	isSubscribed: boolean | null;
-	interests?: string[];
+	interests: number[];
 	role: 'user' | 'admin';
 	frequency?: 'daily' | 'weekly' | 'monthly';
 	notificationPreferences?: {
