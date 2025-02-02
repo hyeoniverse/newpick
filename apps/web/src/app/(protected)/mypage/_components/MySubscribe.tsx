@@ -10,13 +10,14 @@ import NoContentsPage from '@/components/common/NoContentsPage';
 import MySubscribeNav from '@/app/(protected)/mypage/_components/subscribe/MySubscribeNav';
 import MySummaryCategory from '@/app/(protected)/mypage/_components/subscribe/MySubscribeSummaryCategory';
 import { useAuth } from '@/hooks/useAuth';
+import { useArticleStore } from '@/stores/useMySubscribeStore';
 
 export default function MySubscribe() {
 	const { user } = useAuth();
 	const { setActiveTab } = useTab();
 	const { status: isSubscribed = user?.isSubscribed } = useSubscribe();
 	const [activeCategory, setActiveCategory] = useState<string>('');
-	const [summaryInfo] = useState<IMySummary[] | null>(null);
+	const { userArticles } = useArticleStore();
 
 	const handleConfirm = () => {
 		setActiveTab('settings');
@@ -24,7 +25,8 @@ export default function MySubscribe() {
 
 	// IntersectionObserver로 현재 화면에 나타난 섹션 감지
 	useEffect(() => {
-		if (!summaryInfo) return;
+
+		if (!isSubscribed) return;
 
 		const sections = document.querySelectorAll<HTMLElement>('.my-subs-content');
 		const visibleSet = new Set<HTMLElement>();
@@ -49,7 +51,7 @@ export default function MySubscribe() {
 						return a.getBoundingClientRect().top - b.getBoundingClientRect().top;
 					});
 					// "가장 위에 있는" 섹션의 id로 activeCategory 설정
-					setActiveCategory(sorted[0].id);
+					setActiveCategory(sorted[0].dataset.categoryid || '');
 				}
 			},
 			{
@@ -65,7 +67,7 @@ export default function MySubscribe() {
 		return () => {
 			sections.forEach((section) => observer.unobserve(section));
 		};
-	}, [summaryInfo]);
+	}, [isSubscribed, userArticles]);
 
 	// 구독중이면 네비 + 컨텐츠 표시, 아니면 NoContentsPage 표시
 	return (

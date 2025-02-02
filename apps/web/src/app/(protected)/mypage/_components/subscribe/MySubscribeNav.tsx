@@ -6,18 +6,33 @@ import { useEffect, useRef, useState } from 'react';
 import { currentUserData } from '@/mocks';
 import { useHeader } from '@/hooks/useHeader';
 import { remToPx } from '@/utils/formatter';
+import { useAuthStore } from '@/stores/useAuthStore';
+import { useArticleStore } from '@/stores/useMySubscribeStore';
+import { useCategoryStore } from '@/stores/useCategoryStore';
 
 interface SubscribeInfoProps {
 	activeCategory: string;
 }
 
 function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
-	const { summaries } = currentUserData;
+	const { user } = useAuthStore();
+	const { userArticles, fetchUserArticles } = useArticleStore();
+	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
+
 	const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 	const lastScrollY = useRef(0);
 	const navRef = useRef<HTMLDivElement>(null);
 	const [isSticky, setIsSticky] = useState(false);
 	const { headerHeight } = useHeader();
+
+
+	useEffect(() => {
+		fetchUserArticles(user?.interests ?? []);
+		// 카테고리 데이터가 아직 없으면 fetch (한 번만 실행됨)
+		if (Object.keys(categories).length === 0) {
+			fetchCategories();
+		}
+	}, [user?.interests, fetchUserArticles, categories, fetchCategories]);
 
 	// 스크롤 좌우 넓어지는 효과
 	useEffect(() => {
@@ -25,7 +40,7 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 			const currentScrollY = window.scrollY;
 
 			// 특정 위치 이상 스크롤되면 Sticky 활성화
-			setIsSticky(currentScrollY > 365);
+			setIsSticky(currentScrollY > 308);
 
 			// 현재 스크롤 위치 저장
 			lastScrollY.current = currentScrollY;
@@ -39,7 +54,7 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 	// 구독한 뉴스레터 네비게이션 스크롤 앵커 설정
 	const handleAnchorNavigation = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
 		e.preventDefault();
-		const element = document.getElementById(id);
+		const element = document.querySelector<HTMLElement>(`[data-categoryid="${id}"]`);
 		if (element) {
 			const offset = remToPx('10rem') + remToPx(headerHeight);
 			const elementPosition = element.getBoundingClientRect().top + window.scrollY;
@@ -61,10 +76,11 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 					<IoIosArrowForward />
 				</div>
 				<ul className="categories">
-					{summaries.map((info, index) => (
-						<li key={index} className={`category ${activeCategory === info.categoryName ? 'active' : ''}`}>
-							<button onClick={(e) => handleAnchorNavigation(e, info.categoryName)}>
-								{info.categoryName}
+					{userArticles.length > 0 &&
+						userArticles.map((article) => (
+							<li key={article.id}  className={`category ${activeCategory === article.categoryId.toString() ? 'active' : ''}`}>
+							<button onClick={(e) => handleAnchorNavigation(e, article.categoryId.toString())}>
+								{getCategoryName(article.categoryId)}
 							</button>
 						</li>
 					))}

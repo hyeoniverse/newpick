@@ -33,15 +33,15 @@ function MySummaryCategory() {
 			<MySummaryCategoryStyled>
 				{userArticles.length > 0 &&
 					userArticles.map((article) => (
-					<div key={article.id} className="my-subs-content" id={user?.interests ?? []}>
+					<div key={article.id} className="my-subs-content" id={`section-${article.id}`} data-categoryid={article.categoryId}>
 						<div className="top">
 							<Link href="/mypage" className="category-name">
 								{getCategoryName(article.categoryId)}
 								<IoIosArrowForward />
 							</Link>
-							<div className="title-section">
+							<Link href={`/articles/detail/${article.id}`} className="title-section">
 								<h3 className="title-text">{article.title}</h3>
-							</div>
+							</Link>
 						</div>
 						<div className="bottom">
 							<div className="img-section">
