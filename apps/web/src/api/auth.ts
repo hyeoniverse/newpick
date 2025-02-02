@@ -146,7 +146,6 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}): Pro
 				// 여전히 401이면 로그아웃 처리
 				if (response.status === 401) {
 					console.log('❌ 재발급된 토큰으로도 인증 실패. 로그아웃합니다.');
-					alert('세션이 만료되었습니다. 다시 로그인해주세요.');
 					await logoutUser();
 					throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
 				}
