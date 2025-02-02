@@ -1,7 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-	distDir: 'build',
+	// distDir 제거
+	// distDir: 'build', <- 이 부분이 문제가 될 수 있습니다
+	
 	// 이미지 설정
 	images: {
 		remotePatterns: [
