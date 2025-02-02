@@ -1,7 +1,7 @@
 import styled from 'styled-components';
 import Link from 'next/link';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
-import { IArticleDetail } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
 
@@ -12,7 +12,6 @@ interface Props {
 }
 
 function PopularArticle({ popular, flex, className }: Props) {
-
 	return (
 		<PopularNewsletterStyled flex={flex} className={className}>
 			<h3 className="section-title">지금 인기 아티클 TOP 5</h3>
