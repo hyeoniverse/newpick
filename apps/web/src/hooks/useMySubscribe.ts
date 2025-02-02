@@ -1,5 +1,3 @@
-import { useQuery, useQueries } from '@tanstack/react-query';
-import { fetchInterests } from '@/api/interests';
 import { IArticleDetail } from '@/models/article.model';
 import { fetchArticleList } from '@/api/article';
 import { dateFormatter } from '@/utils/formatter';

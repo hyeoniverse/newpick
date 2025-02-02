@@ -9,17 +9,24 @@ import HeightAutoImg from '@/components/common/HeightAutoImg';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useArticleStore } from '@/stores/useMySubscribeStore';
 import { useEffect } from 'react';
+import { useCategoryStore } from '@/stores/useCategoryStore';
 
 function MySummaryCategory() {
 	const { user } = useAuthStore();
   const { userArticles, loading, error, fetchUserArticles } = useArticleStore();
+	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
-  useEffect(() => {
-	  fetchUserArticles(user?.interests ?? []);
-  }, [user?.interests, fetchUserArticles]);
+	useEffect(() => {
+		fetchUserArticles(user?.interests ?? []);
+		// 카테고리 데이터가 아직 없으면 fetch (한 번만 실행됨)
+		if (Object.keys(categories).length === 0) {
+			fetchCategories();
+		}
+	}, [user?.interests, fetchUserArticles, categories, fetchCategories]);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
+
 
 	return (
 		<>
@@ -29,7 +36,7 @@ function MySummaryCategory() {
 					<div key={article.id} className="my-subs-content" id={user?.interests ?? []}>
 						<div className="top">
 							<Link href="/mypage" className="category-name">
-								{article.categoryId}
+								{getCategoryName(article.categoryId)}
 								<IoIosArrowForward />
 							</Link>
 							<div className="title-section">
