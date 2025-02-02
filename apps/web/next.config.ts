@@ -39,6 +39,12 @@ const nextConfig: NextConfig = {
 			},
 		];
 	},
+	experimental: {
+		// 서버 컴포넌트에서 쿠키 사용 허용
+		serverActions: {
+			bodySizeLimit: '2mb'
+		}
+	}
 };
 
 export default nextConfig;
