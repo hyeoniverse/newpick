@@ -30,7 +30,7 @@ const NewsletterPage = () => {
 		if (!isNaN(Number(categoryId))) {
 			const category = CATEGORIES.find((c) => c.id === Number(categoryId));
 			if (category) {
-				setCategoryTitle(category.title);
+				setCategoryTitle(category.name);
 			} else {
 				setCategoryTitle(null); // ID가 유효하지 않다면 null
 			}

@@ -53,23 +53,23 @@ const SubscribeSection = () => {
 				data={CATEGORIES.map((category) => ({
 					id: category.id ?? 0,
 					image: `https://picsum.photos/400/300?random=${category.id}`,
-					header: category.title,
+					header: category.name,
 					main: {
 						title: undefined,
-						description: `${category.title} 분야의 최신 뉴스레터를 구독하세요.`,
+						description: `${category.name} 분야의 최신 뉴스레터를 구독하세요.`,
 					},
 					footer: (
 						<Button
 							key={category.id}
-							scheme={selectedInterests.includes(category.title) ? 'primary' : 'outline'}
+							scheme={selectedInterests.includes(category.name) ? 'primary' : 'outline'}
 							onClick={() => handleSelectInterests(category)}
-							icon={selectedInterests.includes(category.title) ? <BiCheck /> : <BiPlus />}
+							icon={selectedInterests.includes(category.name) ? <BiCheck /> : <BiPlus />}
 							style={{
 								width: '100%',
 							}}
 							disabled={isChangingSubscription}
 						>
-							{selectedInterests.includes(category.title) ? <>Selected</> : <>Select</>}
+							{selectedInterests.includes(category.name) ? <>Selected</> : <>Select</>}
 						</Button>
 					),
 				}))}

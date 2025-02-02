@@ -3,6 +3,7 @@ import { API_ENDPOINTS, BACK_URL } from '@/constants/api';
 import { POPUP } from '@/constants/numbers';
 import { fetchSubscription } from '@/api/subscription';
 import { fetchInterests } from '@/api/interests';
+import { mapTitleToId } from '@/utils/mapInterests';
 
 // 로그인 API
 export const loginUser = async (setUser: (user: User) => void): Promise<User> => {
@@ -44,7 +45,7 @@ export const fetchAdditionalUserData = async (user: User): Promise<User> => {
 		const updatedUser = {
 			...user,
 			isSubscribed: subscription,
-			interests,
+			interests: mapTitleToId(interests),
 		};
 
 		return updatedUser;
