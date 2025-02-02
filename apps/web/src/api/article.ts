@@ -21,7 +21,22 @@ export const fetchArticle = async (slug: string) => {
 	if (!response.ok) {
 		throw new Error('아티클을 불러오는데 실패했습니다.');
 	}
-	const data = await response.json();
+	const article = await response.json();
 
-	return data.data;
+	return article.data;
+};
+
+export const fetchTrendList = async (category?: number) => {
+	try {
+		const response = await fetch(API_ENDPOINTS.NEWSLETTER.TRENDS(category));
+
+		if (!response.ok) {
+			throw new Error('트렌드 리스트를 불러오는데 실패했습니다.');
+		}
+
+		const trends = await response.json();
+		return trends.data;
+	} catch (error) {
+		console.error(error);
+	}
 };

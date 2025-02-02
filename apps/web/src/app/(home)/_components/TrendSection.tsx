@@ -1,22 +1,21 @@
 'use client';
 
 import { Suspense, lazy } from 'react';
-import { useNewsletter } from '@/hooks/useNewsletter';
-import { filterTodayTrends } from '@/utils/queryNewsletters';
+import { ArticleCard as IArticleCard } from '@/models/article.model';
 
 import { styled } from 'styled-components';
-import { IoIosHeartEmpty } from 'react-icons/io';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
-import Button from '@/components/common/Button';
 import Skeleton from '@/components/common/loader/Skeleton';
-
+import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
-const TrendSection = () => {
-	const { newsletters } = useNewsletter();
-	const todayTrends = filterTodayTrends(newsletters);
-	const isLoading = newsletters.length === 0;
+interface Props {
+	trends: IArticleCard[];
+}
+
+const TrendSection = ({ trends = [] }: Props) => {
+	const isLoading = trends.length === 0;
 
 	return (
 		<StyledTrendSection>
@@ -32,13 +31,14 @@ const TrendSection = () => {
 			) : (
 				<Suspense fallback={<Skeleton />}>
 					<div className="trend-cards">
-						{todayTrends.map((trend) => (
+						{trends.map((trend) => (
 							<LazyCard
 								key={trend.id}
 								data={{
 									id: trend.id,
+									url: `/articles/detail/${trend.id}`,
 									image: trend.image,
-									header: trend.category,
+									header: trend.categoryName,
 									main: {
 										title: trend.title,
 										description: trend.summary,
@@ -47,9 +47,7 @@ const TrendSection = () => {
 										<>
 											<Text color="subText">{trend.date}</Text>
 											<div className="right">
-												<Button className="rounded-icon-button">
-													<IoIosHeartEmpty />
-												</Button>
+												<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
 											</div>
 										</>
 									),

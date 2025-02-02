@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ArticleCard as IArticleCard } from '@/models/article.model';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSubscribe } from '@/hooks/useSubscribe';
@@ -18,7 +19,11 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import { LuMailCheck } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
 
-const SubscribeSection = () => {
+interface Props {
+	trends: IArticleCard[];
+}
+
+const SubscribeSection = ({ trends }: Props) => {
 	const {
 		status: isSubscribed,
 		isChanging: isChangingSubscription,
@@ -45,34 +50,45 @@ const SubscribeSection = () => {
 		}
 	};
 
+	if (!trends) return null;
+
 	return (
 		<StyledSubscribe>
 			<CardSlider
 				className="quick-subscription"
 				type="sub"
-				data={CATEGORIES.map((category) => ({
-					id: category.id ?? 0,
-					image: `https://picsum.photos/400/300?random=${category.id}`,
-					header: category.name,
-					main: {
-						title: undefined,
-						description: `${category.name} 분야의 최신 뉴스레터를 구독하세요.`,
-					},
-					footer: (
-						<Button
-							key={category.id}
-							scheme={selectedInterests.includes(category.name) ? 'primary' : 'outline'}
-							onClick={() => handleSelectInterests(category)}
-							icon={selectedInterests.includes(category.name) ? <BiCheck /> : <BiPlus />}
-							style={{
-								width: '100%',
-							}}
-							disabled={isChangingSubscription}
-						>
-							{selectedInterests.includes(category.name) ? <>Selected</> : <>Select</>}
-						</Button>
-					),
-				}))}
+				data={CATEGORIES.map((category) => {
+					// 카테고리 이름이 '전체'인 경우 기본 이미지를 사용.
+					const image =
+						category.name === '전체'
+							? '/img/newpick_default_img.jpg'
+							: trends.find((trend) => trend.categoryName === category.name)?.image ||
+							  '/img/newpick_default_img.jpg';
+
+					return {
+						id: category.id ?? 0,
+						image,
+						header: category.name,
+						main: {
+							title: undefined,
+							description: `${category.name} 분야의 최신 뉴스레터를 구독하세요.`,
+						},
+						footer: (
+							<Button
+								key={category.id}
+								scheme={selectedInterests.includes(category.name) ? 'primary' : 'outline'}
+								onClick={() => handleSelectInterests(category)}
+								icon={selectedInterests.includes(category.name) ? <BiCheck /> : <BiPlus />}
+								style={{
+									width: '100%',
+								}}
+								disabled={isChangingSubscription}
+							>
+								{selectedInterests.includes(category.name) ? <>Selected</> : <>Select</>}
+							</Button>
+						),
+					};
+				})}
 			/>
 
 			<div className="subscription-form">
