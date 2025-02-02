@@ -14,7 +14,7 @@ export const NAVIGATION: INavigation[] = [
 		subItems: [
 			...CATEGORIES.map((category, index) => ({
 				id: index,
-				title: category.title,
+				title: category.name,
 				link: index === 0 ? '/articles' : `/articles/categories/${category.id}`,
 			})),
 		],

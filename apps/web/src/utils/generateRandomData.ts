@@ -30,7 +30,7 @@ export const getRandomImages = (count: number, width: number = 640, height: numb
 };
 
 export const getNewsletters = (): INewsletter[] => {
-	const categories = CATEGORIES.filter((category) => category.title !== '전체').map((category) => category.title);
+	const categories = CATEGORIES.filter((category) => category.name !== '전체').map((category) => category.name);
 
 	return Array.from({ length: 6 }, (_, dayIndex) => {
 		const baseDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));

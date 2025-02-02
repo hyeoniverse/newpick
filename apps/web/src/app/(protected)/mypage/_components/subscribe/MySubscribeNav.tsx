@@ -1,9 +1,7 @@
 'use client';
 
 import styled from 'styled-components';
-import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
 import { useEffect, useRef, useState } from 'react';
-import { currentUserData } from '@/mocks';
 import { useHeader } from '@/hooks/useHeader';
 import { remToPx } from '@/utils/formatter';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -24,7 +22,6 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 	const navRef = useRef<HTMLDivElement>(null);
 	const [isSticky, setIsSticky] = useState(false);
 	const { headerHeight } = useHeader();
-
 
 	useEffect(() => {
 		fetchUserArticles(user?.interests ?? []);
@@ -71,19 +68,22 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 		>
 			<ContentsStyled>
 				<div className="date">
-					{/*<IoIosArrowBack />*/}
 					<p>{today}</p>
-					{/*<IoIosArrowForward />*/}
 				</div>
 				<ul className="categories">
 					{userArticles.length > 0 &&
 						userArticles.map((article) => (
-							<li key={article.id}  className={`category ${activeCategory === article.categoryId.toString() ? 'active' : ''}`}>
-							<button onClick={(e) => handleAnchorNavigation(e, article.categoryId.toString())}>
-								{getCategoryName(article.categoryId)}
-							</button>
-						</li>
-					))}
+							<li
+								key={article.id}
+								className={`category ${
+									activeCategory === article.categoryId.toString() ? 'active' : ''
+								}`}
+							>
+								<button onClick={(e) => handleAnchorNavigation(e, article.categoryId.toString())}>
+									{getCategoryName(article.categoryId)}
+								</button>
+							</li>
+						))}
 				</ul>
 			</ContentsStyled>
 		</SubscribeInfoStyled>

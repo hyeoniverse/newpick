@@ -8,7 +8,7 @@ import { useTheme } from 'styled-components';
 import { useAddBookmarkMutation, useBookmarksList, useRemoveBookmarkMutation } from '@/hooks/useBookmark';
 
 interface BookmarkIconProps {
-	newsId: number;  // 아티클 ID
+	newsId: number; // 아티클 ID
 	newsletterId: number;
 	className?: string;
 }
@@ -35,8 +35,16 @@ export default function BookmarkIcon({ newsId, className, newsletterId }: Bookma
 			} else {
 				await addBookmarkMutation.mutateAsync({ newsId, newsletterId });
 			}
-		} catch (error: any) {
-			showToast(error.message || '북마크 설정에 실패했습니다.', 'error');
+		} catch (error: unknown) {
+			let errorMessage = '북마크 설정에 실패했습니다.';
+
+			if (error instanceof Error) {
+				errorMessage = error.message;
+			} else if (typeof error === 'string') {
+				errorMessage = error;
+			}
+
+			showToast(errorMessage, 'error');
 		}
 	};
 

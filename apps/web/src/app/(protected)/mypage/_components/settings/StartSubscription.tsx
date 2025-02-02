@@ -12,9 +12,10 @@ import { LuMailCheck, LuMailX } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import InputCheck from '@/components/common/InputCheck';
-import ModalContents from '@/components/common/modal/ModalContent';
+import ModalContent from '@/components/common/modal/ModalContent';
 import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
+import { mapIdToTitle } from '@/utils/mapInterests';
 
 export default function StartSubscription() {
 	const { user } = useAuth();
@@ -24,7 +25,8 @@ export default function StartSubscription() {
 		handleSubscribe: startSubscription,
 		handleCancel: cancelSubscription,
 	} = useSubscribe();
-	const { selectedInterests = user?.interests || [], handleSelectInterests } = useSelectInterests();
+	const initialInterests = mapIdToTitle(user!.interests);
+	const { selectedInterests = initialInterests || [], handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
 	const { openModal, closeModal } = useModal();
 
@@ -33,7 +35,7 @@ export default function StartSubscription() {
 
 		if (isSuccess) {
 			openModal(
-				<ModalContents
+				<ModalContent
 					icon={<LuMailCheck />}
 					title="구독 설정이 완료되었습니다"
 					content={`내일부터 새로운 뉴스레터를 보내드려요.`}
@@ -65,7 +67,7 @@ export default function StartSubscription() {
 							size="small"
 							onClick={() =>
 								openModal(
-									<ModalContents
+									<ModalContent
 										icon={<LuMailX />}
 										title={`구독을 해지하면 구독과 관련된\n모든 정보가 삭제됩니다.`}
 										content="정말로 해지하시겠습니까?"
@@ -112,10 +114,10 @@ export default function StartSubscription() {
 									handleSelectInterests(category);
 								}}
 								className={
-									selectedInterests.includes(category.title) ? 'category-btn active' : 'category-btn'
+									selectedInterests.includes(category.name) ? 'category-btn active' : 'category-btn'
 								}
 							>
-								{category.title}
+								{category.name}
 							</Button>
 						</li>
 					))}
