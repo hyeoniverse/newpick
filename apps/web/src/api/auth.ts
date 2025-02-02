@@ -69,6 +69,11 @@ export const fetchUser = async (): Promise<User> => {
 		if (!response.ok) console.log(`사용자 정보를 불러오는데 실패했습니다. ${response.status}`);
 
 		const user = await fetchAdditionalUserData(await response.json());
+
+		if (!user) {
+			throw new Error('사용자 정보를 불러오는데 실패했습니다.');
+		}
+
 		return user;
 	} catch (error) {
 		console.log('❌ 사용자 정보 조회 실패:', error);
@@ -143,10 +148,12 @@ export const fetchWithAuth = async (url: string, options: RequestInit = {}): Pro
 					console.log('❌ 재발급된 토큰으로도 인증 실패. 로그아웃합니다.');
 					alert('세션이 만료되었습니다. 다시 로그인해주세요.');
 					await logoutUser();
+					throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
 				}
 			} catch (refreshError) {
 				console.log('❌ 토큰 재발급 실패:', refreshError);
 				await logoutUser();
+				throw new Error('세션이 만료되었습니다. 다시 로그인해주세요.');
 			}
 		}
 
