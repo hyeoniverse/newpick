@@ -269,11 +269,11 @@ export const darkTheme: Theme = {
 		error: '#EF5350',
 		warning: '#FFB300',
 		text: '#f1f1f1',
-		subText: '#a3a3a3',
+		subText: '#c1c1c1',
 		neutral: '#2D2D2D',
 		mediumGrey: '#a3a3a3',
 		lightGrey: '#606060',
-		border: '#606060',
+		border: '#333333',
 	},
 	buttonScheme: {
 		primary: {

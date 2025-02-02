@@ -4,36 +4,29 @@ export const CATEGORIES: Category[] = [
 	{
 		id: 0,
 		title: '전체',
-		name: 'all',
 	},
 	{
 		id: 1,
-		title: '정치',
-		name: 'politics',
+		title: 'IT',
 	},
 	{
 		id: 2,
-		title: '경제',
-		name: 'economy',
+		title: '정치',
 	},
 	{
 		id: 3,
-		title: '사회',
-		name: 'society',
+		title: '경제',
 	},
 	{
 		id: 4,
-		title: '문화',
-		name: 'culture',
+		title: '사회',
 	},
 	{
 		id: 5,
-		title: 'IT',
-		name: 'it',
+		title: '생활',
 	},
 	{
 		id: 6,
 		title: '세계',
-		name: 'world',
 	},
 ];

@@ -1,6 +1,6 @@
 'use client';
 
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { fetchSubscription, startSubscription, pauseSubscription, cancelSubscription } from '@/api/subscription';
@@ -40,7 +40,7 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 	const { refetchUser } = useAuth();
 	const { showToast } = useToast();
 
-	const mutationOptions = (mutationFn: () => Promise<void>, successMsg: string, errorMsg: string) => ({
+	const suspendOptions = (mutationFn: () => Promise<void>, successMsg: string, errorMsg: string) => ({
 		mutationFn,
 		onSuccess: async () => {
 			await refreshSubscription();
@@ -50,23 +50,33 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 		onError: (error: Error) => handleError(error, `${errorMsg}`, showToast),
 	});
 
+	const startOptions = <TVariables>(
+		mutationFn: (variables: TVariables) => Promise<void>,
+		successMsg: string,
+		errorMsg: string
+	): UseMutationOptions<void, Error, TVariables, unknown> => ({
+		mutationFn,
+		onSuccess: async () => {
+			await refreshSubscription();
+			await refetchUser();
+			showToast(successMsg, 'success');
+		},
+		onError: (error: Error) => handleError(error, errorMsg, showToast),
+	});
+
 	return {
 		startMutation: useMutation(
-			mutationOptions(
-				startSubscription,
-				'구독이 완료되었습니다!',
-				'구독 중 오류가 발생했습니다. 다시 시도해주세요.'
-			)
+			startOptions(startSubscription, '구독이 완료되었습니다!', '구독 중 오류가 발생했습니다. 다시 시도해주세요.')
 		),
 		pauseMutation: useMutation(
-			mutationOptions(
+			suspendOptions(
 				pauseSubscription,
 				'구독이 일시정지되었습니다.',
 				'구독 일시정지 중 오류가 발생했습니다. 다시 시도해주세요.'
 			)
 		),
 		cancelMutation: useMutation(
-			mutationOptions(
+			suspendOptions(
 				cancelSubscription,
 				'구독이 해지되었습니다.',
 				'구독 해지 중 오류가 발생했습니다. 다시 시도해주세요.'
@@ -147,10 +157,7 @@ export const useSubscribe = () => {
 
 	const handleStart = async (interests: string[]) => {
 		try {
-			await updateMutation.mutateAsync(interests);
-			updateMutation.reset(); // 성공 후 상태 초기화
-
-			await startMutation.mutateAsync();
+			await startMutation.mutateAsync(interests);
 			startMutation.reset(); // 성공 후 상태 초기화
 
 			return true;
@@ -162,7 +169,7 @@ export const useSubscribe = () => {
 
 	const handleReStart = async () => {
 		try {
-			await startMutation.mutateAsync();
+			await startMutation.mutateAsync([]);
 			return true;
 		} catch (error) {
 			console.error('❌ 구독 재시작 중 예외 발생:', error);

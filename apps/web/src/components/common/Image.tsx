@@ -18,7 +18,7 @@ interface Props {
 	className?: string;
 }
 
-const Image = ({
+export default function Imgae({
 	src,
 	alt,
 	width = 400,
@@ -29,7 +29,7 @@ const Image = ({
 	priority = true,
 	placeholder = 'surface',
 	className,
-}: Props) => {
+}: Props) {
 	const [isLoaded, setIsLoaded] = useState(false);
 
 	return (
@@ -51,7 +51,7 @@ const Image = ({
 			/>
 		</StyledImage>
 	);
-};
+}
 
 interface StyledProps {
 	$ratio: 'square' | 'wide' | 'tall';
@@ -87,5 +87,3 @@ const StyledImage = styled.div<StyledProps>`
 		transition: opacity 0.3s ease-in-out;
 	}
 `;
-
-export default Image;

@@ -129,7 +129,7 @@ const StyledModal = styled.div`
 		width: fit-content;
 		height: fit-content;
 		min-width: ${({ theme }) => theme.layout.width.small};
-		max-width: ${({ theme }) => theme.layout.width.medium};
+		max-width: ${({ theme }) => theme.layout.width.large};
 		padding: 2rem;
 
 		display: flex;

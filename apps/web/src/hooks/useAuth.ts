@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { User } from '@/models/user.model';
 import { AUTH } from '@/constants/numbers';
 import { PROTECTED } from '@/constants/api';
-import { fetchUserWithRefresh, loginUser, logoutUser } from '@/api/auth';
+import { fetchUser, loginUser, logoutUser } from '@/api/auth';
 
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -51,7 +51,7 @@ export const useAuth = () => {
 		refetch: refetchUser,
 	} = useQuery<User | null>({
 		queryKey: ['user'],
-		queryFn: fetchUserWithRefresh,
+		queryFn: fetchUser,
 		enabled: true,
 		staleTime: AUTH.STALE_TIME,
 		retry: 1,
