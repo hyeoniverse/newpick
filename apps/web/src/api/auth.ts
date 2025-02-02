@@ -49,66 +49,109 @@ export const fetchAdditionalUserData = async (user: User): Promise<User> => {
 
 		return updatedUser;
 	} catch (error) {
-		console.error('❌ 구독 상태 및 관심사 불러오기 실패:', error);
+		console.log('❌ 구독 상태 및 관심사 불러오기 실패:', error);
 		return user;
 	}
 };
 
 // 사용자 정보 조회 API
 export const fetchUser = async (): Promise<User> => {
-	const response = await fetch(API_ENDPOINTS.MY.PROFILE(), {
-		method: 'GET',
-		credentials: 'include',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	});
+	try {
+		const response = await fetchWithAuth(API_ENDPOINTS.MY.PROFILE(), {
+			method: 'GET',
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json',
+			},
+		});
 
-	if (!response.ok) throw new Error(`사용자 정보를 불러오는데 실패했습니다. ${response.status}`);
+		if (!response.ok) console.log(`사용자 정보를 불러오는데 실패했습니다. ${response.status}`);
 
-	const user = await fetchAdditionalUserData(await response.json());
-	return user;
+		const user = await fetchAdditionalUserData(await response.json());
+		return user;
+	} catch (error) {
+		console.log('❌ 사용자 정보 조회 실패:', error);
+		throw error;
+	}
 };
 
 // 로그아웃 API
 export const logoutUser = async (): Promise<void> => {
-	const response = await fetch(API_ENDPOINTS.AUTH.LOGOUT(), {
-		method: 'POST',
-		credentials: 'include',
-		headers: { 'Content-Type': 'application/json' },
-	});
+	try {
+		const response = await fetch(API_ENDPOINTS.AUTH.LOGOUT(), {
+			method: 'POST',
+			credentials: 'include',
+			headers: { 'Content-Type': 'application/json' },
+		});
 
-	if (!response.ok) throw new Error(`로그아웃에 실패했습니다. ${response.status}`);
+		if (!response.ok) console.log(`로그아웃에 실패했습니다. ${response.status}`);
+	} catch (error) {
+		console.log('❌ 로그아웃 실패:', error);
+		throw error;
+	}
 };
 
 // 만료 토큰 재발급 API
-export const refreshToken = async (): Promise<void> => {
-	const response = await fetch(API_ENDPOINTS.AUTH.REFRESH(), {
-		method: 'GET',
-		credentials: 'include',
-		headers: { 'Content-Type': 'application/json' },
-	});
+export const refreshToken = async (): Promise<string> => {
+	try {
+		const response = await fetch(API_ENDPOINTS.AUTH.REFRESH(), {
+			method: 'GET',
+			credentials: 'include',
+			headers: { 'Content-Type': 'application/json' },
+		});
 
-	if (!response.ok) throw new Error(`토큰 재발급에 실패했습니다. ${response.status}`);
+		if (!response.ok) throw new Error(`토큰 재발급에 실패했습니다. ${response.status}`);
+
+		return (await response.json()).access_token;
+	} catch (error) {
+		console.log('❌ 토큰 재발급 실패:', error);
+		throw error;
+	}
 };
 
-// `fetchUser` 요청을 감싸는 함수: 401 발생 시 1번만 재시도
-export const fetchUserWithRefresh = async () => {
+export const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
 	try {
-		return await fetchUser();
-	} catch (error: unknown) {
-		if ((error as { response?: { status?: number } }).response?.status === 401) {
-			console.warn('🔄 Access Token 만료됨, Refresh Token으로 갱신 시도...');
+		let response = await fetch(url, {
+			...options,
+			credentials: 'include', // 인증 정보를 포함
+			headers: {
+				...options.headers,
+				'Content-Type': 'application/json',
+			},
+		});
+
+		// Unauthorized(401) 에러 발생 시 토큰 갱신 후 재시도
+		if (response.status === 401) {
+			console.warn('🔄 토큰이 만료됨. 새로운 토큰을 요청합니다.');
 			try {
-				await refreshToken();
-				console.info('✅ Access Token 갱신 완료. fetchUser 다시 시도...');
-				return await fetchUser(); // **새로운 access_token으로 한 번만 다시 시도**
+				await refreshToken(); // 토큰 재발급 요청
+				console.info('✅ 토큰 재발급 성공. 요청을 재시도합니다.');
+
+				// 토큰 갱신 후 다시 요청
+				response = await fetch(url, {
+					...options,
+					credentials: 'include',
+					headers: {
+						...options.headers,
+						'Content-Type': 'application/json',
+					},
+				});
+
+				// 여전히 401이면 로그아웃 처리
+				if (response.status === 401) {
+					console.log('❌ 재발급된 토큰으로도 인증 실패. 로그아웃합니다.');
+					alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+					await logoutUser();
+				}
 			} catch (refreshError) {
-				console.error('❌ Refresh Token 만료됨. 로그아웃 처리');
-				throw refreshError;
+				console.log('❌ 토큰 재발급 실패:', refreshError);
+				await logoutUser();
 			}
 		}
 
+		return response;
+	} catch (error) {
+		console.log('❌ API 요청 실패:', error);
 		throw error;
 	}
 };

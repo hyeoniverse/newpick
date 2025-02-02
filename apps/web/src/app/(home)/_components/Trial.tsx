@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import Image from 'next/image';
+// import Image from 'next/image';
 import parse from 'html-react-parser';
 import DOMPurify from 'dompurify';
 import { summarizeNews } from '@/api/ai';
@@ -11,6 +11,7 @@ import { BiSolidMessageRoundedError } from 'react-icons/bi';
 import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
+import Imgae from '@/components/common/Image';
 import Skeleton from '@/components/common/loader/Skeleton';
 
 interface Newsletter {
@@ -37,7 +38,7 @@ export default function Trial() {
 		);
 
 		try {
-			const result = await summarizeNews(2, yesterday);
+			const result = await summarizeNews(1, yesterday);
 
 			if (!result || !result.newsletter) {
 				throw new Error('올바른 뉴스 요약 데이터가 없습니다.');
@@ -99,11 +100,14 @@ export default function Trial() {
 
 	return (
 		<StyledTrial>
-			<Title size="large" weight="semiBold" color="primary">
-				{newsletter ? newsletter.title : 'AI 뉴스레터 체험하기'}
-			</Title>
-
-			<StyledContent>
+			{newsletter && (
+				<div className="header">
+					<Title size="large" weight="semiBold" color="primary">
+						{newsletter ? newsletter.title : 'AI 뉴스레터 체험하기'}
+					</Title>
+				</div>
+			)}
+			<StyledArticle>
 				{isLoading ? (
 					<Skeleton />
 				) : errorMessage ? (
@@ -116,8 +120,12 @@ export default function Trial() {
 						<Text size="small" color="subText" className="date">
 							{dateFormatter(newsletter.date)}
 						</Text>
-						<Image width={860} height={484} src={newsletter.mainImage} alt={newsletter.title} />
-						{parse(sanitizeHtml(newsletter.contentAsHTML))}
+						<div className="image-placeholder">
+							<Imgae src={newsletter.mainImage} alt={newsletter.title} />
+						</div>
+						<StyledContent>
+							<div className="body">{parse(sanitizeHtml(newsletter.contentAsHTML))}</div>
+						</StyledContent>
 					</>
 				) : (
 					<div className="info">
@@ -125,7 +133,7 @@ export default function Trial() {
 						<Text size="large">아직 데이터가 없습니다.</Text>
 					</div>
 				)}
-			</StyledContent>
+			</StyledArticle>
 			<Button size="medium" scheme="primary" onClick={handleGenerateNewsletter} disabled={isLoading}>
 				{newsletter || errorMessage ? '다시 하기' : '생성하기'}
 			</Button>
@@ -144,20 +152,27 @@ const StyledTrial = styled.div`
 	align-items: center;
 	padding: 1rem;
 	gap: 1.5rem;
+
+	.header {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+
+		h1 {
+			white-space: nowrap;
+		}
+	}
 `;
 
-const StyledContent = styled.div`
+const StyledArticle = styled.div`
 	width: 100%;
 	height: 100%;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
 	align-items: flex-start;
-	padding: 0.5rem 2rem;
-
-	line-height: 1.6;
-	font-size: 1rem;
-	color: ${({ theme }) => theme.color.text};
+	padding: 1rem 2rem;
+	gap: 1rem;
 	overflow-y: scroll;
 
 	background-color: ${({ theme }) => theme.color.surface};
@@ -188,39 +203,57 @@ const StyledContent = styled.div`
 
 	.image-placeholder {
 		width: 100%;
-		aspect-ratio: 16 / 9;
-		overflow: hidden;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
-		background: ${({ theme }) => theme.color.surface};
-	}
+		display: flex;
+		justify-content: center;
+		align-items: center;
 
-	h1,
-	h2,
-	h3 {
-		font-weight: bold;
-		margin-top: 1rem;
+		img {
+			width: 100%;
+			height: auto;
+			border-radius: ${({ theme }) => theme.borderRadius.soft};
+		}
 	}
+`;
 
-	p {
-		margin-bottom: 0.75rem;
-	}
+const StyledContent = styled.div`
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	align-items: center;
+	gap: 1rem;
+	line-height: 1.6;
 
-	ul,
-	ol {
-		padding-left: 1.5rem;
-		margin-bottom: 1rem;
-	}
+	.body {
+		width: 100%;
 
-	img {
-		max-width: 100%;
-		border-radius: ${({ theme }) => theme.borderRadius.soft};
-		margin: 1rem 0;
-	}
+		h1,
+		h2,
+		h3 {
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			margin-top: 1rem;
+		}
 
-	blockquote {
-		border-left: 4px solid ${({ theme }) => theme.color.primary};
-		padding-left: 1rem;
-		color: ${({ theme }) => theme.color.secondary};
-		font-style: italic;
+		p {
+			width: 100%;
+			display: flex;
+			padding: 0;
+			margin-bottom: 0.75rem;
+			font-size: ${({ theme }) => theme.fontSize.medium};
+		}
+
+		ul,
+		ol {
+			padding-left: 1.5rem;
+			margin-bottom: 1rem;
+		}
+
+		blockquote {
+			border-left: 4px solid ${({ theme }) => theme.color.primary};
+			padding-left: 1rem;
+			color: ${({ theme }) => theme.color.secondary};
+			font-style: italic;
+		}
 	}
 `;

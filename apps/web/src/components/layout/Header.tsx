@@ -13,7 +13,7 @@ import { FaUserCircle } from 'react-icons/fa';
 import { IoLogoGoogle } from 'react-icons/io';
 
 import Logo from '@/components/common/Logo';
-import Image from '@/components/common/Image';
+import Imgae from '@/components/common/Image';
 import Button from '@/components/common/Button';
 import Dropdown from '@/components/common/Dropdown';
 import Spinner from '@/components/common/loader/Spinner';
@@ -82,7 +82,7 @@ export default function Header() {
 							toggleButton={
 								user?.profileImg ? (
 									<StyledUserCircle>
-										<Image src={user.profileImg} alt="profile" ratio="square" />
+										<Imgae src={user.profileImg} alt="profile" ratio="square" />
 									</StyledUserCircle>
 								) : (
 									<StyledUserCircle>

@@ -6,9 +6,10 @@ export const fetchUserWithSubscription = async (retry = false): Promise<IUser | 
 	try {
 		const cookieStore = await cookies();
 		const accessToken = cookieStore.get('access_token')?.value;
+		const refreshToken = cookieStore.get('refresh_token')?.value;
 
-		if (!accessToken) {
-			console.log('⚠️ No access token found.');
+		if (!accessToken || !refreshToken) {
+			console.log('⚠️ 액세스 토큰 또는 리프레시 토큰이 없습니다.');
 			return null;
 		}
 
@@ -30,7 +31,7 @@ export const fetchUserWithSubscription = async (retry = false): Promise<IUser | 
 
 			if (!retry) {
 				console.log('🔄 액세스 토큰 만료됨. 새 토큰을 요청하여 재시도합니다.');
-				const newAccessToken = await refreshToken(accessToken);
+				const newAccessToken = await getNewToken(accessToken, refreshToken);
 
 				if (newAccessToken) {
 					return await fetchUserWithSubscription(true); // 1회 재시도
@@ -76,14 +77,14 @@ export const fetchUserWithSubscription = async (retry = false): Promise<IUser | 
 };
 
 // 새 액세스 토큰을 요청
-const refreshToken = async (accessToken: string): Promise<string | null> => {
+export const getNewToken = async (accessToken: string, refreshToken: string): Promise<string | null> => {
 	try {
 		const refreshResponse = await fetch(API_ENDPOINTS.AUTH.REFRESH(), {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
 				'Content-Type': 'application/json',
-				Cookie: `access_token=${accessToken}`,
+				Cookie: `access_token=${accessToken}; refresh_token=${refreshToken}`,
 			},
 		});
 

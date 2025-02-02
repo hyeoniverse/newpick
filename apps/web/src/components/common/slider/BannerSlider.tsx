@@ -4,7 +4,7 @@ import { useInterval } from '@/hooks/useInterval';
 
 import styled from 'styled-components';
 import { IoIosArrowBack, IoIosArrowForward } from 'react-icons/io';
-import Image from '@/components/common/Image';
+import Imgae from '@/components/common/Image';
 import Button from '@/components/common/Button';
 
 interface Props {
@@ -49,7 +49,7 @@ const BannerSlider = ({ banners }: Props) => {
 				{banners.map((item, index) => (
 					<div key={item.id} className={`slide ${index === currentIndex ? 'active' : ''}`}>
 						<div className="image-placeholder">
-							<Image src={item.image} alt={item.title} />
+							<Imgae src={item.image} alt={item.title} />
 						</div>
 						<div className="overlay">
 							<div className="content">

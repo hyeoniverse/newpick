@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/hooks/useAuth';
 import styled from 'styled-components';
-import Image from '@/components/common/Image';
+import Imgae from '@/components/common/Image';
 import Text from '@/components/common/Text';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
 
@@ -14,7 +14,7 @@ function Profile() {
 			{user && (
 				<>
 					<div className="profile">
-						<Image src={user.profileImg || '/img/profile.jpg'} alt="prifile-img" ratio="square" />
+						<Imgae src={user.profileImg || '/img/profile.jpg'} alt="prifile-img" ratio="square" />
 						<div className="profile-text">
 							<Text weight="semiBold">{user.username}</Text>
 							<Text as="p" color="subText">
