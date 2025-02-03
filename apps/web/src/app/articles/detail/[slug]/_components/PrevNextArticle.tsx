@@ -1,4 +1,4 @@
-'use client'
+'use client';
 
 import { useState } from 'react';
 import styled from 'styled-components';
@@ -6,7 +6,7 @@ import MoveButton from '@/components/common/MoveButton';
 import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import Link from 'next/link';
-import { IArticleDetail } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 
 interface Props {
@@ -83,87 +83,87 @@ function PrevNextArticle({ className, prev, next }: Props) {
 	return (
 		<PrevNextArticleStyled className={className}>
 			<ul>
-				{renderArticle(prev, 'prev')}  {/* 이전글 */}
-				{renderArticle(next, 'next')}  {/* 다음글 */}
+				{renderArticle(prev, 'prev')} {/* 이전글 */}
+				{renderArticle(next, 'next')} {/* 다음글 */}
 			</ul>
 		</PrevNextArticleStyled>
 	);
 }
 
 const PrevNextArticleStyled = styled.section`
-  border-top: 1px solid ${({ theme }) => theme.color.border};
+	border-top: 1px solid ${({ theme }) => theme.color.border};
 
-  ul {
-    li.prev-next {
-      display: flex;
-      flex-direction: row;
-      gap: 1.5rem;
-      align-items: center;
-      height: fit-content;
-      border-bottom: 1px solid ${({ theme }) => theme.color.border};
-      padding: 2.5rem 1rem;
+	ul {
+		li.prev-next {
+			display: flex;
+			flex-direction: row;
+			gap: 1.5rem;
+			align-items: center;
+			height: fit-content;
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+			padding: 2.5rem 1rem;
 
-      .link {
-        display: contents;
+			.link {
+				display: contents;
 
-        .btn {
-          flex: 0.8;
-        }
+				.btn {
+					flex: 0.8;
+				}
 
-        .img {
-          flex: 1.2;
-          margin: 0;
-        }
+				.img {
+					flex: 1.2;
+					margin: 0;
+				}
 
-        .text-section {
-          flex: 8;
+				.text-section {
+					flex: 8;
 
-          .title {
-            color: ${({ theme }) => theme.color.mediumGrey};
-            font-size: ${({ theme }) => theme.fontSize.medium};
-            font-weight: ${({ theme }) => theme.fontWeight.medium};
-            margin-bottom: 0.5rem;
+					.title {
+						color: ${({ theme }) => theme.color.mediumGrey};
+						font-size: ${({ theme }) => theme.fontSize.medium};
+						font-weight: ${({ theme }) => theme.fontWeight.medium};
+						margin-bottom: 0.5rem;
 
-            overflow: hidden;
-            text-overflow: ellipsis;
-            display: -webkit-box;
-            -webkit-line-clamp: 1;
-            -webkit-box-orient: vertical;
-          }
+						overflow: hidden;
+						text-overflow: ellipsis;
+						display: -webkit-box;
+						-webkit-line-clamp: 1;
+						-webkit-box-orient: vertical;
+					}
 
-          .date {
-            color: ${({ theme }) => theme.color.lightGrey};
-            font-size: ${({ theme }) => theme.fontSize.extraSmall};
-          }
-        }
-      }
+					.date {
+						color: ${({ theme }) => theme.color.lightGrey};
+						font-size: ${({ theme }) => theme.fontSize.extraSmall};
+					}
+				}
+			}
 
-      &.active {
-        background-color: ${({ theme }) => theme.color.surface};
-      }
+			&.active {
+				background-color: ${({ theme }) => theme.color.surface};
+			}
 
-      &.disabled {
-        opacity: 0.5;
-        pointer-events: none;
-      }
-    }
-  }
+			&.disabled {
+				opacity: 0.5;
+				pointer-events: none;
+			}
+		}
+	}
 
-  @media screen and ${({ theme }) => theme.mediaQuery.tablet} {
-    ul {
-      display: flex;
-      flex-direction: column;
+	@media screen and ${({ theme }) => theme.mediaQuery.tablet} {
+		ul {
+			display: flex;
+			flex-direction: column;
 
-      li.prev-next {
-        padding: 1.5rem 1rem;
-        gap: 1rem;
+			li.prev-next {
+				padding: 1.5rem 1rem;
+				gap: 1rem;
 
-        .img {
-          display: none;
-        }
-      }
-    }
-  }
+				.img {
+					display: none;
+				}
+			}
+		}
+	}
 `;
 
 export default PrevNextArticle;

@@ -39,14 +39,7 @@ export const API_ENDPOINTS = {
 		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
 		LIST: (limit: number, offset: number) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
 		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
-	},
-	MAIL: {
-		SEND: () => `${API_URL}/mail/send`,
-	},
-	AI_LOG: {
-		BASE: () => `${API_URL}/ai/log`,
-		PAGINATED: (newsId: number, page: number, limit: number) =>
-			`${API_URL}/ai/log?newsId=${newsId}&page=${page}&limit=${limit}`,
+		TRENDS: (category?: number) => `${API_URL}/newsletters/trends` + (category ? `?categoryId=${category}` : ''),
 	},
 	FEEDBACK: {
 		BASE: () => `${API_URL}/feedback`,
@@ -60,7 +53,7 @@ export const API_ENDPOINTS = {
 	CATEGORY: {
 		BASE: `${API_URL}/category`,
 		GET_BY_ID: (id: string) => `${API_URL}/category/${id}`,
-	}
+	},
 };
 
 export default API_ENDPOINTS;
