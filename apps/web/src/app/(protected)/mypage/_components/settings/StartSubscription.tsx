@@ -26,7 +26,7 @@ export default function StartSubscription() {
 		handleSubscribe: startSubscription,
 		handleCancel: cancelSubscription,
 	} = useSubscribe();
-	const initialInterests = mapIdToTitle(user!.interests);
+	const initialInterests = mapIdToTitle(user?.interests??[]);
 	const { selectedInterests = initialInterests || [], handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
 	const { openModal, closeModal } = useModal();

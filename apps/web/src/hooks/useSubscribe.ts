@@ -87,9 +87,6 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 
 // 구독 관심사 훅
 export const useSubscribeInterests = () => {
-	const { user } = useAuth();
-	// const { showToast } = useToast();
-
 	const {
 		data: interests,
 		isLoading: isInterestsLoading,
@@ -97,7 +94,7 @@ export const useSubscribeInterests = () => {
 	} = useQuery({
 		queryKey: ['subscriptionInterests'],
 		queryFn: () => fetchInterests(),
-		enabled: !!user?.id,
+		enabled: true,
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
 	});
