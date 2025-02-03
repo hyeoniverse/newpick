@@ -61,7 +61,7 @@ const SubscribeSection = ({ trends }: Props) => {
 					// 카테고리 이름이 '전체'인 경우 기본 이미지를 사용.
 					const image =
 						category.name === '전체'
-							? '/img/newpick_default_img.jpg'
+							? '/img/category_all-2.jpg'
 							: trends.find((trend) => trend.categoryName === category.name)?.image ||
 							  '/img/newpick_default_img.jpg';
 

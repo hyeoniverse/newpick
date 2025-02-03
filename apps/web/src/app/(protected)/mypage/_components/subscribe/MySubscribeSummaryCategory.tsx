@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 import { useArticleStore } from '@/stores/useMySubscribeStore';
 import { useEffect } from 'react';
 import { useCategoryStore } from '@/stores/useCategoryStore';
+import Spinner from '@/components/common/loader/Spinner';
 
 function MySummaryCategory() {
 	const { user } = useAuthStore();
@@ -23,7 +24,7 @@ function MySummaryCategory() {
 		}
 	}, [user?.interests, fetchUserArticles, categories, fetchCategories]);
 
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <Spinner />;
   if (error) return <div>Error: {error}</div>;
 
 

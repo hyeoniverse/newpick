@@ -40,7 +40,8 @@ export const API_ENDPOINTS = {
 		LIST: (limit: number, offset: number) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
 		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
 		TRENDS: (category?: number) => `${API_URL}/newsletters/trends` + (category ? `?categoryId=${category}` : ''),
-	},
+    POPULAR: (limit: number, offset: number, popular: boolean) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`,
+  },
 	FEEDBACK: {
 		BASE: () => `${API_URL}/feedback`,
 		PAGINATED: (newsletterId: number, page: number, limit: number) =>

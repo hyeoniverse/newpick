@@ -1,4 +1,4 @@
-import { fetchArticle, fetchArticleList } from '@/api/article';
+import { fetchArticle, fetchArticleList, fetchPopularArticle } from '@/api/article';
 import { ArticleInfo as IArticleInfo, ArticleDetail as IArticleDetail } from '@/models/article.model';
 
 /**
@@ -11,12 +11,10 @@ export const getArticleContent = async (slug: string): Promise<IArticleInfo> => 
 /**
  * 인기 기사 목록을 가져오는 함수 (조회수 기준 정렬)
  */
-export const getPopularArticles = async (limit: number = 5): Promise<IArticleDetail[]> => {
-	const { data }: { data: IArticleDetail[] } = await fetchArticleList(limit, 0);
+export const getPopularArticles = async (limit: number = 5, popular: boolean): Promise<IArticleDetail[]> => {
+	const { data }: { data: IArticleDetail[] } = await fetchPopularArticle(limit, 0, popular);
 
-	return data
-		.sort((a, b) => b.viewcount - a.viewcount) // 조회수 기준 정렬
-		.slice(0, limit);
+	return data;
 };
 
 /**

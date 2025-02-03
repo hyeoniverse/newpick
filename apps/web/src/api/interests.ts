@@ -1,6 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
 import { API_ENDPOINTS } from '@/constants/api';
-import { fetchWithAuth } from '@/api/auth';
 import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
 
 /**
@@ -8,7 +7,7 @@ import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
  */
 export const fetchInterests = async (): Promise<string[]> => {
 	try {
-		const response = await fetchWithAuth(API_ENDPOINTS.SUBSCRIBERS.INTERESTS(), {
+		const response = await fetch(API_ENDPOINTS.SUBSCRIBERS.INTERESTS(), {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -38,7 +37,7 @@ export const updateInterests = async (interests: string[]): Promise<string[]> =>
 
 		const interestsId = mapTitleToId(interests);
 
-		const response = await fetchWithAuth(API_ENDPOINTS.SUBSCRIBERS.INTERESTS(), {
+		const response = await fetch(API_ENDPOINTS.SUBSCRIBERS.INTERESTS(), {
 			method: 'PUT',
 			credentials: 'include',
 			headers: {

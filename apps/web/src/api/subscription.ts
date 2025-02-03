@@ -1,5 +1,4 @@
 import { API_ENDPOINTS } from '@/constants/api';
-import { fetchWithAuth } from '@/api/auth';
 import { mapTitleToId } from '@/utils/mapInterests';
 
 /**
@@ -7,7 +6,7 @@ import { mapTitleToId } from '@/utils/mapInterests';
  */
 export const fetchSubscription = async (): Promise<boolean | null> => {
 	try {
-		const response = await fetchWithAuth(`${API_ENDPOINTS.SUBSCRIBERS.STATUS()}`, {
+		const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.STATUS()}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: { 'Content-Type': 'application/json' },
@@ -34,7 +33,7 @@ export const startSubscription = async (interests: string[]): Promise<void> => {
 	try {
 		const interestsId = mapTitleToId(interests);
 
-		const response = await fetchWithAuth(API_ENDPOINTS.SUBSCRIBERS.START(), {
+		const response = await fetch(API_ENDPOINTS.SUBSCRIBERS.START(), {
 			method: 'POST',
 			credentials: 'include',
 			headers: { 'Content-Type': 'application/json' },
@@ -53,7 +52,7 @@ export const startSubscription = async (interests: string[]): Promise<void> => {
  */
 export const pauseSubscription = async (): Promise<void> => {
 	try {
-		const response = await fetchWithAuth(API_ENDPOINTS.SUBSCRIBERS.PAUSE(), {
+		const response = await fetch(API_ENDPOINTS.SUBSCRIBERS.PAUSE(), {
 			method: 'POST',
 			credentials: 'include',
 			headers: { 'Content-Type': 'application/json' },
@@ -71,7 +70,7 @@ export const pauseSubscription = async (): Promise<void> => {
  */
 export const cancelSubscription = async (): Promise<void> => {
 	try {
-		const response = await fetchWithAuth(API_ENDPOINTS.SUBSCRIBERS.CANCEL(), {
+		const response = await fetch(API_ENDPOINTS.SUBSCRIBERS.CANCEL(), {
 			method: 'DELETE',
 			credentials: 'include',
 			headers: { 'Content-Type': 'application/json' },
@@ -89,7 +88,7 @@ export const cancelSubscription = async (): Promise<void> => {
  */
 export const fetchSubscriptionHistory = async () => {
 	try {
-		const response = await fetchWithAuth(`${API_ENDPOINTS.SUBSCRIBERS.HISTORY()}`, {
+		const response = await fetch(`${API_ENDPOINTS.SUBSCRIBERS.HISTORY()}`, {
 			method: 'GET',
 			credentials: 'include',
 			headers: { 'Content-Type': 'application/json' },

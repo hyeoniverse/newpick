@@ -17,7 +17,6 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 	const { userArticles, fetchUserArticles } = useArticleStore();
 	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
-	const today = new Date().toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
 	const lastScrollY = useRef(0);
 	const navRef = useRef<HTMLDivElement>(null);
 	const [isSticky, setIsSticky] = useState(false);
@@ -59,6 +58,16 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 		}
 	};
 
+	const now = new Date();
+
+	const threshold = new Date();
+	threshold.setHours(8, 0, 0, 0);
+	if (now < threshold) {
+		// 만약 지금이 8시 이전이라면 어제 8시로 설정
+		threshold.setDate(threshold.getDate() - 1);
+	}
+	const date = threshold.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric' });
+
 	return (
 		<SubscribeInfoStyled
 			ref={navRef}
@@ -68,7 +77,7 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 		>
 			<ContentsStyled>
 				<div className="date">
-					<p>{today}</p>
+					<p>{date}</p>
 				</div>
 				<ul className="categories">
 					{userArticles.length > 0 &&
