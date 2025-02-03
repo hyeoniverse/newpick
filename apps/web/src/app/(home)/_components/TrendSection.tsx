@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, lazy } from 'react';
-import { ArticleCard as IArticleCard } from '@/models/article.model';
+import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 
 import { styled } from 'styled-components';
 import Title from '@/components/common/Title';
@@ -11,7 +11,7 @@ import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
 interface Props {
-	trends: IArticleCard[];
+	trends: IArticleSummary[];
 }
 
 const TrendSection = ({ trends = [] }: Props) => {

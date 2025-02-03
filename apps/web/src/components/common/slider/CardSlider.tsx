@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { AUTO_SCROLL_INTERVAL } from '@/constants/numbers';
 import { Card as ICard } from '@/models/card.model';
 import styled from 'styled-components';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
@@ -12,9 +13,10 @@ interface Props {
 	className?: string;
 	type?: 'main' | 'sub';
 	data: ICard[];
+	autoScrollInterval?: number;
 }
 
-const CardSlider = ({ className, type = 'sub', data }: Props) => {
+const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_SCROLL_INTERVAL }: Props) => {
 	const { isMobile } = useMediaQuery();
 	const cardRef = useRef<HTMLDivElement>(null);
 	const cardContainerRef = useRef<HTMLDivElement>(null);
@@ -28,6 +30,65 @@ const CardSlider = ({ className, type = 'sub', data }: Props) => {
 	const [canScrollRight, setCanScrollRight] = useState(true);
 	// 연속 클릭 방지 해제
 	useTimeout(() => setIsScrolling(false), isScrolling ? 500 : null);
+
+	const handleScroll = useCallback(
+		(direction: 'left' | 'right') => {
+			if (isScrolling) return;
+			setIsScrolling(true);
+
+			if (cardContainerRef.current && cardRef.current) {
+				let cardWidth = isMobile ? cardRef.current.offsetWidth : cardRef.current.offsetWidth * 2;
+				let gap = isMobile ? 25 : 25 * 2;
+				if (type === 'main') {
+					cardWidth = cardRef.current.offsetWidth;
+					gap = 16;
+				}
+
+				const scrollAmount = cardWidth + gap;
+				let newIndex = currentIndex;
+
+				if (direction === 'left') {
+					newIndex = currentIndex === 0 ? data.length - 1 : currentIndex - 1;
+				} else {
+					newIndex = currentIndex === data.length - 1 ? 0 : currentIndex + 1;
+				}
+
+				setCurrentIndex(newIndex);
+
+				cardContainerRef.current.scrollTo({
+					left: newIndex * scrollAmount,
+					behavior: 'smooth',
+				});
+			}
+		},
+		[isScrolling, isMobile, type, currentIndex, data.length]
+	);
+
+	const goToSlide = (index: number) => {
+		if (cardContainerRef.current && cardRef.current) {
+			const cardWidth = cardRef.current.offsetWidth;
+			let gap = isMobile ? 25 : 25 * 2;
+			if (type === 'main') {
+				gap = 16;
+			}
+
+			const scrollAmount = index * (cardWidth + gap);
+
+			cardContainerRef.current.scrollTo({ left: scrollAmount, behavior: 'smooth' });
+			setCurrentIndex(index);
+		}
+	};
+
+	// 자동 스크롤 기능
+	useEffect(() => {
+		if (type !== 'main') return;
+
+		const interval = setInterval(() => {
+			handleScroll('right');
+		}, autoScrollInterval);
+
+		return () => clearInterval(interval);
+	}, [currentIndex, autoScrollInterval, handleScroll, type]);
 
 	// 스크롤 처리 함수
 	useEffect(() => {
@@ -52,33 +113,6 @@ const CardSlider = ({ className, type = 'sub', data }: Props) => {
 		};
 	}, []);
 
-	const handleScroll = (direction: 'left' | 'right') => {
-		if (isScrolling) return;
-		setIsScrolling(true);
-
-		if (cardContainerRef.current && cardRef.current) {
-			const cardWidth = isMobile ? cardRef.current.offsetWidth : cardRef.current.offsetWidth * 2;
-			const gap = isMobile ? 25 : 25 * 2;
-			const scrollAmount = cardWidth + gap;
-
-			cardContainerRef.current.scrollBy({
-				left: direction === 'left' ? -scrollAmount : scrollAmount,
-				behavior: 'smooth',
-			});
-		}
-	};
-
-	const goToSlide = (index: number) => {
-		if (cardContainerRef.current && cardRef.current) {
-			const cardWidth = cardRef.current.offsetWidth;
-			const gap = type === 'main' ? 16 : isMobile ? 24 * 2 : 24;
-			const scrollAmount = index * (cardWidth + gap);
-
-			cardContainerRef.current.scrollTo({ left: scrollAmount, behavior: 'smooth' });
-			setCurrentIndex(index);
-		}
-	};
-
 	return (
 		<StyledCardSlider className={className} $type={type}>
 			<div className="cards" ref={cardContainerRef}>
@@ -102,13 +136,13 @@ const CardSlider = ({ className, type = 'sub', data }: Props) => {
 						className="left"
 						icon={<IoIosArrowBack />}
 						onClick={() => handleScroll('left')}
-						disabled={!canScrollLeft}
+						disabled={type !== 'main' && !canScrollLeft}
 					/>
 					<Button
 						className="right"
 						icon={<IoIosArrowForward />}
 						onClick={() => handleScroll('right')}
-						disabled={!canScrollRight}
+						disabled={type !== 'main' && !canScrollRight}
 					/>
 				</div>
 			</div>

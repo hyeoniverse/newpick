@@ -1,4 +1,4 @@
-import { ArticleDetail as IArticleDetail, ArticleCard as IArticleCard } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { fetchTrendList } from '@/api/article';
 import { getFirstImage } from '@/utils/getFirstImage';
 import { mapIdToTitle } from '@/utils/mapInterests';
@@ -13,7 +13,7 @@ import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
 
 export default async function HomePage() {
-	let parsedTrends: IArticleCard[] = [];
+	let parsedTrends: IArticleSummary[] = [];
 	try {
 		const trends: IArticleDetail[] = await fetchTrendList();
 		parsedTrends = trends.map((trend) => ({
@@ -23,6 +23,7 @@ export default async function HomePage() {
 			title: stripCodeFence(trend.title),
 			summary: stripCodeFence(trend.content),
 			date: dateFormatter(trend.createdAt),
+			views: trend.viewcount,
 		}));
 
 		console.log(parsedTrends);

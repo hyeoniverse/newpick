@@ -2,11 +2,12 @@ import { User as IUser } from '@/models/user.model';
 import { cookies } from 'next/headers';
 import { API_ENDPOINTS } from '@/constants/api';
 
-export const fetchUserWithSubscription = async (retry = false): Promise<IUser | null> => {
+export const fetchUserWithSubscription = async (retry = false, overrideAccessToken?: string): Promise<IUser | null> => {
 	try {
-		const cookieStore = await cookies();
-		const accessToken = cookieStore.get('access_token')?.value;
-		const refreshToken = cookieStore.get('refresh_token')?.value;
+		const cookieStore = cookies();
+		// overrideAccessToken가 전달되면 해당 토큰 사용, 없으면 쿠키에서 읽음
+		const accessToken = overrideAccessToken || (await cookieStore).get('access_token')?.value;
+		const refreshToken = (await cookieStore).get('refresh_token')?.value;
 
 		if (!accessToken || !refreshToken) {
 			console.log('⚠️ 액세스 토큰 또는 리프레시 토큰이 없습니다.');
@@ -34,7 +35,8 @@ export const fetchUserWithSubscription = async (retry = false): Promise<IUser | 
 				const newAccessToken = await getNewToken(accessToken, refreshToken);
 
 				if (newAccessToken) {
-					return await fetchUserWithSubscription(true); // 1회 재시도
+					// 새 토큰을 인자로 넘겨 재시도
+					return await fetchUserWithSubscription(true, newAccessToken);
 				}
 			}
 

@@ -2,11 +2,11 @@ import { Navigation as INavigation } from '@/models/navigation.model';
 import { CATEGORIES } from '@/constants/categories';
 
 export const NAVIGATION: INavigation[] = [
-	{
-		id: 0,
-		title: '시작하기',
-		link: '/start',
-	},
+	// {
+	// 	id: 0,
+	// 	title: '시작하기',
+	// 	link: '/start',
+	// },
 	{
 		id: 1,
 		title: '뉴스레터',
@@ -15,7 +15,7 @@ export const NAVIGATION: INavigation[] = [
 			...CATEGORIES.map((category, index) => ({
 				id: index,
 				title: category.name,
-				link: index === 0 ? '/articles' : `/articles/categories/${category.id}`,
+				link: index === 0 ? '/articles' : `/articles?categoryId=${category.id}`,
 			})),
 		],
 	},
