@@ -20,73 +20,49 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data 
 			<div className="card-body">
 				{type === 'main' && (
 					<>
-						<div className="card-header">
-							<Text size="medium" color="primary" weight="semiBold">
-								{header}
-							</Text>
-							{main.title && (
-								<Title className="title" weight="semiBold">
-									{main.title}
-								</Title>
-							)}
-						</div>
-						<div className="card-main">
-							<div className="content">
-								{main.description && (
-									<Text className="description" size="medium">
-										{main.description}
-									</Text>
+						<Link href={url || '/not-found'}>
+							<div className="card-header">
+								<Text size="medium" color="primary" weight="semiBold">
+									{header}
+								</Text>
+								{main.title && (
+									<Title className="title" weight="semiBold">
+										{main.title}
+									</Title>
 								)}
-								{footer && <div className="card-footer">{footer}</div>}
 							</div>
-							{image && (
-								<div className="image-placeholder">
-									<Imgae src={image} alt={main.title || 'card'} />
+							<div className="card-main">
+								<div className="content">
+									{main.description && (
+										<Text className="description" size="medium">
+											{main.description}
+										</Text>
+									)}
+									{footer && (
+										<div className="card-footer" onClick={(e) => e.preventDefault()}>
+											{footer}
+										</div>
+									)}
 								</div>
-							)}
-						</div>
-					</>
-				)}
-
-				{type === 'sub' && (
-					<>
-						{url && (
-							<Link href={url}>
 								{image && (
 									<div className="image-placeholder">
 										<Imgae src={image} alt={main.title || 'card'} />
 									</div>
 								)}
-							</Link>
-						)}
-						<div className="card-header">
-							{header && (
-								<Text size="small" color="primary" weight="semiBold">
-									{header}
-								</Text>
-							)}
-						</div>
-						<div className="card-main">
-							<div className="content">
-								{main.title && (
-									<Text className="title" size="large" weight="semiBold">
-										{main.title}
-									</Text>
-								)}
-								{main.description && (
-									<Text className="description" size="small">
-										{main.description}
-									</Text>
-								)}
 							</div>
-						</div>
-						{footer && <div className="card-footer">{footer}</div>}
+						</Link>
 					</>
 				)}
 
-				{type === 'list' && (
+				{type === 'sub' && (
 					<>
-						<div className="card-main">
+						<Link href={url || '/not-found'}>
+							{image && (
+								<div className="image-placeholder">
+									<Imgae src={image} alt={main.title || 'card'} />
+								</div>
+							)}
+
 							<div className="card-header">
 								{header && (
 									<Text size="small" color="primary" weight="semiBold">
@@ -94,25 +70,60 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data 
 									</Text>
 								)}
 							</div>
-							<div className="content">
-								{main.title && (
-									<Text className="title" size="medium" weight="semiBold">
-										{main.title}
-									</Text>
-								)}
-								{main.description && (
-									<Text className="description" size="small">
-										{main.description}
-									</Text>
-								)}
-								{footer && <div className="card-footer">{footer}</div>}
+							<div className="card-main">
+								<div className="content">
+									{main.title && (
+										<Text className="title" size="large" weight="semiBold">
+											{main.title}
+										</Text>
+									)}
+									{main.description && (
+										<Text className="description" size="small">
+											{main.description}
+										</Text>
+									)}
+								</div>
 							</div>
-						</div>
-						{image && (
-							<div className="image-placeholder">
-								<Imgae src={image} alt={main.title || 'card'} />
+						</Link>
+						{footer && <div className="card-footer">{footer}</div>}
+					</>
+				)}
+
+				{type === 'list' && (
+					<>
+						<Link href={url || '/not-found'}>
+							<div className="card-main">
+								<div className="card-header">
+									{header && (
+										<Text size="small" color="primary" weight="semiBold">
+											{header}
+										</Text>
+									)}
+								</div>
+								<div className="content">
+									{main.title && (
+										<Text className="title" size="medium" weight="semiBold">
+											{main.title}
+										</Text>
+									)}
+									{main.description && (
+										<Text className="description" size="small">
+											{main.description}
+										</Text>
+									)}
+									{footer && (
+										<div className="card-footer" onClick={(e) => e.preventDefault()}>
+											{footer}
+										</div>
+									)}
+								</div>
 							</div>
-						)}
+							{image && (
+								<div className="image-placeholder">
+									<Imgae src={image} alt={main.title || 'card'} />
+								</div>
+							)}
+						</Link>
 					</>
 				)}
 			</div>
@@ -136,6 +147,7 @@ const StyledCard = styled.div<StyledProps>`
 	.image-placeholder {
 		width: 100%;
 		aspect-ratio: 16 / 9;
+		position: relative;
 		overflow: hidden;
 		border-radius: ${({ theme }) => theme.borderRadius.medium};
 		background: ${({ theme }) => theme.color.surface};
@@ -146,9 +158,15 @@ const StyledCard = styled.div<StyledProps>`
 		display: flex;
 		flex-direction: column;
 
-		&:hover img {
-			transform: scale(1.05);
-			transition: transform 0.3s ease;
+		&:hover:not(:has(.card-footer:hover)) {
+			img {
+				transform: scale(1.05);
+				transition: transform 0.3s ease;
+			}
+
+			.title {
+				color: ${({ theme }) => theme.color.primary};
+			}
 		}
 
 		.card-header {
@@ -197,10 +215,12 @@ const StyledCard = styled.div<StyledProps>`
 	}
 
 	.card-footer {
+		width: 100%;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		color: ${({ theme }) => theme.color.subText};
+		cursor: default;
 
 		span {
 			font-size: ${({ theme }) => theme.fontSize.small};
@@ -282,10 +302,18 @@ const subCardStyles = css`
 `;
 
 const listCardStyles = css`
-	.image-placeholder {
-		height: 100%;
-		max-width: 30%;
+	a {
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		padding: 0;
+		margin: 0;
+		gap: 0.5rem;
+	}
 
+	.image-placeholder {
+		height: fit-content;
+		max-width: 30%;
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			max-width: 100%;
 		}

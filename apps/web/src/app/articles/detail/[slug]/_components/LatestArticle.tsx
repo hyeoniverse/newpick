@@ -8,7 +8,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
-import { IArticleDetail } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 
 interface Props {
 	latest: IArticleDetail[];

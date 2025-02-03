@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { IArticleDetail } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { userSubscribeArticles } from '@/hooks/useMySubscribe';
 
 interface ArticleStore {
