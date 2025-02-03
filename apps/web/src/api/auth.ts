@@ -58,7 +58,7 @@ export const fetchAdditionalUserData = async (user: User): Promise<User> => {
 // 사용자 정보 조회 API
 export const fetchUser = async (): Promise<User> => {
 	try {
-		const response = await fetchWithAuth(API_ENDPOINTS.MY.PROFILE(), {
+		const response = await fetch(API_ENDPOINTS.MY.PROFILE(), {
 			method: 'GET',
 			credentials: 'include',
 			headers: {
@@ -115,7 +115,7 @@ export const refreshToken = async (): Promise<string> => {
 	}
 };
 
-export const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
+export const fetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
 	try {
 		let response = await fetch(url, {
 			...options,
