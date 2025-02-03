@@ -38,12 +38,13 @@ function Article({ article, summary, content, popular, latest, newsId, prev, nex
       fetchCategories();
     }
   }, [categories, fetchCategories]);
+
   return (
     <>
       <TitleSectionStyled>
-        <MoveButton onClick={() => router.back()} text="이전으로" frontIcon={<IoArrowBack />} />
+        <MoveButton onClick={() => router.push(`/articles?categoryId=${article.categoryId}`)} text="목록으로" frontIcon={<IoArrowBack />} />
         <div className="title-section">
-          <Link href={`/articles/categories/${article.categoryId}`} className="category">{getCategoryName(article.categoryId)}</Link>
+          <Link href={`/articles?categoryId=${article.categoryId}`} className="category">{getCategoryName(article.categoryId)}</Link>
           <h1 className="title">{article.title}</h1>
           <p className="date">{dateFormatter(article.createdAt)}</p>
           <div className="icons">
