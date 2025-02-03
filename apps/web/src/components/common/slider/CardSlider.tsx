@@ -88,7 +88,7 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 		}, autoScrollInterval);
 
 		return () => clearInterval(interval);
-	}, [currentIndex, autoScrollInterval, handleScroll]);
+	}, [currentIndex, autoScrollInterval, handleScroll, type]);
 
 	// 스크롤 처리 함수
 	useEffect(() => {
