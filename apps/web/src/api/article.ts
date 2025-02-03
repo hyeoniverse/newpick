@@ -1,8 +1,8 @@
 import API_ENDPOINTS from '@/constants/api';
 import { notFound } from 'next/navigation';
 
-export const fetchArticleList = async (limit: number = 5, offset: number = 0) => {
-	const response = await fetch(API_ENDPOINTS.NEWSLETTER.LIST(limit, offset));
+export const fetchArticleList = async (limit: number = 5, offset: number = 0, popular?: boolean) => {
+	const response = await fetch(API_ENDPOINTS.NEWSLETTER.LIST(limit, offset, popular));
 
 	if (!response.ok) {
 		throw new Error('아티클 리스트를 불러오는데 실패했습니다.');
@@ -40,4 +40,14 @@ export const fetchTrendList = async (category?: number) => {
 		console.error(error);
 		throw new Error('트렌드 리스트를 불러오는데 실패했습니다.');
 	}
+};
+
+export const fetchPopularArticle = async (limit: number = 5, offset: number = 0, popular: boolean) => {
+	const response = await fetch(API_ENDPOINTS.NEWSLETTER.POPULAR(limit, offset, popular));
+
+	if (!response.ok) {
+		throw new Error('아티클 리스트를 불러오는데 실패했습니다.');
+	}
+
+	return await response.json();
 };

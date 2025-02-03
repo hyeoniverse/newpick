@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
 	},
 	MY: {
 		PROFILE: () => `${API_URL}/mypage/profile`,
+		BOOKMARKS: () => `${API_URL}/mypage/bookmarks`,
 	},
 	SUBSCRIBERS: {
 		STATUS: () => `${API_URL}/subscribers/status`,
@@ -28,27 +29,28 @@ export const API_ENDPOINTS = {
 		PAUSE: () => `${API_URL}/subscribers/pause`,
 		CANCEL: () => `${API_URL}/subscribers/cancel`,
 	},
-	NEWS: {
-		CRAWL: () => `${API_URL}/news/crawl`,
-		GET_BY_CATEGORY: (category: string, page: number, limit: number) =>
-			`${API_URL}/news?category=${category}&page=${page}&limit=${limit}`,
-		GET_BY_ID: (id: string) => `${API_URL}/news/${id}`,
-	},
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
 		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
-		LIST: (limit: number, offset: number) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
+		LIST: (limit: number, offset: number, popular?: boolean) =>
+			popular
+				? `${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`
+				: `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
 		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
 		TRENDS: (category?: number) => `${API_URL}/newsletters/trends` + (category ? `?categoryId=${category}` : ''),
-	},
+    POPULAR: (limit: number, offset: number, popular: boolean) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`,
+  },
 	FEEDBACK: {
 		BASE: () => `${API_URL}/feedback`,
 		PAGINATED: (newsletterId: number, page: number, limit: number) =>
 			`${API_URL}/feedback?newsletterId=${newsletterId}&page=${page}&limit=${limit}`,
 		BOOKMARK: `${API_URL}/feedback/bookmark`,
 	},
-	MYPAGE: {
-		BOOKMARKS: `${API_URL}/mypage/bookmarks`,
+	NEWS: {
+		CRAWL: () => `${API_URL}/news/crawl`,
+		GET_BY_CATEGORY: (category: string, page: number, limit: number) =>
+			`${API_URL}/news?category=${category}&page=${page}&limit=${limit}`,
+		GET_BY_ID: (id: string) => `${API_URL}/news/${id}`,
 	},
 	CATEGORY: {
 		BASE: `${API_URL}/category`,
