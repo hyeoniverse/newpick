@@ -39,6 +39,7 @@ export const API_ENDPOINTS = {
 		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
 		LIST: (limit: number, offset: number) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
 		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
+		POPULAR: (limit: number, offset: number, popular: boolean) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`,
 	},
 	MAIL: {
 		SEND: () => `${API_URL}/mail/send`,

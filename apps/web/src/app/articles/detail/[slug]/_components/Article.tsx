@@ -16,6 +16,7 @@ import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import { useRouter } from 'next/navigation';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import { useEffect } from 'react';
+import { dateFormatter } from '@/utils/formatter';
 
 interface Props {
   article: IArticleDetail;
@@ -44,7 +45,7 @@ function Article({ article, summary, content, popular, latest, newsId, prev, nex
         <div className="title-section">
           <Link href={`/articles/categories/${article.categoryId}`} className="category">{getCategoryName(article.categoryId)}</Link>
           <h1 className="title">{article.title}</h1>
-          <p className="date">{article.createdAt}</p>
+          <p className="date">{dateFormatter(article.createdAt)}</p>
           <div className="icons">
             <BookmarkIcon newsId={article.id} newsletterId={article.id} />
             <LinkCopyIcon id={article.id} />
