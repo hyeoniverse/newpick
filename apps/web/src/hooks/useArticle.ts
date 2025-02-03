@@ -1,5 +1,5 @@
 import { fetchArticle, fetchArticleList, fetchPopularArticle } from '@/api/article';
-import { IArticleInfo, IArticleDetail } from '@/models/article.model';
+import { ArticleInfo as IArticleInfo, ArticleDetail as IArticleDetail } from '@/models/article.model';
 
 /**
  * 특정 기사(slug) 내용을 가져오는 함수

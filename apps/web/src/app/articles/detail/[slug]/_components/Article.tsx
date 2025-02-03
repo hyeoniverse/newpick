@@ -7,7 +7,7 @@ import ArticleContent from '@/app/articles/detail/[slug]/_components/content/Art
 import PrevNextArticle from '@/app/articles/detail/[slug]/_components/PrevNextArticle';
 import LatestArticle from '@/app/articles/detail/[slug]/_components/LatestArticle';
 import MobileLikeLinkButton from '@/app/articles/detail/[slug]/_components/MobileLikeLinkButton';
-import { IArticleDetail } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import MoveButton from '@/components/common/MoveButton';
 import { IoArrowBack } from 'react-icons/io5';
 import Link from 'next/link';
@@ -19,19 +19,19 @@ import { useEffect } from 'react';
 import { dateFormatter } from '@/utils/formatter';
 
 interface Props {
-  article: IArticleDetail;
-  summary: string;
-  content: string;
-  popular: IArticleDetail[];
-  latest: IArticleDetail[];
-  newsId: number;
-  prev: IArticleDetail | null;
-  next: IArticleDetail | null;
+	article: IArticleDetail;
+	summary: string;
+	content: string;
+	popular: IArticleDetail[];
+	latest: IArticleDetail[];
+	newsId: number;
+	prev: IArticleDetail | null;
+	next: IArticleDetail | null;
 }
 
 function Article({ article, summary, content, popular, latest, newsId, prev, next }: Props) {
-  const router = useRouter();
-  const { categories, fetchCategories, getCategoryName } = useCategoryStore();
+	const router = useRouter();
+	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
   useEffect(() => {
     if (Object.keys(categories).length === 0) {

@@ -1,10 +1,9 @@
-import { IArticleDetail } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { fetchArticleList } from '@/api/article';
 
-
 export const getTodayArticles = async (limit: number = 100) => {
-  const data = await fetchArticleList(limit, 0);
-  const newsletters: IArticleDetail[] = data.data;
+	const data = await fetchArticleList(limit, 0);
+	const newsletters: IArticleDetail[] = data.data;
 
   const now = new Date();
 
@@ -33,8 +32,6 @@ export const userSubscribeArticles = async (categoryIds: number[]) => {
     );
   })
   .filter((article): article is IArticleDetail => article !== null);
-
-  console.log(latestArticlesByCategory);
 
   return latestArticlesByCategory;
 }

@@ -1,10 +1,9 @@
 import API_ENDPOINTS from '@/constants/api';
 import { IBookmarkItem } from '@/models/bookmark.model';
-import { fetchWithAuth } from '@/api/auth';
 
 export async function fetchUserBookmarksApi(): Promise<IBookmarkItem[]> {
 	try {
-		const response = await fetchWithAuth(API_ENDPOINTS.MYPAGE.BOOKMARKS, {
+		const response = await fetch(API_ENDPOINTS.MYPAGE.BOOKMARKS, {
 			method: 'GET',
 			credentials: 'include',
 		});
@@ -26,7 +25,7 @@ export async function fetchUserBookmarksApi(): Promise<IBookmarkItem[]> {
 
 export async function addBookmarkApi(newsId: number, newsletterId: number): Promise<IBookmarkItem> {
 	try {
-		const response = await fetchWithAuth(API_ENDPOINTS.FEEDBACK.BOOKMARK, {
+		const response = await fetch(API_ENDPOINTS.FEEDBACK.BOOKMARK, {
 			method: 'POST',
 			credentials: 'include',
 			headers: {
@@ -46,7 +45,7 @@ export async function addBookmarkApi(newsId: number, newsletterId: number): Prom
 
 export async function removeBookmarkApi(newsId: number, newsletterId: number): Promise<{ success: boolean }> {
 	try {
-		const response = await fetchWithAuth(API_ENDPOINTS.FEEDBACK.BOOKMARK, {
+		const response = await fetch(API_ENDPOINTS.FEEDBACK.BOOKMARK, {
 			method: 'DELETE',
 			credentials: 'include',
 			headers: {
