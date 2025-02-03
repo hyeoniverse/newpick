@@ -3,7 +3,7 @@ import { IBookmarkItem } from '@/models/bookmark.model';
 
 export async function fetchUserBookmarksApi(): Promise<IBookmarkItem[]> {
 	try {
-		const response = await fetch(API_ENDPOINTS.MYPAGE.BOOKMARKS, {
+		const response = await fetch(API_ENDPOINTS.MY.BOOKMARKS(), {
 			method: 'GET',
 			credentials: 'include',
 		});

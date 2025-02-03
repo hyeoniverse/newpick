@@ -19,19 +19,11 @@ export interface ArticleDetail {
 export interface ArticleSummary {
 	id: number;
 	categoryName: string;
-	userId: number;
-	img: string;
-	title: string;
-	summary: string;
-	like: number;
-	createdAt: string;
-}
-
-export interface ArticleCard {
-	id: number;
-	categoryName: string;
+	userId?: number;
 	image: string;
 	title: string;
 	summary: string;
 	date: string;
+	bookmarks?: number;
+	views?: number;
 }

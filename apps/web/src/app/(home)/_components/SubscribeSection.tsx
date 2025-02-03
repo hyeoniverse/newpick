@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArticleCard as IArticleCard } from '@/models/article.model';
+import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSubscribe } from '@/hooks/useSubscribe';
@@ -20,7 +20,7 @@ import { LuMailCheck } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
 
 interface Props {
-	trends: IArticleCard[];
+	trends: IArticleSummary[];
 }
 
 const SubscribeSection = ({ trends }: Props) => {
