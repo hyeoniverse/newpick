@@ -11,7 +11,6 @@ import FullWidthPanel from '@/components/common/FullWidthPanel';
 import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
-import { useAuth } from '@/hooks/useAuth';
 
 export default async function HomePage() {
 	let parsedTrends: IArticleSummary[] = [];

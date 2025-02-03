@@ -45,7 +45,7 @@ export const useAuth = () => {
 			console.error('❌ 로그아웃 오류:', error);
 			showToast('로그아웃 중 오류가 발생했습니다.', 'error');
 		}
-	}, [pathname, router, clearUser, showToast]);
+	}, [pathname, router, clearUser, showToast, queryClient]);
 
 	// `useQuery`를 활용하여 자동으로 사용자 정보 가져오기
 	const {
