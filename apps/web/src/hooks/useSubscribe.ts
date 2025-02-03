@@ -97,7 +97,7 @@ export const useSubscribeInterests = () => {
 	} = useQuery({
 		queryKey: ['subscriptionInterests'],
 		queryFn: () => fetchInterests(),
-		enabled: !!user?.id,
+		enabled: !!user, /// 이 부분도 지워야 될듯. 이상하다. 서로 매칭이 안된다. 
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
 	});
