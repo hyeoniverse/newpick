@@ -14,6 +14,7 @@ export const SCROLL = {
 };
 
 export const AUTH = {
+	TIMEOUT: 1000 * 30,
 	TOKEN: {
 		MAX_AGE: 60 * 60 * 24, // 1 day
 		INTERVAL: 10000 * 6, // 1 minute
