@@ -7,33 +7,38 @@ import { mapTitleToId } from '@/utils/mapInterests';
 
 // 로그인 API
 export const loginUser = async (setUser: (user: User) => void): Promise<User> => {
-	return new Promise((resolve, reject) => {
-		window.open(`${API_ENDPOINTS.AUTH.LOGIN()}`, '_blank', `width=${POPUP.WIDTH}, height=${POPUP.HEIGHT}`);
+	try {
+		return new Promise((resolve, reject) => {
+			window.open(`${API_ENDPOINTS.AUTH.LOGIN()}`, '_blank', `width=${POPUP.WIDTH}, height=${POPUP.HEIGHT}`);
 
-		// 메시지 이벤트 리스너 등록
-		const listener = async (event: MessageEvent) => {
-			if (event.origin !== BACK_URL) return;
-			if (event.data?.type === 'oauthSuccess') {
-				const { user } = event.data;
+			// 메시지 이벤트 리스너 등록
+			const listener = async (event: MessageEvent) => {
+				if (event.origin !== BACK_URL) return;
+				if (event.data?.type === 'oauthSuccess') {
+					const { user } = event.data;
 
-				if (!user) {
-					reject(new Error(`사용자 정보를 불러오는데 실패했습니다. ${event.data?.error}`));
-					return;
+					if (!user) {
+						reject(new Error(`사용자 정보를 불러오는데 실패했습니다. ${event.data?.error}`));
+						return;
+					}
+
+					// 기본 사용자 정보 먼저 저장
+					setUser(user);
+					window.removeEventListener('message', listener);
+
+					// 추가 사용자 데이터 비동기 업데이트
+					const updatedUser = await fetchAdditionalUserData(user);
+					resolve(updatedUser);
 				}
+			};
 
-				// 기본 사용자 정보 먼저 저장
-				setUser(user);
-				window.removeEventListener('message', listener);
-
-				// 추가 사용자 데이터 비동기 업데이트
-				const updatedUser = await fetchAdditionalUserData(user);
-				resolve(updatedUser);
-			}
-		};
-
-		// 이벤트 리스너 등록
-		window.addEventListener('message', listener);
-	});
+			// 이벤트 리스너 등록
+			window.addEventListener('message', listener);
+		});
+	} catch (error) {
+		console.log('❌ 로그인 실패:', error);
+		throw error;
+	}
 };
 
 // 추가 사용자 데이터 불러오기(구독 상태, 관심사)
@@ -77,7 +82,7 @@ export const fetchUser = async (): Promise<User> => {
 		return user;
 	} catch (error) {
 		console.log('❌ 사용자 정보 조회 실패:', error);
-		throw error;
+		throw new Error('사용자 정보를 불러오는데 실패했습니다.');
 	}
 };
 
@@ -115,7 +120,7 @@ export const refreshToken = async (): Promise<string> => {
 	}
 };
 
-export const fetch = async (url: string, options: RequestInit = {}): Promise<Response> => {
+export const fetchWithAuth = async (url: string, options: RequestInit = {}): Promise<Response> => {
 	try {
 		let response = await fetch(url, {
 			...options,

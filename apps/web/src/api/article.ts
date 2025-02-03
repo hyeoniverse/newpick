@@ -38,5 +38,6 @@ export const fetchTrendList = async (category?: number) => {
 		return trends.data;
 	} catch (error) {
 		console.error(error);
+		throw new Error('트렌드 리스트를 불러오는데 실패했습니다.');
 	}
 };
