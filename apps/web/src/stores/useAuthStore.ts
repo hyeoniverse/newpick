@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { User } from '@/models/user.model';
 
 interface AuthState {
-	user: User | null | undefined;
+	user: User | null;
 	setUser: (user: User | null) => void;
 	clearUser: () => void;
 	isLoading: boolean;
@@ -10,9 +10,9 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-	user: undefined,
+	user: null,
 	setUser: (user) => set({ user: user, isLoading: false }),
-	clearUser: () => set({ user: undefined, isLoading: true }),
+	clearUser: () => set({ user: null, isLoading: true }),
 	isLoading: true,
 	setIsLoading: (isLoading) =>
 		set({
