@@ -138,10 +138,10 @@ export default function ListSection() {
 					</Button>
 					<Button
 						style={{ width: '6rem' }}
-						data-active={selectedSort === 'bookmarks'}
-						onClick={() => setSelectedSort('bookmarks')}
+						data-active={selectedSort === 'views'}
+						onClick={() => setSelectedSort('views')}
 					>
-						북마크순
+						인기순
 					</Button>
 				</div>
 			</div>
@@ -164,7 +164,7 @@ export default function ListSection() {
 							footer: (
 								<>
 									<Text color="subText">{article.date}</Text>
-
+									<Text color="subText">|&nbsp;&nbsp;조회수 {article.views}</Text>
 									<div className="right">
 										<BookmarkIcon newsId={article.id} newsletterId={article.id} />
 									</div>
