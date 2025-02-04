@@ -56,3 +56,19 @@ export const fetchArticleByCategory = async (category: number, limit: number = 5
 
 	return await response.json();
 };
+
+export const fetchRelatedNews = async (link: string) => {
+	const response = await fetch(API_ENDPOINTS.NEWS.RELATED(link), {
+		method: 'GET',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+	});
+
+	if (!response.ok) {
+		throw new Error('관련 뉴스를 불러오는데 실패했습니다.');
+	}
+
+	const news = await response.json();
+	return news.data;
+};

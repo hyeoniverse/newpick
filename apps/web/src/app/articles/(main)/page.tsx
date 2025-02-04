@@ -1,10 +1,10 @@
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { parseArticles } from '@/utils/parseArticles';
 import { fetchTrendList } from '@/api/article';
 
+import styles from '@/app/articles/(main)/category.module.css';
 import HotSection from '@/app/articles/(main)/_components/HotSection';
 import ListSection from '@/app/articles/(main)/_components/ListSection';
-import styles from '@/app/articles/(main)/category.module.css';
-import { parseArticles } from '@/utils/parseArticles';
 
 export default async function CategoryPage() {
 	let parsedTrends: IArticleSummary[] = [];
