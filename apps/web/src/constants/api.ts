@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
 	},
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
+		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,
 		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
 		LIST: (limit: number, offset: number, popular?: boolean) =>
 			popular
