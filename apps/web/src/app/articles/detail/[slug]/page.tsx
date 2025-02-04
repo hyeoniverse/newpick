@@ -16,6 +16,10 @@ export default async function NewsletterDetailPage({ params }: { params: PagePar
 	const latestArticles = await getArticleList(9);
 
 	const viewCount = await increaseViewCount(articleContent.id);
+	const usedNewsList = articleContent.usedNews
+		.split(',')
+		.map((url) => url.trim())
+		.slice(0, 3);
 
 	return (
 		<>
@@ -27,6 +31,7 @@ export default async function NewsletterDetailPage({ params }: { params: PagePar
 				popular={popularArticles}
 				latest={latestArticles}
 				newsId={articleContent.id}
+				related={usedNewsList}
 				prev={articleInfo.previousNewsletter}
 				next={articleInfo.nextNewsletter}
 			/>

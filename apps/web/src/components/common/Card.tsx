@@ -5,14 +5,16 @@ import Title from './Title';
 import Text from '@/components/common/Text';
 import Imgae from '@/components/common/Image';
 import Link from 'next/link';
+import { DEFAULT_IMAGES } from '@/constants/images';
 
 interface Props {
 	className?: string;
 	type?: 'main' | 'sub' | 'list';
 	data: ICard;
+	newTab?: boolean;
 }
 
-const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data }, ref) => {
+const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data, newTab = false }, ref) => {
 	const { image, header, main, footer, url } = data;
 
 	return (
@@ -20,7 +22,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data 
 			<div className="card-body">
 				{type === 'main' && (
 					<>
-						<Link href={url || ''}>
+						<Link href={url || ''} target={newTab ? '_blank' : '_self'}>
 							<div className="card-header">
 								<Text size="medium" color="primary" weight="semiBold">
 									{header}
@@ -44,11 +46,9 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data 
 										</div>
 									)}
 								</div>
-								{image && (
-									<div className="image-placeholder">
-										<Imgae src={image} alt={main.title || 'card'} />
-									</div>
-								)}
+								<div className="image-placeholder">
+									<Imgae src={image || '/img/newpick_default_img.jpg'} alt={main.title || 'card'} />
+								</div>
 							</div>
 						</Link>
 					</>
@@ -62,7 +62,6 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data 
 									<Imgae src={image} alt={main.title || 'card'} />
 								</div>
 							)}
-
 							<div className="card-header">
 								{header && (
 									<Text size="small" color="primary" weight="semiBold">
@@ -91,38 +90,41 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data 
 
 				{type === 'list' && (
 					<>
-						<Link href={url || '/not-found'}>
-							<div className="card-main">
-								<div className="card-header">
-									{header && (
-										<Text size="small" color="primary" weight="semiBold">
-											{header}
-										</Text>
-									)}
-								</div>
-								<div className="content">
-									{main.title && (
-										<Text className="title" size="medium" weight="semiBold">
-											{main.title}
-										</Text>
-									)}
-									{main.description && (
-										<Text className="description" size="small">
-											{main.description}
-										</Text>
-									)}
-									{footer && (
-										<div className="card-footer" onClick={(e) => e.preventDefault()}>
-											{footer}
+						<Link href={url || '/not-found'} passHref legacyBehavior>
+							<a target={newTab ? '_blank' : '_self'} rel={newTab ? 'noopener noreferrer' : undefined}>
+								<div className="card-main">
+									<div className="card-header">
+										{header && (
+											<Text size="small" color="primary" weight="semiBold">
+												{header}
+											</Text>
+										)}
+									</div>
+									<div className="content">
+										<div className="left">
+											{main.title && (
+												<Text className="title" size="medium" weight="semiBold">
+													{main.title}
+												</Text>
+											)}
+											{main.description && (
+												<Text className="description" size="small">
+													{main.description}
+												</Text>
+											)}
+											{footer && (
+												<div className="card-footer" onClick={(e) => e.preventDefault()}>
+													{footer}
+												</div>
+											)}
 										</div>
-									)}
+
+										<div className="image-placeholder">
+											<Imgae src={image || `${DEFAULT_IMAGES.MONO}`} alt={main.title || 'card'} />
+										</div>
+									</div>
 								</div>
-							</div>
-							{image && (
-								<div className="image-placeholder">
-									<Imgae src={image} alt={main.title || 'card'} />
-								</div>
-							)}
+							</a>
 						</Link>
 					</>
 				)}
@@ -258,26 +260,45 @@ const StyledCard = styled.div<StyledProps>`
 `;
 
 const mainCardStyles = css`
-	.image-placeholder {
-		width: 40%;
-	}
-
 	.card-body {
-		gap: 1rem;
+		display: flex;
+		flex-direction: column;
+		width: 100%;
 	}
 
 	.card-main {
+		display: flex;
 		flex-direction: row;
+		justify-content: space-between;
 		gap: 1rem;
 
-		.content {
-			width: 50%;
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			flex-wrap: wrap;
 		}
 
-		.description {
-			line-height: 1.5;
-			height: calc(${({ theme }) => theme.fontSize.medium} * 1.5 * 7);
-			-webkit-line-clamp: 7;
+		.content {
+			display: flex;
+			flex-direction: column;
+			justify-content: space-between;
+
+			.description {
+				height: 100%;
+				min-height: calc(${({ theme }) => theme.fontSize.medium} * 1.5 * 5);
+				line-height: 1.5;
+				-webkit-line-clamp: 5;
+			}
+		}
+
+		.card-footer {
+			white-space: nowrap;
+			flex-wrap: wrap;
+			justify-content: flex-start;
+			align-items: center;
+		}
+
+		.image-placeholder {
+			height: 100%;
+			min-width: 30%;
 		}
 	}
 `;
@@ -312,30 +333,49 @@ const listCardStyles = css`
 		gap: 0.5rem;
 	}
 
-	.image-placeholder {
-		height: fit-content;
-		max-width: 30%;
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			max-width: 100%;
-		}
-	}
-
 	.card-body {
 		flex-wrap: wrap;
 		flex-direction: row;
-		padding: 1.5rem 0;
+		padding: 1.25rem 0.25rem;
 		border-bottom: 1px solid ${({ theme }) => theme.color.border};
 		gap: 1rem;
 	}
 
 	.card-main {
-		max-width: calc(70% - 1rem);
+		width: 100%;
 		flex-direction: column;
 		align-items: center;
-		gap: 0.25rem;
 
 		.content {
-			gap: 0.25rem;
+			width: 100%;
+			display: flex;
+			flex-direction: row;
+			gap: 1rem;
+
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				flex-wrap: wrap;
+
+				.left {
+					min-width: 100%;
+				}
+			}
+
+			.left {
+				max-width: 70%;
+				display: flex;
+				flex-direction: column;
+				justify-content: center;
+				gap: 0.25rem;
+			}
+
+			.image-placeholder {
+				height: fit-content;
+				min-width: 30%;
+
+				@media ${({ theme }) => theme.mediaQuery.tablet} {
+					max-width: 100%;
+				}
+			}
 		}
 
 		.description {

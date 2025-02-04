@@ -29,11 +29,12 @@ interface Props {
 	popular: IArticleDetail[];
 	latest: IArticleDetail[];
 	newsId: number;
+	related: string[];
 	prev: IArticleDetail | null;
 	next: IArticleDetail | null;
 }
 
-function Article({ viewCount, article, summary, content, popular, latest, newsId, prev, next }: Props) {
+function Article({ viewCount, article, summary, content, popular, latest, newsId, related, prev, next }: Props) {
 	const router = useRouter();
 	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
@@ -75,7 +76,13 @@ function Article({ viewCount, article, summary, content, popular, latest, newsId
 			<ArticleStyled>
 				<SummaryTextBox>{summary}</SummaryTextBox>
 				<div className="content-section">
-					<ArticleContent className="content" content={content} articleImage={article.imageUrl ?? ''} />
+					<ArticleContent
+						className="content"
+						content={content}
+						articleImage={article.imageUrl ?? ''}
+						newsId={newsId}
+						related={related}
+					/>
 					<PopularArticle className="popular" popular={popular} />
 				</div>
 				<PrevNextArticle className="prev-next" prev={prev} next={next} />

@@ -85,7 +85,7 @@ export default function StartSubscription() {
 					)}
 				</div>
 				<Text size="small" color="subText">
-					구독할 괌심사를 선택한 후 완료 버튼을 눌러주세요.
+					구독할 관심사를 선택한 후 완료 버튼을 눌러주세요.
 					<br />
 					{isSubscribed !== null && '내일 보내드리는 뉴스레터부터 적용됩니다.'}
 				</Text>

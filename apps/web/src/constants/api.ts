@@ -42,8 +42,8 @@ export const API_ENDPOINTS = {
 		CATEGORY: (category: number, limit: number, offset: number) =>
 			`${API_URL}/newsletters/category/${category}?limit=${limit}&offset=${offset}`,
 		TRENDS: (category?: number) => `${API_URL}/newsletters/trends` + (category ? `?categoryId=${category}` : ''),
-		POPULAR: (limit: number, offset: number, popular: boolean) =>
-			`${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`,
+		POPULAR: (limit: number, offset: number, trend: boolean) =>
+			`${API_URL}/newsletters?limit=${limit}&offset=${offset}&trend=${trend}`,
 		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
 	},
 	FEEDBACK: {
@@ -53,6 +53,7 @@ export const API_ENDPOINTS = {
 		BOOKMARK: `${API_URL}/feedback/bookmark`,
 	},
 	NEWS: {
+		RELATED: (link: string) => `${API_URL}/crawling/related?link=${link}`,
 		CRAWL: () => `${API_URL}/news/crawl`,
 		GET_BY_CATEGORY: (category: string, page: number, limit: number) =>
 			`${API_URL}/news?category=${category}&page=${page}&limit=${limit}`,
