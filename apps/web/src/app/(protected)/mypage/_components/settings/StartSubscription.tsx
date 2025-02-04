@@ -5,7 +5,7 @@ import { CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
 import { useInputCheck } from '@/hooks/useInputCheck';
-import useSelectInterests from '@/hooks/useSelectInterests';
+import { useSelectInterests } from '@/hooks/useSelectInterests';
 
 import styled from 'styled-components';
 import { LuMailCheck, LuMailX } from 'react-icons/lu';

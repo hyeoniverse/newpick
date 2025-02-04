@@ -1,8 +1,15 @@
 import { useState } from 'react';
 import parse from 'html-react-parser';
 import DOMPurify from 'dompurify';
-import { summarizeNews } from '@/api/ai';
+
+import { DEFAULT_IMAGES } from '@/constants/images';
+import { CATEGORIES } from '@/constants/categories';
+import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
+import { mapTitleToId } from '@/utils/mapInterests';
+import { parseUrls } from '@/utils/parseArticles';
+import { summarizeNews } from '@/api/ai';
+import { useSingleSelectInterest } from '@/hooks/useSelectInterests';
 
 import styled from 'styled-components';
 import { GiNothingToSay } from 'react-icons/gi';
@@ -12,32 +19,33 @@ import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Imgae from '@/components/common/Image';
 import Skeleton from '@/components/common/loader/Skeleton';
-
-interface Newsletter {
-	catergoryId: number;
-	title: string;
-	date: string;
-	mainImage: string;
-	contentAsHTML: string;
-	relatedNews: string;
-}
+import OpenGraphCard from '@/components/common/article/OpenGraphCard';
+import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 
 export default function Trial() {
-	const [newsletter, setNewsletter] = useState<Newsletter | null>(null);
+	const [newsletter, setNewsletter] = useState<IArticleDetail | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
+	const { selectedInterest = 'IT', handleSelectInterest } = useSingleSelectInterest();
+
+	const getStartDate = () => {
+		const now = new Date();
+		const hours = now.getHours();
+		// 현재 시간이 오전 8시 이전이면 어제 날짜, 이후면 오늘 날짜 사용
+		const targetDate = hours < 8 ? new Date(now.setDate(now.getDate() - 1)) : now;
+		return dateFormatter(targetDate.toISOString().split('T')[0]);
+	};
 
 	const handleGenerateNewsletter = async () => {
 		setIsLoading(true);
 		setNewsletter(null);
 		setErrorMessage(null);
 
-		const yesterday = dateFormatter(
-			new Date(new Date().setDate(new Date().getDate() - 1)).toISOString().split('T')[0]
-		);
+		const category = mapTitleToId([selectedInterest]);
+		const startDate = getStartDate();
 
 		try {
-			const result = await summarizeNews(1, yesterday);
+			const result = await summarizeNews(category[0], startDate);
 
 			if (!result || !result.newsletter) {
 				throw new Error('올바른 뉴스 요약 데이터가 없습니다.');
@@ -47,13 +55,14 @@ export default function Trial() {
 			const cleandTitle = cleanString(result.newsletter.title);
 			const cleanedHtml = cleanString(result.newsletter.contentAsHTML);
 
-			const newsletter: Newsletter = {
-				catergoryId: result.newsletter.categoryId,
-				date: yesterday,
+			const newsletter: IArticleDetail = {
+				...result.newsletter,
 				title: cleandTitle,
+				categoryId: result.newsletter.categoryId,
+				createdAt: startDate,
 				contentAsHTML: cleanedHtml,
-				mainImage: getMainUrl(result.newsletter.imageUrl),
-				relatedNews: getMainUrl(result.newsletter.usedNews),
+				imageUrl: getMainUrl(result.newsletter.imageUrl),
+				usedNews: result.newsletter.usedNews,
 			};
 
 			setNewsletter(newsletter);
@@ -90,7 +99,7 @@ export default function Trial() {
 		const urls = urlData.split(',').filter((url) => url.trim() !== '');
 
 		// 첫 번째 유효한 이미지 반환 (없으면 기본 이미지)
-		return urls.length > 0 ? urls[0] : 'https://via.placeholder.com/860';
+		return urls.length > 0 ? urls[0] : DEFAULT_IMAGES.MONO;
 	};
 
 	const sanitizeHtml = (html: string) => {
@@ -99,14 +108,32 @@ export default function Trial() {
 
 	return (
 		<StyledTrial>
-			{newsletter && (
-				<div className="header">
-					<Title size="large" weight="semiBold" color="primary">
-						{newsletter ? newsletter.title : 'AI 뉴스레터 체험하기'}
-					</Title>
-				</div>
-			)}
-			<StyledArticle>
+			<div className="header">
+				<Text size="medium">생성하고 싶은 AI 뉴스레터의 관심사를 선택해주세요.</Text>
+				<StyledCategoris>
+					<ul className="categories">
+						{CATEGORIES.slice(1).map((category, index) => (
+							<li key={index}>
+								<Button
+									type="button"
+									scheme="default"
+									onClick={() => {
+										handleSelectInterest(category);
+									}}
+									className={
+										selectedInterest.includes(category.name)
+											? 'category-btn active'
+											: 'category-btn'
+									}
+								>
+									{category.name}
+								</Button>
+							</li>
+						))}
+					</ul>
+				</StyledCategoris>
+			</div>
+			<StyledContent>
 				{isLoading ? (
 					<Skeleton />
 				) : errorMessage ? (
@@ -115,24 +142,36 @@ export default function Trial() {
 						<Text size="large">{errorMessage}</Text>
 					</div>
 				) : newsletter ? (
-					<>
-						<Text size="small" color="subText" className="date">
-							{dateFormatter(newsletter.date)}
-						</Text>
-						<div className="image-placeholder">
-							<Imgae src={newsletter.mainImage} alt={newsletter.title} />
+					<div className="content">
+						<div className="article-header">
+							<Title size="large" weight="semiBold" color="primary">
+								{newsletter ? newsletter.title : 'AI 뉴스레터 체험하기'}
+							</Title>
+							<Text size="small" color="subText" className="date">
+								{dateFormatter(newsletter.createdAt)}
+							</Text>
+							<hr />
 						</div>
-						<StyledContent>
-							<div className="body">{parse(sanitizeHtml(newsletter.contentAsHTML))}</div>
-						</StyledContent>
-					</>
+						<div className="newsletter">
+							<div className="image-placeholder">
+								<Imgae src={newsletter.imageUrl || DEFAULT_IMAGES.MONO} alt={newsletter.title} />
+							</div>
+							<StyledArticle>
+								<div className="body">{parse(sanitizeHtml(newsletter.contentAsHTML))}</div>
+							</StyledArticle>
+						</div>
+						<div className="action">
+							<OpenGraphCard urls={parseUrls(newsletter.usedNews)} />
+							<SubscribeInduce />
+						</div>
+					</div>
 				) : (
 					<div className="info">
 						<GiNothingToSay />
 						<Text size="large">아직 데이터가 없습니다.</Text>
 					</div>
 				)}
-			</StyledArticle>
+			</StyledContent>
 			<Button size="medium" scheme="primary" onClick={handleGenerateNewsletter} disabled={isLoading}>
 				{newsletter || errorMessage ? '다시 하기' : '생성하기'}
 			</Button>
@@ -142,41 +181,99 @@ export default function Trial() {
 
 const StyledTrial = styled.div`
 	width: 80vw;
-	height: 60vh;
-	min-width: ${({ theme }) => theme.layout.width.small};
+	height: 80vh;
 	max-width: ${({ theme }) => theme.layout.width.large};
+
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
 	align-items: center;
-	padding: 1rem;
 	gap: 1.5rem;
+	overflow: hidden;
 
 	.header {
 		width: 100%;
 		display: flex;
 		flex-direction: column;
+		gap: 1rem;
+		padding: 0rem 0.5rem;
 
-		h1 {
-			white-space: nowrap;
+		span {
+			padding: 0 0.25rem;
 		}
 	}
 `;
 
-const StyledArticle = styled.div`
+const StyledCategoris = styled.div`
+	width: 100%;
+	height: fit-content;
+	display: flex;
+	flex-direction: row;
+	gap: 0.875rem;
+
+	.bar {
+		border-left: 1px solid ${({ theme }) => theme.color.lightGrey};
+		height: auto;
+	}
+
+	.categories {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.category-btn {
+		width: 4rem;
+		color: ${({ theme }) => theme.color.primary};
+		border-radius: ${({ theme }) => theme.borderRadius.capsule};
+		border: 1px solid ${({ theme }) => theme.color.primary};
+	}
+
+	.active {
+		color: ${({ theme }) => theme.color.background};
+		background: ${({ theme }) => theme.color.primary};
+		border-radius: ${({ theme }) => theme.borderRadius.capsule};
+	}
+
+	.btn {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+	}
+`;
+
+const StyledContent = styled.div`
 	width: 100%;
 	height: 100%;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
-	align-items: flex-start;
-	padding: 1rem 2rem;
+	align-items: center;
+	padding: 1.5rem 2rem;
 	gap: 1rem;
 	overflow-y: scroll;
 
-	background-color: ${({ theme }) => theme.color.surface};
 	border: 1px solid ${({ theme }) => theme.color.border};
 	border-radius: ${({ theme }) => theme.borderRadius.soft};
+
+	.article-header {
+		.date {
+			width: 100%;
+			display: flex;
+			justify-content: flex-end;
+			text-decoration: underline;
+			margin: 1rem 0;
+		}
+
+		hr {
+			width: 100%;
+			margin-bottom: 2rem;
+			padding: 0;
+			border: none;
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		}
+	}
 
 	.info {
 		width: 100%;
@@ -193,11 +290,21 @@ const StyledArticle = styled.div`
 		}
 	}
 
-	.date {
+	.newsletter {
 		width: 100%;
+		height: fit-content;
 		display: flex;
-		justify-content: flex-end;
-		text-decoration: underline;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: flex-start;
+	}
+
+	.action {
+		width: 100%;
+		height: fit-content;
+		display: flex;
+		flex-direction: column;
+		padding: 2rem 0;
 	}
 
 	.image-placeholder {
@@ -214,15 +321,16 @@ const StyledArticle = styled.div`
 	}
 `;
 
-const StyledContent = styled.div`
+const StyledArticle = styled.div`
 	width: 100%;
-	height: 100%;
+	height: fit-content;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
 	align-items: center;
 	gap: 1rem;
 	line-height: 1.6;
+	white-space: no-wrap;
 
 	.body {
 		width: 100%;
@@ -230,29 +338,23 @@ const StyledContent = styled.div`
 		h1,
 		h2,
 		h3 {
+			margin-top: 1.5rem;
+			margin-bottom: 0.25rem;
+			font-size: ${({ theme }) => theme.fontSize.extraLarge};
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			margin-top: 1rem;
 		}
 
-		p {
-			width: 100%;
-			display: flex;
-			padding: 0;
-			margin-bottom: 0.75rem;
-			font-size: ${({ theme }) => theme.fontSize.medium};
+		p,
+		span {
+			line-height: 1.6;
+			margin-bottom: 0.5rem;
+			font-size: ${({ theme }) => theme.fontSize.small};
 		}
 
-		ul,
-		ol {
-			padding-left: 1.5rem;
-			margin-bottom: 1rem;
-		}
-
-		blockquote {
-			border-left: 4px solid ${({ theme }) => theme.color.primary};
-			padding-left: 1rem;
-			color: ${({ theme }) => theme.color.secondary};
-			font-style: italic;
+		strong {
+			color: ${({ theme }) => theme.color.primary};
+			background: ${({ theme }) => theme.color.tertiary};
+			padding: 0.15rem 0.25rem;
 		}
 	}
 `;
