@@ -5,6 +5,7 @@ import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSubscribe } from '@/hooks/useSubscribe';
+import { useSelectInterests } from '@/hooks/useSelectInterests';
 
 import { styled } from 'styled-components';
 import Title from '@/components/common/Title';
@@ -12,10 +13,9 @@ import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
 import InputCheck from '@/components/common/InputCheck';
 import CardSlider from '@/components/common/slider/CardSlider';
-import { BiCheck, BiPlus } from 'react-icons/bi';
-import useSelectInterests from '@/hooks/useSelectInterests';
 
 import ModalContents from '@/components/common/modal/ModalContent';
+import { BiCheck, BiPlus } from 'react-icons/bi';
 import { LuMailCheck } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
 import { useAuth } from '@/hooks/useAuth';
