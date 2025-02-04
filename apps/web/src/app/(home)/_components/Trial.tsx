@@ -151,15 +151,12 @@ const StyledTrial = styled.div`
 	align-items: center;
 	padding: 1rem;
 	gap: 1.5rem;
+	overflow: hidden;
 
 	.header {
 		width: 100%;
 		display: flex;
 		flex-direction: column;
-
-		h1 {
-			white-space: nowrap;
-		}
 	}
 `;
 
