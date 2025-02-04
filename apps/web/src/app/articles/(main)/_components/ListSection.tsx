@@ -145,9 +145,8 @@ export default function ListSection() {
 					</Button>
 				</div>
 			</div>
-
+			<hr />
 			<div className="newsletter-cards">
-				<hr />
 				{sortedArticles.map((article, index) => (
 					<Card
 						type="list"
@@ -189,6 +188,14 @@ const StyledListSection = styled.section`
 	justify-content: space-between;
 	align-items: flex-start;
 	gap: 1rem;
+
+	hr {
+		width: 100%;
+		border: none;
+		margin: 0;
+		padding: 0;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+	}
 
 	.header {
 		width: 100%;
