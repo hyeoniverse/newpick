@@ -20,3 +20,10 @@ export function parseArticles(trends: IArticleDetail[] = []): IArticleSummary[] 
 		views: trend.viewcount,
 	}));
 }
+
+export function parseUrls(urls: string, limit: number = 3): string[] {
+	return urls
+		.split(',')
+		.map((url) => url.trim())
+		.slice(0, limit);
+}
