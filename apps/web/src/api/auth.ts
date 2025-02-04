@@ -85,7 +85,7 @@ export const fetchUser = async (): Promise<User> => {
 		});
 
 		if (!response.ok) {
-			console.error(`사용자 정보를 불러오는데 실패했습니다. ${response.status}`);
+			throw new Error(`사용자 정보를 불러오는데 실패했습니다. status: ${response.status}`);
 		}
 
 		const userData = await response.json();

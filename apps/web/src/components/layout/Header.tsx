@@ -1,4 +1,4 @@
-'use clinet';
+'use client';
 
 import Link from 'next/link';
 import { useCallback, useEffect, useRef } from 'react';
@@ -80,7 +80,7 @@ export default function Header() {
 							type="auth"
 							className="auth"
 							toggleButton={
-								user?.profileImg ? (
+								user.profileImg ? (
 									<StyledUserCircle>
 										<Imgae src={user.profileImg} alt="profile" ratio="square" />
 									</StyledUserCircle>

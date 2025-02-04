@@ -18,17 +18,21 @@ import useSelectInterests from '@/hooks/useSelectInterests';
 import ModalContents from '@/components/common/modal/ModalContent';
 import { LuMailCheck } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
 	trends: IArticleSummary[];
 }
 
 const SubscribeSection = ({ trends }: Props) => {
+	const { user } = useAuth();
+
 	const {
-		status: isSubscribed,
+		status: isSubscribed = user?.isSubscribed,
 		isChanging: isChangingSubscription,
 		handleSubscribe: startSubscription,
 	} = useSubscribe();
+
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 	const { isChecked } = useInputCheck('home-agreement');
 	const { openModal, closeModal } = useModal();

@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { User } from '@/models/user.model';
@@ -15,12 +15,16 @@ export const useAuth = () => {
 	const { user, setUser, clearUser, isLoading } = useAuthStore();
 	const router = useRouter();
 	const pathname = usePathname();
+	const queryClient = useQueryClient();
 
 	// 로그인 핸들러 (Google OAuth)
 	const handleLogin = async () => {
 		try {
 			const user = await loginUser(setUser);
 			setUser(user);
+			setTimeout(() => {
+				refetchUser();
+			}, 300);
 		} catch (error) {
 			console.error('❌ 로그인 실패:', error);
 		}
@@ -32,6 +36,7 @@ export const useAuth = () => {
 			await logoutUser();
 			// Zustand 상태 초기화
 			clearUser();
+			queryClient.removeQueries({ queryKey: ['user'] });
 			// 보호된 경로 리디렉션
 			if (PROTECTED.includes(pathname)) {
 				router.push('/');
@@ -40,7 +45,7 @@ export const useAuth = () => {
 			console.error('❌ 로그아웃 오류:', error);
 			showToast('로그아웃 중 오류가 발생했습니다.', 'error');
 		}
-	}, [pathname, router, clearUser, showToast]);
+	}, [pathname, router, clearUser, showToast, queryClient]);
 
 	// `useQuery`를 활용하여 자동으로 사용자 정보 가져오기
 	const {
@@ -61,10 +66,11 @@ export const useAuth = () => {
 	useEffect(() => {
 		if (userStatus === 'success' && userData) {
 			setUser(userData);
+			refetchUser();
 		} else if (userStatus === 'error' || userError) {
 			clearUser();
 		}
-	}, [userStatus, userData, setUser, userError, clearUser]);
+	}, [userStatus, userData, setUser, userError, clearUser, refetchUser]);
 
 	return {
 		user,

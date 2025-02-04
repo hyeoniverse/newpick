@@ -22,6 +22,7 @@ export default async function RootLayout({
 	children: React.ReactNode;
 }>) {
 	const user = await fetchUserWithSubscription();
+	console.log('✅ user:', user);
 
 	return (
 		<html lang="ko">

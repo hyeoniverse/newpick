@@ -16,7 +16,6 @@ import ModalContent from '@/components/common/modal/ModalContent';
 import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
 import { mapIdToTitle } from '@/utils/mapInterests';
-import { useEffect } from 'react';
 
 export default function StartSubscription() {
 	const { user } = useAuth();
@@ -26,14 +25,10 @@ export default function StartSubscription() {
 		handleSubscribe: startSubscription,
 		handleCancel: cancelSubscription,
 	} = useSubscribe();
-	const initialInterests = mapIdToTitle(user!.interests);
+	const initialInterests = mapIdToTitle(user?.interests ?? []);
 	const { selectedInterests = initialInterests || [], handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
 	const { openModal, closeModal } = useModal();
-
-	useEffect(() => {
-		console.log('user', user);
-	}, [user]);
 
 	const handleSubscribe = async () => {
 		const isSuccess = await startSubscription({ interests: selectedInterests, isChecked: isChecked });

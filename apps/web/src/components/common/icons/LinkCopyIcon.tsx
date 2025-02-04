@@ -20,7 +20,7 @@ function LinkCopyIcon({ className, id }: Props) {
 	};
 
 	const handleCopyClick = () => {
-		const url = `${process.env.NEXT_PUBLIC_FRONT_URL}/articles/detail/${id}`;
+		const url = `https://newpick.site/articles/detail/${id}`;
 		console.log(url);
 		copyToClipboard(url);
 	};
