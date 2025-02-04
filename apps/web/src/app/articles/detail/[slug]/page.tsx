@@ -1,7 +1,8 @@
 import Article from '@/app/articles/detail/[slug]/_components/Article';
-import { stripCodeFence } from '@/utils/stripCodeFence';
-import { getArticleContent, getArticleList, getPopularArticles } from '@/hooks/useArticle';
 import { increaseViewCount } from '@/api/view';
+import { getArticleContent, getArticleList, getPopularArticles } from '@/hooks/useArticle';
+import { stripCodeFence } from '@/utils/stripCodeFence';
+import { parseUrls } from '@/utils/parseArticles';
 
 type PageParams = Promise<{ slug: string }>;
 
@@ -16,10 +17,7 @@ export default async function NewsletterDetailPage({ params }: { params: PagePar
 	const latestArticles = await getArticleList(9);
 
 	const viewCount = await increaseViewCount(articleContent.id);
-	const usedNewsList = articleContent.usedNews
-		.split(',')
-		.map((url) => url.trim())
-		.slice(0, 3);
+	const usedNewsList = parseUrls(articleContent.usedNews);
 
 	return (
 		<>
