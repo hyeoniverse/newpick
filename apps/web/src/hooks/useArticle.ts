@@ -20,9 +20,9 @@ export const getArticleContent = async (slug: string): Promise<IArticleInfo> => 
 export const getPopularArticles = async (
 	limit: number = 5,
 	offset: number = 0,
-	popular: boolean = true
+	trend: boolean = true
 ): Promise<IArticleDetail[]> => {
-	const { data }: { data: IArticleDetail[] } = await fetchPopularArticle(limit, offset, popular);
+	const { data }: { data: IArticleDetail[] } = await fetchPopularArticle(limit, offset, trend);
 	return data;
 };
 

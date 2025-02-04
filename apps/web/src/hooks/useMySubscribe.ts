@@ -31,7 +31,8 @@ export const userSubscribeArticles = async (categoryIds: number[]) => {
       new Date(current.createdAt) > new Date(latest.createdAt) ? current : latest
     );
   })
-  .filter((article): article is IArticleDetail => article !== null);
+  .filter((article): article is IArticleDetail => article !== null)
+  .sort((a, b) => a.categoryId - b.categoryId);
 
   return latestArticlesByCategory;
 }
