@@ -71,6 +71,7 @@ const SubscribeSection = ({ trends }: Props) => {
 
 					return {
 						id: category.id ?? 0,
+						url: `/articles` + (category.id !== 0 ? `?categoryId=${category.id}` : ''),
 						image,
 						header: category.name,
 						main: {
