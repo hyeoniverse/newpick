@@ -1,9 +1,9 @@
 import { create } from 'zustand';
-import { Newsletter as INewsletter } from '@/models/newsletter.model';
+import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { getNewsletters } from '@/utils/generateRandomData';
 
 interface NewsletterState {
-	newsletters: INewsletter[];
+	newsletters: IArticleSummary[];
 	initializeNewsletters: () => void; // 초기화를 위한 함수 추가
 }
 
