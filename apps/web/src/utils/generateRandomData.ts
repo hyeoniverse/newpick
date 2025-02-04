@@ -1,6 +1,6 @@
 import { cache } from 'react';
 import { faker } from '@faker-js/faker';
-import { Newsletter as INewsletter } from '@/models/newsletter.model';
+import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { CATEGORIES } from '@/constants/categories';
 
 export const getRandomText = (min: number, max: number): string => {
@@ -29,7 +29,7 @@ export const getRandomImages = (count: number, width: number = 640, height: numb
 	return Array.from({ length: count }, () => getRandomImage(width, height));
 };
 
-export const getNewsletters = (): INewsletter[] => {
+export const getNewsletters = (): IArticleSummary[] => {
 	const categories = CATEGORIES.filter((category) => category.name !== '전체').map((category) => category.name);
 
 	return Array.from({ length: 6 }, (_, dayIndex) => {
@@ -39,15 +39,13 @@ export const getNewsletters = (): INewsletter[] => {
 
 		return categories.map((category, categoryIndex) => ({
 			id: dayIndex * categories.length + categoryIndex + 1,
-			category,
-			date: dateString,
+			categoryName: category,
+			image: getRandomImage(),
 			title: getRandomText(10, 25),
 			summary: getRandomText(100, 150),
-			image: getRandomImage(),
-			link: `/news/${dayIndex * categories.length + categoryIndex + 1}`,
+			date: dateString,
+			bookmarks: Math.floor(Math.random() * 500),
 			views: Math.floor(Math.random() * 1000),
-			likes: Math.floor(Math.random() * 500),
-			comments: Math.floor(Math.random() * 300),
 		}));
 	}).flat();
 };
