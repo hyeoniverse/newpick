@@ -15,15 +15,19 @@ const useSelectInterests = () => {
 		}
 
 		if (category.name === '전체') {
+			// 전체 카테고리 선택 시
 			if (selectedInterests.includes('전체')) {
-				setSelectedInterests([]);
+				// 전체 카테고리가 이미 선택되어 있을 경우
+				setSelectedInterests([]); // 전체 카테고리 선택 해제
 			} else {
-				setSelectedInterests(CATEGORIES.map((cat) => cat.name));
+				// 전체 카테고리가 선택되어 있지 않을 경우
+				setSelectedInterests(CATEGORIES.map((cat) => cat.name)); // 전체 카테고리 선택
 			}
 		} else {
-			const updatedCategories = selectedInterests.includes(category.name)
-				? selectedInterests.filter((cat) => cat !== category.name)
-				: [...selectedInterests, category.name];
+			// 전체 카테고리가 아닌 카테고리 선택 시
+			const updatedCategories = selectedInterests.includes(category.name) // 선택된 카테고리가 이미 선택되어 있을 경우
+				? selectedInterests.filter((cat) => cat !== category.name) // 선택된 카테고리 선택 해제
+				: [...selectedInterests, category.name]; // 선택된 카테고리 선택
 
 			if (updatedCategories.includes('전체') && !updatedCategories.includes(category.name)) {
 				setSelectedInterests(updatedCategories.filter((cat) => cat !== '전체'));
@@ -46,6 +50,12 @@ const useSelectInterests = () => {
 			setSelectedInterests(interests);
 		}
 	}, [user]);
+
+	useEffect(() => {
+		if (selectedInterests.length === CATEGORIES.length - 1) {
+			setSelectedInterests(CATEGORIES.map((cat) => cat.name));
+		}
+	}, [selectedInterests]);
 
 	return { selectedInterests, handleSelectInterests };
 };

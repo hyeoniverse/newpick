@@ -35,8 +35,7 @@ export const updateInterests = async (interests: string[]): Promise<string[]> =>
 			throw new Error(`최소 한 개 이상의 관심사를 선택해야 합니다. ${StatusCodes.BAD_REQUEST}`);
 		}
 
-		const interestsId = mapTitleToId(interests);
-
+		const interestsId = mapTitleToId(interests).filter((id) => id !== 0);
 		const response = await fetch(API_ENDPOINTS.SUBSCRIBERS.INTERESTS(), {
 			method: 'PUT',
 			credentials: 'include',
@@ -51,7 +50,7 @@ export const updateInterests = async (interests: string[]): Promise<string[]> =>
 		}
 
 		const result = await response.json();
-		return mapIdToTitle(result?.interests??[]); //변경 포인트 / 구독해지페이지 로그아웃 무한 루프 방지 (테스트용)
+		return mapIdToTitle(result?.interests ?? []); //변경 포인트 / 구독해지페이지 로그아웃 무한 루프 방지 (테스트용)
 	} catch (error) {
 		console.log('❌ 관심사 업데이트 실패:', error);
 		throw error;

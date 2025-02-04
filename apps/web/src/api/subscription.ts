@@ -31,8 +31,7 @@ export const fetchSubscription = async (): Promise<boolean | null> => {
  */
 export const startSubscription = async (interests: string[]): Promise<void> => {
 	try {
-		const interestsId = mapTitleToId(interests);
-
+		const interestsId = mapTitleToId(interests).filter((id) => id !== 0);
 		const response = await fetch(API_ENDPOINTS.SUBSCRIBERS.START(), {
 			method: 'POST',
 			credentials: 'include',
