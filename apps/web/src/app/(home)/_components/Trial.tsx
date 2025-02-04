@@ -1,5 +1,4 @@
 import { useState } from 'react';
-// import Image from 'next/image';
 import parse from 'html-react-parser';
 import DOMPurify from 'dompurify';
 import { summarizeNews } from '@/api/ai';
