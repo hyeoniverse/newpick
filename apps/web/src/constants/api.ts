@@ -43,6 +43,7 @@ export const API_ENDPOINTS = {
 		TRENDS: (category?: number) => `${API_URL}/newsletters/trends` + (category ? `?categoryId=${category}` : ''),
 		POPULAR: (limit: number, offset: number, popular: boolean) =>
 			`${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`,
+		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,
 		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
 	},
 	FEEDBACK: {
