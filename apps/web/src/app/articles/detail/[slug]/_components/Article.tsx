@@ -63,7 +63,7 @@ function Article({ viewCount, article, summary, content, popular, latest, newsId
 							{dateFormatter(article.createdAt)}
 						</Text>
 						<Text size="small" color="subText">
-							조회수 | {viewCount}
+							|&nbsp;&nbsp;조회수 {viewCount}
 						</Text>
 					</div>
 					<div className="icons">
@@ -183,7 +183,7 @@ const TitleSectionStyled = styled.div`
 			flex-direction: row;
 			justify-content: center;
 			align-items: center;
-			gap: 1rem;
+			gap: 0.5rem;
 		}
 	}
 `;

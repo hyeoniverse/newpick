@@ -46,6 +46,7 @@ const TrendSection = ({ trends = [] }: Props) => {
 									footer: (
 										<>
 											<Text color="subText">{trend.date}</Text>
+											<Text color="subText">|&nbsp;&nbsp;조회수 {trend.views}</Text>
 											<div className="right">
 												<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
 											</div>

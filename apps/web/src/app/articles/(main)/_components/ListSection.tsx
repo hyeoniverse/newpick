@@ -164,7 +164,7 @@ export default function ListSection() {
 							footer: (
 								<>
 									<Text color="subText">{article.date}</Text>
-
+									<Text color="subText">|&nbsp;&nbsp;조회수 {article.views}</Text>
 									<div className="right">
 										<BookmarkIcon newsId={article.id} newsletterId={article.id} />
 									</div>
