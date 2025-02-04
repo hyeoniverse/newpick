@@ -37,13 +37,15 @@ const useSelectInterests = () => {
 
 	// 사용자 관심사 반영 (초기 로드 및 관심사 업데이트 시)
 	useEffect(() => {
-		if (user?.interests?.length!==0) { // 구독해지페이지 로그아웃 오류 및 무한루프 방지 (테스트)
-			const interests = mapIdToTitle(user?.interests??[]);
-			setSelectedInterests(interests);
-		} else {
+		if (!user || user === null) {
+			// 사용자 정보가 없을 경우
 			setSelectedInterests([]);
+		} else if (user.interests) {
+			// 사용자 정보가 있을 경우
+			const interests = mapIdToTitle(user.interests ?? []);
+			setSelectedInterests(interests);
 		}
-	}, [user?.interests]);
+	}, [user]);
 
 	return { selectedInterests, handleSelectInterests };
 };

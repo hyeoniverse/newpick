@@ -11,7 +11,7 @@ export default async function NewsletterDetailPage({ params }: { params: PagePar
 	const articleContent = articleInfo.newsletter;
 	const articleContentHTML = stripCodeFence(articleContent.contentAsHTML, 'html');
 
-	const popularArticles = await getPopularArticles(5,  true);
+	const popularArticles = await getPopularArticles(5, 0, true);
 	const latestArticles = await getArticleList(9);
 
 	return (

@@ -35,6 +35,19 @@ export const filterTodayTrends = (trends: IArticleSummary[]): IArticleSummary[] 
 	});
 };
 
+export const filterLatestByCategory = (articles: IArticleSummary[]): IArticleSummary[] => {
+	const categoryMap = new Map<string, IArticleSummary>();
+
+	articles.forEach((article) => {
+		const existingArticle = categoryMap.get(article.categoryName);
+		if (!existingArticle || new Date(article.date) > new Date(existingArticle.date)) {
+			categoryMap.set(article.categoryName, article); // 최신 기사로 갱신
+		}
+	});
+
+	return Array.from(categoryMap.values()); // 최신 기사만 리스트로 반환
+};
+
 export const sortNewsletters = (
 	newsletters: IArticleSummary[],
 	sortBy: 'latest' | 'bookmarks' | 'views'

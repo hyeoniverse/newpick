@@ -1,4 +1,6 @@
 export const BACK_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'; // 백엔드 서버
+export const FRONT_URL = process.env.NEXT_PUBLIC_FRONT_URL || 'http://localhost:3000'; // 프론트 서버
+
 // API 요청이 SSR(서버)인지 CSR(클라이언트)인지 판단하여 적절한 API URL 반환
 export const getApiUrl = () => (typeof window === 'undefined' ? BACK_URL : '/api');
 // export const API_URL = getApiUrl();
@@ -36,10 +38,13 @@ export const API_ENDPOINTS = {
 			popular
 				? `${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`
 				: `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
-		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
+		CATEGORY: (category: number, limit: number, offset: number) =>
+			`${API_URL}/newsletters/category/${category}?limit=${limit}&offset=${offset}`,
 		TRENDS: (category?: number) => `${API_URL}/newsletters/trends` + (category ? `?categoryId=${category}` : ''),
-    POPULAR: (limit: number, offset: number, popular: boolean) => `${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`,
-  },
+		POPULAR: (limit: number, offset: number, popular: boolean) =>
+			`${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`,
+		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
+	},
 	FEEDBACK: {
 		BASE: () => `${API_URL}/feedback`,
 		PAGINATED: (newsletterId: number, page: number, limit: number) =>
