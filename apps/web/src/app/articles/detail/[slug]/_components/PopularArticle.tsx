@@ -1,11 +1,9 @@
 import styled from 'styled-components';
 import Link from 'next/link';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
-import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
 import { usePopularArticlesQuery } from '@/hooks/useArticle';
-import Spinner from '@/components/common/loader/Spinner';
 
 interface Props {
 	flex?: number;
