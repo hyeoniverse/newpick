@@ -57,7 +57,7 @@ export const useAuth = () => {
 	} = useQuery<User | null>({
 		queryKey: ['user'],
 		queryFn: fetchUser,
-		enabled: true,
+		enabled: !!user,
 		staleTime: AUTH.STALE_TIME,
 		retry: 1,
 	});

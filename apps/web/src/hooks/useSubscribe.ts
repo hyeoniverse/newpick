@@ -15,8 +15,6 @@ const handleError = (error: Error, message: string, showToast: (msg: string, typ
 
 // 구독 상태 조회 훅
 export const useSubscribeStatus = () => {
-	const { user } = useAuth();
-
 	const {
 		data: subscriptionStatus,
 		isLoading: isStatusLoading,
@@ -27,7 +25,7 @@ export const useSubscribeStatus = () => {
 			const status = await fetchSubscription();
 			return status;
 		},
-		enabled: !!user?.id,
+		enabled: false,
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
 	});
@@ -94,7 +92,7 @@ export const useSubscribeInterests = () => {
 	} = useQuery({
 		queryKey: ['subscriptionInterests'],
 		queryFn: () => fetchInterests(),
-		enabled: true,
+		enabled: false,
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
 	});

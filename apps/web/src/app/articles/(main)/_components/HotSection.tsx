@@ -9,20 +9,24 @@ import Text from '@/components/common/Text';
 import CardSlider from '@/components/common/slider/CardSlider';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { mapIdToTitle } from '@/utils/mapInterests';
+import { filterByCategories } from '@/utils/queryNewsletters';
 
 interface Props {
 	trends?: IArticleSummary[];
 }
 
-export default function HotSection({ trends = [] }: Props) {
+export default function HotSection({ trends: initiallData = [] }: Props) {
 	const searchParams = useSearchParams();
 	const categoryId = searchParams.get('categoryId'); // Query Parameter 가져오기
 	const categoryName = mapIdToTitle([Number(categoryId)])[0]; // Query Parameter를 카테고리 이름으로 변환
+	let filteredTrends = [...initiallData];
 
-	console.log('searchParams: ', searchParams);
+	if (categoryName !== '전체') {
+		filteredTrends = filterByCategories(initiallData, [categoryName]);
+	}
 
 	return (
-		<StyledHotSection>
+		<StyledHotSection $isAll={categoryName === '전체'}>
 			<div className="title">
 				<Title size="extraSmall" color="primary" weight="bold" className="tag">
 					{searchParams ? 'TODAY' : 'HOT'}
@@ -34,8 +38,9 @@ export default function HotSection({ trends = [] }: Props) {
 			<hr />
 
 			<CardSlider
+				className="card-slider"
 				type="main"
-				data={trends.map((trend) => ({
+				data={filteredTrends.map((trend) => ({
 					id: trend.id,
 					image: trend.image,
 					header: trend.categoryName,
@@ -58,7 +63,11 @@ export default function HotSection({ trends = [] }: Props) {
 	);
 }
 
-const StyledHotSection = styled.section`
+interface StyledProps {
+	$isAll?: boolean;
+}
+
+const StyledHotSection = styled.section<StyledProps>`
 	width: 100%;
 	height: fit-content;
 	display: flex;
@@ -67,6 +76,13 @@ const StyledHotSection = styled.section`
 	align-items: flex-start;
 	gap: 1rem;
 	padding: 3rem 0;
+
+	hr {
+		width: 100%;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		margin: 0.25rem 0;
+		padding: 0;
+	}
 
 	.title {
 		display: flex;
@@ -83,11 +99,10 @@ const StyledHotSection = styled.section`
 		}
 	}
 
-	hr {
-		width: 100%;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-		margin: 0.25rem 0;
-		padding: 0;
+	.card-slider {
+		.controls {
+			display: ${({ $isAll }) => ($isAll ? 'flex' : 'none')};
+		}
 	}
 
 	@media ${({ theme }) => theme.mediaQuery.mobile} {

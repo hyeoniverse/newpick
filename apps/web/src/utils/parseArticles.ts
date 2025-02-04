@@ -8,7 +8,7 @@ import { stripCodeFence } from '@/utils/stripCodeFence';
 /**
  *  `ArticleDetail[]` → `ArticleSummary[]` 변환 함수
  */
-export function parseArticles(trends: IArticleDetail[]): IArticleSummary[] {
+export function parseArticles(trends: IArticleDetail[] = []): IArticleSummary[] {
 	return trends.map((trend) => ({
 		id: trend.id,
 		categoryName: mapIdToTitle([trend.categoryId])[0],

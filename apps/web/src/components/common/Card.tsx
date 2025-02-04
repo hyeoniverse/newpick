@@ -20,7 +20,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data 
 			<div className="card-body">
 				{type === 'main' && (
 					<>
-						<Link href={url || '/not-found'}>
+						<Link href={url || ''}>
 							<div className="card-header">
 								<Text size="medium" color="primary" weight="semiBold">
 									{header}
@@ -174,6 +174,7 @@ const StyledCard = styled.div<StyledProps>`
 			display: flex;
 			flex-direction: column;
 			justify-content: center;
+			margin-bottom: 0.5rem;
 
 			.rounded-icon-button {
 				&:hover {

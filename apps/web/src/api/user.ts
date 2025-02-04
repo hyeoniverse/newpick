@@ -9,11 +9,13 @@ export const fetchUserWithSubscription = async (retry = false, overrideAccessTok
 		const accessToken = overrideAccessToken || (await cookieStore).get('access_token')?.value;
 		const refreshToken = (await cookieStore).get('refresh_token')?.value;
 
+		console.log('🍪 accessToken:', accessToken);
 		if (!accessToken || !refreshToken) {
 			console.log('⚠️ 액세스 토큰 또는 리프레시 토큰이 없습니다.');
 			return null;
 		}
 
+		console.log('🔍 사용자 정보를 불러옵니다...');
 		// 사용자 프로필 가져오기
 		const userResponse = await fetch(API_ENDPOINTS.MY.PROFILE(), {
 			method: 'GET',
@@ -43,6 +45,7 @@ export const fetchUserWithSubscription = async (retry = false, overrideAccessTok
 			return null;
 		}
 
+		console.log('✅ user.ts: 사용자 정보 불러오기 성공');
 		const user = await userResponse.json();
 
 		// 구독 상태 가져오기 (이 요청이 실패해도 `user` 정보는 유지)
