@@ -22,6 +22,7 @@ import Title from '@/components/common/Title';
 import { useArticleContentQuery } from '@/hooks/useArticle';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 import { DEFAULT_IMAGES } from '@/constants/images';
+import { parseUrls } from '@/utils/parseArticles';
 
 interface Props {
 	viewCount: number;
@@ -45,6 +46,7 @@ function Article({ viewCount }: Props) {
 	}
 	const newsletterHTML = stripCodeFence(articleContent.newsletter.contentAsHTML, 'html');
 	const newsletterContent = articleContent.newsletter;
+	const relatedNews = parseUrls(articleContent.newsletter.usedNews);
 
 	return (
 		<>
@@ -82,6 +84,7 @@ function Article({ viewCount }: Props) {
 						className="content"
 						content={newsletterHTML}
 						articleImage={newsletterContent.imageUrl ?? `${DEFAULT_IMAGES.MONO}`}
+						related={relatedNews}
 					/>
 					<PopularArticle className="popular" />
 				</div>
