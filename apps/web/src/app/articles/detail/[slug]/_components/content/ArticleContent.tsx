@@ -9,8 +9,8 @@ import SubscribeInduce from '@/app/articles/detail/[slug]/_components/content/Su
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { getRelatedNews } from '@/hooks/useArticle';
-import Title from '@/components/common/Title';
 import { dateFormatter } from '@/utils/formatter';
+import { FaLink } from 'react-icons/fa';
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
 interface NewsletterContentProps {
@@ -47,11 +47,15 @@ function ArticleContent({ content, flex, className, articleImage, related = [] }
 				<div dangerouslySetInnerHTML={{ __html: content }} />
 				<div className="content-bottom-margin" />
 			</NewsletterContentStyled>
+			<hr />
 			<Suspense fallback={<Skeleton />}>
 				<div className="related-news">
-					<Title size="small" weight="semiBold" className="header">
-						관련 뉴스
-					</Title>
+					<div className="header">
+						<FaLink />
+						<Text size="medium" weight="semiBold">
+							관련 뉴스
+						</Text>
+					</div>
 					{relatedNewsData.map((news) => (
 						<LazyCard
 							className="card"
@@ -89,12 +93,32 @@ const ContainerStyled = styled.div<Omit<NewsletterContentProps, 'content'>>`
 	height: 100%;
 	max-width: 100%;
 
+	hr {
+		width: 100%;
+		margin: 0;
+		border: none;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+	}
+
 	.related-news {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 1rem;
 		margin-top: 2rem;
 		margin-bottom: 4rem;
+
+		.header {
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			margin: 0;
+			padding: 0.5rem 1rem;
+			gap: 0.5rem;
+
+			border-radius: ${({ theme }) => theme.borderRadius.capsule};
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
+		}
 
 		.card {
 			background: ${({ theme }) => theme.color.surface};
@@ -119,20 +143,13 @@ const ContainerStyled = styled.div<Omit<NewsletterContentProps, 'content'>>`
 					padding: 0;
 					margin: 0;
 					gap: 1rem;
+					border: none;
 
 					.left {
 						padding: 0;
 						margin: 0;
 					}
 				}
-			}
-
-			.header {
-				margin: 0;
-				padding: 0.25rem 1rem;
-				border-radius: ${({ theme }) => theme.borderRadius.capsule};
-				background: ${({ theme }) => theme.color.tertiary};
-				color: ${({ theme }) => theme.color.primary};
 			}
 		}
 	}
