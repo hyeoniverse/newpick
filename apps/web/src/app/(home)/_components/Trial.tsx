@@ -248,8 +248,8 @@ const StyledContent = styled.div`
 	height: 100%;
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
-	align-items: flex-start;
+	justify-content: flex-start;
+	align-items: center;
 	padding: 1.5rem 2rem;
 	gap: 1rem;
 	overflow-y: scroll;
