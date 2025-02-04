@@ -272,6 +272,10 @@ const mainCardStyles = css`
 		justify-content: space-between;
 		gap: 1rem;
 
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			flex-wrap: wrap;
+		}
+
 		.content {
 			display: flex;
 			flex-direction: column;
@@ -283,6 +287,13 @@ const mainCardStyles = css`
 				line-height: 1.5;
 				-webkit-line-clamp: 5;
 			}
+		}
+
+		.card-footer {
+			white-space: nowrap;
+			flex-wrap: wrap;
+			justify-content: flex-start;
+			align-items: center;
 		}
 
 		.image-placeholder {
@@ -341,6 +352,14 @@ const listCardStyles = css`
 			flex-direction: row;
 			gap: 1rem;
 
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				flex-wrap: wrap;
+
+				.left {
+					min-width: 100%;
+				}
+			}
+
 			.left {
 				max-width: 70%;
 				display: flex;
@@ -351,7 +370,7 @@ const listCardStyles = css`
 
 			.image-placeholder {
 				height: fit-content;
-				max-width: 30%;
+				min-width: 30%;
 
 				@media ${({ theme }) => theme.mediaQuery.tablet} {
 					max-width: 100%;
