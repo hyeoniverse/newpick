@@ -1,22 +1,26 @@
 import styled from 'styled-components';
 import Link from 'next/link';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
-import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
+import { usePopularArticlesQuery } from '@/hooks/useArticle';
 
 interface Props {
-	popular: IArticleDetail[];
 	flex?: number;
 	className?: string;
 }
 
-function PopularArticle({ popular, flex, className }: Props) {
+function PopularArticle({ flex, className }: Props) {
+
+	const {
+		data: popularArticles,
+	} = usePopularArticlesQuery();
+
 	return (
 		<PopularNewsletterStyled flex={flex} className={className}>
 			<h3 className="section-title">지금 인기 아티클 TOP 5</h3>
 			<ul className="popular-list">
-				{popular.map((article, index) => (
+				{popularArticles && popularArticles.map((article, index) => (
 					<li key={index}>
 						<p className="index">{index + 1}</p>
 						<Link href={`/articles/detail/${article.id}`} className="text-section">

@@ -8,14 +8,18 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
-import { ArticleDetail as IArticleDetail } from '@/models/article.model';
+import { useArticleListQuery } from '@/hooks/useArticle';
 
 interface Props {
-	latest: IArticleDetail[];
 	className?: string;
 }
 
-function LatestArticle({ latest, className }: Props) {
+function LatestArticle({ className }: Props) {
+
+	const {
+		data: articleList,
+	} = useArticleListQuery();
+
 	return (
 		<LatestArticleStyled className={className}>
 			<div className="section-title">
@@ -48,7 +52,7 @@ function LatestArticle({ latest, className }: Props) {
 						<div className="swiper-button-prev" />
 						<div className="swiper-button-next" />
 					</div>
-					{latest.map((article, index) => (
+					{articleList && articleList.map((article, index) => (
 						<SwiperSlide key={index} className="swiper-slide">
 							<Link href={`/articles/detail/${article.id}`}>
 								<p className="title">{article.title}</p>
