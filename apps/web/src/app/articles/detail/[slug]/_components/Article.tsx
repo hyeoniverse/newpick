@@ -1,9 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 
@@ -20,22 +19,21 @@ import MoveButton from '@/components/common/MoveButton';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import Title from '@/components/common/Title';
+import { useArticleContentQuery } from '@/hooks/useArticle';
+import { stripCodeFence } from '@/utils/stripCodeFence';
 
 interface Props {
 	viewCount: number;
-	article: IArticleDetail;
-	summary: string;
-	content: string;
-	popular: IArticleDetail[];
-	latest: IArticleDetail[];
-	newsId: number;
-	prev: IArticleDetail | null;
-	next: IArticleDetail | null;
 }
 
-function Article({ viewCount, article, summary, content, popular, latest, newsId, prev, next }: Props) {
+function Article({ viewCount}: Props) {
 	const router = useRouter();
+	const { slug } = useParams() as { slug: string };
 	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
+
+	const {
+		data: articleContent,
+	} = useArticleContentQuery(slug);
 
 	useEffect(() => {
 		if (Object.keys(categories).length === 0) {
@@ -43,45 +41,51 @@ function Article({ viewCount, article, summary, content, popular, latest, newsId
 		}
 	}, [categories, fetchCategories]);
 
+	if (!articleContent) {
+		return null;
+	}
+	const newsletterHTML = stripCodeFence(articleContent.newsletter.contentAsHTML, 'html');
+	const newsletterContent = articleContent.newsletter;
+
 	return (
 		<>
 			<TitleSectionStyled>
 				<MoveButton
-					onClick={() => router.push(`/articles?categoryId=${article.categoryId}`)}
+					onClick={() => router.push(`/articles?categoryId=${newsletterContent.categoryId}`)}
 					text="목록으로"
 					frontIcon={<IoArrowBack />}
 				/>
 				<div className="title-section">
-					<Link href={`/articles?categoryId=${article.categoryId}`} className="category">
-						{getCategoryName(article.categoryId)}
+					<Link href={`/articles?categoryId=${newsletterContent.categoryId}`} className="category">
+						{getCategoryName(newsletterContent.categoryId)}
 					</Link>
 					<Title size="large" weight="semiBold" className="title">
-						{article.title}
+						{newsletterContent.title}
 					</Title>
 					<div className="info">
 						<Text size="small" color="subText">
-							{dateFormatter(article.createdAt)}
+							{dateFormatter(newsletterContent.createdAt)}
 						</Text>
 						<Text size="small" color="subText">
 							|&nbsp;&nbsp;조회수 {viewCount}
 						</Text>
 					</div>
 					<div className="icons">
-						<BookmarkIcon newsId={article.id} newsletterId={article.id} />
-						<LinkCopyIcon id={article.id} />
+						<BookmarkIcon newsId={newsletterContent.id} newsletterId={newsletterContent.id} />
+						<LinkCopyIcon id={newsletterContent.id} />
 					</div>
 				</div>
 			</TitleSectionStyled>
 			<ArticleStyled>
-				<SummaryTextBox>{summary}</SummaryTextBox>
+				<SummaryTextBox>{newsletterContent.content}</SummaryTextBox>
 				<div className="content-section">
-					<ArticleContent className="content" content={content} articleImage={article.imageUrl ?? ''} />
-					<PopularArticle className="popular" popular={popular} />
+					<ArticleContent className="content" content={newsletterHTML} articleImage={newsletterContent.imageUrl ?? ''} />
+					<PopularArticle className="popular" />
 				</div>
-				<PrevNextArticle className="prev-next" prev={prev} next={next} />
+				<PrevNextArticle className="prev-next" prev={articleContent.previousNewsletter} next={articleContent.nextNewsletter} />
 				{/*<CommentsSection className="comments-section"/>*/}
-				<LatestArticle className="latest" latest={latest} />
-				<MobileLikeLinkButton className="icons" newsId={newsId} />
+				<LatestArticle className="latest" />
+				<MobileLikeLinkButton className="icons" newsId={newsletterContent.id} />
 			</ArticleStyled>
 		</>
 	);
