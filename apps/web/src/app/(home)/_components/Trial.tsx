@@ -140,13 +140,14 @@ export default function Trial() {
 const StyledTrial = styled.div`
 	width: 80vw;
 	height: 80vh;
-	max-width: ${({ theme }) => theme.layout.width.large};
+	max-width: calc(${({ theme }) => theme.layout.width.large} - 2rem);
 
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-start;
 	align-items: center;
 	gap: 1.5rem;
+	padding: 1rem 1.5rem;
 	overflow: hidden;
 
 	.header {
@@ -169,9 +170,9 @@ const StyledContent = styled.div`
 	flex-direction: column;
 	justify-content: flex-start;
 	align-items: center;
-	padding: 1.5rem 2rem;
 	gap: 1rem;
 	overflow-y: scroll;
+	padding: 2rem;
 
 	border: 1px solid ${({ theme }) => theme.color.border};
 	border-radius: ${({ theme }) => theme.borderRadius.soft};
@@ -241,7 +242,7 @@ const StyledContent = styled.div`
 		display: flex;
 		justify-content: center;
 		align-items: center;
-		margin-bottom: 1rem;
+		margin-bottom: 2rem;
 
 		img {
 			width: 100%;
