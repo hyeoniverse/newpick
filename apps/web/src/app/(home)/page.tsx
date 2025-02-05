@@ -1,13 +1,12 @@
 import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
-import { fetchTrendList } from '@/api/article';
+import { fetchArticleList, fetchTrendList } from '@/api/article';
 
 import styles from '@/app/(home)/home.module.css';
-import Title from '@/components/common/Title';
-import FullWidthPanel from '@/components/common/FullWidthPanel';
 import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
 import { parseArticles } from '@/utils/parseArticles';
+import TitleSection from '@/app/(home)/_components/TitleSection';
 
 export default async function HomePage() {
 	let parsedTrends: IArticleSummary[] = [];
@@ -18,18 +17,22 @@ export default async function HomePage() {
 		console.error(error);
 	}
 
+	let fetchedArticles: IArticleDetail[] = [];
+	try {
+		const { data } = await fetchArticleList(40);
+		fetchedArticles = data;
+	} catch (error) {
+		console.error('❌ 뉴스레터 리스트 불러오기 실패:', error);
+	}
+	const firstArticles = fetchedArticles.slice(0, 20);
+	const secondArticles = fetchedArticles.slice(20, 40);
+
 	return (
 		<div className={styles.homePage}>
+			<TitleSection firstArticles={firstArticles} secondArticles={secondArticles} />
 			<HeroSection />
 			<hr />
 			<TrendSection trends={parsedTrends} />
-
-			<FullWidthPanel>
-				<Title size="extraLarge" weight="bold" color="background">
-					📩 지금 뉴스레터를 시작해보세요
-				</Title>
-			</FullWidthPanel>
-
 			<SubscribeSection trends={parsedTrends} />
 		</div>
 	);

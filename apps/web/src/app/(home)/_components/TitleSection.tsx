@@ -94,6 +94,8 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 
 const TitleSectionStyled = styled.div`
 	text-align: center;
+	margin-top: 6rem;
+	// margin-bottom: 10rem;
 
 	.logo {
 		color: ${({ theme }) => theme.color.primary};
