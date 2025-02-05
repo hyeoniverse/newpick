@@ -27,7 +27,9 @@ function ArticleContent({ content, flex, className, articleImage, related = [] }
 				<div className="content-bottom-margin" />
 			</NewsletterContentStyled>
 			<hr />
-			<OpenGraphCard urls={related} />
+			<OpenGraphCardContainer>
+				<OpenGraphCard urls={related} />
+			</OpenGraphCardContainer>
 			<SubscribeInduce className="subscribe" />
 		</ContainerStyled>
 	);
@@ -45,6 +47,20 @@ const ContainerStyled = styled.div<Omit<NewsletterContentProps, 'content'>>`
 		margin: 0;
 		border: none;
 		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+	}
+`;
+
+const OpenGraphCardContainer = styled.div`
+	position: relative;
+	gap: 0.5rem;
+
+	.content-bottom-margin {
+		padding-bottom: 2rem;
+	}
+
+	* {
+		word-break: break-word;
+		line-height: 1.56;
 	}
 `;
 
