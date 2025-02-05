@@ -5,10 +5,9 @@ import DOMPurify from 'dompurify';
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
-import { mapTitleToId } from '@/utils/mapInterests';
+import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
 import { parseUrls } from '@/utils/parseArticles';
 import { summarizeNews } from '@/api/ai';
-import { useSingleSelectInterest } from '@/hooks/useInterests';
 
 import styled from 'styled-components';
 import { GiNothingToSay } from 'react-icons/gi';
@@ -28,7 +27,7 @@ export default function Trial() {
 	const [newsletter, setNewsletter] = useState<IArticleDetail | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const { selectedInterest = 'IT' } = useSingleSelectInterest();
+	const [selectedInterest, setSelectedInterest] = useState<string>('IT'); // 전역 상태 제거
 
 	const getStartDate = () => {
 		const now = new Date();
@@ -82,7 +81,7 @@ export default function Trial() {
 		<StyledTrial>
 			<div className="header">
 				<Text size="medium">생성하고 싶은 AI 뉴스레터의 관심사를 선택해주세요.</Text>
-				<CategoryTags select="single" />
+				<CategoryTags selectType="localSingle" onSelect={setSelectedInterest} selected={selectedInterest} />
 			</div>
 			<StyledContent>
 				{isLoading ? (
@@ -95,9 +94,15 @@ export default function Trial() {
 				) : newsletter ? (
 					<div className="content">
 						<div className="article-header">
+							{newsletter.categoryId && (
+								<Title size="extraSmall" color="primary" className="tag">
+									{mapIdToTitle([newsletter.categoryId])[0]}
+								</Title>
+							)}
 							<Title size="large" weight="semiBold" color="primary">
 								{newsletter ? newsletter.title : 'AI 뉴스레터 체험하기'}
 							</Title>
+
 							<Text size="small" color="subText" className="date">
 								{dateFormatter(newsletter.createdAt)}
 							</Text>
@@ -172,6 +177,16 @@ const StyledContent = styled.div`
 	border-radius: ${({ theme }) => theme.borderRadius.soft};
 
 	.article-header {
+		.tag {
+			width: fit-content;
+			height: fit-content;
+			padding: 0 1.5rem;
+			margin-bottom: 0.5rem;
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
+			border-radius: ${({ theme }) => theme.borderRadius.capsule};
+		}
+
 		.date {
 			width: 100%;
 			display: flex;
