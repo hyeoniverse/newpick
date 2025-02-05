@@ -14,10 +14,11 @@ import Title from '@/components/common/Title';
 
 interface Props {
 	className?: string;
-	articles: IArticleDetail[];
+	firstArticles: IArticleDetail[];
+	secondArticles: IArticleDetail[];
 }
 
-function TitleSection({ className, articles }: Props) {
+function TitleSection({ className, firstArticles, secondArticles }: Props) {
 	return (
 		<TitleSectionStyled className={className}>
 			<PCLogo className="logo" />
@@ -45,7 +46,7 @@ function TitleSection({ className, articles }: Props) {
 				loopAdditionalSlides={1}
 				speed={4000}
 			>
-				{articles.map((article) => (
+				{firstArticles.map((article) => (
 					<SwiperSlide key={article.id} className="swiper-slide">
 						<Link href={`/articles/detail/${article.id}`} className="image-link">
 							<Image
@@ -74,7 +75,7 @@ function TitleSection({ className, articles }: Props) {
 				loopAdditionalSlides={1}
 				speed={4000}
 			>
-				{articles.map((article) => (
+				{secondArticles.map((article) => (
 					<SwiperSlide key={article.id} className="swiper-slide">
 						<Link href={`/articles/detail/${article.id}`} className="image-link">
 							<Image
