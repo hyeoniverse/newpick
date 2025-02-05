@@ -6,14 +6,15 @@ import { ColorKey } from '@/styles/theme';
 
 interface Props {
 	children?: React.ReactNode;
+	className?: string;
 	border?: ColorKey;
 	background?: ColorKey;
 	color?: ColorKey;
 }
 
-const FullWidthPanel: React.FC<Props> = ({ children, border, background, color }) => {
+const FullWidthPanel: React.FC<Props> = ({ children, className, border, background, color }) => {
 	return (
-		<StyledPanel $border={border} $background={background} $color={color}>
+		<StyledPanel className={className} $border={border} $background={background} $color={color}>
 			{children}
 		</StyledPanel>
 	);
@@ -34,8 +35,8 @@ const StyledPanel = styled.section<StyledProps>`
 
 	display: flex;
 	flex-direction: column;
-	justify-content: center;
 	align-items: center;
+	justify-content: center;
 
 	margin: 4rem 0;
 	padding: 3rem 1rem;
