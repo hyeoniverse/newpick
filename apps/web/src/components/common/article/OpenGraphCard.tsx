@@ -46,7 +46,16 @@ export default function OpenGraphCard({ urls }: Props) {
 							id: news.id,
 							url: news.link,
 							image: news.images[0],
-							header: news.category[0],
+							header: (
+								<div className="news-header">
+									<Text size="medium" weight="semiBold" color="primary">
+										{news.category[0]}
+									</Text>
+									<Text size="medium" color="subText" className="source">
+										{news.source}
+									</Text>
+								</div>
+							),
 							main: {
 								title: news.title,
 								description: news.content,
@@ -91,8 +100,25 @@ const StyledOpenGraphCard = styled.div`
 		padding: 1rem;
 		gap: 0;
 
-		.card-header {
-			display: none;
+		.news-header {
+			display: flex;
+			flex-direction: row;
+			justify-content: space-between;
+			align-items: center;
+			gap: 0.25rem;
+
+			.source {
+				padding: 0.1rem 1rem;
+				border-radius: ${({ theme }) => theme.borderRadius.capsule};
+				border: 1px solid ${({ theme }) => theme.color.border};
+			}
+
+			.bar {
+				width: 1px;
+				height: ${({ theme }) => theme.fontSize.medium};
+				border-left: 1px solid ${({ theme }) => theme.color.subText};
+				margin: 0 0.5rem;
+			}
 		}
 
 		.card-body {
