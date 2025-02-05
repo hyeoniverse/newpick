@@ -1,7 +1,7 @@
 export interface Card {
 	id: number | string;
 	image?: string;
-	header: string;
+	header: string | React.ReactNode;
 	main: {
 		title?: string;
 		description: string;
