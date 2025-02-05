@@ -9,7 +9,7 @@ export const fetchUserWithSubscription = async (retry = false, overrideAccessTok
 		const accessToken = overrideAccessToken || (await cookieStore).get('access_token')?.value;
 		const refreshToken = (await cookieStore).get('refresh_token')?.value;
 
-		console.log('🍪 accessToken:', accessToken);
+		// console.log('🍪 accessToken:', accessToken);
 		if (!accessToken || !refreshToken) {
 			console.log('⚠️ 액세스 토큰 또는 리프레시 토큰이 없습니다.');
 			return null;
