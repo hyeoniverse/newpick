@@ -2,19 +2,16 @@
 
 import { Suspense, lazy } from 'react';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
-
 import { styled } from 'styled-components';
 import Text from '@/components/common/Text';
 import Skeleton from '@/components/common/loader/Skeleton';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import BorderTitle from '@/components/common/BorderTitle';
+import { useTrends } from '@/hooks/useTrends';
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
-interface Props {
-	trends: IArticleSummary[];
-}
-
-const TrendSection = ({ trends = [] }: Props) => {
+const TrendSection = () => {
+	const { trends } = useTrends();
 	const isLoading = trends.length === 0;
 
 	return (
@@ -29,7 +26,7 @@ const TrendSection = ({ trends = [] }: Props) => {
 			) : (
 				<Suspense fallback={<Skeleton />}>
 					<div className="trend-cards">
-						{trends.map((trend) => (
+						{trends.map((trend: IArticleSummary) => (
 							<LazyCard
 								key={trend.id}
 								data={{

@@ -1,61 +1,12 @@
 import { User } from '@/models/user.model';
-import { API_ENDPOINTS, BACK_URL } from '@/constants/api';
-import { POPUP, AUTH } from '@/constants/numbers';
+import { API_ENDPOINTS } from '@/constants/api';
 import { fetchSubscription } from '@/api/subscription';
 import { fetchInterests } from '@/api/interests';
 import { mapTitleToId } from '@/utils/mapInterests';
 
 // 로그인 API
-export const loginUser = async (setUser: (user: User) => void): Promise<User> => {
-	return new Promise((resolve, reject) => {
-		const popup = window.open(
-			`${API_ENDPOINTS.AUTH.LOGIN()}`,
-			'_blank',
-			`width=${POPUP.WIDTH}, height=${POPUP.HEIGHT}`
-		);
-
-		if (!popup) {
-			reject(new Error('팝업이 차단되었습니다. 팝업 차단을 해제해주세요.'));
-			return;
-		}
-
-		// 타임아웃 설정: 일정 시간 후 이벤트 리스너 제거 및 프로미스 reject
-		const timeoutId = setTimeout(() => {
-			window.removeEventListener('message', listener);
-			reject(new Error('로그인 시간이 초과되었습니다. 다시 시도해주세요.'));
-		}, AUTH.TIMEOUT);
-
-		// 메시지 이벤트 리스너 등록
-		const listener = async (event: MessageEvent) => {
-			// 출처(origin)가 일치하지 않으면 무시
-			if (event.origin !== BACK_URL) return;
-
-			if (event.data?.type === 'oauthSuccess') {
-				clearTimeout(timeoutId); // 타임아웃 클리어
-				const { user } = event.data;
-
-				if (!user) {
-					window.removeEventListener('message', listener);
-					reject(new Error(`사용자 정보를 불러오는데 실패했습니다. ${event.data?.error}`));
-					return;
-				}
-
-				// 기본 사용자 정보 저장
-				setUser(user);
-				window.removeEventListener('message', listener);
-
-				// 추가 사용자 데이터(구독 상태, 관심사) 업데이트
-				try {
-					const updatedUser = await fetchAdditionalUserData(user);
-					resolve(updatedUser);
-				} catch (error) {
-					reject(error);
-				}
-			}
-		};
-
-		window.addEventListener('message', listener);
-	});
+export const loginUser = async (): Promise<void> => {
+	window.location.href = API_ENDPOINTS.AUTH.LOGIN();
 };
 
 // 추가 사용자 데이터 불러오기 (구독 상태, 관심사)
