@@ -65,8 +65,6 @@ export default function Trial() {
 				usedNews: result.newsletter.newslinks || [],
 			};
 
-			console.log('newsletter:', newsletter);
-
 			setNewsletter(newsletter);
 		} catch (error) {
 			console.error('뉴스 요약 실패:', error);
