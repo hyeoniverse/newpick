@@ -21,7 +21,12 @@ export function parseArticles(trends: IArticleDetail[] = []): IArticleSummary[] 
 	}));
 }
 
-export function parseUrls(urls: string, limit: number = 3): string[] {
+export function parseUrls(urls: unknown, limit: number = 3): string[] {
+	if (typeof urls !== 'string') {
+		console.warn('parseUrls: Expected string but received:', urls);
+		return [];
+	}
+
 	return urls
 		.split(',')
 		.map((url) => url.trim())

@@ -21,6 +21,8 @@ import Skeleton from '@/components/common/loader/Skeleton';
 import OpenGraphCard from '@/components/common/article/OpenGraphCard';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import CategoryTags from '@/components/common/article/CategoryTags';
+import { getFirstImage } from '@/utils/getFirstImage';
+import { stripCodeFence } from '@/utils/stripCodeFence';
 
 export default function Trial() {
 	const [newsletter, setNewsletter] = useState<IArticleDetail | null>(null);
@@ -32,7 +34,7 @@ export default function Trial() {
 		const now = new Date();
 		const hours = now.getHours();
 		// 현재 시간이 오전 8시 이전이면 어제 날짜, 이후면 오늘 날짜 사용
-		const targetDate = hours < 8 ? new Date(now.setDate(now.getDate() - 1)) : now;
+		const targetDate = hours < 9 ? new Date(now.setDate(now.getDate() - 1)) : now;
 		return dateFormatter(targetDate.toISOString().split('T')[0]);
 	};
 
@@ -52,18 +54,18 @@ export default function Trial() {
 			}
 
 			// `contentAsHTML`에서 ` ```html ` 코드 블록 제거
-			const cleandTitle = cleanString(result.newsletter.title);
-			const cleanedHtml = cleanString(result.newsletter.contentAsHTML);
-
+			const cleanedHtml = stripCodeFence(result.newsletter.html, 'html');
 			const newsletter: IArticleDetail = {
 				...result.newsletter,
-				title: cleandTitle,
+				title: result.newsletter.title,
 				categoryId: result.newsletter.categoryId,
 				createdAt: startDate,
-				contentAsHTML: cleanedHtml,
-				imageUrl: getMainUrl(result.newsletter.imageUrl),
-				usedNews: result.newsletter.usedNews,
+				contentAsHTML: cleanedHtml || '',
+				imageUrl: getFirstImage(result.newsletter.imageUrl || ''),
+				usedNews: result.newsletter.newslinks || [],
 			};
+
+			console.log('newsletter:', newsletter);
 
 			setNewsletter(newsletter);
 		} catch (error) {
@@ -72,34 +74,6 @@ export default function Trial() {
 		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const cleanString = (text: string) => {
-		if (!text) return '';
-
-		// ` ```html ` 코드 블록 제거
-		let cleanedText = text
-			.replace(/^```html\s*/, '')
-			.replace(/```$/, '')
-			.trim();
-
-		// 최상위 `<div>` 태그 제거
-		cleanedText = cleanedText
-			.replace(/^<div[^>]*>/, '')
-			.replace(/<\/div>$/, '')
-			.trim();
-
-		cleanedText = cleanedText.replace(/^"(.*)"$/, '$1');
-
-		return cleanedText;
-	};
-
-	const getMainUrl = (urlData: string) => {
-		// ','로 분할 후 빈 값(`""`) 제거
-		const urls = urlData.split(',').filter((url) => url.trim() !== '');
-
-		// 첫 번째 유효한 이미지 반환 (없으면 기본 이미지)
-		return urls.length > 0 ? urls[0] : DEFAULT_IMAGES.MONO;
 	};
 
 	const sanitizeHtml = (html: string) => {
@@ -133,14 +107,16 @@ export default function Trial() {
 						</div>
 						<div className="newsletter">
 							<div className="image-placeholder">
-								<Imgae src={newsletter.imageUrl || DEFAULT_IMAGES.MONO} alt={newsletter.title} />
+								{newsletter.imageUrl && (
+									<Imgae src={newsletter.imageUrl || DEFAULT_IMAGES.MONO} alt={newsletter.title} />
+								)}
 							</div>
 							<StyledArticle>
 								<div className="body">{parse(sanitizeHtml(newsletter.contentAsHTML))}</div>
 							</StyledArticle>
 						</div>
 						<div className="action">
-							<OpenGraphCard urls={parseUrls(newsletter.usedNews)} />
+							{newsletter.usedNews != '' && <OpenGraphCard urls={parseUrls(newsletter.usedNews)} />}
 							<SubscribeInduce />
 						</div>
 					</div>
@@ -252,6 +228,7 @@ const StyledContent = styled.div`
 		display: flex;
 		justify-content: center;
 		align-items: center;
+		margin-bottom: 1rem;
 
 		img {
 			width: 100%;
@@ -277,17 +254,15 @@ const StyledArticle = styled.div`
 
 		h1,
 		h2,
-		h3 {
-			margin-top: 1.5rem;
-			margin-bottom: 0.25rem;
+		h3,
+		h4 {
 			font-size: ${({ theme }) => theme.fontSize.extraLarge};
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		}
 
 		p,
 		span {
-			line-height: 1.6;
-			margin-bottom: 0.5rem;
+			line-height: 1.8;
 			font-size: ${({ theme }) => theme.fontSize.small};
 		}
 
