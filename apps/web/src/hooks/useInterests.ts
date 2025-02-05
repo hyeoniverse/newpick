@@ -4,7 +4,6 @@ import { Category } from '@/models/category.model';
 import { CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
 import { mapIdToTitle } from '@/utils/mapInterests';
-import { init } from 'next/dist/compiled/webpack/webpack';
 
 export const useSelectInterests = () => {
 	const { user } = useAuth();
