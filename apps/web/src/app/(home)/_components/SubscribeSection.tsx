@@ -1,40 +1,33 @@
 'use client';
 
-import Link from 'next/link';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSubscribe } from '@/hooks/useSubscribe';
-import { useSelectInterests } from '@/hooks/useSelectInterests';
+import { useSelectInterests } from '@/hooks/useInterests';
 
 import { styled } from 'styled-components';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
-import InputCheck from '@/components/common/InputCheck';
 import CardSlider from '@/components/common/slider/CardSlider';
 
 import ModalContents from '@/components/common/modal/ModalContent';
 import { BiCheck, BiPlus } from 'react-icons/bi';
 import { LuMailCheck } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
-import { useAuth } from '@/hooks/useAuth';
+import ArgreementCheck from '@/components/common/article/AgreementCheck';
 
 interface Props {
 	trends: IArticleSummary[];
 }
 
 const SubscribeSection = ({ trends }: Props) => {
-	const { user } = useAuth();
-
-	const {
-		status: isSubscribed = user?.isSubscribed,
-		isChanging: isChangingSubscription,
-		handleSubscribe: startSubscription,
-	} = useSubscribe();
+	const { isChanging: isChangingSubscription, handleSubscribe: startSubscription } = useSubscribe();
 
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
-	const { isChecked } = useInputCheck('home-agreement');
+	const checkName = 'home-agreement';
+	const { isChecked } = useInputCheck(checkName);
 	const { openModal, closeModal } = useModal();
 
 	const handleSubscribe = async (e: React.FormEvent) => {
@@ -115,32 +108,7 @@ const SubscribeSection = ({ trends }: Props) => {
 						구독 신청
 					</Button>
 				</div>
-				<div className="subscription-agreement">
-					{isSubscribed === null ? (
-						<>
-							<InputCheck
-								className="agreement-check"
-								name="home-agreement"
-								disabled={isChangingSubscription || isSubscribed !== null}
-							/>
-							<div className="agreement-text">
-								<Text size="extraSmall" weight="semiBold" color="primary">
-									[필수]&nbsp;
-								</Text>
-								<Text size="extraSmall">NewPick의&nbsp;</Text>
-								<Link href="/privacy">이용약관</Link>&nbsp;
-								<Link href="/privacy">개인정보처리방침</Link>
-								<Text size="extraSmall">에 동의합니다.</Text>
-							</div>
-						</>
-					) : (
-						<>
-							<Text size="extraSmall" weight="semiBold" color="primary">
-								이미 약관에 동의하셨습니다.
-							</Text>
-						</>
-					)}
-				</div>
+				<ArgreementCheck name={checkName} />
 			</div>
 		</StyledSubscribe>
 	);
@@ -163,40 +131,6 @@ const StyledSubscribe = styled.section`
 			display: flex;
 			justify-content: flex-start;
 			align-items: center;
-		}
-
-		.subscription-agreement {
-			width: 100%;
-			display: inline-flex;
-			align-items: top;
-			gap: 0.5rem;
-			margin-top: 0.5rem;
-			line-height: 1.5;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
-			text-align: left;
-
-			input {
-				display: inline-flex;
-				vertical-align: middle;
-			}
-
-			span {
-				display: inline-flex;
-				vertical-align: middle;
-				span {
-					white-space: nowrap;
-				}
-			}
-
-			a {
-				color: ${({ theme }) => theme.color.primary};
-				font-weight: ${({ theme }) => theme.fontWeight.bold};
-
-				&:hover {
-					text-decoration: underline;
-				}
-			}
 		}
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {

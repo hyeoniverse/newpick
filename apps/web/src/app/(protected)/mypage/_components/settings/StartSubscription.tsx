@@ -1,21 +1,20 @@
 'use client';
 
-import Link from 'next/link';
 import { CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
 import { useInputCheck } from '@/hooks/useInputCheck';
-import { useSelectInterests } from '@/hooks/useSelectInterests';
+import { useSelectInterests } from '@/hooks/useInterests';
 
 import styled from 'styled-components';
 import { LuMailCheck, LuMailX } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
-import InputCheck from '@/components/common/InputCheck';
 import ModalContent from '@/components/common/modal/ModalContent';
 import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
 import { mapIdToTitle } from '@/utils/mapInterests';
+import ArgreementCheck from '@/components/common/article/AgreementCheck';
 
 export default function StartSubscription() {
 	const { user } = useAuth();
@@ -27,7 +26,8 @@ export default function StartSubscription() {
 	} = useSubscribe();
 	const initialInterests = mapIdToTitle(user?.interests ?? []);
 	const { selectedInterests = initialInterests || [], handleSelectInterests } = useSelectInterests();
-	const { isChecked, setChecked } = useInputCheck('mypage-agreement');
+	const checkName = 'mypage-agreement';
+	const { isChecked, setChecked } = useInputCheck(checkName);
 	const { openModal, closeModal } = useModal();
 
 	const handleSubscribe = async () => {
@@ -123,24 +123,7 @@ export default function StartSubscription() {
 					))}
 				</ul>
 			</div>
-			{isSubscribed === null && (
-				<div className="subscription-agreement">
-					<InputCheck
-						className="agreement-check"
-						name="mypage-agreement"
-						disabled={isChangingSubscription || isSubscribed !== null}
-					/>
-					<div className="agreement-text">
-						<Text size="extraSmall" weight="semiBold" color="primary">
-							[필수]&nbsp;
-						</Text>
-						<Text size="extraSmall">NewPick의&nbsp;</Text>
-						<Link href="/privacy">이용약관</Link>&nbsp;
-						<Link href="/privacy">개인정보처리방침</Link>
-						<Text size="extraSmall">에 동의합니다.</Text>
-					</div>
-				</div>
-			)}
+			<ArgreementCheck name={checkName} />
 			<div className="btn">
 				<Button
 					type="submit"
