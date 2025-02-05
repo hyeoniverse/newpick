@@ -1,22 +1,13 @@
-import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
-import { fetchArticleList, fetchTrendList } from '@/api/article';
+import { ArticleDetail as IArticleDetail } from '@/models/article.model';
+import { fetchArticleList } from '@/api/article';
 
 import styles from '@/app/(home)/home.module.css';
 import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
-import { parseArticles } from '@/utils/parseArticles';
 import TitleSection from '@/app/(home)/_components/TitleSection';
 
 export default async function HomePage() {
-	let parsedTrends: IArticleSummary[] = [];
-	try {
-		const trends: IArticleDetail[] = await fetchTrendList();
-		parsedTrends = parseArticles(trends);
-	} catch (error) {
-		console.error(error);
-	}
-
 	let fetchedArticles: IArticleDetail[] = [];
 	try {
 		const { data } = await fetchArticleList(40);
@@ -32,8 +23,8 @@ export default async function HomePage() {
 			<TitleSection firstArticles={firstArticles} secondArticles={secondArticles} />
 			<HeroSection />
 			<hr />
-			<TrendSection trends={parsedTrends} />
-			<SubscribeSection trends={parsedTrends} />
+			<TrendSection />
+			<SubscribeSection />
 		</div>
 	);
 }

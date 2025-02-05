@@ -1,10 +1,10 @@
 'use client';
 
-import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSubscribe } from '@/hooks/useSubscribe';
 import { useSelectInterests } from '@/hooks/useInterests';
+import { useTrends } from '@/hooks/useTrends';
 
 import { styled } from 'styled-components';
 import Title from '@/components/common/Title';
@@ -19,11 +19,8 @@ import { useModal } from '@/hooks/useModal';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
 
-interface Props {
-	trends: IArticleSummary[];
-}
-
-const SubscribeSection = ({ trends }: Props) => {
+const SubscribeSection = () => {
+	const { trends } = useTrends();
 	const { isChanging: isChangingSubscription, handleSubscribe: startSubscription } = useSubscribe();
 
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
