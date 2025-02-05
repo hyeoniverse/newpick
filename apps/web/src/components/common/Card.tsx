@@ -1,11 +1,12 @@
-import { forwardRef } from 'react';
-import { Card as ICard } from '@/models/card.model';
-import styled, { css } from 'styled-components';
-import Title from './Title';
-import Text from '@/components/common/Text';
-import Imgae from '@/components/common/Image';
 import Link from 'next/link';
+import { forwardRef } from 'react';
 import { DEFAULT_IMAGES } from '@/constants/images';
+import { Card as ICard } from '@/models/card.model';
+
+import styled, { css } from 'styled-components';
+import Title from '@/components/common/Title';
+import Text from '@/components/common/Text';
+import Image from '@/components/common/Image';
 
 interface Props {
 	className?: string;
@@ -47,7 +48,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 									)}
 								</div>
 								<div className="image-placeholder">
-									<Imgae src={image || '/img/newpick_default_img.jpg'} alt={main.title || 'card'} />
+									<Image src={image || '/img/newpick_default_img.jpg'} alt={main.title || 'card'} />
 								</div>
 							</div>
 						</Link>
@@ -59,7 +60,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 						<Link href={url || '/not-found'}>
 							{image && (
 								<div className="image-placeholder">
-									<Imgae src={image} alt={main.title || 'card'} />
+									<Image src={image} alt={main.title || 'card'} />
 								</div>
 							)}
 							<div className="card-header">
@@ -120,7 +121,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 										</div>
 
 										<div className="image-placeholder">
-											<Imgae src={image || `${DEFAULT_IMAGES.MONO}`} alt={main.title || 'card'} />
+											<Image src={image || `${DEFAULT_IMAGES.MONO}`} alt={main.title || 'card'} />
 										</div>
 									</div>
 								</div>
