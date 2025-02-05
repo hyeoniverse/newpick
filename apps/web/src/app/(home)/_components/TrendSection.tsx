@@ -4,10 +4,10 @@ import { Suspense, lazy } from 'react';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 
 import { styled } from 'styled-components';
-import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Skeleton from '@/components/common/loader/Skeleton';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
+import BorderTitle from '@/components/common/BorderTitle';
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
 interface Props {
@@ -20,9 +20,7 @@ const TrendSection = ({ trends = [] }: Props) => {
 	return (
 		<StyledTrendSection>
 			<div className="trend-header">
-				<Title size="extraSmall" weight="semiBold">
-					오늘의 트렌드
-				</Title>
+				<BorderTitle text="오늘의 트렌드"></BorderTitle>
 			</div>
 			{isLoading ? (
 				<div className="placeholder">

@@ -3,13 +3,12 @@ import parse from 'html-react-parser';
 import DOMPurify from 'dompurify';
 
 import { DEFAULT_IMAGES } from '@/constants/images';
-import { CATEGORIES } from '@/constants/categories';
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 import { mapTitleToId } from '@/utils/mapInterests';
 import { parseUrls } from '@/utils/parseArticles';
 import { summarizeNews } from '@/api/ai';
-import { useSingleSelectInterest } from '@/hooks/useSelectInterests';
+import { useSingleSelectInterest } from '@/hooks/useInterests';
 
 import styled from 'styled-components';
 import { GiNothingToSay } from 'react-icons/gi';
@@ -21,12 +20,13 @@ import Imgae from '@/components/common/Image';
 import Skeleton from '@/components/common/loader/Skeleton';
 import OpenGraphCard from '@/components/common/article/OpenGraphCard';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
+import CategoryTags from '@/components/common/article/CategoryTags';
 
 export default function Trial() {
 	const [newsletter, setNewsletter] = useState<IArticleDetail | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const { selectedInterest = 'IT', handleSelectInterest } = useSingleSelectInterest();
+	const { selectedInterest = 'IT' } = useSingleSelectInterest();
 
 	const getStartDate = () => {
 		const now = new Date();
@@ -110,28 +110,7 @@ export default function Trial() {
 		<StyledTrial>
 			<div className="header">
 				<Text size="medium">생성하고 싶은 AI 뉴스레터의 관심사를 선택해주세요.</Text>
-				<StyledCategoris>
-					<ul className="categories">
-						{CATEGORIES.slice(1).map((category, index) => (
-							<li key={index}>
-								<Button
-									type="button"
-									scheme="default"
-									onClick={() => {
-										handleSelectInterest(category);
-									}}
-									className={
-										selectedInterest.includes(category.name)
-											? 'category-btn active'
-											: 'category-btn'
-									}
-								>
-									{category.name}
-								</Button>
-							</li>
-						))}
-					</ul>
-				</StyledCategoris>
+				<CategoryTags select="single" />
 			</div>
 			<StyledContent>
 				{isLoading ? (
@@ -201,45 +180,6 @@ const StyledTrial = styled.div`
 		span {
 			padding: 0 0.25rem;
 		}
-	}
-`;
-
-const StyledCategoris = styled.div`
-	width: 100%;
-	height: fit-content;
-	display: flex;
-	flex-direction: row;
-	gap: 0.875rem;
-
-	.bar {
-		border-left: 1px solid ${({ theme }) => theme.color.lightGrey};
-		height: auto;
-	}
-
-	.categories {
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-	}
-
-	.category-btn {
-		width: 4rem;
-		color: ${({ theme }) => theme.color.primary};
-		border-radius: ${({ theme }) => theme.borderRadius.capsule};
-		border: 1px solid ${({ theme }) => theme.color.primary};
-	}
-
-	.active {
-		color: ${({ theme }) => theme.color.background};
-		background: ${({ theme }) => theme.color.primary};
-		border-radius: ${({ theme }) => theme.borderRadius.capsule};
-	}
-
-	.btn {
-		display: flex;
-		justify-content: center;
-		align-items: center;
 	}
 `;
 
