@@ -135,6 +135,10 @@ const StyledSubscribe = styled.section`
 		flex-direction: row;
 		justify-content: space-between;
 		gap: 2rem;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			flex-wrap: wrap;
+		}
 	}
 
 	.subscription-form {
@@ -167,14 +171,6 @@ const StyledSubscribe = styled.section`
 				min-width: calc(100% - 0.9rem);
 			}
 		}
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.tablet} {
-		flex-wrap: wrap;
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		flex-wrap: wrap;
 	}
 `;
 
