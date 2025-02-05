@@ -53,7 +53,7 @@ export const API_ENDPOINTS = {
 		BOOKMARK: `${API_URL}/feedback/bookmark`,
 	},
 	NEWS: {
-		RELATED: (link: string) => `${API_URL}/crawling/related?link=${link}`,
+		RELATED: (link: string) => `${API_URL}/crawling/link?link=${link}`,
 		CRAWL: () => `${API_URL}/news/crawl`,
 		GET_BY_CATEGORY: (category: string, page: number, limit: number) =>
 			`${API_URL}/news?category=${category}&page=${page}&limit=${limit}`,

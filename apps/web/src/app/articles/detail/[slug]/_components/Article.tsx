@@ -21,6 +21,8 @@ import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import Title from '@/components/common/Title';
 import { useArticleContentQuery } from '@/hooks/useArticle';
 import { stripCodeFence } from '@/utils/stripCodeFence';
+import { DEFAULT_IMAGES } from '@/constants/images';
+import { parseUrls } from '@/utils/parseArticles';
 
 interface Props {
 	viewCount: number;
@@ -31,9 +33,7 @@ function Article({ viewCount }: Props) {
 	const { slug } = useParams() as { slug: string };
 	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
-	const {
-		data: articleContent,
-	} = useArticleContentQuery(slug);
+	const { data: articleContent } = useArticleContentQuery(slug);
 
 	useEffect(() => {
 		if (Object.keys(categories).length === 0) {
@@ -46,10 +46,7 @@ function Article({ viewCount }: Props) {
 	}
 	const newsletterHTML = stripCodeFence(articleContent.newsletter.contentAsHTML, 'html');
 	const newsletterContent = articleContent.newsletter;
-	const usedNewsList = newsletterContent.usedNews
-	.split(',')
-	.map((url) => url.trim())
-	.slice(0, 3);
+	const relatedNews = parseUrls(articleContent.newsletter.usedNews);
 
 	return (
 		<>
@@ -84,14 +81,18 @@ function Article({ viewCount }: Props) {
 				<SummaryTextBox>{newsletterContent.content}</SummaryTextBox>
 				<div className="content-section">
 					<ArticleContent
-            className="content"
-            content={newsletterHTML}
-            articleImage={newsletterContent.imageUrl ?? ''}
-						related={usedNewsList}
+						className="content"
+						content={newsletterHTML}
+						articleImage={newsletterContent.imageUrl ?? `${DEFAULT_IMAGES.MONO}`}
+						related={relatedNews}
 					/>
-          <PopularArticle className="popular" />
-        </div>
-				<PrevNextArticle className="prev-next" prev={articleContent.previousNewsletter} next={articleContent.nextNewsletter} />
+					<PopularArticle className="popular" />
+				</div>
+				<PrevNextArticle
+					className="prev-next"
+					prev={articleContent.previousNewsletter}
+					next={articleContent.nextNewsletter}
+				/>
 				{/*<CommentsSection className="comments-section"/>*/}
 				<LatestArticle className="latest" />
 				<MobileLikeLinkButton className="icons" newsId={newsletterContent.id} />

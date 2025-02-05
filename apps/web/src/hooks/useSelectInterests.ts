@@ -4,7 +4,7 @@ import { CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
 import { mapIdToTitle } from '@/utils/mapInterests';
 
-const useSelectInterests = () => {
+export const useSelectInterests = () => {
 	const { user } = useAuth();
 	const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
 
@@ -60,4 +60,15 @@ const useSelectInterests = () => {
 	return { selectedInterests, handleSelectInterests };
 };
 
-export default useSelectInterests;
+export const useSingleSelectInterest = () => {
+	const [selectedInterest, setSelectedInterest] = useState<string>();
+
+	// 카테고리 선택 (전체 선택 방지)
+	const handleSelectInterest = (category?: Category) => {
+		if (!category || category.name === '전체') return; // "전체" 선택 불가
+
+		setSelectedInterest(category.name);
+	};
+
+	return { selectedInterest, handleSelectInterest };
+};

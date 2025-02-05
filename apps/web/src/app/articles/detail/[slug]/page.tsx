@@ -8,8 +8,8 @@ export default async function NewsletterDetailPage({ params }: { params: PagePar
 	const viewCount = await increaseViewCount(parseInt(slug));
 
 	return (
-			<Article
-				viewCount={viewCount.data}
-      />
+		<>
+			<Article viewCount={viewCount.data} />
+		</>
 	);
 }
