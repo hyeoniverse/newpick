@@ -72,3 +72,13 @@ export const fetchRelatedNews = async (link: string) => {
 	const news = await response.json();
 	return news.data;
 };
+
+export const fetchDateNewsletter = async (limit: number = 5, offset: number = 0, startDate?: string, endDate?: string) => {
+	const response = await fetch(API_ENDPOINTS.NEWSLETTER.DATE(limit, offset, startDate, endDate));
+
+	if (!response.ok) {
+		throw new Error('날짜별 뉴스레터를 불러오는데 실패했습니다.');
+	}
+
+	return await response.json();
+};

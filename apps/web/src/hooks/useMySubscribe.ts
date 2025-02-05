@@ -1,11 +1,17 @@
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
-import { fetchArticleList } from '@/api/article';
+import { fetchDateNewsletter } from '@/api/article';
+import { dateFormatter } from '@/utils/formatter';
 
 export const getTodayArticles = async (limit: number) => {
-	const data = await fetchArticleList(limit, 0);
+  const now = new Date();
+  const startDate = dateFormatter(now.toString());
+  const endDate = startDate;
+
+	const data = await fetchDateNewsletter(limit, 0, startDate, endDate);
+
+  console.log(data)
 	const newsletters: IArticleDetail[] = data.data;
 
-  const now = new Date();
 
   const threshold = new Date();
   threshold.setHours(8, 0, 0, 0);
@@ -19,7 +25,7 @@ export const getTodayArticles = async (limit: number) => {
 };
 
 export const userSubscribeArticles = async (categoryIds: number[]) => {
-  const todayNewsletter: IArticleDetail[] = await getTodayArticles(1000);
+  const todayNewsletter: IArticleDetail[] = await getTodayArticles(20);
   const userArticle = todayNewsletter.filter((n) => categoryIds.includes(n.categoryId));
 
   const latestArticlesByCategory = categoryIds
