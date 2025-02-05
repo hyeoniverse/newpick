@@ -1,0 +1,7 @@
+.about {
+    display: flex;
+    flex-direction: column;
+    gap: 6rem;
+    margin: 6rem 0;
+}
+
