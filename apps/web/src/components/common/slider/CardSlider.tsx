@@ -38,7 +38,7 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 
 			if (cardContainerRef.current && cardRef.current) {
 				let cardWidth = isMobile ? cardRef.current.offsetWidth : cardRef.current.offsetWidth * 2;
-				let gap = isMobile ? 25 : 25 * 2;
+				let gap = isMobile ? 24 : 24 * 2;
 				if (type === 'main') {
 					cardWidth = cardRef.current.offsetWidth;
 					gap = 16;
@@ -67,7 +67,7 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 	const goToSlide = (index: number) => {
 		if (cardContainerRef.current && cardRef.current) {
 			const cardWidth = cardRef.current.offsetWidth;
-			let gap = isMobile ? 25 : 25 * 2;
+			let gap = isMobile ? 24 : 24 * 2;
 			if (type === 'main') {
 				gap = 16;
 			}
