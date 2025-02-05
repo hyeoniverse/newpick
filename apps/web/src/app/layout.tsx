@@ -3,6 +3,7 @@ export const revalidate = 0;
 
 import type { Metadata } from 'next';
 import { fetchUserWithSubscription } from '@/api/user';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 import '@/styles/global';
 import StyledComponentsRegistry from '@/lib/registry';
@@ -35,6 +36,7 @@ export default async function RootLayout({
 						<Layout>{children}</Layout>
 						<ToastContainer />
 						<ModalContainer />
+						<SpeedInsights />
 					</Providers>
 				</StyledComponentsRegistry>
 			</body>
