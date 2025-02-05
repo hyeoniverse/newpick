@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import useInterestsStore from '@/stores/useInterestStore';
 import { Category } from '@/models/category.model';
 import { CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
@@ -6,7 +7,7 @@ import { mapIdToTitle } from '@/utils/mapInterests';
 
 export const useSelectInterests = () => {
 	const { user } = useAuth();
-	const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
+	const { selectedInterests, setSelectedInterests } = useInterestsStore();
 
 	// 카테고리 선택 / 해제
 	const handleSelectInterests = (category?: Category) => {
@@ -49,13 +50,13 @@ export const useSelectInterests = () => {
 			const interests = mapIdToTitle(user.interests ?? []);
 			setSelectedInterests(interests);
 		}
-	}, [user]);
+	}, [user, setSelectedInterests]);
 
 	useEffect(() => {
 		if (selectedInterests.length === CATEGORIES.length - 1) {
 			setSelectedInterests(CATEGORIES.map((cat) => cat.name));
 		}
-	}, [selectedInterests]);
+	}, [selectedInterests, setSelectedInterests]);
 
 	return { selectedInterests, handleSelectInterests };
 };

@@ -1,14 +1,14 @@
 .homePage {
-	width: 100%;
 	gap: 2rem;
+	width: 100%;
 }
 
 .homePage hr {
-	width: 100%;
-	border: none;
-	border-bottom: 1px solid var(--border-color);
 	margin: 0;
 	padding: 0;
+	border: none;
+	border-bottom: 1px solid var(--border-color);
+	width: 100%;
 }
 
 /* CSS 변수로 반응형 적용 */

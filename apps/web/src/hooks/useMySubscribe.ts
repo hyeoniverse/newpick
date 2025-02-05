@@ -1,7 +1,7 @@
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { fetchArticleList } from '@/api/article';
 
-export const getTodayArticles = async (limit: number = 100) => {
+export const getTodayArticles = async (limit: number) => {
 	const data = await fetchArticleList(limit, 0);
 	const newsletters: IArticleDetail[] = data.data;
 
@@ -15,7 +15,6 @@ export const getTodayArticles = async (limit: number = 100) => {
   }
 
   const TodayNewsletter = newsletters.filter((n) => new Date(n.createdAt) >= threshold);
-
   return TodayNewsletter;
 };
 

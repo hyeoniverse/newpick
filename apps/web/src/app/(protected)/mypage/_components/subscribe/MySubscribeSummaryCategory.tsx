@@ -11,55 +11,64 @@ import { useArticleStore } from '@/stores/useMySubscribeStore';
 import { useEffect } from 'react';
 import { useCategoryStore } from '@/stores/useCategoryStore';
 import Spinner from '@/components/common/loader/Spinner';
+import NoContentsPage from '@/components/common/NoContentsPage';
 
 function MySummaryCategory() {
-	const { user } = useAuthStore();
+  const { user } = useAuthStore();
   const { userArticles, loading, error, fetchUserArticles } = useArticleStore();
-	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
+  const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
-	useEffect(() => {
-		fetchUserArticles(user?.interests ?? []);
-		if (Object.keys(categories).length === 0) {
-			fetchCategories();
-		}
-	}, [user?.interests, fetchUserArticles, categories, fetchCategories]);
+  useEffect(() => {
+    fetchUserArticles(user?.interests ?? []);
+    if (Object.keys(categories).length === 0) {
+      fetchCategories();
+    }
+  }, [ user?.interests, fetchUserArticles, categories, fetchCategories ]);
 
   if (loading) return <Spinner />;
   if (error) return <div>Error: {error}</div>;
 
+  return (
+    <>
+      <MySummaryCategoryStyled>
+        {userArticles.length > 0 ?
+          userArticles.map((article) => (
+            <div key={article.id} className="my-subs-content" id={`section-${article.id}`}
+                 data-categoryid={article.categoryId}>
+              <div className="top">
+                <Link href={`/articles/categories/${article.categoryId}`} className="category-name">
+                  {getCategoryName(article.categoryId)}
+                  <IoIosArrowForward />
+                </Link>
+                <Link href={`/articles/detail/${article.id}`} className="title-section">
+                  <h3 className="title-text">{article.title}</h3>
+                </Link>
+              </div>
+              <div className="bottom">
+                <div className="img-section">
+                  <HeightAutoImg src={article.imageUrl || null} height={'auto'} />
+                  <div className="etc">
+                    <BookmarkIcon newsId={article.id} newsletterId={article.id} />
+                    <LinkCopyIcon id={article.id} />
+                    {/*<OrigLinkIcon />*/}
+                  </div>
+                </div>
+                <SummaryTextBox flex={3}>{article.content}</SummaryTextBox>
+              </div>
+              <BarWidth width={'100%'} className="bar" />
+            </div>
+          ))
+          :
+          (
+            <>
+	            <NoContentsPage text={'오늘의 뉴스레터가 없습니다'} btnText={'메인으로'} moveTo={'/'} />
+            </>
+          )
+        }
 
-	return (
-		<>
-			<MySummaryCategoryStyled>
-				{userArticles.length > 0 &&
-					userArticles.map((article) => (
-					<div key={article.id} className="my-subs-content" id={`section-${article.id}`} data-categoryid={article.categoryId}>
-						<div className="top">
-							<Link href={`/articles/categories/${article.categoryId}`} className="category-name">
-								{getCategoryName(article.categoryId)}
-								<IoIosArrowForward />
-							</Link>
-							<Link href={`/articles/detail/${article.id}`} className="title-section">
-								<h3 className="title-text">{article.title}</h3>
-							</Link>
-						</div>
-						<div className="bottom">
-							<div className="img-section">
-								<HeightAutoImg src={article.imageUrl || null} height={'auto'} />
-								<div className="etc">
-									<BookmarkIcon newsId={article.id} newsletterId={article.id}/>
-									<LinkCopyIcon id={article.id} />
-									{/*<OrigLinkIcon />*/}
-								</div>
-							</div>
-							<SummaryTextBox flex={3}>{article.content}</SummaryTextBox>
-						</div>
-						<BarWidth width={'100%'} className="bar" />
-					</div>
-				))}
-			</MySummaryCategoryStyled>
-		</>
-	);
+      </MySummaryCategoryStyled>
+    </>
+  );
 }
 
 const MySummaryCategoryStyled = styled.div`
@@ -78,59 +87,59 @@ const MySummaryCategoryStyled = styled.div`
         margin-top: 5rem;
         scroll-margin-top: 7.4rem;
 
-            .top {
-                margin-top: 3.75rem;
-                margin-bottom: 1.875rem;
+        .top {
+            margin-top: 3.75rem;
+            margin-bottom: 1.875rem;
 
-                .category-name {
-                    font-size: ${({ theme }) => theme.fontSize.medium};
-                    font-weight: ${({ theme }) => theme.fontWeight.medium};
-                    margin-bottom: 1.25rem;
-                    color: ${({ theme }) => theme.color.primary};
+            .category-name {
+                font-size: ${({ theme }) => theme.fontSize.medium};
+                font-weight: ${({ theme }) => theme.fontWeight.medium};
+                margin-bottom: 1.25rem;
+                color: ${({ theme }) => theme.color.primary};
 
-                    &:hover {
-                        svg {
-                            animation: moveForward .7s linear infinite;
-                        }
-                    }
-                }
-
-                .title-section {
-                    display: flex;
-                    flex-direction: row;
-                    gap: 0.5rem;
-
-                    .title-text {
-                        font-size: ${({ theme }) => theme.fontSize.large};
-                        flex: 1;
+                &:hover {
+                    svg {
+                        animation: moveForward .7s linear infinite;
                     }
                 }
             }
 
-            .bottom {
-                height: 100%;
+            .title-section {
                 display: flex;
                 flex-direction: row;
-                gap: 1.25rem;
+                gap: 0.5rem;
 
-                .img-section {
+                .title-text {
+                    font-size: ${({ theme }) => theme.fontSize.large};
                     flex: 1;
-
-                    .etc {
-                        display: flex;
-                        flex-direction: row;
-                        justify-content: center;
-                        gap: 1rem;
-                        margin-top: 1rem;
-                    }
                 }
+            }
+        }
 
-                @media (max-width: 768px) {
-                    flex-direction: column;
-                    .text, .img-section {
-                        flex: none; /* flex 비율 대신 각자 100% 너비 (혹은 auto) */
-                        width: 100%;
-                    }
+        .bottom {
+            height: 100%;
+            display: flex;
+            flex-direction: row;
+            gap: 1.25rem;
+
+            .img-section {
+                flex: 1;
+
+                .etc {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: center;
+                    gap: 1rem;
+                    margin-top: 1rem;
+                }
+            }
+
+            @media (max-width: 768px) {
+                flex-direction: column;
+                .text, .img-section {
+                    flex: none; /* flex 비율 대신 각자 100% 너비 (혹은 auto) */
+                    width: 100%;
+                }
 
             }
         }

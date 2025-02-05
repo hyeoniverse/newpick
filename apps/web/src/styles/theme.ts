@@ -15,7 +15,9 @@ export type ColorKey =
 	| 'neutral' // 옅은 그레이 색상
 	| 'lightGrey' // 밝은 그레이 색상
 	| 'mediumGrey' // 어두운 그레이 색상
-	| 'border'; // 테두리 색상
+	| 'border' // 테두리 색상
+	| 'white' // 흰색
+	| 'mono'; // 회색 계열
 
 export type HeadingSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
 export type FontSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
@@ -94,6 +96,8 @@ export const lightTheme: Theme = {
 		mediumGrey: '#444444',
 		lightGrey: '#999999',
 		border: '#d9d9d9',
+		white: '#FFFFFF',
+		mono: '#111111',
 	},
 	fontSize: {
 		extraSmall: '0.875rem',
@@ -274,6 +278,8 @@ export const darkTheme: Theme = {
 		mediumGrey: '#a3a3a3',
 		lightGrey: '#606060',
 		border: '#333333',
+		white: '#FFFFFF',
+		mono: '#111111',
 	},
 	buttonScheme: {
 		primary: {
