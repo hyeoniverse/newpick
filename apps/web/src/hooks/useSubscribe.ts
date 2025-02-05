@@ -15,6 +15,8 @@ const handleError = (error: Error, message: string, showToast: (msg: string, typ
 
 // 구독 상태 조회 훅
 export const useSubscribeStatus = () => {
+	const { user } = useAuth();
+
 	const {
 		data: subscriptionStatus,
 		isLoading: isStatusLoading,
@@ -25,7 +27,7 @@ export const useSubscribeStatus = () => {
 			const status = await fetchSubscription();
 			return status;
 		},
-		enabled: false,
+		enabled: !!user,
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
 	});
@@ -85,6 +87,8 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 
 // 구독 관심사 훅
 export const useSubscribeInterests = () => {
+	const { user } = useAuth();
+
 	const {
 		data: interests,
 		isLoading: isInterestsLoading,
@@ -92,7 +96,7 @@ export const useSubscribeInterests = () => {
 	} = useQuery({
 		queryKey: ['subscriptionInterests'],
 		queryFn: () => fetchInterests(),
-		enabled: false,
+		enabled: !!user,
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
 	});
@@ -210,7 +214,7 @@ export const useSubscribe = () => {
 		}
 	};
 
-	const toggleSubscribe = () => (status ? handlePause() : handleReStart());
+	const toggleSubscribe = () => (status === true ? handlePause() : handleReStart());
 
 	return {
 		handleSubscribe,
