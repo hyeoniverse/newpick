@@ -168,6 +168,7 @@ const StyledCard = styled.div<StyledProps>`
 
 			.title {
 				color: ${({ theme }) => theme.color.primary};
+				width: 100%;
 			}
 		}
 

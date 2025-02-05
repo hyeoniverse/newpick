@@ -18,7 +18,7 @@ interface Props {
 	className?: string;
 }
 
-export default function Imgae({
+export default function Image({
 	src,
 	alt,
 	width = 400,
