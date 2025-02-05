@@ -19,15 +19,7 @@ export const useAuth = () => {
 
 	// 로그인 핸들러 (Google OAuth)
 	const handleLogin = async () => {
-		try {
-			const user = await loginUser(setUser);
-			setUser(user);
-			setTimeout(() => {
-				refetchUser();
-			}, 300);
-		} catch (error) {
-			console.error('❌ 로그인 실패:', error);
-		}
+		loginUser();
 	};
 
 	// 로그아웃 핸들러
@@ -61,6 +53,15 @@ export const useAuth = () => {
 		staleTime: AUTH.STALE_TIME,
 		retry: 1,
 	});
+
+	// OAuth 리다이렉트 후 사용자 정보 가져오기
+	useEffect(() => {
+		const urlParams = new URLSearchParams(window.location.search);
+		if (urlParams.has('oauthSuccess')) {
+			refetchUser();
+			router.replace('/'); // 쿼리 파라미터 제거
+		}
+	}, [router, refetchUser]);
 
 	// 페이지 새로고침 후 로그인 유지 (사용자 정보 설정)
 	useEffect(() => {
