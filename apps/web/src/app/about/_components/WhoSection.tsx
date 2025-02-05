@@ -53,10 +53,13 @@ export default function WhoSection() {
 }
 
 const StyledWhoSection = styled.div`
+	margin-top: auto;
+
 	.panel {
 		padding: 6rem 0;
 		display: flex;
 		flex-direction: column;
+		margin: 0;
 
 		.content {
 			width: 100%;
