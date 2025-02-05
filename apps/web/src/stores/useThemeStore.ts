@@ -2,9 +2,9 @@
 
 import { create } from 'zustand';
 import { ThemeName } from '@/styles/theme';
+import React from 'react';
 
-const DEFAULT_THEME_NAME: ThemeName = 'light';
-const THEME_LOCALSTORAGE_KEY = 'qru_theme';
+const THEME_LOCALSTORAGE_KEY = 'newpick_theme';
 
 interface ThemeState {
 	themeName: ThemeName;
@@ -14,15 +14,33 @@ interface ThemeState {
 
 // Zustand 스토어 생성
 export const useThemeStore = create<ThemeState>((set) => ({
-	themeName: DEFAULT_THEME_NAME,
+	themeName: 'light', // 서버에서는 항상 light로 설정하여 초기 UI 불일치 방지
+
 	setTheme: (theme) => {
-		localStorage.setItem(THEME_LOCALSTORAGE_KEY, theme);
+		if (typeof window !== 'undefined') {
+			localStorage.setItem(THEME_LOCALSTORAGE_KEY, theme);
+		}
 		set({ themeName: theme });
 	},
+
 	toggleTheme: () =>
 		set((state) => {
 			const newTheme = state.themeName === 'light' ? 'dark' : 'light';
-			localStorage.setItem(THEME_LOCALSTORAGE_KEY, newTheme);
+			if (typeof window !== 'undefined') {
+				localStorage.setItem(THEME_LOCALSTORAGE_KEY, newTheme);
+			}
 			return { themeName: newTheme };
 		}),
 }));
+
+// 클라이언트에서 테마 불러오기
+export const useSyncTheme = () => {
+	const { setTheme } = useThemeStore();
+
+	React.useEffect(() => {
+		if (typeof window !== 'undefined') {
+			const savedTheme = (localStorage.getItem(THEME_LOCALSTORAGE_KEY) as ThemeName) || 'light';
+			setTheme(savedTheme);
+		}
+	}, [setTheme]);
+};
