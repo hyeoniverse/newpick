@@ -61,8 +61,8 @@ export const useSelectInterests = () => {
 	return { selectedInterests, handleSelectInterests };
 };
 
-export const useSingleSelectInterest = () => {
-	const [selectedInterest, setSelectedInterest] = useState<string>();
+export const useSingleSelectInterest = (initialInterest?: string) => {
+	const [selectedInterest = initialInterest, setSelectedInterest] = useState<string>();
 
 	// 카테고리 선택 (전체 선택 방지)
 	const handleSelectInterest = (category?: Category) => {
