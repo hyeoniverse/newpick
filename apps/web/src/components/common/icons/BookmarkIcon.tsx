@@ -8,7 +8,7 @@ import { useTheme } from 'styled-components';
 import { useAddBookmarkMutation, useBookmarksList, useRemoveBookmarkMutation } from '@/hooks/useBookmark';
 
 interface BookmarkIconProps {
-	newsId: number; // 아티클 ID
+	newsId: number; // 뉴스레터 ID
 	newsletterId: number;
 	className?: string;
 }

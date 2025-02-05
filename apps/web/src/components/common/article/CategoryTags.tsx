@@ -3,31 +3,39 @@ import { useSelectInterests, useSingleSelectInterest } from '@/hooks/useInterest
 import { styled } from 'styled-components';
 import Button from '@/components/common/Button';
 
-type select = 'multiple' | 'single' | 'none';
+type select = 'multiple' | 'single' | 'localSingle';
 interface Props {
 	className?: string;
-	select?: select;
+	selectType?: select;
+	selected?: string;
+	onSelect?: (category: string) => void;
 }
 
-export default function CategoryTags({ className, select = 'multiple' }: Props) {
+export default function CategoryTags({ className, selectType = 'multiple', selected, onSelect }: Props) {
 	const { selectedInterest, handleSelectInterest } = useSingleSelectInterest();
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 
 	return (
 		<StyledCategoris className={className}>
 			<ul className="categories">
-				{CATEGORIES.slice(select === 'single' ? 1 : 0).map((category, index) => (
+				{CATEGORIES.slice(selectType === 'single' || 'localSingle' ? 1 : 0).map((category, index) => (
 					<li key={index}>
 						<Button
 							type="button"
 							scheme="default"
 							onClick={
-								select === 'single'
+								selectType === 'localSingle'
+									? () => onSelect && onSelect(category.name)
+									: selectType === 'single'
 									? () => handleSelectInterest(category)
 									: () => handleSelectInterests(category)
 							}
 							className={
-								selectedInterest === category.name || selectedInterests.includes(category.name)
+								selectType === 'localSingle'
+									? selected === category.name
+										? 'category-btn active'
+										: 'category-btn'
+									: selectedInterest === category.name || selectedInterests.includes(category.name)
 									? 'category-btn active'
 									: 'category-btn'
 							}

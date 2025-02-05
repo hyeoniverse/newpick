@@ -18,7 +18,7 @@ function PopularArticle({ flex, className }: Props) {
 
 	return (
 		<PopularNewsletterStyled flex={flex} className={className}>
-			<h3 className="section-title">지금 인기 아티클 TOP 5</h3>
+			<h3 className="section-title">지금 인기 뉴스레터 TOP 5</h3>
 			<ul className="popular-list">
 				{popularArticles && popularArticles.map((article, index) => (
 					<li key={index}>

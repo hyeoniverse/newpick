@@ -23,7 +23,7 @@ function LatestArticle({ className }: Props) {
 	return (
 		<LatestArticleStyled className={className}>
 			<div className="section-title">
-				<h3>최신 아티클</h3>
+				<h3>최신 뉴스레터</h3>
 			</div>
 			<div className="swiper-container">
 				<Swiper
