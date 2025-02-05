@@ -26,7 +26,7 @@ interface Props {
 	viewCount: number;
 }
 
-function Article({ viewCount}: Props) {
+function Article({ viewCount }: Props) {
 	const router = useRouter();
 	const { slug } = useParams() as { slug: string };
 	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
@@ -46,6 +46,10 @@ function Article({ viewCount}: Props) {
 	}
 	const newsletterHTML = stripCodeFence(articleContent.newsletter.contentAsHTML, 'html');
 	const newsletterContent = articleContent.newsletter;
+	const usedNewsList = newsletterContent.usedNews
+	.split(',')
+	.map((url) => url.trim())
+	.slice(0, 3);
 
 	return (
 		<>
@@ -79,9 +83,14 @@ function Article({ viewCount}: Props) {
 			<ArticleStyled>
 				<SummaryTextBox>{newsletterContent.content}</SummaryTextBox>
 				<div className="content-section">
-					<ArticleContent className="content" content={newsletterHTML} articleImage={newsletterContent.imageUrl ?? ''} />
-					<PopularArticle className="popular" />
-				</div>
+					<ArticleContent
+            className="content"
+            content={newsletterHTML}
+            articleImage={newsletterContent.imageUrl ?? ''}
+						related={usedNewsList}
+					/>
+          <PopularArticle className="popular" />
+        </div>
 				<PrevNextArticle className="prev-next" prev={articleContent.previousNewsletter} next={articleContent.nextNewsletter} />
 				{/*<CommentsSection className="comments-section"/>*/}
 				<LatestArticle className="latest" />

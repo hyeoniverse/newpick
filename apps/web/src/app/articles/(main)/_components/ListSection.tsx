@@ -124,30 +124,17 @@ export default function ListSection() {
 					<Title size="extraSmall" weight="semiBold" color="primary" className="tag">
 						전체
 					</Title>
-					<Title size="extraSmall" weight="semiBold">
-						{categoryName} 뉴스레터
-					</Title>
 				</div>
 				<div className="right-section">
-					<Button
-						style={{ width: '6rem' }}
-						data-active={selectedSort === 'latest'}
-						onClick={() => setSelectedSort('latest')}
-					>
+					<Button data-active={selectedSort === 'latest'} onClick={() => setSelectedSort('latest')}>
 						최신순
 					</Button>
-					<Button
-						style={{ width: '6rem' }}
-						data-active={selectedSort === 'views'}
-						onClick={() => setSelectedSort('views')}
-					>
+					<Button data-active={selectedSort === 'views'} onClick={() => setSelectedSort('views')}>
 						인기순
 					</Button>
 				</div>
 			</div>
-
 			<div className="newsletter-cards">
-				<hr />
 				{sortedArticles.map((article, index) => (
 					<Card
 						type="list"
@@ -189,6 +176,15 @@ const StyledListSection = styled.section`
 	justify-content: space-between;
 	align-items: flex-start;
 	gap: 1rem;
+	margin-top: 2rem;
+
+	hr {
+		width: 100%;
+		border: none;
+		margin: 0;
+		padding: 0;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+	}
 
 	.header {
 		width: 100%;
@@ -197,6 +193,14 @@ const StyledListSection = styled.section`
 		justify-content: space-between;
 		align-items: center;
 
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			flex-wrap: wrap;
+
+			.right-section {
+				margin-top: 1rem;
+			}
+		}
+
 		.title {
 			display: flex;
 			flex-direction: row;
@@ -204,7 +208,12 @@ const StyledListSection = styled.section`
 			align-items: center;
 			gap: 1rem;
 
+			h1 {
+				white-space: nowrap;
+			}
+
 			.tag {
+				white-space: nowrap;
 				border-radius: ${({ theme }) => theme.borderRadius.capsule};
 				background: ${({ theme }) => theme.color.tertiary};
 				color: ${({ theme }) => theme.color.primary};

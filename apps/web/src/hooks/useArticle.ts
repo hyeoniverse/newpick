@@ -1,8 +1,10 @@
+import { NewsInfo as INewsInfo } from '@/models/article.model';
 import {
 	fetchArticle,
 	fetchArticleByCategory,
 	fetchArticleList,
 	fetchPopularArticle,
+	fetchRelatedNews,
 	fetchTrendList,
 } from '@/api/article';
 import { ArticleInfo as IArticleInfo, ArticleDetail as IArticleDetail } from '@/models/article.model';
@@ -71,4 +73,14 @@ export const getCategoryList = async (
 ): Promise<IArticleDetail[]> => {
 	const { data }: { data: IArticleDetail[] } = await fetchArticleByCategory(category, limit, offset);
 	return data;
+};
+
+export const getRelatedNews = async (links: string[]): Promise<INewsInfo[]> => {
+	const relatedNews: INewsInfo[] = await Promise.all(
+		links.map(async (link) => {
+			return await fetchRelatedNews(link);
+		})
+	);
+
+	return relatedNews;
 };

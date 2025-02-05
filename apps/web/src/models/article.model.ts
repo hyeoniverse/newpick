@@ -27,3 +27,14 @@ export interface ArticleSummary {
 	bookmarks?: number;
 	views?: number;
 }
+
+export interface NewsInfo {
+	id: string;
+	link: string;
+	category: string[];
+	title: string;
+	content: string;
+	images: string[];
+	publishedAt: string;
+	source: string;
+}

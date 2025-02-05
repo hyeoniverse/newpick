@@ -27,16 +27,15 @@ export default function HotSection({ trends: initiallData = [] }: Props) {
 
 	return (
 		<StyledHotSection $isAll={categoryName === '전체'}>
+			<Title size="large" weight="semiBold">
+				{categoryName} 뉴스레터
+			</Title>
+			<hr />
 			<div className="title">
 				<Title size="extraSmall" color="primary" weight="bold" className="tag">
 					{searchParams ? 'TODAY' : 'HOT'}
 				</Title>
-				<Title size="extraSmall" weight="semiBold">
-					{categoryName} 뉴스레터
-				</Title>
 			</div>
-			<hr />
-
 			<CardSlider
 				className="card-slider"
 				type="main"
@@ -76,7 +75,7 @@ const StyledHotSection = styled.section<StyledProps>`
 	justify-content: space-between;
 	align-items: flex-start;
 	gap: 1rem;
-	padding: 3rem 0;
+	padding: 1rem 0;
 
 	hr {
 		width: 100%;
@@ -101,6 +100,8 @@ const StyledHotSection = styled.section<StyledProps>`
 	}
 
 	.card-slider {
+		padding: 0 0.5rem;
+
 		.controls {
 			display: ${({ $isAll }) => ($isAll ? 'flex' : 'none')};
 		}
