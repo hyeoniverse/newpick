@@ -4,21 +4,21 @@ import { dateFormatter } from '@/utils/formatter';
 
 export const getTodayArticles = async (limit: number) => {
   const now = new Date();
-  const startDate = dateFormatter(now.toString());
-  const endDate = startDate;
 
-	const data = await fetchDateNewsletter(limit, 0, startDate, endDate);
-
-  console.log(data)
-	const newsletters: IArticleDetail[] = data.data;
-
-
+  // 기준시간 오전 8시 설정
   const threshold = new Date();
   threshold.setHours(8, 0, 0, 0);
+
   if (now < threshold) {
-    // 만약 지금이 8시 이전이라면 어제 8시로 설정
     threshold.setDate(threshold.getDate() - 1);
   }
+
+  const formattedStartDate = dateFormatter(threshold.toString());
+  const formattedEndDate = formattedStartDate;
+
+  const data = await fetchDateNewsletter(limit, 0, formattedStartDate, formattedEndDate);
+  console.log(data);
+  const newsletters: IArticleDetail[] = data.data;
 
   const TodayNewsletter = newsletters.filter((n) => new Date(n.createdAt) >= threshold);
   return TodayNewsletter;
@@ -40,4 +40,4 @@ export const userSubscribeArticles = async (categoryIds: number[]) => {
   .sort((a, b) => a.categoryId - b.categoryId);
 
   return latestArticlesByCategory;
-}
+};
