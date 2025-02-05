@@ -12,8 +12,15 @@ export const summarizeNews = async (categoryId: number, dateStart: string, dateE
 			headers: {
 				'Content-Type': 'application/json',
 			},
-			body: JSON.stringify({ dateStart, dateEnd, categoryId }),
+			body: JSON.stringify({
+				dateStart: dateStart,
+				dateEnd: dateStart,
+				categoryId: categoryId,
+				test: true,
+			}),
 		});
+
+		console.log('response', response);
 
 		if (!response.ok) {
 			throw new Error(`Error: ${response.status} ${response.statusText}`);
