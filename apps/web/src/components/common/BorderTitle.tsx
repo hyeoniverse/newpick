@@ -24,12 +24,15 @@ interface StyledProps {
 }
 
 const StyledBorderTitle = styled.div<StyledProps>`
+	width: 100%;
 	display: flex;
 	align-items: center;
 	margin-bottom: 3rem;
+	text-align: center;
 
 	.title {
-		width: 20rem;
+		white-space: nowrap;
+		margin-right: 1rem;
 		color: ${({ theme, $color }) => ($color ? theme.color[$color] : theme.color.text)};
 	}
 

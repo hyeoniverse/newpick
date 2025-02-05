@@ -46,7 +46,7 @@ function WhyNewpickSection({ className }: Props) {
 		<StyledExploreSection className={className}>
 			<BorderTitle text="EXPLORE" />
 			<div>
-				<Text size="small" color="mediumGrey" className="sub-text">
+				<Text size="medium" color="mediumGrey" className="sub-text">
 					다양한 카테고리로 관심사를 더욱 세분화하여
 					<br />
 					확장된 경험과 지식을 보여드립니다.
@@ -54,7 +54,7 @@ function WhyNewpickSection({ className }: Props) {
 			</div>
 			<div className="subscription">
 				<CategoryTags className="categories" />
-				<Text size="small" weight="bold">
+				<Text size="medium" weight="bold">
 					평소에 관심있던 카테고리를 선택해보세요.
 				</Text>
 				<ArgreementCheck className="agreement" name={checkName} />
