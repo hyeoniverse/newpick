@@ -14,12 +14,12 @@ const Footer = () => {
 				<div className="footer-menu">
 					<Text size="extraSmall">서비스 이용 문의</Text>
 					<Link className="footer-item email" href="mailto:newpick@gmail.com">
-						newpick@gmail.com
+						newpick.official@gmail.com
 					</Link>
-					<Link className="footer-item" href="#">
+					<Link className="footer-item" href="/">
 						개인정보처리방침
 					</Link>
-					<Link className="footer-item" href="#">
+					<Link className="footer-item" href="/">
 						이용약관
 					</Link>
 					<Link className="footer-item" href="https://github.com/Devcourse-NewPick" target="_blank">
