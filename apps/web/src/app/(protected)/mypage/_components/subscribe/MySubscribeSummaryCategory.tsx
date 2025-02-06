@@ -10,9 +10,11 @@ import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import BarWidth from '@/components/common/BarWidth';
 import SummaryTextBox from '@/components/common/article/SummaryTextBox';
-import HeightAutoImg from '@/components/common/HeightAutoImg';
+import Image from '@/components/common/Image';
 import Spinner from '@/components/common/loader/Spinner';
 import NoContentsPage from '@/components/common/NoContentsPage';
+// import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
+import { DEFAULT_IMAGES } from '@/constants/images';
 
 function MySummaryCategory() {
 	const { user } = useAuth();
@@ -48,11 +50,13 @@ function MySummaryCategory() {
 								</div>
 								<div className="bottom">
 									<div className="img-section">
-										<HeightAutoImg src={article.image || null} height={'auto'} />
+										<div className="image-placeholder">
+											<Image src={article.image || DEFAULT_IMAGES.MONO} alt={article.title} />
+										</div>
 										<div className="etc">
 											<BookmarkIcon newsId={article.id} newsletterId={article.id} />
 											<LinkCopyIcon id={article.id} />
-											{/*<OrigLinkIcon />*/}
+											{/* <OrigLinkIcon /> */}
 										</div>
 									</div>
 									<SummaryTextBox flex={3}>{article.summary}</SummaryTextBox>
@@ -124,6 +128,15 @@ const MySummaryCategoryStyled = styled.div`
 
             .img-section {
                 flex: 1;
+
+                .image-placeholder {
+                    width: 100%;
+                    height: fit-content !important;
+                    aspect-ratio: 16 / 9;
+                    border-radius: ${({ theme }) => theme.borderRadius.medium};
+                    overflow: hidden;
+                    background-color: ${({ theme }) => theme.color.surface};
+                }
 
                 .etc {
                     display: flex;

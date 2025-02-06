@@ -76,24 +76,19 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 				</div>
 				<ul className="categories">
 					{userArticles.length > 0 &&
-						userArticles.map((article) => (
-							<li
-								key={article.id}
-								className={`category ${
-									activeCategory === mapTitleToId([article.categoryName])[0].toString()
-										? 'active'
-										: ''
-								}`}
-							>
-								<button
-									onClick={(e) =>
-										handleAnchorNavigation(e, mapTitleToId([article.categoryName])[0].toString())
-									}
+						userArticles.map((article) => {
+							const categoryId = mapTitleToId([article.categoryName])[0].toString();
+							return (
+								<li
+									key={article.id}
+									className={`category ${activeCategory === categoryId ? 'active' : ''}`}
 								>
-									{article.categoryName}
-								</button>
-							</li>
-						))}
+									<button onClick={(e) => handleAnchorNavigation(e, categoryId)}>
+										{article.categoryName}
+									</button>
+								</li>
+							);
+						})}
 				</ul>
 			</ContentsStyled>
 		</SubscribeInfoStyled>
