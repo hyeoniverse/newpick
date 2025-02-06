@@ -3,12 +3,10 @@
 import styled from 'styled-components';
 import { useEffect, useRef, useState } from 'react';
 import { useHeader } from '@/hooks/useHeader';
-import { useTrends } from '@/hooks/useTrends';
-
 import { remToPx } from '@/utils/formatter';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { filterByCategories } from '@/utils/queryNewsletters';
-import { mapIdToTitle } from '@/utils/mapInterests';
+import { useArticleStore } from '@/stores/useMySubscribeStore';
+import { useCategoryStore } from '@/stores/useCategoryStore';
 
 interface SubscribeInfoProps {
 	activeCategory: string;
@@ -16,14 +14,21 @@ interface SubscribeInfoProps {
 
 function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 	const { user } = useAuthStore();
-	const { trends } = useTrends();
-	const userInterests = mapIdToTitle(user?.interests ?? []);
-	const userArticles = filterByCategories(trends, userInterests);
+	const { userArticles, fetchUserArticles } = useArticleStore();
+	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
 	const lastScrollY = useRef(0);
 	const navRef = useRef<HTMLDivElement>(null);
 	const [isSticky, setIsSticky] = useState(false);
 	const { headerHeight } = useHeader();
+
+	useEffect(() => {
+		fetchUserArticles(user?.interests ?? []);
+		// 카테고리 데이터가 아직 없으면 fetch (한 번만 실행됨)
+		if (Object.keys(categories).length === 0) {
+			fetchCategories();
+		}
+	}, [user?.interests, fetchUserArticles, categories, fetchCategories]);
 
 	// 스크롤 좌우 넓어지는 효과
 	useEffect(() => {
@@ -43,11 +48,9 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 	}, []);
 
 	// 구독한 뉴스레터 네비게이션 스크롤 앵커 설정
-	const handleAnchorNavigation = (e: React.MouseEvent<HTMLButtonElement>, categoryName: string) => {
+	const handleAnchorNavigation = (e: React.MouseEvent<HTMLButtonElement>, id: string) => {
 		e.preventDefault();
-		// 해당 카테고리를 가진 요소 찾기
-		const element = document.querySelector<HTMLElement>(`[data-categoryid="${categoryName}"]`);
-
+		const element = document.querySelector<HTMLElement>(`[data-categoryid="${id}"]`);
 		if (element) {
 			const offset = remToPx('10rem') + remToPx(headerHeight);
 			const elementPosition = element.getBoundingClientRect().top + window.scrollY;
@@ -81,10 +84,12 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 						userArticles.map((article) => (
 							<li
 								key={article.id}
-								className={`category ${activeCategory === article.categoryName ? 'active' : ''}`}
+								className={`category ${
+									activeCategory === article.categoryId.toString() ? 'active' : ''
+								}`}
 							>
-								<button onClick={(e) => handleAnchorNavigation(e, article.categoryName)}>
-									{article.categoryName}
+								<button onClick={(e) => handleAnchorNavigation(e, article.categoryId.toString())}>
+									{getCategoryName(article.categoryId)}
 								</button>
 							</li>
 						))}
