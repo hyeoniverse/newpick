@@ -59,7 +59,7 @@ export const useAuth = () => {
 		const urlParams = new URLSearchParams(window.location.search);
 		if (urlParams.has('oauthSuccess')) {
 			refetchUser();
-			router.replace('/'); // 쿼리 파라미터 제거
+			window.history.replaceState(null, '', '/');
 		}
 	}, [router, refetchUser]);
 
