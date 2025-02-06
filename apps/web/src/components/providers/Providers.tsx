@@ -33,7 +33,6 @@ export default function Providers({ children, initialUser, initialTrends }: Prop
 		}
 	}, [initialTrends, setTrends]);
 
-	// 🚀 새로고침 시 `localStorage`에서 테마 불러오기
 	useEffect(() => {
 		const savedTheme = localStorage.getItem('newpick_theme') || 'light';
 		setTheme(savedTheme as 'light' | 'dark');
