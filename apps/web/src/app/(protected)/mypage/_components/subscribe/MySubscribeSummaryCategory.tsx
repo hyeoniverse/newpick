@@ -1,67 +1,66 @@
+import Link from 'next/link';
+import { useAuth } from '@/hooks/useAuth';
+import { useTrends } from '@/hooks/useTrends';
+import { filterByCategories } from '@/utils/queryNewsletters';
+import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
+
 import styled from 'styled-components';
 import { IoIosArrowForward } from 'react-icons/io';
-import Link from 'next/link';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import BarWidth from '@/components/common/BarWidth';
 import SummaryTextBox from '@/components/common/article/SummaryTextBox';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
-import { useAuthStore } from '@/stores/useAuthStore';
-import { useArticleStore } from '@/stores/useMySubscribeStore';
-import { useEffect } from 'react';
-import { useCategoryStore } from '@/stores/useCategoryStore';
 import Spinner from '@/components/common/loader/Spinner';
 import NoContentsPage from '@/components/common/NoContentsPage';
 
 function MySummaryCategory() {
-	const { user } = useAuthStore();
-	const { userArticles, loading, error, fetchUserArticles } = useArticleStore();
-	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
+	const { user } = useAuth();
+	const { trends, isLoading, isError } = useTrends();
 
-	useEffect(() => {
-		fetchUserArticles(user?.interests ?? []);
-		if (Object.keys(categories).length === 0) {
-			fetchCategories();
-		}
-	}, [user?.interests, fetchUserArticles, categories, fetchCategories]);
+	const userInterests = mapIdToTitle(user?.interests ?? []);
+	const userArticles = filterByCategories(trends, userInterests);
 
-	if (loading) return <Spinner />;
-	if (error) return <div>Error: {error}</div>;
+	if (isLoading) return <Spinner />;
+	if (isError) return <div>Error: 뉴스레터를 불러오는 중 문제가 발생했습니다.</div>;
 
 	return (
 		<>
 			<MySummaryCategoryStyled>
 				{userArticles.length > 0 ? (
-					userArticles.map((article) => (
-						<div
-							key={article.id}
-							className="my-subs-content"
-							id={`section-${article.id}`}
-							data-categoryid={article.categoryId}
-						>
-							<div className="top">
-								<Link href={`/articles/categories/${article.categoryId}`} className="category-name">
-									{getCategoryName(article.categoryId)}
-									<IoIosArrowForward />
-								</Link>
-								<Link href={`/articles/detail/${article.id}`} className="title-section">
-									<h3 className="title-text">{article.title}</h3>
-								</Link>
-							</div>
-							<div className="bottom">
-								<div className="img-section">
-									<HeightAutoImg src={article.imageUrl || null} height={'auto'} />
-									<div className="etc">
-										<BookmarkIcon newsId={article.id} newsletterId={article.id} />
-										<LinkCopyIcon id={article.id} />
-										{/*<OrigLinkIcon />*/}
-									</div>
+					userArticles.map((article) => {
+						const categoryId = mapTitleToId([article.categoryName])[0].toString();
+						return (
+							<div
+								key={article.id}
+								className="my-subs-content"
+								id={`section-${article.id}`}
+								data-categoryid={categoryId}
+							>
+								<div className="top">
+									<Link href={`/articles?categoryId=${categoryId}`} className="category-name">
+										{article.categoryName}
+										<IoIosArrowForward />
+									</Link>
+									<Link href={`/articles/detail/${article.id}`} className="title-section">
+										<h3 className="title-text">{article.title}</h3>
+									</Link>
 								</div>
-								<SummaryTextBox flex={3}>{article.content}</SummaryTextBox>
+								<div className="bottom">
+									<div className="img-section">
+										<HeightAutoImg src={article.image || null} height={'auto'} />
+										<div className="etc">
+											<BookmarkIcon newsId={article.id} newsletterId={article.id} />
+											<LinkCopyIcon id={article.id} />
+											{/*<OrigLinkIcon />*/}
+										</div>
+									</div>
+									<SummaryTextBox flex={3}>{article.summary}</SummaryTextBox>
+								</div>
+								<BarWidth width={'100%'} className="bar" />
 							</div>
-							<BarWidth width={'100%'} className="bar" />
-						</div>
-					))
+						);
+					})
 				) : (
 					<>
 						<NoContentsPage text={'오늘의 뉴스레터가 없습니다'} btnText={'메인으로'} moveTo={'/'} />

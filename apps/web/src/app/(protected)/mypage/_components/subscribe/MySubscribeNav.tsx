@@ -5,8 +5,9 @@ import { useEffect, useRef, useState } from 'react';
 import { useHeader } from '@/hooks/useHeader';
 import { remToPx } from '@/utils/formatter';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useArticleStore } from '@/stores/useMySubscribeStore';
-import { useCategoryStore } from '@/stores/useCategoryStore';
+import { useTrends } from '@/hooks/useTrends';
+import { filterByCategories } from '@/utils/queryNewsletters';
+import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
 
 interface SubscribeInfoProps {
 	activeCategory: string;
@@ -14,21 +15,15 @@ interface SubscribeInfoProps {
 
 function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 	const { user } = useAuthStore();
-	const { userArticles, fetchUserArticles } = useArticleStore();
-	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
+	const { trends } = useTrends();
 
 	const lastScrollY = useRef(0);
 	const navRef = useRef<HTMLDivElement>(null);
 	const [isSticky, setIsSticky] = useState(false);
 	const { headerHeight } = useHeader();
 
-	useEffect(() => {
-		fetchUserArticles(user?.interests ?? []);
-		// 카테고리 데이터가 아직 없으면 fetch (한 번만 실행됨)
-		if (Object.keys(categories).length === 0) {
-			fetchCategories();
-		}
-	}, [user?.interests, fetchUserArticles, categories, fetchCategories]);
+	const userInterests = mapIdToTitle(user?.interests ?? []);
+	const userArticles = filterByCategories(trends, userInterests);
 
 	// 스크롤 좌우 넓어지는 효과
 	useEffect(() => {
@@ -85,11 +80,17 @@ function MySubscribeNav({ activeCategory }: SubscribeInfoProps) {
 							<li
 								key={article.id}
 								className={`category ${
-									activeCategory === article.categoryId.toString() ? 'active' : ''
+									activeCategory === mapTitleToId([article.categoryName])[0].toString()
+										? 'active'
+										: ''
 								}`}
 							>
-								<button onClick={(e) => handleAnchorNavigation(e, article.categoryId.toString())}>
-									{getCategoryName(article.categoryId)}
+								<button
+									onClick={(e) =>
+										handleAnchorNavigation(e, mapTitleToId([article.categoryName])[0].toString())
+									}
+								>
+									{article.categoryName}
 								</button>
 							</li>
 						))}
