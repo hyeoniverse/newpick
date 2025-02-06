@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTab } from '@/hooks/useTab';
 import { useModal } from '@/hooks/useModal';
 
-import styled from 'styled-components';
+import styled, { useTheme } from 'styled-components';
 import Button from '@/components/common/Button';
 import ModalContent from '@/components/common/modal/ModalContent';
 import { BiSolidMessageRoundedError } from 'react-icons/bi';
@@ -22,6 +22,8 @@ function SubscribeInduce({ className }: Props) {
 	const { setActiveTab } = useTab();
 	const [isSubscribeClicked, setIsSubscribeClicked] = useState(false);
 	const { openModal, closeModal } = useModal();
+
+	const { themeName } = useTheme();
 
 	useEffect(() => {
 		if (isSubscribeClicked && user) {
@@ -63,7 +65,7 @@ function SubscribeInduce({ className }: Props) {
 	};
 
 	return (
-		<SubscribeInduceStyled className={className}>
+		<SubscribeInduceStyled className={className} $themeName={themeName}>
 			<p>뉴픽이 보내드리는 뉴스레터를 구독해보세요!</p>
 			<Button scheme="primary" size="medium" onClick={onClickSubscribe}>
 				구독하기
@@ -72,7 +74,11 @@ function SubscribeInduce({ className }: Props) {
 	);
 }
 
-const SubscribeInduceStyled = styled.div`
+interface StyledProps {
+	$themeName: 'light' | 'dark';
+}
+
+const SubscribeInduceStyled = styled.div<StyledProps>`
 	background-color: ${({ theme }) => theme.color.tertiary};
 	border-radius: ${({ theme }) => theme.borderRadius.soft};
 	padding: 2rem 4rem;
@@ -86,7 +92,10 @@ const SubscribeInduceStyled = styled.div`
 		width: 100%;
 		font-size: ${({ theme }) => theme.fontSize.extraLarge};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		background: linear-gradient(to right top, #0c0042, #2d11b1, #5537dd, #0e004d);
+		background: ${({ $themeName }) =>
+			$themeName === 'light'
+				? 'linear-gradient(to right top, #0c0042, #2d11b1, #5537dd, #0e004d)'
+				: 'linear-gradient(to right top, #3b1d91, #5b40e0, #7761ff, #a28eff)'};
 		color: transparent;
 		-webkit-background-clip: text;
 
