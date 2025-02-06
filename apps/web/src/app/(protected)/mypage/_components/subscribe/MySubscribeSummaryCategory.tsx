@@ -7,20 +7,26 @@ import BarWidth from '@/components/common/BarWidth';
 import SummaryTextBox from '@/components/common/article/SummaryTextBox';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import { useAuthStore } from '@/stores/useAuthStore';
+import { useArticleStore } from '@/stores/useMySubscribeStore';
+import { useEffect } from 'react';
+import { useCategoryStore } from '@/stores/useCategoryStore';
 import Spinner from '@/components/common/loader/Spinner';
 import NoContentsPage from '@/components/common/NoContentsPage';
-import { useTrends } from '@/hooks/useTrends';
-import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
-import { filterByCategories } from '@/utils/queryNewsletters';
 
 function MySummaryCategory() {
 	const { user } = useAuthStore();
-	const { trends, isLoading, isError } = useTrends();
-	const userInterests = mapIdToTitle(user?.interests ?? []);
-	const userArticles = filterByCategories(trends, userInterests);
+	const { userArticles, loading, error, fetchUserArticles } = useArticleStore();
+	const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
-	if (isLoading) return <Spinner />;
-	if (isError) return <div>Error: {'뉴스레터 테이터를 불러오는데 실패했습니다.'}</div>;
+	useEffect(() => {
+		fetchUserArticles(user?.interests ?? []);
+		if (Object.keys(categories).length === 0) {
+			fetchCategories();
+		}
+	}, [user?.interests, fetchUserArticles, categories, fetchCategories]);
+
+	if (loading) return <Spinner />;
+	if (error) return <div>Error: {error}</div>;
 
 	return (
 		<>
@@ -31,14 +37,11 @@ function MySummaryCategory() {
 							key={article.id}
 							className="my-subs-content"
 							id={`section-${article.id}`}
-							data-categoryid={article.categoryName}
+							data-categoryid={article.categoryId}
 						>
 							<div className="top">
-								<Link
-									href={`/articles?categoryId=${mapTitleToId([article.categoryName])}`}
-									className="category-name"
-								>
-									{article.categoryName}
+								<Link href={`/articles/categories/${article.categoryId}`} className="category-name">
+									{getCategoryName(article.categoryId)}
 									<IoIosArrowForward />
 								</Link>
 								<Link href={`/articles/detail/${article.id}`} className="title-section">
@@ -47,14 +50,14 @@ function MySummaryCategory() {
 							</div>
 							<div className="bottom">
 								<div className="img-section">
-									<HeightAutoImg src={article.image || null} height={'auto'} />
+									<HeightAutoImg src={article.imageUrl || null} height={'auto'} />
 									<div className="etc">
 										<BookmarkIcon newsId={article.id} newsletterId={article.id} />
 										<LinkCopyIcon id={article.id} />
 										{/*<OrigLinkIcon />*/}
 									</div>
 								</div>
-								<SummaryTextBox flex={3}>{article.summary}</SummaryTextBox>
+								<SummaryTextBox flex={3}>{article.content}</SummaryTextBox>
 							</div>
 							<BarWidth width={'100%'} className="bar" />
 						</div>
