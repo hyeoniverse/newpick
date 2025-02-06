@@ -103,6 +103,7 @@ export default function Header() {
 						</Dropdown>
 					) : (
 						<>
+							<ThemeSwitcher scheme="secondary" className="item" />
 							<Button
 								scheme="outline"
 								onClick={handleLogin}
