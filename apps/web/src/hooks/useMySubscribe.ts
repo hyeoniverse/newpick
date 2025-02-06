@@ -17,7 +17,6 @@ export const getTodayArticles = async (limit: number) => {
 	const formattedEndDate = formattedStartDate;
 
 	const data = await fetchDateNewsletter(limit, 0, formattedStartDate, formattedEndDate);
-	console.log(data);
 	const newsletters: IArticleDetail[] = data.data;
 
 	const TodayNewsletter = newsletters.filter((n) => new Date(n.createdAt) >= threshold);

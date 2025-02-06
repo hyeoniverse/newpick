@@ -31,10 +31,8 @@ export default function Trial() {
 
 	const getStartDate = () => {
 		const now = new Date();
-		const hours = now.getHours();
-		// 현재 시간이 오전 8시 이전이면 어제 날짜, 이후면 오늘 날짜 사용
-		const targetDate = hours < 9 ? new Date(now.setDate(now.getDate() - 1)) : now;
-		return dateFormatter(targetDate.toISOString().split('T')[0]);
+		now.setDate(now.getDate() - 1);
+		return dateFormatter(now.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }));
 	};
 
 	const handleGenerateNewsletter = async () => {
