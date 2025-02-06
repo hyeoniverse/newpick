@@ -4,6 +4,7 @@ import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSubscribe } from '@/hooks/useSubscribe';
 import { useSelectInterests } from '@/hooks/useInterests';
+import { useAuth } from '@/hooks/useAuth';
 import { useTrends } from '@/hooks/useTrends';
 
 import { styled } from 'styled-components';
@@ -20,6 +21,7 @@ import ArgreementCheck from '@/components/common/article/AgreementCheck';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
 
 const SubscribeSection = () => {
+	const { user } = useAuth();
 	const { trends } = useTrends();
 	const { isChanging: isChangingSubscription, handleSubscribe: startSubscription } = useSubscribe();
 
@@ -30,6 +32,19 @@ const SubscribeSection = () => {
 
 	const handleSubscribe = async (e: React.FormEvent) => {
 		e.preventDefault();
+		if (!user) {
+			openModal(
+				<ModalContents
+					icon={<LuMailCheck />}
+					title="로그인이 필요합니다"
+					content={`로그인 후 이용해주세요.`}
+					filledButton="확인"
+					onConfirmClick={closeModal}
+				/>
+			);
+			return;
+		}
+
 		const isSuccess = await startSubscription({ interests: selectedInterests, isChecked: isChecked });
 
 		if (isSuccess) {
