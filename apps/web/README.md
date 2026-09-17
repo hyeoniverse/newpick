@@ -30,8 +30,8 @@ Newpick은 사용자가 선택한 관심사 기반으로 맞춤형 뉴스레터 
 |                                      김정현                                      |                                    이주현                                    |
 |:-----------------------------------------------------------------------------:|:-------------------------------------------------------------------------:|
 |                               기획, 유저인증, API 연동                                |                            와이어프레임, 디자인, API 연동                            |
-| <img src="https://avatars.githubusercontent.com/CodingKirby" width="200px" /> | <img src="https://avatars.githubusercontent.com/jayl100" width="200px" /> |
-|                 [@CodingKirby](https://github.com/mong-head)                  |                 [@jayl100](https://github.com/dntjd7701)                  |
+| <img src="https://avatars.githubusercontent.com/Hyeoniverse" width="200px" /> | <img src="https://avatars.githubusercontent.com/jayl100" width="200px" /> |
+|                 [@Hyeoniverse](https://github.com/hyeoiniverse)                  |                 [@jayl100](https://github.com/dntjd7701)                  |
 
 
 ---
