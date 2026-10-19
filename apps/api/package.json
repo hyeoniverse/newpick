@@ -42,6 +42,7 @@
     "@nestjs/passport": "^10.0.3",
     "@nestjs/platform-express": "^10.4.15",
     "@nestjs/schedule": "^4.1.2",
+    "@nestjs/throttler": "^6.5.0",
     "@prisma/client": "^6.2.0",
     "@sentry/nestjs": "^8.51.0",
     "@sentry/profiling-node": "^8.51.0",
@@ -106,7 +107,11 @@
       "**/*.(t|j)s"
     ],
     "coverageDirectory": "../coverage",
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1",
+      "^prisma/(.*)$": "<rootDir>/../prisma/$1"
+    }
   },
   "prisma": {
     "schema": "prisma/mysql.schema.prisma"

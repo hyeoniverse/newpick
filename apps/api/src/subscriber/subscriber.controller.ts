@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { SubscriberService } from './subscriber.service';
 import { AuthGuard } from '@nestjs/passport';
+import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 @Controller('subscribers')
 @UseGuards(AuthGuard('jwt'))
 export class SubscriberController {
@@ -60,6 +61,7 @@ export class SubscriberController {
     return this.subscriberService.getSubscriptionHistory(userId);
   }
 
+  @AdminOnly()
   @Get('all')
   async getAllSubscribers() {
     return this.subscriberService.getSubscribers();

@@ -1,12 +1,13 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class AdminService {
   constructor(private readonly prisma: MysqlPrismaService) {}
 
   async getAllUsers() {
-    return this.prisma.user.findMany();
+    return this.prisma.user.findMany({ omit: { password: true } });
   }
 
   async deleteUser(id: number) {
@@ -29,15 +30,16 @@ export class AdminService {
   /**
    * 사용자 정보 수정
    */
-  async updateUser(id: number, updateDto: { role?: string; status?: string }) {
+  async updateUser(id: number, updateDto: UpdateUserDto) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
-      throw new Error('User not found');
+      throw new NotFoundException('User not found');
     }
 
     return this.prisma.user.update({
       where: { id },
-      data: updateDto,
+      data: { role: updateDto.role },
+      omit: { password: true },
     });
   }
 }

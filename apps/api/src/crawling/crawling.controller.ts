@@ -3,6 +3,7 @@ import { CrawlingService } from './crawling.service';
 import { CrawlingRepository } from './crawling.repository';
 import { CommonResponseInterceptor } from '../common/response.interceptor';
 import { CategoryRepository } from '../category/category.repository';
+import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
 @Controller('crawling')
 @UseInterceptors(CommonResponseInterceptor)
 export class CrawlingController {
@@ -12,6 +13,7 @@ export class CrawlingController {
     private readonly categoryRepository: CategoryRepository,
   ) {}
 
+  @AdminOnly()
   @Get()
   async getCrawledNewsForTest() {
     const news = await this.crawlingRepository.getLatestCrawledNews();
@@ -28,6 +30,7 @@ export class CrawlingController {
     };
   }
 
+  @Public()
   @Get('link')
   async getCrawledNewsByLink(@Query('link') link: string) {
     const news = await this.crawlingRepository.getCrawledNewsByLink(link);
@@ -37,6 +40,7 @@ export class CrawlingController {
     };
   }
 
+  @AdminOnly()
   @Get('category/:categoryId')
   async getCrawledNewsByCategory(@Param('categoryId') categoryId: number) {
     const categoryName = await this.categoryRepository.findById(categoryId);

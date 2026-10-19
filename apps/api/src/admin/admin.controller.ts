@@ -1,17 +1,18 @@
 import {
-  Controller,
-  Get,
-  Delete,
-  UseGuards,
-  Param,
-  Patch,
   Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
 } from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
 import { AdminService } from './admin.service';
+import { AdminOnly } from 'src/auth/decorators/auth.decorators';
+import { UpdateUserDto } from './dto/update-user.dto';
 
+@AdminOnly()
 @Controller('admin')
-@UseGuards(AuthGuard('jwt')) // JWT 인증 적용
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
@@ -21,7 +22,7 @@ export class AdminController {
   }
 
   @Delete('users/:id')
-  async deleteUser(@Param('id') id: number) {
+  async deleteUser(@Param('id', ParseIntPipe) id: number) {
     return this.adminService.deleteUser(id);
   }
 
@@ -31,17 +32,13 @@ export class AdminController {
   }
 
   /**
-   * 사용자 정보 수정
+   * 사용자 권한 수정
    */
   @Patch('users/:id')
   async updateUser(
-    @Param('id') id: string, // Param 값은 기본적으로 string으로 제공
-    @Body() updateDto: { role?: string; status?: string },
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateDto: UpdateUserDto,
   ) {
-    const numericId = parseInt(id, 10); // id를 number로 변환
-    if (isNaN(numericId)) {
-      throw new Error('Invalid user ID'); // 숫자로 변환되지 않으면 예외 처리
-    }
-    return this.adminService.updateUser(numericId, updateDto);
+    return this.adminService.updateUser(id, updateDto);
   }
 }

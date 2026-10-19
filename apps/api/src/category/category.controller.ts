@@ -16,6 +16,7 @@ import {
 import { CategoryRepository } from './category.repository';
 import { CommonResponseInterceptor } from '../common/response.interceptor';
 import { CreateCategoryDto } from './dto/create-category.dto';
+import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
 
 @Controller('category')
 @UseInterceptors(CommonResponseInterceptor)
@@ -23,6 +24,7 @@ export class CategoryController {
   private readonly logger = new Logger(CategoryController.name);
   constructor(private readonly categoryRepository: CategoryRepository) {}
 
+  @Public()
   @Get()
   async findAll() {
     this.logger.log('findAll');
@@ -33,6 +35,7 @@ export class CategoryController {
     };
   }
 
+  @Public()
   @Get(':id')
   async findById(
     @Param('id', new ParseIntPipe({ errorHttpStatusCode: 400 })) id: number,
@@ -48,6 +51,7 @@ export class CategoryController {
     };
   }
 
+  @Public()
   @Get('name/:name')
   async findByName(
     @Param(
@@ -71,6 +75,7 @@ export class CategoryController {
     };
   }
 
+  @AdminOnly()
   @Post()
   async create(
     @Body(
@@ -95,6 +100,7 @@ export class CategoryController {
     };
   }
 
+  @AdminOnly()
   @Put(':id')
   async update(
     @Param('id', new ParseIntPipe({ errorHttpStatusCode: 400 })) id: number,
@@ -120,6 +126,7 @@ export class CategoryController {
     };
   }
 
+  @AdminOnly()
   @Delete(':id')
   async delete(
     @Param('id', new ParseIntPipe({ errorHttpStatusCode: 400 })) id: number,
