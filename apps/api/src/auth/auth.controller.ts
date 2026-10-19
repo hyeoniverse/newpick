@@ -10,6 +10,11 @@ import {
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
+import {
+  ACCESS_TOKEN_MAX_AGE,
+  REFRESH_TOKEN_MAX_AGE,
+  authCookieOptions,
+} from './cookie-options';
 import { Public } from 'src/auth/decorators/auth.decorators';
 
 @Controller('auth')
@@ -55,25 +60,19 @@ export class AuthController {
     await this.authService.storeRefreshToken(user.id, refreshToken);
 
     // Refresh Token을 한 번만 설정
-    res.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: '.newpick.site',
-      path: '/',
-      maxAge: 3 * 60 * 60 * 1000, // 3시간
-    });
+    res.cookie(
+      'access_token',
+      accessToken,
+      authCookieOptions(ACCESS_TOKEN_MAX_AGE),
+    );
 
-    res.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: '.newpick.site',
-      path: '/',
-      maxAge: 12 * 60 * 60 * 1000, // 12시간
-    });
+    res.cookie(
+      'refresh_token',
+      refreshToken,
+      authCookieOptions(REFRESH_TOKEN_MAX_AGE),
+    );
 
-    const frontendUrl = process.env.FRONTEND_URL || 'https://www.newpick.site';
+    const frontendUrl = process.env.FRONTEND_URL;
     return res.redirect(`${frontendUrl}?oauthSuccess=true`);
   }
 
@@ -113,14 +112,11 @@ export class AuthController {
 
       const newAccessToken = await this.authService.generateAccessToken(userId);
 
-      res.cookie('access_token', newAccessToken, {
-        httpOnly: true,
-        secure: true,
-        sameSite: 'none',
-        domain: '.newpick.site',
-        path: '/',
-        maxAge: 3 * 60 * 60 * 1000,
-      });
+      res.cookie(
+        'access_token',
+        newAccessToken,
+        authCookieOptions(ACCESS_TOKEN_MAX_AGE),
+      );
 
       return res.json({
         message: 'Token refreshed',
@@ -151,21 +147,9 @@ export class AuthController {
     }
 
     // 쿠키 완전 삭제
-    res.clearCookie('access_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: '.newpick.site',
-      path: '/',
-    });
+    res.clearCookie('access_token', authCookieOptions());
 
-    res.clearCookie('refresh_token', {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none',
-      domain: '.newpick.site',
-      path: '/',
-    });
+    res.clearCookie('refresh_token', authCookieOptions());
 
     return res.status(200).json({ message: 'Logged out successfully' });
   }

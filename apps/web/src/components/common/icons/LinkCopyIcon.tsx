@@ -20,8 +20,7 @@ function LinkCopyIcon({ className, id }: Props) {
 	};
 
 	const handleCopyClick = () => {
-		const url = `https://newpick.site/articles/detail/${id}`;
-		console.log(url);
+		const url = `${window.location.origin}/articles/detail/${id}`;
 		copyToClipboard(url);
 	};
 

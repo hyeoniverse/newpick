@@ -1,5 +1,5 @@
 /** 서버 시작 시 필수 환경 변수를 확인합니다. 없으면 기본값으로 조용히 동작하지 않고 바로 실패합니다. */
-const REQUIRED = ['JWT_SECRET', 'JWT_REFRESH_SECRET'] as const;
+const REQUIRED = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'FRONTEND_URL'] as const;
 
 export function validateEnv(config: Record<string, unknown>) {
   const missing = REQUIRED.filter((key) => !config[key]);
