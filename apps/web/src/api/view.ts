@@ -1,22 +1,5 @@
 import { API_ENDPOINTS } from '@/constants/api';
+import { apiFetch } from '@/api/client';
 
-export const increaseViewCount = async (newsletterId: number) => {
-	try {
-		const response = await fetch(API_ENDPOINTS.NEWSLETTER.VIEW_COUNT(newsletterId), {
-			method: 'POST',
-			credentials: 'include',
-			headers: {
-				'Content-Type': 'application/json',
-			},
-		});
-
-		if (!response.ok) {
-			throw new Error(`Error: ${response.status} ${response.statusText}`);
-		}
-
-		return await response.json();
-	} catch (error) {
-		console.error('Failed to summarize news:', error);
-		throw error;
-	}
-};
+export const increaseViewCount = async (newsletterId: number) =>
+	apiFetch<{ data: number }>(API_ENDPOINTS.NEWSLETTER.VIEW_COUNT(newsletterId), { method: 'POST' });

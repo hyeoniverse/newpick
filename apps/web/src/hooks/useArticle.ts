@@ -58,10 +58,7 @@ export function useArticleListQuery(limit: number = 5, offset: number = 0) {
 /**
  * 트렌드 목록을 가져오는 함수
  */
-export const getTrendList = async (categoryId?: number): Promise<IArticleDetail[]> => {
-	const { data }: { data: IArticleDetail[] } = await fetchTrendList(categoryId);
-	return data;
-};
+export const getTrendList = async (categoryId?: number): Promise<IArticleDetail[]> => fetchTrendList(categoryId);
 
 /**
  * 특정 카테고리의 기사 목록을 가져오는 함수

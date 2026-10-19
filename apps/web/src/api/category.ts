@@ -1,33 +1,10 @@
 import API_ENDPOINTS from '@/constants/api';
+import { apiFetch } from '@/api/client';
+import { Category } from '@/models/category.model';
 
-export const fetchCategories = async () => {
-  const response = await fetch(API_ENDPOINTS.CATEGORY.BASE, {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
+/** 백엔드 공통 응답 형식({ data })과 배열 응답 모두 올 수 있습니다. */
+type CategoryResponse = { data: Category[] } | Category[];
 
-  if (!response.ok) {
-    throw new Error(`카테고리를 불러오는데 실패했습니다. ${response.status}`);
-  }
+export const fetchCategories = async () => apiFetch<CategoryResponse>(API_ENDPOINTS.CATEGORY.BASE);
 
-  return response.json();
-};
-
-export const fetchCategory = async (id: string) => {
-  const response = await fetch(API_ENDPOINTS.CATEGORY.GET_BY_ID(id), {
-    method: 'GET',
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-  });
-
-  if (!response.ok) {
-    throw new Error(`카테고리를 불러오는데 실패했습니다. ${response.status}`);
-  }
-
-  return response.json();
-};
+export const fetchCategory = async (id: string) => apiFetch<{ data: Category }>(API_ENDPOINTS.CATEGORY.GET_BY_ID(id));

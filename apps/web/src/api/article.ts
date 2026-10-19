@@ -1,84 +1,43 @@
 import API_ENDPOINTS from '@/constants/api';
 import { notFound } from 'next/navigation';
+import { ApiError, apiFetch } from '@/api/client';
+import { ArticleDetail, ArticleInfo, NewsInfo } from '@/models/article.model';
 
-export const fetchArticleList = async (limit: number = 5, offset: number = 0) => {
-	const response = await fetch(API_ENDPOINTS.NEWSLETTER.LIST(limit, offset));
+type ArticleList = { data: ArticleDetail[] };
 
-	if (!response.ok) {
-		throw new Error('아티클 리스트를 불러오는데 실패했습니다.');
-	}
+/** 트렌드는 자주 바뀌지 않으므로 서버에서 10분간 캐시합니다. */
+const TRENDS_REVALIDATE_SECONDS = 600;
 
-	return await response.json();
-};
+export const fetchArticleList = async (limit: number = 5, offset: number = 0) =>
+	apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.LIST(limit, offset));
 
 export const fetchArticle = async (slug: string) => {
-	const response = await fetch(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`);
-
-	if (response.status === 404) {
-		notFound();
+	try {
+		const article = await apiFetch<{ data: ArticleInfo }>(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`);
+		return article.data;
+	} catch (error) {
+		if (error instanceof ApiError && error.status === 404) notFound();
+		throw error;
 	}
-
-	if (!response.ok) {
-		throw new Error('아티클을 불러오는데 실패했습니다.');
-	}
-	const article = await response.json();
-
-	return article.data;
 };
 
-export const fetchPopularArticle = async (limit: number = 5, offset: number = 0, popular: boolean) => {
-	const response = await fetch(API_ENDPOINTS.NEWSLETTER.POPULAR(limit, offset, popular));
-
-	if (!response.ok) {
-		throw new Error('아티클 리스트를 불러오는데 실패했습니다.');
-	}
-
-	return await response.json();
-};
+export const fetchPopularArticle = async (limit: number = 5, offset: number = 0, popular: boolean) =>
+	apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.POPULAR(limit, offset, popular));
 
 export const fetchTrendList = async (categoryId?: number) => {
-	const response = await fetch(API_ENDPOINTS.NEWSLETTER.TRENDS(categoryId));
-
-	if (!response.ok) {
-		throw new Error('트렌드 리스트를 불러오는데 실패했습니다.');
-	}
-
-	const trends = await response.json();
+	const trends = await apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.TRENDS(categoryId), {
+		next: { revalidate: TRENDS_REVALIDATE_SECONDS },
+	});
 	return trends.data;
 };
 
-export const fetchArticleByCategory = async (category: number, limit: number = 5, offset: number = 0) => {
-	const response = await fetch(API_ENDPOINTS.NEWSLETTER.CATEGORY(category, limit, offset));
-
-	if (!response.ok) {
-		throw new Error('아티클 리스트를 불러오는데 실패했습니다.');
-	}
-
-	return await response.json();
-};
+export const fetchArticleByCategory = async (category: number, limit: number = 5, offset: number = 0) =>
+	apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.CATEGORY(category, limit, offset));
 
 export const fetchRelatedNews = async (link: string) => {
-	const response = await fetch(API_ENDPOINTS.NEWS.RELATED(link), {
-		method: 'GET',
-		headers: {
-			'Content-Type': 'application/json',
-		},
-	});
-
-	if (!response.ok) {
-		throw new Error('관련 뉴스를 불러오는데 실패했습니다.');
-	}
-
-	const news = await response.json();
+	const news = await apiFetch<{ data: NewsInfo }>(API_ENDPOINTS.NEWS.RELATED(link));
 	return news.data;
 };
 
-export const fetchDateNewsletter = async (limit: number = 5, offset: number = 0, startDate?: string, endDate?: string) => {
-	const response = await fetch(API_ENDPOINTS.NEWSLETTER.DATE(limit, offset, startDate, endDate));
-
-	if (!response.ok) {
-		throw new Error('날짜별 뉴스레터를 불러오는데 실패했습니다.');
-	}
-
-	return await response.json();
-};
+export const fetchDateNewsletter = async (limit: number = 5, offset: number = 0, startDate?: string, endDate?: string) =>
+	apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.DATE(limit, offset, startDate, endDate));
