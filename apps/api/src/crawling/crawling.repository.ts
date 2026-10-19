@@ -72,7 +72,7 @@ export class CrawlingRepository {
           category: categoryName.name,
         })
         .sort({ createdAt: -1 })
-        .lean()
+        .lean<CrawledNews[]>()
         .exec();
       return {
         news,
