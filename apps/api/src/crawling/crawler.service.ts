@@ -20,7 +20,8 @@ export class CrawlerService {
   private browser: puppeteer.Browser;
   // 브라우저 초기화
   async initBrowser(): Promise<puppeteer.Browser> {
-    if (!this.browser) {
+    // 이전 실행에서 닫힌 브라우저는 재사용하지 않습니다.
+    if (!this.browser || !this.browser.connected) {
       this.browser = await puppeteer.launch({
         headless: true,
         args: [
@@ -56,5 +57,6 @@ export class CrawlerService {
   // 브라우저 종료
   async closeBrowser(browser: puppeteer.Browser): Promise<void> {
     if (browser) await browser.close();
+    if (this.browser === browser) this.browser = null;
   }
 }

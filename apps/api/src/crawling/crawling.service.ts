@@ -85,7 +85,7 @@ export class CrawlingService {
         );
         // 크롤링 최종 결과 배열에 저장
         crawlingResultData.push(
-          ...crawlingNewsDetail.filter((news) => news !== null),
+          ...crawlingNewsDetail.filter((news) => news != null),
         );
       }
       // 크롤링 결과 확인
@@ -95,6 +95,8 @@ export class CrawlingService {
       return crawlingResultData;
     } catch (error) {
       this.logger.error(`Error during crawling: ${error.message}`);
+      // 실패 전까지 모은 결과는 그대로 저장합니다. (undefined를 반환하면 호출부에서 .length 오류)
+      return crawlingResultData;
     } finally {
       await this.crawlerService.closeBrowser(browser);
     }
