@@ -118,10 +118,8 @@ export class AuthController {
         authCookieOptions(ACCESS_TOKEN_MAX_AGE),
       );
 
-      return res.json({
-        message: 'Token refreshed',
-        accessToken: newAccessToken,
-      });
+      // 토큰은 HttpOnly 쿠키로만 전달합니다. (응답 본문에 담으면 스크립트에서 읽을 수 있음)
+      return res.json({ message: 'Token refreshed' });
     } catch {
       return res
         .status(401)
