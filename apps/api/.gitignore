@@ -4,7 +4,6 @@ backup.sql
 
 # Prisma
 /prisma/generated
-/prisma/migrations
 
 # compiled output
 /dist

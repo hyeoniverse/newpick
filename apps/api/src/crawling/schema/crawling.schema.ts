@@ -24,7 +24,8 @@ export class CrawledNews extends Document {
   @Prop({ type: String, required: true })
   publishedAt: string;
 
-  @Prop({ type: Date, required: true, default: Date.now })
+  /** TTL 인덱스: 저장 후 30일이 지나면 MongoDB가 자동으로 삭제합니다. */
+  @Prop({ type: Date, required: true, default: Date.now, expires: '30d' })
   createdAt: Date;
 
   @Prop({ type: [String], required: false })

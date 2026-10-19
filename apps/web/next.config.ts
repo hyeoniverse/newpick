@@ -37,23 +37,8 @@ const nextConfig: NextConfig = {
 		return [
 			{
 				source: '/api/:path*',
-				destination:
-					process.env.NODE_ENV === 'production'
-						? 'https://api.newpick.site/:path*'
-						: 'http://localhost:3001/:path*',
-			},
-		];
-	},
-	async headers() {
-		return [
-			{
-				source: '/(.*)',
-				headers: [
-					{ key: 'Access-Control-Allow-Origin', value: 'https://www.newpick.site' },
-					{ key: 'Access-Control-Allow-Credentials', value: 'true' },
-					{ key: 'Access-Control-Allow-Methods', value: 'GET, POST, PUT, DELETE, PATCH, OPTIONS' },
-					{ key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization, Cookie' },
-				],
+				// 서버에서만 읽는 값. 4단계에서 클라이언트 요청을 이 프록시로 통일합니다.
+				destination: `${process.env.API_URL ?? 'http://localhost:3001'}/:path*`,
 			},
 		];
 	},

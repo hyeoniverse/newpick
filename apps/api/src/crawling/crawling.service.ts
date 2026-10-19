@@ -4,7 +4,6 @@ import { CrawlingRepository } from './crawling.repository';
 import { CrawledNews } from './schema/crawling.schema';
 import { FindCategoryService } from 'src/ai-summary/findCategory.service';
 
-import * as puppeteer from 'puppeteer';
 @Injectable()
 export class CrawlingService {
   constructor(
@@ -39,7 +38,7 @@ export class CrawlingService {
               return {
                 ...data,
                 category: [...data.category, setCategory.categoryName],
-              };
+              } as CrawledNews;
             } else {
               return data;
             }
@@ -52,36 +51,26 @@ export class CrawlingService {
     }
   }
 
-  async crawlingNews(): Promise<any> {
+  async crawlingNews(): Promise<CrawledNews[]> {
     const crawlingResultData = [];
-    // 브라우저 초기화
-    const browser = await this.crawlerService.initBrowser();
     try {
       for (const link of this.links) {
-        // 페이지 초기화
-        const page = await this.crawlerService.initPage(browser);
-        // 페이지 이동
-        await page.goto(link, { waitUntil: 'networkidle2', timeout: 30000 });
-        await this.crawlerService.setDelay();
-        // 페이지 크롤링
-        const crawlingNews = await page.evaluate(() => {
-          const newsList = document.querySelectorAll(
+        // 섹션 페이지의 헤드라인 목록
+        const document = await this.crawlerService.fetchDocument(link);
+        const crawlingNews = Array.from(
+          document.querySelectorAll<HTMLAnchorElement>(
             '.sa_item._SECTION_HEADLINE .sa_text_title',
-          );
-          const newsItems = Array.from(newsList)
-            .map((news) => ({
-              title: news.textContent?.trim(),
-              link: (news as HTMLAnchorElement)?.href || null,
-            }))
-            .filter((news) => news.link);
-          return [...newsItems];
-        });
-        await page.close();
+          ),
+        )
+          .map((news) => ({
+            title: news.textContent?.trim(),
+            link: news.href || null,
+          }))
+          .filter((news) => news.link);
+        await this.crawlerService.setDelay();
         // 상세 페이지 크롤링
         const crawlingNewsDetail = await this.crawlerService.setQueue(
-          crawlingNews.map(
-            (news) => async () => this.crawlingNewsDetail(browser, news),
-          ),
+          crawlingNews.map((news) => async () => this.crawlingNewsDetail(news)),
         );
         // 크롤링 최종 결과 배열에 저장
         crawlingResultData.push(
@@ -97,59 +86,53 @@ export class CrawlingService {
       this.logger.error(`Error during crawling: ${error.message}`);
       // 실패 전까지 모은 결과는 그대로 저장합니다. (undefined를 반환하면 호출부에서 .length 오류)
       return crawlingResultData;
-    } finally {
-      await this.crawlerService.closeBrowser(browser);
     }
   }
-  async crawlingNewsDetail(
-    browser: puppeteer.Browser,
-    news: any,
-  ): Promise<any> {
-    // 페이지 초기화
-    const page = await this.crawlerService.initPage(browser);
+
+  async crawlingNewsDetail(news: { title: string; link: string }) {
     try {
-      // 페이지 이동
-      await page.goto(news.link, { waitUntil: 'networkidle2', timeout: 30000 });
-      // 다운 스크롤
-      await page.evaluate(() => {
-        window.scrollTo(0, document.body.scrollHeight);
-      });
+      const document = await this.crawlerService.fetchDocument(news.link);
       await this.crawlerService.setDelay();
-      // 페이지 크롤링
-      const crawlingNews = await page.evaluate(() => {
-        const source =
-          document
-            .querySelector('.media_end_head_top_logo_img')
-            ?.getAttribute('title') || null;
-        const content =
-          document.querySelector('#dic_area')?.textContent?.trim() || null;
-        const publishedAt =
-          document
-            .querySelector('.media_end_head_info_datestamp_time')
-            ?.getAttribute('data-date-time') || null;
-        const category = Array.from(
-          document.querySelectorAll('.media_end_categorize_item'),
-        )
-          .map((item) => item?.textContent?.trim() || news.category || null)
-          .filter((item) => item);
-        const images = Array.from(
-          document.querySelectorAll('.end_photo_org img'),
-        )
-          .map((img) => img.getAttribute('data-src') || img.getAttribute('src'))
-          .filter((src) => src);
-        return { source, category, publishedAt, images, content };
-      });
-      // 크롤링 결과 반환
+
+      const meta = (selector: string) =>
+        document.querySelector(selector)?.getAttribute('content') || null;
+      // 언론사 로고는 스크립트로 그려지므로 메타 태그로 대체합니다.
+      const source =
+        document
+          .querySelector('.media_end_head_top_logo_img')
+          ?.getAttribute('title') ||
+        meta('meta[name="twitter:creator"]') ||
+        meta('meta[property="og:article:author"]')?.replace(/\s*\|.*$/, '') ||
+        null;
+      const content =
+        document.querySelector('#dic_area')?.textContent?.trim() || null;
+      // 모바일 UA로 받은 페이지에는 날짜 없는 같은 클래스 요소가 먼저 나와서, 날짜 속성이 있는 요소만 고릅니다.
+      const publishedAt =
+        document
+          .querySelector('.media_end_head_info_datestamp_time[data-date-time]')
+          ?.getAttribute('data-date-time') || null;
+      const category = Array.from(
+        document.querySelectorAll('.media_end_categorize_item'),
+      )
+        .map((item) => item.textContent?.trim())
+        .filter(Boolean);
+      const images = Array.from(document.querySelectorAll('.end_photo_org img'))
+        .map((img) => img.getAttribute('data-src') || img.getAttribute('src'))
+        .filter(Boolean);
+
       return {
         regionCode: 'KR',
         title: news.title,
         link: news.link,
-        ...crawlingNews,
-      };
+        source,
+        category,
+        publishedAt,
+        images,
+        content,
+      } as CrawledNews;
     } catch (error) {
-      this.logger.error(`Error crawling news: ${news.url}`, error.message);
-    } finally {
-      await page.close();
+      this.logger.error(`Error crawling news: ${news.link}`, error.message);
+      return null;
     }
   }
 }
