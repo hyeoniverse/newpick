@@ -56,7 +56,7 @@ export default function Image({
 interface StyledProps {
 	$ratio: 'square' | 'wide' | 'tall';
 	$borderRadius: BorderRadius;
-	$placeholder: string;
+	$placeholder: ColorKey;
 	$isLoaded: boolean;
 }
 
