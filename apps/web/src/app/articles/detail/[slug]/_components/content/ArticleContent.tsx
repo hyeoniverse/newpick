@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import OpenGraphCard from '@/components/common/article/OpenGraphCard';
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 
 interface NewsletterContentProps {
 	content: string;
@@ -23,7 +24,7 @@ function ArticleContent({ content, flex, className, articleImage, related = [] }
 				</div>
 			)}
 			<NewsletterContentStyled>
-				<div dangerouslySetInnerHTML={{ __html: content }} />
+				<div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
 				<div className="content-bottom-margin" />
 			</NewsletterContentStyled>
 			<hr />
