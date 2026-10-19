@@ -1,15 +1,6 @@
 import Article from '@/app/articles/detail/[slug]/_components/Article';
-import { increaseViewCount } from '@/api/view';
 
-type PageParams = Promise<{ slug: string }>;
-
-export default async function NewsletterDetailPage({ params }: { params: PageParams }) {
-	const { slug } = await params;
-	const viewCount = await increaseViewCount(parseInt(slug));
-
-	return (
-		<>
-			<Article viewCount={viewCount.data} />
-		</>
-	);
+/** 기사 본문은 Article에서 조회하고, 조회수는 브라우저에서 올립니다(useViewCount). */
+export default function NewsletterDetailPage() {
+	return <Article />;
 }

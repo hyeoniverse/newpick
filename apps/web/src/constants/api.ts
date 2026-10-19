@@ -8,16 +8,10 @@ export const BACK_URL = process.env.API_URL || 'http://localhost:3001';
 export const API_URL = typeof window === 'undefined' ? BACK_URL : '/api';
 export const PROTECTED = ['/mypage']; // 로그인이 필요한 경로 (middleware에서 확인)
 
-export const TOKEN = {
-	ACCESS: 'access_token',
-	USER_ID: 'user_id',
-};
-
 export const API_ENDPOINTS = {
 	AUTH: {
 		LOGIN: () => `${API_URL}/auth/google`,
 		LOGOUT: () => `${API_URL}/auth/logout`,
-		CALLBACK: () => `${API_URL}/auth/google/callback`,
 		REFRESH: () => `${API_URL}/auth/refresh`,
 	},
 	MY: {
@@ -35,7 +29,6 @@ export const API_ENDPOINTS = {
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
 		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,
-		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
 		LIST: (limit: number, offset: number, popular?: boolean) =>
 			popular
 				? `${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`
@@ -50,21 +43,10 @@ export const API_ENDPOINTS = {
 			`${API_URL}/newsletters?limit=${limit}&offset=${offset}&startDate=${startDate}&endDate=${endDate}`,
 	},
 	FEEDBACK: {
-		BASE: () => `${API_URL}/feedback`,
-		PAGINATED: (newsletterId: number, page: number, limit: number) =>
-			`${API_URL}/feedback?newsletterId=${newsletterId}&page=${page}&limit=${limit}`,
 		BOOKMARK: `${API_URL}/feedback/bookmark`,
 	},
 	NEWS: {
 		RELATED: (link: string) => `${API_URL}/crawling/link?link=${link}`,
-		CRAWL: () => `${API_URL}/news/crawl`,
-		GET_BY_CATEGORY: (category: string, page: number, limit: number) =>
-			`${API_URL}/news?category=${category}&page=${page}&limit=${limit}`,
-		GET_BY_ID: (id: string) => `${API_URL}/news/${id}`,
-	},
-	CATEGORY: {
-		BASE: `${API_URL}/category`,
-		GET_BY_ID: (id: string) => `${API_URL}/category/${id}`,
 	},
 };
 
