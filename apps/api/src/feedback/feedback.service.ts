@@ -1,69 +1,47 @@
 import {
-  Injectable,
   ConflictException,
+  Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 
 @Injectable()
 export class FeedbackService {
   constructor(private readonly prisma: MysqlPrismaService) {}
 
-  async addBookmark(
-    userId: number,
-    newsId: number,
-    newsletterId?: number,
-    rating?: number,
-  ) {
-    // 중복 체크
-    const existingBookmark = await this.prisma.feedback.findFirst({
-      where: { userId, newsId, likes: true },
+  /** 뉴스레터 북마크. 같은 뉴스레터는 (userId, newsletterId) 유니크 제약으로 한 번만 저장됩니다. */
+  async addBookmark(userId: number, newsletterId: number) {
+    const newsletter = await this.prisma.newsletter.findUnique({
+      where: { id: newsletterId },
+      select: { id: true },
     });
-
-    if (existingBookmark) {
-      throw new ConflictException('This item is already bookmarked.');
+    if (!newsletter) {
+      throw new NotFoundException('Newsletter not found.');
     }
 
-    // newsletterId가 없는 경우 자동 연결
-    if (!newsletterId) {
-      const relatedNewsletter = await this.prisma.newsletter.findFirst({
-        where: { usedNews: { contains: newsId.toString() } },
+    try {
+      return await this.prisma.bookmark.create({
+        data: { userId, newsletterId },
       });
-
-      if (!relatedNewsletter) {
-        throw new NotFoundException(
-          'Related newsletter not found for the given newsId.',
-        );
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2002'
+      ) {
+        throw new ConflictException('This item is already bookmarked.');
       }
-      newsletterId = relatedNewsletter.id;
+      throw error;
     }
-
-    // 북마크 등록
-    return this.prisma.feedback.create({
-      data: {
-        user: { connect: { id: userId } },
-        newsId: newsId,
-        likes: true,
-        createdAt: new Date(),
-        newsletter: { connect: { id: newsletterId } },
-        rating: rating ?? 0, // 기본값 추가
-      },
-    });
   }
 
-  async removeBookmark(userId: number, newsId: number) {
-    // 북마크 존재 여부 확인
-    const existingBookmark = await this.prisma.feedback.findFirst({
-      where: { userId, newsId, likes: true },
+  async removeBookmark(userId: number, newsletterId: number) {
+    const { count } = await this.prisma.bookmark.deleteMany({
+      where: { userId, newsletterId },
     });
-
-    if (!existingBookmark) {
+    if (count === 0) {
       throw new NotFoundException('Bookmark not found.');
     }
-
-    // 북마크 삭제
-    return this.prisma.feedback.delete({
-      where: { id: existingBookmark.id },
-    });
+    return { success: true };
   }
 }

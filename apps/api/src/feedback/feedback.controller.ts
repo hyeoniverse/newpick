@@ -1,52 +1,38 @@
 import {
-  Controller,
-  Post,
-  Delete,
   Body,
+  Controller,
+  Delete,
+  Post,
   Req,
-  UseGuards,
   UnauthorizedException,
 } from '@nestjs/common';
-import { FeedbackService } from './feedback.service';
-import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
+import { FeedbackService } from './feedback.service';
+import { BookmarkDto } from './dto/bookmark.dto';
 
+/** 로그인 필요 (전역 JwtAuthGuard) */
 @Controller('feedback')
-@UseGuards(AuthGuard('jwt')) // JWT 인증 적용
 export class FeedbackController {
   constructor(private readonly feedbackService: FeedbackService) {}
 
   @Post('bookmark')
-  async addBookmark(
-    @Req() req: Request, // JWT에서 userId 자동 추출
-    @Body() body: { newsId: number; newsletterId?: number; rating?: number }, // userId 제외
-  ) {
-    const user = req.user as { id: number }; // 명확한 타입 지정
-    const userId = this.extractUserId(user.id);
-    const { newsId, newsletterId, rating } = body;
-    return this.feedbackService.addBookmark(
-      userId,
-      newsId,
-      newsletterId,
-      rating,
-    );
+  async addBookmark(@Req() req: Request, @Body() body: BookmarkDto) {
+    return this.feedbackService.addBookmark(this.userIdOf(req), body.targetId);
   }
 
   @Delete('bookmark')
-  async removeBookmark(
-    @Req() req: Request, // JWT에서 userId 자동 추출
-    @Body() body: { newsId: number }, // userId 제외
-  ) {
-    const user = req.user as { id: number }; // 명확한 타입 지정
-    const userId = this.extractUserId(user.id);
-    const { newsId } = body;
-    return this.feedbackService.removeBookmark(userId, newsId);
+  async removeBookmark(@Req() req: Request, @Body() body: BookmarkDto) {
+    return this.feedbackService.removeBookmark(
+      this.userIdOf(req),
+      body.targetId,
+    );
   }
 
-  private extractUserId(userId: string | number | undefined): number {
-    if (!userId) {
+  private userIdOf(req: Request): number {
+    const userId = Number((req.user as { id?: number })?.id);
+    if (!Number.isInteger(userId) || userId <= 0) {
       throw new UnauthorizedException('User not authenticated');
     }
-    return typeof userId === 'string' ? parseInt(userId, 10) : userId;
+    return userId;
   }
 }

@@ -20,7 +20,7 @@ export class AuthService {
 
     if (!user) {
       user = await this.prisma.user.create({
-        data: { email, username, password: googleSub, profileImg },
+        data: { email, username, profileImg },
       });
     }
     return user;
@@ -47,7 +47,6 @@ export class AuthService {
       },
       create: {
         user: { connect: { id: userId } },
-        accessToken: '',
         refreshToken,
         expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000), // 12시간 후 만료
       },

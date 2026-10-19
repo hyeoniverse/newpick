@@ -14,7 +14,7 @@ import { SchedulerController } from 'src/scheduler/scheduler.controller';
 import { SubscriberController } from 'src/subscriber/subscriber.controller';
 
 /**
- * 모든 라우트의 접근 정책. 라우트를 추가하거나 정책을 바꾸면 이 표도 함께 바꿔야 테스트가 통과합니다.
+ * 모든 라우트의 접근 정책. 라우트를 추가·삭제하거나 정책을 바꾸면 이 표도 함께 바꿔야 테스트가 통과합니다.
  * - public: 로그인 없이 호출 가능 (@Public)
  * - auth: 로그인 필요 (전역 JwtAuthGuard 기본값)
  * - admin: 관리자만 (@AdminOnly)
@@ -55,12 +55,8 @@ const EXPECTED: Record<string, Policy> = {
 
   'GET mypage/profile': 'auth',
   'GET mypage/bookmarks': 'auth',
-  'GET mypage/subscriptions/status': 'auth',
-  'GET mypage/subscriptions/history': 'auth',
   'GET mypage/interests': 'auth',
   'PUT mypage/interests': 'auth',
-  'PATCH mypage/interests': 'auth',
-  'PATCH mypage/interests/remove': 'auth',
 
   'POST subscribers/start': 'auth',
   'POST subscribers/pause': 'auth',
