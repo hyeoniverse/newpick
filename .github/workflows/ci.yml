@@ -34,3 +34,11 @@ jobs:
       - if: matrix.app == 'api'
         run: npm test
       - run: npm run build
+
+  api-docker:
+    name: api docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t newpick-api apps/api
