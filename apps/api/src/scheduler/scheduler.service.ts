@@ -85,9 +85,11 @@ export class SchedulerService {
         }
       }
 
-      if (generatedNewsletter.length > 0) {
+      // 운영자 알림 메일은 ADMIN_NOTIFY_EMAIL이 설정된 경우에만 보냅니다.
+      const adminEmail = process.env.ADMIN_NOTIFY_EMAIL;
+      if (adminEmail && generatedNewsletter.length > 0) {
         await this.mailService.sendHtmlMail(
-          'leeh09077@gmail.com',
+          adminEmail,
           '',
           generatedNewsletter.map((n) => n.content).join('\n\n'),
           `${generatedNewsletter.length}개의 뉴스레터가 생성되었습니다`,
