@@ -44,6 +44,6 @@ const StyledPanel = styled.section<StyledProps>`
 	left: 50%;
 
 	border: 1px solid ${({ theme, $border, $background }) => theme.color[$border || $background || 'border']};
-	color: ${({ theme, $color }) => theme.color[$color || 'textSecondary']};
+	color: ${({ theme, $color }) => theme.color[$color || 'subText']};
 	background: ${({ theme, $background }) => theme.color[$background || 'primary']};
 `;

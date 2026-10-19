@@ -49,7 +49,7 @@ const StyledInputText = styled.div`
 
 		color: ${({ theme }) => theme.color.text};
 		background: ${({ theme }) => theme.color.background};
-		border-radius: ${({ theme }) => theme.borderRadius.default};
+		border-radius: ${({ theme }) => theme.borderRadius.medium};
 		font-size: ${({ theme }) => theme.fontSize.small};
 
 		&:focus {

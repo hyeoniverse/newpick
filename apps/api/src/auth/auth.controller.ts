@@ -73,7 +73,7 @@ export class AuthController {
     const frontendUrl = process.env.FRONTEND_URL || 'https://www.newpick.site';
     return res.redirect(`${frontendUrl}?oauthSuccess=true`);
   }
-    
+
   /**
    * Refresh Token을 사용하여 새로운 Access Token 발급
    * authGuard를 제거하여 만료된 Access Token도 허용
@@ -122,7 +122,7 @@ export class AuthController {
         message: 'Token refreshed',
         accessToken: newAccessToken,
       });
-    } catch (err) {
+    } catch {
       return res
         .status(401)
         .json({ message: 'Unauthorized - Token verification failed' });

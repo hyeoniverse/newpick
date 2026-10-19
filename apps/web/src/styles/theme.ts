@@ -31,7 +31,7 @@ export type ButtonScheme = 'primary' | 'secondary' | 'outline' | 'mono' | 'monoO
 export type LayoutWidth = 'small' | 'medium' | 'large';
 export type MediaQuery = 'mobile' | 'tablet' | 'desktop';
 
-interface Theme {
+export interface Theme {
 	name: ThemeName;
 	color: Record<ColorKey, string>;
 

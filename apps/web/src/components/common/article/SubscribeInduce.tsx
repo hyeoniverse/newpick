@@ -23,7 +23,7 @@ function SubscribeInduce({ className }: Props) {
 	const [isSubscribeClicked, setIsSubscribeClicked] = useState(false);
 	const { openModal, closeModal } = useModal();
 
-	const { themeName } = useTheme();
+	const { name: themeName } = useTheme();
 
 	useEffect(() => {
 		if (isSubscribeClicked && user) {
