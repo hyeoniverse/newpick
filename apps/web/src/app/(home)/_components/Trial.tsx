@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import parse from 'html-react-parser';
-import DOMPurify from 'dompurify';
+import { sanitizeHtml } from '@/utils/sanitizeHtml';
 
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
@@ -69,10 +69,6 @@ export default function Trial() {
 		} finally {
 			setIsLoading(false);
 		}
-	};
-
-	const sanitizeHtml = (html: string) => {
-		return DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
 	};
 
 	return (
