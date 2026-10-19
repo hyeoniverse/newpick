@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useTrendStore } from '@/stores/useTrendsStore';
+import { TRENDS_QUERY_KEY } from '@/hooks/useTrends';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { SESSION_HINT_COOKIE } from '@/constants/api';
 import { AppThemeProvider } from '@/components/providers/AppThemeProvider';
@@ -15,9 +15,13 @@ interface Props {
 }
 
 export default function Providers({ children, initialTrends }: Props) {
-	const [queryClient] = useState(() => new QueryClient());
+	const [queryClient] = useState(() => {
+		const client = new QueryClient();
+		// 서버에서 받은 트렌드로 캐시를 채워 첫 렌더링부터 보여 줍니다.
+		if (initialTrends.length > 0) client.setQueryData(TRENDS_QUERY_KEY, initialTrends);
+		return client;
+	});
 	const setSession = useAuthStore((state) => state.setSession);
-	const setTrends = useTrendStore((state) => state.setTrends);
 	const { setTheme } = useThemeStore();
 
 	// 페이지는 정적으로 만들어지므로 로그인 여부는 브라우저에서 표시 쿠키로 판단합니다.
@@ -25,12 +29,6 @@ export default function Providers({ children, initialTrends }: Props) {
 		const hasSession = document.cookie.split('; ').includes(`${SESSION_HINT_COOKIE}=1`);
 		setSession(hasSession ? 'in' : 'out');
 	}, [setSession]);
-
-	useEffect(() => {
-		if (initialTrends.length > 0) {
-			setTrends(initialTrends);
-		}
-	}, [initialTrends, setTrends]);
 
 	useEffect(() => {
 		const savedTheme = localStorage.getItem('newpick_theme') || 'light';
