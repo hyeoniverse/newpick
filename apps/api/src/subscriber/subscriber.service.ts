@@ -100,18 +100,19 @@ export class SubscriberService {
       throw new NotFoundException('No subscription found for this user.');
     }
 
-    // 구독 취소 (데이터 삭제)
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { interests: null },
-    });
-
-    await this.prisma.feedback.deleteMany({ where: { userId } });
-
-    return this.prisma.subscriber.update({
-      where: { id: subscription.id },
-      data: { status: 'cancelled', endAt: new Date() },
-    });
+    // 구독 취소: 관심사를 비우고 구독 상태를 바꿉니다. 둘 중 하나만 반영되지 않도록 한 트랜잭션으로 처리합니다.
+    // 북마크(feedback)는 구독과 별개인 사용자 데이터이므로 지우지 않습니다.
+    const [, cancelled] = await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { interests: null },
+      }),
+      this.prisma.subscriber.update({
+        where: { id: subscription.id },
+        data: { status: 'cancelled', endAt: new Date() },
+      }),
+    ]);
+    return cancelled;
   }
 
   /**
