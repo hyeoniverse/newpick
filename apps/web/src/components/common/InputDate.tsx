@@ -92,7 +92,7 @@ const StyledInputDate = styled.div`
 	.react-datepicker__day--keyboard-selected {
 		background-color: ${({ theme }) => theme.color.primary};
 		color: ${({ theme }) => theme.color.background};
-		border-radius: ${({ theme }) => theme.borderRadius.small};
+		border-radius: ${({ theme }) => theme.borderRadius.soft};
 	}
 
 	.react-datepicker__day:hover {

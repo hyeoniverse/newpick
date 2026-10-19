@@ -112,8 +112,8 @@ const StyledToast = styled.div<StyledProps>`
 	padding: 0.5rem 1.5rem;
 	margin: 0.5rem;
 	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.borderRadius.default};
-	box-shadow: ${({ theme }) => theme.shadow.default};
+	border-radius: ${({ theme }) => theme.borderRadius.medium};
+	box-shadow: ${({ theme }) => theme.shadow.light};
 	gap: 1rem;
 	transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, max-height 0.3s ease-in-out,
 		margin-bottom 0.3s ease-in-out;

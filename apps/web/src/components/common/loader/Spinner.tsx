@@ -20,8 +20,8 @@ const StyledSpinner = styled.div<{ $size?: string }>`
 	text-align: center;
 
 	svg {
-		width: ${({ theme, $size }) => ($size ? theme.fontSize[$size] : '4rem')};
-		height: ${({ theme, $size }) => ($size ? theme.fontSize[$size] : '4rem')};
+		width: ${({ $size }) => $size ?? '4rem'};
+		height: ${({ $size }) => $size ?? '4rem'};
 		fill: ${({ theme }) => theme.color.secondary};
 		animation: rotate 1s linear infinite;
 	}

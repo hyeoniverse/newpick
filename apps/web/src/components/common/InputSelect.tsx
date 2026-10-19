@@ -100,8 +100,8 @@ const StyledInputSelect = styled.div<StyleProps>`
 		justify-content: space-between;
 		padding: 0.5rem 1rem;
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.default};
-		background: ${({ theme }) => theme.color.blur};
+		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		background: ${({ theme }) => theme.color.surface};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		cursor: pointer;
 		line-height: 1.8;
@@ -136,14 +136,14 @@ const StyledInputSelect = styled.div<StyleProps>`
 		padding: 0.5rem;
 
 		list-style: none;
-		box-shadow: ${({ theme }) => theme.shadow.default};
-		border-radius: ${({ theme }) => theme.borderRadius.default};
+		box-shadow: ${({ theme }) => theme.shadow.light};
+		border-radius: ${({ theme }) => theme.borderRadius.medium};
 		background: ${({ theme }) => theme.color.surface};
 		z-index: 2000;
 
 		.option-item {
 			padding: 0.5rem 1rem;
-			border-radius: ${({ theme }) => theme.borderRadius.default};
+			border-radius: ${({ theme }) => theme.borderRadius.medium};
 			cursor: pointer;
 			margin: 0.5rem;
 			white-space: nowrap;
