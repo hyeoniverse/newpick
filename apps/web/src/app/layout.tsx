@@ -1,6 +1,3 @@
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
-
 import type { Metadata } from 'next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
@@ -25,8 +22,8 @@ export default async function RootLayout({
 }: Readonly<{
 	children: React.ReactNode;
 }>) {
+	// 로그인 쿠키가 없으면 백엔드를 호출하지 않습니다. 트렌드는 10분간 캐시됩니다.
 	const user = await fetchUserWithSubscription();
-	// console.log('✅ layout.tsx(user): ', user);
 
 	let parsedTrends: IArticleSummary[] = [];
 	try {

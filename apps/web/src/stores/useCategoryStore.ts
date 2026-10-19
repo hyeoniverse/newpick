@@ -13,7 +13,7 @@ export const useCategoryStore = create<CategoryStore>((set, get) => ({
   fetchCategories: async () => {
     try {
       const response = await fetchCategories();
-      const dataArray: Category[] = response.data || response;
+      const dataArray: Category[] = Array.isArray(response) ? response : response.data;
       if (!Array.isArray(dataArray)) {
         throw new Error('Invalid categories data structure');
       }

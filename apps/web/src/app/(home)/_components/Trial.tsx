@@ -53,13 +53,16 @@ export default function Trial() {
 			// `contentAsHTML`에서 ` ```html ` 코드 블록 제거
 			const cleanedHtml = stripCodeFence(result.newsletter.html, 'html');
 			const newsletter: IArticleDetail = {
-				...result.newsletter,
+				// 체험 결과는 저장되지 않으므로 id·조회수가 없습니다.
+				id: 0,
+				viewcount: 0,
+				content: result.newsletter.content ?? '',
 				title: result.newsletter.title,
 				categoryId: result.newsletter.categoryId,
 				createdAt: startDate,
 				contentAsHTML: cleanedHtml || '',
 				imageUrl: getFirstImage(result.newsletter.imageUrl || ''),
-				usedNews: result.newsletter.newslinks || [],
+				usedNews: result.newsletter.newslinks || '',
 			};
 
 			setNewsletter(newsletter);

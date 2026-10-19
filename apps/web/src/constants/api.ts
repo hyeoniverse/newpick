@@ -1,11 +1,12 @@
-export const BACK_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'; // 백엔드 서버
-export const FRONT_URL = process.env.NEXT_PUBLIC_FRONT_URL || 'http://localhost:3000'; // 프론트 서버
+/** 백엔드 주소. 서버(SSR, middleware, next.config rewrites)에서만 사용합니다. */
+export const BACK_URL = process.env.API_URL || 'http://localhost:3001';
 
-// API 요청이 SSR(서버)인지 CSR(클라이언트)인지 판단하여 적절한 API URL 반환
-export const getApiUrl = () => (typeof window === 'undefined' ? BACK_URL : '/api');
-// export const API_URL = getApiUrl();
-export const API_URL = BACK_URL;
-export const PROTECTED = ['/mypage', '/subscribers', '/feedback']; // 로그인이 필요한 경로
+/**
+ * 브라우저는 /api(Next rewrites 프록시)를 거쳐 백엔드에 요청합니다.
+ * 같은 도메인으로 요청하므로 인증 쿠키가 프론트 도메인에 저장되고, 별도 CORS·쿠키 도메인 설정이 필요 없습니다.
+ */
+export const API_URL = typeof window === 'undefined' ? BACK_URL : '/api';
+export const PROTECTED = ['/mypage']; // 로그인이 필요한 경로 (middleware에서 확인)
 
 export const TOKEN = {
 	ACCESS: 'access_token',
