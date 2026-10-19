@@ -1,5 +1,3 @@
-'use client';
-
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
