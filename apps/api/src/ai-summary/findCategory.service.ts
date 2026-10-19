@@ -52,7 +52,7 @@ export class FindCategoryService {
       this.logger.debug(`카테고리 찾기 완료: ${categoryName}`);
 
       return {
-        categoryId: categoryId, 
+        categoryId: categoryId,
         categoryName: categoryName,
       };
     } catch (error) {

@@ -18,7 +18,7 @@ import { OpenAiService } from './ai-summary/openai.service'; // OpenAI 서비스
 import { MailService } from './mail/mail.service'; // 메일 서비스
 import { CategoryModule } from './category/category.module'; // 카테고리 모듈
 import { SentryModule } from '@sentry/nestjs/setup';
-import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_FILTER } from '@nestjs/core';
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MemoryMonitorService } from './monitoring/memory.monitor';
