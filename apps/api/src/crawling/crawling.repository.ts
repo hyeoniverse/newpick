@@ -2,11 +2,8 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CrawledNews } from './schema/crawling.schema';
-import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import { CategoryRepository } from 'src/category/category.repository';
-
-dayjs.extend(utc);
+import { kstDayRange } from 'src/common/kst';
 
 @Injectable()
 export class CrawlingRepository {
@@ -53,8 +50,8 @@ export class CrawlingRepository {
     dateEnd: string,
     categoryId: number,
   ): Promise<{ news: CrawledNews[]; dateStart: string; dateEnd: string }> {
-    const startDate = dayjs(dateStart).startOf('day').utc(true).toDate();
-    const endDate = dayjs(dateEnd).endOf('day').utc(true).toDate();
+    // KST 기준 하루 단위. (이전 .utc(true)는 범위를 9시간 늦게 밀어 당일 08:00 크롤링 결과가 빠졌음)
+    const { start: startDate, end: endDate } = kstDayRange(dateStart, dateEnd);
     const categoryName = await this.categoryRepository.findById(categoryId);
     // 디버깅을 위한 로그 추가
     this.logger.debug('DB 검색 범위:', {

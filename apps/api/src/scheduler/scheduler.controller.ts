@@ -1,5 +1,7 @@
 import { Controller, Post, Get, Body } from '@nestjs/common';
 import { SchedulerService } from './scheduler.service';
+import { MailSendCycleDto } from './dto/mail-send-cycle.dto';
+import { ToggleDto } from './dto/toggle.dto';
 import { Logger } from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
@@ -18,7 +20,7 @@ export class SchedulerController {
   ) {}
 
   @Post('toggle/crawling')
-  toggleCrawling(@Body() data: { enable: boolean }) {
+  toggleCrawling(@Body() data: ToggleDto) {
     const enable = Boolean(data.enable);
     this.schedulerService.toggleCrawlingScheduler(enable);
     return {
@@ -29,7 +31,7 @@ export class SchedulerController {
   }
 
   @Post('toggle/ai-summary')
-  toggleAiSummary(@Body() data: { enable: boolean }) {
+  toggleAiSummary(@Body() data: ToggleDto) {
     const enable = Boolean(data.enable);
     this.schedulerService.toggleAiSummaryScheduler(enable);
     return {
@@ -40,7 +42,7 @@ export class SchedulerController {
   }
 
   @Post('toggle/mail-send')
-  toggleMailSend(@Body() data: { enable: boolean }) {
+  toggleMailSend(@Body() data: ToggleDto) {
     const enable = Boolean(data.enable);
     this.schedulerService.toggleMailSendScheduler(enable);
     return {
@@ -59,12 +61,15 @@ export class SchedulerController {
   }
 
   @Post('change/mail-send-cycle')
-  changeMailSendCycle(@Body() data: { hour: number; day: number }) {
-    this.schedulerService.setMailSendCycle(data.hour, data.day);
+  async changeMailSendCycle(@Body() data: MailSendCycleDto) {
+    const cycle = await this.schedulerService.setMailSendCycle(
+      data.hour,
+      data.day,
+    );
     return {
       success: true,
       message: '메일 발송 주기가 변경되었습니다.',
-      cycle: this.schedulerService.getMailSendCycle(),
+      cycle,
     };
   }
   @Post('manual/crawling')
