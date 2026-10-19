@@ -42,7 +42,6 @@ export class SchedulerService {
     }
 
     this.logger.debug(`크롤링 스케줄러가 활성화되었습니다.`);
-    await this.crawlingRepository.deleteCrawledNews();
     await this.crawlingService.crawling();
   }
   // ai 요약 스케줄러
