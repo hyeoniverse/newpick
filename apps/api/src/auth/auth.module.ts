@@ -5,7 +5,6 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './google.strategy';
-import { MysqlPrismaService } from 'prisma/mysql.service'; // MySQL Prisma Service
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
@@ -25,7 +24,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     AuthService, // 인증 서비스
     JwtStrategy, // JWT 인증 전략
     GoogleStrategy, // Google OAuth 전략
-    MysqlPrismaService, // Prisma를 통한 DB 연동
   ],
   exports: [
     AuthService, // AuthService를 다른 모듈에서 사용 가능

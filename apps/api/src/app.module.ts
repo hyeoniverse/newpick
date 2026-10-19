@@ -9,12 +9,9 @@ import { AuthModule } from './auth/auth.module'; // 인증 모듈
 import { PrismaModule } from '../prisma/prisma.module'; // Prisma 모듈
 import { AiSummaryModule } from './ai-summary/ai-summary.module'; // AI 요약 모듈
 import { FeedbackModule } from './feedback/feedback.module'; // 피드백 모듈
-import { RedisDatabaseModule } from './database/redis/redis.module'; // Redis 모듈
 import { MyPageModule } from './mypage/mypage.module'; // 마이페이지 모듈
 import { AdminModule } from './admin/admin.module'; // 관리자 페이지 모듈
 import { MailModule } from './mail/mail.module'; // 메일 모듈
-import { OpenAiService } from './ai-summary/openai.service'; // OpenAI 서비스
-import { MailService } from './mail/mail.service'; // 메일 서비스
 import { CategoryModule } from './category/category.module'; // 카테고리 모듈
 import { SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
@@ -23,7 +20,6 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { validateEnv } from './config/env.validation';
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { ScheduleModule } from '@nestjs/schedule';
-import { MemoryMonitorService } from './monitoring/memory.monitor';
 import { BasicRepositoryModule } from './repository/module';
 import { ConfigLoggerMiddleware } from './middleware/config-logger.middleware';
 import { CoopMiddleware } from './middleware/coop.middleware';
@@ -45,7 +41,6 @@ import { CoopMiddleware } from './middleware/coop.middleware';
     AuthModule, // 인증 모듈
     AiSummaryModule, // AI 요약 모듈
     FeedbackModule, // 피드백 모듈
-    RedisDatabaseModule, // Redis 모듈
     PrismaModule, // Prisma 모듈
     MyPageModule, // 마이페이지 모듈
     AdminModule, // 관리자 페이지 모듈
@@ -57,8 +52,6 @@ import { CoopMiddleware } from './middleware/coop.middleware';
   controllers: [AppController], // 컨트롤러 등록
   providers: [
     AppService,
-    OpenAiService,
-    MailService,
     {
       provide: APP_FILTER,
       useClass: SentryGlobalFilter,
@@ -71,7 +64,6 @@ import { CoopMiddleware } from './middleware/coop.middleware';
     //   provide: APP_INTERCEPTOR,
     //   useClass: CommonResponseInterceptor,
     // },
-    MemoryMonitorService,
   ], // 서비스 등록
 })
 export class AppModule implements NestModule {
