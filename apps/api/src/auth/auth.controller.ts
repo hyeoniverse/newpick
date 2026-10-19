@@ -10,17 +10,20 @@ import {
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
+import { Public } from 'src/auth/decorators/auth.decorators';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleLogin() {
     return { message: 'Redirecting to Google OAuth...' };
   }
 
+  @Public()
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleCallback(@Req() req: Request, @Res() res: Response) {
@@ -78,6 +81,7 @@ export class AuthController {
    * Refresh Token을 사용하여 새로운 Access Token 발급
    * authGuard를 제거하여 만료된 Access Token도 허용
    */
+  @Public()
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const refreshToken = req.cookies['refresh_token'];

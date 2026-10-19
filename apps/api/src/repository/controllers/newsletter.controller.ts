@@ -20,12 +20,14 @@ import {
   NewsletterRandomDto,
 } from './newsletter.dto';
 import dayjs from 'dayjs';
+import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
 
 @Controller('newsletters')
 @UseInterceptors(CommonResponseInterceptor)
 export class BasicRepositoryController {
   constructor(private readonly newsletterRepo: NewsletterRepo) {}
 
+  @Public()
   @Get('')
   async getNewsletters(@Query() query: NewsletterQueryDto) {
     const offset = Number(query.offset);
@@ -88,6 +90,7 @@ export class BasicRepositoryController {
    * Query 파라미터로 categoryId가 전달되면 해당 카테고리만 조회하고,
    * 전달되지 않으면 모든 카테고리에 대해 어제의 뉴스레터(각 카테고리 1건)를 조회합니다.
    */
+  @Public()
   @Get('trends')
   async getLatestNewsletters(@Query() query: NewsletterTrendDto) {
     if (query.categoryId) {
@@ -118,6 +121,7 @@ export class BasicRepositoryController {
     }
   }
 
+  @Public()
   @Get(':id')
   async getNewsletterById(
     @Param(
@@ -154,6 +158,7 @@ export class BasicRepositoryController {
     };
   }
 
+  @Public()
   @Get('category/:categoryId')
   async getNewsletterByCategoryId(
     @Param(
@@ -185,6 +190,7 @@ export class BasicRepositoryController {
     };
   }
 
+  @AdminOnly()
   @Delete(':id')
   async deleteNewsletter(@Param('id') id: number) {
     id = Number(id);
@@ -201,6 +207,7 @@ export class BasicRepositoryController {
     };
   }
 
+  @Public()
   @Get('random/:num/:from')
   async getRandomNewsletter(@Param() params: NewsletterRandomDto) {
     const num = params.num || 1;
@@ -226,6 +233,7 @@ export class BasicRepositoryController {
     };
   }
 
+  @Public()
   @Post('viewcount/:id')
   async addViewcount(@Param('id') id: number) {
     id = Number(id);
@@ -242,6 +250,7 @@ export class BasicRepositoryController {
     };
   }
 
+  @AdminOnly()
   @Post('reset-viewcount/:id')
   async resetViewcount(@Param('id') id: number) {
     id = Number(id);

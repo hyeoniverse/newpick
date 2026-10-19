@@ -8,7 +8,9 @@ import {
 } from '@nestjs/common';
 import { AiProcessingLogRepo } from '../aiProcessingLog.repo';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
+import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 
+@AdminOnly()
 @Controller('ai-processing-logs')
 @UseInterceptors(CommonResponseInterceptor)
 export class AiProcessingLogController {

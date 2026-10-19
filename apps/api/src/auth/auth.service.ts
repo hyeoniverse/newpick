@@ -27,7 +27,6 @@ export class AuthService {
   }
   async generateAccessToken(userId: number) {
     const token = this.jwtService.sign({ sub: userId }, { expiresIn: '180m' }); // 3시간
-    console.log('Access Token:', token); // 토큰 확인
     return token;
   }
 
@@ -36,7 +35,6 @@ export class AuthService {
       { sub: userId },
       { expiresIn: '12h', secret: process.env.JWT_REFRESH_SECRET }, // 12시간
     );
-    console.log('Refresh Token:', token); // 토큰 확인
     return token;
   }
 
@@ -71,15 +69,10 @@ export class AuthService {
     userId: number,
     refreshToken: string,
   ): Promise<boolean> {
-    console.log('Verifying refresh token for user:', userId);
-    console.log('Received token from request:', refreshToken);
-
     const storedToken = await this.prisma.oAuthToken.findUnique({
       where: { userId },
       select: { refreshToken: true },
     });
-
-    console.log('Stored token in DB:', storedToken?.refreshToken);
 
     return storedToken?.refreshToken === refreshToken;
   }
@@ -97,14 +90,11 @@ export class AuthService {
   async verifyAndDecodeRefreshToken(
     refreshToken: string,
   ): Promise<number | null> {
-    console.log('Received Refresh Token:', refreshToken);
-
     try {
       const decoded = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET,
       });
 
-      console.log('Decoded Refresh Token:', decoded);
       return decoded?.sub || null;
     } catch (err) {
       console.error('Refresh Token Verification Failed:', err.message);

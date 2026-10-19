@@ -4,7 +4,9 @@ import { Logger } from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
+import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 
+@AdminOnly()
 @Controller('scheduler')
 export class SchedulerController {
   constructor(
@@ -93,22 +95,5 @@ export class SchedulerController {
   @Get('mail-send-cycle')
   getMailSendCycle() {
     return this.schedulerService.getMailSendCycle();
-  }
-
-  @Get('mailtest') // 테스트용
-  async getRecievers() {
-    const recievers = await this.subscriberService.getSubscribers();
-    this.logger.log(`구독자 목록을 가져왔습니다.${recievers}`);
-    const newsletters = await this.newsletterRepository.getNewsletter(0, 3);
-    const mail = await this.mailService.sendBulkMailWithMultipleNewsletter(
-      recievers.map((reciever) => ({
-        email: reciever.email,
-        interests: reciever.interests,
-        name: reciever.name,
-      })),
-      newsletters,
-      '테스트 입니다. \n 이곳에는 요약 뉴스가 들어갑니다.',
-    );
-    return { recievers, mail };
   }
 }

@@ -9,12 +9,6 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const configService = app.get(ConfigService);
 
-  // 환경변수 확인
-  console.log('Environment variables loaded:', {
-    SENTRY_DSN: process.env.SENTRY_DSN,
-    NODE_ENV: process.env.NODE_ENV,
-  });
-
   // 환경 변수 및 기본값 설정
   const frontendUrl: string = configService.get<string>('FRONTEND_URL');
   const port: number = configService.get<number>('PORT', 3001);
@@ -64,10 +58,5 @@ async function bootstrap() {
   } catch (error) {
     console.error('Error starting server:', error);
   }
-
-  app.use((req, res, next) => {
-    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin-allow-popups');
-    next();
-  });
 }
 bootstrap();

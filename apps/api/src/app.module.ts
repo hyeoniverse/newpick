@@ -12,13 +12,15 @@ import { FeedbackModule } from './feedback/feedback.module'; // 피드백 모듈
 import { RedisDatabaseModule } from './database/redis/redis.module'; // Redis 모듈
 import { MyPageModule } from './mypage/mypage.module'; // 마이페이지 모듈
 import { AdminModule } from './admin/admin.module'; // 관리자 페이지 모듈
-import { UserModule } from './user/user.module'; // 유저 모듈
 import { MailModule } from './mail/mail.module'; // 메일 모듈
 import { OpenAiService } from './ai-summary/openai.service'; // OpenAI 서비스
 import { MailService } from './mail/mail.service'; // 메일 서비스
 import { CategoryModule } from './category/category.module'; // 카테고리 모듈
 import { SentryModule } from '@sentry/nestjs/setup';
-import { APP_FILTER } from '@nestjs/core';
+import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { validateEnv } from './config/env.validation';
 import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { ScheduleModule } from '@nestjs/schedule';
 import { MemoryMonitorService } from './monitoring/memory.monitor';
@@ -32,7 +34,10 @@ import { CoopMiddleware } from './middleware/coop.middleware';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      validate: validateEnv,
     }),
+    // 기본 요청 제한: IP당 1분에 120회
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
     SentryModule.forRoot(),
     MongooseModule.forRoot(process.env.MONGO_URL), // MongoDB 연결
     CrawlingModule, // 크롤링 모듈
@@ -44,7 +49,6 @@ import { CoopMiddleware } from './middleware/coop.middleware';
     PrismaModule, // Prisma 모듈
     MyPageModule, // 마이페이지 모듈
     AdminModule, // 관리자 페이지 모듈
-    UserModule, // 유저 모듈
     MailModule, // 메일 모듈
     CategoryModule, // 카테고리 모듈
     ScheduleModule.forRoot(),
@@ -59,6 +63,9 @@ import { CoopMiddleware } from './middleware/coop.middleware';
       provide: APP_FILTER,
       useClass: SentryGlobalFilter,
     },
+    // 순서대로 실행: 요청 제한 → 로그인 확인(@Public 제외)
+    { provide: APP_GUARD, useClass: ThrottlerGuard },
+    { provide: APP_GUARD, useClass: JwtAuthGuard },
     // 인터셉터 등록 (이부분은 나중에 추가해야함 response 형식 전부 변경됨)
     // {
     //   provide: APP_INTERCEPTOR,
@@ -72,5 +79,3 @@ export class AppModule implements NestModule {
     consumer.apply(ConfigLoggerMiddleware, CoopMiddleware).forRoutes('*');
   }
 }
-
-// 추후 JWTGuard 등록 필요.
