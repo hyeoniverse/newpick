@@ -4,7 +4,11 @@ import {
   ConflictException,
   Logger,
 } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service'; // MysqlPrismaService 사용
+import { MysqlPrismaService } from 'prisma/mysql.service';
+import {
+  replaceInterestsOps,
+  validateCategoryIds,
+} from 'src/common/user-interests';
 @Injectable()
 export class SubscriberService {
   constructor(
@@ -13,57 +17,46 @@ export class SubscriberService {
   ) {}
 
   /**
-   * 구독 시작 (관심사 업데이트 포함)
+   * 구독 시작 (관심사 저장 포함)
+   * 이미 구독 중인지 먼저 확인한 뒤, 관심사 저장과 구독 상태 변경을 한 트랜잭션으로 처리합니다.
+   * (이전에는 관심사를 먼저 덮어쓴 뒤 중복 구독을 확인해, 409가 나도 관심사는 바뀌어 있었습니다.)
    * @param userId 사용자 ID
-   * @param interests 관심사 ID 배열
+   * @param interests 관심사 ID 배열 (생략하면 기존 관심사 유지)
    */
-  async startSubscription(userId: number, interests: number[]) {
-    // 사용자 존재 여부 확인
-    const userExists = await this.prisma.user.findUnique({
+  async startSubscription(userId: number, interests?: number[]) {
+    const user = await this.prisma.user.findUnique({
       where: { id: userId },
+      select: { id: true, subscribers: true },
     });
-    if (!userExists) {
+    if (!user) {
       throw new NotFoundException(`User with ID ${userId} does not exist.`);
     }
 
-    // interests 배열이 제공되었다면 유효한 카테고리인지 확인 후 사용자 관심사 업데이트
-    if (Array.isArray(interests) && interests.length > 0) {
-      const validCategories = await this.prisma.newsCategory.findMany({
-        where: { id: { in: interests } },
-        select: { id: true },
-      });
-      const validCategoryIds = validCategories.map((cat) => cat.id);
-      if (validCategoryIds.length !== interests.length) {
-        throw new NotFoundException('Some categories are invalid.');
-      }
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { interests: validCategoryIds },
-      });
-    }
-
-    // 중복 구독 방지
-    const existingSubscription = await this.prisma.subscriber.findUnique({
-      where: { userId },
-    });
-
-    if (existingSubscription && existingSubscription.status === 'active') {
+    const existing = user.subscribers[0];
+    if (existing?.status === 'active') {
       throw new ConflictException('User is already subscribed.');
     }
 
-    // 구독 생성 또는 기존 구독 갱신
-    return existingSubscription
+    const categoryIds = interests
+      ? await validateCategoryIds(this.prisma, interests)
+      : null;
+
+    const subscribe = existing
       ? this.prisma.subscriber.update({
-          where: { id: existingSubscription.id },
+          where: { id: existing.id },
           data: { startedAt: new Date(), endAt: null, status: 'active' },
         })
       : this.prisma.subscriber.create({
-          data: {
-            userId,
-            startedAt: new Date(),
-            status: 'active',
-          },
+          data: { userId, startedAt: new Date(), status: 'active' },
         });
+
+    if (!categoryIds) return subscribe;
+
+    const results = await this.prisma.$transaction([
+      ...replaceInterestsOps(this.prisma, userId, categoryIds),
+      subscribe,
+    ]);
+    return results[results.length - 1];
   }
 
   /**
@@ -101,12 +94,9 @@ export class SubscriberService {
     }
 
     // 구독 취소: 관심사를 비우고 구독 상태를 바꿉니다. 둘 중 하나만 반영되지 않도록 한 트랜잭션으로 처리합니다.
-    // 북마크(feedback)는 구독과 별개인 사용자 데이터이므로 지우지 않습니다.
+    // 북마크는 구독과 별개인 사용자 데이터이므로 지우지 않습니다.
     const [, cancelled] = await this.prisma.$transaction([
-      this.prisma.user.update({
-        where: { id: userId },
-        data: { interests: null },
-      }),
+      this.prisma.userInterest.deleteMany({ where: { userId } }),
       this.prisma.subscriber.update({
         where: { id: subscription.id },
         data: { status: 'cancelled', endAt: new Date() },
@@ -165,7 +155,9 @@ export class SubscriberService {
   > {
     const recievers = await this.prisma.subscriber.findMany({
       include: {
-        user: true,
+        user: {
+          include: { interests: { select: { categoryId: true } } },
+        },
       },
       where: {
         status: 'active',
@@ -178,7 +170,7 @@ export class SubscriberService {
     const subscribersWithInterest = recievers.map((reciever) => {
       return {
         email: reciever.user.email,
-        interests: reciever.user.interests as number[],
+        interests: reciever.user.interests.map((i) => i.categoryId),
         name: reciever.user.username,
       };
     });

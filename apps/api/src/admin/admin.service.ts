@@ -7,7 +7,7 @@ export class AdminService {
   constructor(private readonly prisma: MysqlPrismaService) {}
 
   async getAllUsers() {
-    return this.prisma.user.findMany({ omit: { password: true } });
+    return this.prisma.user.findMany();
   }
 
   async deleteUser(id: number) {
@@ -39,7 +39,6 @@ export class AdminService {
     return this.prisma.user.update({
       where: { id },
       data: { role: updateDto.role },
-      omit: { password: true },
     });
   }
 }

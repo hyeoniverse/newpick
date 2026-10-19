@@ -9,12 +9,10 @@ async function generateUser() {
     await prisma.user.create({
       data: {
         email: faker.internet.email(),
-        password: 'test',
         username: faker.person.fullName(),
         role: 'user',
         createdAt: new Date(),
         updatedAt: new Date(),
-        interests: [],
         timezone: 'Asia/Seoul',
         profileImg: faker.image.avatar(),
         frequency: 'daily',

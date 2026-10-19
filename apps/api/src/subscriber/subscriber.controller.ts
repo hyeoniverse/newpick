@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { SubscriberService } from './subscriber.service';
+import { StartSubscriptionDto } from './dto/start-subscription.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 @Controller('subscribers')
@@ -20,7 +21,7 @@ export class SubscriberController {
    * 구독 시작
    */
   @Post('start')
-  async startSubscription(@Req() req, @Body() data: { interests: number[] }) {
+  async startSubscription(@Req() req, @Body() data: StartSubscriptionDto) {
     const userId = this.validateAndParseUserId(req.user?.id);
     return this.subscriberService.startSubscription(userId, data.interests);
   }
