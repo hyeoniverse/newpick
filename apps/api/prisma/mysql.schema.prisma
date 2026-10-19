@@ -23,7 +23,6 @@ model User {
   bookmarks   Bookmark[]
   interests   UserInterest[]
   oAuthTokens OAuthToken[]
-  retryQueues RetryQueue[]
   subscribers Subscriber[]
 
   @@map("users")
@@ -97,19 +96,6 @@ model UserInterest {
 
   @@id([userId, categoryId])
   @@map("user_interests")
-}
-
-// RetryQueue 모델
-model RetryQueue {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  email     String
-  status    String   @default("대기 중")
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("retry_queues")
 }
 
 // EmailArchive 모델
