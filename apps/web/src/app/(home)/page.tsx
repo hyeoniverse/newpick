@@ -7,6 +7,9 @@ import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
 import TitleSection from '@/app/(home)/_components/TitleSection';
 
+/** 뉴스레터는 하루 한 번 만들어지므로 10분마다 다시 만듭니다. */
+export const revalidate = 600;
+
 export default async function HomePage() {
 	let fetchedArticles: IArticleDetail[] = [];
 	try {

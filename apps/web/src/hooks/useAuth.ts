@@ -12,7 +12,7 @@ import { useAuthStore } from '@/stores/useAuthStore';
 
 export const useAuth = () => {
 	const { showToast } = useToast();
-	const { user, setUser, clearUser, isLoading } = useAuthStore();
+	const { user, session, setUser, clearUser } = useAuthStore();
 	const router = useRouter();
 	const pathname = usePathname();
 	const queryClient = useQueryClient();
@@ -44,12 +44,12 @@ export const useAuth = () => {
 		data: userData,
 		status: userStatus,
 		error: userError,
-		isLoading: userIsLoading,
 		refetch: refetchUser,
 	} = useQuery<User | null>({
 		queryKey: ['user'],
 		queryFn: fetchUser,
-		enabled: !!user,
+		// 로그인 표시 쿠키가 있을 때만 조회합니다. 비로그인 방문자는 백엔드를 호출하지 않습니다.
+		enabled: session === 'in',
 		staleTime: AUTH.STALE_TIME,
 		retry: 1,
 	});
@@ -63,20 +63,19 @@ export const useAuth = () => {
 		}
 	}, [router, refetchUser]);
 
-	// 페이지 새로고침 후 로그인 유지 (사용자 정보 설정)
+	// 조회 결과를 스토어에 반영합니다. 실패하면(토큰 갱신까지 실패) 로그아웃 상태로 바꿉니다.
 	useEffect(() => {
 		if (userStatus === 'success' && userData) {
 			setUser(userData);
-			refetchUser();
 		} else if (userStatus === 'error' || userError) {
 			clearUser();
 		}
-	}, [userStatus, userData, setUser, userError, clearUser, refetchUser]);
+	}, [userStatus, userData, setUser, userError, clearUser]);
 
 	return {
 		user,
+		session,
 		refetchUser,
-		isLoading: isLoading && userIsLoading && userStatus === 'pending',
 		handleLogin,
 		handleLogout,
 	};

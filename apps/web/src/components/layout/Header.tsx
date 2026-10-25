@@ -16,13 +16,12 @@ import Logo from '@/components/common/Logo';
 import Imgae from '@/components/common/Image';
 import Button from '@/components/common/Button';
 import Dropdown from '@/components/common/Dropdown';
-import Spinner from '@/components/common/loader/Spinner';
 import Navigation from '@/components/layout/header/Navigation';
 import Drawer from '@/components/layout/header/Drawer';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
 
 export default function Header() {
-	const { user, isLoading, handleLogin, handleLogout } = useAuth();
+	const { user, session, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
 	const lastScrollY = useRef(0);
@@ -73,47 +72,47 @@ export default function Header() {
 					<Navigation />
 				</div>
 				<div className="right-section">
-					{isLoading ? (
-						<Spinner size="2.5rem" />
-					) : user ? (
-						<Dropdown
-							type="auth"
-							className="auth"
-							toggleButton={
-								user.profileImg ? (
-									<StyledUserCircle>
-										<Imgae src={user.profileImg} alt="profile" ratio="square" />
-									</StyledUserCircle>
-								) : (
-									<StyledUserCircle>
-										<FaUserCircle />
-									</StyledUserCircle>
-								)
-							}
-						>
-							<>
-								<ThemeSwitcher className="item" />
-								<Link href="/mypage">
-									<Button className="item">마이페이지</Button>
-								</Link>
-								<Button className="item" onClick={handleLogout}>
-									로그아웃
-								</Button>
-							</>
-						</Dropdown>
-					) : (
-						<>
-							<ThemeSwitcher scheme="secondary" className="item" />
-							<Button
-								scheme="outline"
-								onClick={handleLogin}
-								icon={<IoLogoGoogle />}
-								iconPosition="left"
-								disabled={isLoading}
+					{/* unknown: 표시 쿠키를 읽기 전에는 둘 다 그려 두고 <html data-auth>에 맞춰 CSS로 하나만 보여 줍니다. */}
+					{session !== 'out' &&
+						(user ? (
+							<Dropdown
+								type="auth"
+								className="auth"
+								toggleButton={
+									user.profileImg ? (
+										<StyledUserCircle>
+											<Imgae src={user.profileImg} alt="profile" ratio="square" />
+										</StyledUserCircle>
+									) : (
+										<StyledUserCircle>
+											<FaUserCircle />
+										</StyledUserCircle>
+									)
+								}
 							>
+								<>
+									<ThemeSwitcher className="item" />
+									<Link href="/mypage">
+										<Button className="item">마이페이지</Button>
+									</Link>
+									<Button className="item" onClick={handleLogout}>
+										로그아웃
+									</Button>
+								</>
+							</Dropdown>
+						) : (
+							// 사용자 정보를 조회하는 동안 프로필 자리를 잡아 둡니다.
+							<StyledUserCircle className="auth-in" aria-busy="true" aria-label="로그인 정보 불러오는 중">
+								<FaUserCircle />
+							</StyledUserCircle>
+						))}
+					{session !== 'in' && (
+						<div className="auth-out">
+							<ThemeSwitcher scheme="secondary" className="item" />
+							<Button scheme="outline" onClick={handleLogin} icon={<IoLogoGoogle />} iconPosition="left">
 								로그인
 							</Button>
-						</>
+						</div>
 					)}
 				</div>
 			</div>
@@ -137,7 +136,9 @@ const StyledHeader = styled.header<StyledProps>`
 
 	background: ${({ theme }) => theme.color.background};
 	border-bottom: 1px solid ${({ theme }) => theme.color.border};
-	transition: top 0.3s ease, transform 0.3s ease;
+	transition:
+		top 0.3s ease,
+		transform 0.3s ease;
 
 	.header {
 		position: relative;
@@ -203,6 +204,17 @@ const StyledHeader = styled.header<StyledProps>`
 			border-radius: ${({ theme }) => theme.borderRadius.circle};
 			object-fit: cover;
 		}
+
+		.auth-out {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+		}
+	}
+
+	html[data-auth='in'] & .auth-out,
+	html[data-auth='out'] & .auth-in {
+		display: none;
 	}
 
 	.hidden {
