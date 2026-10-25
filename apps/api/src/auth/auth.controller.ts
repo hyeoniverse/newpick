@@ -13,7 +13,9 @@ import { AuthGuard } from '@nestjs/passport';
 import {
   ACCESS_TOKEN_MAX_AGE,
   REFRESH_TOKEN_MAX_AGE,
+  SESSION_HINT_COOKIE,
   authCookieOptions,
+  sessionHintCookieOptions,
 } from './cookie-options';
 import { Public } from 'src/auth/decorators/auth.decorators';
 
@@ -72,6 +74,12 @@ export class AuthController {
       authCookieOptions(REFRESH_TOKEN_MAX_AGE),
     );
 
+    res.cookie(
+      SESSION_HINT_COOKIE,
+      '1',
+      sessionHintCookieOptions(REFRESH_TOKEN_MAX_AGE),
+    );
+
     const frontendUrl = process.env.FRONTEND_URL;
     return res.redirect(`${frontendUrl}?oauthSuccess=true`);
   }
@@ -84,19 +92,21 @@ export class AuthController {
   @Get('refresh')
   async refresh(@Req() req: Request, @Res() res: Response) {
     const refreshToken = req.cookies['refresh_token'];
+    // 갱신에 실패하면 로그인 표시 쿠키도 지워, 프론트가 로그아웃 상태로 그리게 합니다.
+    const unauthorized = (message: string) => {
+      res.clearCookie(SESSION_HINT_COOKIE, sessionHintCookieOptions());
+      return res.status(401).json({ message });
+    };
+
     if (!refreshToken) {
-      return res
-        .status(401)
-        .json({ message: 'Unauthorized - No refresh token found' });
+      return unauthorized('Unauthorized - No refresh token found');
     }
 
     try {
       const userId =
         await this.authService.verifyAndDecodeRefreshToken(refreshToken);
       if (!userId) {
-        return res
-          .status(401)
-          .json({ message: 'Unauthorized - Invalid refresh token' });
+        return unauthorized('Unauthorized - Invalid refresh token');
       }
 
       // Refresh Token이 DB에 저장된 것과 일치하는지 확인
@@ -105,9 +115,7 @@ export class AuthController {
         refreshToken,
       );
       if (!isTokenValid) {
-        return res
-          .status(401)
-          .json({ message: 'Unauthorized - Refresh token mismatch' });
+        return unauthorized('Unauthorized - Refresh token mismatch');
       }
 
       const newAccessToken = await this.authService.generateAccessToken(userId);
@@ -118,12 +126,16 @@ export class AuthController {
         authCookieOptions(ACCESS_TOKEN_MAX_AGE),
       );
 
+      res.cookie(
+        SESSION_HINT_COOKIE,
+        '1',
+        sessionHintCookieOptions(REFRESH_TOKEN_MAX_AGE),
+      );
+
       // 토큰은 HttpOnly 쿠키로만 전달합니다. (응답 본문에 담으면 스크립트에서 읽을 수 있음)
       return res.json({ message: 'Token refreshed' });
     } catch {
-      return res
-        .status(401)
-        .json({ message: 'Unauthorized - Token verification failed' });
+      return unauthorized('Unauthorized - Token verification failed');
     }
   }
 
@@ -148,6 +160,8 @@ export class AuthController {
     res.clearCookie('access_token', authCookieOptions());
 
     res.clearCookie('refresh_token', authCookieOptions());
+
+    res.clearCookie(SESSION_HINT_COOKIE, sessionHintCookieOptions());
 
     return res.status(200).json({ message: 'Logged out successfully' });
   }
