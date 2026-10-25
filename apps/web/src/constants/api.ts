@@ -7,6 +7,8 @@ export const BACK_URL = process.env.API_URL || 'http://localhost:3001';
  */
 export const API_URL = typeof window === 'undefined' ? BACK_URL : '/api';
 export const PROTECTED = ['/mypage']; // 로그인이 필요한 경로 (middleware에서 확인)
+/** 로그인 여부만 알려 주는 표시 쿠키 (토큰 아님, api가 발급). 정적 페이지에서 첫 화면의 로그인 상태를 정할 때 씁니다. */
+export const SESSION_HINT_COOKIE = 'logged_in';
 
 export const TOKEN = {
 	ACCESS: 'access_token',
