@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { Cron, SchedulerRegistry } from '@nestjs/schedule';
 import { MailService } from 'src/mail/mail.service';
-import { OpenAiService } from 'src/ai-summary/openai.service';
+import { AiSummaryService } from 'src/ai-summary/ai-summary.service';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
@@ -26,7 +26,7 @@ export class SchedulerService implements OnApplicationBootstrap {
   constructor(
     private readonly logger: Logger,
     private readonly mailService: MailService,
-    private readonly openAiService: OpenAiService,
+    private readonly aiSummaryService: AiSummaryService,
     private readonly crawlingService: CrawlingService,
     private readonly subscriberService: SubscriberService,
     private readonly crawlingRepository: CrawlingRepository,
@@ -108,7 +108,7 @@ export class SchedulerService implements OnApplicationBootstrap {
             this.logger.warn(`카테고리 ${category.name}: 요약할 뉴스 없음`);
             continue;
           }
-          const newsletter = await this.openAiService.summarizeText(
+          const newsletter = await this.aiSummaryService.summarizeText(
             news.news,
             category.id,
             false,

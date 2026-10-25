@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
-import { OpenAiService } from './openai.service';
+import Anthropic from '@anthropic-ai/sdk';
+import { AiSummaryService } from './ai-summary.service';
+import { ClaudeService } from './claude.service';
 import { AiSummaryController } from './ai-summary.controller';
 import { CrawledNewsModule } from '../crawling/crawled-news.module';
 import { FindCategoryService } from './findCategory.service';
@@ -7,20 +9,19 @@ import { CreateNewsletterService } from './createNewsletter.service';
 import { CreateTitleService } from './createTitle.service';
 import { BasicSummarizeService } from './basicSummarize.service';
 import { Logger } from '@nestjs/common';
-import OpenAI from 'openai';
 import { HTMLFormatterService } from './parseHtml.service';
 @Module({
   imports: [CrawledNewsModule],
   controllers: [AiSummaryController],
   providers: [
     {
-      provide: OpenAI,
-      useValue: new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY,
-      }),
+      // ANTHROPIC_API_KEY를 읽습니다.
+      provide: Anthropic,
+      useFactory: () => new Anthropic(),
     },
     Logger,
-    OpenAiService,
+    ClaudeService,
+    AiSummaryService,
     FindCategoryService,
     CreateNewsletterService,
     CreateTitleService,
@@ -28,13 +29,13 @@ import { HTMLFormatterService } from './parseHtml.service';
     BasicSummarizeService,
   ],
   exports: [
-    OpenAiService,
+    AiSummaryService,
+    ClaudeService,
     FindCategoryService,
     CreateNewsletterService,
     CreateTitleService,
     HTMLFormatterService,
     BasicSummarizeService,
-    OpenAI,
     Logger,
   ],
 })

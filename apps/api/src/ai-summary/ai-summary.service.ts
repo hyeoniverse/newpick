@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OpenAI } from 'openai';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { FindCategoryService } from './findCategory.service';
 import { CreateNewsletterService } from './createNewsletter.service';
@@ -9,11 +8,10 @@ import { HTMLFormatterService } from './parseHtml.service';
 import { BasicSummarizeService } from './basicSummarize.service';
 
 @Injectable()
-export class OpenAiService {
-  private readonly logger = new Logger(OpenAiService.name);
+export class AiSummaryService {
+  private readonly logger = new Logger(AiSummaryService.name);
   constructor(
     private readonly prisma: MysqlPrismaService,
-    private readonly openai: OpenAI,
     private readonly findCategoryService: FindCategoryService,
     private readonly createNewsletterService: CreateNewsletterService,
     private readonly createTitleService: CreateTitleService,
@@ -27,7 +25,6 @@ export class OpenAiService {
     test: boolean,
   ): Promise<{
     summary: string;
-    openai: any;
     categoryId: number;
     newsletter: any;
   }> {
@@ -41,14 +38,8 @@ export class OpenAiService {
       '\n' +
       news.map((item) => item.content).join('\n');
     try {
-      const response = await this.basicSummarizeService.basicSummarize(
-        newsText,
-        1000,
-        1500,
-      );
-
-      const summary = response.choices[0].message.content;
-      const token = response.usage?.total_tokens;
+      const { text: summary, tokens: token } =
+        await this.basicSummarizeService.basicSummarize(newsText, 1000, 1500);
       const duration = (Date.now() - startTime) / 1000;
       const newslinks = news.map((item) => item.link).toString();
       this.logger.debug(`요약 완료: ${summary.length}자`);
@@ -80,12 +71,7 @@ export class OpenAiService {
       };
 
       if (test) {
-        return {
-          summary,
-          openai: response,
-          categoryId,
-          newsletter: newsletterTemporary,
-        };
+        return { summary, categoryId, newsletter: newsletterTemporary };
       }
       const newsletter = await this.createNewsletterService.createNewsletter(
         title,
@@ -96,7 +82,7 @@ export class OpenAiService {
         news.map((item) => item.images).toString(),
       );
 
-      return { summary, openai: response, categoryId, newsletter };
+      return { summary, categoryId, newsletter };
     } catch (error) {
       const duration = (Date.now() - startTime) / 1000;
       const newsIds = news.map((item) => item._id).toString();

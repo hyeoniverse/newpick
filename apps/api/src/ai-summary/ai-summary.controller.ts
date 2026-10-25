@@ -1,7 +1,7 @@
 import { Controller, Body, Post, NotFoundException } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { TrialSummarizeDto } from './dto/trial-summarize.dto';
-import { OpenAiService } from './openai.service';
+import { AiSummaryService } from './ai-summary.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { Logger } from '@nestjs/common';
 import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
@@ -14,13 +14,13 @@ export class AiSummaryController {
   private readonly trialCache = new Map<
     string,
     {
-      value: { newsletter: unknown; openaiResponse: unknown };
+      value: { newsletter: unknown };
       expiresAt: number;
     }
   >();
 
   constructor(
-    private readonly openAiService: OpenAiService,
+    private readonly aiSummaryService: AiSummaryService,
     private readonly crawlingRepository: CrawlingRepository,
     private readonly logger: Logger,
   ) {}
@@ -52,15 +52,12 @@ export class AiSummaryController {
     if (news.news.length === 0) {
       throw new NotFoundException('No news found');
     }
-    const result = await this.openAiService.summarizeText(
+    const result = await this.aiSummaryService.summarizeText(
       news.news,
       categoryId,
       true,
     );
-    const value = {
-      newsletter: result.newsletter,
-      openaiResponse: result.openai,
-    };
+    const value = { newsletter: result.newsletter };
 
     if (this.trialCache.size >= TRIAL_CACHE_MAX) this.trialCache.clear();
     this.trialCache.set(cacheKey, {

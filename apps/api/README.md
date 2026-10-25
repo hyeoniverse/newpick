@@ -12,7 +12,7 @@ NewPick의 백엔드입니다. 뉴스를 크롤링하고, AI로 요약해 뉴스
 | 핵심 데이터 | MySQL + Prisma | 유저, 구독, 카테고리, 뉴스레터, 북마크 |
 | 크롤링 원문 | MongoDB + Mongoose | 기사 원문. TTL 인덱스로 30일 뒤 자동 삭제 |
 | 크롤링 | fetch + jsdom | 네이버 뉴스 섹션·기사 페이지 |
-| AI 요약 | OpenAI API | 카테고리별 뉴스레터 생성 |
+| AI 요약 | Claude API (`@anthropic-ai/sdk`) | 카테고리별 뉴스레터 생성 |
 | 메일 | nodemailer (Gmail) | 뉴스레터 발송 |
 | 인증 | Google OAuth + JWT(HttpOnly 쿠키) | 로그인 |
 

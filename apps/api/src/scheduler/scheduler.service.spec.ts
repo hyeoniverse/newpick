@@ -13,7 +13,7 @@ function setup(failingCategoryId: number) {
       return { news: [{ title: `뉴스${categoryId}` }] };
     }),
   };
-  const openAiService = {
+  const aiSummaryService = {
     summarizeText: jest.fn(async (_news, categoryId: number) => ({
       newsletter: [{ categoryId, content: `요약${categoryId}` }],
     })),
@@ -21,7 +21,7 @@ function setup(failingCategoryId: number) {
   const service = new SchedulerService(
     new Logger(),
     { sendHtmlMail: jest.fn() } as never,
-    openAiService as never,
+    aiSummaryService as never,
     {} as never,
     {} as never,
     crawlingRepository as never,
@@ -31,14 +31,16 @@ function setup(failingCategoryId: number) {
     {} as never,
     {} as never,
   );
-  return { service, crawlingRepository, openAiService };
+  return { service, crawlingRepository, aiSummaryService };
 }
 
 describe('SchedulerService.makeAiSummary', () => {
   it('카테고리 하나가 실패해도 나머지 카테고리는 요약한다', async () => {
-    const { service, openAiService } = setup(2);
+    const { service, aiSummaryService } = setup(2);
     await service.makeAiSummary();
-    const summarized = openAiService.summarizeText.mock.calls.map((c) => c[1]);
+    const summarized = aiSummaryService.summarizeText.mock.calls.map(
+      (c) => c[1],
+    );
     expect(summarized).toEqual([1, 3]);
   });
 
