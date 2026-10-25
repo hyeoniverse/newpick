@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { Suspense, useEffect } from 'react';
+import { Suspense } from 'react';
 import { dateFormatter } from '@/utils/formatter';
-import { useCategoryStore } from '@/stores/useCategoryStore';
+import { mapIdToTitle } from '@/utils/mapInterests';
 
 import styled from 'styled-components';
 import { IoArrowBack } from 'react-icons/io5';
@@ -20,27 +20,19 @@ import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import Title from '@/components/common/Title';
 import { useArticleContentQuery } from '@/hooks/useArticle';
+import { useViewCount } from '@/hooks/useViewCount';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { parseUrls } from '@/utils/parseArticles';
 import Skeleton from '@/components/common/loader/Skeleton';
 
-interface Props {
-  viewCount: number;
-}
 
-function Article({ viewCount }: Props) {
+function Article() {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
-  const { categories, fetchCategories, getCategoryName } = useCategoryStore();
 
   const { data: articleContent } = useArticleContentQuery(slug);
-
-  useEffect(() => {
-    if (Object.keys(categories).length === 0) {
-      fetchCategories();
-    }
-  }, [ categories, fetchCategories ]);
+  const increasedViewCount = useViewCount(Number(slug));
 
   if (!articleContent) {
     return null;
@@ -59,7 +51,7 @@ function Article({ viewCount }: Props) {
         />
         <div className="title-section">
           <Link href={`/articles?categoryId=${newsletterContent.categoryId}`} className="category">
-            {getCategoryName(newsletterContent.categoryId)}
+            {mapIdToTitle([newsletterContent.categoryId])[0] || `#${newsletterContent.categoryId}`}
           </Link>
           <Title size="large" weight="semiBold" className="title">
             {newsletterContent.title}
@@ -69,7 +61,7 @@ function Article({ viewCount }: Props) {
               {dateFormatter(newsletterContent.createdAt)}
             </Text>
             <Text size="small" color="subText">
-              |&nbsp;&nbsp;조회수 {viewCount}
+              |&nbsp;&nbsp;조회수 {increasedViewCount ?? newsletterContent.viewcount}
             </Text>
           </div>
           <div className="icons">

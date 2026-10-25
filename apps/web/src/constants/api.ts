@@ -10,16 +10,10 @@ export const PROTECTED = ['/mypage']; // 로그인이 필요한 경로 (middlewa
 /** 로그인 여부만 알려 주는 표시 쿠키 (토큰 아님, api가 발급). 정적 페이지에서 첫 화면의 로그인 상태를 정할 때 씁니다. */
 export const SESSION_HINT_COOKIE = 'logged_in';
 
-export const TOKEN = {
-	ACCESS: 'access_token',
-	USER_ID: 'user_id',
-};
-
 export const API_ENDPOINTS = {
 	AUTH: {
 		LOGIN: () => `${API_URL}/auth/google`,
 		LOGOUT: () => `${API_URL}/auth/logout`,
-		CALLBACK: () => `${API_URL}/auth/google/callback`,
 		REFRESH: () => `${API_URL}/auth/refresh`,
 	},
 	MY: {
@@ -37,7 +31,6 @@ export const API_ENDPOINTS = {
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
 		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,
-		PAGINATED: (page: number, limit: number) => `${API_URL}/newsletters?page=${page}&limit=${limit}`,
 		LIST: (limit: number, offset: number, popular?: boolean) =>
 			popular
 				? `${API_URL}/newsletters?limit=${limit}&offset=${offset}&popular=${popular}`
@@ -52,21 +45,10 @@ export const API_ENDPOINTS = {
 			`${API_URL}/newsletters?limit=${limit}&offset=${offset}&startDate=${startDate}&endDate=${endDate}`,
 	},
 	FEEDBACK: {
-		BASE: () => `${API_URL}/feedback`,
-		PAGINATED: (newsletterId: number, page: number, limit: number) =>
-			`${API_URL}/feedback?newsletterId=${newsletterId}&page=${page}&limit=${limit}`,
 		BOOKMARK: `${API_URL}/feedback/bookmark`,
 	},
 	NEWS: {
 		RELATED: (link: string) => `${API_URL}/crawling/link?link=${link}`,
-		CRAWL: () => `${API_URL}/news/crawl`,
-		GET_BY_CATEGORY: (category: string, page: number, limit: number) =>
-			`${API_URL}/news?category=${category}&page=${page}&limit=${limit}`,
-		GET_BY_ID: (id: string) => `${API_URL}/news/${id}`,
-	},
-	CATEGORY: {
-		BASE: `${API_URL}/category`,
-		GET_BY_ID: (id: string) => `${API_URL}/category/${id}`,
 	},
 };
 

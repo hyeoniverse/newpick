@@ -31,7 +31,6 @@ export default function MySubscribe() {
 		if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 10) {
 			if (lastSection) {
 				const lastCategoryId = lastSection.dataset.categoryid || '';
-				// console.log('✅ 스크롤 맨 아래 도달:', lastCategoryId);
 
 				//  스크롤이 맨 아래에 도달한 경우 activeCategory 고정
 				setIsAtBottom(true);
@@ -71,7 +70,6 @@ export default function MySubscribe() {
 					});
 
 					const newActiveCategory = sorted[0].dataset.categoryid || '';
-					// console.log('🎯 새로운 활성 카테고리:', newActiveCategory);
 
 					if (activeCategory !== newActiveCategory) {
 						setActiveCategory(newActiveCategory);

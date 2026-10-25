@@ -1,36 +1,21 @@
-import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTrendList } from '@/api/article';
-import { useTrendStore } from '@/stores/useTrendsStore';
+import { ArticleSummary } from '@/models/article.model';
 import { parseArticles } from '@/utils/parseArticles';
 
-export const useTrends = () => {
-	const { trends, setTrends, setLoading, setSuccess, setError } = useTrendStore();
+export const TRENDS_QUERY_KEY = ['trends'] as const;
 
-	const { data, error, isLoading } = useQuery({
-		queryKey: ['trends'],
-		queryFn: async () => {
-			setLoading(); // 요청 시작 시 로딩 상태 변경
-			try {
-				const articles = await fetchTrendList();
-				const parsedData = parseArticles(articles);
-				setTrends(parsedData);
-				setSuccess(); // 성공 상태 변경
-				return parsedData;
-			} catch (err) {
-				setError(); // 실패 상태 변경
-				throw err;
-			}
-		},
-		staleTime: 1000 * 60 * 5, // 5분 동안 캐싱
-		retry: 1, // 실패 시 1회 재시도
+/**
+ * 트렌드 목록. 서버 렌더링 때 받은 값을 Providers가 이 쿼리 캐시에 넣어 두므로 첫 화면에서 다시 요청하지 않습니다.
+ * (이전에는 같은 데이터를 React Query와 Zustand에 이중으로 저장했습니다.)
+ */
+export const useTrends = () => {
+	const { data, error, isLoading } = useQuery<ArticleSummary[]>({
+		queryKey: TRENDS_QUERY_KEY,
+		queryFn: async () => parseArticles(await fetchTrendList()),
+		staleTime: 1000 * 60 * 5,
+		retry: 1,
 	});
 
-	useEffect(() => {
-		if (data) {
-			setTrends(data);
-		}
-	}, [data, setTrends]);
-
-	return { trends, isLoading, isSuccess: !isLoading && !error, isError: !!error };
+	return { trends: data ?? [], isLoading, isSuccess: !isLoading && !error, isError: !!error };
 };

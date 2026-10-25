@@ -1,5 +1,3 @@
-'use client';
-
 import { create } from 'zustand';
 import { ThemeName } from '@/styles/theme';
 import React from 'react';
