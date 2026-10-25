@@ -16,9 +16,11 @@ import { mapIdToTitle } from '@/utils/mapInterests';
 import { filterByCategories, sortNewsletters } from '@/utils/queryNewsletters';
 import { parseArticles } from '@/utils/parseArticles';
 import { getArticleList, getCategoryList } from '@/hooks/useArticle';
+import { useToast } from '@/hooks/useToast';
 
 export default function ListSection() {
 	const searchParams = useSearchParams();
+	const { showToast } = useToast();
 	const categoryId = searchParams.get('categoryId'); // Query Parameter 가져오기
 	const categoryName = mapIdToTitle([Number(categoryId)])[0]; // Query Parameter를 카테고리 이름으로 변환
 
@@ -64,12 +66,14 @@ export default function ListSection() {
 			});
 
 			setCurrentPage((prev) => prev + 1);
-		} catch (error) {
-			console.error('추가 데이터를 불러오는 중 에러 발생:', error);
+		} catch {
+			// 실패한 채로 두면 화면 끝에 닿을 때마다 다시 요청하므로, 더 불러오지 않고 알립니다.
+			setHasMore(false);
+			showToast('뉴스레터를 더 불러오지 못했습니다.', 'error');
 		} finally {
 			setIsLoading(false);
 		}
-	}, [currentPage, isLoading, categoryName, categoryId]);
+	}, [currentPage, isLoading, categoryName, categoryId, showToast]);
 
 	useEffect(() => {
 		// 카테고리가 바뀌면 기존 데이터를 초기화하고 정렬 방식도 'latest'로 재설정합니다.
@@ -100,7 +104,7 @@ export default function ListSection() {
 					loadMoreArticles();
 				}
 			},
-			{ threshold: 1.0 }
+			{ threshold: 1.0 },
 		);
 
 		const currentObserver = observerRef.current;

@@ -33,8 +33,7 @@ export const useAuth = () => {
 			if (PROTECTED.includes(pathname)) {
 				router.push('/');
 			}
-		} catch (error) {
-			console.error('❌ 로그아웃 오류:', error);
+		} catch {
 			showToast('로그아웃 중 오류가 발생했습니다.', 'error');
 		}
 	}, [pathname, router, clearUser, showToast, queryClient]);

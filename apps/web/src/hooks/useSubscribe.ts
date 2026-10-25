@@ -3,13 +3,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { fetchSubscription, startSubscription, pauseSubscription, cancelSubscription } from '@/api/subscription';
 import { fetchInterests, updateInterests } from '@/api/interests';
-
-// 공통 에러 핸들링 함수
 import { ToastType } from '@/models/toast.model';
-const handleError = (error: Error, message: string, showToast: (msg: string, type: ToastType) => void) => {
-	console.error(`🚨 ${message}:`, error.message);
-	showToast(message, 'error');
-};
+
+// 실패는 mutation의 onError에서 토스트 한 번으로 알립니다. (호출하는 쪽은 성공 여부만 받습니다)
+const handleError = (message: string, showToast: (msg: string, type: ToastType) => void) => showToast(message, 'error');
 
 // 구독 상태 조회 훅
 export const useSubscribeStatus = () => {
@@ -43,13 +40,13 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 			await refetchUser();
 			showToast(successMsg, 'success');
 		},
-		onError: (error: Error) => handleError(error, `${errorMsg}`, showToast),
+		onError: () => handleError(errorMsg, showToast),
 	});
 
 	const startOptions = <TVariables>(
 		mutationFn: (variables: TVariables) => Promise<void>,
 		successMsg: string,
-		errorMsg: string
+		errorMsg: string,
 	): UseMutationOptions<void, Error, TVariables, unknown> => ({
 		mutationFn,
 		onSuccess: async () => {
@@ -57,26 +54,26 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 			await refetchUser();
 			showToast(successMsg, 'success');
 		},
-		onError: (error: Error) => handleError(error, errorMsg, showToast),
+		onError: () => handleError(errorMsg, showToast),
 	});
 
 	return {
 		startMutation: useMutation(
-			startOptions(startSubscription, '구독이 완료되었습니다!', '구독 중 오류가 발생했습니다. 다시 시도해주세요.')
+			startOptions(startSubscription, '구독이 완료되었습니다!', '구독 중 오류가 발생했습니다. 다시 시도해주세요.'),
 		),
 		pauseMutation: useMutation(
 			suspendOptions(
 				pauseSubscription,
 				'구독이 일시정지되었습니다.',
-				'구독 일시정지 중 오류가 발생했습니다. 다시 시도해주세요.'
-			)
+				'구독 일시정지 중 오류가 발생했습니다. 다시 시도해주세요.',
+			),
 		),
 		cancelMutation: useMutation(
 			suspendOptions(
 				cancelSubscription,
 				'구독이 해지되었습니다.',
-				'구독 해지 중 오류가 발생했습니다. 다시 시도해주세요.'
-			)
+				'구독 해지 중 오류가 발생했습니다. 다시 시도해주세요.',
+			),
 		),
 	};
 };
@@ -84,6 +81,7 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 // 구독 관심사 훅
 export const useSubscribeInterests = () => {
 	const { user } = useAuth();
+	const { showToast } = useToast();
 
 	const {
 		data: interests,
@@ -99,8 +97,7 @@ export const useSubscribeInterests = () => {
 
 	const updateMutation = useMutation({
 		mutationFn: updateInterests,
-		// onSuccess: () => showToast('관심사가 업데이트되었습니다.', 'success'),
-		// onError: (error: Error) => handleError(error, '관심사 업데이트에 실패했습니다.', showToast),
+		onError: () => handleError('관심사 변경 중 오류가 발생했습니다. 다시 시도해주세요.', showToast),
 	});
 
 	return { interests, isInterestsLoading, updateMutation };
@@ -121,94 +118,40 @@ export const useSubscribe = () => {
 		selectedInterests: string[];
 		isChecked: boolean | undefined;
 	}) => {
-		if (!user) return showToast('로그인이 필요합니다.', 'info'), false;
-		if (!user.id) return showToast('로그인 정보를 불러올 수 없습니다.', 'error'), false;
+		if (!user) return (showToast('로그인이 필요합니다.', 'info'), false);
+		if (!user.id) return (showToast('로그인 정보를 불러올 수 없습니다.', 'error'), false);
 		if (selectedInterests.length === 0)
-			return showToast('최소 한 개 이상의 관심사를 선택해야 합니다.', 'warning'), false;
+			return (showToast('최소 한 개 이상의 관심사를 선택해야 합니다.', 'warning'), false);
 		if (user.isSubscribed === null && !isChecked)
-			return showToast('약관에 동의해야 구독할 수 있습니다.', 'warning'), false;
+			return (showToast('약관에 동의해야 구독할 수 있습니다.', 'warning'), false);
 		return true;
 	};
 
-	const handleSubscribe = async ({
-		interests,
-		isChecked,
-	}: {
-		interests: string[];
-		isChecked: boolean | undefined;
-	}) => {
+	const handleSubscribe = async ({ interests, isChecked }: { interests: string[]; isChecked: boolean | undefined }) => {
 		if (!user || !validateSubscribe({ selectedInterests: interests, isChecked })) return false;
 
-		const isSubscribed = await (user.isSubscribed === null || user.isSubscribed === false
-			? handleStart(interests)
-			: handleUpdate(interests));
-
-		if (!isSubscribed) {
-			showToast('구독 중 오류가 발생했습니다.', 'error');
-		}
-
-		return isSubscribed;
+		return user.isSubscribed === null || user.isSubscribed === false ? handleStart(interests) : handleUpdate(interests);
 	};
 
-	const handleStart = async (interests: string[]) => {
+	/** 실패 알림은 각 mutation의 onError가 맡으므로 여기서는 성공 여부만 돌려줍니다. */
+	const run = async (mutate: () => Promise<unknown>) => {
 		try {
+			await mutate();
+			return true;
+		} catch {
+			return false;
+		}
+	};
+
+	const handleStart = (interests: string[]) =>
+		run(async () => {
 			await startMutation.mutateAsync(interests);
-			startMutation.reset(); // 성공 후 상태 초기화
-
-			return true;
-		} catch (error) {
-			console.error('❌ 구독 시작 중 예외 발생:', error);
-			return false;
-		}
-	};
-
-	const handleReStart = async () => {
-		try {
-			await startMutation.mutateAsync([]);
-			return true;
-		} catch (error) {
-			console.error('❌ 구독 재시작 중 예외 발생:', error);
-			return false;
-		}
-	};
-
-	const handlePause = async () => {
-		try {
-			await pauseMutation.mutateAsync();
-			if (pauseMutation.isError) {
-				console.error('❌ 구독 일시정지 실패:', pauseMutation.error);
-				return false;
-			}
-			return true;
-		} catch (error) {
-			console.error('❌ 구독 일시정지 중 예외 발생:', error);
-			return false;
-		}
-	};
-
-	const handleCancel = async () => {
-		try {
-			await cancelMutation.mutateAsync();
-			if (cancelMutation.isError) {
-				console.error('❌ 구독 해지 실패:', cancelMutation.error);
-				return false;
-			}
-			return true;
-		} catch (error) {
-			console.error('❌ 구독 해지 중 예외 발생:', error);
-			return false;
-		}
-	};
-
-	const handleUpdate = async (newInterests: string[]) => {
-		try {
-			await updateMutation.mutateAsync(newInterests);
-			return true;
-		} catch (error) {
-			console.error('❌ 관심사 업데이트 중 예외 발생:', error);
-			return false;
-		}
-	};
+			startMutation.reset();
+		});
+	const handleReStart = () => run(() => startMutation.mutateAsync([]));
+	const handlePause = () => run(() => pauseMutation.mutateAsync());
+	const handleCancel = () => run(() => cancelMutation.mutateAsync());
+	const handleUpdate = (newInterests: string[]) => run(() => updateMutation.mutateAsync(newInterests));
 
 	const toggleSubscribe = () => (status === true ? handlePause() : handleReStart());
 
