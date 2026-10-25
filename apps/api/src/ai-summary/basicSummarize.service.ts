@@ -1,33 +1,20 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { OpenAI } from 'openai';
+import { Injectable } from '@nestjs/common';
+import { ClaudeService } from './claude.service';
 
 @Injectable()
 export class BasicSummarizeService {
-  constructor(
-    private readonly openai: OpenAI,
-    private readonly logger: Logger,
-  ) {}
+  constructor(private readonly claude: ClaudeService) {}
 
   async basicSummarize(
     text: string,
     minOutputText: number,
     maxOutputText: number,
-  ): Promise<any> {
-    const response = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content:
-            'You are an expert summarizer. Summarize articles into Korean',
-        },
-        {
-          role: 'user',
-          content: `Summarize the following text into a concise paragraph of ${minOutputText}-${maxOutputText} words:\n\n${text}`,
-        },
-      ],
-      temperature: 0.5,
+  ) {
+    // 뉴스레터 본문이 되는 요약이라 다른 호출보다 effort를 높입니다.
+    return this.claude.generate({
+      system: 'You are an expert summarizer. Summarize articles into Korean',
+      prompt: `Summarize the following text into a concise paragraph of ${minOutputText}-${maxOutputText} words:\n\n${text}`,
+      effort: 'medium',
     });
-    return response;
   }
 }

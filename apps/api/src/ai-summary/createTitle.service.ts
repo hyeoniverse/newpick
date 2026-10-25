@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OpenAI } from 'openai';
+import { ClaudeService } from './claude.service';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 
 @Injectable()
 export class CreateTitleService {
   constructor(
-    private readonly openai: OpenAI,
+    private readonly claude: ClaudeService,
     private readonly prisma: MysqlPrismaService,
     private readonly logger: Logger,
   ) {}
@@ -13,22 +13,11 @@ export class CreateTitleService {
   async createTitle(summary: string) {
     const startTime = Date.now();
     try {
-      const titleResponse = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert title creator. Create a title for the following article',
-          },
-          {
-            role: 'user',
-            content: `Create a title for the following article \n\nArticle: ${summary}`,
-          },
-        ],
+      const { text: title, tokens } = await this.claude.generate({
+        system:
+          'You are an expert title creator. Create a title for the following article. Return only the title in Korean, without quotes.',
+        prompt: `Create a title for the following article \n\nArticle: ${summary}`,
       });
-
-      const title = titleResponse.choices[0].message.content;
 
       await this.prisma.aiProcessLog.create({
         data: {
@@ -38,7 +27,7 @@ export class CreateTitleService {
           duration: (Date.now() - startTime) / 1000,
           status: 'success',
           error: null,
-          token: titleResponse.usage?.total_tokens,
+          token: tokens,
         },
       });
       this.logger.debug(`제목 생성 완료: ${title}`);

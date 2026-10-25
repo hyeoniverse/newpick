@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OpenAI } from 'openai';
+import { ClaudeService } from './claude.service';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 
 @Injectable()
 export class FindCategoryService {
   constructor(
     private readonly prisma: MysqlPrismaService,
-    private readonly openai: OpenAI,
+    private readonly claude: ClaudeService,
     private readonly logger: Logger,
   ) {}
 
@@ -15,22 +15,23 @@ export class FindCategoryService {
     try {
       const categoryList = await this.prisma.newsCategory.findMany();
 
-      const categoryResponse = await this.openai.chat.completions.create({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content:
-              'You are an expert category classifier. Classify the following article into privided category list and only return the category name',
-          },
-          {
-            role: 'user',
-            content: `Classify the following article into privided \n\nArticle: ${summary}  \n\ncategory list: ${categoryList.map((item) => item.name).toString()}`,
-          },
-        ],
+      const names = categoryList.map((item) => item.name);
+
+      // 응답을 카테고리 이름 중 하나로 제한해, DB에 없는 이름이 돌아오지 않게 합니다.
+      const { text, tokens } = await this.claude.generate({
+        system:
+          'You are an expert category classifier. Classify the following article into the provided category list',
+        prompt: `Classify the following article into the provided category list\n\nArticle: ${summary}\n\ncategory list: ${names.toString()}`,
+        schema: {
+          type: 'object',
+          properties: { category: { type: 'string', enum: names } },
+          required: ['category'],
+          additionalProperties: false,
+        },
+        maxTokens: 1024,
       });
 
-      const categoryName = categoryResponse.choices[0].message.content;
+      const categoryName: string = JSON.parse(text).category;
       const categoryId = categoryList.find(
         (item) => item.name === categoryName,
       )?.id;
@@ -45,7 +46,7 @@ export class FindCategoryService {
           duration: duration,
           status: 'success',
           error: null,
-          token: categoryResponse.usage?.total_tokens,
+          token: tokens,
         },
       });
 
