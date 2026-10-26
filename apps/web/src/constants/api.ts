@@ -19,6 +19,8 @@ export const API_ENDPOINTS = {
 	MY: {
 		PROFILE: () => `${API_URL}/mypage/profile`,
 		BOOKMARKS: () => `${API_URL}/mypage/bookmarks`,
+		/** 회원 탈퇴 (#65) */
+		ACCOUNT: () => `${API_URL}/mypage/account`,
 	},
 	SUBSCRIBERS: {
 		STATUS: () => `${API_URL}/subscribers/status`,

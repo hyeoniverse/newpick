@@ -10,7 +10,7 @@ import { fetchUser, loginUser, logoutUser } from '@/api/auth';
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/stores/useAuthStore';
 
-/** 로그인한 사람마다 다른 조회 결과. 로그아웃하면 지운다 */
+/** 로그인한 사람마다 다른 조회 결과. 로그아웃·탈퇴하면 지운다 */
 const USER_QUERY_KEYS = ['user', 'bookmarks', 'subscriptionStatus', 'subscriptionInterests'];
 
 export const useAuth = () => {
@@ -25,22 +25,27 @@ export const useAuth = () => {
 		loginUser();
 	};
 
+	/**
+	 * 로그아웃·탈퇴 뒤 공통: 로그인 상태와 이 계정의 조회 결과(북마크·구독 상태·관심 분야)를 지우고,
+	 * 로그인이 필요한 화면이면 홈으로
+	 */
+	const resetSession = useCallback(() => {
+		clearUser();
+		for (const key of USER_QUERY_KEYS) queryClient.removeQueries({ queryKey: [key] });
+		if (PROTECTED.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+			router.push('/');
+		}
+	}, [pathname, router, clearUser, queryClient]);
+
 	// 로그아웃 핸들러
 	const handleLogout = useCallback(async () => {
 		try {
 			await logoutUser();
-			// Zustand 상태 초기화
-			clearUser();
-			// 이 계정의 정보(북마크·구독 상태·관심 분야)가 다음 사람 화면에 남지 않게 함께 지운다
-			for (const key of USER_QUERY_KEYS) queryClient.removeQueries({ queryKey: [key] });
-			// 보호된 경로 리디렉션
-			if (PROTECTED.includes(pathname)) {
-				router.push('/');
-			}
+			resetSession();
 		} catch {
 			showToast('로그아웃 중 오류가 발생했습니다.', 'error');
 		}
-	}, [pathname, router, clearUser, showToast, queryClient]);
+	}, [resetSession, showToast]);
 
 	// `useQuery`를 활용하여 자동으로 사용자 정보 가져오기
 	const {
@@ -81,5 +86,6 @@ export const useAuth = () => {
 		refetchUser,
 		handleLogin,
 		handleLogout,
+		resetSession,
 	};
 };

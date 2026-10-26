@@ -5,10 +5,16 @@ import {
   replaceInterestsOps,
   validateCategoryIds,
 } from 'src/common/user-interests';
+import { deleteAccount } from 'src/common/delete-account';
 
 @Injectable()
 export class MyPageService {
   constructor(private readonly prisma: MysqlPrismaService) {}
+
+  /** 회원 탈퇴: 회원 정보와 관심 분야·구독·북마크·발송 기록을 함께 지운다 (#65) */
+  async deleteAccount(userId: number) {
+    return deleteAccount(this.prisma, userId);
+  }
 
   /**
    * 사용자 프로필 조회

@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import useSubscribe from '@/hooks/useSubscribe';
 import NoContentsPage from '@/components/common/NoContentsPage';
 import StartSubscription from '@/app/(protected)/mypage/_components/settings/StartSubscription';
+import DeleteAccount from '@/app/(protected)/mypage/_components/settings/DeleteAccount';
 
 export default function MyNewsletterSubscribe() {
 	const { user } = useAuth();
@@ -20,6 +21,7 @@ export default function MyNewsletterSubscribe() {
 					onClick={() => {}}
 				/>
 			)}
+			<DeleteAccount />
 		</div>
 	);
 }

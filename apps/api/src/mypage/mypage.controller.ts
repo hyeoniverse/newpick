@@ -1,11 +1,19 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Put,
   Req,
+  Res,
   UnauthorizedException,
 } from '@nestjs/common';
+import { Response } from 'express';
+import {
+  SESSION_HINT_COOKIE,
+  authCookieOptions,
+  sessionHintCookieOptions,
+} from 'src/auth/cookie-options';
 import { MyPageService } from './mypage.service';
 import { InterestsDto } from 'src/common/dto/interests.dto';
 
@@ -47,6 +55,18 @@ export class MyPageController {
       this.userIdOf(req),
       data.interests,
     );
+  }
+
+  /**
+   * 회원 탈퇴 (#65). 지운 뒤 로그인 쿠키도 지운다 (로그아웃과 같게)
+   */
+  @Delete('account')
+  async deleteAccount(@Req() req, @Res({ passthrough: true }) res: Response) {
+    await this.myPageService.deleteAccount(this.userIdOf(req));
+    res.clearCookie('access_token', authCookieOptions());
+    res.clearCookie('refresh_token', authCookieOptions());
+    res.clearCookie(SESSION_HINT_COOKIE, sessionHintCookieOptions());
+    return { message: '탈퇴했습니다.' };
   }
 
   private userIdOf(req): number {
