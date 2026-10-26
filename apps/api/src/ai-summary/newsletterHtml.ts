@@ -51,10 +51,11 @@ const link = (text: string, url?: string) =>
 /** 사진 출처 표기. Unsplash는 "Photo by 작가 on Unsplash" 형식이 이용 규칙이다 (#49) */
 const imageCaption = (image: StoryImage) => {
   switch (image.provider) {
+    // 검색으로 찾은 사진은 기사 속 인물·장소가 아님을 밝힌다
     case 'pexels':
-      return `Photo: ${link(image.credit, image.creditUrl)} / ${link('Pexels', image.providerUrl)}`;
+      return `자료 사진 · Photo: ${link(image.credit, image.creditUrl)} / ${link('Pexels', image.providerUrl)}`;
     case 'unsplash':
-      return `Photo by ${link(image.credit, image.creditUrl)} on ${link('Unsplash', image.providerUrl)}`;
+      return `자료 사진 · Photo by ${link(image.credit, image.creditUrl)} on ${link('Unsplash', image.providerUrl)}`;
     default:
       return `사진 ${link(image.credit, image.creditUrl)}`;
   }

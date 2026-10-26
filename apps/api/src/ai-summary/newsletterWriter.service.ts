@@ -188,7 +188,7 @@ export const writerPrompt = (articles: PrepArticle[], category?: string) =>
     `  - body: 경과와 맥락 ${LIMITS.body.min}~${LIMITS.body.max}자, 문단 1~2개. 문단 사이는 빈 줄 하나. 템플릿 고유 항목(stats·timeline·qa·quote)과 같은 내용을 반복하지 않습니다.`,
     `  - analysis: 시사점 ${LIMITS.analysis.min}~${LIMITS.analysis.max}자. 파급 효과, 이해관계자, 쟁점, 전망. 기사에 근거가 없는 예측은 하지 않습니다.`,
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
-    '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 실존 인물 이름·기업 로고 대신 장면이나 사물 (예: "stock market screen", "farmland korea", "ballot counting").',
+    '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     `- watch: 관전 포인트. 앞으로 지켜볼 일정·변수 1~${LIMITS.watch.max}개, 하나에 ${LIMITS.watch.length}자 이내. 기사에 나온 것만.`,
     '- 숫자·이름·날짜는 기사에 있는 그대로 쓰고, 기사에 없는 내용은 더하지 않습니다.',
     '- 마크다운, HTML, 글머리 기호 문자(-, •)는 쓰지 않습니다. 따옴표로 제목을 감싸지 않습니다.',

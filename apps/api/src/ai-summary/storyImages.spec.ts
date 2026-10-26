@@ -170,7 +170,7 @@ describe('사진 렌더링', () => {
     );
   });
 
-  it('Unsplash는 "Photo by 작가 on Unsplash" 형식', () => {
+  it('검색한 사진은 "자료 사진"으로 밝히고, Unsplash는 "Photo by 작가 on Unsplash" 형식', () => {
     const html = render({
       url: 'https://images.unsplash.com/1',
       alt: 'x',
@@ -180,7 +180,7 @@ describe('사진 렌더링', () => {
       providerUrl: 'https://unsplash.com/photos/1',
     });
     expect(html).toMatch(
-      /Photo by <a [^>]+>Lee<\/a> on <a [^>]+>Unsplash<\/a>/,
+      /<figcaption>자료 사진 · Photo by <a [^>]+>Lee<\/a> on <a [^>]+>Unsplash<\/a><\/figcaption>/,
     );
   });
 
