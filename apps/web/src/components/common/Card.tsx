@@ -171,10 +171,22 @@ const StyledCard = styled.div<StyledProps>`
 		display: flex;
 		flex-direction: column;
 
+		/* 커질 때만이 아니라 마우스를 뗄 때도 같은 속도로 돌아오게 기본 상태에 둔다 (Image의 opacity 전환은 유지) */
+		img {
+			transition:
+				transform 0.4s ease,
+				opacity 0.3s ease-in-out;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			img {
+				transition: opacity 0.3s ease-in-out;
+			}
+		}
+
 		&:hover:not(:has(.card-footer:hover)) {
 			img {
 				transform: scale(1.05);
-				transition: transform 0.3s ease;
 			}
 
 			.title {
