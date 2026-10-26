@@ -49,7 +49,13 @@ export default function BookmarkIcon({ newsId, className, newsletterId }: Bookma
 	};
 
 	return (
-		<IconStyled onClick={handleToggle} className={className}>
+		<IconStyled
+			type="button"
+			onClick={handleToggle}
+			className={className}
+			aria-label={isBookmarked ? '북마크 해제' : '북마크'}
+			aria-pressed={!!isBookmarked}
+		>
 			<LuBookmark
 				style={{
 					fill: isBookmarked ? theme.color.primary : '',
