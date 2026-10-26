@@ -17,6 +17,7 @@ export class CreateNewsletterService {
     categoryId: number,
     contentAsHTML: string,
     imgUrl: string,
+    keywords: string[] = [],
   ): Promise<Newsletter> {
     const newsletter = await this.prisma.newsletter.create({
       data: {
@@ -29,6 +30,7 @@ export class CreateNewsletterService {
         usedNews,
         viewcount: 0,
         imageUrl: imgUrl,
+        keywords,
       },
     });
 

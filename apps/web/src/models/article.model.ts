@@ -9,6 +9,8 @@ export interface ArticleDetail {
 	title: string;
 	/** 제목에 담지 않은 나머지 소식 한 줄. 이전 뉴스레터는 null */
 	subtitle?: string | null;
+	/** 키워드 (#50). 이전 뉴스레터는 null */
+	keywords?: string[] | null;
 	content: string;
 	contentAsHTML: string;
 	imageUrl: string | null;
@@ -25,6 +27,7 @@ export interface ArticleSummary {
 	image: string;
 	title: string;
 	subtitle?: string;
+	keywords?: string[];
 	summary: string;
 	date: string;
 	bookmarks?: number;

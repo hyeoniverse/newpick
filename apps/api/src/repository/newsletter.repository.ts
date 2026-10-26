@@ -30,6 +30,7 @@ export class NewsletterRepo {
         id: true,
         title: true,
         subtitle: true,
+        keywords: true,
         imageUrl: true,
         categoryId: true,
         viewcount: true,

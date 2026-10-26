@@ -15,6 +15,7 @@ export function parseArticles(trends: IArticleDetail[] = []): IArticleSummary[] 
 		image: getFirstImage(trend.imageUrl!) || '',
 		title: stripCodeFence(trend.title),
 		...(trend.subtitle && { subtitle: trend.subtitle }),
+		...(trend.keywords?.length && { keywords: trend.keywords }),
 		summary: stripCodeFence(trend.content),
 		date: dateFormatter(trend.createdAt),
 		likes: trend.viewcount,

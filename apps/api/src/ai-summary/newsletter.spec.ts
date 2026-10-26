@@ -1,6 +1,7 @@
 import { Newsletter } from '@prisma/client';
 import {
   clean,
+  keywords,
   LIMITS,
   normalize,
   NewsletterWriterService,
@@ -48,6 +49,7 @@ const written = (
     },
   ],
   watch: ['FOMC 결과'],
+  keywords: ['코스피', '외국인 매도'],
   ...overrides,
 });
 
@@ -153,6 +155,7 @@ describe('2단계: 쓰기', () => {
       'template',
       'analysis',
       'watch',
+      'keywords',
     ]) {
       expect(prompt).toContain(`- ${key}:`);
     }
@@ -198,6 +201,23 @@ describe('응답 정리', () => {
     expect(result.stories[0].stats).toHaveLength(4);
     expect(result.stories[0].stats[0].label).toBe('코스피');
     expect(result.watch).toHaveLength(3);
+  });
+
+  it('키워드: # 제거, 너무 긴 것 버리기, 대소문자 무시 중복 제거, 최대 6개 (#50)', () => {
+    expect(
+      keywords([
+        '#코스피',
+        ' 가상자산  과세 ',
+        'AI',
+        'ai',
+        '아주아주아주아주아주아주긴키워드',
+        '',
+        'FOMC',
+        'CPTPP',
+        '전작권',
+        '여덟째',
+      ]),
+    ).toEqual(['코스피', '가상자산 과세', 'AI', 'FOMC', 'CPTPP', '전작권']);
   });
 
   it('제목이 비거나 소식이 없으면 저장하지 않게 실패', () => {
@@ -446,6 +466,7 @@ describe('파이프라인', () => {
       1,
       renderNewsletterHtml(written(), news),
       'i2',
+      ['코스피', '외국인 매도'],
     );
   });
 });

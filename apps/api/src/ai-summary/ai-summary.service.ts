@@ -51,7 +51,7 @@ export class AiSummaryService {
       )?.name;
       const { newsletter: written, tokens } =
         await this.newsletterWriterService.write(news, category);
-      const { title, subtitle, summary, stories } = written;
+      const { title, subtitle, summary, stories, keywords } = written;
 
       const used = usedArticles(
         news,
@@ -100,6 +100,7 @@ export class AiSummaryService {
             categoryId,
             html,
             imageUrl,
+            keywords,
           },
         };
       }
@@ -111,6 +112,7 @@ export class AiSummaryService {
         categoryId,
         html,
         imageUrl,
+        keywords,
       );
 
       return { summary, categoryId, newsletter };

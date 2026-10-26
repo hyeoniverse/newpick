@@ -77,7 +77,7 @@ describe('parseArticles', () => {
 		]);
 	});
 
-	it('부제목이 있으면 함께 넘기고, 없으면 키를 만들지 않는다 (#42)', () => {
+	it('부제목·키워드가 있으면 함께 넘기고, 없으면 키를 만들지 않는다 (#42, #50)', () => {
 		const base = {
 			id: 1,
 			categoryId: 1,
@@ -88,10 +88,12 @@ describe('parseArticles', () => {
 			viewcount: 0,
 		};
 		const [withSubtitle, without] = parseArticles([
-			{ ...base, subtitle: '부제목' } as unknown as ArticleDetail,
+			{ ...base, subtitle: '부제목', keywords: ['코스피'] } as unknown as ArticleDetail,
 			{ ...base, subtitle: null } as unknown as ArticleDetail,
 		]);
 		expect(withSubtitle.subtitle).toBe('부제목');
+		expect(withSubtitle.keywords).toEqual(['코스피']);
 		expect(without).not.toHaveProperty('subtitle');
+		expect(without).not.toHaveProperty('keywords');
 	});
 });

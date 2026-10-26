@@ -73,6 +73,8 @@ export type WrittenNewsletter = {
   briefing: string;
   stories: Story[];
   watch: string[];
+  /** 키워드 3~6개 (#50). 상세·목록의 태그, 지난 뉴스레터 검색(#20)에 쓴다 */
+  keywords: string[];
 };
 
 export type SourceArticle = {
@@ -98,6 +100,7 @@ export const LIMITS = {
   timeline: { min: 3, max: 5 },
   qa: { min: 2, max: 3 },
   watch: { max: 3, length: 60 },
+  keywords: { min: 3, max: 6, length: 12 },
   /** 쓰기 단계에 소식 하나당 보내는 기사 수 (같은 사건의 대표 기사) */
   articlesPerStory: 2,
 } as const;
@@ -190,6 +193,7 @@ export const writerPrompt = (articles: PrepArticle[], category?: string) =>
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     `- watch: 관전 포인트. 앞으로 지켜볼 일정·변수 1~${LIMITS.watch.max}개, 하나에 ${LIMITS.watch.length}자 이내. 기사에 나온 것만.`,
+    `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개, 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
     '- 숫자·이름·날짜는 기사에 있는 그대로 쓰고, 기사에 없는 내용은 더하지 않습니다.',
     '- 마크다운, HTML, 글머리 기호 문자(-, •)는 쓰지 않습니다. 따옴표로 제목을 감싸지 않습니다.',
     '',
@@ -251,8 +255,17 @@ const WRITER_SCHEMA = {
       },
     },
     watch: { type: 'array', items: { type: 'string' } },
+    keywords: { type: 'array', items: { type: 'string' } },
   },
-  required: ['title', 'subtitle', 'summary', 'briefing', 'stories', 'watch'],
+  required: [
+    'title',
+    'subtitle',
+    'summary',
+    'briefing',
+    'stories',
+    'watch',
+    'keywords',
+  ],
   additionalProperties: false,
 };
 
@@ -280,6 +293,21 @@ const unbullet = (value: string) => value.trim().replace(/^[-•·*]\s*/, '');
 
 const list = (items: string[], max: number) =>
   items.map(unbullet).filter(Boolean).slice(0, max);
+
+/** '#'·공백 정리, 너무 긴 것 버리기, 대소문자 무시 중복 제거, 최대 6개 */
+export const keywords = (items: string[]) => {
+  const seen = new Set<string>();
+  return items
+    .map((k) => k.trim().replace(/^#+/, '').replace(/\s+/g, ' ').trim())
+    .filter((k) => k && k.length <= LIMITS.keywords.length)
+    .filter((k) => {
+      const key = k.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, LIMITS.keywords.max);
+};
 
 /** 각 필드를 다듬고, 값이 모두 있는 항목만 max개까지 */
 const rows = <T extends Record<string, string>>(items: T[], max: number) =>
@@ -362,6 +390,7 @@ export function normalize(
     briefing: raw.briefing.trim(),
     stories,
     watch: list(raw.watch, LIMITS.watch.max),
+    keywords: keywords(raw.keywords),
   };
   if (!result.title) throw new Error('빈 제목');
   if (!result.stories.length) throw new Error('소식이 없음');

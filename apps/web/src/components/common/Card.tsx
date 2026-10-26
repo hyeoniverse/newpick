@@ -7,6 +7,7 @@ import styled, { css } from 'styled-components';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Image from '@/components/common/Image';
+import Tags from '@/components/common/Tags';
 
 interface Props {
 	className?: string;
@@ -116,6 +117,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 												{main.description}
 											</Text>
 										)}
+										<Tags tags={main.tags} max={4} className="tags" />
 										{footer && (
 											<div className="card-footer" onClick={(e) => e.preventDefault()}>
 												{footer}
@@ -383,6 +385,17 @@ const listCardStyles = css`
 
 		.title {
 			-webkit-line-clamp: 2;
+		}
+
+		.tags {
+			margin-top: 0.25rem;
+
+			/* 모바일은 한 줄에 들어가는 2개까지 */
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				li:nth-child(n + 3) {
+					display: none;
+				}
+			}
 		}
 
 		.description {

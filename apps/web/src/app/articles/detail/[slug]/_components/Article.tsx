@@ -19,6 +19,7 @@ import MoveButton from '@/components/common/MoveButton';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import Title from '@/components/common/Title';
+import Tags from '@/components/common/Tags';
 import { useArticleContentQuery } from '@/hooks/useArticle';
 import { useViewCount } from '@/hooks/useViewCount';
 import { stripCodeFence } from '@/utils/stripCodeFence';
@@ -61,6 +62,7 @@ function Article() {
               {newsletterContent.subtitle}
             </Text>
           )}
+          <Tags tags={newsletterContent.keywords} className="keywords" />
           <div className="info">
             <Text size="small" color="subText">
               {dateFormatter(newsletterContent.createdAt)}
@@ -194,6 +196,11 @@ const TitleSectionStyled = styled.div`
         .subtitle {
             word-break: auto-phrase;
             max-width: 40rem;
+        }
+
+        .keywords {
+            justify-content: center;
+            margin-top: 0.5rem;
         }
 
         .icons {
