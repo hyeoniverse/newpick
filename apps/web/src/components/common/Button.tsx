@@ -84,8 +84,8 @@ export const StyledButton = styled.button.withConfig({
 	color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].color};
 	background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].background};
 	border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].border};
-	/* 사이트의 둥근 모양(시트·칩·카드)에 맞춘다. 가장 작은 크기는 조금 덜 둥글게 */
-	border-radius: ${({ theme, size }) => (size === 'extraSmall' ? theme.borderRadius.soft : theme.borderRadius.medium)};
+	/* 버튼은 각지게 (뉴픽 버튼 모양). 둥글게 할 곳은 쓰는 쪽에서 덮어쓴다 (예: 체험하기·구독 버튼) */
+	border-radius: ${({ theme }) => theme.borderRadius.flat};
 	cursor: pointer;
 	transition:
 		background 0.15s ease,

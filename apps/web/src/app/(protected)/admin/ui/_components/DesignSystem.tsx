@@ -28,6 +28,7 @@ import InputText from '@/components/common/InputText';
 import InputCheck from '@/components/common/InputCheck';
 import InputSelect from '@/components/common/InputSelect';
 import InputDate from '@/components/common/InputDate';
+import InputRadio from '@/components/common/InputRadio';
 import Spinner from '@/components/common/loader/Spinner';
 import Skeleton from '@/components/common/loader/Skeleton';
 import ModalContent from '@/components/common/modal/ModalContent';
@@ -86,6 +87,7 @@ function DesignSystemBody() {
 	const { isChecked } = useInputCheck('ds-check');
 	const [selectValue, setSelectValue] = useState('');
 	const [date, setDate] = useState<Date | null>(null);
+	const [cycle, setCycle] = useState<'daily' | 'weekly'>('daily');
 
 	return (
 		<StyledPage>
@@ -205,7 +207,7 @@ function DesignSystemBody() {
 					<Button scheme="primary" isLoading>
 						로딩
 					</Button>
-					<Button scheme="outline" icon={<LuBell />}>
+					<Button scheme="outline" icon={<LuBell />} iconPosition="left">
 						아이콘 왼쪽
 					</Button>
 					<Button scheme="outline" icon={<LuSparkles />} iconPosition="right">
@@ -214,7 +216,7 @@ function DesignSystemBody() {
 				</div>
 			</Section>
 
-			<Section id="input" title="입력" note="InputText · InputCheck · InputSelect · InputDate">
+			<Section id="input" title="입력" note="InputText · InputCheck · InputRadio · InputSelect · InputDate">
 				<div className="grid">
 					<InputText label="이메일" placeholder="name@example.com" inputType="email" />
 					<InputSelect
@@ -230,13 +232,23 @@ function DesignSystemBody() {
 						]}
 					/>
 					<InputDate label="날짜" onChange={setDate} />
+					<InputRadio
+						name="ds-cycle"
+						label="발송 주기"
+						value={cycle}
+						onChange={setCycle}
+						options={[
+							{ label: '매일', value: 'daily' },
+							{ label: '매주', value: 'weekly' },
+						]}
+					/>
 					<div className="check">
 						<InputCheck name="ds-check" label="약관에 동의합니다" />
 					</div>
 				</div>
 				<Text size="extraSmall" color="subText">
 					값: 분야 {selectValue || '없음'} · 날짜 {date?.toLocaleDateString('ko-KR') ?? '없음'} · 체크{' '}
-					{isChecked ? '됨' : '안 됨'}
+					{isChecked ? '됨' : '안 됨'} · 주기 {cycle === 'daily' ? '매일' : '매주'}
 				</Text>
 			</Section>
 
@@ -253,21 +265,13 @@ function DesignSystemBody() {
 						</Button>
 					))}
 				</div>
-				<div className="wrap">
-					<Text size="extraSmall" color="subText">
-						위치
-					</Text>
-					{TOAST_POSITIONS.map((p) => (
-						<Button
-							key={p}
-							size="extraSmall"
-							scheme={p === position ? 'primary' : 'monoOutline'}
-							onClick={() => setPosition(p)}
-						>
-							{p}
-						</Button>
-					))}
-				</div>
+				<InputRadio
+					name="ds-toast-position"
+					label="위치"
+					value={position}
+					onChange={setPosition}
+					options={TOAST_POSITIONS.map((p) => ({ label: p, value: p }))}
+				/>
 				<div className="wrap">
 					<Button
 						scheme="primary"

@@ -6,6 +6,7 @@ import { lightTheme } from '@/styles/theme';
 import { useInputCheckStore } from '@/stores/useInputCheckStore';
 import Button from '@/components/common/Button';
 import InputCheck from '@/components/common/InputCheck';
+import InputRadio from '@/components/common/InputRadio';
 import InputSelect from '@/components/common/InputSelect';
 import InputText from '@/components/common/InputText';
 
@@ -65,5 +66,31 @@ describe('공통 입력 (#63)', () => {
 		const button = screen.getByRole('button', { name: '저장' });
 		expect((button as HTMLButtonElement).disabled).toBe(true);
 		expect(button.getAttribute('aria-busy')).toBe('true');
+	});
+});
+
+describe('라디오 버튼 (#63)', () => {
+	function Radio() {
+		const [value, setValue] = useState<'a' | 'b'>('a');
+		return (
+			<InputRadio
+				name="pick"
+				label="고르기"
+				value={value}
+				onChange={setValue}
+				options={[
+					{ label: '가', value: 'a' },
+					{ label: '나', value: 'b' },
+				]}
+			/>
+		);
+	}
+
+	it('묶음에서 하나만 고르고, 이름표를 눌러도 고른다', () => {
+		withTheme(<Radio />);
+		expect(screen.getByRole('group', { name: '고르기' })).toBeTruthy();
+		fireEvent.click(screen.getByText('나'));
+		expect((screen.getByRole('radio', { name: '나' }) as HTMLInputElement).checked).toBe(true);
+		expect((screen.getByRole('radio', { name: '가' }) as HTMLInputElement).checked).toBe(false);
 	});
 });
