@@ -28,14 +28,6 @@ const Drawer = () => {
 					<Button>
 						<Link href={item.link}>{item.title}</Link>
 					</Button>
-					{item.subItems &&
-						item.subItems.map((subItem, subIndex) => (
-							<div className="sub-item" key={`sub-drawer-${subIndex}`}>
-								<Button>
-									<Link href={subItem.link}>{subItem.title}</Link>
-								</Button>
-							</div>
-						))}
 				</div>
 			))}
 		</Dropdown>
