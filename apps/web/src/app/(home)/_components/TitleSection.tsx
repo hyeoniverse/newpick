@@ -150,7 +150,7 @@ const TitleSectionStyled = styled.div`
 		}
 
 		.image {
-			border-radius: 12px;
+			border-radius: ${({ theme }) => theme.radius.surface};
 		}
 	}
 `;

@@ -194,7 +194,7 @@ const StyledCardSlider = styled.div<StyledProps>`
 			padding: ${({ $type }) => ($type === 'main' ? '0' : '1rem')};
 
 			border: ${({ theme, $type }) => ($type === 'main' ? 'none' : `1px solid ${theme.color.border}`)};
-			border-radius: ${({ theme }) => theme.borderRadius.medium};
+			border-radius: ${({ theme }) => theme.radius.surface};
 
 			.card-footer {
 				margin-top: 1rem;

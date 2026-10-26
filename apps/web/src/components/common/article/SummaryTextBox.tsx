@@ -23,7 +23,7 @@ const SummaryContainerStyled = styled.div<StyledProps>`
 	flex: ${({ $flex }) => $flex || 1};
 	background-color: ${({ theme }) => theme.color.surface};
 	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.borderRadius.soft};
+	border-radius: ${({ theme }) => theme.radius.surface};
 	padding: 1.25rem;
 	height: auto;
 `;

@@ -24,6 +24,14 @@ export type FontSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge
 export type FontWeight = 'light' | 'regular' | 'medium' | 'semiBold' | 'bold' | 'extraBold';
 
 export type BorderRadius = 'flat' | 'soft' | 'medium' | 'rounded' | 'capsule' | 'circle';
+/**
+ * control: 누르는 것 (버튼·입력칸·선택 목록·체크 상자) — 각지게
+ * chip: 분류·고르기 (태그·분야 칩·꼬리표) — 알약 모양. 동작 버튼과 모양으로 구분된다
+ * surface: 담는 것 (카드·사진·펼친 목록·안내 상자) — 살짝 둥글게
+ * floating: 화면 위에 뜨는 것 (시트·토스트) — 바탕과 구분되게 더 둥글게
+ * 원래 둥근 것(프로필 사진·라디오·점)은 borderRadius.circle
+ */
+export type RadiusRole = 'control' | 'chip' | 'surface' | 'floating';
 export type Shadow = 'light' | 'medium' | 'heavy';
 
 export type ButtonSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
@@ -44,6 +52,8 @@ export interface Theme {
 	};
 
 	borderRadius: Record<BorderRadius, string>;
+	/** 쓰임새별 모서리 (#63). 새로 만드는 곳은 이것을 쓴다 */
+	radius: Record<RadiusRole, string>;
 	shadow: Record<Shadow, string>;
 
 	button: {
@@ -139,6 +149,12 @@ export const lightTheme: Theme = {
 		capsule: '9999px',
 		circle: '50%',
 	},
+	radius: {
+		control: '0',
+		chip: '9999px',
+		surface: '8px',
+		floating: '16px',
+	},
 	button: {
 		extraLarge: {
 			fontSize: '1.75rem',
@@ -162,7 +178,7 @@ export const lightTheme: Theme = {
 		},
 		extraSmall: {
 			fontSize: '0.875rem',
-			padding: '0 0.5rem',
+			padding: '0.375rem 0.625rem',
 			gap: '0.75rem',
 		},
 	},
@@ -177,14 +193,15 @@ export const lightTheme: Theme = {
 				background: '#2001af',
 			},
 		},
+		// 연한 강조색 바탕 (default는 바탕 없음). 예전에는 둘이 똑같아 보였다
 		secondary: {
-			color: '#000000',
-			background: 'transparent',
+			color: '#3610e1',
+			background: '#F4F1FF',
 			border: '1px solid transparent',
-			fontWeight: '500',
+			fontWeight: '600',
 			hover: {
 				color: '#3610e1',
-				background: '#F4F1FF',
+				background: '#E6DFFF',
 			},
 		},
 		outline: {
@@ -293,12 +310,12 @@ export const darkTheme: Theme = {
 			},
 		},
 		secondary: {
-			color: '#f1f1f1',
-			background: 'transparent',
+			color: '#c9d0ff',
+			background: '#1b2357',
 			border: '1px solid transparent',
-			fontWeight: '500',
+			fontWeight: '600',
 			hover: {
-				color: '#9ca9ff',
+				color: '#ffffff',
 				background: '#0f1d7a',
 			},
 		},

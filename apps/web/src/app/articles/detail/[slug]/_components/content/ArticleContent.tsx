@@ -93,7 +93,7 @@ const NewsletterContentStyled = styled.article`
 	}
 
 	img {
-		border-radius: ${({ theme }) => theme.borderRadius.soft};
+		border-radius: ${({ theme }) => theme.radius.surface};
 	}
 
 	figure {
@@ -220,7 +220,7 @@ const NewsletterContentStyled = styled.article`
 				aspect-ratio: 16 / 9;
 				object-fit: cover;
 				margin: 0;
-				border-radius: ${({ theme }) => theme.borderRadius.soft};
+				border-radius: ${({ theme }) => theme.radius.surface};
 				background: ${({ theme }) => theme.color.surface};
 			}
 

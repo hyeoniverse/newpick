@@ -133,7 +133,7 @@ const MySummaryCategoryStyled = styled.div`
                     width: 100%;
                     height: fit-content !important;
                     aspect-ratio: 16 / 9;
-                    border-radius: ${({ theme }) => theme.borderRadius.medium};
+                    border-radius: ${({ theme }) => theme.radius.surface};
                     overflow: hidden;
                     background-color: ${({ theme }) => theme.color.surface};
                 }

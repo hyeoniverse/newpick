@@ -35,7 +35,7 @@ interface StyledProps {
 }
 
 const MoveButtonStyled = styled(Button)<StyledProps>`
-	border-radius: ${({ theme }) => theme.borderRadius.capsule};
+	border-radius: ${({ theme }) => theme.radius.control};
 	color: ${({ theme }) => theme.color.mediumGrey};
 	width: ${({ $width }) => $width || 'fit-content'};
 	height: fit-content;

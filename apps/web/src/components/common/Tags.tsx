@@ -31,7 +31,7 @@ const StyledTags = styled.ul`
 	li {
 		margin: 0;
 		padding: 0.125rem 0.5rem;
-		border-radius: ${({ theme }) => theme.borderRadius.capsule};
+		border-radius: ${({ theme }) => theme.radius.chip};
 		/* 강조색을 옅게: 배경은 primary의 연한 톤, 글자는 primary */
 		background: ${({ theme }) => theme.color.tertiary};
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
