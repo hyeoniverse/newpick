@@ -6,10 +6,9 @@ import { AiSummaryController } from './ai-summary.controller';
 import { CrawledNewsModule } from '../crawling/crawled-news.module';
 import { FindCategoryService } from './findCategory.service';
 import { CreateNewsletterService } from './createNewsletter.service';
-import { CreateTitleService } from './createTitle.service';
-import { BasicSummarizeService } from './basicSummarize.service';
+import { NewsletterWriterService } from './newsletterWriter.service';
+import { StoryImageService } from './storyImages';
 import { Logger } from '@nestjs/common';
-import { HTMLFormatterService } from './parseHtml.service';
 @Module({
   imports: [CrawledNewsModule],
   controllers: [AiSummaryController],
@@ -24,18 +23,15 @@ import { HTMLFormatterService } from './parseHtml.service';
     AiSummaryService,
     FindCategoryService,
     CreateNewsletterService,
-    CreateTitleService,
-    HTMLFormatterService,
-    BasicSummarizeService,
+    NewsletterWriterService,
+    StoryImageService,
   ],
   exports: [
     AiSummaryService,
     ClaudeService,
     FindCategoryService,
     CreateNewsletterService,
-    CreateTitleService,
-    HTMLFormatterService,
-    BasicSummarizeService,
+    NewsletterWriterService,
     Logger,
   ],
 })

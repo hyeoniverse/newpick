@@ -30,6 +30,8 @@ const SummaryContainerStyled = styled.div<StyledProps>`
 
 const SummaryTextBoxStyled = styled.p`
 	color: ${({ theme }) => theme.color.mediumGrey};
+	/* 요약은 소식마다 한 문단, 문단 사이 빈 줄 (#41) */
+	white-space: pre-line;
 `;
 
 const SummaryTitleStyled = styled.h5`

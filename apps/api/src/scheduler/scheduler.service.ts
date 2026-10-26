@@ -11,7 +11,6 @@ import { MysqlPrismaService } from 'prisma/mysql.service';
 import { CategoryRepository } from 'src/category/category.repository';
 import { CronExpression } from 'src/common/constants';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
-import { HTMLFormatterService } from 'src/ai-summary/parseHtml.service';
 import { CronJob, CronTime } from 'cron';
 import { setTimeofCycle } from 'src/common/helpers';
 /** schedule_configs에서 메일 발송 주기를 저장하는 행 */
@@ -32,7 +31,6 @@ export class SchedulerService implements OnApplicationBootstrap {
     private readonly crawlingRepository: CrawlingRepository,
     private readonly categoryRepository: CategoryRepository,
     private readonly newsletterRepository: NewsletterRepo,
-    private readonly htmlFormatterService: HTMLFormatterService,
     private schedulerRegistry: SchedulerRegistry,
     private readonly prisma: MysqlPrismaService,
   ) {}
