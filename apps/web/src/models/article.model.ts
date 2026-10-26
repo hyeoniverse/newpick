@@ -32,6 +32,8 @@ export interface ArticleSummary {
 	date: string;
 	bookmarks?: number;
 	views?: number;
+	/** 뉴스레터에 담긴 소식 (꼬리표·제목). 본문 HTML에서 꺼냄, 구조가 없는 예전 뉴스레터는 비어 있음 */
+	stories?: { kicker: string; heading: string }[];
 }
 
 export interface NewsInfo {

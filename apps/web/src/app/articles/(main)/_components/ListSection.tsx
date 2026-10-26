@@ -18,7 +18,12 @@ import { parseArticles } from '@/utils/parseArticles';
 import { getArticleList, getCategoryList } from '@/hooks/useArticle';
 import { useToast } from '@/hooks/useToast';
 
-export default function ListSection() {
+interface Props {
+	/** 배너에 띄운 글. 목록에서 다시 보여 주지 않는다 */
+	excludeId?: number;
+}
+
+export default function ListSection({ excludeId }: Props) {
 	const searchParams = useSearchParams();
 	const { showToast } = useToast();
 	const categoryId = searchParams.get('categoryId'); // Query Parameter 가져오기
@@ -124,7 +129,10 @@ export default function ListSection() {
 	}, [isLoading, hasMore, loadMoreArticles]);
 
 	// 선택된 정렬 방식에 따라 데이터 정렬
-	const sortedArticles = sortNewsletters(articles, selectedSort);
+	const sortedArticles = sortNewsletters(
+		articles.filter((article) => article.id !== excludeId),
+		selectedSort,
+	);
 
 	return (
 		<StyledListSection>

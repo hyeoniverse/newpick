@@ -1,9 +1,12 @@
 'use client';
 
+import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { CATEGORIES } from '@/constants/categories';
 
 import { styled } from 'styled-components';
+import { LuCoffee, LuCpu, LuGlobe, LuLandmark, LuNewspaper, LuTrendingUp, LuUsers } from 'react-icons/lu';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import CardSlider from '@/components/common/slider/CardSlider';
@@ -11,62 +14,146 @@ import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { filterByCategories } from '@/utils/queryNewsletters';
 
-interface Props {
-	trends?: IArticleSummary[];
+/** 분야 페이지 배너 요약 (page.tsx가 서버에서 계산) */
+export interface CategoryStats {
+	/** 최근 7일 발행 편 수 */
+	weekCount: number;
+	/** 최근 7일 자주 나온 키워드 */
+	keywords: string[];
 }
 
-export default function HotSection({ trends: initiallData = [] }: Props) {
+/** 띠 오른쪽에 크게·옅게 까는 분야 아이콘 */
+const CATEGORY_ICONS: Record<string, React.ReactNode> = {
+	전체: <LuNewspaper />,
+	IT: <LuCpu />,
+	정치: <LuLandmark />,
+	경제: <LuTrendingUp />,
+	사회: <LuUsers />,
+	생활: <LuCoffee />,
+	세계: <LuGlobe />,
+};
+
+interface Props {
+	trends?: IArticleSummary[];
+	stats?: CategoryStats;
+}
+
+export default function HotSection({ trends: initiallData = [], stats }: Props) {
 	const searchParams = useSearchParams();
 	const categoryId = searchParams.get('categoryId'); // Query Parameter 가져오기
 	const categoryName = mapIdToTitle([Number(categoryId)])[0]; // Query Parameter를 카테고리 이름으로 변환
+	const isAll = categoryName === '전체';
+	const category = CATEGORIES.find((c) => c.name === categoryName);
 	let filteredTrends = [...initiallData];
 
-	if (categoryName !== '전체') {
+	if (!isAll) {
 		filteredTrends = filterByCategories(initiallData, [categoryName]);
 	}
 
+	// 전체: 오늘 발행본들의 키워드에서, 분야: 서버가 센 최근 7일 키워드
+	const summaryKeywords = isAll ? topKeywords(initiallData) : (stats?.keywords ?? []);
+
 	return (
-		<StyledHotSection $isAll={categoryName === '전체'}>
-			<Title size="large" weight="semiBold">
-				{categoryName} 뉴스레터
-			</Title>
+		<StyledHotSection $isAll={isAll}>
+			{/* 분야 사이를 바로 옮기는 칩 (헤더 하위 메뉴를 열지 않아도) */}
+			<nav className="category-chips" aria-label="분야">
+				{CATEGORIES.map((c) => (
+					<Link
+						key={c.id}
+						href={c.id === 0 ? '/articles' : `/articles?categoryId=${c.id}`}
+						className="chip"
+						aria-current={c.name === categoryName ? 'page' : undefined}
+					>
+						{c.name}
+					</Link>
+				))}
+			</nav>
+
+			<div className="intro">
+				<span className="watermark" aria-hidden>
+					{CATEGORY_ICONS[categoryName]}
+				</span>
+				<Title size="large" weight="semiBold">
+					{categoryName} 뉴스레터
+				</Title>
+				{category?.description && (
+					<Text size="medium" color="subText" className="description">
+						{category.description}을 매일 아침 정리합니다.
+					</Text>
+				)}
+				{/* 요약 줄은 전체·분야 모두 같은 자리에 한 줄 (분야를 바꿔도 높이가 같게) */}
+				<p className="stats">
+					{isAll ? (
+						<>
+							오늘 <strong>{initiallData.length}개 분야</strong> 발행
+						</>
+					) : (
+						<>
+							최근 7일 <strong>{stats?.weekCount ?? 0}편</strong>
+						</>
+					)}
+					{summaryKeywords.length > 0 && (
+						<>
+							{' · 자주 나온 키워드 '}
+							{summaryKeywords.map((k) => (
+								<span key={k} className="keyword">
+									#{k}
+								</span>
+							))}
+						</>
+					)}
+				</p>
+			</div>
 			<hr />
 			{/* 화면 폭 전체의 옅은 강조색 띠(::before) 위에 오늘의 톱 카드(흰 카드·그림자)를 올려 한 단계 떠 보이게 */}
 			<div className="stage">
 				<div className="stage-head">
-					<span className="label">{searchParams ? 'TODAY' : 'HOT'}</span>
+					<span className="label">TODAY</span>
 					<Text size="small" color="subText" className="today">
-						{todayLabel()} · 오늘의 톱 뉴스레터
+						{todayLabel()} · 오늘의 {isAll ? '톱' : categoryName} 뉴스레터
 					</Text>
 				</div>
 				<CardSlider
-				className="card-slider"
-				type="main"
-				data={filteredTrends.map((trend) => ({
-					id: trend.id,
-					image: trend.image,
-					header: trend.categoryName,
-					main: {
-						title: trend.title,
-						// 부제목이 있으면 본문 앞부분 대신 (#42)
-						description: trend.subtitle || trend.summary,
-						tags: trend.keywords,
-					},
-					footer: (
-						<>
-							<Text color="subText">{trend.date}</Text>
-							<Text color="subText">|&nbsp;&nbsp;조회수 {trend.views}</Text>
-							<div className="right">
-								<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
-							</div>
-						</>
-					),
-					url: `/articles/detail/${trend.id}`,
-				}))}
+					className="card-slider"
+					type="main"
+					data={filteredTrends.map((trend) => ({
+						id: trend.id,
+						image: trend.image,
+						// 분야 페이지는 제목에 이미 분야가 있어, 같은 자리에 소식 수를 둔다 (높이 유지)
+						header: isAll ? trend.categoryName : `소식 ${trend.stories?.length || 1}개`,
+						main: {
+							title: trend.title,
+							// 부제목이 있으면 본문 앞부분 대신 (#42)
+							description: trend.subtitle || trend.summary,
+							tags: trend.keywords,
+							// 이 뉴스레터에 담긴 소식 (전체·분야 같은 모양)
+							points: trend.stories,
+						},
+						footer: (
+							<>
+								<Text color="subText">{trend.date}</Text>
+								<Text color="subText">|&nbsp;&nbsp;조회수 {trend.views}</Text>
+								<div className="right">
+									<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
+								</div>
+							</>
+						),
+						url: `/articles/detail/${trend.id}`,
+					}))}
 				/>
 			</div>
 		</StyledHotSection>
 	);
+}
+
+/** 여러 뉴스레터에서 자주 나온 키워드 3개 */
+function topKeywords(trends: IArticleSummary[]) {
+	const counts = new Map<string, number>();
+	for (const t of trends) for (const k of t.keywords ?? []) counts.set(k, (counts.get(k) ?? 0) + 1);
+	return [...counts.entries()]
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 3)
+		.map(([k]) => k);
 }
 
 /** "10월 27일 월요일" (KST) */
@@ -124,6 +211,96 @@ const StyledHotSection = styled.section<StyledProps>`
 		width: 100%;
 	}
 
+	/* 분야 칩: 지금 분야는 강조색으로 채움 */
+	.category-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+
+		.chip {
+			padding: 0.375rem 0.875rem;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.borderRadius.capsule};
+			background: ${({ theme }) => theme.color.background};
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.medium};
+			color: ${({ theme }) => theme.color.text};
+			transition:
+				border-color 0.15s ease,
+				color 0.15s ease;
+
+			&:hover {
+				border-color: ${({ theme }) => theme.color.primary};
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			&[aria-current='page'] {
+				border-color: ${({ theme }) => theme.color.primary};
+				background: ${({ theme }) => theme.color.primary};
+				color: ${({ theme }) => theme.color.background};
+			}
+		}
+	}
+
+	/* 분야 소개: 제목 · 한 줄 설명 · 최근 7일 요약. 오른쪽에 분야 아이콘을 크고 옅게 */
+	.intro {
+		position: relative;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+
+		/* 설명·요약은 한 줄로 (넘치면 …), 분야마다 줄 수가 달라 높이가 움직이지 않게 */
+		.description,
+		.stats {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.stats {
+			min-height: 1.5em;
+			margin: 0.25rem 0 0;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			color: ${({ theme }) => theme.color.subText};
+
+			strong {
+				color: ${({ theme }) => theme.color.text};
+			}
+
+			.keyword {
+				margin-left: 0.375rem;
+				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+
+		.watermark {
+			position: absolute;
+			z-index: -1;
+			top: 50%;
+			right: 0;
+			transform: translateY(-50%);
+			line-height: 0;
+			color: ${({ theme }) => theme.color.primary};
+			opacity: 0.1;
+			pointer-events: none;
+
+			svg {
+				width: 9rem;
+				height: 9rem;
+				stroke-width: 1.25;
+			}
+
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				svg {
+					width: 5.5rem;
+					height: 5.5rem;
+				}
+			}
+		}
+	}
+
 	.stage-head {
 		display: flex;
 		align-items: center;
@@ -143,11 +320,19 @@ const StyledHotSection = styled.section<StyledProps>`
 	}
 
 	.card-slider {
-		/* ③ 카드: 무대 위에 뜬 흰 카드. 올리면 살짝 더 뜨고 사진이 조금 커진다 */
+		/* 카드 폭은 언제나 한 칸 전체. 슬라이더 기본값(100% - 0.75rem)은 카드가 하나면 늘어나
+		   분야 페이지에서만 사진이 커져 높이가 달라졌다 */
+		.card {
+			flex: 0 0 100%;
+			min-width: 100%;
+		}
+
+		/* ③ 카드: 띠 위에 뜬 카드. 마우스를 올리면 뜨거나 커지지 않고 테두리·제목 밑줄·"기사 읽기"로 알린다 */
 		.card .card-body {
 			padding: 1rem;
+			border: 1px solid transparent;
 			border-radius: ${({ theme }) => theme.borderRadius.medium};
-			/* 다크 모드에서는 바탕색 카드가 무대보다 어두워 꺼져 보인다. 글자색을 조금 섞어 무대보다 밝게 */
+			/* 다크 모드에서는 바탕색 카드가 띠보다 어두워 꺼져 보인다. 글자색을 조금 섞어 띠보다 밝게 */
 			background: ${({ theme }) =>
 				theme.name === 'dark'
 					? `color-mix(in srgb, ${theme.color.text} 9%, ${theme.color.background})`
@@ -156,47 +341,98 @@ const StyledHotSection = styled.section<StyledProps>`
 				theme.name === 'dark'
 					? '0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.45)'
 					: `0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px color-mix(in srgb, ${theme.color.primary} 12%, transparent)`};
-			transition:
-				transform 0.25s ease,
-				box-shadow 0.25s ease;
+			transition: border-color 0.2s ease;
 
 			@media ${({ theme }) => theme.mediaQuery.mobile} {
 				padding: 0.75rem;
 			}
 		}
 
-		.card .card-body:hover {
-			transform: translateY(-2px);
-			box-shadow: ${({ theme }) =>
-				theme.name === 'dark'
-					? '0 2px 4px rgba(0, 0, 0, 0.45), 0 18px 40px rgba(0, 0, 0, 0.55)'
-					: `0 2px 4px rgba(0, 0, 0, 0.05), 0 18px 40px color-mix(in srgb, ${theme.color.primary} 18%, transparent)`};
+		.card .card-body:hover,
+		.card .card-body:focus-within {
+			border-color: color-mix(in srgb, ${({ theme }) => theme.color.primary} 40%, transparent);
 		}
 
+		/* 사진: 아래쪽에 "기사 읽기 →"가 올라온다 (사진은 그대로) */
 		.image-placeholder {
+			position: relative;
 			border-radius: ${({ theme }) => theme.borderRadius.medium};
 			overflow: hidden;
 
-			img {
-				transition: transform 0.4s ease;
+			&::after {
+				content: '기사 읽기 →';
+				position: absolute;
+				left: 0.75rem;
+				bottom: 0.75rem;
+				padding: 0.375rem 0.75rem;
+				border-radius: ${({ theme }) => theme.borderRadius.capsule};
+				background: rgba(0, 0, 0, 0.65);
+				color: #ffffff;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+				opacity: 0;
+				transform: translateY(0.375rem);
+				transition:
+					opacity 0.2s ease,
+					transform 0.2s ease;
 			}
 		}
 
-		.card .card-body:hover .image-placeholder img {
-			transform: scale(1.03);
+		.card .card-body:hover .image-placeholder::after,
+		.card .card-body:focus-within .image-placeholder::after {
+			opacity: 1;
+			transform: translateY(0);
 		}
 
-		/* ④ 카드 안: 분야(작은 강조) → 제목(크게) → 부제(보조) → 선 → 키워드·날짜·조회수·북마크(작게) */
+		/* ④ 카드 안. 분야를 바꿔도 카드 높이가 움직이지 않게 줄 수를 고정한다:
+		   위 칸 1줄 · 제목 2줄 · 부제 2줄 · 소식 3줄 */
 		.card-main {
 			padding-right: 0.5rem;
 
 			.category {
+				min-height: 1.5em;
 				font-size: ${({ theme }) => theme.fontSize.extraSmall};
 				letter-spacing: 0.04em;
 			}
 
+			/* 제목: 마우스를 올리면 글자 바로 아래에 강조색 밑줄 (두 줄이면 줄마다).
+			   높이를 고정해 둔 칸 아래가 아니라 글자를 따라가게 text-decoration으로 */
+			.title {
+				min-height: calc(2 * 1.35em);
+				text-decoration: underline;
+				text-decoration-thickness: 2px;
+				text-underline-offset: 0.25em;
+				text-decoration-color: transparent;
+				transition: text-decoration-color 0.25s ease;
+			}
+
 			.description {
+				min-height: calc(2 * 1.6em);
 				margin-bottom: 0.25rem;
+				-webkit-line-clamp: 2;
+			}
+
+			/* 소식은 항상 3칸 높이 (2개뿐이어도 같은 높이). 칸마다 높이를 정하고 구분선은 칸 안쪽에 그린다 */
+			.points ol {
+				height: calc(3 * 2.25em);
+				overflow: hidden;
+
+				li {
+					box-sizing: border-box;
+					height: 2.25em;
+					align-items: center;
+					padding: 0;
+				}
+			}
+
+			/* 키워드는 한 줄 (개수에 따라 줄 수가 바뀌어 카드 높이가 움직이지 않게) */
+			.tags {
+				flex-wrap: nowrap;
+				overflow: hidden;
+
+				li {
+					flex-shrink: 0;
+				}
 			}
 
 			.card-footer {
@@ -208,19 +444,24 @@ const StyledHotSection = styled.section<StyledProps>`
 			}
 		}
 
-		/* 점·화살표는 무대 아래 오른쪽 한 줄 */
+		.card .card-body:hover .title,
+		.card .card-body:focus-within .title {
+			text-decoration-color: ${({ theme }) => theme.color.primary};
+		}
+
+		/* 점·화살표는 띠 아래 오른쪽 한 줄. 분야 페이지(카드 하나)에서도 자리는 남겨 높이를 맞춘다 */
 		.controls {
-			display: ${({ $isAll }) => ($isAll ? 'flex' : 'none')};
+			display: flex;
 			justify-content: flex-end;
 			margin-top: 0.75rem;
+			visibility: ${({ $isAll }) => ($isAll ? 'visible' : 'hidden')};
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
 		.card-slider .card .card-body,
-		.card-slider .card .card-body:hover,
-		.card-slider .card .card-body:hover .image-placeholder img {
-			transform: none;
+		.card-slider .image-placeholder::after,
+		.card-slider .card-main .title {
 			transition: none;
 		}
 	}
