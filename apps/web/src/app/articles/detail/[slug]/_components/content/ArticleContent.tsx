@@ -130,6 +130,17 @@ const NewsletterContentStyled = styled.article`
 			color: ${({ theme }) => theme.color.mediumGrey};
 		}
 
+		/* 핵심 구절 형광펜 (#51): 글자 아래쪽 절반만 강조색을 옅게 칠한다 */
+		mark {
+			padding: 0 0.1em;
+			background: linear-gradient(
+				transparent 55%,
+				color-mix(in srgb, ${({ theme }) => theme.color.primary} 22%, transparent) 55%
+			);
+			color: ${({ theme }) => theme.color.text};
+			font-weight: ${({ theme }) => theme.fontWeight.medium};
+		}
+
 		h3 {
 			margin: 0 0 0.75rem;
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};

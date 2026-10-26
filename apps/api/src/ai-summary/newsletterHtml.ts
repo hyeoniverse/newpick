@@ -12,12 +12,16 @@ const escapeHtml = (text: string) =>
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 
+/** 이스케이프한 뒤 ==구절==만 <mark>로 (#51). 정리 단계에서 강조는 본문·시사점·문답 답에만 남는다 */
+const rich = (text: string) =>
+  escapeHtml(text).replace(/==([^=\n]+?)==/g, '<mark>$1</mark>');
+
 const paragraphs = (text: string) =>
   text
     .split(/\n\s*\n/)
     .map((p) => p.trim())
     .filter(Boolean)
-    .map((p) => `<p>${escapeHtml(p)}</p>`)
+    .map((p) => `<p>${rich(p)}</p>`)
     .join('');
 
 const items = (list: string[]) =>
@@ -105,7 +109,7 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
   qa: (s) => [
     body(s),
     `<dl class="qa">${s.qa
-      .map((x) => `<dt>${escapeHtml(x.q)}</dt><dd>${escapeHtml(x.a)}</dd>`)
+      .map((x) => `<dt>${escapeHtml(x.q)}</dt><dd>${rich(x.a)}</dd>`)
       .join('')}</dl>`,
     analysis(s),
   ],

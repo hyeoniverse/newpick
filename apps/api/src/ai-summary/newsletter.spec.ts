@@ -2,6 +2,8 @@ import { Newsletter } from '@prisma/client';
 import {
   clean,
   keywords,
+  limitMarks,
+  plain,
   LIMITS,
   normalize,
   NewsletterWriterService,
@@ -226,6 +228,69 @@ describe('응답 정리', () => {
     expect(() => normalize(written({ stories: [] }), same)).toThrow(
       '소식이 없음',
     );
+  });
+});
+
+describe('강조 (#51)', () => {
+  it('소식마다 앞에서부터 3곳, 30자 넘는 강조와 짝이 안 맞는 ==는 푼다', () => {
+    expect(
+      limitMarks([
+        '코스피가 ==1.46%== 내렸다. ==외국인 6968억원 순매도==',
+        '==' + '가'.repeat(31) + '== 그리고 ==환율== 그리고 ==금리==',
+        '짝이 안 맞는 ==표시',
+      ]),
+    ).toEqual([
+      '코스피가 ==1.46%== 내렸다. ==외국인 6968억원 순매도==',
+      '가'.repeat(31) + ' 그리고 ==환율== 그리고 금리',
+      '짝이 안 맞는 표시',
+    ]);
+  });
+
+  it('강조를 쓰지 않는 항목에서는 ==를 지운다', () => {
+    expect(plain('==코스피== 7개월 만에 ==최저')).toBe(
+      '코스피 7개월 만에 최저',
+    );
+    const result = normalize(
+      written({
+        title: '==코스피== 급락',
+        summary: '요약 ==강조==',
+        keywords: ['==코스피=='],
+        stories: [
+          {
+            ...written().stories[0],
+            heading: '==소제목==',
+            body: '본문 ==핵심==',
+          },
+        ],
+      }),
+      (n) => n,
+    );
+    expect(result.title).toBe('코스피 급락');
+    expect(result.summary).toBe('요약 강조');
+    expect(result.keywords).toEqual(['코스피']);
+    expect(result.stories[0].heading).toBe('소제목');
+    expect(result.stories[0].body).toBe('본문 ==핵심==');
+  });
+
+  it('본문·시사점·문답 답의 강조는 <mark>로 그린다 (이스케이프 뒤)', () => {
+    const html = renderNewsletterHtml(
+      written({
+        briefing: '',
+        watch: [],
+        stories: [
+          {
+            ...written().stories[0],
+            template: 'qa',
+            body: '코스피가 ==1.46%== 내렸다 <b>',
+            qa: [{ q: '언제?', a: '==내년 1월==부터' }],
+          },
+        ],
+      }),
+    );
+    expect(html).toContain(
+      '<p>코스피가 <mark>1.46%</mark> 내렸다 &lt;b&gt;</p>',
+    );
+    expect(html).toContain('<dd><mark>내년 1월</mark>부터</dd>');
   });
 });
 

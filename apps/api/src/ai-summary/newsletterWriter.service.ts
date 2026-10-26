@@ -101,6 +101,8 @@ export const LIMITS = {
   qa: { min: 2, max: 3 },
   watch: { max: 3, length: 60 },
   keywords: { min: 3, max: 6, length: 12 },
+  /** 형광펜 강조 (#51): 소식마다 최대 개수, 한 곳 최대 길이 */
+  marks: { max: 3, length: 30 },
   /** 쓰기 단계에 소식 하나당 보내는 기사 수 (같은 사건의 대표 기사) */
   articlesPerStory: 2,
 } as const;
@@ -171,6 +173,7 @@ export const writerPrompt = (articles: PrepArticle[], category?: string) =>
     '- 증권사·연구소 애널리스트 브리핑처럼 간결한 평서체(~다)로 씁니다. 감탄, 과장, 구어체, 이모지는 쓰지 않습니다.',
     '- 첫 문장에 사실(누가, 무엇을, 얼마나)을 쓰고 이어서 맥락을 씁니다. 형용사보다 수치와 근거를 씁니다.',
     '- 전문 용어는 그대로 쓰되, 처음 나올 때 괄호로 짧게 풉니다.',
+    `- 강조: body·analysis·qa의 답(a)에서 독자가 꼭 기억할 핵심 구절(결정적 수치, 결론, 변화)을 ==구절==로 감쌉니다. 소식마다 1~${LIMITS.marks.max}곳(모든 소식에 최소 1곳), 한 곳은 ${LIMITS.marks.length}자 이내. 문장 전체가 아니라 핵심 구절만 감싸고, 다른 항목에는 쓰지 않습니다.`,
     '',
     '## 항목',
     `- title: 가장 중요한 소식 하나를 담은 헤드라인. ${LIMITS.title}자 이내, 기사 제목 형식. 여러 소식을 ·, 쉼표, "외"로 나열하지 않고, 날짜·"주요 소식"·"브리핑" 같은 말은 넣지 않습니다.`,
@@ -288,8 +291,42 @@ export const clean = (value: string) => {
   return (wrapped ? inner : text).trim();
 };
 
+/** 강조 표시 ==구절== (#51). 본문을 HTML로 바꿀 때 <mark>가 된다 */
+const MARK = /==([^=\n]+?)==/g;
+
+/** 강조를 쓰지 않는 항목(제목·요약·키워드 등)에 섞여 들어온 ==를 지운다 */
+export const plain = (text: string) =>
+  text.replace(MARK, '$1').replace(/==/g, '').trim();
+
+/**
+ * 소식 하나의 강조를 앞에서부터 max곳까지만 남기고, 너무 긴 강조와 나머지는 푼다.
+ * 문단 전체가 칠해지면 강조가 아니게 되므로 길이도 제한한다
+ */
+export function limitMarks(
+  texts: string[],
+  max: number = LIMITS.marks.max,
+  length: number = LIMITS.marks.length,
+): string[] {
+  let kept = 0;
+  return texts.map((text) =>
+    text
+      // 남길 강조는 잠시 다른 문자로 바꿔 두고
+      .replace(MARK, (_, inner: string) => {
+        const phrase = inner.trim();
+        if (phrase && phrase.length <= length && kept < max) {
+          kept++;
+          return `\u0001${phrase}\u0002`;
+        }
+        return inner;
+      })
+      // 짝이 맞지 않아 남은 ==는 지운 뒤 되돌린다
+      .replace(/==/g, '')
+      .replace(/[\u0001\u0002]/g, '=='),
+  );
+}
+
 /** 모델이 지시와 달리 붙인 글머리 기호를 걷어 냅니다 */
-const unbullet = (value: string) => value.trim().replace(/^[-•·*]\s*/, '');
+const unbullet = (value: string) => plain(value).replace(/^[-•·*]\s*/, '');
 
 const list = (items: string[], max: number) =>
   items.map(unbullet).filter(Boolean).slice(0, max);
@@ -298,7 +335,7 @@ const list = (items: string[], max: number) =>
 export const keywords = (items: string[]) => {
   const seen = new Set<string>();
   return items
-    .map((k) => k.trim().replace(/^#+/, '').replace(/\s+/g, ' ').trim())
+    .map((k) => plain(k).replace(/^#+/, '').replace(/\s+/g, ' ').trim())
     .filter((k) => k && k.length <= LIMITS.keywords.length)
     .filter((k) => {
       const key = k.toLowerCase();
@@ -358,36 +395,48 @@ export function normalize(
   toOriginal: (n: number) => number | undefined,
 ): WrittenNewsletter {
   const stories = raw.stories
-    .map((s) => ({
-      template: s.template,
-      kicker: s.kicker.trim(),
-      heading: clean(s.heading),
-      lead: s.lead.trim(),
-      body: s.body.trim(),
-      analysis: s.analysis.trim(),
-      stats: rows(s.stats, LIMITS.stats.max),
-      timeline: rows(s.timeline, LIMITS.timeline.max),
-      qa: rows(s.qa, LIMITS.qa.max),
-      quote: { text: clean(s.quote.text), by: s.quote.by.trim() },
-      imageQuery: s.imageQuery.trim(),
-      sources: [
-        ...new Set(
-          s.sources
-            .filter(Number.isInteger)
-            .map(toOriginal)
-            .filter((n): n is number => n !== undefined),
-        ),
-      ],
-    }))
+    .map((s) => {
+      const qa = s.qa
+        .map((x) => ({ q: unbullet(x.q), a: x.a.trim() }))
+        .filter((x) => x.q && plain(x.a))
+        .slice(0, LIMITS.qa.max);
+      // 강조는 본문 → 시사점 → 문답 답 순서로 소식마다 최대 3곳
+      const [body, analysis, ...answers] = limitMarks([
+        s.body.trim(),
+        s.analysis.trim(),
+        ...qa.map((x) => x.a),
+      ]);
+      return {
+        template: s.template,
+        kicker: plain(s.kicker),
+        heading: clean(plain(s.heading)),
+        lead: plain(s.lead),
+        body,
+        analysis,
+        stats: rows(s.stats, LIMITS.stats.max),
+        timeline: rows(s.timeline, LIMITS.timeline.max),
+        qa: qa.map((x, i) => ({ q: x.q, a: answers[i] })),
+        quote: { text: clean(plain(s.quote.text)), by: plain(s.quote.by) },
+        imageQuery: s.imageQuery.trim(),
+        sources: [
+          ...new Set(
+            s.sources
+              .filter(Number.isInteger)
+              .map(toOriginal)
+              .filter((n): n is number => n !== undefined),
+          ),
+        ],
+      };
+    })
     .map(settleTemplate)
     .filter((s) => s.heading && (s.lead || s.body))
     .slice(0, LIMITS.stories);
 
   const result = {
-    title: clean(raw.title),
-    subtitle: clean(raw.subtitle),
-    summary: raw.summary.trim(),
-    briefing: raw.briefing.trim(),
+    title: clean(plain(raw.title)),
+    subtitle: clean(plain(raw.subtitle)),
+    summary: plain(raw.summary),
+    briefing: plain(raw.briefing),
     stories,
     watch: list(raw.watch, LIMITS.watch.max),
     keywords: keywords(raw.keywords),
