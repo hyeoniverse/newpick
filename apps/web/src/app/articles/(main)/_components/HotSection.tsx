@@ -31,7 +31,7 @@ export default function HotSection({ trends: initiallData = [] }: Props) {
 				{categoryName} 뉴스레터
 			</Title>
 			<hr />
-			{/* 무대(옅은 강조색 면) 위에 오늘의 톱 카드(흰 카드·그림자)를 올려 한 단계 떠 보이게 */}
+			{/* 화면 폭 전체의 옅은 강조색 띠(::before) 위에 오늘의 톱 카드(흰 카드·그림자)를 올려 한 단계 떠 보이게 */}
 			<div className="stage">
 				<div className="stage-head">
 					<span className="label">{searchParams ? 'TODAY' : 'HOT'}</span>
@@ -96,20 +96,32 @@ const StyledHotSection = styled.section<StyledProps>`
 		padding: 0;
 	}
 
-	/* ② 무대: 오늘의 톱을 올려 두는 옅은 강조색 면 */
-	.stage {
-		width: 100%;
-		padding: 1.25rem 1.5rem 1rem;
-		border-radius: ${({ theme }) => theme.borderRadius.rounded};
+	/* ② 띠: 헤더 바로 아래부터 배너 아래까지 화면 폭 전체. 아래로 갈수록 페이지 바탕으로 옅어진다.
+	   100vw 요소를 쓰면 스크롤바 폭만큼 가로로 넘쳐, 섹션 뒤에 깔리는 ::before로 그린다 */
+	position: relative;
+	isolation: isolate;
+	padding-bottom: 2.5rem;
+
+	&::before {
+		content: '';
+		position: absolute;
+		z-index: -1;
+		top: -2.5rem;
+		bottom: 0;
+		left: 50%;
+		width: 100vw;
+		transform: translateX(-50%);
 		background: linear-gradient(
 			180deg,
-			color-mix(in srgb, ${({ theme }) => theme.color.primary} 9%, ${({ theme }) => theme.color.background}),
-			color-mix(in srgb, ${({ theme }) => theme.color.primary} 3%, ${({ theme }) => theme.color.background})
+			color-mix(in srgb, ${({ theme }) => theme.color.primary} 10%, ${({ theme }) => theme.color.background}) 0%,
+			color-mix(in srgb, ${({ theme }) => theme.color.primary} 5%, ${({ theme }) => theme.color.background}) 70%,
+			${({ theme }) => theme.color.background} 100%
 		);
+		pointer-events: none;
+	}
 
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			padding: 1rem 0.75rem 0.75rem;
-		}
+	.stage {
+		width: 100%;
 	}
 
 	.stage-head {
