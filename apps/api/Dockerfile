@@ -16,9 +16,12 @@ FROM node:22-slim
 WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
 
+# 이미지를 만든 커밋 (GET /health의 version). CI가 sha-1a2b3c4로 넘깁니다
+ARG APP_VERSION=dev
 ENV NODE_ENV=production \
     TZ=Asia/Seoul \
-    PORT=3001
+    PORT=3001 \
+    APP_VERSION=${APP_VERSION}
 
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/dist ./dist

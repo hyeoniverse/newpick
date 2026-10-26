@@ -75,6 +75,7 @@ const EXPECTED: Record<string, Policy> = {
   'DELETE ai-processing-logs/:id': 'admin',
   'GET email-archives': 'admin',
   'GET email-archives/:id': 'admin',
+  'GET health': 'public',
   'DELETE email-archives/:id': 'admin',
 
   'POST scheduler/toggle/crawling': 'admin',
