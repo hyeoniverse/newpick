@@ -48,13 +48,12 @@ describe('시트 (#52)', () => {
 		const focus = vi.spyOn(HTMLElement.prototype, 'focus');
 		document.body.style.overflow = 'auto';
 		open();
-		// 이 사이트는 html이 스크롤되므로 html도 막아야 한다
-		expect(document.documentElement.style.overflow).toBe('hidden');
+		// html까지 잠그면 페이지가 맨 위로 튄다 (body만)
+		expect(document.documentElement.style.overflow).toBe('');
 		expect(document.body.style.overflow).toBe('hidden');
 		// 포커스를 옮겨도 페이지가 스크롤되지 않게
 		expect(focus).toHaveBeenCalledWith({ preventScroll: true });
 		act(() => useModalStore.getState().closeModal());
-		expect(document.documentElement.style.overflow).toBe('');
 		expect(document.body.style.overflow).toBe('auto');
 	});
 
