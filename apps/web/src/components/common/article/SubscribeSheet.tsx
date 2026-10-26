@@ -65,7 +65,7 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 					뉴스레터 구독
 				</Title>
 				<Text size="small" color="subText">
-					받아 볼 분야를 고르면 매일 아침 주요 소식만 정리해 보내드려요.
+					받아 볼 분야를 고르면 주요 소식만 골라 메일로 보내드려요.
 				</Text>
 			</div>
 
