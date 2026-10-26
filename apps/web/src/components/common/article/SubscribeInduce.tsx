@@ -1,56 +1,23 @@
 'use client';
 
-import { useAuth } from '@/hooks/useAuth';
-import { useModal } from '@/hooks/useModal';
+import { useOpenSubscribe } from '@/hooks/useOpenSubscribe';
 
 import styled, { useTheme } from 'styled-components';
 import Button from '@/components/common/Button';
-import ModalContent from '@/components/common/modal/ModalContent';
-import SubscribeSheet from '@/components/common/article/SubscribeSheet';
-import { BiSolidMessageRoundedError } from 'react-icons/bi';
-import { LuMailCheck } from 'react-icons/lu';
 
 interface Props {
 	className?: string;
 }
 
 function SubscribeInduce({ className }: Props) {
-	const { user } = useAuth();
-	const { openModal, closeModal } = useModal();
-
+	// 마이페이지로 보내지 않고 이 자리에서 구독 (#52)
+	const openSubscribe = useOpenSubscribe();
 	const { name: themeName } = useTheme();
-
-	const onClickSubscribe = () => {
-		if (user && user.isSubscribed !== true) {
-			// 마이페이지로 보내지 않고 이 자리에서 구독 (#52)
-			openModal(<SubscribeSheet />);
-		} else if (user && user.isSubscribed) {
-			openModal(
-				<ModalContent
-					icon={<LuMailCheck />}
-					title="이미 구독중입니다."
-					content="구독중인 뉴스레터가 있습니다."
-					filledButton="확인"
-					onConfirmClick={closeModal}
-				/>,
-			);
-		} else {
-			openModal(
-				<ModalContent
-					icon={<BiSolidMessageRoundedError />}
-					title="로그인이 필요합니다."
-					content="로그인 후 이용해주세요."
-					filledButton="확인"
-					onConfirmClick={closeModal}
-				/>,
-			);
-		}
-	};
 
 	return (
 		<SubscribeInduceStyled className={className} $themeName={themeName}>
 			<p>뉴픽이 보내드리는 뉴스레터를 구독해보세요!</p>
-			<Button scheme="primary" size="medium" onClick={onClickSubscribe}>
+			<Button scheme="primary" size="medium" onClick={() => openSubscribe()}>
 				구독하기
 			</Button>
 		</SubscribeInduceStyled>
