@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { User } from '@/models/user.model';
 import { AUTH } from '@/constants/numbers';
 import { PROTECTED } from '@/constants/api';
-import { fetchUser, loginUser, logoutUser } from '@/api/auth';
+import { fetchUser, logoutUser } from '@/api/auth';
 
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -19,11 +19,6 @@ export const useAuth = () => {
 	const router = useRouter();
 	const pathname = usePathname();
 	const queryClient = useQueryClient();
-
-	// 로그인 핸들러 (Google OAuth)
-	const handleLogin = async () => {
-		loginUser();
-	};
 
 	/**
 	 * 로그아웃·탈퇴 뒤 공통: 로그인 상태와 이 계정의 조회 결과(북마크·구독 상태·관심 분야)를 지우고,
@@ -84,7 +79,6 @@ export const useAuth = () => {
 		user,
 		session,
 		refetchUser,
-		handleLogin,
 		handleLogout,
 		resetSession,
 	};

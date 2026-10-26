@@ -31,5 +31,6 @@ test('로그인 없이 구독하기를 누르면 로그인 안내', async ({ pag
 	await page.getByRole('button', { name: 'AI 뉴스레터 체험하기' }).first().click();
 	await page.getByRole('button', { name: /이 구성으로 구독하기/ }).click();
 
-	await expect(page.getByText('로그인이 필요합니다.')).toBeVisible();
+	await expect(page.getByRole('heading', { name: '구독하려면 로그인해 주세요' })).toBeVisible();
+	await expect(page.getByRole('button', { name: '구글로 계속하기' })).toBeVisible();
 });

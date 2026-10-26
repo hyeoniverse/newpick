@@ -17,6 +17,7 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import { BiCheck, BiPlus } from 'react-icons/bi';
 import { LuMailCheck } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
+import { useOpenLogin } from '@/hooks/useOpenLogin';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
 
@@ -29,19 +30,12 @@ const SubscribeSection = () => {
 	const checkName = 'home-agreement';
 	const { isChecked } = useInputCheck(checkName);
 	const { openModal, closeModal } = useModal();
+	const openLogin = useOpenLogin();
 
 	const handleSubscribe = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!user) {
-			openModal(
-				<ModalContents
-					icon={<LuMailCheck />}
-					title="로그인이 필요합니다"
-					content={`로그인 후 이용해주세요.`}
-					filledButton="확인"
-					onConfirmClick={closeModal}
-				/>
-			);
+			openLogin('구독하려면 로그인해 주세요');
 			return;
 		}
 

@@ -1,9 +1,9 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
+import { useOpenLogin } from '@/hooks/useOpenLogin';
 
 import ModalContent from '@/components/common/modal/ModalContent';
 import SubscribeSheet from '@/components/common/article/SubscribeSheet';
-import { BiSolidMessageRoundedError } from 'react-icons/bi';
 import { LuMailCheck } from 'react-icons/lu';
 
 /**
@@ -13,6 +13,7 @@ import { LuMailCheck } from 'react-icons/lu';
 export function useOpenSubscribe() {
 	const { user } = useAuth();
 	const { openModal, closeModal } = useModal();
+	const openLogin = useOpenLogin();
 
 	return (interests?: string[]) => {
 		if (user && user.isSubscribed !== true) {
@@ -28,15 +29,7 @@ export function useOpenSubscribe() {
 				/>,
 			);
 		} else {
-			openModal(
-				<ModalContent
-					icon={<BiSolidMessageRoundedError />}
-					title="로그인이 필요합니다."
-					content="로그인 후 이용해주세요."
-					filledButton="확인"
-					onConfirmClick={closeModal}
-				/>,
-			);
+			openLogin('구독하려면 로그인해 주세요');
 		}
 	};
 }
