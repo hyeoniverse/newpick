@@ -18,7 +18,17 @@ const written = (
   title: '제목',
   subtitle: '부제목',
   summary: '요약',
-  stories: [{ heading: '소제목', body: '첫 문단\n\n둘째 문단', sources: [2] }],
+  intro: '여는 말',
+  stories: [
+    {
+      heading: '소제목',
+      lead: '한 줄 핵심',
+      points: ['포인트 1', '포인트 2'],
+      why: '첫 문단\n\n둘째 문단',
+      sources: [2],
+    },
+  ],
+  outro: '맺는 말',
   ...overrides,
 });
 
@@ -42,13 +52,19 @@ describe('뉴스레터 프롬프트', () => {
     expect(prompt).toContain('IT 분야에 해당하는 소식을 고릅니다');
   });
 
-  it('요약은 짧게, 본문은 소식마다 길게 (#41)', () => {
+  it('요약은 짧게, 본문은 소식마다 한 줄 핵심·포인트·왜 중요한지 (#41)', () => {
     const prompt = writerPrompt(articles);
     expect(prompt).toContain(`2~3문장, ${LIMITS.summary}자 이내`);
-    expect(prompt).toContain(
-      `${LIMITS.storyBody.min}~${LIMITS.storyBody.max}자`,
-    );
+    expect(prompt).toContain(`${LIMITS.why.min}~${LIMITS.why.max}자`);
+    expect(prompt).toContain(`${LIMITS.points.min}~${LIMITS.points.max}개`);
     expect(prompt).not.toMatch(/words/);
+  });
+
+  it('기사체가 아니라 해요체 뉴스레터 말투, 여는 말·맺는 말', () => {
+    const prompt = writerPrompt(articles);
+    expect(prompt).toContain('해요체');
+    expect(prompt).toContain('- intro:');
+    expect(prompt).toContain('- outro:');
   });
 
   it('제목은 헤드라인 하나, 나열·날짜·"주요 소식" 금지 (#42)', () => {
@@ -74,7 +90,9 @@ describe('응답 정리', () => {
       written({
         stories: Array.from({ length: 4 }, (_, i) => ({
           heading: `소식 ${i}`,
-          body: '본문',
+          lead: '핵심',
+          points: ['- 글머리를 붙여 온 포인트', '• 둘째', '셋째', '넷째'],
+          why: '이유',
           sources: [1, 1, 0, 9, 2],
         })),
       }),
@@ -82,6 +100,12 @@ describe('응답 정리', () => {
     );
     expect(result.stories).toHaveLength(3);
     expect(result.stories[0].sources).toEqual([1, 2]);
+    // 글머리 기호는 걷어 내고 포인트는 최대 3개
+    expect(result.stories[0].points).toEqual([
+      '글머리를 붙여 온 포인트',
+      '둘째',
+      '셋째',
+    ]);
   });
 
   it('제목이 비거나 소식이 없으면 저장하지 않게 실패', () => {
@@ -106,7 +130,9 @@ describe('응답 정리', () => {
       'title',
       'subtitle',
       'summary',
+      'intro',
       'stories',
+      'outro',
     ]);
     expect(effort).toBe('medium');
     expect(result.tokens).toBe(42);
@@ -114,20 +140,30 @@ describe('응답 정리', () => {
 });
 
 describe('본문 HTML (#43)', () => {
-  it('인라인 스타일 없이 구조만 만든다 (모양은 웹의 테마)', () => {
-    expect(renderNewsletterHtml(written().stories)).toBe(
-      '<div class="newsletter"><section class="story"><h2>소제목</h2><p>첫 문단</p><p>둘째 문단</p></section></div>',
+  it('인라인 스타일 없이 구조와 class만 만든다 (모양은 웹의 테마)', () => {
+    expect(renderNewsletterHtml(written())).toBe(
+      '<div class="newsletter"><p class="intro">여는 말</p>' +
+        '<section class="story"><span class="story-index">01</span><h2>소제목</h2>' +
+        '<p class="lead">한 줄 핵심</p><ul class="points"><li>포인트 1</li><li>포인트 2</li></ul>' +
+        '<div class="why"><strong>왜 중요할까요?</strong><p>첫 문단</p><p>둘째 문단</p></div></section>' +
+        '<p class="outro">맺는 말</p></div>',
     );
   });
 
   it('모델이 쓴 글의 HTML은 글자로 바꾼다', () => {
-    const html = renderNewsletterHtml([
-      {
-        heading: '<b>x</b>',
-        body: '<img src=x onerror=alert(1)>',
-        sources: [],
-      },
-    ]);
+    const html = renderNewsletterHtml(
+      written({
+        stories: [
+          {
+            heading: '<b>x</b>',
+            lead: '',
+            points: ['<script>alert(1)</script>'],
+            why: '<img src=x onerror=alert(1)>',
+            sources: [],
+          },
+        ],
+      }),
+    );
     expect(html).not.toContain('<img');
     expect(html).toContain('&lt;b&gt;x&lt;/b&gt;');
   });
@@ -169,7 +205,7 @@ describe('파이프라인', () => {
       '요약',
       'l2',
       1,
-      renderNewsletterHtml(written().stories),
+      renderNewsletterHtml(written()),
       'i2',
     );
   });
