@@ -34,13 +34,80 @@ jobs:
       - run: npm test
       - run: npm run build
 
+  # PR: 이미지가 빌드되는지만 본다 (main에서는 api-image가 빌드해서 올린다)
   api-docker:
     name: api docker image
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Build image
         run: docker build -t newpick-api apps/api
+
+  # 서버에 떠 있는 api와 이 커밋 사이에 apps/api가 바뀌었는지 (main push). 바뀌었으면 이미지를 만들어 배포한다 (#39).
+  # 직전 push와 비교하지 않는다: api를 바꾼 push의 실행이 실패하면, 다음 push에 api 변경이 없다는 이유로 그 변경이 배포에서 빠진다
+  api-changes:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      api: ${{ steps.diff.outputs.api }}
+      tag: ${{ steps.diff.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        run: |
+          echo "tag=sha-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+          # 서버의 /health version (sha-커밋 7자리). 서버에 닿지 않거나 모르는 커밋이면 바뀐 것으로 친다
+          deployed=$(curl -fsS --max-time 10 https://newpick-api.hyeoniverse.com/health | jq -r '.version // empty' || true)
+          commit=${deployed#sha-}
+          echo "서버의 api: ${deployed:-알 수 없음}"
+          if [ -z "$commit" ] || ! git cat-file -e "$commit^{commit}" 2>/dev/null; then
+            echo "api=true" >> "$GITHUB_OUTPUT"
+          elif git diff --quiet "$commit" "$GITHUB_SHA" -- apps/api; then
+            echo "api=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "api=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  # api 이미지: 서버(1GB)에서 빌드하지 않고 여기서 만들어 GHCR에 올린다. 서버가 amd64라 amd64만
+  api-image:
+    needs: [check, e2e, api-changes]
+    if: needs.api-changes.outputs.api == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - uses: docker/build-push-action@v6
+        with:
+          context: apps/api
+          platforms: linux/amd64
+          push: true
+          # /health의 version. 배포가 끝나면 바깥에서 이 값으로 새 버전이 떴는지 본다
+          build-args: APP_VERSION=${{ needs.api-changes.outputs.tag }}
+          tags: |
+            ghcr.io/hyeoniverse/newpick-api:${{ needs.api-changes.outputs.tag }}
+            ghcr.io/hyeoniverse/newpick-api:main
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # 서버에 배포 (DEPLOY_HOST가 없으면 건너뛴다). 실패하면 서버가 이전 버전으로 되돌린다
+  api-deploy:
+    needs: [api-changes, api-image]
+    uses: ./.github/workflows/deploy-api.yml
+    with:
+      tag: ${{ needs.api-changes.outputs.tag }}
+    secrets: inherit
 
   e2e:
     name: e2e

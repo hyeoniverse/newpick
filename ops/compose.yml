@@ -1,0 +1,68 @@
+# 운영 서버(Oracle VM)의 ~/deploy/compose.yml 원본 (#39). 서버에 복사해서 쓴다: docs/deployment.md
+# 비밀 값은 같은 폴더의 .env(compose 변수)와 api.env(api 환경 변수)에 둔다.
+# ports가 없다: 바깥 요청은 tunnel로만 api에 닿고, DB는 compose 네트워크 밖에서 접근할 수 없다.
+name: newpick
+
+# 로그가 디스크를 채우지 않게: 컨테이너마다 10MB짜리 3개까지만
+x-logging: &logging
+  driver: json-file
+  options: { max-size: 10m, max-file: '3' }
+
+services:
+  mysql:
+    image: mysql:8.0.40
+    restart: unless-stopped
+    logging: *logging
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:?.env에 MYSQL_ROOT_PASSWORD가 없다}
+      MYSQL_DATABASE: newpick
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      # 메모리 1GB 서버에 맞춘 값 (기본 128M, performance_schema만 수백 MB)
+      - --innodb-buffer-pool-size=64M
+      - --performance-schema=OFF
+    volumes: [mysql-data:/var/lib/mysql]
+    healthcheck:
+      test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD']
+      interval: 5s
+      retries: 30
+      start_period: 30s
+
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    logging: *logging
+    # WiredTiger 캐시 기본값은 (메모리-1GB)/2 또는 256MB. 1GB 서버라 줄인다
+    command: ['--wiredTigerCacheSizeGB', '0.25']
+    volumes: [mongo-data:/data/db]
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand("ping")']
+      interval: 5s
+      retries: 30
+
+  api:
+    # GitHub Actions가 만든 이미지 (서버에서 빌드하지 않는다). 태그는 .env의 API_TAG, ops/deploy.sh가 바꾼다
+    image: ghcr.io/hyeoniverse/newpick-api:${API_TAG:?API_TAG가 없다. ~/newpick/ops/deploy.sh <태그>로 배포한다}
+    restart: unless-stopped
+    logging: *logging
+    env_file: api.env
+    environment:
+      MYSQL_URL: mysql://root:${MYSQL_ROOT_PASSWORD}@mysql:3306/newpick
+      MONGO_URL: mongodb://mongo:27017/newpick
+    depends_on:
+      mysql: { condition: service_healthy }
+      mongo: { condition: service_healthy }
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    logging: *logging
+    command: tunnel --no-autoupdate run
+    environment:
+      TUNNEL_TOKEN: ${TUNNEL_TOKEN:?.env에 TUNNEL_TOKEN이 없다}
+    depends_on: [api]
+
+volumes:
+  mysql-data:
+  mongo-data:
