@@ -193,7 +193,7 @@ export function renderEditionMail(
     footerLink('수신 거부', `${base}/mypage?tab=settings`),
     footerLink('뉴픽 홈', `${base}/`),
     footerLink('이용약관', `${base}/terms`),
-    footerLink('개인정보처리방침', `${base}/privacy`),
+    footerLink('개인정보 처리방침', `${base}/privacy`),
   ].join(' · ')}${
     contactEmail
       ? `<br>문의 ${footerLink(contactEmail, `mailto:${contactEmail}`)}`
