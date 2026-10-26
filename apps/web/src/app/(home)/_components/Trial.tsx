@@ -167,7 +167,7 @@ const StyledTrial = styled.div`
 	.chip {
 		padding: 0.375rem 0.875rem;
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.flat};
+		border-radius: ${({ theme }) => theme.borderRadius.capsule};
 		background: ${({ theme }) => theme.color.background};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		color: ${({ theme }) => theme.color.text};
