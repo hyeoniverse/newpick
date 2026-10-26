@@ -1,5 +1,6 @@
-import { NotFoundException } from '@nestjs/common';
+import {} from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
+import { AppException } from './errors/app.exception';
 
 /**
  * 회원과 그 회원의 개인정보를 한 번에 지운다 (#65, 개인정보 처리방침 "탈퇴하면 함께 파기").
@@ -15,7 +16,7 @@ export async function deleteAccount(
     where: { id: userId },
     select: { id: true, email: true },
   });
-  if (!user) throw new NotFoundException('User not found');
+  if (!user) throw new AppException('USER_NOT_FOUND');
 
   const [archives] = await prisma.$transaction([
     prisma.emailArchive.deleteMany({ where: { email: user.email } }),

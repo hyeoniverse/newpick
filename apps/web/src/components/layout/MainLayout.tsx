@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ScrollButtons from '@/components/common/ScrollButtons';
+import LoginParamNotice from '@/components/common/auth/LoginParamNotice';
 
 interface Props {
 	children: React.ReactNode;
@@ -20,6 +21,7 @@ export default function Layout({ children, contactEmail }: Props) {
 			<Header />
 			<Content className="content">{children}</Content>
 			<ScrollButtons />
+			<LoginParamNotice />
 			<Footer contactEmail={contactEmail} />
 		</StyledLayout>
 	);

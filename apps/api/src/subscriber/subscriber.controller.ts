@@ -3,7 +3,6 @@ import {
   Get,
   Post,
   Delete,
-  UnauthorizedException,
   Req,
   Body,
   UseGuards,
@@ -12,6 +11,7 @@ import { SubscriberService } from './subscriber.service';
 import { StartSubscriptionDto } from './dto/start-subscription.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
+import { AppException } from '../common/errors/app.exception';
 @Controller('subscribers')
 @UseGuards(AuthGuard('jwt'))
 export class SubscriberController {
@@ -73,13 +73,13 @@ export class SubscriberController {
    */
   private validateAndParseUserId(userId: string | number | undefined): number {
     if (!userId) {
-      throw new UnauthorizedException('User not authenticated');
+      throw new AppException('UNAUTHORIZED');
     }
 
     const parsedId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
 
     if (isNaN(parsedId) || parsedId < -2147483648 || parsedId > 2147483647) {
-      throw new UnauthorizedException('Invalid or out-of-range user ID');
+      throw new AppException('BAD_REQUEST', '회원 id가 올바르지 않습니다.');
     }
 
     return parsedId;

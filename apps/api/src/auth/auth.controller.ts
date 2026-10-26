@@ -1,16 +1,9 @@
-import {
-  Controller,
-  Get,
-  Req,
-  Post,
-  Res,
-  UseGuards,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Controller, Get, Req, Post, Res, UseGuards } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
-import { GoogleOAuthGuard } from './google-oauth.guard';
+import { GoogleOAuthGuard, loginFailedUrl } from './google-oauth.guard';
+import { AppException } from '../common/errors/app.exception';
 import {
   ACCESS_TOKEN_MAX_AGE,
   REFRESH_TOKEN_MAX_AGE,
@@ -35,16 +28,13 @@ export class AuthController {
   @Get('google/callback')
   @UseGuards(GoogleOAuthGuard)
   async googleCallback(@Req() req: Request, @Res() res: Response) {
-    if (!req.user) {
-      throw new UnauthorizedException('OAuth user not found');
-    }
+    // 브라우저가 직접 여는 주소라, 실패하면 JSON이 아니라 사이트로 돌려보낸다
+    if (!req.user) return res.redirect(loginFailedUrl());
 
     const { googleSub, email, username, profileImg } = req.user as any;
 
     // 유효한 사용자만 등록하도록 개선
-    if (!email || !username) {
-      return res.status(400).json({ message: 'Invalid user data' });
-    }
+    if (!email || !username) return res.redirect(loginFailedUrl());
 
     const user = await this.authService.validateOrCreateGoogleUser(
       googleSub,
@@ -53,9 +43,7 @@ export class AuthController {
       profileImg,
     );
 
-    if (!user) {
-      return res.status(401).json({ message: 'User validation failed' });
-    }
+    if (!user) return res.redirect(loginFailedUrl());
 
     const accessToken = await this.authService.generateAccessToken(user.id);
     const refreshToken = await this.authService.generateRefreshToken(user.id);
@@ -94,30 +82,25 @@ export class AuthController {
   async refresh(@Req() req: Request, @Res() res: Response) {
     const refreshToken = req.cookies['refresh_token'];
     // 갱신에 실패하면 로그인 표시 쿠키도 지워, 프론트가 로그아웃 상태로 그리게 합니다.
-    const unauthorized = (message: string) => {
+    // 어느 단계에서 실패했는지는 응답에 싣지 않는다 (토큰을 떠보는 데 쓰일 수 있음)
+    const expired = () => {
       res.clearCookie(SESSION_HINT_COOKIE, sessionHintCookieOptions());
-      return res.status(401).json({ message });
+      return new AppException('SESSION_EXPIRED');
     };
 
-    if (!refreshToken) {
-      return unauthorized('Unauthorized - No refresh token found');
-    }
+    if (!refreshToken) throw expired();
 
     try {
       const userId =
         await this.authService.verifyAndDecodeRefreshToken(refreshToken);
-      if (!userId) {
-        return unauthorized('Unauthorized - Invalid refresh token');
-      }
+      if (!userId) throw expired();
 
       // Refresh Token이 DB에 저장된 것과 일치하는지 확인
       const isTokenValid = await this.authService.verifyRefreshToken(
         userId,
         refreshToken,
       );
-      if (!isTokenValid) {
-        return unauthorized('Unauthorized - Refresh token mismatch');
-      }
+      if (!isTokenValid) throw expired();
 
       const newAccessToken = await this.authService.generateAccessToken(userId);
 
@@ -135,8 +118,9 @@ export class AuthController {
 
       // 토큰은 HttpOnly 쿠키로만 전달합니다. (응답 본문에 담으면 스크립트에서 읽을 수 있음)
       return res.json({ message: 'Token refreshed' });
-    } catch {
-      return unauthorized('Unauthorized - Token verification failed');
+    } catch (error) {
+      if (error instanceof AppException) throw error;
+      throw expired();
     }
   }
 
@@ -144,18 +128,10 @@ export class AuthController {
   @UseGuards(AuthGuard('jwt'))
   async logout(@Req() req: Request, @Res() res: Response) {
     const user = req.user as { id: number };
-    if (!user?.id) {
-      return res.status(401).json({ message: 'Unauthorized' });
-    }
+    if (!user?.id) throw new AppException('UNAUTHORIZED');
 
-    try {
-      // Refresh Token을 DB에서 완전히 삭제
-      await this.authService.removeRefreshToken(user.id);
-      console.log(`All refresh tokens removed for user ID: ${user.id}`);
-    } catch (err) {
-      console.error('Error removing refresh token:', err);
-      return res.status(500).json({ message: 'Error removing refresh token' });
-    }
+    // Refresh Token을 DB에서 완전히 삭제 (실패하면 ApiExceptionFilter가 500으로 기록·응답)
+    await this.authService.removeRefreshToken(user.id);
 
     // 쿠키 완전 삭제
     res.clearCookie('access_token', authCookieOptions());

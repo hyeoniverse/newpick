@@ -1,7 +1,8 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { deleteAccount } from 'src/common/delete-account';
+import { AppException } from '../common/errors/app.exception';
 
 @Injectable()
 export class AdminService {
@@ -30,7 +31,7 @@ export class AdminService {
   async updateUser(id: number, updateDto: UpdateUserDto) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new AppException('USER_NOT_FOUND');
     }
 
     return this.prisma.user.update({

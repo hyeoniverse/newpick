@@ -1,8 +1,4 @@
-import {
-  ExecutionContext,
-  ForbiddenException,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AdminGuard } from '../guards/admin.guard';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
@@ -48,7 +44,7 @@ describe('AdminGuard', () => {
   it('로그인 정보가 없으면 401', async () => {
     await expect(
       guard.canActivate(contextFor(Routes.prototype.closed)),
-    ).rejects.toBeInstanceOf(UnauthorizedException);
+    ).rejects.toMatchObject({ code: 'UNAUTHORIZED', status: 401 });
     expect(findUnique).not.toHaveBeenCalled();
   });
 
@@ -56,14 +52,14 @@ describe('AdminGuard', () => {
     findUnique.mockResolvedValue({ role: 'user' });
     await expect(
       guard.canActivate(contextFor(Routes.prototype.closed, { id: 1 })),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    ).rejects.toMatchObject({ code: 'ADMIN_ONLY', status: 403 });
   });
 
   it('DB에 없는 사용자도 403', async () => {
     findUnique.mockResolvedValue(null);
     await expect(
       guard.canActivate(contextFor(Routes.prototype.closed, { id: 1 })),
-    ).rejects.toBeInstanceOf(ForbiddenException);
+    ).rejects.toMatchObject({ code: 'ADMIN_ONLY', status: 403 });
   });
 
   it('DB의 role이 admin이면 통과한다', async () => {

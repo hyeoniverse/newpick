@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import {
   getInterestIds,
@@ -6,6 +6,7 @@ import {
   validateCategoryIds,
 } from 'src/common/user-interests';
 import { deleteAccount } from 'src/common/delete-account';
+import { AppException } from '../common/errors/app.exception';
 
 @Injectable()
 export class MyPageService {
@@ -39,7 +40,7 @@ export class MyPageService {
     });
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found.`);
+      throw new AppException('USER_NOT_FOUND');
     }
 
     // 응답 형태는 이전과 같이 interests: number[]
@@ -70,10 +71,6 @@ export class MyPageService {
         },
       },
     });
-
-    if (!bookmarks.length) {
-      throw new NotFoundException('No bookmarks found for this user.');
-    }
 
     return bookmarks.map(({ newsletter }) => ({
       id: newsletter.id,

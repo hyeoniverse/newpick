@@ -1,5 +1,6 @@
-import { BadRequestException } from '@nestjs/common';
+import {} from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
+import { AppException } from './errors/app.exception';
 
 /** 중복을 없애고, 존재하지 않는 카테고리 id가 있으면 400을 던집니다. */
 export async function validateCategoryIds(
@@ -16,8 +17,10 @@ export async function validateCategoryIds(
   if (found.length !== ids.length) {
     const valid = new Set(found.map((c) => c.id));
     const invalid = ids.filter((id) => !valid.has(id));
-    throw new BadRequestException(
-      `존재하지 않는 카테고리입니다: ${invalid.join(', ')}`,
+    throw new AppException(
+      'INVALID_INTERESTS',
+      `없는 분야가 있습니다: ${invalid.join(', ')}`,
+      { invalidCategoryIds: invalid },
     );
   }
   return ids;

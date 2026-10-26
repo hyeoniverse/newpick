@@ -6,10 +6,8 @@ import {
   Put,
   Delete,
   Body,
-  BadRequestException,
   UseInterceptors,
   Logger,
-  NotFoundException,
   ParseIntPipe,
   ValidationPipe,
 } from '@nestjs/common';
@@ -17,6 +15,7 @@ import { CategoryRepository } from './category.repository';
 import { CommonResponseInterceptor } from '../common/response.interceptor';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
+import { AppException } from '../common/errors/app.exception';
 
 @Controller('category')
 @UseInterceptors(CommonResponseInterceptor)
@@ -43,7 +42,7 @@ export class CategoryController {
     this.logger.log(`findById: ${id}`);
     const category = await this.categoryRepository.findById(id);
     if (!category) {
-      throw new NotFoundException('카테고리를 찾을 수 없습니다.');
+      throw new AppException('CATEGORY_NOT_FOUND');
     }
     return {
       data: category,
@@ -67,7 +66,7 @@ export class CategoryController {
     this.logger.log(`findByName: ${name}`);
     const category = await this.categoryRepository.findByName(name);
     if (!category) {
-      throw new NotFoundException('카테고리를 찾을 수 없습니다.');
+      throw new AppException('CATEGORY_NOT_FOUND');
     }
     return {
       data: category,
@@ -90,7 +89,7 @@ export class CategoryController {
     const category = await this.categoryRepository.findByName(dto.name);
     this.logger.log(`create: ${dto.name}`);
     if (category) {
-      throw new BadRequestException('이미 존재하는 카테고리입니다.');
+      throw new AppException('CATEGORY_ALREADY_EXISTS');
     }
     const createdCategory = await this.categoryRepository.create(dto);
     this.logger.log(`create: ${createdCategory.id}`);
@@ -115,7 +114,7 @@ export class CategoryController {
   ) {
     const category = await this.categoryRepository.findById(id);
     if (!category) {
-      throw new NotFoundException('카테고리를 찾을 수 없습니다.');
+      throw new AppException('CATEGORY_NOT_FOUND');
     }
     this.logger.log(`update: ${id}`);
     const updatedCategory = await this.categoryRepository.update(id, dto);
@@ -133,7 +132,7 @@ export class CategoryController {
   ) {
     const category = await this.categoryRepository.findById(id);
     if (!category) {
-      throw new NotFoundException('카테고리를 찾을 수 없습니다.');
+      throw new AppException('CATEGORY_NOT_FOUND');
     }
     const deletedCategory = await this.categoryRepository.delete(id);
     this.logger.log(`delete: ${deletedCategory.id}`);

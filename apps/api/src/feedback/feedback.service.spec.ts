@@ -1,4 +1,3 @@
-import { ConflictException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { plainToInstance } from 'class-transformer';
 import { FeedbackService } from './feedback.service';
@@ -39,7 +38,7 @@ describe('FeedbackService 북마크', () => {
     const prisma = fakePrisma(false);
     await expect(
       new FeedbackService(prisma as never).addBookmark(1, 7),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    ).rejects.toMatchObject({ code: 'NEWSLETTER_NOT_FOUND', status: 404 });
     expect(prisma.bookmark.create).not.toHaveBeenCalled();
   });
 
@@ -53,7 +52,7 @@ describe('FeedbackService 북마크', () => {
     );
     await expect(
       new FeedbackService(prisma as never).addBookmark(1, 7),
-    ).rejects.toBeInstanceOf(ConflictException);
+    ).rejects.toMatchObject({ code: 'BOOKMARK_ALREADY_EXISTS', status: 409 });
   });
 
   it('없는 북마크를 지우면 404', async () => {
@@ -61,7 +60,7 @@ describe('FeedbackService 북마크', () => {
     prisma.bookmark.deleteMany.mockResolvedValue({ count: 0 });
     await expect(
       new FeedbackService(prisma as never).removeBookmark(1, 7),
-    ).rejects.toBeInstanceOf(NotFoundException);
+    ).rejects.toMatchObject({ code: 'BOOKMARK_NOT_FOUND', status: 404 });
   });
 });
 

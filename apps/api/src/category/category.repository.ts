@@ -1,6 +1,7 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { Prisma } from '@prisma/client';
+import { AppException } from '../common/errors/app.exception';
 
 @Injectable()
 export class CategoryRepository {
@@ -43,7 +44,7 @@ export class CategoryRepository {
       where: { id },
     });
     if (!deletedCategory) {
-      throw new NotFoundException('카테고리를 찾을 수 없습니다.');
+      throw new AppException('CATEGORY_NOT_FOUND');
     }
     return deletedCategory;
   }
