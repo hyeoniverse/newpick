@@ -91,41 +91,43 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 
 				{type === 'list' && (
 					<>
-						<Link href={url || '/not-found'} passHref legacyBehavior>
-							<a target={newTab ? '_blank' : '_self'} rel={newTab ? 'noopener noreferrer' : undefined}>
-								<div className="card-main">
-									<div className="card-header">
-										{header && (
-											<Text size="small" color="primary" weight="semiBold">
-												{header}
+						<Link
+							href={url || '/not-found'}
+							target={newTab ? '_blank' : '_self'}
+							rel={newTab ? 'noopener noreferrer' : undefined}
+						>
+							<div className="card-main">
+								<div className="card-header">
+									{header && (
+										<Text size="small" color="primary" weight="semiBold">
+											{header}
+										</Text>
+									)}
+								</div>
+								<div className="content">
+									<div className="left">
+										{main.title && (
+											<Text className="title" size="medium" weight="semiBold">
+												{main.title}
 											</Text>
 										)}
+										{main.description && (
+											<Text className="description" size="small">
+												{main.description}
+											</Text>
+										)}
+										{footer && (
+											<div className="card-footer" onClick={(e) => e.preventDefault()}>
+												{footer}
+											</div>
+										)}
 									</div>
-									<div className="content">
-										<div className="left">
-											{main.title && (
-												<Text className="title" size="medium" weight="semiBold">
-													{main.title}
-												</Text>
-											)}
-											{main.description && (
-												<Text className="description" size="small">
-													{main.description}
-												</Text>
-											)}
-											{footer && (
-												<div className="card-footer" onClick={(e) => e.preventDefault()}>
-													{footer}
-												</div>
-											)}
-										</div>
 
-										<div className="image-placeholder">
-											<Image src={image || `${DEFAULT_IMAGES.MONO}`} alt={main.title || 'card'} />
-										</div>
+									<div className="image-placeholder">
+										<Image src={image || `${DEFAULT_IMAGES.MONO}`} alt={main.title || 'card'} />
 									</div>
 								</div>
-							</a>
+							</div>
 						</Link>
 					</>
 				)}
