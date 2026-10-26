@@ -92,7 +92,7 @@ const StyledHotSection = styled.section<StyledProps>`
 		gap: 1rem;
 
 		.tag {
-			border-radius: ${({ theme }) => theme.borderRadius.capsule};
+			border-radius: ${({ theme }) => theme.radius.control};
 			background: ${({ theme }) => theme.color.tertiary};
 			color: ${({ theme }) => theme.color.primary};
 			padding: 0.25rem 1rem;

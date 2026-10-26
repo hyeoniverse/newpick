@@ -128,7 +128,7 @@ const StyledSubscribeSheet = styled.div`
 	.chip {
 		padding: 0.5rem 1rem;
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.capsule};
+		border-radius: ${({ theme }) => theme.radius.control};
 		background: ${({ theme }) => theme.color.background};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		color: ${({ theme }) => theme.color.text};
@@ -157,6 +157,6 @@ const StyledSubscribeSheet = styled.div`
 	.submit {
 		width: 100%;
 		height: 3rem;
-		border-radius: ${({ theme }) => theme.borderRadius.soft};
+		border-radius: ${({ theme }) => theme.radius.control};
 	}
 `;

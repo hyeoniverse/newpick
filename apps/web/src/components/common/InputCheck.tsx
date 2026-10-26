@@ -62,7 +62,7 @@ const StyledInputCheck = styled.label<StyleProps>`
 		appearance: none;
 		cursor: pointer;
 		border: 1.5px solid ${({ theme }) => theme.color.lightGrey};
-		border-radius: ${({ theme }) => theme.borderRadius.soft};
+		border-radius: ${({ theme }) => theme.radius.control};
 		background: ${({ theme }) => theme.color.background};
 		transition:
 			background 0.15s ease,

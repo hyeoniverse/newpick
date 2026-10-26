@@ -184,7 +184,7 @@ const StyledInputSelect = styled.div<StyleProps>`
 		list-style: none;
 
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.background};
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
@@ -202,7 +202,7 @@ const StyledInputSelect = styled.div<StyleProps>`
 		align-items: center;
 		justify-content: space-between;
 		padding: 0.625rem 0.75rem;
-		border-radius: ${({ theme }) => theme.borderRadius.soft};
+		border-radius: ${({ theme }) => theme.radius.control};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		color: ${({ theme }) => theme.color.text};
 		white-space: nowrap;

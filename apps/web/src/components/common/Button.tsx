@@ -160,7 +160,7 @@ export const StyledButton = styled.button.withConfig({
 		background: ${({ theme }) => theme.color.surface};
 		color: ${({ theme }) => theme.color.neutral};
 		font-size: ${({ theme }) => theme.fontSize.small};
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		box-shadow: ${({ theme }) => theme.shadow.light};
 
 		opacity: 1;

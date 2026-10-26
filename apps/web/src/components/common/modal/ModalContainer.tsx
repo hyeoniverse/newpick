@@ -210,7 +210,7 @@ const StyledModal = styled.div`
 		display: flex;
 		flex-direction: column;
 
-		border-radius: ${({ theme }) => theme.borderRadius.rounded} ${({ theme }) => theme.borderRadius.rounded} 0 0;
+		border-radius: ${({ theme }) => theme.radius.floating} ${({ theme }) => theme.radius.floating} 0 0;
 		/* 바깥이 어둡지 않으니 위쪽 그림자와 테두리로 뒤 화면과 구분 */
 		border: 1px solid ${({ theme }) => theme.color.border};
 		border-bottom: none;

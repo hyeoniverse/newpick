@@ -150,7 +150,7 @@ const LatestArticleStyled = styled.section`
             padding: 1rem;
 
             background-color: ${({ theme }) => theme.color.background};
-            border-radius: ${({ theme }) => theme.borderRadius.soft};
+            border-radius: ${({ theme }) => theme.radius.surface};
             height: auto;
 
             display: flex;

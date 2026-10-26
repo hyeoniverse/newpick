@@ -24,6 +24,13 @@ export type FontSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge
 export type FontWeight = 'light' | 'regular' | 'medium' | 'semiBold' | 'bold' | 'extraBold';
 
 export type BorderRadius = 'flat' | 'soft' | 'medium' | 'rounded' | 'capsule' | 'circle';
+/**
+ * control: 누르는 것 (버튼·입력칸·선택 목록·체크 상자·칩·태그) — 각지게
+ * surface: 담는 것 (카드·사진·펼친 목록·안내 상자) — 살짝 둥글게
+ * floating: 화면 위에 뜨는 것 (시트·토스트) — 바탕과 구분되게 더 둥글게
+ * 원래 둥근 것(프로필 사진·라디오·점)은 borderRadius.circle
+ */
+export type RadiusRole = 'control' | 'surface' | 'floating';
 export type Shadow = 'light' | 'medium' | 'heavy';
 
 export type ButtonSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
@@ -44,6 +51,8 @@ export interface Theme {
 	};
 
 	borderRadius: Record<BorderRadius, string>;
+	/** 쓰임새별 모서리 (#63). 새로 만드는 곳은 이것을 쓴다 */
+	radius: Record<RadiusRole, string>;
 	shadow: Record<Shadow, string>;
 
 	button: {
@@ -138,6 +147,11 @@ export const lightTheme: Theme = {
 		rounded: '16px',
 		capsule: '9999px',
 		circle: '50%',
+	},
+	radius: {
+		control: '0',
+		surface: '8px',
+		floating: '16px',
 	},
 	button: {
 		extraLarge: {

@@ -55,7 +55,7 @@ const ThumbImgStyled = styled(Image)<Props>`
 const ContainerStyled = styled.div<Props>`
 	position: relative;
 	overflow: hidden;
-	border-radius: ${({ theme }) => theme.borderRadius.soft};
+	border-radius: ${({ theme }) => theme.radius.surface};
 
 	height: ${({ height }) => height};
 `;

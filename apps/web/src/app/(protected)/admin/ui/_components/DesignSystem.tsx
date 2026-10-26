@@ -157,7 +157,26 @@ function DesignSystemBody() {
 				</div>
 			</Section>
 
-			<Section id="shape" title="모서리" note="theme.borderRadius">
+			<Section id="shape" title="모서리" note="theme.radius(쓰임새별) · theme.borderRadius(값)">
+				<div className="radii">
+					{(
+						[
+							['control', '누르는 것', '버튼·입력칸·칩·태그'],
+							['surface', '담는 것', '카드·사진·펼친 목록'],
+							['floating', '뜨는 것', '시트·토스트'],
+						] as const
+					).map(([role, name, examples]) => (
+						<div key={role} className="radius">
+							<Box $radius={theme.radius[role]} />
+							<code>radius.{role}</code>
+							<span className="hex">
+								{name} · {theme.radius[role]}
+							</span>
+							<span className="hex">{examples}</span>
+						</div>
+					))}
+				</div>
+				<hr className="divider" />
 				<div className="radii">
 					{(Object.keys(theme.borderRadius) as (keyof Theme['borderRadius'])[]).map((key) => (
 						<div key={key} className="radius">
@@ -468,6 +487,12 @@ const StyledPage = styled.div`
 			grid-template-columns: 1fr;
 			gap: 0.25rem;
 		}
+	}
+
+	.divider {
+		width: 100%;
+		border: none;
+		border-top: 1px dashed ${({ theme }) => theme.color.border};
 	}
 
 	.radii {

@@ -154,7 +154,7 @@ const StyledCard = styled.div<StyledProps>`
 		aspect-ratio: 16 / 9;
 		position: relative;
 		overflow: hidden;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.surface};
 	}
 

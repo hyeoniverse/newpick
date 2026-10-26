@@ -79,7 +79,7 @@ const StyledHeroSection = styled.section`
 		}
 
 		img {
-			border-radius: ${({ theme }) => theme.borderRadius.soft};
+			border-radius: ${({ theme }) => theme.radius.surface};
 			box-shadow: ${({ theme }) => theme.shadow.medium};
 		}
 

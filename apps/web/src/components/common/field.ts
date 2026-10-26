@@ -17,7 +17,7 @@ export const fieldControl = css`
 	height: 3rem;
 	padding: 0 1rem;
 	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.borderRadius.medium};
+	border-radius: ${({ theme }) => theme.radius.control};
 	background: ${({ theme }) => theme.color.background};
 	color: ${({ theme }) => theme.color.text};
 	font-size: ${({ theme }) => theme.fontSize.small};

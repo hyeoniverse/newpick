@@ -71,14 +71,14 @@ const StyledCategoris = styled.div`
 	.category-btn {
 		width: 4rem;
 		color: ${({ theme }) => theme.color.primary};
-		border-radius: ${({ theme }) => theme.borderRadius.capsule};
+		border-radius: ${({ theme }) => theme.radius.control};
 		border: 1px solid ${({ theme }) => theme.color.primary};
 	}
 
 	.active {
 		color: ${({ theme }) => theme.color.background};
 		background: ${({ theme }) => theme.color.primary};
-		border-radius: ${({ theme }) => theme.borderRadius.capsule};
+		border-radius: ${({ theme }) => theme.radius.control};
 	}
 
 	.btn {

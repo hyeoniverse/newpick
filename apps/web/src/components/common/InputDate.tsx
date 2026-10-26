@@ -70,7 +70,7 @@ const StyledInputDate = styled.div`
 
 	.react-datepicker {
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.background};
 		color: ${({ theme }) => theme.color.text};
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
@@ -106,7 +106,7 @@ const StyledInputDate = styled.div`
 	.react-datepicker__day--keyboard-selected {
 		background-color: ${({ theme }) => theme.color.primary};
 		color: ${({ theme }) => theme.color.background};
-		border-radius: ${({ theme }) => theme.borderRadius.soft};
+		border-radius: ${({ theme }) => theme.radius.control};
 	}
 
 	.react-datepicker__day:hover {
