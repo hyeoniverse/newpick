@@ -1,4 +1,4 @@
-import type { WrittenNewsletter } from './newsletterWriter.service';
+import type { Story, WrittenNewsletter } from './newsletterWriter.service';
 
 const escapeHtml = (text: string) =>
   text
@@ -19,40 +19,105 @@ const paragraphs = (text: string) =>
 const items = (list: string[]) =>
   list.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
 
+const isWebUrl = (url?: string) => !!url && /^https?:\/\//i.test(url);
+
+/** 근거 기사마다 언론사 이름으로 원문 링크 (새 탭). 같은 기사는 한 번만 */
+const credit = (story: Story, articles: SourceRef[]) => {
+  const seen = new Set<string>();
+  const links = story.sources
+    .map((n) => articles[n - 1])
+    .filter((a): a is SourceRef => Boolean(a?.source || a?.link))
+    .filter((a) => {
+      const key = a.link || a.source || '';
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map((a) => {
+      const name = escapeHtml(a.source || '원문');
+      return isWebUrl(a.link)
+        ? `<a href="${escapeHtml(a.link!)}" target="_blank" rel="noopener noreferrer">${name}</a>`
+        : name;
+    });
+  return links.length ? `<p class="credit">출처 ${links.join(' · ')}</p>` : '';
+};
+
+export type SourceRef = { source?: string; link?: string };
+
+const body = (story: Story) =>
+  story.body ? `<div class="body">${paragraphs(story.body)}</div>` : '';
+
+const analysis = (story: Story, label = '시사점') =>
+  story.analysis
+    ? `<div class="analysis"><h3>${label}</h3>${paragraphs(story.analysis)}</div>`
+    : '';
+
+/**
+ * 템플릿마다 고유 요소와 순서가 다르다 (#48).
+ * 꼬리표·헤드라인·리드·출처는 공통이고, 그 사이를 템플릿이 채운다
+ */
+const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
+  // 지표 카드 → 본문 → 시사점
+  numbers: (s) => [
+    `<div class="stats">${s.stats
+      .map(
+        (stat) =>
+          `<div class="stat"><span class="label">${escapeHtml(stat.label)}</span><strong class="value">${escapeHtml(stat.value)}</strong><span class="note">${escapeHtml(stat.note)}</span></div>`,
+      )
+      .join('')}</div>`,
+    body(s),
+    analysis(s),
+  ],
+  // 날짜별 경과 → 본문 → 전망
+  timeline: (s) => [
+    `<ol class="timeline">${s.timeline
+      .map(
+        (m) =>
+          `<li><time>${escapeHtml(m.when)}</time><span>${escapeHtml(m.what)}</span></li>`,
+      )
+      .join('')}</ol>`,
+    body(s),
+    analysis(s, '전망'),
+  ],
+  // 본문 → 문답 → 시사점
+  qa: (s) => [
+    body(s),
+    `<dl class="qa">${s.qa
+      .map((x) => `<dt>${escapeHtml(x.q)}</dt><dd>${escapeHtml(x.a)}</dd>`)
+      .join('')}</dl>`,
+    analysis(s),
+  ],
+  // 인용문 → 맥락 → 시사점
+  quote: (s) => [
+    `<blockquote class="quote"><p>${escapeHtml(s.quote.text)}</p><cite>${escapeHtml(s.quote.by)}</cite></blockquote>`,
+    body(s),
+    analysis(s),
+  ],
+  analysis: (s) => [body(s), analysis(s)],
+  brief: (s) => [body(s)],
+};
+
 /**
  * 뉴스레터 본문 HTML. 예전에는 모델이 인라인 스타일까지 매번 다르게 만들었습니다 (#43).
  * 구조와 class만 만들고, 모양은 웹이 사이트 테마(색·글꼴·다크 모드)로 입힙니다.
  *
- * 에디터 브리핑 → 소식(꼬리표 · 헤드라인 · 리드 · 본문 · 핵심 사실 · 시사점 · 출처) → 관전 포인트
+ * 에디터 브리핑 → 소식(템플릿별) → 관전 포인트
  *
- * articles: 원래 기사 목록. 소식의 sources(1부터)로 출처 언론사를 찾는다
+ * articles: 원래 기사 목록. 소식의 sources(1부터)로 출처 언론사와 원문 링크를 찾는다
  */
 export function renderNewsletterHtml(
   newsletter: Pick<WrittenNewsletter, 'briefing' | 'stories' | 'watch'>,
-  articles: { source?: string }[] = [],
+  articles: SourceRef[] = [],
 ): string {
   const stories = newsletter.stories.map((story, i) => {
-    const outlets = [
-      ...new Set(
-        story.sources.map((n) => articles[n - 1]?.source).filter(Boolean),
-      ),
-    ] as string[];
     const index = String(i + 1).padStart(2, '0');
     return [
-      '<article class="story">',
+      `<article class="story story-${story.template}">`,
       `<p class="kicker"><span class="index">${index}</span>${escapeHtml(story.kicker)}</p>`,
       `<h2>${escapeHtml(story.heading)}</h2>`,
       story.lead ? `<p class="lead">${escapeHtml(story.lead)}</p>` : '',
-      story.body ? `<div class="body">${paragraphs(story.body)}</div>` : '',
-      story.facts.length
-        ? `<aside class="facts"><h3>핵심 사실</h3><ul>${items(story.facts)}</ul></aside>`
-        : '',
-      story.analysis
-        ? `<div class="analysis"><h3>시사점</h3>${paragraphs(story.analysis)}</div>`
-        : '',
-      outlets.length
-        ? `<p class="credit">출처 ${outlets.map(escapeHtml).join(' · ')}</p>`
-        : '',
+      ...TEMPLATE_PARTS[story.template](story),
+      credit(story, articles),
       '</article>',
     ].join('');
   });

@@ -118,7 +118,7 @@ const NewsletterContentStyled = styled.article`
 	}
 
 	/*
-	 * api가 만드는 본문 구조 (#43): 에디터 브리핑 → 소식(꼬리표 · 헤드라인 · 리드 · 본문 · 핵심 사실 · 시사점 · 출처) → 관전 포인트.
+	 * api가 만드는 본문 구조 (#43): 에디터 브리핑 → 소식(꼬리표 · 헤드라인 · 리드 · 템플릿별 요소 · 본문 · 시사점 · 출처) → 관전 포인트.
 	 * 신문 지면처럼 굵은 구분선과 작은 대문자 라벨로 나눈다. 예전 뉴스레터는 모델이 넣은 인라인 스타일 그대로 보인다
 	 */
 	.newsletter {
@@ -199,26 +199,152 @@ const NewsletterContentStyled = styled.article`
 			margin-bottom: 1rem;
 		}
 
-		.facts {
-			margin: 1.5rem 0;
-			padding: 1rem 1.25rem;
-			border-top: 2px solid ${({ theme }) => theme.color.primary};
-			background: ${({ theme }) => theme.color.surface};
+		/* 템플릿별 고유 요소 (#48) */
 
-			h3 {
-				color: ${({ theme }) => theme.color.primary};
+		/* numbers: 지표 카드 */
+		.stats {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+			gap: 1px;
+			margin: 0 0 1.5rem;
+			border-top: 2px solid ${({ theme }) => theme.color.text};
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+			background: ${({ theme }) => theme.color.border};
+
+			.stat {
+				display: flex;
+				flex-direction: column;
+				gap: 0.25rem;
+				/* 본문 공통 * { margin-bottom }이 카드 아래로 회색 띠를 만들지 않게 */
+				margin: 0;
+				padding: 1rem 0.75rem;
+				background: ${({ theme }) => theme.color.background};
 			}
 
+			.label {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.subText};
+			}
+
+			.value {
+				font-size: ${({ theme }) => theme.fontSize.large};
+				word-break: keep-all;
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				line-height: 1.2;
+				color: ${({ theme }) => theme.color.text};
+				font-variant-numeric: tabular-nums;
+			}
+
+			.note {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				font-weight: ${({ theme }) => theme.fontWeight.medium};
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+
+		/* timeline: 날짜별 경과 */
+		.timeline {
+			margin: 0 0 1.5rem;
+			padding: 0 0 0 1.25rem;
+			list-style: none;
+			border-left: 2px solid ${({ theme }) => theme.color.border};
+
 			li {
+				position: relative;
+				display: flex;
+				gap: 1rem;
 				padding: 0.5rem 0;
-				border-bottom: 1px solid ${({ theme }) => theme.color.border};
 				line-height: 1.6;
+
+				&::before {
+					content: '';
+					position: absolute;
+					left: calc(-1.25rem - 5px);
+					top: 0.95em;
+					width: 8px;
+					height: 8px;
+					border-radius: 50%;
+					background: ${({ theme }) => theme.color.primary};
+				}
+			}
+
+			time {
+				flex: 0 0 5.5rem;
+				font-size: ${({ theme }) => theme.fontSize.small};
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				color: ${({ theme }) => theme.color.text};
+			}
+
+			span {
+				color: ${({ theme }) => theme.color.mediumGrey};
+			}
+		}
+
+		/* qa: 문답 */
+		.qa {
+			margin: 1.5rem 0;
+
+			dt {
+				margin-top: 1.25rem;
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
 				color: ${({ theme }) => theme.color.text};
 
-				&:last-child {
-					border-bottom: none;
-					padding-bottom: 0;
+				&::before {
+					content: 'Q. ';
+					color: ${({ theme }) => theme.color.primary};
 				}
+			}
+
+			dd {
+				margin: 0.5rem 0 0;
+				padding-bottom: 1.25rem;
+				border-bottom: 1px solid ${({ theme }) => theme.color.border};
+				line-height: 1.7;
+				color: ${({ theme }) => theme.color.mediumGrey};
+			}
+		}
+
+		/* quote: 인용문 */
+		.quote {
+			margin: 0 0 1.5rem;
+			padding: 0.5rem 0 0.5rem 1.25rem;
+			border-left: 4px solid ${({ theme }) => theme.color.primary};
+
+			p {
+				margin-bottom: 0.5rem;
+				font-size: ${({ theme }) => theme.fontSize.large};
+				font-weight: ${({ theme }) => theme.fontWeight.medium};
+				line-height: 1.5;
+				color: ${({ theme }) => theme.color.text};
+
+				&::before {
+					content: '“';
+				}
+
+				&::after {
+					content: '”';
+				}
+			}
+
+			cite {
+				font-size: ${({ theme }) => theme.fontSize.small};
+				font-style: normal;
+				color: ${({ theme }) => theme.color.subText};
+
+				&::before {
+					content: '— ';
+				}
+			}
+		}
+
+		/* brief: 단신은 작게 */
+		.story-brief {
+			h2 {
+				font-size: ${({ theme }) => theme.fontSize.large};
+			}
+
+			.lead {
+				font-size: ${({ theme }) => theme.fontSize.medium};
 			}
 		}
 
@@ -234,6 +360,18 @@ const NewsletterContentStyled = styled.article`
 			margin-top: 1.25rem;
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			color: ${({ theme }) => theme.color.subText};
+
+			/* 원문 링크: 본문 링크보다 조용하게 */
+			a {
+				color: ${({ theme }) => theme.color.subText};
+				text-decoration: underline;
+				text-decoration-thickness: 1px;
+				text-underline-offset: 2px;
+
+				&:hover {
+					color: ${({ theme }) => theme.color.primary};
+				}
+			}
 		}
 
 		.watch {

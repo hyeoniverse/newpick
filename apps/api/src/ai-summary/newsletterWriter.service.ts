@@ -9,19 +9,48 @@ import {
 } from './articlePrep';
 
 /**
- * 뉴스레터 한 편 (#41, #42, #43, #47)
- * 제목·부제목 + AI 요약 + 에디터 브리핑 → 소식 1~3개(꼬리표 · 헤드라인 · 리드 · 본문 · 핵심 사실 · 시사점) → 관전 포인트
+ * 소식마다 내용에 맞는 템플릿 (#48). 모두 꼬리표·헤드라인·리드·본문을 갖고, 템플릿마다 고유 요소가 하나씩 있다
+ * - numbers: 지표 카드 (증시·경제지표·통계)
+ * - timeline: 날짜별 경과 (수사·재판·외교·사고처럼 진행 중인 사건)
+ * - qa: 문답 (정책·제도·규제 변화)
+ * - quote: 인용문 (핵심이 누군가의 발언)
+ * - analysis: 해설 (그 밖의 일반 소식)
+ * - brief: 단신 (짧게 다뤄도 되는 소식, 시사점 없음)
  */
+export const TEMPLATES = [
+  'numbers',
+  'timeline',
+  'qa',
+  'quote',
+  'analysis',
+  'brief',
+] as const;
+export type Template = (typeof TEMPLATES)[number];
+
+export type Stat = { label: string; value: string; note: string };
+export type Moment = { when: string; what: string };
+export type QA = { q: string; a: string };
+
 export type Story = {
+  template: Template;
   kicker: string;
   heading: string;
   lead: string;
   body: string;
-  facts: string[];
+  /** 시사점. brief는 비어 있다 */
   analysis: string;
+  stats: Stat[];
+  timeline: Moment[];
+  qa: QA[];
+  quote: { text: string; by: string };
   /** 원래 기사 목록에서의 번호 (1부터) */
   sources: number[];
 };
+
+/**
+ * 뉴스레터 한 편 (#41, #42, #43, #47, #48)
+ * 제목·부제목 + AI 요약 + 에디터 브리핑 → 소식 1~3개(템플릿별) → 관전 포인트
+ */
 export type WrittenNewsletter = {
   title: string;
   subtitle: string;
@@ -48,8 +77,11 @@ export const LIMITS = {
   kicker: 8,
   lead: 80,
   body: { min: 250, max: 450 },
-  facts: { min: 2, max: 3, length: 60 },
+  briefBody: { min: 100, max: 200 },
   analysis: { min: 150, max: 300 },
+  stats: { min: 2, max: 4 },
+  timeline: { min: 3, max: 5 },
+  qa: { min: 2, max: 3 },
   watch: { max: 3, length: 60 },
   /** 쓰기 단계에 소식 하나당 보내는 기사 수 (같은 사건의 대표 기사) */
   articlesPerStory: 2,
@@ -127,12 +159,18 @@ export const writerPrompt = (articles: PrepArticle[], category?: string) =>
     `- subtitle: 나머지 소식을 한 문장으로. ${LIMITS.subtitle}자 이내. 소식이 하나뿐이면 그 소식의 의미를 한 문장으로.`,
     `- summary: 오늘 브리핑 전체를 2~3문장, ${LIMITS.summary}자 이내로.`,
     `- briefing: 에디터 브리핑. 오늘 소식들을 관통하는 흐름이나 공통 변수를 2~3문장, ${LIMITS.briefing}자 이내로. 소식 목록을 다시 나열하지 않습니다.`,
-    '- stories: 소식마다',
+    '- stories: 소식마다 내용에 맞는 template을 하나 고르고, 그 템플릿의 고유 항목만 채웁니다. 나머지 고유 항목은 빈 배열·빈 문자열로 둡니다. 소식이 여러 개면 가능한 한 서로 다른 템플릿을 씁니다.',
+    `  - template: ${TEMPLATES.join(' | ')}`,
+    `    - numbers: 증시·경제지표·통계 발표처럼 숫자가 핵심인 소식 → stats ${LIMITS.stats.min}~${LIMITS.stats.max}개 (label: 지표 이름 12자 이내, value: 값 12자 이내 예 "5,469.47", note: 변화·비교 20자 이내 예 "-1.46%" 또는 "4월 6일 이후 최저", 등락은 반드시 +/- 부호를 붙인다)`,
+    `    - timeline: 수사·재판·외교·사고처럼 단계적으로 진행 중인 사건 → timeline ${LIMITS.timeline.min}~${LIMITS.timeline.max}개 (when: 날짜·시점 12자 이내, what: 그때 일어난 일 50자 이내), 시간 순서대로`,
+    `    - qa: 정책·제도·규제·세제 변화 → qa ${LIMITS.qa.min}~${LIMITS.qa.max}개 (q: "무엇이 바뀌나", "누가 영향을 받나", "언제부터" 같은 질문 30자 이내, a: 답 120자 이내)`,
+    '    - quote: 핵심이 누군가의 발언인 소식 → quote (text: 기사에 나온 발언 그대로 80자 이내, by: 발언자와 직함 20자 이내)',
+    '    - analysis: 위에 해당하지 않는 일반 소식',
+    `    - brief: 짧게 다뤄도 되는 소식. body ${LIMITS.briefBody.min}~${LIMITS.briefBody.max}자, analysis는 빈 문자열`,
     `  - kicker: 주제 꼬리표 ${LIMITS.kicker}자 이내 (예: 증시, 세제, 사이버보안).`,
     '  - heading: 기사 제목 형식, 25자 이내.',
     `  - lead: 리드. 핵심 사실 한 문장, ${LIMITS.lead}자 이내.`,
-    `  - body: 경과와 맥락 ${LIMITS.body.min}~${LIMITS.body.max}자, 문단 1~2개. 문단 사이는 빈 줄 하나.`,
-    `  - facts: 핵심 수치·사실 ${LIMITS.facts.min}~${LIMITS.facts.max}개, 하나에 ${LIMITS.facts.length}자 이내. body와 같은 문장을 반복하지 않습니다.`,
+    `  - body: 경과와 맥락 ${LIMITS.body.min}~${LIMITS.body.max}자, 문단 1~2개. 문단 사이는 빈 줄 하나. 템플릿 고유 항목(stats·timeline·qa·quote)과 같은 내용을 반복하지 않습니다.`,
     `  - analysis: 시사점 ${LIMITS.analysis.min}~${LIMITS.analysis.max}자. 파급 효과, 이해관계자, 쟁점, 전망. 기사에 근거가 없는 예측은 하지 않습니다.`,
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
     `- watch: 관전 포인트. 앞으로 지켜볼 일정·변수 1~${LIMITS.watch.max}개, 하나에 ${LIMITS.watch.length}자 이내. 기사에 나온 것만.`,
@@ -142,6 +180,14 @@ export const writerPrompt = (articles: PrepArticle[], category?: string) =>
     '## 기사',
     numberArticles(articles),
   ].join('\n');
+
+/** 문자열 필드만 가진 객체 스키마 */
+const pairs = (keys: string[]) => ({
+  type: 'object',
+  properties: Object.fromEntries(keys.map((k) => [k, { type: 'string' }])),
+  required: keys,
+  additionalProperties: false,
+});
 
 const WRITER_SCHEMA = {
   type: 'object',
@@ -155,21 +201,32 @@ const WRITER_SCHEMA = {
       items: {
         type: 'object',
         properties: {
+          template: { type: 'string', enum: [...TEMPLATES] },
           kicker: { type: 'string' },
           heading: { type: 'string' },
           lead: { type: 'string' },
           body: { type: 'string' },
-          facts: { type: 'array', items: { type: 'string' } },
           analysis: { type: 'string' },
+          stats: {
+            type: 'array',
+            items: pairs(['label', 'value', 'note']),
+          },
+          timeline: { type: 'array', items: pairs(['when', 'what']) },
+          qa: { type: 'array', items: pairs(['q', 'a']) },
+          quote: pairs(['text', 'by']),
           sources: { type: 'array', items: { type: 'integer' } },
         },
         required: [
+          'template',
           'kicker',
           'heading',
           'lead',
           'body',
-          'facts',
           'analysis',
+          'stats',
+          'timeline',
+          'qa',
+          'quote',
           'sources',
         ],
         additionalProperties: false,
@@ -206,6 +263,46 @@ const unbullet = (value: string) => value.trim().replace(/^[-•·*]\s*/, '');
 const list = (items: string[], max: number) =>
   items.map(unbullet).filter(Boolean).slice(0, max);
 
+/** 각 필드를 다듬고, 값이 모두 있는 항목만 max개까지 */
+const rows = <T extends Record<string, string>>(items: T[], max: number) =>
+  items
+    .map(
+      (item) =>
+        Object.fromEntries(
+          Object.entries(item).map(([k, v]) => [k, unbullet(v)]),
+        ) as T,
+    )
+    .filter((item) => Object.values(item).every(Boolean))
+    .slice(0, max);
+
+/**
+ * 템플릿의 고유 요소가 모자라면 해설형으로 바꾼다 (빈 지표 카드나 한 줄짜리 타임라인을 그리지 않게).
+ * 해당하지 않는 템플릿의 요소는 비운다
+ */
+export function settleTemplate(story: Story): Story {
+  const enough: Record<Template, boolean> = {
+    numbers: story.stats.length >= LIMITS.stats.min,
+    timeline: story.timeline.length >= LIMITS.timeline.min,
+    qa: story.qa.length >= LIMITS.qa.min,
+    quote: Boolean(story.quote.text && story.quote.by),
+    analysis: true,
+    brief: true,
+  };
+  const template: Template =
+    TEMPLATES.includes(story.template) && enough[story.template]
+      ? story.template
+      : 'analysis';
+  return {
+    ...story,
+    template,
+    stats: template === 'numbers' ? story.stats : [],
+    timeline: template === 'timeline' ? story.timeline : [],
+    qa: template === 'qa' ? story.qa : [],
+    quote: template === 'quote' ? story.quote : { text: '', by: '' },
+    analysis: template === 'brief' ? '' : story.analysis,
+  };
+}
+
 /**
  * 응답을 정리하고, 저장하면 안 되는 모양이면 오류를 던집니다.
  * toOriginal: 쓰기 단계 기사 번호(1부터) → 원래 기사 번호(1부터). 없는 번호는 버린다
@@ -216,12 +313,16 @@ export function normalize(
 ): WrittenNewsletter {
   const stories = raw.stories
     .map((s) => ({
+      template: s.template,
       kicker: s.kicker.trim(),
       heading: clean(s.heading),
       lead: s.lead.trim(),
       body: s.body.trim(),
-      facts: list(s.facts, LIMITS.facts.max),
       analysis: s.analysis.trim(),
+      stats: rows(s.stats, LIMITS.stats.max),
+      timeline: rows(s.timeline, LIMITS.timeline.max),
+      qa: rows(s.qa, LIMITS.qa.max),
+      quote: { text: clean(s.quote.text), by: s.quote.by.trim() },
       sources: [
         ...new Set(
           s.sources
@@ -231,6 +332,7 @@ export function normalize(
         ),
       ],
     }))
+    .map(settleTemplate)
     .filter((s) => s.heading && (s.lead || s.body))
     .slice(0, LIMITS.stories);
 

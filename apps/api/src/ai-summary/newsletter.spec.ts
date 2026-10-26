@@ -8,6 +8,7 @@ import {
   pickArticles,
   selectPrompt,
   writerPrompt,
+  Story,
   WrittenNewsletter,
 } from './newsletterWriter.service';
 import {
@@ -32,12 +33,16 @@ const written = (
   briefing: '브리핑',
   stories: [
     {
+      template: 'analysis',
       kicker: '증시',
       heading: '소제목',
       lead: '리드',
       body: '첫 문단\n\n둘째 문단',
-      facts: ['사실 1', '사실 2'],
       analysis: '시사점',
+      stats: [],
+      timeline: [],
+      qa: [],
+      quote: { text: '', by: '' },
       sources: [2],
     },
   ],
@@ -144,7 +149,7 @@ describe('2단계: 쓰기', () => {
       'kicker',
       'lead',
       'body',
-      'facts',
+      'template',
       'analysis',
       'watch',
     ]) {
@@ -171,7 +176,15 @@ describe('응답 정리', () => {
         stories: Array.from({ length: 4 }, (_, i) => ({
           ...written().stories[0],
           heading: `소식 ${i}`,
-          facts: ['- 글머리를 붙여 온 사실', '• 둘째', '셋째', '넷째'],
+          template: 'numbers' as const,
+          stats: [
+            { label: '- 코스피', value: '5,469.47', note: '-1.46%' },
+            { label: '코스닥', value: '727.21', note: '-3.26%' },
+            { label: '빈 값', value: '', note: '' },
+            { label: 'A', value: '1', note: 'x' },
+            { label: 'B', value: '2', note: 'y' },
+            { label: 'C', value: '3', note: 'z' },
+          ],
           sources: [1, 1, 3, 2],
         })),
         watch: ['하나', '둘', '셋', '넷'],
@@ -180,11 +193,9 @@ describe('응답 정리', () => {
     );
     expect(result.stories).toHaveLength(3);
     expect(result.stories[0].sources).toEqual([5, 8]);
-    expect(result.stories[0].facts).toEqual([
-      '글머리를 붙여 온 사실',
-      '둘째',
-      '셋째',
-    ]);
+    // 글머리는 걷어 내고, 값이 빈 줄은 버리고, 지표는 최대 4개
+    expect(result.stories[0].stats).toHaveLength(4);
+    expect(result.stories[0].stats[0].label).toBe('코스피');
     expect(result.watch).toHaveLength(3);
   });
 
@@ -194,6 +205,85 @@ describe('응답 정리', () => {
     expect(() => normalize(written({ stories: [] }), same)).toThrow(
       '소식이 없음',
     );
+  });
+});
+
+describe('템플릿 (#48)', () => {
+  const base = written().stories[0];
+
+  it('고유 요소가 모자라면 해설형으로 바꾼다', () => {
+    const story = normalize(
+      written({
+        stories: [
+          {
+            ...base,
+            template: 'timeline',
+            timeline: [{ when: '26일', what: '한 줄뿐' }],
+          },
+        ],
+      }),
+      (n) => n,
+    ).stories[0];
+    expect(story.template).toBe('analysis');
+    expect(story.timeline).toEqual([]);
+  });
+
+  it('다른 템플릿의 요소는 비우고, 단신은 시사점이 없다', () => {
+    const [quote, brief] = normalize(
+      written({
+        stories: [
+          {
+            ...base,
+            template: 'quote',
+            quote: { text: '“피할 수 없다”', by: '이재명 대통령' },
+            stats: [{ label: 'x', value: '1', note: 'y' }],
+          },
+          { ...base, template: 'brief' },
+        ],
+      }),
+      (n) => n,
+    ).stories;
+    expect(quote.quote).toEqual({ text: '피할 수 없다', by: '이재명 대통령' });
+    expect(quote.stats).toEqual([]);
+    expect(brief.analysis).toBe('');
+  });
+
+  it('템플릿마다 다른 레이아웃으로 그린다', () => {
+    const render = (story: Partial<Story>) =>
+      renderNewsletterHtml(
+        written({ stories: [{ ...base, ...story }], briefing: '', watch: [] }),
+      );
+    expect(
+      render({
+        template: 'numbers',
+        stats: [{ label: '코스피', value: '5,469.47', note: '-1.46%' }],
+      }),
+    ).toContain(
+      '<div class="stats"><div class="stat"><span class="label">코스피</span><strong class="value">5,469.47</strong><span class="note">-1.46%</span></div></div>',
+    );
+    expect(
+      render({
+        template: 'timeline',
+        timeline: [{ when: '16일', what: '1차 신고' }],
+      }),
+    ).toContain(
+      '<ol class="timeline"><li><time>16일</time><span>1차 신고</span></li></ol>',
+    );
+    expect(render({ template: 'timeline' })).toContain('<h3>전망</h3>');
+    expect(
+      render({ template: 'qa', qa: [{ q: '언제부터?', a: '내년 1월' }] }),
+    ).toContain('<dl class="qa"><dt>언제부터?</dt><dd>내년 1월</dd></dl>');
+    expect(
+      render({
+        template: 'quote',
+        quote: { text: '피할 수 없다', by: '대통령' },
+      }),
+    ).toContain(
+      '<blockquote class="quote"><p>피할 수 없다</p><cite>대통령</cite></blockquote>',
+    );
+    const brief = render({ template: 'brief' });
+    expect(brief).toContain('class="story story-brief"');
+    expect(brief).not.toContain('class="analysis"');
   });
 });
 
@@ -210,7 +300,7 @@ describe('NewsletterWriterService.write', () => {
       })
       .mockResolvedValueOnce({
         text: JSON.stringify(oneSource),
-        usage: usage('claude-opus-5-5'),
+        usage: usage('claude-sonnet-5-5'),
       }),
   });
   const articles = [
@@ -249,7 +339,7 @@ describe('NewsletterWriterService.write', () => {
     const claude = {
       generate: jest.fn().mockResolvedValue({
         text: JSON.stringify(oneSource),
-        usage: usage('claude-opus-5-5'),
+        usage: usage('claude-sonnet-5-5'),
       }),
     };
     await new NewsletterWriterService(claude as never).write([articles[1]]);
@@ -260,22 +350,34 @@ describe('NewsletterWriterService.write', () => {
 describe('본문 HTML (#43)', () => {
   it('뉴스 기사 구조와 class만 만들고, 출처 언론사를 붙인다', () => {
     const html = renderNewsletterHtml(written(), [
-      { source: 'KBS' },
-      { source: '연합뉴스' },
+      { source: 'KBS', link: 'https://news/1' },
+      { source: '연합뉴스', link: 'https://news/2' },
     ]);
     expect(html).toBe(
       '<div class="newsletter">' +
         '<section class="briefing"><h3>에디터 브리핑</h3><p>브리핑</p></section>' +
-        '<article class="story"><p class="kicker"><span class="index">01</span>증시</p>' +
+        '<article class="story story-analysis"><p class="kicker"><span class="index">01</span>증시</p>' +
         '<h2>소제목</h2><p class="lead">리드</p>' +
         '<div class="body"><p>첫 문단</p><p>둘째 문단</p></div>' +
-        '<aside class="facts"><h3>핵심 사실</h3><ul><li>사실 1</li><li>사실 2</li></ul></aside>' +
         '<div class="analysis"><h3>시사점</h3><p>시사점</p></div>' +
-        '<p class="credit">출처 연합뉴스</p></article>' +
+        '<p class="credit">출처 <a href="https://news/2" target="_blank" rel="noopener noreferrer">연합뉴스</a></p></article>' +
         '<section class="watch"><h3>관전 포인트</h3><ul><li>FOMC 결과</li></ul></section>' +
         '</div>',
     );
     expect(html).not.toContain('style=');
+  });
+
+  it('출처 링크는 http(s)만, 같은 기사는 한 번만', () => {
+    const story = { ...written().stories[0], sources: [1, 2, 3] };
+    const html = renderNewsletterHtml(written({ stories: [story] }), [
+      { source: 'KBS', link: 'javascript:alert(1)' },
+      { source: '뉴시스', link: 'https://news/2' },
+      { source: '뉴시스', link: 'https://news/2' },
+    ]);
+    expect(html).toContain(
+      '<p class="credit">출처 KBS · <a href="https://news/2" target="_blank" rel="noopener noreferrer">뉴시스</a></p>',
+    );
+    expect(html).not.toContain('javascript:');
   });
 
   it('모델이 쓴 글의 HTML은 글자로 바꾼다', () => {
@@ -285,7 +387,8 @@ describe('본문 HTML (#43)', () => {
           {
             ...written().stories[0],
             heading: '<b>x</b>',
-            facts: ['<script>alert(1)</script>'],
+            template: 'qa',
+            qa: [{ q: '<script>alert(1)</script>', a: 'a' }],
             body: '<img src=x onerror=alert(1)>',
           },
         ],
