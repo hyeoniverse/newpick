@@ -7,6 +7,7 @@ import Text from '@/components/common/Text';
 import Image from '@/components/common/Image';
 import BorderTitle from '@/components/common/BorderTitle';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
+import ExternalLink from '@/components/common/ExternalLink';
 
 export default function WhoSection() {
 	return (
@@ -26,7 +27,7 @@ export default function WhoSection() {
 								<MemberList>
 									{team.members.map((member) => (
 										<MemberCard key={member.name}>
-											<ProfileImage href={member.link} target="_blank" rel="noopener noreferrer">
+											<ProfileImage href={member.link} showIcon={false}>
 												<Image ratio="square" src={member.image} alt={member.name} />
 												<Overlay>
 													Github <LuExternalLink />
@@ -108,7 +109,7 @@ const MemberCard = styled.div`
 	gap: 0.5rem;
 `;
 
-const ProfileImage = styled.a`
+const ProfileImage = styled(ExternalLink)`
 	position: relative;
 	width: 8rem;
 	height: 8rem;

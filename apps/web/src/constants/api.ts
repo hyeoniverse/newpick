@@ -28,6 +28,8 @@ export const API_ENDPOINTS = {
 		PAUSE: () => `${API_URL}/subscribers/pause`,
 		CANCEL: () => `${API_URL}/subscribers/cancel`,
 	},
+	/** 서비스 문의처 (구독 메일 발송 주소) */
+	CONTACT: () => `${API_URL}/contact`,
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
 		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,

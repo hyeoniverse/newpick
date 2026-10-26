@@ -28,8 +28,14 @@ export default function ArgreementCheck({ name, className }: Props) {
 							[필수]&nbsp;
 						</Text>
 						<Text size="extraSmall">NewPick의&nbsp;</Text>
-						<Link href="/privacy">이용약관</Link>&nbsp;
-						<Link href="/privacy">개인정보처리방침</Link>
+						{/* 구독 창을 닫지 않고 읽을 수 있게 새 탭으로 */}
+						<Link href="/terms" target="_blank">
+							이용약관
+						</Link>
+						&nbsp;·&nbsp;
+						<Link href="/privacy" target="_blank">
+							개인정보 처리방침
+						</Link>
 						<Text size="extraSmall">에 동의합니다.</Text>
 					</div>
 				</>

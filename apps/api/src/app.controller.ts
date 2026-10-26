@@ -18,4 +18,11 @@ export class AppController {
   getHealth() {
     return { status: 'ok', version: process.env.APP_VERSION || 'dev' };
   }
+
+  /** 서비스 문의처. 구독 메일을 보내는 주소와 같다 (답장도 여기로 온다) */
+  @Public()
+  @Get('contact')
+  getContact() {
+    return { email: process.env.MAIL_USER || null };
+  }
 }

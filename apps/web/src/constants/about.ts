@@ -1,6 +1,8 @@
 import { PROFILE_IMAGES } from '@/constants/images';
 
 export const GITHUB = {
+	/** 지금 서비스 저장소 */
+	REPO: 'https://github.com/hyeoniverse/newpick',
 	TEAM: 'https://github.com/Devcourse-NewPick',
 	FRONT_1: 'https://github.com/CodingKirby',
 	FRONT_2: 'https://github.com/jayl100',

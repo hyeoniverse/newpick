@@ -20,3 +20,23 @@ describe('GET /health', () => {
     expect(new AppController().getHealth().version).toBe('dev');
   });
 });
+
+describe('GET /contact', () => {
+  const saved = process.env.MAIL_USER;
+  afterEach(() => {
+    if (saved === undefined) delete process.env.MAIL_USER;
+    else process.env.MAIL_USER = saved;
+  });
+
+  it('문의처는 구독 메일을 보내는 주소', () => {
+    process.env.MAIL_USER = 'hello@newpick.app';
+    expect(new AppController().getContact()).toEqual({
+      email: 'hello@newpick.app',
+    });
+  });
+
+  it('발송 주소가 없으면 null (화면에서 숨긴다)', () => {
+    delete process.env.MAIL_USER;
+    expect(new AppController().getContact().email).toBeNull();
+  });
+});

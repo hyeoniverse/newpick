@@ -2,32 +2,45 @@
 
 import Link from 'next/link';
 import styled from 'styled-components';
+import { GITHUB } from '@/constants/about';
 import Logo from '@/components/common/Logo';
 import Text from '@/components/common/Text';
+import ExternalLink from '@/components/common/ExternalLink';
 import { FaGithub } from 'react-icons/fa';
 
-const Footer = () => {
+interface Props {
+	/** 문의처 = 구독 메일 발송 주소. 없으면 숨긴다 */
+	contactEmail?: string | null;
+}
+
+const Footer = ({ contactEmail }: Props) => {
 	return (
 		<StyledFooter id="footer-el">
 			<div className="footer">
 				<Logo logoType="footer-logo" />
 				<div className="footer-menu">
-					<Text size="extraSmall">서비스 이용 문의</Text>
-					<Link className="footer-item email" href="mailto:newpick@gmail.com">
-						newpick.official@gmail.com
-					</Link>
-					<Link className="footer-item" href="/">
-						개인정보처리방침
-					</Link>
-					<Link className="footer-item" href="/">
+					{contactEmail && (
+						<>
+							<Text size="extraSmall">서비스 이용 문의</Text>
+							<a className="footer-item email" href={`mailto:${contactEmail}`}>
+								{contactEmail}
+							</a>
+						</>
+					)}
+					<Link className="footer-item" href="/terms">
 						이용약관
 					</Link>
-					<Link className="footer-item" href="https://github.com/Devcourse-NewPick" target="_blank">
-						<FaGithub />
+					{/* 개인정보 처리방침은 다른 항목과 색으로 구분해 쉽게 찾게 한다 (개인정보 처리방침 작성지침) */}
+					<Link className="footer-item privacy" href="/privacy">
+						개인정보 처리방침
 					</Link>
+					<ExternalLink className="footer-item" href={GITHUB.REPO} showIcon={false}>
+						<FaGithub aria-hidden />
+						<span className="sr-only">GitHub 저장소</span>
+					</ExternalLink>
 				</div>
 				<Text size="extraSmall" color="subText">
-					© 2025 NewPick. All Rights Reserved.
+					© 2025–{new Date().getFullYear()} NewPick. All Rights Reserved.
 				</Text>
 			</div>
 		</StyledFooter>
@@ -68,6 +81,15 @@ const StyledFooter = styled.footer`
 		flex-wrap: wrap;
 		gap: 1rem;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+
+		.privacy {
+			color: ${({ theme }) => theme.color.primary};
+
+			/* 이미 강조색이라 마우스를 올리면 밑줄로 알린다 */
+			&:hover {
+				text-decoration: underline;
+			}
+		}
 
 		a {
 			cursor: pointer;
