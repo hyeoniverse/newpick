@@ -23,6 +23,15 @@ test.describe('비로그인 탐색', () => {
 		await expect(sheet.getByRole('link', { name: '이용약관' })).toHaveAttribute('target', '_blank');
 	});
 
+	test('지웠거나 없는 뉴스레터는 404와 안내 화면', async ({ page }) => {
+		const response = await page.goto('/articles/detail/99999999');
+
+		expect(response?.status()).toBe(404);
+		await expect(page.getByRole('heading', { name: '삭제되었거나 없는 뉴스레터예요' })).toBeVisible();
+		await page.getByRole('button', { name: '뉴스레터 둘러보기' }).click();
+		await expect(page).toHaveURL(/\/articles$/);
+	});
+
 	test('뉴스레터 목록을 브라우저에서 불러온다', async ({ page }) => {
 		await page.goto('/articles');
 

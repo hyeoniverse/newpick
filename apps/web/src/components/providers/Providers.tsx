@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ApiError } from '@/api/client';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { TRENDS_QUERY_KEY } from '@/hooks/useTrends';
@@ -15,7 +16,14 @@ interface Props {
 
 export default function Providers({ children, initialTrends }: Props) {
 	const [queryClient] = useState(() => {
-		const client = new QueryClient();
+		const client = new QueryClient({
+			defaultOptions: {
+				queries: {
+					// 없는 글·권한 없음 같은 4xx는 다시 물어도 같으므로 바로 오류 화면으로. 서버 오류만 두 번 더
+					retry: (failureCount, error) => !(error instanceof ApiError && error.status < 500) && failureCount < 2,
+				},
+			},
+		});
 		// 서버에서 받은 트렌드로 캐시를 채워 첫 렌더링부터 보여 줍니다.
 		if (initialTrends.length > 0) client.setQueryData(TRENDS_QUERY_KEY, initialTrends);
 		return client;

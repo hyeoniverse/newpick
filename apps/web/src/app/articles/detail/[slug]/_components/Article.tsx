@@ -26,14 +26,26 @@ import { stripCodeFence } from '@/utils/stripCodeFence';
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { parseUrls } from '@/utils/parseArticles';
 import Skeleton from '@/components/common/loader/Skeleton';
+import ErrorState from '@/components/common/ErrorState';
+import { DELETED_NEWSLETTER, errorStateFor, statusOf } from '@/constants/errors';
 
 
 function Article() {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
 
-  const { data: articleContent } = useArticleContentQuery(slug);
+  const { data: articleContent, error, refetch } = useArticleContentQuery(slug);
   const increasedViewCount = useViewCount(Number(slug));
+
+  // 서버 확인 뒤에 지워졌거나(404) 서버 오류면 빈 화면 대신 안내
+  if (error) {
+    const status = statusOf(error);
+    return status === 404 ? (
+      <ErrorState code={404} {...DELETED_NEWSLETTER} />
+    ) : (
+      <ErrorState code={status} {...errorStateFor(status)} onRetry={() => refetch()} />
+    );
+  }
 
   if (!articleContent) {
     return null;
