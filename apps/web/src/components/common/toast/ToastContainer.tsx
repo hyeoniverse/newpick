@@ -41,6 +41,9 @@ interface StyledProps {
 
 const StyledToastContainer = styled.div<StyledProps>`
 	position: fixed;
+	/* left: 50%로 두면 남은 폭(화면 절반)에 맞춰 줄어들어 짧은 문구도 꺾인다. 내용 폭에 맞춘다 */
+	width: max-content;
+	max-width: calc(100vw - 2rem);
 	z-index: 9999;
 	display: flex;
 	flex-direction: column;
