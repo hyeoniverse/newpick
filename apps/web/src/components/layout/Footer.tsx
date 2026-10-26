@@ -29,8 +29,9 @@ const Footer = ({ contactEmail }: Props) => {
 					<Link className="footer-item" href="/terms">
 						이용약관
 					</Link>
-					<Link className="footer-item" href="/privacy">
-						<strong>개인정보처리방침</strong>
+					{/* 개인정보 처리방침은 다른 항목과 색으로 구분해 쉽게 찾게 한다 (개인정보 처리방침 작성지침) */}
+					<Link className="footer-item privacy" href="/privacy">
+						개인정보 처리방침
 					</Link>
 					<a
 						className="footer-item"
@@ -84,6 +85,15 @@ const StyledFooter = styled.footer`
 		flex-wrap: wrap;
 		gap: 1rem;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+
+		.privacy {
+			color: ${({ theme }) => theme.color.primary};
+
+			/* 이미 강조색이라 마우스를 올리면 밑줄로 알린다 */
+			&:hover {
+				text-decoration: underline;
+			}
+		}
 
 		a {
 			cursor: pointer;

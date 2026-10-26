@@ -40,7 +40,7 @@ const ICONS: Record<LegalSummary['icon'], React.ReactNode> = {
 
 const DOCS = [
 	{ key: 'terms', title: '이용약관', href: '/terms' },
-	{ key: 'privacy', title: '개인정보처리방침', href: '/privacy' },
+	{ key: 'privacy', title: '개인정보 처리방침', href: '/privacy' },
 ] as const;
 
 interface Props {
@@ -55,8 +55,42 @@ interface Props {
 
 const sectionId = (i: number) => `article-${i + 1}`;
 
+/** 이메일, 그리고 도메인으로 쓴 주소(oracle.com/legal/privacy, kopico.go.kr 등). 이메일을 먼저 본다 */
+const LINK_PATTERN =
+	/([\w.+-]+@[\w-]+(?:\.[\w-]+)+)|((?:https?:\/\/)?(?:[a-z0-9-]+\.)+(?:com|kr|io|org|net)(?:\/[\w\-./]*[\w/])?)/gi;
+
+/** 글 속 이메일은 메일 쓰기, 주소는 새 탭 링크로 */
+function linkify(text: string): React.ReactNode[] {
+	const nodes: React.ReactNode[] = [];
+	let last = 0;
+	for (const match of text.matchAll(LINK_PATTERN)) {
+		const [found, email, url] = match;
+		const start = match.index ?? 0;
+		if (start > last) nodes.push(text.slice(last, start));
+		nodes.push(
+			email ? (
+				<a key={start} href={`mailto:${email}`}>
+					{email}
+				</a>
+			) : (
+				<a
+					key={start}
+					href={/^https?:\/\//i.test(url) ? url : `https://${url}`}
+					target="_blank"
+					rel="noopener noreferrer"
+				>
+					{found}
+				</a>
+			),
+		);
+		last = start + found.length;
+	}
+	if (last < text.length) nodes.push(text.slice(last));
+	return nodes;
+}
+
 /**
- * 이용약관·개인정보처리방침 공통 화면.
+ * 이용약관·개인정보 처리방침 공통 화면.
  * 위: 두 문서 탭·제목·시행일 → 한눈에 보기 → 본문(넓은 화면은 왼쪽에 따라다니는 목차, 지금 읽는 조항 강조)
  */
 export default function LegalDocument({ doc, title, effectiveDate, intro, summary, sections }: Props) {
@@ -127,11 +161,11 @@ export default function LegalDocument({ doc, title, effectiveDate, intro, summar
 							<h2>{s.title}</h2>
 							{s.blocks.map((block, j) =>
 								typeof block === 'string' ? (
-									<p key={j}>{block}</p>
+									<p key={j}>{linkify(block)}</p>
 								) : 'list' in block ? (
 									<ul key={j}>
 										{block.list.map((item) => (
-											<li key={item}>{item}</li>
+											<li key={item}>{linkify(item)}</li>
 										))}
 									</ul>
 								) : (
@@ -150,7 +184,7 @@ export default function LegalDocument({ doc, title, effectiveDate, intro, summar
 												{block.table.rows.map((row) => (
 													<tr key={row.join('|')}>
 														{row.map((cell, k) => (
-															<td key={k}>{cell}</td>
+															<td key={k}>{linkify(cell)}</td>
 														))}
 													</tr>
 												))}
@@ -460,6 +494,18 @@ const StyledLegal = styled.article`
 		}
 	}
 
+	/* 글 속 링크 (이메일·주소) */
+	.article a {
+		color: ${({ theme }) => theme.color.primary};
+		text-decoration: underline;
+		text-underline-offset: 2px;
+		word-break: break-all;
+
+		&:hover {
+			text-decoration-thickness: 2px;
+		}
+	}
+
 	/* 표: 가로선만, 머리는 옅은 면, 첫 칸 굵게. 좁으면 표만 가로로 넘긴다 */
 	.table {
 		margin: 0.25rem 0 1.25rem;
@@ -477,7 +523,8 @@ const StyledLegal = styled.article`
 
 		/* 열이 많은 표만 좁은 화면에서 가로로 넘긴다 */
 		&.wide {
-			min-width: 40rem;
+			min-width: 44rem;
+
 		}
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		line-height: 1.65;
@@ -503,6 +550,15 @@ const StyledLegal = styled.article`
 		td:first-child {
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			color: ${({ theme }) => theme.color.text};
+		}
+
+		/* 표 속 주소는 이름 아래 줄에 한 줄로 (짧은 주소라 꺾지 않는다. 좁으면 표가 가로로 넘어간다) */
+		td a {
+			display: block;
+			margin-top: 0.125rem;
+			font-weight: ${({ theme }) => theme.fontWeight.regular};
+			white-space: nowrap;
+			word-break: normal;
 		}
 	}
 `;

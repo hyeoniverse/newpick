@@ -34,7 +34,7 @@ export default function ArgreementCheck({ name, className }: Props) {
 						</Link>
 						&nbsp;·&nbsp;
 						<Link href="/privacy" target="_blank">
-							개인정보처리방침
+							개인정보 처리방침
 						</Link>
 						<Text size="extraSmall">에 동의합니다.</Text>
 					</div>

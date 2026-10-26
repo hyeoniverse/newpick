@@ -1,8 +1,8 @@
 import type { LegalSection, LegalSummary } from '@/components/common/legal/LegalDocument';
 
 /**
- * 이용약관·개인정보처리방침 (#59).
- * 개인정보처리방침은 「개인정보 보호법」 제30조·시행령 제31조와 개인정보보호위원회 「개인정보 처리방침 작성지침」(2025.4.)의
+ * 이용약관·개인정보 처리방침 (#59).
+ * 개인정보 처리방침은 「개인정보 보호법」 제30조·시행령 제31조와 개인정보보호위원회 「개인정보 처리방침 작성지침」(2025.4.)의
  * 항목 순서를 따르고, 서비스가 실제로 모으고 맡기는 정보(코드·배포 환경 기준)만 적는다.
  * 바꿀 때는 시행일을 고치고, 시행 7일 전(이용자에게 불리하면 30일 전)부터 알린다
  */
@@ -52,7 +52,7 @@ export const termsSections = (email: string | null): LegalSection[] => [
 	{
 		title: '이용계약의 성립',
 		blocks: [
-			'이용계약은 이용자가 구글 계정으로 로그인해 회원이 되면 성립합니다. 구독은 회원이 이 약관과 개인정보처리방침에 동의한 뒤 시작됩니다.',
+			'이용계약은 이용자가 구글 계정으로 로그인해 회원이 되면 성립합니다. 구독은 회원이 이 약관과 개인정보 처리방침에 동의한 뒤 시작됩니다.',
 			'만 14세 미만은 회원으로 가입할 수 없습니다.',
 			'다른 사람의 계정을 쓰는 등 가입 내용이 사실과 다른 경우 서비스는 승낙을 거절하거나 나중에 이용계약을 해지할 수 있습니다.',
 		],
@@ -74,7 +74,7 @@ export const termsSections = (email: string | null): LegalSection[] => [
 		title: '구독과 해지, 회원 탈퇴',
 		blocks: [
 			'회원은 언제든 마이페이지의 구독 관리에서 구독을 일시정지하거나 해지할 수 있습니다. 뉴스레터 메일 아래쪽의 "수신 거부" 링크로도 같은 화면에 갈 수 있습니다.',
-			`회원 탈퇴를 원하면 ${contact(email)}로 요청해 주세요. 본인 확인 뒤 지체 없이 처리하고, 개인정보는 개인정보처리방침에 따라 파기합니다.`,
+			`회원 탈퇴를 원하면 ${contact(email)}로 요청해 주세요. 본인 확인 뒤 지체 없이 처리하고, 개인정보는 개인정보 처리방침에 따라 파기합니다.`,
 		],
 	},
 	{
@@ -128,7 +128,7 @@ export const termsSections = (email: string | null): LegalSection[] => [
 	},
 ];
 
-// ---------- 개인정보처리방침 ----------
+// ---------- 개인정보 처리방침 ----------
 
 export const privacySummary: LegalSummary[] = [
 	{ icon: 'collect', title: '모으는 정보', text: '구글 로그인 정보(이메일·이름·프로필 사진), 관심 분야, 구독·북마크 기록' },
@@ -192,35 +192,35 @@ export const privacySections = (email: string | null): LegalSection[] => [
 					head: ['받는 자 (연락처)', '국가', '이전 항목', '시기·방법', '목적·보유 기간'],
 					rows: [
 						[
-							'Oracle Corporation (oracle.com/legal/privacy)',
+							'Oracle Corporation oracle.com/legal/privacy',
 							'일본 (도쿄)',
 							'처리하는 개인정보 전체',
 							'서비스 이용 시 네트워크로 수시 전송',
 							'서버·데이터베이스 운영 / 회원 탈퇴 또는 위탁 계약 종료 시까지',
 						],
 						[
-							'Google LLC (policies.google.com/privacy)',
+							'Google LLC policies.google.com/privacy',
 							'미국',
 							'이메일 주소, 이름, 프로필 사진, 받는 주소와 메일 내용',
 							'로그인·메일 발송 시 네트워크로 전송',
 							'구글 계정 로그인, 뉴스레터 메일 발송(Gmail) / 구글 정책에 따른 기간',
 						],
 						[
-							'Cloudflare, Inc. (cloudflare.com/privacypolicy)',
+							'Cloudflare, Inc. cloudflare.com/privacypolicy',
 							'미국 등 Cloudflare 데이터센터 국가',
 							'접속 기록',
 							'접속 시 네트워크로 전송',
 							'서버 연결·보안 / 업체 보관 기간',
 						],
 						[
-							'Vercel Inc. (vercel.com/legal/privacy-policy)',
+							'Vercel Inc. vercel.com/legal/privacy-policy',
 							'미국',
 							'접속 기록, 로그인 쿠키',
 							'접속 시 네트워크로 전송',
 							'웹사이트 호스팅·성능 측정 / 업체 보관 기간',
 						],
 						[
-							'Functional Software, Inc. (sentry.io/privacy)',
+							'Functional Software, Inc. sentry.io/privacy',
 							'미국',
 							'오류가 난 요청의 정보',
 							'오류가 날 때 네트워크로 전송',
@@ -330,7 +330,7 @@ export const privacySections = (email: string | null): LegalSection[] => [
 		],
 	},
 	{
-		title: '개인정보처리방침의 변경',
+		title: '개인정보 처리방침의 변경',
 		blocks: [
 			`이 처리방침은 ${LEGAL_EFFECTIVE_DATE}부터 적용됩니다. 내용을 바꿀 때는 시행 7일 전부터 사이트에 알리고, 수집 항목·이용 목적·제3자 제공처럼 중요한 변경은 30일 전부터 알립니다.`,
 		],
