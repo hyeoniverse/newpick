@@ -1,12 +1,40 @@
 'use client';
 
-import { TEAMS } from '@/constants/about';
+import { TEAMS, V1, V2 } from '@/constants/about';
 import { styled } from 'styled-components';
 import { LuExternalLink } from 'react-icons/lu';
 import Image from '@/components/common/Image';
 import BorderTitle from '@/components/common/BorderTitle';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
 import ExternalLink from '@/components/common/ExternalLink';
+
+interface Member {
+	name: string;
+	position: string;
+	detail?: string;
+	isLeader?: boolean;
+	link: string;
+	image: string;
+}
+
+function MemberCard({ name, position, detail, isLeader, link, image }: Member) {
+	return (
+		<div className="member">
+			<ExternalLink href={link} showIcon={false} className="photo" aria-label={`${name} GitHub`}>
+				<Image ratio="square" src={image} alt="" />
+				<span className="overlay" aria-hidden>
+					GitHub <LuExternalLink />
+				</span>
+			</ExternalLink>
+			<p className="name">{name}</p>
+			<p className="position">
+				{isLeader && <span className="leader">팀장</span>}
+				<span className="role">{position}</span>
+			</p>
+			{detail && <p className="detail">{detail}</p>}
+		</div>
+	);
+}
 
 /**
  * 팀 소개. 띠는 라이트·다크 모두 어두운 바탕이라 글자색을 테마 글자색이 아닌 밝은 색으로 고정한다
@@ -18,41 +46,52 @@ export default function WhoSection() {
 			<FullWidthPanel background="mono" className="panel">
 				<div className="content">
 					<BorderTitle text="WHO WE ARE" color="white" className="title" />
-					<p className="lead">함께 뉴픽을 만든 팀원을 소개합니다.</p>
+					<p className="lead">뉴픽을 만든 사람들을 소개합니다.</p>
 
-					<div className="teams">
-						{TEAMS.map((team) => (
-							<section key={team.role} className="team" aria-label={team.role}>
-								<h3 className="team-name">
-									<span className="dot" style={{ background: team.color }} aria-hidden />
-									{team.role}
-									<span className="count">{team.members.length}명</span>
-								</h3>
-								<ul className="members">
-									{team.members.map((member) => (
-										<li key={member.name} className="member">
-											<ExternalLink
-												href={member.link}
-												showIcon={false}
-												className="photo"
-												aria-label={`${member.name} GitHub`}
-											>
-												<Image ratio="square" src={member.image} alt="" />
-												<span className="overlay" aria-hidden>
-													GitHub <LuExternalLink />
-												</span>
-											</ExternalLink>
-											<p className="name">{member.name}</p>
-											<p className="position">
-												{member.isLeader && <span className="leader">팀장</span>}
-												<span className="role">{member.position}</span>
-											</p>
-										</li>
-									))}
-								</ul>
-							</section>
-						))}
-					</div>
+					{/* v2: 팀 프로젝트를 이어 혼자 다시 만든 지금의 뉴픽 */}
+					<section className="version" aria-label="v2">
+						<p className="version-head">
+							<span className="version-chip">v2</span>
+							<span className="period">{V2.period}</span>
+							<span className="label">{V2.label}</span>
+						</p>
+						<div className="v2">
+							<MemberCard {...V2.member} />
+							<ul className="works">
+								{V2.works.map((work) => (
+									<li key={work}>{work}</li>
+								))}
+							</ul>
+						</div>
+					</section>
+
+					<section className="version" aria-label="v1">
+						<p className="version-head">
+							<span className="version-chip">v1</span>
+							<span className="period">{V1.period}</span>
+							<span className="label">
+								{V1.label} · {TEAMS.reduce((sum, team) => sum + team.members.length, 0)}명
+							</span>
+						</p>
+						<div className="teams">
+							{TEAMS.map((team) => (
+								<section key={team.role} className="team" aria-label={team.role}>
+									<h3 className="team-name">
+										<span className="dot" style={{ background: team.color }} aria-hidden />
+										{team.role}
+										<span className="count">{team.members.length}명</span>
+									</h3>
+									<ul className="members">
+										{team.members.map((member) => (
+											<li key={member.name}>
+												<MemberCard {...member} />
+											</li>
+										))}
+									</ul>
+								</section>
+							))}
+						</div>
+					</section>
 				</div>
 			</FullWidthPanel>
 		</StyledWhoSection>
@@ -93,9 +132,84 @@ const StyledWhoSection = styled.div`
 	}
 
 	.lead {
-		margin: 0 0 3rem;
+		margin: 0 0 2.5rem;
 		font-size: ${({ theme }) => theme.fontSize.medium};
 		color: #c1c1c1;
+	}
+
+	.version + .version {
+		margin-top: 4rem;
+		padding-top: 3rem;
+		border-top: 1px solid rgba(255, 255, 255, 0.12);
+	}
+
+	.version-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 0.75rem;
+		margin: 0 0 2rem;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: #c1c1c1;
+
+		.version-chip {
+			padding: 0.125rem 0.625rem;
+			border-radius: ${({ theme }) => theme.radius.chip};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: #121212;
+			background: #f1f1f1;
+		}
+
+		.period {
+			font-variant-numeric: tabular-nums;
+			color: #f1f1f1;
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		}
+	}
+
+	/* v2: 사진 한 장 + 한 일 목록 */
+	.v2 {
+		display: grid;
+		grid-template-columns: 10rem 1fr;
+		gap: 2rem;
+		align-items: start;
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			grid-template-columns: 7.5rem 1fr;
+			gap: 1rem;
+		}
+	}
+
+	.works {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		line-height: 1.6;
+		word-break: keep-all;
+
+		li {
+			position: relative;
+			padding-left: 1rem;
+
+			&::before {
+				content: '';
+				position: absolute;
+				left: 0;
+				top: 0.7em;
+				width: 0.375rem;
+				height: 0.375rem;
+				border-radius: ${({ theme }) => theme.borderRadius.circle};
+				background: #9ca9ff;
+			}
+		}
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		}
 	}
 
 	.teams {
@@ -238,6 +352,14 @@ const StyledWhoSection = styled.div`
 			overflow: hidden;
 			text-overflow: ellipsis;
 		}
+	}
+
+	.detail {
+		margin: 0.375rem 0 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		line-height: 1.5;
+		color: #999999;
+		word-break: keep-all;
 	}
 
 	.leader {
