@@ -18,6 +18,16 @@ interface Props {
 	secondArticles: IArticleDetail[];
 }
 
+/**
+ * loop 모드는 화면 너비를 채우고도 남는 슬라이드가 있어야 동작합니다. (Swiper 12부터 모자라면 loop를 끄고 빈 자리가 남음)
+ * 뉴스레터는 하루 6개씩 쌓이므로, 배포 직후처럼 개수가 적으면 같은 목록을 반복해 채웁니다.
+ */
+const MIN_LOOP_SLIDES = 20;
+const fillForLoop = (articles: IArticleDetail[]) =>
+	articles.length === 0 || articles.length >= MIN_LOOP_SLIDES
+		? articles
+		: Array.from({ length: Math.ceil(MIN_LOOP_SLIDES / articles.length) }, () => articles).flat();
+
 function TitleSection({ className, firstArticles, secondArticles }: Props) {
 	return (
 		<TitleSectionStyled className={className}>
@@ -46,8 +56,8 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 				loopAdditionalSlides={1}
 				speed={4000}
 			>
-				{firstArticles.map((article) => (
-					<SwiperSlide key={article.id} className="swiper-slide">
+				{fillForLoop(firstArticles).map((article, index) => (
+					<SwiperSlide key={`${article.id}-${index}`} className="swiper-slide">
 						<Link href={`/articles/detail/${article.id}`} className="image-link">
 							<Image
 								src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
@@ -75,8 +85,8 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 				loopAdditionalSlides={1}
 				speed={4000}
 			>
-				{secondArticles.map((article) => (
-					<SwiperSlide key={article.id} className="swiper-slide">
+				{fillForLoop(secondArticles).map((article, index) => (
+					<SwiperSlide key={`${article.id}-${index}`} className="swiper-slide">
 						<Link href={`/articles/detail/${article.id}`} className="image-link">
 							<Image
 								src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}

@@ -14,8 +14,9 @@ function LinkCopyIcon({ className, id }: Props) {
 		try {
 			await navigator.clipboard.writeText(text);
 			showToast('주소가 복사되었습니다.', 'success');
-		} catch (error) {
-			console.error('주소 복사 실패: ', error);
+		} catch {
+			// 권한이 없거나 보안 컨텍스트(https)가 아니면 실패합니다.
+			showToast('주소를 복사하지 못했습니다.', 'error');
 		}
 	};
 

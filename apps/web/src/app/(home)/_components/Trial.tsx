@@ -4,7 +4,7 @@ import { sanitizeHtml } from '@/utils/sanitizeHtml';
 
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
-import { dateFormatter } from '@/utils/formatter';
+import { dateFormatter, kstDate } from '@/utils/formatter';
 import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
 import { parseUrls } from '@/utils/parseArticles';
 import { summarizeNews } from '@/api/ai';
@@ -29,11 +29,8 @@ export default function Trial() {
 	const [errorMessage, setErrorMessage] = useState<string | null>(null);
 	const [selectedInterest, setSelectedInterest] = useState<string>('IT'); // 전역 상태 제거
 
-	const getStartDate = () => {
-		const now = new Date();
-		now.setDate(now.getDate() - 1);
-		return dateFormatter(now.toLocaleDateString('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit' }));
-	};
+	// 크롤링은 매일 08:00(KST)에 돌아서, 그 전에는 오늘 뉴스가 없습니다. 항상 하루치가 있는 어제를 요약합니다.
+	const getStartDate = () => kstDate(1);
 
 	const handleGenerateNewsletter = async () => {
 		setIsLoading(true);
@@ -66,8 +63,7 @@ export default function Trial() {
 			};
 
 			setNewsletter(newsletter);
-		} catch (error) {
-			console.error('뉴스 요약 실패:', error);
+		} catch {
 			setErrorMessage('뉴스 요약을 가져오는 데 실패했습니다.');
 		} finally {
 			setIsLoading(false);
