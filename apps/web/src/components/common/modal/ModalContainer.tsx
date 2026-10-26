@@ -105,7 +105,8 @@ function Modal({ onClose }: Props) {
 
 		previousFocusedElement.current = document.activeElement as HTMLElement;
 		window.addEventListener('keydown', handleKeydown);
-		modalRef.current?.focus();
+		// 포커스를 옮길 때 페이지가 스크롤되지 않게 (html 스크롤을 잠그면 맨 위로 튀었다)
+		modalRef.current?.focus({ preventScroll: true });
 
 		// 뒤 화면 스크롤 막기. 이 사이트는 html이 스크롤되므로 html·body 둘 다 막는다.
 		// 스크롤바가 사라지며 화면이 옆으로 밀리지 않게 그 폭만큼 여백을 준다
@@ -125,7 +126,7 @@ function Modal({ onClose }: Props) {
 			html.style.overflow = saved.html;
 			document.body.style.overflow = saved.body;
 			document.body.style.paddingRight = saved.pad;
-			previousFocusedElement.current?.focus();
+			previousFocusedElement.current?.focus({ preventScroll: true });
 		};
 	}, [isOpen, handleKeydown]);
 
@@ -182,11 +183,13 @@ const StyledModal = styled.div`
 		animation: fade-out 0.25s ease-in forwards;
 	}
 
-	/* 바깥은 투명: 뒤 화면을 어둡게 하지 않고, 누르면 닫히는 영역으로만 쓴다 */
+	/* 바깥: 뒤 화면을 어둡게 하지 않고 살짝 흐리게만. 누르면 닫힌다 */
 	position: fixed;
 	inset: 0;
 	z-index: 1000;
 	background: transparent;
+	backdrop-filter: blur(4px);
+	-webkit-backdrop-filter: blur(4px);
 
 	/* 시트: 화면 아래에 붙어 올라온다. 기본 30rem, large는 56rem, 모바일은 화면 폭 전체 */
 	.modal-body {
