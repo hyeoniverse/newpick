@@ -351,9 +351,10 @@ const Chip = styled.span<{ $color: string }>`
 	background: ${({ $color }) => $color};
 `;
 
+/** 가로로 긴 상자: 정사각형이면 capsule(9999px)과 circle(50%)이 둘 다 원으로 보여 구분되지 않는다 */
 const Box = styled.span<{ $radius: string }>`
-	width: 4rem;
-	height: 4rem;
+	width: 6rem;
+	height: 3rem;
 	border-radius: ${({ $radius }) => $radius};
 	background: ${({ theme }) => theme.color.tertiary};
 	border: 2px solid ${({ theme }) => theme.color.primary};
