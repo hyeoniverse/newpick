@@ -45,7 +45,7 @@ export default function WhoSection() {
 											<p className="name">{member.name}</p>
 											<p className="position">
 												{member.isLeader && <span className="leader">팀장</span>}
-												{member.position}
+												<span className="role">{member.position}</span>
 											</p>
 										</li>
 									))}
@@ -222,17 +222,26 @@ const StyledWhoSection = styled.div`
 		text-overflow: ellipsis;
 	}
 
+	/* 팀장 배지와 역할은 늘 한 줄. 좁으면 역할 글자만 말줄임 */
 	.position {
 		display: flex;
-		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.375rem;
+		min-width: 0;
 		margin: 0;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		color: #c1c1c1;
+		white-space: nowrap;
+
+		.role {
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
 	}
 
 	.leader {
+		flex-shrink: 0;
 		padding: 0.0625rem 0.5rem;
 		border-radius: ${({ theme }) => theme.radius.chip};
 		font-weight: ${({ theme }) => theme.fontWeight.bold};
