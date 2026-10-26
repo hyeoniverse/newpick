@@ -13,7 +13,7 @@
 # 설정 (생략 가능)
 #   DEPLOY_DIR      compose.yml·.env가 있는 곳 (기본 ~/deploy)
 #   IMAGE_REPO      이미지 이름 (기본 ghcr.io/hyeoniverse/newpick-api)
-#   HEALTH_TIMEOUT  새 버전을 기다리는 초 (기본 180). 시작할 때 prisma migrate deploy가 먼저 돈다
+#   HEALTH_TIMEOUT  새 버전을 기다리는 초 (기본 300). 1GB 서버에서는 migrate + 부팅에 2분 30초쯤 걸린다
 #   SKIP_BACKUP     1이면 배포 직전 백업을 건너뛴다
 set -euo pipefail
 # SSH가 끊겨도(Actions 실행 취소 등) 끝까지 한다. 중간에 멈추면 .env와 컨테이너가 어긋날 수 있다
@@ -21,7 +21,7 @@ trap '' HUP
 
 DEPLOY_DIR="${DEPLOY_DIR:-$HOME/deploy}"
 IMAGE_REPO="${IMAGE_REPO:-ghcr.io/hyeoniverse/newpick-api}"
-HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-180}"
+HEALTH_TIMEOUT="${HEALTH_TIMEOUT:-300}"
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="$DEPLOY_DIR/.env"
 
