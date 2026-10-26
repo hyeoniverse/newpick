@@ -31,11 +31,7 @@ export default function HotSection({ trends: initiallData = [] }: Props) {
 				{categoryName} 뉴스레터
 			</Title>
 			<hr />
-			<div className="title">
-				<Title size="extraSmall" color="primary" weight="bold" className="tag">
-					{searchParams ? 'TODAY' : 'HOT'}
-				</Title>
-			</div>
+			<p className="label">{searchParams ? 'TODAY' : 'HOT'}</p>
 			<CardSlider
 				className="card-slider"
 				type="main"
@@ -47,6 +43,7 @@ export default function HotSection({ trends: initiallData = [] }: Props) {
 						title: trend.title,
 						// 부제목이 있으면 본문 앞부분 대신 (#42)
 						description: trend.subtitle || trend.summary,
+						tags: trend.keywords,
 					},
 					footer: (
 						<>
@@ -85,26 +82,21 @@ const StyledHotSection = styled.section<StyledProps>`
 		padding: 0;
 	}
 
-	.title {
-		display: flex;
-		flex-direction: row;
-		justify-content: flex-start;
-		align-items: center;
-		gap: 1rem;
-
-		.tag {
-			border-radius: ${({ theme }) => theme.borderRadius.capsule};
-			background: ${({ theme }) => theme.color.tertiary};
-			color: ${({ theme }) => theme.color.primary};
-			padding: 0.25rem 1rem;
-		}
+	/* 작은 라벨: 지면의 "오늘의 톱" 표시 */
+	.label {
+		margin: 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		letter-spacing: 0.08em;
+		color: ${({ theme }) => theme.color.primary};
 	}
 
 	.card-slider {
-		padding: 0 0.5rem;
-
+		/* 점·화살표는 배너 아래 오른쪽 한 줄 */
 		.controls {
 			display: ${({ $isAll }) => ($isAll ? 'flex' : 'none')};
+			justify-content: flex-end;
+			margin-top: 0.5rem;
 		}
 	}
 
