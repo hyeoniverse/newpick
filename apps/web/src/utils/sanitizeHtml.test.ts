@@ -19,6 +19,19 @@ describe('sanitizeHtml', () => {
 		expect(result).not.toContain(dangerous);
 	});
 
+	it('형광펜 강조(<mark>)는 남긴다 (#51)', () => {
+		expect(sanitizeHtml('<p>코스피가 <mark>1.46%</mark> 내렸다</p>')).toBe('<p>코스피가 <mark>1.46%</mark> 내렸다</p>');
+	});
+
+	it('새 탭 링크는 남기되 항상 opener를 끊는다 (출처 링크)', () => {
+		expect(sanitizeHtml('<a href="https://n.news.naver.com/a" target="_blank">KBS</a>')).toBe(
+			'<a href="https://n.news.naver.com/a" target="_blank" rel="noopener noreferrer">KBS</a>',
+		);
+		expect(sanitizeHtml('<a href="https://a.com" target="_top" rel="opener">x</a>')).toBe(
+			'<a href="https://a.com" target="_blank" rel="noopener noreferrer">x</a>',
+		);
+	});
+
 	it('스크립트를 지워도 주변 본문은 남긴다', () => {
 		expect(sanitizeHtml('<p>본문</p><script>alert(1)</script>')).toBe('<p>본문</p>');
 	});

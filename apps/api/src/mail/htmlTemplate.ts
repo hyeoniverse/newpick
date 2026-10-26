@@ -1,10 +1,12 @@
 import { Newsletter } from '@prisma/client';
 
 export const newsletterTemplate = (newsletter: Newsletter) => {
-  const truncatedContent =
-    newsletter.content.length > 100
+  // 부제목이 있으면 본문 앞부분 대신 보여 줍니다 (#42)
+  const description =
+    newsletter.subtitle ??
+    (newsletter.content.length > 100
       ? newsletter.content.substring(0, 100) + '...'
-      : newsletter.content;
+      : newsletter.content);
 
   return `
         <a href="${process.env.FRONTEND_URL}/articles/detail/${newsletter.id}" 
@@ -71,7 +73,7 @@ export const newsletterTemplate = (newsletter: Newsletter) => {
                         line-height: 1.5;
                         color: rgba(55, 53, 47, 0.85);
                         margin-bottom: 8px;
-                        ">${truncatedContent}</div>
+                        ">${description}</div>
                         
                         <div style="
                         font-size: 13px;
