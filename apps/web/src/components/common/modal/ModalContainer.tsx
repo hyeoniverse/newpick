@@ -184,7 +184,7 @@ const StyledModal = styled.div`
 	backdrop-filter: blur(4px);
 	-webkit-backdrop-filter: blur(4px);
 
-	/* 시트: 화면 아래에 붙어 올라온다. 기본 30rem, large는 56rem, 모바일은 화면 폭 전체 */
+	/* 시트: 화면 아래에 붙어 올라온다. 기본 30rem, large는 42rem(메일 폭 600px + 여백, #55), 모바일은 화면 폭 전체 */
 	.modal-body {
 		@keyframes sheet-up {
 			from {
@@ -219,7 +219,7 @@ const StyledModal = styled.div`
 		animation: sheet-up 0.3s ease-out;
 
 		&.large {
-			width: min(56rem, 100%);
+			width: min(42rem, 100%);
 		}
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {

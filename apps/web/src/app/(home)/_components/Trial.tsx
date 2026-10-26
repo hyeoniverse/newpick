@@ -193,15 +193,12 @@ const StyledTrial = styled.div`
 	}
 `;
 
-/** 받은편지함에서 연 메일 모양. 본문은 실제 메일 HTML (iframe) */
+/** 받은편지함에서 연 메일 모양. 시트 폭이 메일 폭(600px)에 맞춰져 있어 본문(iframe)이 꽉 찬다 */
 const StyledMail = styled.div`
 	flex: 1;
 	min-height: 0;
 	display: flex;
 	flex-direction: column;
-	border-radius: ${({ theme }) => theme.borderRadius.rounded};
-	background: ${({ theme }) => theme.color.surface};
-	overflow: hidden;
 
 	.info {
 		height: 100%;
@@ -211,6 +208,8 @@ const StyledMail = styled.div`
 		justify-content: center;
 		gap: 0.5rem;
 		padding: 1.25rem;
+		border-radius: ${({ theme }) => theme.borderRadius.rounded};
+		background: ${({ theme }) => theme.color.surface};
 		text-align: center;
 		word-break: keep-all;
 
@@ -241,19 +240,15 @@ const StyledMail = styled.div`
 		min-height: 0;
 		display: flex;
 		flex-direction: column;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.rounded};
-		overflow: hidden;
-		background: ${({ theme }) => theme.color.background};
+		gap: 0.75rem;
 	}
 
+	/* 받은편지함의 보낸 사람·제목 줄 */
 	.mail-head {
 		flex-shrink: 0;
 		display: flex;
 		align-items: center;
 		gap: 0.75rem;
-		padding: 0.875rem 1.25rem;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
 
 		.avatar {
 			flex-shrink: 0;
@@ -291,5 +286,6 @@ const StyledMail = styled.div`
 		width: 100%;
 		min-height: 0;
 		border: none;
+		border-radius: ${({ theme }) => theme.borderRadius.rounded};
 	}
 `;
