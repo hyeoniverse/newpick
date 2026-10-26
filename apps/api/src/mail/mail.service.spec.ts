@@ -1,19 +1,15 @@
 import { Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
-import { Newsletter } from '@prisma/client';
-import { MailService } from './mail.service';
+import { BuiltMail, MailService, Subscriber } from './mail.service';
 
 jest.mock('nodemailer', () => ({
   __esModule: true,
   default: { createTransport: jest.fn() },
 }));
 
-const newsletter = (id: number, categoryId: number) =>
-  ({ id, categoryId, title: `n${id}`, content: '' }) as Newsletter;
-
-function setup(sendMail: jest.Mock) {
+function setup(sendMail: jest.Mock, createMany = jest.fn()) {
   (nodemailer.createTransport as jest.Mock).mockReturnValue({ sendMail });
-  const prisma = { emailArchive: { create: jest.fn() } };
+  const prisma = { emailArchive: { createMany } };
   const service = new MailService(
     new Logger(),
     prisma as never,
@@ -23,10 +19,18 @@ function setup(sendMail: jest.Mock) {
   return { service, prisma };
 }
 
-describe('MailService.sendBulkMailWithMultipleNewsletter', () => {
-  const newsletters = [newsletter(1, 1), newsletter(2, 2)];
+/** 관심 분야 9는 그날 소식이 없다고 친다 */
+const build = (s: Subscriber): BuiltMail | null =>
+  s.interests.includes(9)
+    ? null
+    : {
+        subject: `${s.name} 메일`,
+        html: '<p></p>',
+        newsletterIds: s.interests,
+      };
 
-  it('일시적으로 실패한 메일은 다시 보내고, 성공하면 아카이브를 남긴다', async () => {
+describe('MailService.sendBulkMail', () => {
+  it('일시적으로 실패한 메일은 다시 보내고, 성공하면 엮은 뉴스레터마다 기록을 남긴다', async () => {
     const sendMail = jest
       .fn()
       .mockRejectedValueOnce(new Error('421 try again'))
@@ -34,14 +38,22 @@ describe('MailService.sendBulkMailWithMultipleNewsletter', () => {
       .mockResolvedValue({});
     const { service, prisma } = setup(sendMail);
 
-    const result = await service.sendBulkMailWithMultipleNewsletter(
-      [{ email: 'a@example.com', interests: [1], name: 'a' }],
-      newsletters,
+    const result = await service.sendBulkMail(
+      [{ email: 'a@example.com', interests: [1, 3], name: 'a' }],
+      build,
     );
 
     expect(sendMail).toHaveBeenCalledTimes(3);
+    expect(sendMail).toHaveBeenLastCalledWith(
+      expect.objectContaining({ subject: 'a 메일', to: 'a@example.com' }),
+    );
     expect(result.details[0]).toMatchObject({ success: true, attempts: 3 });
-    expect(prisma.emailArchive.create).toHaveBeenCalledTimes(1);
+    expect(prisma.emailArchive.createMany).toHaveBeenCalledWith({
+      data: [
+        expect.objectContaining({ newsletterId: 1, email: 'a@example.com' }),
+        expect.objectContaining({ newsletterId: 3, email: 'a@example.com' }),
+      ],
+    });
   });
 
   it('한 명이 끝까지 실패해도 나머지에게는 보내고, 결과 형태는 항상 같다', async () => {
@@ -52,13 +64,13 @@ describe('MailService.sendBulkMailWithMultipleNewsletter', () => {
     );
     const { service } = setup(sendMail);
 
-    const result = await service.sendBulkMailWithMultipleNewsletter(
+    const result = await service.sendBulkMail(
       [
         { email: 'bad@example.com', interests: [1], name: 'bad' },
         { email: 'ok@example.com', interests: [2], name: 'ok' },
         { email: 'none@example.com', interests: [9], name: 'none' },
       ],
-      newsletters,
+      build,
     );
 
     expect(result).toMatchObject({ success: 1, failed: 1, skipped: 1 });
@@ -68,16 +80,18 @@ describe('MailService.sendBulkMailWithMultipleNewsletter', () => {
     ).toHaveLength(3);
   });
 
-  it('구독자에게는 관심 카테고리 뉴스레터만 보낸다', async () => {
+  it('발송 기록이 실패해도 같은 메일을 다시 보내지 않는다', async () => {
     const sendMail = jest.fn().mockResolvedValue({});
-    const { service, prisma } = setup(sendMail);
-
-    await service.sendBulkMailWithMultipleNewsletter(
-      [{ email: 'a@example.com', interests: [2], name: 'a' }],
-      newsletters,
+    const { service } = setup(
+      sendMail,
+      jest.fn().mockRejectedValue(new Error('db down')),
     );
-    expect(prisma.emailArchive.create).toHaveBeenCalledWith({
-      data: expect.objectContaining({ newsletterId: 2 }),
-    });
+
+    const result = await service.sendBulkMail(
+      [{ email: 'a@example.com', interests: [1], name: 'a' }],
+      build,
+    );
+    expect(sendMail).toHaveBeenCalledTimes(1);
+    expect(result.details[0]).toMatchObject({ success: true, attempts: 1 });
   });
 });

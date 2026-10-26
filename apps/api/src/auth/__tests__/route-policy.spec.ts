@@ -12,6 +12,7 @@ import { AiProcessingLogController } from 'src/repository/controllers/aiProcessi
 import { EmailArchivesController } from 'src/repository/controllers/emailArchieve.controller';
 import { SchedulerController } from 'src/scheduler/scheduler.controller';
 import { SubscriberController } from 'src/subscriber/subscriber.controller';
+import { EditionController } from 'src/edition/edition.controller';
 
 /**
  * 모든 라우트의 접근 정책. 라우트를 추가·삭제하거나 정책을 바꾸면 이 표도 함께 바꿔야 테스트가 통과합니다.
@@ -88,6 +89,8 @@ const EXPECTED: Record<string, Policy> = {
   'POST scheduler/manual/ai-summary': 'admin',
   'POST scheduler/manual/mail-send': 'admin',
   'GET scheduler/mail-send-cycle': 'admin',
+
+  'GET edition/preview': 'public',
 };
 
 describe('라우트 접근 정책', () => {
@@ -105,6 +108,7 @@ describe('라우트 접근 정책', () => {
     AiProcessingLogController,
     EmailArchivesController,
     SchedulerController,
+    EditionController,
   ]);
 
   it('모든 라우트가 정해진 정책과 일치한다', () => {

@@ -7,6 +7,7 @@ import { AiSummaryModule } from 'src/ai-summary/ai-summary.module';
 import { SubscriberModule } from 'src/subscriber/subscriber.module';
 import { CategoryModule } from 'src/category/category.module';
 import { BasicRepositoryModule } from 'src/repository/module';
+import { EditionModule } from 'src/edition/edition.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { BasicRepositoryModule } from 'src/repository/module';
     SubscriberModule,
     CategoryModule,
     BasicRepositoryModule,
+    EditionModule,
   ],
   providers: [SchedulerService],
   controllers: [SchedulerController],

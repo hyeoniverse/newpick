@@ -23,6 +23,8 @@ export class MyPageService {
         username: true,
         profileImg: true,
         timezone: true,
+        // 관리자 화면(/admin) 접근 여부를 웹이 판단한다. 실제 권한 확인은 API의 @AdminOnly
+        role: true,
         interests: {
           select: { categoryId: true },
           orderBy: { categoryId: 'asc' },

@@ -6,7 +6,7 @@ export const BACK_URL = process.env.API_URL || 'http://localhost:3001';
  * 같은 도메인으로 요청하므로 인증 쿠키가 프론트 도메인에 저장되고, 별도 CORS·쿠키 도메인 설정이 필요 없습니다.
  */
 export const API_URL = typeof window === 'undefined' ? BACK_URL : '/api';
-export const PROTECTED = ['/mypage']; // 로그인이 필요한 경로 (middleware에서 확인)
+export const PROTECTED = ['/mypage', '/admin']; // 로그인이 필요한 경로 (middleware에서 확인)
 /** 로그인 여부만 알려 주는 표시 쿠키 (토큰 아님, api가 발급). 정적 페이지에서 첫 화면의 로그인 상태를 정할 때 씁니다. */
 export const SESSION_HINT_COOKIE = 'logged_in';
 
@@ -30,6 +30,10 @@ export const API_ENDPOINTS = {
 	},
 	/** 서비스 문의처 (구독 메일 발송 주소) */
 	CONTACT: () => `${API_URL}/contact`,
+	EDITION: {
+		/** 고른 분야로 엮은 구독 메일 미리보기 (#55). 생성 없음 */
+		PREVIEW: (categoryIds: number[]) => `${API_URL}/edition/preview?categories=${categoryIds.join(',')}`,
+	},
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
 		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,
