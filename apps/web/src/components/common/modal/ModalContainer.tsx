@@ -10,14 +10,59 @@ interface Props {
 	onClose?: () => void; // 모달을 닫을 때 실행되는 함수
 }
 
+/** 시트를 이만큼 넘게 끌어 내리거나(시트 높이 비율, 최소 px) 빠르게 내리면 닫는다 (#52) */
+const DRAG_CLOSE_RATIO = 0.25;
+const DRAG_CLOSE_MIN = 80;
+const DRAG_CLOSE_VELOCITY = 0.5; // px/ms
+
 function Modal({ onClose }: Props) {
 	const { isOpen, content, variant, closeModal } = useModal();
 	const [isAnimating, setIsAnimating] = useState(false);
 	const modalRef = useRef<HTMLDivElement | null>(null);
 	const previousFocusedElement = useRef<HTMLElement | null>(null);
+	const drag = useRef<{ startY: number; startTime: number; dy: number } | null>(null);
+	const isSheet = variant === 'sheet';
 
 	const handleClose = () => {
 		setIsAnimating(true);
+	};
+
+	// 시트 핸들 드래그: 놓았을 때 충분히 내렸으면 아래로 밀어내며 닫고, 아니면 제자리로
+	const setSheetOffset = (dy: number, animate: boolean) => {
+		const body = modalRef.current;
+		if (!body) return;
+		body.style.transition = animate ? 'transform 0.25s ease-out' : 'none';
+		body.style.transform = dy ? `translateY(${dy}px)` : '';
+	};
+
+	const onHandlePointerDown = (e: React.PointerEvent) => {
+		e.currentTarget.setPointerCapture(e.pointerId);
+		drag.current = { startY: e.clientY, startTime: performance.now(), dy: 0 };
+	};
+
+	const onHandlePointerMove = (e: React.PointerEvent) => {
+		if (!drag.current) return;
+		drag.current.dy = Math.max(0, e.clientY - drag.current.startY); // 위로는 끌리지 않게
+		setSheetOffset(drag.current.dy, false);
+	};
+
+	const onHandlePointerUp = () => {
+		if (!drag.current || !modalRef.current) return;
+		const { dy, startTime } = drag.current;
+		drag.current = null;
+		const height = modalRef.current.offsetHeight;
+		const fast = dy / (performance.now() - startTime) > DRAG_CLOSE_VELOCITY;
+		if (dy > Math.max(DRAG_CLOSE_MIN, height * DRAG_CLOSE_RATIO) || (fast && dy > 20)) {
+			setSheetOffset(height, true);
+			handleClose();
+		} else {
+			setSheetOffset(0, true);
+		}
+	};
+
+	// 끌지 않고 누르면(탭·Enter·Space) 닫기 버튼으로 동작
+	const onHandleClick = (e: React.MouseEvent) => {
+		if (e.detail === 0 || !modalRef.current?.style.transform) handleClose();
 	};
 
 	const handleOverlayClick = (e: React.MouseEvent) => {
@@ -69,13 +114,28 @@ function Modal({ onClose }: Props) {
 			onAnimationEnd={handleAnimationEnd}
 		>
 			<div className="modal-body" ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1}>
+				{isSheet && (
+					<button
+						type="button"
+						className="sheet-handle"
+						aria-label="닫기 (아래로 끌어 내려도 닫힙니다)"
+						onPointerDown={onHandlePointerDown}
+						onPointerMove={onHandlePointerMove}
+						onPointerUp={onHandlePointerUp}
+						onPointerCancel={onHandlePointerUp}
+						onClick={onHandleClick}
+					/>
+				)}
 				<div className="modal-contents">{content}</div>
-				<button className="modal-close" onClick={handleClose} aria-label="Close modal">
-					<IoClose />
-				</button>
+				{/* 시트는 핸들이 닫기 역할을 한다 */}
+				{!isSheet && (
+					<button className="modal-close" onClick={handleClose} aria-label="Close modal">
+						<IoClose />
+					</button>
+				)}
 			</div>
 		</StyledModal>,
-		document.body
+		document.body,
 	);
 }
 
@@ -193,17 +253,39 @@ const StyledModal = styled.div`
 			padding: 0;
 		}
 
-		/* 시트 손잡이 (닫기는 바깥 누르기·Esc·닫기 버튼) */
-		&::before {
-			content: '';
+		/* 핸들: 끌어 내리면 닫힘. 누르기 쉽게 영역은 넓게, 막대는 작게 */
+		.sheet-handle {
 			position: absolute;
-			top: 0.625rem;
+			top: 0;
 			left: 50%;
-			width: 2.5rem;
-			height: 4px;
-			margin-left: -1.25rem;
-			border-radius: 2px;
-			background: ${({ theme }) => theme.color.border};
+			width: 6rem;
+			height: 1.75rem;
+			margin-left: -3rem;
+			padding: 0;
+			border: none;
+			background: transparent;
+			cursor: grab;
+			touch-action: none;
+
+			&::before {
+				content: '';
+				position: absolute;
+				top: 0.625rem;
+				left: 50%;
+				width: 2.5rem;
+				height: 4px;
+				margin-left: -1.25rem;
+				border-radius: 2px;
+				background: ${({ theme }) => theme.color.border};
+			}
+
+			&:active {
+				cursor: grabbing;
+			}
+
+			&:focus-visible::before {
+				background: ${({ theme }) => theme.color.primary};
+			}
 		}
 	}
 

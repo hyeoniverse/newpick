@@ -97,7 +97,6 @@ const StyledSubscribeSheet = styled.div`
 		display: flex;
 		flex-direction: column;
 		gap: 0.375rem;
-		padding-right: 2.5rem; /* 닫기 버튼 자리 */
 	}
 
 	.categories {
