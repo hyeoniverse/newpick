@@ -130,23 +130,36 @@ export function BookmarkGlyph({ filled, className }: { filled: boolean; classNam
 	);
 }
 
-// ---------- 공유: 점이 왼쪽 → 위 → 아래 차례로 켜지며 퍼진다 ----------
+// ---------- 공유: 왼쪽 점에서 선을 타고 오른쪽 두 점으로 전해진다 ----------
 
-const pulse = keyframes`
-	0%, 100% { transform: scale(1); }
-	40% { transform: scale(1.35); }
+/** 선 길이(약 7.9)만큼 비워 두었다가 왼쪽 점 쪽부터 다시 그린다 */
+const travel = keyframes`
+	from { stroke-dashoffset: 8; }
+	to { stroke-dashoffset: 0; }
+`;
+
+const arrive = keyframes`
+	from { fill: transparent; }
+	to { fill: currentColor; }
 `;
 
 const ShareSvg = styled(Svg)`
+	.edge {
+		stroke-dasharray: 8;
+	}
+
 	${whenActive(css`
-		.node {
-			animation: ${pulse} 0.5s ease both;
+		/* 1. 보내는 점(왼쪽)이 먼저 찬다 */
+		.from {
+			animation: ${arrive} 0.15s ease forwards;
 		}
-		.n2 {
-			animation-delay: 0.1s;
+		/* 2. 선이 왼쪽 점에서 오른쪽으로 다시 그려진다 */
+		.edge {
+			animation: ${travel} 0.3s ease-out 0.1s both;
 		}
-		.n3 {
-			animation-delay: 0.2s;
+		/* 3. 선이 닿으면 받는 점(오른쪽 둘)이 찬다 */
+		.to {
+			animation: ${arrive} 0.15s ease 0.38s forwards;
 		}
 	`)}
 `;
@@ -154,11 +167,12 @@ const ShareSvg = styled(Svg)`
 export function ShareGlyph({ className }: { className?: string }) {
 	return (
 		<ShareSvg {...base} className={className}>
-			<line x1="8.59" x2="15.42" y1="13.51" y2="17.49" />
-			<line x1="15.41" x2="8.59" y1="6.51" y2="10.49" />
-			<circle className="node n1" cx="6" cy="12" r="3" />
-			<circle className="node n2" cx="18" cy="5" r="3" />
-			<circle className="node n3" cx="18" cy="19" r="3" />
+			{/* 두 선 모두 왼쪽 점 쪽에서 시작하게 좌표 순서를 맞췄다 (그려지는 방향) */}
+			<line className="edge" x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+			<line className="edge" x1="8.59" y1="10.49" x2="15.41" y2="6.51" />
+			<circle className="from" cx="6" cy="12" r="3" />
+			<circle className="to" cx="18" cy="5" r="3" />
+			<circle className="to" cx="18" cy="19" r="3" />
 		</ShareSvg>
 	);
 }
