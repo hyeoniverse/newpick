@@ -81,7 +81,7 @@ const TagTitle = styled.div`
 	padding: 0.5rem 1rem;
 	gap: 0.5rem;
 
-	border-radius: ${({ theme }) => theme.borderRadius.capsule};
+	border-radius: ${({ theme }) => theme.radius.chip};
 	background: ${({ theme }) => theme.color.tertiary};
 	color: ${({ theme }) => theme.color.primary};
 `;
@@ -96,7 +96,7 @@ const StyledOpenGraphCard = styled.div`
 	.card {
 		background: ${({ theme }) => theme.color.surface};
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.soft};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		padding: 1rem;
 		gap: 0;
 
@@ -109,7 +109,7 @@ const StyledOpenGraphCard = styled.div`
 
 			.source {
 				padding: 0.1rem 1rem;
-				border-radius: ${({ theme }) => theme.borderRadius.capsule};
+				border-radius: ${({ theme }) => theme.radius.chip};
 				border: 1px solid ${({ theme }) => theme.color.border};
 			}
 

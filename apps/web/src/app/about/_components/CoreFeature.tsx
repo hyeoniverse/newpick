@@ -94,7 +94,7 @@ const CoreFeatureStyled = styled.div`
             }
 
             img {
-                border-radius: ${({ theme }) => theme.borderRadius.soft};
+                border-radius: ${({ theme }) => theme.radius.surface};
                 width: 100%;
                 height: auto;
             }

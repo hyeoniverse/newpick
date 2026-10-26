@@ -215,7 +215,7 @@ const StyledTrial = styled.div`
 	.chip {
 		padding: 0.375rem 0.875rem;
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.capsule};
+		border-radius: ${({ theme }) => theme.radius.chip};
 		background: ${({ theme }) => theme.color.background};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		color: ${({ theme }) => theme.color.text};
@@ -237,7 +237,7 @@ const StyledTrial = styled.div`
 		flex-shrink: 0;
 		width: 100%;
 		height: 3rem;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		border-radius: ${({ theme }) => theme.radius.control};
 	}
 `;
 
@@ -247,7 +247,7 @@ const StyledMail = styled.div`
 	min-height: 0;
 	overflow-y: auto;
 	padding: 1.25rem;
-	border-radius: ${({ theme }) => theme.borderRadius.rounded};
+	border-radius: ${({ theme }) => theme.radius.surface};
 	background: ${({ theme }) => theme.color.surface};
 
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
@@ -290,7 +290,7 @@ const StyledMail = styled.div`
 		max-width: 40rem;
 		margin: 0 auto;
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.background};
 	}
 
@@ -401,7 +401,7 @@ const StyledMail = styled.div`
 			width: 7rem;
 			aspect-ratio: 4 / 3;
 			object-fit: cover;
-			border-radius: ${({ theme }) => theme.borderRadius.medium};
+			border-radius: ${({ theme }) => theme.radius.surface};
 
 			@media ${({ theme }) => theme.mediaQuery.mobile} {
 				width: 5rem;

@@ -133,7 +133,7 @@ const StyledToast = styled.div<StyledProps>`
 	overflow: hidden;
 
 	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.borderRadius.rounded};
+	border-radius: ${({ theme }) => theme.radius.floating};
 	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 	background: ${({ theme }) => theme.color.background};
 	color: ${({ theme }) => theme.color.text};

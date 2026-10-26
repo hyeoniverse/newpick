@@ -30,7 +30,7 @@ interface StyledProps {
 
 const SubscribeInduceStyled = styled.div<StyledProps>`
 	background-color: ${({ theme }) => theme.color.tertiary};
-	border-radius: ${({ theme }) => theme.borderRadius.soft};
+	border-radius: ${({ theme }) => theme.radius.surface};
 	padding: 2rem 4rem;
 	gap: 2rem;
 
@@ -55,7 +55,7 @@ const SubscribeInduceStyled = styled.div<StyledProps>`
 	button {
 		width: 10rem;
 		height: 2.875rem;
-		border-radius: ${({ theme }) => theme.borderRadius.soft};
+		border-radius: ${({ theme }) => theme.radius.control};
 		font-size: ${({ theme }) => theme.fontSize.medium};
 	}
 

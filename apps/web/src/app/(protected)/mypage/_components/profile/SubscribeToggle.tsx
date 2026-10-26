@@ -69,7 +69,7 @@ const SubscribeToggleStyled = styled.div`
 		align-items: center;
 		gap: 0.725rem;
 		padding: 1.25rem;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		height: 3.875rem;
 		width: 14rem;
 		font-weight: ${({ theme }) => theme.fontWeight.medium};

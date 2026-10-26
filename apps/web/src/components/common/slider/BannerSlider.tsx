@@ -96,7 +96,7 @@ const StyledSlider = styled.div`
 		width: 100%;
 		aspect-ratio: 16 / 9;
 
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		background-size: cover;
 		background-position: center;
 		opacity: 0;
@@ -111,7 +111,7 @@ const StyledSlider = styled.div`
 			width: 100%;
 			aspect-ratio: 16 / 9;
 			overflow: hidden;
-			border-radius: ${({ theme }) => theme.borderRadius.medium};
+			border-radius: ${({ theme }) => theme.radius.surface};
 			background: ${({ theme }) => theme.color.surface};
 		}
 

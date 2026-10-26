@@ -12,22 +12,22 @@ interface Props extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onBlu
 	label?: string;
 	size?: FontSize;
 }
-const InputCheck = React.forwardRef<HTMLInputElement, Props>(({ size, label, name, ...props }, ref) => {
+/**
+ * 체크 상자. 이름표는 상자 오른쪽에 항상 보이고, 이름표를 눌러도 체크된다.
+ * 예전에는 이름표가 마우스를 올려야 위에 나타나 무엇을 체크하는지 알 수 없었다
+ */
+const InputCheck = React.forwardRef<HTMLInputElement, Props>(({ size, label, name, className, ...props }, ref) => {
 	const { isChecked, toggleChecked } = useInputCheck(name);
 
-	const handleChange = () => {
-		toggleChecked();
-	};
-
 	return (
-		<StyledInputCheck $size={size}>
-			{label && <label>{label}</label>}
-			<div className="input-check">
-				<input type="checkbox" ref={ref} name={name} checked={isChecked} onChange={handleChange} {...props} />
-				<span className="icon">
+		<StyledInputCheck $size={size} className={className}>
+			<span className="input-check">
+				<input type="checkbox" ref={ref} name={name} checked={isChecked} onChange={toggleChecked} {...props} />
+				<span className="icon" aria-hidden>
 					<BiCheck />
 				</span>
-			</div>
+			</span>
+			{label && <span className="text">{label}</span>}
 		</StyledInputCheck>
 	);
 });
@@ -36,79 +36,67 @@ interface StyleProps {
 	$size?: FontSize;
 }
 
-const StyledInputCheck = styled.div<StyleProps>`
-	position: relative;
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
+const StyledInputCheck = styled.label<StyleProps>`
+	display: inline-flex;
 	align-items: center;
+	gap: 0.5rem;
 	user-select: none;
-	transition: all 0.3s ease;
+	cursor: pointer;
 
-	label {
-		will-change: transform, opacity;
-		visibility: hidden;
-		opacity: 0;
-		transform: translateY(0.5rem);
-		text-align: center;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-	}
-
-	&:hover {
-		label {
-			visibility: visible;
-			height: auto;
-			opacity: 1;
-			transform: translateY(0);
-		}
+	.text {
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.text};
 	}
 
 	.input-check {
 		position: relative;
-		cursor: pointer;
-
-		&:hover {
-			input {
-				background: ${({ theme }) => theme.color.tertiary};
-			}
-
-			input:checked {
-				background: ${({ theme }) => theme.color.secondary};
-			}
-		}
+		display: inline-flex;
+		flex-shrink: 0;
 	}
 
 	input {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-
-		height: ${({ $size, theme }) => ($size ? theme.fontSize[$size] : theme.fontSize.large)};
+		display: block;
 		width: ${({ $size, theme }) => ($size ? theme.fontSize[$size] : theme.fontSize.large)};
-		aspect-ratio: 1;
-
-		cursor: pointer;
+		height: ${({ $size, theme }) => ($size ? theme.fontSize[$size] : theme.fontSize.large)};
+		margin: 0;
 		appearance: none;
-		border-radius: ${({ theme }) => theme.borderRadius.flat};
+		cursor: pointer;
+		border: 1.5px solid ${({ theme }) => theme.color.lightGrey};
+		border-radius: ${({ theme }) => theme.radius.control};
 		background: ${({ theme }) => theme.color.background};
-		border: 1px solid ${({ theme }) => theme.color.border};
+		transition:
+			background 0.15s ease,
+			border-color 0.15s ease,
+			box-shadow 0.15s ease;
+
+		&:hover {
+			border-color: ${({ theme }) => theme.color.primary};
+		}
+
+		&:focus-visible {
+			outline: none;
+			box-shadow: 0 0 0 3px color-mix(in srgb, ${({ theme }) => theme.color.primary} 25%, transparent);
+		}
 
 		&:checked {
+			border-color: ${({ theme }) => theme.color.primary};
 			background: ${({ theme }) => theme.color.primary};
 		}
 
-		&:checked + span svg {
+		&:checked + .icon svg {
 			opacity: 1;
-			visibility: visible;
+			transform: scale(1);
+		}
+
+		&:disabled {
+			cursor: not-allowed;
+			opacity: 0.5;
 		}
 	}
 
 	.icon {
 		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
+		inset: 0;
 		display: flex;
 		align-items: center;
 		justify-content: center;
@@ -116,10 +104,13 @@ const StyledInputCheck = styled.div<StyleProps>`
 
 		svg {
 			opacity: 0;
-			visibility: hidden;
-			color: white;
+			transform: scale(0.6);
+			/* 체크된 상자(강조색) 위의 표시라 배경색으로: 다크 모드에서도 대비가 맞다 */
+			color: ${({ theme }) => theme.color.background};
 			font-size: ${({ theme }) => theme.fontSize.medium};
-			transition: opacity 0.2s ease, visibility 0.2s ease;
+			transition:
+				opacity 0.15s ease,
+				transform 0.15s ease;
 		}
 	}
 `;

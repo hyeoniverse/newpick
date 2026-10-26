@@ -1,7 +1,8 @@
 'use client';
 
 import React, { JSX } from 'react';
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
+import { LuLoaderCircle } from 'react-icons/lu';
 import { ButtonScheme, ButtonSize } from '@/styles/theme';
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -41,18 +42,27 @@ const Button = ({
 			ref={ref}
 			size={size}
 			scheme={scheme}
-			disabled={disabled}
+			// 로딩 중에는 다시 누르지 못하게
+			disabled={disabled || isLoading}
+			aria-busy={isLoading || undefined}
 			isLoading={isLoading}
 			data-tooltip={tooltip}
 			iconPosition={iconPosition}
 			{...props}
 		>
-			{icon && iconPosition === 'left' && <span>{icon}</span>}
+			{isLoading && <LuLoaderCircle className="spinner" aria-hidden />}
+			{icon && iconPosition === 'left' && <span className="icon">{icon}</span>}
 			{children}
-			{icon && iconPosition === 'right' && <span>{icon}</span>}
+			{icon && iconPosition === 'right' && <span className="icon">{icon}</span>}
 		</StyledButton>
 	);
 };
+
+const spin = keyframes`
+	to {
+		transform: rotate(360deg);
+	}
+`;
 
 export const StyledButton = styled.button.withConfig({
 	shouldForwardProp: (prop) => !['isLoading', 'iconPosition'].includes(prop),
@@ -74,10 +84,28 @@ export const StyledButton = styled.button.withConfig({
 	color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].color};
 	background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].background};
 	border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].border};
+	/* 버튼은 각지게 (뉴픽 버튼 모양). 둥글게 할 곳은 쓰는 쪽에서 덮어쓴다 (예: 체험하기·구독 버튼) */
 	border-radius: ${({ theme }) => theme.borderRadius.flat};
-  opacity: ${({ disabled }) => (disabled ? 0.8 : 1)};
-	pointer-events: ${({ disabled }) => (disabled ? 'none' : 'auto')};
-	cursor: ${({ disabled }) => (disabled ? 'none' : 'pointer')};
+	cursor: pointer;
+	transition:
+		background 0.15s ease,
+		border-color 0.15s ease,
+		color 0.15s ease;
+
+	/* 예전에는 cursor: none이라 비활성 버튼 위에서 마우스 포인터가 사라졌다 */
+	&:disabled {
+		opacity: ${({ isLoading }) => (isLoading ? 0.8 : 0.45)};
+		cursor: ${({ isLoading }) => (isLoading ? 'progress' : 'not-allowed')};
+	}
+
+	&:focus-visible {
+		outline: 2px solid ${({ theme }) => theme.color.primary};
+		outline-offset: 2px;
+	}
+
+	.spinner {
+		animation: ${spin} 0.8s linear infinite;
+	}
 
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -90,23 +118,21 @@ export const StyledButton = styled.button.withConfig({
 		margin: 0;
 	}
 
+	/* 아이콘은 글자 높이(1em)에 맞춘다. 더 크면 아이콘이 있는 버튼만 키가 커진다 */
 	svg {
-		width: ${({ theme, size }) => theme.button[size ?? 'small'].fontSize}
-		height: ${({ theme, size }) => theme.button[size ?? 'small'].fontSize}
-		font-size: ${({ theme, size }) => theme.button[size ?? 'small'].fontSize};
+		flex-shrink: 0;
+		width: 1em;
+		height: 1em;
 		color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].color};
-
-    display: flex;
-		align-items: center;
-		justify-content: center;
-		line-height: 1;
-    padding: 0;
-    margin: 0;
-
-    transform: scale(1.25);
 	}
 
-	&:hover {
+	.icon {
+		display: inline-flex;
+		align-items: center;
+	}
+
+	/* 비활성일 때는 hover 모양을 주지 않는다 */
+	&:hover:not(:disabled) {
 		color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.color};
 		background: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.background};
 		border: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.border};
@@ -135,7 +161,7 @@ export const StyledButton = styled.button.withConfig({
 		background: ${({ theme }) => theme.color.surface};
 		color: ${({ theme }) => theme.color.neutral};
 		font-size: ${({ theme }) => theme.fontSize.small};
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		box-shadow: ${({ theme }) => theme.shadow.light};
 
 		opacity: 1;

@@ -34,7 +34,7 @@ const SkeletonCard = styled.div`
 	width: 100%;
 	height: 180px;
 	background: ${({ theme }) => theme.color.neutral};
-	border-radius: ${({ theme }) => theme.borderRadius.soft};
+	border-radius: ${({ theme }) => theme.radius.surface};
 	overflow: hidden;
 `;
 
@@ -53,5 +53,5 @@ const SkeletonText = styled.div`
 	background-size: 200% 100%;
 	animation: ${shimmer} 1.5s infinite linear;
 	margin: 10px auto;
-	border-radius: 4px;
+	border-radius: ${({ theme }) => theme.radius.surface};
 `;

@@ -1,7 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import styled from 'styled-components';
+import { fieldControl, fieldLabel } from '@/components/common/field';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 
@@ -13,6 +14,8 @@ interface Props {
 
 const InputDate = ({ label, onChange, onBlur }: Props) => {
 	const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+	// 한 화면에 여러 개 있어도 이름표가 제 칸을 가리키게
+	const inputId = useId();
 
 	const handleDateChange = (date: Date | null) => {
 		setSelectedDate(date);
@@ -21,9 +24,9 @@ const InputDate = ({ label, onChange, onBlur }: Props) => {
 
 	return (
 		<StyledInputDate>
-			{label && <label htmlFor="custom-date-picker">{label}</label>}
+			{label && <label htmlFor={inputId}>{label}</label>}
 			<DatePicker
-				id="custom-date-picker"
+				id={inputId}
 				className="custom-datepicker"
 				selected={selectedDate}
 				onChange={handleDateChange}
@@ -41,35 +44,46 @@ const InputDate = ({ label, onChange, onBlur }: Props) => {
 	);
 };
 
+/** 다른 입력칸과 같은 모양 (이름표 위, 같은 높이·모서리). 달력은 테마 색 */
 const StyledInputDate = styled.div`
 	display: flex;
 	flex-direction: column;
-	z-index: 1000;
+	width: 100%;
 
 	label {
-		margin-left: 0.5rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.text};
-		pointer-events: none;
+		${fieldLabel}
+	}
+
+	.react-datepicker-wrapper,
+	.react-datepicker__input-container {
+		display: block;
+		width: 100%;
 	}
 
 	.custom-datepicker {
-		width: 100%;
-		height: 3rem;
+		${fieldControl}
+	}
+
+	.react-datepicker-popper {
+		z-index: 20;
+	}
+
+	.react-datepicker {
 		border: 1px solid ${({ theme }) => theme.color.border};
-		padding: 0.6rem 1.2rem;
-		background-color: transparent;
-		font-size: ${({ theme }) => theme.fontSize.small};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.background};
 		color: ${({ theme }) => theme.color.text};
-		outline: none;
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+		font-family: inherit;
+		overflow: hidden;
+	}
 
-		&:focus {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
+	.react-datepicker__day {
+		color: ${({ theme }) => theme.color.text};
+	}
 
-		&::placeholder {
-			color: ${({ theme }) => theme.color.neutral};
-		}
+	.react-datepicker__day--disabled {
+		color: ${({ theme }) => theme.color.disabled};
 	}
 
 	.react-datepicker__header {
@@ -92,7 +106,7 @@ const StyledInputDate = styled.div`
 	.react-datepicker__day--keyboard-selected {
 		background-color: ${({ theme }) => theme.color.primary};
 		color: ${({ theme }) => theme.color.background};
-		border-radius: ${({ theme }) => theme.borderRadius.soft};
+		border-radius: ${({ theme }) => theme.radius.control};
 	}
 
 	.react-datepicker__day:hover {
