@@ -2,7 +2,20 @@
 
 import { useRouter } from 'next/navigation';
 import type { IconType } from 'react-icons';
-import { LuBan, LuClock, LuFileX, LuLock, LuSearchX, LuServerCrash, LuTriangleAlert, LuWrench } from 'react-icons/lu';
+import {
+	LuBan,
+	LuClock,
+	LuFileWarning,
+	LuFileX,
+	LuLock,
+	LuRefreshCw,
+	LuScale,
+	LuSearchX,
+	LuServerCrash,
+	LuTriangleAlert,
+	LuWifiOff,
+	LuWrench,
+} from 'react-icons/lu';
 import { ErrorAction, ErrorIcon, ErrorStateCopy } from '@/constants/errors';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 
@@ -18,6 +31,10 @@ const ICONS: Record<ErrorIcon, IconType> = {
 	tool: LuWrench,
 	alert: LuTriangleAlert,
 	deleted: LuFileX,
+	file: LuFileWarning,
+	refresh: LuRefreshCw,
+	scale: LuScale,
+	wifi: LuWifiOff,
 };
 
 const ACTION_LABELS: Record<ErrorAction, string> = {
