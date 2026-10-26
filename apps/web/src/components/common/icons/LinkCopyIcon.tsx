@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
-import { LuCheck, LuLink2 } from 'react-icons/lu';
-import styled, { keyframes } from 'styled-components';
+import { CheckGlyph, LinkGlyph } from '@/components/common/icons/Glyphs';
 import { IconStyled } from '@/styles/Icon';
 import { useToast } from '@/hooks/useToast';
 
@@ -38,29 +37,10 @@ function LinkCopyIcon({ className, id }: Props) {
 
 	return (
 		<IconStyled onClick={handleCopyClick} className={className} aria-label={copied ? '주소 복사됨' : '주소 복사'}>
-			{copied ? <CopiedIcon key="copied" /> : <LuLink2 key="link" />}
+			{/* 마우스를 올리면 ( ) 가 벌어지고, 복사되면 체크가 그려진다 */}
+			{copied ? <CheckGlyph key="copied" /> : <LinkGlyph key="link" />}
 		</IconStyled>
 	);
 }
-
-const appear = keyframes`
-	from {
-		opacity: 0;
-		transform: scale(0.5) rotate(-20deg);
-	}
-	to {
-		opacity: 1;
-		transform: scale(1) rotate(0);
-	}
-`;
-
-/** 복사됨 표시: 체크가 돌며 나타난다 */
-const CopiedIcon = styled(LuCheck)`
-	animation: ${appear} 0.25s ease-out;
-
-	@media (prefers-reduced-motion: reduce) {
-		animation: none;
-	}
-`;
 
 export default LinkCopyIcon;

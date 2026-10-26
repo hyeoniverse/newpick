@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import styled, { useTheme } from 'styled-components';
-import { LuArrowLeft, LuArrowRight, LuBell, LuMailCheck, LuShare2, LuSparkles } from 'react-icons/lu';
+import { LuArrowLeft, LuArrowRight, LuBell, LuMailCheck, LuSparkles } from 'react-icons/lu';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
@@ -39,6 +39,7 @@ import AgreementCheck from '@/components/common/article/AgreementCheck';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import CustomIcon from '@/components/common/icons/CustomIcon';
 import BookmarkToggle from '@/components/common/icons/BookmarkToggle';
+import { ShareGlyph } from '@/components/common/icons/Glyphs';
 import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import ExternalLink from '@/components/common/ExternalLink';
@@ -434,7 +435,7 @@ function DesignSystemBody() {
 					<LinkCopyIcon id="ds" />
 					<OrigLinkIcon />
 					<CustomIcon label="공유" onClick={() => showToast('아이콘을 눌렀습니다.', 'info')}>
-						<LuShare2 />
+						<ShareGlyph />
 					</CustomIcon>
 				</div>
 				<div className="wrap">

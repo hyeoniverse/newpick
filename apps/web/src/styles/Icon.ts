@@ -1,15 +1,8 @@
-import styled, { keyframes } from 'styled-components';
-
-/** 북마크를 눌러 켤 때 한 번 톡 튀어 오른다 */
-const pop = keyframes`
-	0% { transform: scale(1); }
-	40% { transform: scale(1.3); }
-	100% { transform: scale(1); }
-`;
+import styled from 'styled-components';
 
 /**
- * 아이콘 버튼 공통 (북마크·링크 복사 등). 원형, 마우스를 올리면 바탕이 서서히 차고 아이콘이 살짝 커지며,
- * 누르는 동안 작아진다. 움직임 줄이기를 켠 사용자에게는 크기 변화를 주지 않는다
+ * 아이콘 버튼 공통 (북마크·링크 복사 등). 원형, 마우스를 올리면 바탕이 서서히 찬다.
+ * 아이콘 자체의 움직임은 아이콘마다 뜻에 맞게 따로 준다 (icons/Glyphs.tsx)
  */
 export const IconStyled = styled.button.attrs({ type: 'button' })`
 	display: flex;
@@ -21,6 +14,7 @@ export const IconStyled = styled.button.attrs({ type: 'button' })`
 	border: none;
 	border-radius: ${({ theme }) => theme.borderRadius.circle};
 	background-color: transparent;
+	color: ${({ theme }) => theme.color.primary};
 	cursor: pointer;
 	transition: background-color 0.2s ease;
 
@@ -28,41 +22,14 @@ export const IconStyled = styled.button.attrs({ type: 'button' })`
 		width: 1.5rem;
 		height: 1.5rem;
 		color: ${({ theme }) => theme.color.primary};
-		transition: transform 0.2s ease;
 	}
 
 	&:hover {
 		background-color: ${({ theme }) => theme.color.tertiary};
-
-		svg {
-			transform: scale(1.1);
-		}
-	}
-
-	&:active svg {
-		transform: scale(0.88);
 	}
 
 	&:focus-visible {
 		outline: 2px solid ${({ theme }) => theme.color.primary};
 		outline-offset: 2px;
-	}
-
-	/* 눌림 상태로 바뀌는 순간(북마크 켜기) 한 번 튄다 */
-	&[aria-pressed='true'] svg {
-		animation: ${pop} 0.35s ease;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		svg,
-		&:hover svg,
-		&:active svg {
-			transform: none;
-			transition: none;
-		}
-
-		&[aria-pressed='true'] svg {
-			animation: none;
-		}
 	}
 `;
