@@ -116,6 +116,32 @@ const NewsletterContentStyled = styled.article`
 		text-decoration: underline ${({ theme }) => theme.color.primary};
 		text-decoration-thickness: 2px;
 	}
+
+	/* api가 만드는 본문 구조 (#43): 소식마다 소제목 + 문단. 예전 뉴스레터는 모델이 넣은 인라인 스타일 그대로 */
+	.newsletter {
+		padding-top: 2rem;
+
+		.story + .story {
+			margin-top: 2.5rem;
+			padding-top: 2.5rem;
+			border-top: 1px solid ${({ theme }) => theme.color.border};
+		}
+
+		h2 {
+			margin: 0 0 1rem;
+			font-size: ${({ theme }) => theme.fontSize.large};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.text};
+			word-break: keep-all;
+		}
+
+		p {
+			margin-bottom: 1rem;
+			font-size: ${({ theme }) => theme.fontSize.medium};
+			line-height: 1.8;
+			color: ${({ theme }) => theme.color.mediumGrey};
+		}
+	}
 `;
 
 export default ArticleContent;

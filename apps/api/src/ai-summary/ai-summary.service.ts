@@ -2,10 +2,18 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { FindCategoryService } from './findCategory.service';
 import { CreateNewsletterService } from './createNewsletter.service';
-import { CreateTitleService } from './createTitle.service';
 import { CrawledNews } from 'src/crawling/schema/crawling.schema';
-import { HTMLFormatterService } from './parseHtml.service';
-import { BasicSummarizeService } from './basicSummarize.service';
+import { NewsletterWriterService } from './newsletterWriter.service';
+import { renderNewsletterHtml } from './newsletterHtml';
+
+/**
+ * 뉴스레터에 쓴 기사만 남깁니다. 썸네일·관련 기사가 실제로 다룬 소식에서 나오게 (#43).
+ * 예전에는 받은 기사 전부를 넣어, IT 뉴스레터 썸네일이 증시 기사 사진이 되기도 했습니다.
+ */
+export function usedArticles(news: CrawledNews[], sources: number[]) {
+  const used = sources.map((n) => news[n - 1]).filter(Boolean);
+  return used.length ? used : news;
+}
 
 @Injectable()
 export class AiSummaryService {
@@ -14,9 +22,7 @@ export class AiSummaryService {
     private readonly prisma: MysqlPrismaService,
     private readonly findCategoryService: FindCategoryService,
     private readonly createNewsletterService: CreateNewsletterService,
-    private readonly createTitleService: CreateTitleService,
-    private readonly htmlFormatterService: HTMLFormatterService,
-    private readonly basicSummarizeService: BasicSummarizeService,
+    private readonly newsletterWriterService: NewsletterWriterService,
   ) {}
 
   async summarizeText(
@@ -33,56 +39,57 @@ export class AiSummaryService {
       throw new Error('No news found');
     }
     const startTime = Date.now();
-    const newsText =
-      news.map((item) => item.title).join('\n') +
-      '\n' +
-      news.map((item) => item.content).join('\n');
     try {
-      // 분야를 알려 줘야 IT 뉴스레터가 증시 기사로 제목을 짓지 않습니다 (#42)
+      // 분야를 알려 줘야 IT 뉴스레터가 증시 기사로 채워지지 않습니다 (#42)
       const category = (
         await this.prisma.newsCategory.findUnique({
           where: { id: categoryId },
           select: { name: true },
         })
       )?.name;
-      const { text: summary, tokens: token } =
-        await this.basicSummarizeService.basicSummarize(newsText, category);
-      const duration = (Date.now() - startTime) / 1000;
-      const newslinks = news.map((item) => item.link).toString();
-      this.logger.debug(`요약 완료: ${summary.length}자`);
+      const { newsletter: written, tokens } =
+        await this.newsletterWriterService.write(news, category);
+      const { title, subtitle, summary, stories } = written;
+
+      const used = usedArticles(
+        news,
+        stories.flatMap((s) => s.sources),
+      );
+      const newslinks = used.map((item) => item.link).toString();
+      const imageUrl = used.map((item) => item.images).toString();
+      const html = renderNewsletterHtml(stories);
+      this.logger.debug(
+        `뉴스레터 작성 완료: 소식 ${stories.length}개, 기사 ${news.length}건 중 ${used.length}건 사용`,
+      );
 
       await this.prisma.aiProcessLog.create({
         data: {
           newsId: test ? 'test' : newslinks,
           processType: 'summarization',
-          result: summary,
-          duration: duration,
+          result: `${title} | ${subtitle}\n${summary}`,
+          duration: (Date.now() - startTime) / 1000,
           status: 'success',
-          token: token,
+          token: tokens,
           error: null,
         },
       });
 
-      const { title, subtitle } = await this.createTitleService.createHeadline(
-        summary,
-        category,
-      );
-      const html = await this.htmlFormatterService.formatHtml(summary);
-
-      const newsletterTemporary = {
-        message:
-          '요약 완료 이 요청은 테스트 요약입니다. DB에 저장되지 않습니다.',
-        title: title,
-        subtitle: subtitle,
-        summary: summary,
-        newslinks: newslinks,
-        categoryId: categoryId,
-        html: html,
-        imageUrl: news.map((item) => item.images).toString(),
-      };
-
       if (test) {
-        return { summary, categoryId, newsletter: newsletterTemporary };
+        return {
+          summary,
+          categoryId,
+          newsletter: {
+            message:
+              '요약 완료 이 요청은 테스트 요약입니다. DB에 저장되지 않습니다.',
+            title,
+            subtitle,
+            summary,
+            newslinks,
+            categoryId,
+            html,
+            imageUrl,
+          },
+        };
       }
       const newsletter = await this.createNewsletterService.createNewsletter(
         title,
@@ -91,7 +98,7 @@ export class AiSummaryService {
         newslinks,
         categoryId,
         html,
-        news.map((item) => item.images).toString(),
+        imageUrl,
       );
 
       return { summary, categoryId, newsletter };
