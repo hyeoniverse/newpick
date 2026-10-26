@@ -29,7 +29,7 @@ export function useArticleContentQuery(slug: string) {
 export const getPopularArticles = async (
 	limit: number = 5,
 	offset: number = 0,
-	trend: boolean = true
+	trend: boolean = true,
 ): Promise<IArticleDetail[]> => {
 	const { data }: { data: IArticleDetail[] } = await fetchPopularArticle(limit, offset, trend);
 	return data;
@@ -66,18 +66,17 @@ export const getTrendList = async (categoryId?: number): Promise<IArticleDetail[
 export const getCategoryList = async (
 	category: number,
 	limit: number = 10,
-	offset: number = 0
+	offset: number = 0,
 ): Promise<IArticleDetail[]> => {
 	const { data }: { data: IArticleDetail[] } = await fetchArticleByCategory(category, limit, offset);
 	return data;
 };
 
+/**
+ * 뉴스레터에 쓴 원문 기사들. 크롤링 원문은 30일 뒤 지워지므로(TTL) 일부가 없을 수 있어, 찾은 것만 돌려줍니다.
+ * (이전에는 Promise.all이라 하나만 404여도 모두 사라지고, 처리되지 않은 오류가 페이지에 남았습니다)
+ */
 export const getRelatedNews = async (links: string[]): Promise<INewsInfo[]> => {
-	const relatedNews: INewsInfo[] = await Promise.all(
-		links.map(async (link) => {
-			return await fetchRelatedNews(link);
-		})
-	);
-
-	return relatedNews;
+	const results = await Promise.allSettled(links.map((link) => fetchRelatedNews(link)));
+	return results.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []));
 };
