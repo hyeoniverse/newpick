@@ -219,21 +219,6 @@ const StyledDropdown = styled.div`
 					transform: scaleY(1);
 				}
 			}
-
-			.sub-item {
-				width: 100%;
-				position: relative;
-				top: 100%;
-				left: 0;
-
-				display: flex;
-				flex-direction: column;
-				justify-content: center;
-				align-items: center;
-
-				background: ${({ theme }) => theme.color.neutral};
-				cursor: pointer;
-			}
 		}
 	}
 `;

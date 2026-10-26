@@ -1,5 +1,4 @@
 import { Navigation as INavigation } from '@/models/navigation.model';
-import { CATEGORIES } from '@/constants/categories';
 
 export const NAVIGATION: INavigation[] = [
 	{
@@ -11,13 +10,6 @@ export const NAVIGATION: INavigation[] = [
 		id: 1,
 		title: '뉴스레터',
 		link: '/articles',
-		subItems: [
-			...CATEGORIES.map((category, index) => ({
-				id: index,
-				title: category.name,
-				link: index === 0 ? '/articles' : `/articles?categoryId=${category.id}`,
-			})),
-		],
 	},
 ];
 

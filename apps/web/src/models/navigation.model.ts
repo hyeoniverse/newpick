@@ -4,6 +4,4 @@ export interface NavigationItem {
 	link: string;
 }
 
-export interface Navigation extends NavigationItem {
-	subItems?: NavigationItem[];
-}
+export type Navigation = NavigationItem;

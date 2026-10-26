@@ -23,7 +23,7 @@ import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 export default function Header() {
 	const { user, session, handleLogin, handleLogout } = useAuth();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
-	const { closeDropdown } = useDropdown(['auth', 'sub-navigation', 'drawer']);
+	const { closeDropdown } = useDropdown(['auth', 'drawer']);
 	const lastScrollY = useRef(0);
 
 	const handleScroll = useCallback(() => {
