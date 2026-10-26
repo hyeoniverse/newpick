@@ -27,8 +27,8 @@ export default function CategoryTags({ className, selectType = 'multiple', selec
 								selectType === 'localSingle'
 									? () => onSelect && onSelect(category.name)
 									: selectType === 'single'
-									? () => handleSelectInterest(category)
-									: () => handleSelectInterests(category)
+										? () => handleSelectInterest(category)
+										: () => handleSelectInterests(category)
 							}
 							className={
 								selectType === 'localSingle'
@@ -36,8 +36,8 @@ export default function CategoryTags({ className, selectType = 'multiple', selec
 										? 'category-btn active'
 										: 'category-btn'
 									: selectedInterest === category.name || selectedInterests.includes(category.name)
-									? 'category-btn active'
-									: 'category-btn'
+										? 'category-btn active'
+										: 'category-btn'
 							}
 						>
 							{category.name}
@@ -73,12 +73,29 @@ const StyledCategoris = styled.div`
 		color: ${({ theme }) => theme.color.primary};
 		border-radius: ${({ theme }) => theme.radius.chip};
 		border: 1px solid ${({ theme }) => theme.color.primary};
+		transition:
+			background-color 0.15s ease,
+			color 0.15s ease;
+
+		&:hover,
+		&:focus-visible {
+			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 10%, transparent);
+		}
 	}
 
-	.active {
-		color: ${({ theme }) => theme.color.background};
-		background: ${({ theme }) => theme.color.primary};
-		border-radius: ${({ theme }) => theme.radius.chip};
+	/* 고른 분야: 기본 버튼의 hover(글자를 강조색으로)가 강조색 바탕과 겹쳐 글자가 사라지지 않게 글자색을 고정하고, 바탕만 조금 진하게 */
+	.category-btn.active {
+		&,
+		&:hover,
+		&:focus-visible {
+			color: ${({ theme }) => theme.color.background};
+			background: ${({ theme }) => theme.color.primary};
+		}
+
+		&:hover,
+		&:focus-visible {
+			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 82%, ${({ theme }) => theme.color.text});
+		}
 	}
 
 	.btn {
