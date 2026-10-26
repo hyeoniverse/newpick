@@ -7,6 +7,7 @@ import { SCROLL } from '@/constants/numbers';
 import { useAuth } from '@/hooks/useAuth';
 import { useDropdown } from '@/hooks/useDropdown';
 import { useHeader } from '@/hooks/useHeader';
+import { useOpenLogin } from '@/hooks/useOpenLogin';
 
 import styled from 'styled-components';
 import { IoLogoGoogle } from 'react-icons/io';
@@ -21,7 +22,8 @@ import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 
 export default function Header() {
-	const { user, session, handleLogin, handleLogout } = useAuth();
+	const { user, session, handleLogout } = useAuth();
+	const openLogin = useOpenLogin();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'drawer']);
 	const lastScrollY = useRef(0);
@@ -110,7 +112,7 @@ export default function Header() {
 					{session !== 'in' && (
 						<div className="auth-out">
 							<ThemeSwitcher scheme="secondary" className="item" />
-							<Button scheme="outline" onClick={handleLogin} icon={<IoLogoGoogle />} iconPosition="left">
+							<Button scheme="outline" onClick={() => openLogin()} icon={<IoLogoGoogle />} iconPosition="left">
 								로그인
 							</Button>
 						</div>

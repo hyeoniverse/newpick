@@ -11,6 +11,18 @@ test.describe('비로그인 탐색', () => {
 		await expect(page.getByText(first.title).first()).toBeVisible();
 	});
 
+	test('로그인을 누르면 구글로 넘어가기 전에 약관 안내를 보여 준다 (#66)', async ({ page }) => {
+		await page.goto('/');
+		await page.getByRole('button', { name: '로그인' }).click();
+
+		const sheet = page.getByRole('dialog');
+		await expect(sheet.getByRole('heading', { name: '뉴픽 로그인' })).toBeVisible();
+		await expect(sheet.getByRole('button', { name: '구글로 계속하기' })).toBeVisible();
+		await expect(sheet.getByRole('link', { name: '이용약관' })).toHaveAttribute('href', '/terms');
+		await expect(sheet.getByRole('link', { name: '개인정보 처리방침' })).toHaveAttribute('href', '/privacy');
+		await expect(sheet.getByRole('link', { name: '이용약관' })).toHaveAttribute('target', '_blank');
+	});
+
 	test('뉴스레터 목록을 브라우저에서 불러온다', async ({ page }) => {
 		await page.goto('/articles');
 

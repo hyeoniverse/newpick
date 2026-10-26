@@ -3,6 +3,7 @@
 import BookmarkToggle from '@/components/common/icons/BookmarkToggle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useToast } from '@/hooks/useToast'; // Toast 훅 (필요 시)
+import { useOpenLogin } from '@/hooks/useOpenLogin';
 import { useAddBookmarkMutation, useBookmarksList, useRemoveBookmarkMutation } from '@/hooks/useBookmark';
 
 interface BookmarkIconProps {
@@ -18,12 +19,13 @@ export default function BookmarkIcon({ newsId, className, newsletterId }: Bookma
 	const addBookmarkMutation = useAddBookmarkMutation();
 	const removeBookmarkMutation = useRemoveBookmarkMutation();
 	const { showToast } = useToast();
+	const openLogin = useOpenLogin();
 
 	const isBookmarked = bookmarks?.some((b) => b.id === newsId);
 
 	const handleToggle = async () => {
 		if (!user) {
-			showToast('로그인 후 이용해주세요.', 'error');
+			openLogin('북마크하려면 로그인해 주세요');
 			return;
 		}
 

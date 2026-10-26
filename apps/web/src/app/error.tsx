@@ -5,11 +5,11 @@ import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/hooks/useAuth';
+import { useOpenLogin } from '@/hooks/useOpenLogin';
 
 export default function GlobalError({ error, reset }: { error: Error; reset: () => void }) {
 	const router = useRouter();
-	const { handleLogin } = useAuth();
+	const openLogin = useOpenLogin();
 	const [statusCode, setStatusCode] = useState<number | null>(null);
 	const [message, setMessage] = useState<string>('알 수 없는 오류가 발생했습니다.');
 	const [buttonText, setButtonText] = useState<string>('홈으로');
@@ -27,7 +27,7 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
 		// 상태 코드별 메시지 및 버튼 설정
 		const errorConfig: Record<number, { message: string; buttonText: string; action: () => void }> = {
 			400: { message: '잘못된 요청입니다.', buttonText: '다시 시도', action: reset },
-			401: { message: '로그인이 필요합니다.', buttonText: '로그인 하기', action: handleLogin },
+			401: { message: '로그인이 필요합니다.', buttonText: '로그인 하기', action: () => openLogin() },
 			403: { message: '접근 권한이 없습니다.', buttonText: '뒤로 가기', action: () => router.back() },
 			404: { message: '페이지를 찾을 수 없습니다.', buttonText: '홈으로', action: () => router.push('/') },
 			408: {
@@ -68,7 +68,7 @@ export default function GlobalError({ error, reset }: { error: Error; reset: () 
 			setButtonText(errorConfig[code].buttonText);
 			setButtonAction(() => errorConfig[code].action);
 		}
-	}, [error, reset, router, handleLogin]);
+	}, [error, reset, router, openLogin]);
 
 	return (
 		<div
