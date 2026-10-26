@@ -17,10 +17,26 @@ interface AuthState {
 	setSession: (session: SessionStatus) => void;
 }
 
+/**
+ * 헤더는 <html data-auth>로 로그인 버튼·프로필 중 하나만 보여 준다 (layout.tsx가 처음 한 번 정함).
+ * 세션이 바뀌면 이 값도 바꿔야 로그아웃 직후 로그인 버튼이 바로 나타난다
+ */
+const syncAuthAttribute = (session: SessionStatus) => {
+	if (typeof document !== 'undefined' && session !== 'unknown') {
+		document.documentElement.dataset.auth = session;
+	}
+};
+
 export const useAuthStore = create<AuthState>((set) => ({
 	user: null,
 	session: 'unknown',
 	setUser: (user) => set({ user }),
-	clearUser: () => set({ user: null, session: 'out' }),
-	setSession: (session) => set({ session }),
+	clearUser: () => {
+		syncAuthAttribute('out');
+		set({ user: null, session: 'out' });
+	},
+	setSession: (session) => {
+		syncAuthAttribute(session);
+		set({ session });
+	},
 }));

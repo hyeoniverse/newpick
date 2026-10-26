@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDropdown } from '@/hooks/useDropdown';
 import { useHeader } from '@/hooks/useHeader';
 
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { FaUserCircle } from 'react-icons/fa';
 import { IoLogoGoogle } from 'react-icons/io';
 
@@ -101,10 +101,13 @@ export default function Header() {
 								</>
 							</Dropdown>
 						) : (
-							// 사용자 정보를 조회하는 동안 프로필 자리를 잡아 둡니다.
-							<StyledUserCircle className="auth-in" aria-busy="true" aria-label="로그인 정보 불러오는 중">
-								<FaUserCircle />
-							</StyledUserCircle>
+							// 사용자 정보를 조회하는 동안 프로필 사진 자리에 빈 원을 보여 줍니다 (아이콘을 보여 주면 사진이 없는 사람처럼 보였다)
+							<StyledUserCircle
+								className="auth-in loading"
+								role="status"
+								aria-busy="true"
+								aria-label="로그인 정보 불러오는 중"
+							/>
 						))}
 					{session !== 'in' && (
 						<div className="auth-out">
@@ -249,6 +252,11 @@ const StyledHeader = styled.header<StyledProps>`
 	}
 `;
 
+const shimmer = keyframes`
+	0% { background-position: 100% 0; }
+	100% { background-position: -100% 0; }
+`;
+
 const StyledUserCircle = styled.div`
 	position: relative;
 	width: 2.5rem;
@@ -258,4 +266,20 @@ const StyledUserCircle = styled.div`
 	align-items: center;
 	border-radius: 50%;
 	overflow: hidden;
+
+	/* 불러오는 중: 사진 자리에 옅은 빛이 지나가는 빈 원 */
+	&.loading {
+		background: linear-gradient(
+			90deg,
+			${({ theme }) => theme.color.neutral} 25%,
+			${({ theme }) => theme.color.surface} 50%,
+			${({ theme }) => theme.color.neutral} 75%
+		);
+		background-size: 200% 100%;
+		animation: ${shimmer} 1.2s ease-in-out infinite;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
+	}
 `;
