@@ -107,16 +107,24 @@ function Modal({ onClose }: Props) {
 		window.addEventListener('keydown', handleKeydown);
 		modalRef.current?.focus();
 
-		// 뒤 화면 스크롤 막기. 스크롤바가 사라지며 화면이 옆으로 밀리지 않게 그 폭만큼 여백을 준다
-		const { overflow, paddingRight } = document.body.style;
-		const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+		// 뒤 화면 스크롤 막기. 이 사이트는 html이 스크롤되므로 html·body 둘 다 막는다.
+		// 스크롤바가 사라지며 화면이 옆으로 밀리지 않게 그 폭만큼 여백을 준다
+		const html = document.documentElement;
+		const saved = {
+			html: html.style.overflow,
+			body: document.body.style.overflow,
+			pad: document.body.style.paddingRight,
+		};
+		const scrollbar = window.innerWidth - html.clientWidth;
+		html.style.overflow = 'hidden';
 		document.body.style.overflow = 'hidden';
 		if (scrollbar > 0) document.body.style.paddingRight = `${scrollbar}px`;
 
 		return () => {
 			window.removeEventListener('keydown', handleKeydown);
-			document.body.style.overflow = overflow;
-			document.body.style.paddingRight = paddingRight;
+			html.style.overflow = saved.html;
+			document.body.style.overflow = saved.body;
+			document.body.style.paddingRight = saved.pad;
 			previousFocusedElement.current?.focus();
 		};
 	}, [isOpen, handleKeydown]);

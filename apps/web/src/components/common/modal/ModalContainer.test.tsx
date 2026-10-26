@@ -47,8 +47,11 @@ describe('시트 (#52)', () => {
 	it('열려 있는 동안 뒤 화면은 스크롤되지 않고, 닫히면 되돌린다', () => {
 		document.body.style.overflow = 'auto';
 		open();
+		// 이 사이트는 html이 스크롤되므로 html도 막아야 한다
+		expect(document.documentElement.style.overflow).toBe('hidden');
 		expect(document.body.style.overflow).toBe('hidden');
 		act(() => useModalStore.getState().closeModal());
+		expect(document.documentElement.style.overflow).toBe('');
 		expect(document.body.style.overflow).toBe('auto');
 	});
 
