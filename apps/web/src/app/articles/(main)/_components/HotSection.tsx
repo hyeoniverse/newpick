@@ -333,15 +333,18 @@ const StyledHotSection = styled.section<StyledProps>`
 			border: 1px solid transparent;
 			border-radius: ${({ theme }) => theme.borderRadius.medium};
 			/* 다크 모드에서는 바탕색 카드가 띠보다 어두워 꺼져 보인다. 글자색을 조금 섞어 띠보다 밝게 */
-			background: ${({ theme }) =>
-				theme.name === 'dark'
-					? `color-mix(in srgb, ${theme.color.text} 9%, ${theme.color.background})`
-					: theme.color.background};
-			box-shadow: ${({ theme }) =>
-				theme.name === 'dark'
-					? '0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px rgba(0, 0, 0, 0.45)'
-					: `0 1px 2px rgba(0, 0, 0, 0.04), 0 12px 32px color-mix(in srgb, ${theme.color.primary} 12%, transparent)`};
+			background: ${({ theme }) => theme.color.background};
+			box-shadow:
+				0 1px 2px rgba(0, 0, 0, 0.04),
+				0 12px 32px color-mix(in srgb, ${({ theme }) => theme.color.primary} 12%, transparent);
 			transition: border-color 0.2s ease;
+
+			:root[data-theme='dark'] & {
+				background: color-mix(in srgb, ${({ theme }) => theme.color.text} 9%, ${({ theme }) => theme.color.background});
+				box-shadow:
+					0 1px 2px rgba(0, 0, 0, 0.4),
+					0 12px 32px rgba(0, 0, 0, 0.45);
+			}
 
 			@media ${({ theme }) => theme.mediaQuery.mobile} {
 				padding: 0.75rem;
