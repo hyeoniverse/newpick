@@ -156,9 +156,9 @@ export default function Trial() {
 }
 
 const StyledTrial = styled.div`
-	/* 대화상자 안쪽 여백(--modal-pad)을 뺀 만큼 넓게 */
-	width: min(52rem, calc(100vw - 2rem - 2 * var(--modal-pad, 1.75rem)));
-	height: min(46rem, calc(100vh - 2rem - 2 * var(--modal-pad, 1.75rem)));
+	/* 넓은 시트(large) 안을 채운다. 시트 최대 높이 85vh에서 위아래 여백을 뺀 만큼 */
+	width: 100%;
+	height: min(46rem, calc(85vh - 4rem));
 	display: flex;
 	flex-direction: column;
 	gap: 1.25rem;
@@ -167,7 +167,6 @@ const StyledTrial = styled.div`
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		padding-right: 2.5rem; /* 닫기 버튼 자리 */
 
 		> ul,
 		> div:last-child {

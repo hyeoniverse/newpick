@@ -10,15 +10,15 @@ beforeAll(() => {
 	HTMLElement.prototype.setPointerCapture = () => {};
 });
 afterEach(cleanup);
-beforeEach(() => useModalStore.setState({ isOpen: false, content: null, variant: 'dialog' }));
+beforeEach(() => useModalStore.setState({ isOpen: false, content: null, size: 'small' }));
 
-const open = (variant: 'dialog' | 'sheet') => {
+const open = (size: 'small' | 'large' = 'small') => {
 	render(
 		<ThemeProvider theme={lightTheme}>
 			<Modal />
 		</ThemeProvider>,
 	);
-	act(() => useModalStore.getState().openModal(<p>내용</p>, { variant }));
+	act(() => useModalStore.getState().openModal(<p>내용</p>, { size }));
 };
 const handle = () => screen.getByRole('button', { name: /닫기/ });
 const dialog = () => screen.getByRole('dialog');
@@ -33,19 +33,27 @@ const drag = (dy: number, ms = 1000) => {
 const closing = () => dialog().parentElement!.classList.contains('fade-out');
 
 describe('시트 (#52)', () => {
-	it('시트에는 X 버튼 대신 핸들, 대화상자에는 X 버튼', () => {
-		open('sheet');
+	it('모든 모달은 X 버튼 없이 핸들이 있는 시트, large는 넓은 시트', () => {
+		open();
 		expect(screen.queryByRole('button', { name: 'Close modal' })).toBeNull();
 		expect(handle()).toBeTruthy();
+		expect(dialog().classList.contains('small')).toBe(true);
 		cleanup();
 
-		open('dialog');
-		expect(screen.getByRole('button', { name: 'Close modal' })).toBeTruthy();
-		expect(screen.queryByRole('button', { name: /끌어 내려도/ })).toBeNull();
+		open('large');
+		expect(dialog().classList.contains('large')).toBe(true);
+	});
+
+	it('열려 있는 동안 뒤 화면은 스크롤되지 않고, 닫히면 되돌린다', () => {
+		document.body.style.overflow = 'auto';
+		open();
+		expect(document.body.style.overflow).toBe('hidden');
+		act(() => useModalStore.getState().closeModal());
+		expect(document.body.style.overflow).toBe('auto');
 	});
 
 	it('핸들을 조금만 끌면 제자리로 돌아온다 (끌기 뒤에 오는 click으로 닫히지 않음)', () => {
-		open('sheet');
+		open();
 		drag(30);
 		fireEvent.click(handle(), { detail: 1 });
 		expect(closing()).toBe(false);
@@ -53,26 +61,26 @@ describe('시트 (#52)', () => {
 	});
 
 	it('핸들을 충분히 끌어 내리면 닫힌다', () => {
-		open('sheet');
+		open();
 		drag(200);
 		expect(closing()).toBe(true);
 	});
 
 	it('짧게라도 빠르게 튕겨 내리면 닫힌다', () => {
-		open('sheet');
+		open();
 		drag(40, 30);
 		expect(closing()).toBe(true);
 	});
 
 	it('위로는 끌리지 않는다', () => {
-		open('sheet');
+		open();
 		fireEvent.pointerDown(handle(), { clientY: 100, pointerId: 1 });
 		fireEvent.pointerMove(handle(), { clientY: 20, pointerId: 1 });
 		expect(dialog().style.transform).toBe('');
 	});
 
 	it('핸들을 누르기만 하면(키보드 포함) 닫힌다', () => {
-		open('sheet');
+		open();
 		fireEvent.click(handle(), { detail: 0 });
 		expect(closing()).toBe(true);
 	});

@@ -23,7 +23,7 @@ function SubscribeInduce({ className }: Props) {
 	const onClickSubscribe = () => {
 		if (user && user.isSubscribed !== true) {
 			// 마이페이지로 보내지 않고 이 자리에서 구독 (#52)
-			openModal(<SubscribeSheet />, { variant: 'sheet' });
+			openModal(<SubscribeSheet />);
 		} else if (user && user.isSubscribed) {
 			openModal(
 				<ModalContent

@@ -80,18 +80,16 @@ describe('SubscribeInduce: 구독하기', () => {
 		renderWithTheme(createElement(SubscribeInduce));
 		fireEvent.click(screen.getByRole('button', { name: '구독하기' }));
 
-		const [content, options] = openModal.mock.calls[0];
+		const [content] = openModal.mock.calls[0];
 		expect(content.type).toBe(SubscribeSheet);
-		expect(options).toEqual({ variant: 'sheet' });
 	});
 
-	it('이미 구독 중이면 안내 모달 (시트 아님)', () => {
+	it('이미 구독 중이면 구독 시트 대신 안내', () => {
 		user = { id: 1, isSubscribed: true };
 		renderWithTheme(createElement(SubscribeInduce));
 		fireEvent.click(screen.getByRole('button', { name: '구독하기' }));
 
-		const [content, options] = openModal.mock.calls[0];
+		const [content] = openModal.mock.calls[0];
 		expect(content.type).not.toBe(SubscribeSheet);
-		expect(options).toBeUndefined();
 	});
 });

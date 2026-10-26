@@ -4,7 +4,6 @@ import { useModal } from '@/hooks/useModal';
 import styled from 'styled-components';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
-import { IoClose } from 'react-icons/io5';
 
 interface Props {
 	onClose?: () => void; // 모달을 닫을 때 실행되는 함수
@@ -15,27 +14,33 @@ const DRAG_CLOSE_RATIO = 0.25;
 const DRAG_CLOSE_MIN = 80;
 const DRAG_CLOSE_VELOCITY = 0.5; // px/ms
 
+/**
+ * 모든 모달은 화면 아래에서 올라오는 시트다 (#52).
+ * 닫기: 핸들 끌어 내리기·핸들 탭(키보드 포함)·Esc·바깥 누르기. 열려 있는 동안 뒤 화면은 스크롤되지 않는다
+ */
 function Modal({ onClose }: Props) {
-	const { isOpen, content, variant, closeModal } = useModal();
+	const { isOpen, content, size, closeModal } = useModal();
 	const [isAnimating, setIsAnimating] = useState(false);
 	const modalRef = useRef<HTMLDivElement | null>(null);
 	const previousFocusedElement = useRef<HTMLElement | null>(null);
 	const drag = useRef<{ startY: number; startTime: number; dy: number } | null>(null);
 	// 끌기를 마치면 브라우저가 click을 한 번 더 보낸다. 끈 뒤의 click은 닫기로 치지 않는다
 	const dragged = useRef(false);
-	const isSheet = variant === 'sheet';
 
-	const handleClose = () => {
-		setIsAnimating(true);
-	};
-
-	// 시트 핸들 드래그: 놓았을 때 충분히 내렸으면 아래로 밀어내며 닫고, 아니면 제자리로
+	// 시트를 dy만큼 내린다 (0이면 제자리)
 	const setSheetOffset = (dy: number, animate: boolean) => {
 		const body = modalRef.current;
 		if (!body) return;
 		body.style.transition = animate ? 'transform 0.25s ease-out' : 'none';
 		body.style.transform = dy ? `translateY(${dy}px)` : '';
 	};
+
+	// 아래로 밀어내며 닫는다. 바깥(투명 오버레이)의 fade-out 애니메이션이 끝나면 상태를 비운다
+	const handleClose = useCallback(() => {
+		const body = modalRef.current;
+		if (body) setSheetOffset(body.offsetHeight, true);
+		setIsAnimating(true);
+	}, []);
 
 	const onHandlePointerDown = (e: React.PointerEvent) => {
 		e.currentTarget.setPointerCapture(e.pointerId);
@@ -56,7 +61,6 @@ function Modal({ onClose }: Props) {
 		const height = modalRef.current.offsetHeight;
 		const fast = dy / (performance.now() - startTime) > DRAG_CLOSE_VELOCITY;
 		if (dy > Math.max(DRAG_CLOSE_MIN, height * DRAG_CLOSE_RATIO) || (fast && dy > 20)) {
-			setSheetOffset(height, true);
 			handleClose();
 		} else {
 			setSheetOffset(0, true);
@@ -78,14 +82,18 @@ function Modal({ onClose }: Props) {
 		}
 	};
 
-	const handleKeydown = useCallback((e: KeyboardEvent) => {
-		if (e.key === 'Escape') {
-			handleClose();
-		}
-	}, []);
+	const handleKeydown = useCallback(
+		(e: KeyboardEvent) => {
+			if (e.key === 'Escape') {
+				handleClose();
+			}
+		},
+		[handleClose],
+	);
 
-	const handleAnimationEnd = () => {
-		if (isAnimating) {
+	const handleAnimationEnd = (e: React.AnimationEvent) => {
+		// 시트가 올라오는 애니메이션도 여기로 올라오므로, 바깥의 닫힘 애니메이션만 본다
+		if (isAnimating && e.target === e.currentTarget) {
 			setIsAnimating(false);
 			onClose?.();
 			closeModal();
@@ -93,22 +101,23 @@ function Modal({ onClose }: Props) {
 	};
 
 	useEffect(() => {
-		if (isOpen) {
-			previousFocusedElement.current = document.activeElement as HTMLElement;
-			window.addEventListener('keydown', handleKeydown);
+		if (!isOpen) return;
 
-			if (modalRef.current) {
-				modalRef.current.focus();
-			}
-		} else {
-			window.removeEventListener('keydown', handleKeydown);
-		}
+		previousFocusedElement.current = document.activeElement as HTMLElement;
+		window.addEventListener('keydown', handleKeydown);
+		modalRef.current?.focus();
+
+		// 뒤 화면 스크롤 막기. 스크롤바가 사라지며 화면이 옆으로 밀리지 않게 그 폭만큼 여백을 준다
+		const { overflow, paddingRight } = document.body.style;
+		const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+		document.body.style.overflow = 'hidden';
+		if (scrollbar > 0) document.body.style.paddingRight = `${scrollbar}px`;
 
 		return () => {
 			window.removeEventListener('keydown', handleKeydown);
-			if (previousFocusedElement.current) {
-				previousFocusedElement.current.focus();
-			}
+			document.body.style.overflow = overflow;
+			document.body.style.paddingRight = paddingRight;
+			previousFocusedElement.current?.focus();
 		};
 	}, [isOpen, handleKeydown]);
 
@@ -116,30 +125,22 @@ function Modal({ onClose }: Props) {
 
 	return createPortal(
 		<StyledModal
-			className={`${isAnimating ? 'fade-out' : 'fade-in'} ${variant}`} // 애니메이션 클래스 적용
+			className={isAnimating ? 'fade-out' : 'fade-in'}
 			onClick={handleOverlayClick}
 			onAnimationEnd={handleAnimationEnd}
 		>
-			<div className="modal-body" ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1}>
-				{isSheet && (
-					<button
-						type="button"
-						className="sheet-handle"
-						aria-label="닫기 (아래로 끌어 내려도 닫힙니다)"
-						onPointerDown={onHandlePointerDown}
-						onPointerMove={onHandlePointerMove}
-						onPointerUp={onHandlePointerUp}
-						onPointerCancel={onHandlePointerUp}
-						onClick={onHandleClick}
-					/>
-				)}
+			<div className={`modal-body ${size}`} ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1}>
+				<button
+					type="button"
+					className="sheet-handle"
+					aria-label="닫기 (아래로 끌어 내려도 닫힙니다)"
+					onPointerDown={onHandlePointerDown}
+					onPointerMove={onHandlePointerMove}
+					onPointerUp={onHandlePointerUp}
+					onPointerCancel={onHandlePointerUp}
+					onClick={onHandleClick}
+				/>
 				<div className="modal-contents">{content}</div>
-				{/* 시트는 핸들이 닫기 역할을 한다 */}
-				{!isSheet && (
-					<button className="modal-close" onClick={handleClose} aria-label="Close modal">
-						<IoClose />
-					</button>
-				)}
 			</div>
 		</StyledModal>,
 		document.body,
@@ -166,84 +167,21 @@ const StyledModal = styled.div`
 	}
 
 	&.fade-in {
-		animation: fade-in 0.3s ease-in-out forwards;
+		animation: fade-in 0.2s ease-out forwards;
 	}
 
 	&.fade-out {
-		animation: fade-out 0.3s ease-in-out forwards;
+		animation: fade-out 0.25s ease-in forwards;
 	}
 
+	/* 바깥은 투명: 뒤 화면을 어둡게 하지 않고, 누르면 닫히는 영역으로만 쓴다 */
 	position: fixed;
-	top: 0;
-	left: 0;
-	min-width: 100vw;
-	min-height: 100vh;
+	inset: 0;
 	z-index: 1000;
-	/* 뒤 화면은 어둡게 + 살짝 흐리게 */
-	background: rgba(15, 15, 20, 0.5);
-	backdrop-filter: blur(4px);
+	background: transparent;
 
-	/* Firefox */
-	scrollbar-width: none;
-
-	/* Webkit 기반 브라우저 (Chrome, Safari, Edge) */
-	&::-webkit-scrollbar {
-		display: none;
-	}
-
-	/* IE, Edge */
-	-ms-overflow-style: none;
-
-	/* 대화상자: 내용에 맞는 폭, 화면보다 크면 스크롤 */
+	/* 시트: 화면 아래에 붙어 올라온다. 기본 30rem, large는 56rem, 모바일은 화면 폭 전체 */
 	.modal-body {
-		@keyframes dialog-pop {
-			from {
-				opacity: 0;
-				transform: translate(-50%, -48%) scale(0.97);
-			}
-			to {
-				opacity: 1;
-				transform: translate(-50%, -50%) scale(1);
-			}
-		}
-
-		--modal-pad: 1.75rem;
-		width: fit-content;
-		height: fit-content;
-		min-width: min(22rem, calc(100vw - 2rem));
-		max-width: min(56rem, calc(100vw - 2rem));
-		max-height: calc(100vh - 2rem);
-		overflow-y: auto;
-		padding: var(--modal-pad);
-
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		animation: dialog-pop 0.25s ease-out;
-
-		border-radius: ${({ theme }) => theme.borderRadius.rounded};
-		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
-		background: ${({ theme }) => theme.color.background};
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			--modal-pad: 1.25rem;
-		}
-	}
-
-	.modal-contents {
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-	}
-
-	/* sheet (#52): 화면 아래에 붙어 올라오는 시트. 데스크톱은 폭을 좁혀 가운데, 모바일은 화면 폭 전체 */
-	&.sheet .modal-body {
 		@keyframes sheet-up {
 			from {
 				transform: translateY(100%);
@@ -253,95 +191,81 @@ const StyledModal = styled.div`
 			}
 		}
 
-		top: auto;
+		--modal-pad: 1.5rem;
+		position: absolute;
 		bottom: 0;
 		left: 0;
 		right: 0;
 		width: min(30rem, 100%);
-		min-width: 0;
-		max-width: none;
 		max-height: 85vh;
 		margin: 0 auto;
 		overflow-y: auto;
-		transform: none;
-		align-items: stretch;
-		padding: 1.75rem 1.5rem calc(1.5rem + env(safe-area-inset-bottom));
-		border-radius: ${({ theme }) => theme.borderRadius.medium} ${({ theme }) => theme.borderRadius.medium} 0 0;
+		overscroll-behavior: contain;
+		padding: 1.75rem var(--modal-pad) calc(var(--modal-pad) + env(safe-area-inset-bottom));
+
+		display: flex;
+		flex-direction: column;
+
+		border-radius: ${({ theme }) => theme.borderRadius.rounded} ${({ theme }) => theme.borderRadius.rounded} 0 0;
+		/* 바깥이 어둡지 않으니 위쪽 그림자와 테두리로 뒤 화면과 구분 */
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-bottom: none;
+		box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.14);
+		background: ${({ theme }) => theme.color.background};
 		animation: sheet-up 0.3s ease-out;
 
+		&.large {
+			width: min(56rem, 100%);
+		}
+
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			--modal-pad: 1.25rem;
 			width: 100%;
-			padding: 1.75rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
-		}
 
-		.modal-contents {
-			padding: 0;
-		}
-
-		/* 핸들: 끌어 내리면 닫힘. 누르기 쉽게 영역은 넓게, 막대는 작게 */
-		.sheet-handle {
-			position: absolute;
-			top: 0;
-			left: 50%;
-			width: 6rem;
-			height: 1.75rem;
-			margin-left: -3rem;
-			padding: 0;
-			border: none;
-			background: transparent;
-			cursor: grab;
-			touch-action: none;
-
-			&::before {
-				content: '';
-				position: absolute;
-				top: 0.625rem;
-				left: 50%;
-				width: 2.5rem;
-				height: 4px;
-				margin-left: -1.25rem;
-				border-radius: 2px;
-				background: ${({ theme }) => theme.color.border};
-			}
-
-			&:active {
-				cursor: grabbing;
-			}
-
-			&:focus-visible::before {
-				background: ${({ theme }) => theme.color.primary};
+			&.large {
+				width: 100%;
 			}
 		}
 	}
 
-	/* 닫기: 작은 원형 버튼 */
-	.modal-close {
-		position: absolute;
-		top: 0.875rem;
-		right: 0.875rem;
+	.modal-contents {
 		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2.25rem;
-		height: 2.25rem;
+		flex-direction: column;
+		width: 100%;
+	}
+
+	/* 핸들: 끌어 내리면 닫힘. 누르기 쉽게 영역은 넓게, 막대는 작게 */
+	.sheet-handle {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 6rem;
+		height: 1.75rem;
+		margin-left: -3rem;
 		padding: 0;
 		border: none;
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		color: ${({ theme }) => theme.color.subText};
 		background: transparent;
-		cursor: pointer;
-		transition:
-			background 0.15s,
-			color 0.15s;
+		cursor: grab;
+		touch-action: none;
 
-		svg {
-			width: 1.25rem;
-			height: 1.25rem;
+		&::before {
+			content: '';
+			position: absolute;
+			top: 0.625rem;
+			left: 50%;
+			width: 2.5rem;
+			height: 4px;
+			margin-left: -1.25rem;
+			border-radius: 2px;
+			background: ${({ theme }) => theme.color.border};
 		}
 
-		&:hover {
-			background: ${({ theme }) => theme.color.surface};
-			color: ${({ theme }) => theme.color.text};
+		&:active {
+			cursor: grabbing;
+		}
+
+		&:focus-visible::before {
+			background: ${({ theme }) => theme.color.primary};
 		}
 	}
 `;
