@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect, useId } from 'react';
 import styled from 'styled-components';
-import { IoMdArrowDropdown } from 'react-icons/io';
+import { LuChevronDown, LuCheck } from 'react-icons/lu';
+import { fieldControl, fieldLabel } from '@/components/common/field';
 
 interface Props {
 	id?: string;
@@ -16,7 +17,12 @@ interface Props {
 	children?: React.ReactNode;
 }
 
+/**
+ * 선택 목록. 다른 입력칸과 같은 모양이고, 펼친 목록은 테두리·그림자로 아래 내용과 구분한다.
+ * 키보드: Enter·Space·↓로 열고, ↑↓로 고르고, Enter로 정하고, Esc로 닫는다
+ */
 const InputSelect: React.FC<Props> = ({
+	id,
 	name,
 	value,
 	label,
@@ -27,58 +33,96 @@ const InputSelect: React.FC<Props> = ({
 	children,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
+	const [active, setActive] = useState(-1);
 	const selectRef = useRef<HTMLDivElement>(null);
+	const autoId = useId();
+	const buttonId = id ?? autoId;
+	const listId = `${buttonId}-list`;
+	const selected = options.find((option) => option.value === value);
 
-	const handleToggle = (e: React.MouseEvent<HTMLDivElement>) => {
-		e.preventDefault();
-		setIsOpen((prev) => !prev);
+	const open = () => {
+		setActive(Math.max(0, options.findIndex((option) => option.value === value)));
+		setIsOpen(true);
 	};
 
-	const handleOptionClick = (optionValue: string) => {
+	const close = useCallback(() => {
+		if (onBlur) onBlur(name, value);
+		setIsOpen(false);
+	}, [name, onBlur, value]);
+
+	const choose = (optionValue: string) => {
 		onChange(optionValue);
 		setIsOpen(false);
+	};
 
-		if (!optionValue && onBlur) {
-			onBlur(name, optionValue);
+	const handleKeyDown = (e: React.KeyboardEvent) => {
+		if (!isOpen) {
+			if (['Enter', ' ', 'ArrowDown'].includes(e.key)) {
+				e.preventDefault();
+				open();
+			}
+			return;
+		}
+		if (e.key === 'Escape') {
+			e.preventDefault();
+			close();
+		} else if (e.key === 'ArrowDown') {
+			e.preventDefault();
+			setActive((i) => Math.min(options.length - 1, i + 1));
+		} else if (e.key === 'ArrowUp') {
+			e.preventDefault();
+			setActive((i) => Math.max(0, i - 1));
+		} else if (e.key === 'Enter' || e.key === ' ') {
+			e.preventDefault();
+			if (options[active]) choose(options[active].value);
+		} else if (e.key === 'Tab') {
+			close();
 		}
 	};
 
 	const handleClickOutside = useCallback(
 		(e: MouseEvent) => {
-			if (selectRef.current && !selectRef.current.contains(e.target as Node)) {
-				if (isOpen) {
-					if (onBlur) {
-						onBlur(name, '');
-					}
-					setIsOpen(false);
-				}
-			}
+			if (isOpen && selectRef.current && !selectRef.current.contains(e.target as Node)) close();
 		},
-		[isOpen, name, onBlur]
+		[isOpen, close],
 	);
 
 	useEffect(() => {
 		document.addEventListener('mousedown', handleClickOutside);
-		return () => {
-			document.removeEventListener('mousedown', handleClickOutside);
-		};
+		return () => document.removeEventListener('mousedown', handleClickOutside);
 	}, [handleClickOutside]);
 
 	return (
 		<StyledInputSelect ref={selectRef} $open={isOpen}>
-			{label && <label>{label}</label>}
-			<div className="select-display" onClick={handleToggle}>
-				{value ? options.find((option) => option.value === value)?.label || placeholder : placeholder}
-				<IoMdArrowDropdown className={`select-arrow ${isOpen ? 'open' : ''}`} />
-			</div>
-			<ul className="options-list">
-				{options.map((option) => (
+			{label && <label htmlFor={buttonId}>{label}</label>}
+			<button
+				id={buttonId}
+				type="button"
+				name={name}
+				className={`select-display ${selected ? '' : 'placeholder'}`}
+				aria-haspopup="listbox"
+				aria-expanded={isOpen}
+				aria-controls={listId}
+				onClick={() => (isOpen ? close() : open())}
+				onKeyDown={handleKeyDown}
+			>
+				<span>{selected?.label ?? placeholder}</span>
+				<LuChevronDown className="select-arrow" aria-hidden />
+			</button>
+			<ul id={listId} className="options-list" role="listbox" aria-label={label ?? placeholder}>
+				{options.map((option, i) => (
 					<li
 						key={option.value}
-						className={`option-item ${option.value === value ? 'selected' : ''}`}
-						onClick={() => handleOptionClick(option.value)}
+						role="option"
+						aria-selected={option.value === value}
+						className={`option-item ${option.value === value ? 'selected' : ''} ${i === active ? 'active' : ''}`}
+						onMouseEnter={() => setActive(i)}
+						// 버튼에서 초점이 빠져 목록이 먼저 닫히지 않게
+						onMouseDown={(e) => e.preventDefault()}
+						onClick={() => choose(option.value)}
 					>
 						{option.label}
+						{option.value === value && <LuCheck aria-hidden />}
 					</li>
 				))}
 			</ul>
@@ -93,70 +137,91 @@ interface StyleProps {
 
 const StyledInputSelect = styled.div<StyleProps>`
 	position: relative;
+	width: 100%;
+
+	label {
+		${fieldLabel}
+	}
 
 	.select-display {
+		${fieldControl}
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		padding: 0.5rem 1rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
-		background: ${({ theme }) => theme.color.surface};
-		font-size: ${({ theme }) => theme.fontSize.small};
+		gap: 0.5rem;
+		text-align: left;
 		cursor: pointer;
-		line-height: 1.8;
-		height: 3rem;
-		z-index: 1000;		
+
+		&.placeholder span {
+			color: ${({ theme }) => theme.color.lightGrey};
+		}
+
+		${({ $open, theme }) =>
+			$open &&
+			`border-color: ${theme.color.primary};
+			box-shadow: 0 0 0 3px color-mix(in srgb, ${theme.color.primary} 18%, transparent);`}
 
 		.select-arrow {
-			margin-left: 0.5rem;
-			transition: transform 0.25s ease-in-out;
-			font-size: ${({ theme }) => theme.fontSize.large};
-			color: ${({ theme }) => theme.color.primary};
-
-			&.open {
-				transform: rotate(180deg);
-			}
+			flex-shrink: 0;
+			width: 1.125rem;
+			height: 1.125rem;
+			color: ${({ theme }) => theme.color.subText};
+			transition: transform 0.2s ease;
+			transform: rotate(${({ $open }) => ($open ? '180deg' : '0deg')});
 		}
 	}
 
 	.options-list {
-		width: 100%;
-		visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
-		max-height: ${({ $open }) => ($open ? 'auto' : '0')};
-		opacity: ${({ $open }) => ($open ? '1' : '0')};
-		transform-origin: top;
-		transform: ${({ $open }) => ($open ? 'scaleY(1)' : 'scaleY(0)')};
-		transition: all 0.3s ease-in-out;
-
 		position: absolute;
-		top: 100%;
-		overflow-y: auto;
+		top: calc(100% + 0.375rem);
+		left: 0;
+		z-index: 20;
+		width: 100%;
+		max-height: 16rem;
 		margin: 0;
-		padding: 0.5rem;
-
+		padding: 0.375rem;
+		overflow-y: auto;
 		list-style: none;
-		box-shadow: ${({ theme }) => theme.shadow.light};
+
+		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.borderRadius.medium};
-		background: ${({ theme }) => theme.color.surface};
-		z-index: 2000;
+		background: ${({ theme }) => theme.color.background};
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
-		.option-item {
-			padding: 0.5rem 1rem;
-			border-radius: ${({ theme }) => theme.borderRadius.medium};
-			cursor: pointer;
-			margin: 0.5rem;
-			white-space: nowrap;
+		visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
+		opacity: ${({ $open }) => ($open ? 1 : 0)};
+		transform: translateY(${({ $open }) => ($open ? '0' : '-0.25rem')});
+		transition:
+			opacity 0.15s ease,
+			transform 0.15s ease,
+			visibility 0.15s;
+	}
 
-			&.selected {
-				background: ${({ theme }) => theme.color.primary};
-				color: ${({ theme }) => theme.color.background};
-			}
+	.option-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		padding: 0.625rem 0.75rem;
+		border-radius: ${({ theme }) => theme.borderRadius.soft};
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.text};
+		white-space: nowrap;
+		cursor: pointer;
 
-			&:hover {
-				background: ${({ theme }) => theme.color.secondary};
-				color: ${({ theme }) => theme.color.background};
-			}
+		svg {
+			width: 1rem;
+			height: 1rem;
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		&.active {
+			background: ${({ theme }) => theme.color.surface};
+		}
+
+		&.selected {
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		}
 	}
 `;

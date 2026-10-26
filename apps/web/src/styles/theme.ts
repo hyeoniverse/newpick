@@ -162,7 +162,7 @@ export const lightTheme: Theme = {
 		},
 		extraSmall: {
 			fontSize: '0.875rem',
-			padding: '0 0.5rem',
+			padding: '0.375rem 0.625rem',
 			gap: '0.75rem',
 		},
 	},
@@ -177,14 +177,15 @@ export const lightTheme: Theme = {
 				background: '#2001af',
 			},
 		},
+		// 연한 강조색 바탕 (default는 바탕 없음). 예전에는 둘이 똑같아 보였다
 		secondary: {
-			color: '#000000',
-			background: 'transparent',
+			color: '#3610e1',
+			background: '#F4F1FF',
 			border: '1px solid transparent',
-			fontWeight: '500',
+			fontWeight: '600',
 			hover: {
 				color: '#3610e1',
-				background: '#F4F1FF',
+				background: '#E6DFFF',
 			},
 		},
 		outline: {
@@ -293,12 +294,12 @@ export const darkTheme: Theme = {
 			},
 		},
 		secondary: {
-			color: '#f1f1f1',
-			background: 'transparent',
+			color: '#c9d0ff',
+			background: '#1b2357',
 			border: '1px solid transparent',
-			fontWeight: '500',
+			fontWeight: '600',
 			hover: {
-				color: '#9ca9ff',
+				color: '#ffffff',
 				background: '#0f1d7a',
 			},
 		},
