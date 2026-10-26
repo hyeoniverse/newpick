@@ -45,7 +45,8 @@ export default function HotSection({ trends: initiallData = [] }: Props) {
 					header: trend.categoryName,
 					main: {
 						title: trend.title,
-						description: trend.summary,
+						// 부제목이 있으면 본문 앞부분 대신 (#42)
+						description: trend.subtitle || trend.summary,
 					},
 					footer: (
 						<>

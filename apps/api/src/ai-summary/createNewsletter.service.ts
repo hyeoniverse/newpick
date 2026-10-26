@@ -11,6 +11,7 @@ export class CreateNewsletterService {
 
   async createNewsletter(
     title: string,
+    subtitle: string | null,
     summary: string,
     usedNews: string,
     categoryId: number,
@@ -20,6 +21,7 @@ export class CreateNewsletterService {
     const newsletter = await this.prisma.newsletter.create({
       data: {
         title: title,
+        subtitle,
         content: summary,
         contentAsHTML,
         categoryId: categoryId,

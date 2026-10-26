@@ -76,4 +76,22 @@ describe('parseArticles', () => {
 			},
 		]);
 	});
+
+	it('부제목이 있으면 함께 넘기고, 없으면 키를 만들지 않는다 (#42)', () => {
+		const base = {
+			id: 1,
+			categoryId: 1,
+			imageUrl: '',
+			title: '제목',
+			content: '요약',
+			createdAt: '2026-10-27',
+			viewcount: 0,
+		};
+		const [withSubtitle, without] = parseArticles([
+			{ ...base, subtitle: '부제목' } as unknown as ArticleDetail,
+			{ ...base, subtitle: null } as unknown as ArticleDetail,
+		]);
+		expect(withSubtitle.subtitle).toBe('부제목');
+		expect(without).not.toHaveProperty('subtitle');
+	});
 });

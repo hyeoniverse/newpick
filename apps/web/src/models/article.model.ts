@@ -7,6 +7,8 @@ export interface ArticleInfo {
 export interface ArticleDetail {
 	id: number;
 	title: string;
+	/** 제목에 담지 않은 나머지 소식 한 줄. 이전 뉴스레터는 null */
+	subtitle?: string | null;
 	content: string;
 	contentAsHTML: string;
 	imageUrl: string | null;
@@ -22,6 +24,7 @@ export interface ArticleSummary {
 	userId?: number;
 	image: string;
 	title: string;
+	subtitle?: string;
 	summary: string;
 	date: string;
 	bookmarks?: number;

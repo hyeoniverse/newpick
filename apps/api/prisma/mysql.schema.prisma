@@ -58,6 +58,8 @@ model OAuthToken {
 model Newsletter {
   id            Int      @id @default(autoincrement())
   title         String
+  /// 제목에 담지 않은 나머지 주요 소식 한 줄 (#42). 이전 뉴스레터는 null
+  subtitle      String?
   content       String   @db.LongText
   contentAsHTML String?  @db.LongText
   imageUrl      String?  @db.LongText

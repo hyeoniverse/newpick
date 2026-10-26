@@ -38,8 +38,15 @@ export class AiSummaryService {
       '\n' +
       news.map((item) => item.content).join('\n');
     try {
+      // 분야를 알려 줘야 IT 뉴스레터가 증시 기사로 제목을 짓지 않습니다 (#42)
+      const category = (
+        await this.prisma.newsCategory.findUnique({
+          where: { id: categoryId },
+          select: { name: true },
+        })
+      )?.name;
       const { text: summary, tokens: token } =
-        await this.basicSummarizeService.basicSummarize(newsText, 1000, 1500);
+        await this.basicSummarizeService.basicSummarize(newsText, category);
       const duration = (Date.now() - startTime) / 1000;
       const newslinks = news.map((item) => item.link).toString();
       this.logger.debug(`요약 완료: ${summary.length}자`);
@@ -56,13 +63,17 @@ export class AiSummaryService {
         },
       });
 
-      const title = await this.createTitleService.createTitle(summary);
+      const { title, subtitle } = await this.createTitleService.createHeadline(
+        summary,
+        category,
+      );
       const html = await this.htmlFormatterService.formatHtml(summary);
 
       const newsletterTemporary = {
         message:
           '요약 완료 이 요청은 테스트 요약입니다. DB에 저장되지 않습니다.',
         title: title,
+        subtitle: subtitle,
         summary: summary,
         newslinks: newslinks,
         categoryId: categoryId,
@@ -75,6 +86,7 @@ export class AiSummaryService {
       }
       const newsletter = await this.createNewsletterService.createNewsletter(
         title,
+        subtitle,
         summary,
         newslinks,
         categoryId,

@@ -56,6 +56,11 @@ function Article() {
           <Title size="large" weight="semiBold" className="title">
             {newsletterContent.title}
           </Title>
+          {newsletterContent.subtitle && (
+            <Text size="medium" color="subText" className="subtitle">
+              {newsletterContent.subtitle}
+            </Text>
+          )}
           <div className="info">
             <Text size="small" color="subText">
               {dateFormatter(newsletterContent.createdAt)}
@@ -184,6 +189,11 @@ const TitleSectionStyled = styled.div`
 
         .title {
             word-break: auto-phrase;
+        }
+
+        .subtitle {
+            word-break: auto-phrase;
+            max-width: 40rem;
         }
 
         .icons {
