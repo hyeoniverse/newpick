@@ -5,6 +5,8 @@ export interface Card {
 	main: {
 		title?: string;
 		description: string;
+		/** 키워드 (#50). 목록 카드에만 표시 */
+		tags?: string[];
 	};
 	footer?: string | React.ReactNode;
 	url?: string;

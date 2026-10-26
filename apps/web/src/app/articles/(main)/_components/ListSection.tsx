@@ -150,7 +150,9 @@ export default function ListSection() {
 							header: article.categoryName,
 							main: {
 								title: article.title,
-								description: article.summary,
+								// 부제목이 있으면 본문 앞부분 대신 (#42)
+								description: article.subtitle || article.summary,
+								tags: article.keywords,
 							},
 							footer: (
 								<>

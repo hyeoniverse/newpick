@@ -29,6 +29,8 @@ export class NewsletterRepo {
       select: {
         id: true,
         title: true,
+        subtitle: true,
+        keywords: true,
         imageUrl: true,
         categoryId: true,
         viewcount: true,
