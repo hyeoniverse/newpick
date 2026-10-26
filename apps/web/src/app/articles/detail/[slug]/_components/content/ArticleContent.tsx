@@ -199,6 +199,33 @@ const NewsletterContentStyled = styled.article`
 			margin-bottom: 1rem;
 		}
 
+		/* 소식 사진 (#49): 원출처 또는 Pexels·Unsplash, 아래에 출처 */
+		.story-image {
+			margin: 0 0 1.5rem;
+
+			img {
+				display: block;
+				width: 100%;
+				aspect-ratio: 16 / 9;
+				object-fit: cover;
+				margin: 0;
+				border-radius: ${({ theme }) => theme.borderRadius.soft};
+				background: ${({ theme }) => theme.color.surface};
+			}
+
+			figcaption {
+				margin-top: 0.5rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.subText};
+
+				a {
+					color: inherit;
+					text-decoration: underline;
+					text-decoration-thickness: 1px;
+				}
+			}
+		}
+
 		/* 템플릿별 고유 요소 (#48) */
 
 		/* numbers: 지표 카드 */

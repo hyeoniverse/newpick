@@ -1,4 +1,8 @@
-import type { Story, WrittenNewsletter } from './newsletterWriter.service';
+import type {
+  Story,
+  StoryImage,
+  WrittenNewsletter,
+} from './newsletterWriter.service';
 
 const escapeHtml = (text: string) =>
   text
@@ -33,16 +37,33 @@ const credit = (story: Story, articles: SourceRef[]) => {
       seen.add(key);
       return true;
     })
-    .map((a) => {
-      const name = escapeHtml(a.source || '원문');
-      return isWebUrl(a.link)
-        ? `<a href="${escapeHtml(a.link!)}" target="_blank" rel="noopener noreferrer">${name}</a>`
-        : name;
-    });
+    .map((a) => link(a.source || '원문', a.link));
   return links.length ? `<p class="credit">출처 ${links.join(' · ')}</p>` : '';
 };
 
 export type SourceRef = { source?: string; link?: string };
+
+const link = (text: string, url?: string) =>
+  isWebUrl(url)
+    ? `<a href="${escapeHtml(url!)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`
+    : escapeHtml(text);
+
+/** 사진 출처 표기. Unsplash는 "Photo by 작가 on Unsplash" 형식이 이용 규칙이다 (#49) */
+const imageCaption = (image: StoryImage) => {
+  switch (image.provider) {
+    case 'pexels':
+      return `Photo: ${link(image.credit, image.creditUrl)} / ${link('Pexels', image.providerUrl)}`;
+    case 'unsplash':
+      return `Photo by ${link(image.credit, image.creditUrl)} on ${link('Unsplash', image.providerUrl)}`;
+    default:
+      return `사진 ${link(image.credit, image.creditUrl)}`;
+  }
+};
+
+const figure = (story: Story) =>
+  story.image && isWebUrl(story.image.url)
+    ? `<figure class="story-image"><img src="${escapeHtml(story.image.url)}" alt="${escapeHtml(story.image.alt)}" loading="lazy"><figcaption>${imageCaption(story.image)}</figcaption></figure>`
+    : '';
 
 const body = (story: Story) =>
   story.body ? `<div class="body">${paragraphs(story.body)}</div>` : '';
@@ -116,6 +137,7 @@ export function renderNewsletterHtml(
       `<p class="kicker"><span class="index">${index}</span>${escapeHtml(story.kicker)}</p>`,
       `<h2>${escapeHtml(story.heading)}</h2>`,
       story.lead ? `<p class="lead">${escapeHtml(story.lead)}</p>` : '',
+      figure(story),
       ...TEMPLATE_PARTS[story.template](story),
       credit(story, articles),
       '</article>',

@@ -45,6 +45,21 @@ export type Story = {
   quote: { text: string; by: string };
   /** 원래 기사 목록에서의 번호 (1부터) */
   sources: number[];
+  /** 원출처 사진이 없을 때 Pexels·Unsplash에서 찾을 영어 검색어 */
+  imageQuery: string;
+  /** 쓰기가 끝난 뒤 서버가 붙인다 (storyImages.ts) */
+  image?: StoryImage;
+};
+
+export type StoryImage = {
+  url: string;
+  alt: string;
+  /** 사진 아래 표기: 언론사 또는 작가 */
+  credit: string;
+  creditUrl?: string;
+  provider: 'article' | 'pexels' | 'unsplash';
+  /** Pexels·Unsplash 페이지 (출처 표기 규칙) */
+  providerUrl?: string;
 };
 
 /**
@@ -173,6 +188,7 @@ export const writerPrompt = (articles: PrepArticle[], category?: string) =>
     `  - body: 경과와 맥락 ${LIMITS.body.min}~${LIMITS.body.max}자, 문단 1~2개. 문단 사이는 빈 줄 하나. 템플릿 고유 항목(stats·timeline·qa·quote)과 같은 내용을 반복하지 않습니다.`,
     `  - analysis: 시사점 ${LIMITS.analysis.min}~${LIMITS.analysis.max}자. 파급 효과, 이해관계자, 쟁점, 전망. 기사에 근거가 없는 예측은 하지 않습니다.`,
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
+    '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 실존 인물 이름·기업 로고 대신 장면이나 사물 (예: "stock market screen", "farmland korea", "ballot counting").',
     `- watch: 관전 포인트. 앞으로 지켜볼 일정·변수 1~${LIMITS.watch.max}개, 하나에 ${LIMITS.watch.length}자 이내. 기사에 나온 것만.`,
     '- 숫자·이름·날짜는 기사에 있는 그대로 쓰고, 기사에 없는 내용은 더하지 않습니다.',
     '- 마크다운, HTML, 글머리 기호 문자(-, •)는 쓰지 않습니다. 따옴표로 제목을 감싸지 않습니다.',
@@ -215,6 +231,7 @@ const WRITER_SCHEMA = {
           qa: { type: 'array', items: pairs(['q', 'a']) },
           quote: pairs(['text', 'by']),
           sources: { type: 'array', items: { type: 'integer' } },
+          imageQuery: { type: 'string' },
         },
         required: [
           'template',
@@ -228,6 +245,7 @@ const WRITER_SCHEMA = {
           'qa',
           'quote',
           'sources',
+          'imageQuery',
         ],
         additionalProperties: false,
       },
@@ -323,6 +341,7 @@ export function normalize(
       timeline: rows(s.timeline, LIMITS.timeline.max),
       qa: rows(s.qa, LIMITS.qa.max),
       quote: { text: clean(s.quote.text), by: s.quote.by.trim() },
+      imageQuery: s.imageQuery.trim(),
       sources: [
         ...new Set(
           s.sources

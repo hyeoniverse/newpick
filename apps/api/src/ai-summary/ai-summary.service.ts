@@ -5,6 +5,7 @@ import { CreateNewsletterService } from './createNewsletter.service';
 import { CrawledNews } from 'src/crawling/schema/crawling.schema';
 import { NewsletterWriterService } from './newsletterWriter.service';
 import { renderNewsletterHtml } from './newsletterHtml';
+import { StoryImageService } from './storyImages';
 
 /**
  * 뉴스레터에 쓴 기사만 남깁니다. 썸네일·관련 기사가 실제로 다룬 소식에서 나오게 (#43).
@@ -23,6 +24,7 @@ export class AiSummaryService {
     private readonly findCategoryService: FindCategoryService,
     private readonly createNewsletterService: CreateNewsletterService,
     private readonly newsletterWriterService: NewsletterWriterService,
+    private readonly storyImageService: StoryImageService,
   ) {}
 
   async summarizeText(
@@ -57,7 +59,17 @@ export class AiSummaryService {
       );
       const newslinks = used.map((item) => item.link).toString();
       const imageUrl = used.map((item) => item.images).toString();
-      const html = renderNewsletterHtml(written, news);
+      // 상세 화면 맨 위 대표 이미지와 같은 사진은 소식에 다시 쓰지 않는다 (#49)
+      const hero = used.flatMap((item) => item.images ?? []).find(Boolean);
+      const withImages = await this.storyImageService.attach(
+        stories,
+        news,
+        hero,
+      );
+      const html = renderNewsletterHtml(
+        { ...written, stories: withImages },
+        news,
+      );
       this.logger.debug(
         `뉴스레터 작성 완료: 소식 ${stories.length}개, 기사 ${news.length}건 중 ${used.length}건 사용`,
       );

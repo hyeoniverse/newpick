@@ -44,6 +44,7 @@ const written = (
       qa: [],
       quote: { text: '', by: '' },
       sources: [2],
+      imageQuery: 'stock market',
     },
   ],
   watch: ['FOMC 결과'],
@@ -431,6 +432,7 @@ describe('파이프라인', () => {
       {} as never,
       { createNewsletter } as never,
       { write } as never,
+      { attach: jest.fn(async (stories) => stories) } as never,
     );
 
     await service.summarizeText(news as never, 1, false);

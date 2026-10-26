@@ -7,6 +7,7 @@ import { CrawledNewsModule } from '../crawling/crawled-news.module';
 import { FindCategoryService } from './findCategory.service';
 import { CreateNewsletterService } from './createNewsletter.service';
 import { NewsletterWriterService } from './newsletterWriter.service';
+import { StoryImageService } from './storyImages';
 import { Logger } from '@nestjs/common';
 @Module({
   imports: [CrawledNewsModule],
@@ -23,6 +24,7 @@ import { Logger } from '@nestjs/common';
     FindCategoryService,
     CreateNewsletterService,
     NewsletterWriterService,
+    StoryImageService,
   ],
   exports: [
     AiSummaryService,
