@@ -55,6 +55,19 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 										{main.description}
 									</Text>
 								)}
+								{!!main.points?.length && (
+									<div className="points">
+										<p className="points-title">이 뉴스레터의 소식</p>
+										<ol>
+											{main.points.map((point, i) => (
+												<li key={point.heading}>
+													<span className="no">{String(i + 1).padStart(2, '0')}</span>
+													<span className="heading">{point.heading}</span>
+												</li>
+											))}
+										</ol>
+									</div>
+								)}
 								<Tags tags={main.tags} max={4} className="tags" />
 								{footer && (
 									<div className="card-footer" onClick={(e) => e.preventDefault()}>
@@ -332,6 +345,52 @@ const mainCardStyles = css`
 
 			@media ${({ theme }) => theme.mediaQuery.mobile} {
 				-webkit-line-clamp: 2;
+			}
+		}
+
+		/* 분야 페이지 배너: 이 뉴스레터에 담긴 소식 */
+		.points {
+			width: 100%;
+			margin-top: 0.25rem;
+
+			.points-title {
+				margin: 0 0 0.375rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				color: ${({ theme }) => theme.color.subText};
+			}
+
+			ol {
+				margin: 0;
+				padding: 0;
+				list-style: none;
+			}
+
+			li {
+				display: flex;
+				gap: 0.625rem;
+				padding: 0.375rem 0;
+				border-top: 1px dashed ${({ theme }) => theme.color.border};
+				font-size: ${({ theme }) => theme.fontSize.small};
+				line-height: 1.5;
+				color: ${({ theme }) => theme.color.text};
+
+				&:first-child {
+					border-top: none;
+				}
+			}
+
+			.no {
+				flex-shrink: 0;
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				font-variant-numeric: tabular-nums;
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			.heading {
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
 			}
 		}
 

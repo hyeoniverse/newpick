@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
-import { parseArticles, parseUrls } from '@/utils/parseArticles';
+import { extractStories, parseArticles, parseUrls } from '@/utils/parseArticles';
 import { getFirstImage } from '@/utils/getFirstImage';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 import { ArticleDetail } from '@/models/article.model';
@@ -95,5 +95,22 @@ describe('parseArticles', () => {
 		expect(withSubtitle.keywords).toEqual(['코스피']);
 		expect(without).not.toHaveProperty('subtitle');
 		expect(without).not.toHaveProperty('keywords');
+	});
+});
+
+describe('extractStories (분야 페이지 배너)', () => {
+	it('본문 HTML에서 소식의 꼬리표·제목을 순서대로 꺼낸다 (번호·HTML 이스케이프 처리)', () => {
+		const html =
+			'<div class="newsletter"><article class="story story-analysis"><p class="kicker"><span class="index">01</span>브라질</p><h2>룰라, 결선 뒤집고 4선</h2></article>' +
+			'<article class="story story-quote"><p class="kicker"><span class="index">02</span>중동</p><h2>&quot;호르무즈 기뢰 없다&quot; &amp; 통과</h2></article></div>';
+		expect(extractStories(html)).toEqual([
+			{ kicker: '브라질', heading: '룰라, 결선 뒤집고 4선' },
+			{ kicker: '중동', heading: '"호르무즈 기뢰 없다" & 통과' },
+		]);
+	});
+
+	it('구조가 없는 예전 뉴스레터는 빈 배열', () => {
+		expect(extractStories('<div><p>예전 글</p></div>')).toEqual([]);
+		expect(extractStories(null)).toEqual([]);
 	});
 });

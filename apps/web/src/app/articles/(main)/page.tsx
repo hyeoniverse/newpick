@@ -1,10 +1,26 @@
-import { ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { parseArticles } from '@/utils/parseArticles';
-import { fetchTrendList } from '@/api/article';
+import { mapIdToTitle } from '@/utils/mapInterests';
+import { fetchArticleByCategory, fetchTrendList } from '@/api/article';
 
 import styles from '@/app/articles/(main)/category.module.css';
-import HotSection from '@/app/articles/(main)/_components/HotSection';
+import HotSection, { CategoryStats } from '@/app/articles/(main)/_components/HotSection';
 import ListSection from '@/app/articles/(main)/_components/ListSection';
+
+const WEEK = 7 * 24 * 60 * 60 * 1000;
+
+/** 분야 페이지 배너의 요약: 최근 7일 편 수와 자주 나온 키워드 3개 */
+function summarize(newsletters: IArticleDetail[]): CategoryStats {
+	const since = Date.now() - WEEK;
+	const recent = newsletters.filter((n) => new Date(n.createdAt).getTime() >= since);
+	const counts = new Map<string, number>();
+	for (const n of recent) for (const k of n.keywords ?? []) counts.set(k, (counts.get(k) ?? 0) + 1);
+	const keywords = [...counts.entries()]
+		.sort((a, b) => b[1] - a[1])
+		.slice(0, 3)
+		.map(([k]) => k);
+	return { weekCount: recent.length, keywords };
+}
 
 /**
  * 제목과 목록이 ?categoryId=에 따라 달라지므로 요청마다 렌더링합니다.
@@ -12,19 +28,30 @@ import ListSection from '@/app/articles/(main)/_components/ListSection';
  */
 export const dynamic = 'force-dynamic';
 
-export default async function CategoryPage() {
+export default async function CategoryPage({ searchParams }: { searchParams: Promise<{ categoryId?: string }> }) {
+	const categoryId = Number((await searchParams).categoryId) || 0;
+
 	let parsedTrends: IArticleSummary[] = [];
+	let stats: CategoryStats | undefined;
 	try {
-		const trends = await fetchTrendList();
+		const [trends, category] = await Promise.all([
+			fetchTrendList(),
+			categoryId ? fetchArticleByCategory(categoryId, 30, 0) : Promise.resolve(null),
+		]);
 		parsedTrends = parseArticles(trends);
+		if (category) stats = summarize(category.data ?? []);
 	} catch (error) {
 		console.error(error);
 	}
 
+	// 분야 페이지에서 배너에 띄운 글(그 분야 최신 발행본)은 아래 목록에서 다시 보여 주지 않는다
+	const categoryName = mapIdToTitle([categoryId])[0];
+	const bannerId = categoryId ? parsedTrends.find((t) => t.categoryName === categoryName)?.id : undefined;
+
 	return (
 		<div className={styles.categoryPage}>
-			<HotSection trends={parsedTrends} />
-			<ListSection />
+			<HotSection trends={parsedTrends} stats={stats} />
+			<ListSection excludeId={bannerId} />
 		</div>
 	);
 }
