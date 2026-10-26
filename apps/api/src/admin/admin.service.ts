@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { deleteAccount } from 'src/common/delete-account';
 
 @Injectable()
 export class AdminService {
@@ -10,13 +11,9 @@ export class AdminService {
     return this.prisma.user.findMany();
   }
 
+  /** 회원 탈퇴와 같은 경로: 메일 발송 기록까지 함께 지운다 (#65) */
   async deleteUser(id: number) {
-    const user = await this.prisma.user.findUnique({ where: { id } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    return this.prisma.user.delete({ where: { id } });
+    return deleteAccount(this.prisma, id);
   }
 
   async getAllBookmarks() {

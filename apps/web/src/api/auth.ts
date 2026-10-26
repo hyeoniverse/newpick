@@ -30,6 +30,11 @@ export const fetchUser = async (): Promise<User> => {
 	return fetchAdditionalUserData(userData);
 };
 
+// 회원 탈퇴: 회원 정보와 관심 분야·구독·북마크·발송 기록을 지우고 로그인 쿠키도 지운다 (#65)
+export const deleteAccount = async (): Promise<void> => {
+	await apiFetch(API_ENDPOINTS.MY.ACCOUNT(), { method: 'DELETE' });
+};
+
 // 로그아웃 API
 export const logoutUser = async (): Promise<void> => {
 	await apiFetch(API_ENDPOINTS.AUTH.LOGOUT(), { method: 'POST', retryOnUnauthorized: false });
