@@ -1,22 +1,46 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { ToastPosition } from '@/models/toast.model';
 import { useMount } from '@/hooks/useMount';
 import { useToast } from '@/hooks/useToast';
+import { headerBottom } from '@/utils/headerBottom';
 
 import styled from 'styled-components';
 import Toast from '@/components/common/toast/Toast';
 
+/** 헤더(또는 펼친 메뉴)와 토스트 사이 간격 */
+const GAP = 12;
+
 const ToastContainer = React.memo(() => {
 	const { isMounted } = useMount();
 	const { toasts, position } = useToast();
+	const containerRef = useRef<HTMLDivElement>(null);
+	const isTop = position.includes('top');
+
+	// 위쪽 토스트는 헤더와 펼친 메뉴(프로필·모바일 메뉴·아래 메뉴) 아래에 둔다.
+	// 헤더는 스크롤로 접히고 메뉴는 애니메이션으로 펼쳐지므로, 토스트가 떠 있는 동안 매 프레임 잰다
+	useEffect(() => {
+		if (!isMounted || !isTop || !toasts.length) return;
+		let frame = 0;
+		const follow = () => {
+			if (containerRef.current) containerRef.current.style.top = `${Math.round(headerBottom()) + GAP}px`;
+			frame = requestAnimationFrame(follow);
+		};
+		follow();
+		const container = containerRef.current;
+		return () => {
+			cancelAnimationFrame(frame);
+			// 아래쪽 위치로 바꿨을 때 남은 top이 방해하지 않게
+			if (container) container.style.top = '';
+		};
+	}, [isMounted, isTop, toasts.length]);
 
 	if (!isMounted) return null;
 
 	return createPortal(
-		<StyledToastContainer $position={position}>
+		<StyledToastContainer ref={containerRef} $position={position}>
 			{toasts.map((toast) => (
 				<Toast
 					key={toast.id}
