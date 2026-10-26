@@ -29,7 +29,6 @@ function setup(failingCategoryId: number) {
     {} as never,
     {} as never,
     {} as never,
-    {} as never,
   );
   return { service, crawlingRepository, aiSummaryService };
 }

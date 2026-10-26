@@ -31,10 +31,14 @@ export default function ListSection() {
 	const [selectedSort, setSelectedSort] = useState<'latest' | 'bookmarks' | 'views'>('latest');
 	const [shouldLoad, setShouldLoad] = useState(false); // 데이터 로딩 트리거 상태 추가
 	const observerRef = useRef<HTMLDivElement | null>(null);
+	// 처음 불러오기와 화면 끝 감지가 같은 순간에 부르면, isLoading(state)은 다음 렌더링에야 바뀌어
+	// 둘 다 요청을 보낸다 (요청 2번·실패 알림 2번). ref로 바로 막는다
+	const loadingRef = useRef(false);
 
 	// API를 통해 다음 페이지 데이터를 불러오는 함수
 	const loadMoreArticles = useCallback(async () => {
-		if (isLoading) return;
+		if (loadingRef.current) return;
+		loadingRef.current = true;
 		setIsLoading(true);
 
 		try {
@@ -71,9 +75,10 @@ export default function ListSection() {
 			setHasMore(false);
 			showToast('뉴스레터를 더 불러오지 못했습니다.', 'error');
 		} finally {
+			loadingRef.current = false;
 			setIsLoading(false);
 		}
-	}, [currentPage, isLoading, categoryName, categoryId, showToast]);
+	}, [currentPage, categoryName, categoryId, showToast]);
 
 	useEffect(() => {
 		// 카테고리가 바뀌면 기존 데이터를 초기화하고 정렬 방식도 'latest'로 재설정합니다.
@@ -150,7 +155,9 @@ export default function ListSection() {
 							header: article.categoryName,
 							main: {
 								title: article.title,
-								description: article.summary,
+								// 부제목이 있으면 본문 앞부분 대신 (#42)
+								description: article.subtitle || article.summary,
+								tags: article.keywords,
 							},
 							footer: (
 								<>

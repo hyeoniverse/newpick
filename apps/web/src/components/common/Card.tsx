@@ -7,6 +7,7 @@ import styled, { css } from 'styled-components';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Image from '@/components/common/Image';
+import Tags from '@/components/common/Tags';
 
 interface Props {
 	className?: string;
@@ -23,33 +24,31 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 			<div className="card-body">
 				{type === 'main' && (
 					<>
+						{/* 톱 기사 형식: 사진 | 분야 · 제목 · 부제 · 키워드 · 날짜 (모바일은 사진이 위) */}
 						<Link href={url || ''} target={newTab ? '_blank' : '_self'}>
-							<div className="card-header">
-								<Text size="medium" color="primary" weight="semiBold">
+							<div className="image-placeholder">
+								<Image src={image || '/img/newpick_default_img.jpg'} alt={main.title || 'card'} />
+							</div>
+							<div className="card-main">
+								<Text className="category" size="small" color="primary" weight="semiBold">
 									{header}
 								</Text>
 								{main.title && (
-									<Title className="title" weight="semiBold">
+									<Title className="title" weight="bold">
 										{main.title}
 									</Title>
 								)}
-							</div>
-							<div className="card-main">
-								<div className="content">
-									{main.description && (
-										<Text className="description" size="medium">
-											{main.description}
-										</Text>
-									)}
-									{footer && (
-										<div className="card-footer" onClick={(e) => e.preventDefault()}>
-											{footer}
-										</div>
-									)}
-								</div>
-								<div className="image-placeholder">
-									<Image src={image || '/img/newpick_default_img.jpg'} alt={main.title || 'card'} />
-								</div>
+								{main.description && (
+									<Text className="description" size="medium">
+										{main.description}
+									</Text>
+								)}
+								<Tags tags={main.tags} max={4} className="tags" />
+								{footer && (
+									<div className="card-footer" onClick={(e) => e.preventDefault()}>
+										{footer}
+									</div>
+								)}
 							</div>
 						</Link>
 					</>
@@ -116,6 +115,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 												{main.description}
 											</Text>
 										)}
+										<Tags tags={main.tags} max={4} className="tags" />
 										{footer && (
 											<div className="card-footer" onClick={(e) => e.preventDefault()}>
 												{footer}
@@ -265,44 +265,69 @@ const StyledCard = styled.div<StyledProps>`
 
 const mainCardStyles = css`
 	.card-body {
-		display: flex;
-		flex-direction: column;
 		width: 100%;
 	}
 
-	.card-main {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		gap: 1rem;
+	a {
+		display: grid;
+		grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
+		align-items: center;
+		gap: 2rem;
+		width: 100%;
 
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			flex-wrap: wrap;
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
+	}
+
+	.image-placeholder {
+		margin: 0;
+		aspect-ratio: 16 / 9;
+	}
+
+	.card-main {
+		flex-direction: column;
+		align-items: flex-start;
+		justify-content: center;
+		gap: 0.5rem;
+		min-width: 0;
+
+		.title {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.extraLarge};
+			line-height: 1.35;
+			word-break: keep-all;
+			-webkit-line-clamp: 2;
+
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				font-size: ${({ theme }) => theme.fontSize.large};
+			}
 		}
 
-		.content {
-			display: flex;
-			flex-direction: column;
-			justify-content: space-between;
+		.description {
+			line-height: 1.6;
+			color: ${({ theme }) => theme.color.subText};
+			-webkit-line-clamp: 3;
 
-			.description {
-				height: 100%;
-				min-height: calc(${({ theme }) => theme.fontSize.medium} * 1.5 * 5);
-				line-height: 1.5;
-				-webkit-line-clamp: 5;
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				-webkit-line-clamp: 2;
+			}
+		}
+
+		.tags {
+			margin-top: 0.25rem;
+
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				li:nth-child(n + 4) {
+					display: none;
+				}
 			}
 		}
 
 		.card-footer {
+			margin-top: 0.75rem;
 			white-space: nowrap;
-			flex-wrap: wrap;
-			justify-content: flex-start;
-			align-items: center;
-		}
-
-		.image-placeholder {
-			height: 100%;
-			min-width: 30%;
 		}
 	}
 `;
@@ -328,6 +353,11 @@ const subCardStyles = css`
 `;
 
 const listCardStyles = css`
+	/* 목록 마지막 카드는 아래 구분선 없음 */
+	&:last-child .card-body {
+		border-bottom: none;
+	}
+
 	a {
 		width: 100%;
 		display: flex;
@@ -348,36 +378,50 @@ const listCardStyles = css`
 	.card-main {
 		width: 100%;
 		flex-direction: column;
-		align-items: center;
+		align-items: stretch;
 
+		/* 뉴스 목록 모양: 글은 왼쪽, 썸네일은 오른쪽 고정 폭 (모바일도 같은 줄) */
 		.content {
 			width: 100%;
 			display: flex;
 			flex-direction: row;
-			gap: 1rem;
+			align-items: flex-start;
+			gap: 1.5rem;
 
 			@media ${({ theme }) => theme.mediaQuery.mobile} {
-				flex-wrap: wrap;
-
-				.left {
-					min-width: 100%;
-				}
+				gap: 0.75rem;
 			}
 
 			.left {
-				max-width: 70%;
+				flex: 1;
+				min-width: 0;
 				display: flex;
 				flex-direction: column;
-				justify-content: center;
 				gap: 0.25rem;
 			}
 
 			.image-placeholder {
-				height: fit-content;
-				min-width: 30%;
+				flex: 0 0 15rem;
+				width: 15rem;
 
-				@media ${({ theme }) => theme.mediaQuery.tablet} {
-					max-width: 100%;
+				@media ${({ theme }) => theme.mediaQuery.mobile} {
+					flex-basis: 7.5rem;
+					width: 7.5rem;
+				}
+			}
+		}
+
+		.title {
+			-webkit-line-clamp: 2;
+		}
+
+		.tags {
+			margin-top: 0.25rem;
+
+			/* 모바일은 한 줄에 들어가는 2개까지 */
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				li:nth-child(n + 3) {
+					display: none;
 				}
 			}
 		}
@@ -386,6 +430,11 @@ const listCardStyles = css`
 			line-height: 1.5;
 			height: calc(${({ theme }) => theme.fontSize.small} * 1.5 * 3);
 			-webkit-line-clamp: 3;
+
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				height: auto;
+				-webkit-line-clamp: 2;
+			}
 		}
 	}
 `;

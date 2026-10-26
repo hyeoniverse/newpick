@@ -153,13 +153,19 @@ jobs:
           cache-dependency-path: apps/web/package-lock.json
       - working-directory: apps/web
         run: npm ci
-      # 2026-10-26 수동 실행 두 번이 이 단계(apt)에서 29분·16분 멈췄다. 5분씩 최대 3번 시도한다
+      # 2026-10-26 수동 실행 두 번이 이 단계(apt)에서 29분·16분 멈췄다. 5분씩 최대 3번 시도한다.
+      # timeout은 npx만 끝내고 그 아래 apt-get은 남아 잠금을 쥐고 있어, 다음 시도가 바로 실패했다 (#53 CI).
+      # 다음 시도 전에 남은 apt를 끝내고, apt는 잠금을 기다리게 한다
       - name: Playwright 브라우저 설치
         working-directory: apps/web
         run: |
+          echo 'DPkg::Lock::Timeout "300";' | sudo tee /etc/apt/apt.conf.d/99-lock-timeout > /dev/null
           for attempt in 1 2 3; do
             timeout 300 npx playwright install --with-deps chromium webkit && exit 0
             echo "::warning::Playwright 설치 실패 또는 5분 초과 (시도 $attempt/3)"
+            sudo pkill -f 'apt-get|dpkg' || true
+            sleep 5
+            sudo dpkg --configure -a || true # 끊긴 설치 정리
           done
           exit 1
       # 홈·소개는 빌드할 때 데이터를 읽어 정적으로 만들어지므로 시드 → 빌드 순서
