@@ -176,11 +176,11 @@ const StyledModal = styled.div`
 		animation: fade-out 0.25s ease-in forwards;
 	}
 
-	/* 바깥: 뒤 화면을 어둡게 하지 않고 살짝 흐리게만. 누르면 닫힌다 */
+	/* 바깥: 뒤 화면을 아주 약간만 어둡게 + 살짝 흐리게. 누르면 닫힌다 */
 	position: fixed;
 	inset: 0;
 	z-index: 1000;
-	background: transparent;
+	background: rgba(0, 0, 0, 0.08);
 	backdrop-filter: blur(4px);
 	-webkit-backdrop-filter: blur(4px);
 

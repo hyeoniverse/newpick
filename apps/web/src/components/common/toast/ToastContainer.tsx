@@ -27,7 +27,7 @@ const ToastContainer = React.memo(() => {
 				/>
 			))}
 		</StyledToastContainer>,
-		document.body
+		document.body,
 	);
 });
 
@@ -40,7 +40,6 @@ interface StyledProps {
 }
 
 const StyledToastContainer = styled.div<StyledProps>`
-	width: 100vw;
 	position: fixed;
 	z-index: 9999;
 	display: flex;
@@ -76,12 +75,17 @@ const StyledToastContainer = styled.div<StyledProps>`
 				transform: translateX(-50%);
 				align-items: center;
 			`,
+			'center-top': `
+				top: 1rem;
+				left: 50%;
+				transform: translateX(-50%);
+				align-items: center;
+			`,
 		};
-		return positions[$position] || positions['center-bottom'];
+		return positions[$position] || positions['center-top'];
 	}}
 
 	> div {
-		transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
 		pointer-events: auto;
 	}
 `;
