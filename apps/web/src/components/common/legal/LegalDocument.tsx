@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import ExternalLink from '@/components/common/ExternalLink';
 import styled from 'styled-components';
 import {
 	LuBadgeCheck,
@@ -73,14 +74,9 @@ function linkify(text: string): React.ReactNode[] {
 					{email}
 				</a>
 			) : (
-				<a
-					key={start}
-					href={/^https?:\/\//i.test(url) ? url : `https://${url}`}
-					target="_blank"
-					rel="noopener noreferrer"
-				>
+				<ExternalLink key={start} href={/^https?:\/\//i.test(url) ? url : `https://${url}`}>
 					{found}
-				</a>
+				</ExternalLink>
 			),
 		);
 		last = start + found.length;
@@ -495,14 +491,25 @@ const StyledLegal = styled.article`
 	}
 
 	/* 글 속 링크 (이메일·주소) */
+	/* 밑줄은 옅게 두었다가 마우스를 올리면 진하고 두껍게 (화살표 움직임은 ExternalLink) */
 	.article a {
 		color: ${({ theme }) => theme.color.primary};
 		text-decoration: underline;
-		text-underline-offset: 2px;
+		text-decoration-color: color-mix(in srgb, ${({ theme }) => theme.color.primary} 35%, transparent);
+		text-underline-offset: 3px;
 		word-break: break-all;
+		transition:
+			text-decoration-color 0.2s ease,
+			text-underline-offset 0.2s ease;
 
-		&:hover {
-			text-decoration-thickness: 2px;
+		&:hover,
+		&:focus-visible {
+			text-decoration-color: ${({ theme }) => theme.color.primary};
+			text-underline-offset: 2px;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
 		}
 	}
 

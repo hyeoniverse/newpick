@@ -8,12 +8,24 @@ import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Image from '@/components/common/Image';
 import Tags from '@/components/common/Tags';
+import ExternalLink from '@/components/common/ExternalLink';
 
 interface Props {
 	className?: string;
 	type?: 'main' | 'sub' | 'list';
 	data: ICard;
 	newTab?: boolean;
+}
+
+/** 새 탭이면 사이트 밖 링크(관련 뉴스의 언론사 기사)라 ExternalLink, 아니면 사이트 안 이동 */
+function CardLink({ href, newTab, children }: { href: string; newTab: boolean; children: React.ReactNode }) {
+	return newTab ? (
+		<ExternalLink href={href} showIcon={false}>
+			{children}
+		</ExternalLink>
+	) : (
+		<Link href={href}>{children}</Link>
+	);
 }
 
 const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data, newTab = false }, ref) => {
@@ -25,7 +37,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 				{type === 'main' && (
 					<>
 						{/* 톱 기사 형식: 사진 | 분야 · 제목 · 부제 · 키워드 · 날짜 (모바일은 사진이 위) */}
-						<Link href={url || ''} target={newTab ? '_blank' : '_self'}>
+						<CardLink href={url || ''} newTab={newTab}>
 							<div className="image-placeholder">
 								<Image src={image || '/img/newpick_default_img.jpg'} alt={main.title || 'card'} />
 							</div>
@@ -50,7 +62,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 									</div>
 								)}
 							</div>
-						</Link>
+						</CardLink>
 					</>
 				)}
 
@@ -90,11 +102,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 
 				{type === 'list' && (
 					<>
-						<Link
-							href={url || '/not-found'}
-							target={newTab ? '_blank' : '_self'}
-							rel={newTab ? 'noopener noreferrer' : undefined}
-						>
+						<CardLink href={url || '/not-found'} newTab={newTab}>
 							<div className="card-main">
 								<div className="card-header">
 									{header && (
@@ -128,7 +136,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 									</div>
 								</div>
 							</div>
-						</Link>
+						</CardLink>
 					</>
 				)}
 			</div>

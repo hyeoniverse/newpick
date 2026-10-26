@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { GITHUB } from '@/constants/about';
 import Logo from '@/components/common/Logo';
 import Text from '@/components/common/Text';
+import ExternalLink from '@/components/common/ExternalLink';
 import { FaGithub } from 'react-icons/fa';
 
 interface Props {
@@ -33,15 +34,10 @@ const Footer = ({ contactEmail }: Props) => {
 					<Link className="footer-item privacy" href="/privacy">
 						개인정보 처리방침
 					</Link>
-					<a
-						className="footer-item"
-						href={GITHUB.REPO}
-						target="_blank"
-						rel="noopener noreferrer"
-						aria-label="GitHub 저장소"
-					>
-						<FaGithub />
-					</a>
+					<ExternalLink className="footer-item" href={GITHUB.REPO} showIcon={false}>
+						<FaGithub aria-hidden />
+						<span className="sr-only">GitHub 저장소</span>
+					</ExternalLink>
 				</div>
 				<Text size="extraSmall" color="subText">
 					© 2025–{new Date().getFullYear()} NewPick. All Rights Reserved.

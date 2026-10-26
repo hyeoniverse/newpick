@@ -38,7 +38,7 @@ describe('약관 문서 (#59)', () => {
 			),
 		);
 		expect(screen.getByRole('link', { name: 'hello@newpick.app' }).getAttribute('href')).toBe('mailto:hello@newpick.app');
-		const oracle = screen.getByRole('link', { name: 'oracle.com/legal/privacy' });
+		const oracle = screen.getByRole('link', { name: /oracle.com\/legal\/privacy/ });
 		expect(oracle.getAttribute('href')).toBe('https://oracle.com/legal/privacy');
 		expect(oracle.getAttribute('target')).toBe('_blank');
 		// 탭: 지금 문서 표시
