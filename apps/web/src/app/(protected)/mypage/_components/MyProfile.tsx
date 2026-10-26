@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import styled from 'styled-components';
 import Imgae from '@/components/common/Image';
 import Text from '@/components/common/Text';
+import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
 
 function Profile() {
@@ -11,10 +12,28 @@ function Profile() {
 
 	return (
 		<ProfileStyled>
+			{/* 불러오는 동안에도 자리를 잡아 둔다 (예전엔 비어 있다가 갑자기 나타났다) */}
+			{!user && (
+				<div className="profile">
+					<span className="avatar">
+						<AvatarPlaceholder loading />
+					</span>
+					<div className="profile-text loading" aria-hidden>
+						<span className="line name" />
+						<span className="line email" />
+					</div>
+				</div>
+			)}
 			{user && (
 				<>
 					<div className="profile">
-						<Imgae src={user.profileImg || '/img/profile.jpg'} alt="prifile-img" ratio="square" />
+						<span className="avatar">
+							{user.profileImg ? (
+								<Imgae src={user.profileImg} alt={`${user.username ?? ''} 프로필 사진`} ratio="square" />
+							) : (
+								<AvatarPlaceholder />
+							)}
+						</span>
 						<div className="profile-text">
 							<Text weight="semiBold">{user.username}</Text>
 							<Text as="p" color="subText">
@@ -47,11 +66,42 @@ const ProfileStyled = styled.div`
 		justify-content: space-between;
 		align-items: flex-start;
 
-		img {
-			height: 100px;
+		.avatar {
+			flex-shrink: 0;
+			display: block;
 			width: 100px;
+			height: 100px;
+			overflow: hidden;
 			border: 1px solid ${({ theme }) => theme.color.neutral};
 			border-radius: ${({ theme }) => theme.borderRadius.circle};
+
+			img {
+				width: 100%;
+				height: 100%;
+			}
+		}
+
+		/* 불러오는 중: 이름·이메일 자리 */
+		.profile-text.loading {
+			display: flex;
+			flex-direction: column;
+			gap: 0.625rem;
+			padding-top: 0.25rem;
+
+			.line {
+				display: block;
+				height: 1rem;
+				border-radius: ${({ theme }) => theme.borderRadius.soft};
+				background: color-mix(in srgb, ${({ theme }) => theme.color.text} 7%, ${({ theme }) => theme.color.background});
+			}
+
+			.name {
+				width: 5rem;
+			}
+
+			.email {
+				width: 11rem;
+			}
 		}
 
 		.profile-text {
