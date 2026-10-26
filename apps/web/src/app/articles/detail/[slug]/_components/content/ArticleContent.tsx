@@ -118,8 +118,8 @@ const NewsletterContentStyled = styled.article`
 	}
 
 	/*
-	 * api가 만드는 본문 구조 (#43): 여는 말 → 소식(번호 · 소제목 · 한 줄 핵심 · 포인트 · 왜 중요할까요?) → 맺는 말.
-	 * 예전 뉴스레터는 모델이 넣은 인라인 스타일 그대로 보인다
+	 * api가 만드는 본문 구조 (#43): 에디터 브리핑 → 소식(꼬리표 · 헤드라인 · 리드 · 본문 · 핵심 사실 · 시사점 · 출처) → 관전 포인트.
+	 * 신문 지면처럼 굵은 구분선과 작은 대문자 라벨로 나눈다. 예전 뉴스레터는 모델이 넣은 인라인 스타일 그대로 보인다
 	 */
 	.newsletter {
 		padding-top: 2rem;
@@ -130,89 +130,133 @@ const NewsletterContentStyled = styled.article`
 			color: ${({ theme }) => theme.color.mediumGrey};
 		}
 
-		.intro {
-			margin-bottom: 2.5rem;
+		h3 {
+			margin: 0 0 0.75rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			letter-spacing: 0.08em;
 			color: ${({ theme }) => theme.color.text};
 		}
 
-		.story + .story {
-			margin-top: 3rem;
-			padding-top: 3rem;
-			border-top: 1px solid ${({ theme }) => theme.color.border};
+		ul {
+			margin: 0;
+			padding: 0;
+			list-style: none;
 		}
 
-		.story-index {
-			display: block;
-			margin-bottom: 0.25rem;
-			font-size: ${({ theme }) => theme.fontSize.small};
+		.briefing {
+			margin-bottom: 3rem;
+			padding: 1.25rem 0;
+			border-top: 3px solid ${({ theme }) => theme.color.text};
+
+			p {
+				margin-bottom: 0;
+				color: ${({ theme }) => theme.color.text};
+			}
+		}
+
+		.story {
+			padding-top: 1.5rem;
+			border-top: 1px solid ${({ theme }) => theme.color.text};
+
+			& + .story {
+				margin-top: 3.5rem;
+			}
+		}
+
+		.kicker {
+			display: flex;
+			gap: 0.5rem;
+			margin-bottom: 0.5rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
 			color: ${({ theme }) => theme.color.primary};
-			letter-spacing: 0.05em;
+
+			.index {
+				color: ${({ theme }) => theme.color.subText};
+			}
 		}
 
 		h2 {
-			margin: 0 0 0.75rem;
-			font-size: ${({ theme }) => theme.fontSize.large};
+			margin: 0 0 1rem;
+			font-size: ${({ theme }) => theme.fontSize.extraLarge};
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			line-height: 1.35;
 			color: ${({ theme }) => theme.color.text};
 			word-break: keep-all;
 		}
 
 		.lead {
-			margin-bottom: 1.25rem;
+			margin-bottom: 1.5rem;
+			font-size: ${({ theme }) => theme.fontSize.large};
 			font-weight: ${({ theme }) => theme.fontWeight.medium};
+			line-height: 1.6;
 			color: ${({ theme }) => theme.color.text};
+			word-break: keep-all;
 		}
 
-		.points {
-			margin: 0 0 1.5rem;
-			padding: 0;
-			list-style: none;
+		.body p {
+			margin-bottom: 1rem;
+		}
+
+		.facts {
+			margin: 1.5rem 0;
+			padding: 1rem 1.25rem;
+			border-top: 2px solid ${({ theme }) => theme.color.primary};
+			background: ${({ theme }) => theme.color.surface};
+
+			h3 {
+				color: ${({ theme }) => theme.color.primary};
+			}
 
 			li {
-				position: relative;
-				margin-bottom: 0.5rem;
-				padding-left: 1.25rem;
-				line-height: 1.7;
-				color: ${({ theme }) => theme.color.mediumGrey};
+				padding: 0.5rem 0;
+				border-bottom: 1px solid ${({ theme }) => theme.color.border};
+				line-height: 1.6;
+				color: ${({ theme }) => theme.color.text};
 
-				&::before {
-					content: '';
-					position: absolute;
-					left: 0.25rem;
-					top: 0.7em;
-					width: 0.4rem;
-					height: 0.4rem;
-					border-radius: 50%;
-					background: ${({ theme }) => theme.color.primary};
+				&:last-child {
+					border-bottom: none;
+					padding-bottom: 0;
 				}
 			}
 		}
 
-		.why {
-			padding: 1.25rem 1.5rem;
-			border-radius: ${({ theme }) => theme.borderRadius.soft};
-			border-left: 3px solid ${({ theme }) => theme.color.primary};
-			background: ${({ theme }) => theme.color.surface};
-
-			strong {
-				display: block;
-				margin-bottom: 0.5rem;
-				font-size: ${({ theme }) => theme.fontSize.small};
-				color: ${({ theme }) => theme.color.primary};
-			}
+		.analysis {
+			margin-top: 1.5rem;
 
 			p:last-child {
 				margin-bottom: 0;
 			}
 		}
 
-		.outro {
-			margin-top: 3rem;
-			padding-top: 1.5rem;
-			border-top: 1px dashed ${({ theme }) => theme.color.border};
-			font-size: ${({ theme }) => theme.fontSize.small};
+		.credit {
+			margin-top: 1.25rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			color: ${({ theme }) => theme.color.subText};
+		}
+
+		.watch {
+			margin-top: 3.5rem;
+			padding-top: 1.25rem;
+			border-top: 3px solid ${({ theme }) => theme.color.text};
+
+			li {
+				position: relative;
+				padding: 0.5rem 0 0.5rem 1rem;
+				line-height: 1.6;
+				color: ${({ theme }) => theme.color.mediumGrey};
+
+				&::before {
+					content: '';
+					position: absolute;
+					left: 0;
+					top: 1.15em;
+					width: 0.4rem;
+					height: 2px;
+					background: ${({ theme }) => theme.color.primary};
+				}
+			}
 		}
 	}
 `;

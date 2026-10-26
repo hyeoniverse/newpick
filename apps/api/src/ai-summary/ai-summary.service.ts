@@ -57,7 +57,7 @@ export class AiSummaryService {
       );
       const newslinks = used.map((item) => item.link).toString();
       const imageUrl = used.map((item) => item.images).toString();
-      const html = renderNewsletterHtml(written);
+      const html = renderNewsletterHtml(written, news);
       this.logger.debug(
         `뉴스레터 작성 완료: 소식 ${stories.length}개, 기사 ${news.length}건 중 ${used.length}건 사용`,
       );

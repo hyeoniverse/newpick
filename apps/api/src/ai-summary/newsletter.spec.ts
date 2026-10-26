@@ -5,12 +5,23 @@ import {
   normalize,
   NewsletterWriterService,
   numberArticles,
+  pickArticles,
+  selectPrompt,
   writerPrompt,
   WrittenNewsletter,
 } from './newsletterWriter.service';
+import {
+  cleanText,
+  clusterArticles,
+  MAX_ARTICLE_CHARS,
+  prepare,
+  titleSimilarity,
+  truncate,
+} from './articlePrep';
 import { renderNewsletterHtml } from './newsletterHtml';
 import { AiSummaryService, usedArticles } from './ai-summary.service';
 import { newsletterTemplate } from '../mail/htmlTemplate';
+import { CLAUDE_FAST_MODEL } from './claude.service';
 
 const written = (
   overrides: Partial<WrittenNewsletter> = {},
@@ -18,60 +29,128 @@ const written = (
   title: '제목',
   subtitle: '부제목',
   summary: '요약',
-  intro: '여는 말',
+  briefing: '브리핑',
   stories: [
     {
+      kicker: '증시',
       heading: '소제목',
-      lead: '한 줄 핵심',
-      points: ['포인트 1', '포인트 2'],
-      why: '첫 문단\n\n둘째 문단',
+      lead: '리드',
+      body: '첫 문단\n\n둘째 문단',
+      facts: ['사실 1', '사실 2'],
+      analysis: '시사점',
       sources: [2],
     },
   ],
-  outro: '맺는 말',
+  watch: ['FOMC 결과'],
   ...overrides,
 });
 
-describe('뉴스레터 프롬프트', () => {
-  const articles = [
+const usage = (model: string) => ({ model, input: 100, output: 10 });
+
+describe('전처리 (#47)', () => {
+  it('사진 설명·기자 서명·제보 안내·이메일을 걷어 내고, 붙어 있는 이름은 남긴다', () => {
+    const raw =
+      '원본보기 [서울=뉴시스] 고범준 기자 = 장관이 답변하고 있다. 2026.10.26. /사진=고범준강신철 장관이 밝혔다. abc@news.com ■ 제보하기▷ 전화 : 02-781-1234';
+    expect(cleanText(raw)).toBe('장관이 답변하고 있다. 강신철 장관이 밝혔다.');
+  });
+
+  it('문장 경계에서 자른다', () => {
+    const text = '가'.repeat(900) + '다. ' + '나'.repeat(600);
+    expect(truncate(text, MAX_ARTICLE_CHARS)).toBe('가'.repeat(900) + '다.');
+    expect(truncate('짧다.', MAX_ARTICLE_CHARS)).toBe('짧다.');
+  });
+
+  it('같은 사건 제목은 묶고, 비슷해 보이는 다른 사건은 묶지 않는다 (실제 기사 제목)', () => {
+    expect(
+      titleSimilarity(
+        "[속보] 브라질 룰라 '초접전 승부' 끝에 당선, 4선 성공",
+        "브라질 룰라 4선 성공…'우파 물결'에 제동",
+      ),
+    ).toBeGreaterThanOrEqual(0.25);
+    expect(
+      titleSimilarity(
+        '대진 확정된 2026 대한민국 게임대상…후보작 살펴보니',
+        "LG유플러스, '2026 대한민국 SNS대상' 기업부문 종합대상 수상",
+      ),
+    ).toBeLessThan(0.25);
+
+    const clusters = clusterArticles(
+      prepare([
+        {
+          title: '브라질 룰라 4선 성공…우파 물결에 제동',
+          content: '짧은 본문',
+        },
+        { title: '마차도 베네수엘라 비밀 귀국', content: '본문' },
+        {
+          title: '[속보] 브라질 룰라 초접전 끝에 당선, 4선 성공',
+          content: '더 긴 본문입니다',
+        },
+      ]),
+    );
+    expect(clusters).toHaveLength(2);
+    // 큰 묶음이 먼저, 묶음 안에서는 긴 기사가 대표
+    expect(clusters[0].articles.map((a) => a.index)).toEqual([2, 0]);
+  });
+});
+
+describe('1단계: 고르기', () => {
+  const clusters = clusterArticles(
+    prepare([
+      { title: '코스피 급락', content: '코스피가 내렸다.', source: '연합뉴스' },
+      { title: '게임대상 후보 발표', content: '후보가 정해졌다.' },
+    ]),
+  );
+
+  it('제목·첫 부분과 보도 수만 보내고, 주요 소식 기준을 준다', () => {
+    const prompt = selectPrompt(clusters, '경제');
+    expect(prompt).toContain('[1] 보도 1건 (연합뉴스)');
+    expect(prompt).toContain('첫 부분: 코스피가 내렸다.');
+    expect(prompt).toContain('시상식·행사·후보 발표');
+    expect(prompt).toContain('경제 분야가 아닌 소식은 고르지 않습니다');
+    expect(prompt).toContain(`최대 ${LIMITS.stories}개`);
+  });
+
+  it('고른 묶음의 대표 기사만, 없는 번호·중복은 버린다', () => {
+    expect(pickArticles(clusters, [2, 2, 9, 0]).map((a) => a.title)).toEqual([
+      '게임대상 후보 발표',
+    ]);
+  });
+});
+
+describe('2단계: 쓰기', () => {
+  const articles = prepare([
     { title: '기사 A', content: '본문 A', source: '연합뉴스' },
     { title: '기사 B', content: '본문 B' },
-  ];
+  ]);
 
-  it('기사에 번호를 붙여 근거를 번호로 받는다', () => {
+  it('고른 기사에 번호를 붙여 근거를 번호로 받는다', () => {
     expect(numberArticles(articles)).toBe(
       '[1] (연합뉴스) 기사 A\n본문 A\n\n[2] 기사 B\n본문 B',
     );
   });
 
-  it('주요 소식만 최대 3개, 개수를 채우려고 덜 중요한 소식을 넣지 않는다 (#43)', () => {
+  it('전문가 브리핑 문체: 평서체, 수치·근거', () => {
     const prompt = writerPrompt(articles, 'IT');
-    expect(prompt).toContain(`최대 ${LIMITS.stories}개`);
-    expect(prompt).toContain('개수를 채우려고 덜 중요한 소식을 넣지 않습니다');
-    expect(prompt).toContain('시상식·행사·후보 발표');
-    expect(prompt).toContain('IT 분야에 해당하는 소식을 고릅니다');
+    expect(prompt).toContain('애널리스트 브리핑처럼 간결한 평서체(~다)');
+    expect(prompt).toContain('형용사보다 수치와 근거');
+    expect(prompt).not.toContain('해요체');
   });
 
-  it('요약은 짧게, 본문은 소식마다 한 줄 핵심·포인트·왜 중요한지 (#41)', () => {
+  it('요약은 짧게, 소식은 리드·본문·핵심 사실·시사점, 끝에 관전 포인트', () => {
     const prompt = writerPrompt(articles);
     expect(prompt).toContain(`2~3문장, ${LIMITS.summary}자 이내`);
-    expect(prompt).toContain(`${LIMITS.why.min}~${LIMITS.why.max}자`);
-    expect(prompt).toContain(`${LIMITS.points.min}~${LIMITS.points.max}개`);
-    expect(prompt).not.toMatch(/words/);
-  });
-
-  it('기사체가 아니라 해요체 뉴스레터 말투, 여는 말·맺는 말', () => {
-    const prompt = writerPrompt(articles);
-    expect(prompt).toContain('해요체');
-    expect(prompt).toContain('- intro:');
-    expect(prompt).toContain('- outro:');
-  });
-
-  it('제목은 헤드라인 하나, 나열·날짜·"주요 소식" 금지 (#42)', () => {
-    const prompt = writerPrompt(articles);
-    expect(prompt).toContain(`${LIMITS.title}자 이내`);
+    for (const key of [
+      'briefing',
+      'kicker',
+      'lead',
+      'body',
+      'facts',
+      'analysis',
+      'watch',
+    ]) {
+      expect(prompt).toContain(`- ${key}:`);
+    }
     expect(prompt).toContain('나열하지 않고');
-    expect(prompt).toContain('"주요 소식"');
   });
 });
 
@@ -85,69 +164,118 @@ describe('응답 정리', () => {
     expect(clean('"A" 그리고 "B"')).toBe('"A" 그리고 "B"');
   });
 
-  it('없는 기사 번호·중복은 버리고, 소식은 최대 3개', () => {
+  it('근거 번호를 원래 기사 번호로 바꾸고, 소식·사실·관전 포인트 개수를 제한한다', () => {
+    const toOriginal = (n: number) => ({ 1: 5, 2: 8 })[n];
     const result = normalize(
       written({
         stories: Array.from({ length: 4 }, (_, i) => ({
+          ...written().stories[0],
           heading: `소식 ${i}`,
-          lead: '핵심',
-          points: ['- 글머리를 붙여 온 포인트', '• 둘째', '셋째', '넷째'],
-          why: '이유',
-          sources: [1, 1, 0, 9, 2],
+          facts: ['- 글머리를 붙여 온 사실', '• 둘째', '셋째', '넷째'],
+          sources: [1, 1, 3, 2],
         })),
+        watch: ['하나', '둘', '셋', '넷'],
       }),
-      3,
+      toOriginal,
     );
     expect(result.stories).toHaveLength(3);
-    expect(result.stories[0].sources).toEqual([1, 2]);
-    // 글머리 기호는 걷어 내고 포인트는 최대 3개
-    expect(result.stories[0].points).toEqual([
-      '글머리를 붙여 온 포인트',
+    expect(result.stories[0].sources).toEqual([5, 8]);
+    expect(result.stories[0].facts).toEqual([
+      '글머리를 붙여 온 사실',
       '둘째',
       '셋째',
     ]);
+    expect(result.watch).toHaveLength(3);
   });
 
   it('제목이 비거나 소식이 없으면 저장하지 않게 실패', () => {
-    expect(() => normalize(written({ title: ' ' }), 3)).toThrow('빈 제목');
-    expect(() => normalize(written({ stories: [] }), 3)).toThrow('소식이 없음');
+    const same = (n: number) => n;
+    expect(() => normalize(written({ title: ' ' }), same)).toThrow('빈 제목');
+    expect(() => normalize(written({ stories: [] }), same)).toThrow(
+      '소식이 없음',
+    );
   });
+});
 
-  it('한 번의 호출에서 JSON 스키마로 받는다', async () => {
-    const claude = {
-      generate: jest
-        .fn()
-        .mockResolvedValue({ text: JSON.stringify(written()), tokens: 42 }),
-    };
+describe('NewsletterWriterService.write', () => {
+  const oneSource = written({
+    stories: [{ ...written().stories[0], sources: [1] }],
+  });
+  const claudeWith = (picks: number[]) => ({
+    generate: jest
+      .fn()
+      .mockResolvedValueOnce({
+        text: JSON.stringify({ picks }),
+        usage: usage(CLAUDE_FAST_MODEL),
+      })
+      .mockResolvedValueOnce({
+        text: JSON.stringify(oneSource),
+        usage: usage('claude-opus-5-5'),
+      }),
+  });
+  const articles = [
+    { title: '게임대상 후보 발표', content: '후보 본문' },
+    { title: '코스피 7개월 만에 최저', content: '코스피 본문' },
+    { title: '가상자산 과세 유예 검토', content: '과세 본문' },
+  ];
+
+  it('가벼운 모델로 고르고, 고른 기사만 기본 모델로 쓴다', async () => {
+    const claude = claudeWith([2]);
     const result = await new NewsletterWriterService(claude as never).write(
-      [{ title: 't', content: 'c' }],
-      'IT',
+      articles,
+      '경제',
     );
 
+    const [select, write] = claude.generate.mock.calls.map(([o]) => o);
+    expect(select.model).toBe(CLAUDE_FAST_MODEL);
+    expect(select.effort).toBe('low');
+    expect(write.model).toBeUndefined(); // 기본 모델 (CLAUDE_MODEL)
+    expect(write.prompt).toContain('코스피 본문');
+    expect(write.prompt).not.toContain('후보 본문');
+    // 쓰기 단계의 [1]은 원래 목록의 두 번째 기사
+    expect(result.newsletter.stories[0].sources).toEqual([2]);
+    expect(result.tokens).toBe(220);
+  });
+
+  it('고른 소식이 없으면 쓰기를 호출하지 않고 실패', async () => {
+    const claude = claudeWith([]);
+    await expect(
+      new NewsletterWriterService(claude as never).write(articles),
+    ).rejects.toThrow('고른 소식이 없음');
     expect(claude.generate).toHaveBeenCalledTimes(1);
-    const [{ schema, effort }] = claude.generate.mock.calls[0];
-    expect(schema.required).toEqual([
-      'title',
-      'subtitle',
-      'summary',
-      'intro',
-      'stories',
-      'outro',
-    ]);
-    expect(effort).toBe('medium');
-    expect(result.tokens).toBe(42);
+  });
+
+  it('묶음이 하나뿐이면 고르기를 건너뛴다', async () => {
+    const claude = {
+      generate: jest.fn().mockResolvedValue({
+        text: JSON.stringify(oneSource),
+        usage: usage('claude-opus-5-5'),
+      }),
+    };
+    await new NewsletterWriterService(claude as never).write([articles[1]]);
+    expect(claude.generate).toHaveBeenCalledTimes(1);
   });
 });
 
 describe('본문 HTML (#43)', () => {
-  it('인라인 스타일 없이 구조와 class만 만든다 (모양은 웹의 테마)', () => {
-    expect(renderNewsletterHtml(written())).toBe(
-      '<div class="newsletter"><p class="intro">여는 말</p>' +
-        '<section class="story"><span class="story-index">01</span><h2>소제목</h2>' +
-        '<p class="lead">한 줄 핵심</p><ul class="points"><li>포인트 1</li><li>포인트 2</li></ul>' +
-        '<div class="why"><strong>왜 중요할까요?</strong><p>첫 문단</p><p>둘째 문단</p></div></section>' +
-        '<p class="outro">맺는 말</p></div>',
+  it('뉴스 기사 구조와 class만 만들고, 출처 언론사를 붙인다', () => {
+    const html = renderNewsletterHtml(written(), [
+      { source: 'KBS' },
+      { source: '연합뉴스' },
+    ]);
+    expect(html).toBe(
+      '<div class="newsletter">' +
+        '<section class="briefing"><h3>에디터 브리핑</h3><p>브리핑</p></section>' +
+        '<article class="story"><p class="kicker"><span class="index">01</span>증시</p>' +
+        '<h2>소제목</h2><p class="lead">리드</p>' +
+        '<div class="body"><p>첫 문단</p><p>둘째 문단</p></div>' +
+        '<aside class="facts"><h3>핵심 사실</h3><ul><li>사실 1</li><li>사실 2</li></ul></aside>' +
+        '<div class="analysis"><h3>시사점</h3><p>시사점</p></div>' +
+        '<p class="credit">출처 연합뉴스</p></article>' +
+        '<section class="watch"><h3>관전 포인트</h3><ul><li>FOMC 결과</li></ul></section>' +
+        '</div>',
     );
+    expect(html).not.toContain('style=');
   });
 
   it('모델이 쓴 글의 HTML은 글자로 바꾼다', () => {
@@ -155,24 +283,30 @@ describe('본문 HTML (#43)', () => {
       written({
         stories: [
           {
+            ...written().stories[0],
             heading: '<b>x</b>',
-            lead: '',
-            points: ['<script>alert(1)</script>'],
-            why: '<img src=x onerror=alert(1)>',
-            sources: [],
+            facts: ['<script>alert(1)</script>'],
+            body: '<img src=x onerror=alert(1)>',
           },
         ],
       }),
     );
     expect(html).not.toContain('<img');
+    expect(html).not.toContain('<script');
     expect(html).toContain('&lt;b&gt;x&lt;/b&gt;');
   });
 });
 
 describe('파이프라인', () => {
   const news = [
-    { title: '증시', content: 'c1', link: 'l1', images: ['i1'] },
-    { title: 'IT 소식', content: 'c2', link: 'l2', images: ['i2'] },
+    { title: '증시', content: 'c1', link: 'l1', images: ['i1'], source: 'A' },
+    {
+      title: 'IT 소식',
+      content: 'c2',
+      link: 'l2',
+      images: ['i2'],
+      source: 'B',
+    },
   ];
 
   it('썸네일·관련 기사는 소식이 실제로 쓴 기사에서 (없으면 전부)', () => {
@@ -205,7 +339,7 @@ describe('파이프라인', () => {
       '요약',
       'l2',
       1,
-      renderNewsletterHtml(written()),
+      renderNewsletterHtml(written(), news),
       'i2',
     );
   });

@@ -38,7 +38,11 @@ describe('ClaudeService.generate', () => {
 
     const result = await service.generate({ system: 'sys', prompt: '본문' });
 
-    expect(result).toEqual({ text: '요약 결과', tokens: 120 });
+    expect(result).toEqual({
+      text: '요약 결과',
+      tokens: 120,
+      usage: { model: 'claude-opus-5-5', input: 100, output: 20 },
+    });
     const [{ headers, body }] = requests;
     expect(headers.get('anthropic-beta')).toContain(
       'server-side-fallback-2026-07-01',
@@ -51,6 +55,25 @@ describe('ClaudeService.generate', () => {
       output_config: { effort: 'low' },
     });
     expect(body).not.toHaveProperty('temperature');
+  });
+
+  // Haiku 5.5는 fallbacks를 보내면 400 (서버 측 대체 모델 없음)
+  it('Haiku에는 대체 모델 옵션과 그 beta 헤더를 보내지 않는다', async () => {
+    const { service, requests } = setup(reply({ model: 'claude-haiku-5-5' }));
+
+    const result = await service.generate({
+      model: 'claude-haiku-5-5',
+      system: 'sys',
+      prompt: '본문',
+    });
+
+    const [{ headers, body }] = requests;
+    expect(body.model).toBe('claude-haiku-5-5');
+    expect(body).not.toHaveProperty('fallbacks');
+    expect(headers.get('anthropic-beta') ?? '').not.toContain(
+      'server-side-fallback',
+    );
+    expect(result.usage.model).toBe('claude-haiku-5-5');
   });
 
   it('schema를 넘기면 JSON 스키마 출력 형식을 요청한다', async () => {

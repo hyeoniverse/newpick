@@ -217,6 +217,7 @@ nano api.env   # 빈 값을 채운다
 | `FRONTEND_URL` | ✓ | CORS 허용 주소, 로그인 후 돌아갈 주소, 메일 속 링크 |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | 로그인 | 비우면 로그인만 503 |
 | `ANTHROPIC_API_KEY` | 요약 | 매일 요약과 무료 체험. `CLAUDE_MODEL`로 모델을 바꿀 수 있다 |
+| `CLAUDE_MODEL`, `CLAUDE_FAST_MODEL` | | 뉴스레터 쓰기 모델(기본 `claude-opus-5-5`)과 기사 고르기 모델(기본 `claude-haiku-5-5`). 비워 두면 기본값 |
 | `MAIL_USER`, `MAIL_PASSWORD` | 메일 | Gmail 주소와 **앱 비밀번호**(16자리). 실제 비밀번호는 SMTP 로그인이 거절된다. 2단계 인증을 켜고 https://myaccount.google.com/apppasswords 에서 만든다 |
 | `ADMIN_NOTIFY_EMAIL` | | 요약이 끝나면 결과를 받을 주소 |
 
