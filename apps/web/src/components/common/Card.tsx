@@ -348,44 +348,52 @@ const listCardStyles = css`
 	.card-main {
 		width: 100%;
 		flex-direction: column;
-		align-items: center;
+		align-items: stretch;
 
+		/* 뉴스 목록 모양: 글은 왼쪽, 썸네일은 오른쪽 고정 폭 (모바일도 같은 줄) */
 		.content {
 			width: 100%;
 			display: flex;
 			flex-direction: row;
-			gap: 1rem;
+			align-items: flex-start;
+			gap: 1.5rem;
 
 			@media ${({ theme }) => theme.mediaQuery.mobile} {
-				flex-wrap: wrap;
-
-				.left {
-					min-width: 100%;
-				}
+				gap: 0.75rem;
 			}
 
 			.left {
-				max-width: 70%;
+				flex: 1;
+				min-width: 0;
 				display: flex;
 				flex-direction: column;
-				justify-content: center;
 				gap: 0.25rem;
 			}
 
 			.image-placeholder {
-				height: fit-content;
-				min-width: 30%;
+				flex: 0 0 15rem;
+				width: 15rem;
 
-				@media ${({ theme }) => theme.mediaQuery.tablet} {
-					max-width: 100%;
+				@media ${({ theme }) => theme.mediaQuery.mobile} {
+					flex-basis: 7.5rem;
+					width: 7.5rem;
 				}
 			}
+		}
+
+		.title {
+			-webkit-line-clamp: 2;
 		}
 
 		.description {
 			line-height: 1.5;
 			height: calc(${({ theme }) => theme.fontSize.small} * 1.5 * 3);
 			-webkit-line-clamp: 3;
+
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				height: auto;
+				-webkit-line-clamp: 2;
+			}
 		}
 	}
 `;
