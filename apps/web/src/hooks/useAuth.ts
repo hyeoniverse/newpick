@@ -10,6 +10,9 @@ import { fetchUser, loginUser, logoutUser } from '@/api/auth';
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/stores/useAuthStore';
 
+/** 로그인한 사람마다 다른 조회 결과. 로그아웃하면 지운다 */
+const USER_QUERY_KEYS = ['user', 'bookmarks', 'subscriptionStatus', 'subscriptionInterests'];
+
 export const useAuth = () => {
 	const { showToast } = useToast();
 	const { user, session, setUser, clearUser } = useAuthStore();
@@ -28,7 +31,8 @@ export const useAuth = () => {
 			await logoutUser();
 			// Zustand 상태 초기화
 			clearUser();
-			queryClient.removeQueries({ queryKey: ['user'] });
+			// 이 계정의 정보(북마크·구독 상태·관심 분야)가 다음 사람 화면에 남지 않게 함께 지운다
+			for (const key of USER_QUERY_KEYS) queryClient.removeQueries({ queryKey: [key] });
 			// 보호된 경로 리디렉션
 			if (PROTECTED.includes(pathname)) {
 				router.push('/');

@@ -8,7 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useDropdown } from '@/hooks/useDropdown';
 import { useHeader } from '@/hooks/useHeader';
 
-import styled from 'styled-components';
+import styled, { keyframes } from 'styled-components';
 import { FaUserCircle } from 'react-icons/fa';
 import { IoLogoGoogle } from 'react-icons/io';
 
@@ -101,9 +101,18 @@ export default function Header() {
 								</>
 							</Dropdown>
 						) : (
-							// 사용자 정보를 조회하는 동안 프로필 자리를 잡아 둡니다.
-							<StyledUserCircle className="auth-in" aria-busy="true" aria-label="로그인 정보 불러오는 중">
-								<FaUserCircle />
+							// 사용자 정보를 조회하는 동안 프로필 사진 자리에 사람 모양(머리·어깨)을 채워 둡니다.
+							// 아이콘을 보여 주면 사진이 없는 사람처럼 보였다
+							<StyledUserCircle
+								className="auth-in loading"
+								role="status"
+								aria-busy="true"
+								aria-label="로그인 정보 불러오는 중"
+							>
+								<svg className="silhouette" viewBox="0 0 40 40" aria-hidden>
+									<circle cx="20" cy="15" r="7" />
+									<path d="M6 40c0-8.3 6.3-14 14-14s14 5.7 14 14z" />
+								</svg>
 							</StyledUserCircle>
 						))}
 					{session !== 'in' && (
@@ -249,6 +258,11 @@ const StyledHeader = styled.header<StyledProps>`
 	}
 `;
 
+const shimmer = keyframes`
+	from { transform: translateX(-100%); }
+	to { transform: translateX(100%); }
+`;
+
 const StyledUserCircle = styled.div`
 	position: relative;
 	width: 2.5rem;
@@ -258,4 +272,37 @@ const StyledUserCircle = styled.div`
 	align-items: center;
 	border-radius: 50%;
 	overflow: hidden;
+
+	/* 불러오는 중: 옅은 바탕에 사람 모양(머리·어깨), 그 위로 빛이 지나간다 */
+	&.loading {
+		/* 글자색을 바탕에 섞어 라이트·다크 모두 같은 대비로 */
+		background: color-mix(in srgb, ${({ theme }) => theme.color.text} 7%, ${({ theme }) => theme.color.background});
+
+		.silhouette {
+			width: 100%;
+			height: 100%;
+			fill: color-mix(in srgb, ${({ theme }) => theme.color.text} 22%, ${({ theme }) => theme.color.background});
+		}
+
+		&::after {
+			content: '';
+			position: absolute;
+			inset: 0;
+			/* 흰 빛은 다크 모드에서 원 전체를 밝혀 모양을 지운다. 바탕색 쪽으로 옅게 */
+			background: linear-gradient(
+				90deg,
+				transparent,
+				color-mix(in srgb, ${({ theme }) => theme.color.background} 55%, transparent),
+				transparent
+			);
+			animation: ${shimmer} 1.2s ease-in-out infinite;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			&::after {
+				animation: none;
+				display: none;
+			}
+		}
+	}
 `;
