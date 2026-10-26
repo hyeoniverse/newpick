@@ -10,8 +10,7 @@ import { parseUrls } from '@/utils/parseArticles';
 import { summarizeNews } from '@/api/ai';
 
 import styled from 'styled-components';
-import { GiNothingToSay } from 'react-icons/gi';
-import { BiSolidMessageRoundedError } from 'react-icons/bi';
+import { LuSparkles, LuCircleAlert } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
@@ -73,44 +72,53 @@ export default function Trial() {
 	return (
 		<StyledTrial>
 			<div className="header">
-				<Text size="medium">생성하고 싶은 AI 뉴스레터의 관심사를 선택해주세요.</Text>
+				<Title size="small" weight="bold">
+					AI 뉴스레터 체험하기
+				</Title>
+				<Text size="small" color="subText">
+					분야를 고르면 어제 뉴스로 AI가 뉴스레터를 만들어 드려요. 저장되지 않는 체험판이에요.
+				</Text>
 				<CategoryTags selectType="localSingle" onSelect={setSelectedInterest} selected={selectedInterest} />
 			</div>
-			<StyledContent>
+			<StyledContent aria-live="polite" aria-busy={isLoading}>
 				{isLoading ? (
-					<Skeleton />
+					<div className="loading">
+						<Text size="small" color="subText">
+							AI가 {selectedInterest} 분야의 주요 소식을 고르고 쓰는 중이에요. 30초쯤 걸려요.
+						</Text>
+						<Skeleton />
+					</div>
 				) : errorMessage ? (
 					<div className="info">
-						<BiSolidMessageRoundedError />
-						<Text size="large">{errorMessage}</Text>
+						<span className="badge error">
+							<LuCircleAlert />
+						</span>
+						<Text size="medium" weight="semiBold">
+							{errorMessage}
+						</Text>
+						<Text size="small" color="subText">
+							잠시 뒤 다시 시도해 주세요.
+						</Text>
 					</div>
 				) : newsletter ? (
 					<div className="content">
 						<div className="article-header">
-							{newsletter.categoryId && (
-								<Title size="extraSmall" color="primary" className="tag">
-									{mapIdToTitle([newsletter.categoryId])[0]}
-								</Title>
-							)}
-							<Title size="large" weight="semiBold" color="primary">
-								{newsletter ? newsletter.title : 'AI 뉴스레터 체험하기'}
+							{newsletter.categoryId && <span className="tag">{mapIdToTitle([newsletter.categoryId])[0]}</span>}
+							<Title size="large" weight="bold" className="title">
+								{newsletter.title}
 							</Title>
-
-							<Text size="small" color="subText" className="date">
-								{dateFormatter(newsletter.createdAt)}
+							<Text size="small" color="subText">
+								{dateFormatter(newsletter.createdAt)} 뉴스 기준
 							</Text>
-							<hr />
 						</div>
-						<div className="newsletter">
+						{newsletter.imageUrl && (
 							<div className="image-placeholder">
-								{newsletter.imageUrl && (
-									<Imgae src={newsletter.imageUrl || DEFAULT_IMAGES.MONO} alt={newsletter.title} />
-								)}
+								<Imgae src={newsletter.imageUrl || DEFAULT_IMAGES.MONO} alt={newsletter.title} />
 							</div>
-							<StyledArticle>
-								<div className="body">{parse(sanitizeHtml(newsletter.contentAsHTML))}</div>
-							</StyledArticle>
-						</div>
+						)}
+						<StyledArticle>
+							<div className="body">{parse(sanitizeHtml(newsletter.contentAsHTML))}</div>
+						</StyledArticle>
 						<div className="action">
 							{newsletter.usedNews != '' && <OpenGraphCard urls={parseUrls(newsletter.usedNews)} />}
 							<SubscribeInduce />
@@ -118,130 +126,154 @@ export default function Trial() {
 					</div>
 				) : (
 					<div className="info">
-						<GiNothingToSay />
-						<Text size="large">아직 데이터가 없습니다.</Text>
+						<span className="badge">
+							<LuSparkles />
+						</span>
+						<Text size="medium" weight="semiBold">
+							분야를 고르고 생성하기를 눌러 보세요
+						</Text>
+						<Text size="small" color="subText">
+							매일 아침 구독자에게 가는 뉴스레터와 같은 방식으로 만들어요.
+						</Text>
 					</div>
 				)}
 			</StyledContent>
-			<Button size="medium" scheme="primary" onClick={handleGenerateNewsletter} disabled={isLoading}>
-				{newsletter || errorMessage ? '다시 하기' : '생성하기'}
+			<Button
+				size="medium"
+				scheme="primary"
+				className="generate"
+				onClick={handleGenerateNewsletter}
+				disabled={isLoading}
+			>
+				{isLoading
+					? '만드는 중…'
+					: newsletter || errorMessage
+						? '다시 만들기'
+						: `${selectedInterest} 뉴스레터 생성하기`}
 			</Button>
 		</StyledTrial>
 	);
 }
 
 const StyledTrial = styled.div`
-	width: 80vw;
-	height: 80vh;
-	max-width: calc(${({ theme }) => theme.layout.width.large} - 2rem);
-
+	/* 대화상자 안쪽 여백(--modal-pad)을 뺀 만큼 넓게 */
+	width: min(52rem, calc(100vw - 2rem - 2 * var(--modal-pad, 1.75rem)));
+	height: min(46rem, calc(100vh - 2rem - 2 * var(--modal-pad, 1.75rem)));
 	display: flex;
 	flex-direction: column;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 1.5rem;
-	padding: 1rem 1.5rem;
-	overflow: hidden;
+	gap: 1.25rem;
 
 	.header {
-		width: 100%;
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 0rem 0.5rem;
+		gap: 0.5rem;
+		padding-right: 2.5rem; /* 닫기 버튼 자리 */
 
-		span {
-			padding: 0 0.25rem;
+		> ul,
+		> div:last-child {
+			margin-top: 0.5rem;
 		}
+	}
+
+	.generate {
+		flex-shrink: 0;
+		width: 100%;
+		height: 3rem;
+		border-radius: ${({ theme }) => theme.borderRadius.medium};
 	}
 `;
 
 const StyledContent = styled.div`
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 1rem;
-	overflow-y: scroll;
-	padding: 2rem;
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 1.5rem;
+	border-radius: ${({ theme }) => theme.borderRadius.rounded};
+	background: ${({ theme }) => theme.color.surface};
 
-	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.borderRadius.soft};
-
-	.article-header {
-		.tag {
-			width: fit-content;
-			height: fit-content;
-			padding: 0 1.5rem;
-			margin-bottom: 0.5rem;
-			background: ${({ theme }) => theme.color.tertiary};
-			color: ${({ theme }) => theme.color.primary};
-			border-radius: ${({ theme }) => theme.borderRadius.capsule};
-		}
-
-		.date {
-			width: 100%;
-			display: flex;
-			justify-content: flex-end;
-			text-decoration: underline;
-			margin: 1rem 0;
-		}
-
-		hr {
-			width: 100%;
-			margin-bottom: 2rem;
-			padding: 0;
-			border: none;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-		}
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		padding: 1rem;
 	}
 
+	/* 빈 상태·실패 */
 	.info {
-		width: 100%;
 		height: 100%;
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
 		align-items: center;
-		gap: 1rem;
+		justify-content: center;
+		gap: 0.5rem;
+		text-align: center;
+		word-break: keep-all;
 
-		svg {
-			font-size: 3rem;
-			color: ${({ theme }) => theme.color.secondary};
+		.badge {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 3.5rem;
+			height: 3.5rem;
+			margin-bottom: 0.5rem;
+			border-radius: ${({ theme }) => theme.borderRadius.circle};
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
+
+			svg {
+				width: 1.75rem;
+				height: 1.75rem;
+			}
+
+			&.error {
+				color: ${({ theme }) => theme.color.error};
+			}
 		}
 	}
 
-	.newsletter {
-		width: 100%;
-		height: fit-content;
+	.loading {
 		display: flex;
 		flex-direction: column;
-		justify-content: flex-start;
+		gap: 1rem;
+	}
+
+	/* 결과 */
+	.content {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		padding: 0.5rem;
+	}
+
+	.article-header {
+		display: flex;
+		flex-direction: column;
 		align-items: flex-start;
+		gap: 0.5rem;
+		padding-bottom: 1.25rem;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+		.tag {
+			padding: 0.125rem 0.625rem;
+			border-radius: ${({ theme }) => theme.borderRadius.capsule};
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		}
+
+		.title {
+			word-break: keep-all;
+		}
+	}
+
+	.image-placeholder img {
+		width: 100%;
+		height: auto;
+		border-radius: ${({ theme }) => theme.borderRadius.medium};
 	}
 
 	.action {
-		width: 100%;
-		height: fit-content;
 		display: flex;
 		flex-direction: column;
-		padding: 2rem 0;
-	}
-
-	.image-placeholder {
-		width: 100%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-		margin-bottom: 2rem;
-
-		img {
-			width: 100%;
-			height: auto;
-			border-radius: ${({ theme }) => theme.borderRadius.soft};
-		}
+		gap: 1.5rem;
 	}
 `;
 

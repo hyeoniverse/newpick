@@ -21,6 +21,8 @@ function Modal({ onClose }: Props) {
 	const modalRef = useRef<HTMLDivElement | null>(null);
 	const previousFocusedElement = useRef<HTMLElement | null>(null);
 	const drag = useRef<{ startY: number; startTime: number; dy: number } | null>(null);
+	// 끌기를 마치면 브라우저가 click을 한 번 더 보낸다. 끈 뒤의 click은 닫기로 치지 않는다
+	const dragged = useRef(false);
 	const isSheet = variant === 'sheet';
 
 	const handleClose = () => {
@@ -50,6 +52,7 @@ function Modal({ onClose }: Props) {
 		if (!drag.current || !modalRef.current) return;
 		const { dy, startTime } = drag.current;
 		drag.current = null;
+		dragged.current = dy > 3;
 		const height = modalRef.current.offsetHeight;
 		const fast = dy / (performance.now() - startTime) > DRAG_CLOSE_VELOCITY;
 		if (dy > Math.max(DRAG_CLOSE_MIN, height * DRAG_CLOSE_RATIO) || (fast && dy > 20)) {
@@ -61,8 +64,12 @@ function Modal({ onClose }: Props) {
 	};
 
 	// 끌지 않고 누르면(탭·Enter·Space) 닫기 버튼으로 동작
-	const onHandleClick = (e: React.MouseEvent) => {
-		if (e.detail === 0 || !modalRef.current?.style.transform) handleClose();
+	const onHandleClick = () => {
+		if (dragged.current) {
+			dragged.current = false;
+			return;
+		}
+		handleClose();
 	};
 
 	const handleOverlayClick = (e: React.MouseEvent) => {
@@ -172,7 +179,9 @@ const StyledModal = styled.div`
 	min-width: 100vw;
 	min-height: 100vh;
 	z-index: 1000;
-	background: rgba(32, 29, 29, 0.6);
+	/* 뒤 화면은 어둡게 + 살짝 흐리게 */
+	background: rgba(15, 15, 20, 0.5);
+	backdrop-filter: blur(4px);
 
 	/* Firefox */
 	scrollbar-width: none;
@@ -185,12 +194,27 @@ const StyledModal = styled.div`
 	/* IE, Edge */
 	-ms-overflow-style: none;
 
+	/* 대화상자: 내용에 맞는 폭, 화면보다 크면 스크롤 */
 	.modal-body {
+		@keyframes dialog-pop {
+			from {
+				opacity: 0;
+				transform: translate(-50%, -48%) scale(0.97);
+			}
+			to {
+				opacity: 1;
+				transform: translate(-50%, -50%) scale(1);
+			}
+		}
+
+		--modal-pad: 1.75rem;
 		width: fit-content;
 		height: fit-content;
-		min-width: ${({ theme }) => theme.layout.width.small};
-		max-width: ${({ theme }) => theme.layout.width.large};
-		padding: 2rem;
+		min-width: min(22rem, calc(100vw - 2rem));
+		max-width: min(56rem, calc(100vw - 2rem));
+		max-height: calc(100vh - 2rem);
+		overflow-y: auto;
+		padding: var(--modal-pad);
 
 		display: flex;
 		flex-direction: column;
@@ -201,20 +225,21 @@ const StyledModal = styled.div`
 		top: 50%;
 		left: 50%;
 		transform: translate(-50%, -50%);
+		animation: dialog-pop 0.25s ease-out;
 
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
-		box-shadow: ${({ theme }) => theme.shadow.medium};
+		border-radius: ${({ theme }) => theme.borderRadius.rounded};
+		box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
 		background: ${({ theme }) => theme.color.background};
 
-		transition: opacity 0.3s ease-in-out;
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			--modal-pad: 1.25rem;
+		}
 	}
 
 	.modal-contents {
 		display: flex;
 		flex-direction: column;
-		overflow: hidden;
-		padding: 0.5rem 1rem;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		width: 100%;
 	}
 
 	/* sheet (#52): 화면 아래에 붙어 올라오는 시트. 데스크톱은 폭을 좁혀 가운데, 모바일은 화면 폭 전체 */
@@ -289,25 +314,34 @@ const StyledModal = styled.div`
 		}
 	}
 
+	/* 닫기: 작은 원형 버튼 */
 	.modal-close {
 		position: absolute;
-		top: 1rem;
-		right: 1rem;
-
+		top: 0.875rem;
+		right: 0.875rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		padding: 0;
 		border: none;
-		color: ${({ theme }) => theme?.color?.text};
+		border-radius: ${({ theme }) => theme.borderRadius.circle};
+		color: ${({ theme }) => theme.color.subText};
 		background: transparent;
 		cursor: pointer;
+		transition:
+			background 0.15s,
+			color 0.15s;
 
 		svg {
-			width: 2rem;
-			height: 2rem;
+			width: 1.25rem;
+			height: 1.25rem;
+		}
 
-			&:hover {
-				color: ${({ theme }) => theme?.color?.primary};
-				transform: rotate(90deg);
-				transition: transform 0.3s ease;
-			}
+		&:hover {
+			background: ${({ theme }) => theme.color.surface};
+			color: ${({ theme }) => theme.color.text};
 		}
 	}
 `;

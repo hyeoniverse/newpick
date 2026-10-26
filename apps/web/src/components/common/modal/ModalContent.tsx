@@ -25,11 +25,11 @@ function ModalContents({
 	return (
 		<ModalContentsStyled>
 			<div className="contents">
-				{icon}
-				<Title size="extraSmall" weight="semiBold">
+				{icon && <span className="icon">{icon}</span>}
+				<Title size="extraSmall" weight="bold">
 					{title}
 				</Title>
-				<Text size="small">{content}</Text>
+				{content && <Text size="small">{content}</Text>}
 			</div>
 			<div className="btn-section">
 				{outlineButton && (
@@ -51,35 +51,53 @@ const ModalContentsStyled = styled.div`
 	display: flex;
 	flex-direction: column;
 	align-items: center;
-	justify-content: center;
-	gap: 1.875rem;
+	gap: 1.5rem;
+	width: 100%;
+	padding-top: 0.5rem;
 	white-space: pre-line;
 
 	.contents {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
 		text-align: center;
 
-		svg {
-			width: 2rem;
-			height: 2rem;
-			margin-bottom: 1rem;
+		/* 아이콘은 연한 강조색 원 안에 */
+		.icon {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 3.25rem;
+			height: 3.25rem;
+			margin-bottom: 0.5rem;
+			border-radius: ${({ theme }) => theme.borderRadius.circle};
+			background: ${({ theme }) => theme.color.tertiary};
 			color: ${({ theme }) => theme.color.primary};
+
+			svg {
+				width: 1.625rem;
+				height: 1.625rem;
+			}
 		}
 
 		span {
+			line-height: 1.6;
 			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 
+	/* 버튼은 폭을 나눠 꽉 채운다 */
 	.btn-section {
 		display: flex;
-		flex-direction: row;
-		margin: 0 auto;
-		gap: 1.25rem;
+		width: 100%;
+		gap: 0.5rem;
 
 		button {
 			flex: 1;
-			width: 10rem;
-			height: 2.875rem;
+			min-width: 0;
+			height: 2.75rem;
+			border-radius: ${({ theme }) => theme.borderRadius.medium};
 		}
 	}
 `;

@@ -44,9 +44,10 @@ describe('시트 (#52)', () => {
 		expect(screen.queryByRole('button', { name: /끌어 내려도/ })).toBeNull();
 	});
 
-	it('핸들을 조금만 끌면 제자리로 돌아온다', () => {
+	it('핸들을 조금만 끌면 제자리로 돌아온다 (끌기 뒤에 오는 click으로 닫히지 않음)', () => {
 		open('sheet');
 		drag(30);
+		fireEvent.click(handle(), { detail: 1 });
 		expect(closing()).toBe(false);
 		expect(dialog().style.transform).toBe('');
 	});
