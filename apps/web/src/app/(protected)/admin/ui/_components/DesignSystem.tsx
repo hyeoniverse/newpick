@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import styled, { useTheme } from 'styled-components';
-import { LuBell, LuMailCheck, LuSparkles } from 'react-icons/lu';
+import { LuArrowLeft, LuArrowRight, LuBell, LuMailCheck, LuShare2, LuSparkles } from 'react-icons/lu';
 
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
@@ -32,6 +32,24 @@ import InputRadio from '@/components/common/InputRadio';
 import Spinner from '@/components/common/loader/Spinner';
 import Skeleton from '@/components/common/loader/Skeleton';
 import ModalContent from '@/components/common/modal/ModalContent';
+import BarHeight from '@/components/common/BarHeight';
+import BarWidth from '@/components/common/BarWidth';
+import NoContentsPage from '@/components/common/NoContentsPage';
+import AgreementCheck from '@/components/common/article/AgreementCheck';
+import SubscribeInduce from '@/components/common/article/SubscribeInduce';
+import CustomIcon from '@/components/common/icons/CustomIcon';
+import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
+import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
+import ExternalLink from '@/components/common/ExternalLink';
+import MoveButton from '@/components/common/MoveButton';
+import TabNavigation from '@/components/common/TabNavgation';
+import Logo from '@/components/common/Logo';
+import Image from '@/components/common/Image';
+import SummaryTextBox from '@/components/common/article/SummaryTextBox';
+import Card from '@/components/common/Card';
+import BorderTitle from '@/components/common/BorderTitle';
+import CategoryTags from '@/components/common/article/CategoryTags';
+import Tags from '@/components/common/Tags';
 
 const SIZES = ['extraSmall', 'small', 'medium', 'large', 'extraLarge'] as const;
 const WEIGHTS: FontWeight[] = ['light', 'regular', 'medium', 'semiBold', 'bold', 'extraBold'];
@@ -53,7 +71,34 @@ const SECTIONS = [
 	{ id: 'button', title: '버튼' },
 	{ id: 'input', title: '입력' },
 	{ id: 'feedback', title: '토스트 · 시트' },
+	{ id: 'tag', title: '태그 · 칩' },
+	{ id: 'card', title: '카드' },
+	{ id: 'image', title: '이미지 · 로고' },
+	{ id: 'nav', title: '탐색' },
+	{ id: 'link', title: '링크 · 아이콘' },
+	{ id: 'subscribe', title: '구독' },
+	{ id: 'empty', title: '빈 화면 · 구분선' },
 	{ id: 'loading', title: '로딩' },
+];
+
+/** 카드 예시 데이터 (실제 API를 부르지 않는다) */
+const SAMPLE_CARD = {
+	id: 'ds-card',
+	image: '/img/newpick_default_img.jpg',
+	header: 'IT',
+	main: {
+		title: '더존비즈온 침해사고, 정부 ‘중대’ 판단',
+		description: 'PHP투쉘 취약점에는 정부가 패치 후 서비스 재시작 등 대응 지침을 냈다.',
+		tags: ['더존비즈온', '침해사고', 'PHP투쉘'],
+	},
+	footer: '2026-10-27 | 조회수 34',
+	url: '/articles',
+};
+
+const SAMPLE_TABS = [
+	{ id: 1, title: '내 뉴스레터', link: 'ds-tab-1' },
+	{ id: 2, title: '북마크한 뉴스레터', link: 'ds-tab-2' },
+	{ id: 3, title: '뉴스레터 설정', link: 'ds-tab-3' },
 ];
 
 /**
@@ -334,6 +379,81 @@ function DesignSystemBody() {
 				</div>
 			</Section>
 
+			<Section id="tag" title="태그 · 칩" note="Tags(키워드) · CategoryTags(분야) · BorderTitle">
+				<Tags tags={['코스피', '빅테크 실적', '가상자산 과세', 'FOMC']} />
+				<CategoryTags />
+				<BorderTitle text="전체" color="primary" />
+			</Section>
+
+			<Section id="card" title="카드" note="Card type: main · list · sub, SummaryTextBox (예시 데이터, API 호출 없음)">
+				<Card type="main" data={SAMPLE_CARD} />
+				<div className="grid">
+					<Card type="list" data={SAMPLE_CARD} />
+					<Card type="sub" data={SAMPLE_CARD} />
+				</div>
+				<SummaryTextBox>
+					26일 코스피가 외국인 순매도와 AI 수익성 우려로 5469.47에 마감해 종가 기준 4월 6일 이후 최저를 기록했다.
+				</SummaryTextBox>
+			</Section>
+
+			<Section id="image" title="이미지 · 로고" note="Image ratio: square · wide · tall, Logo">
+				<div className="images">
+					{(['square', 'wide', 'tall'] as const).map((ratio) => (
+						<div key={ratio} className="image">
+							<Image src="/img/newpick_default_img.jpg" alt={ratio} ratio={ratio} />
+							<code>{ratio}</code>
+						</div>
+					))}
+				</div>
+				<div className="wrap">
+					<Logo />
+					<Logo logoType="footer-logo" />
+				</div>
+			</Section>
+
+			<Section id="nav" title="탐색" note="TabNavigation · MoveButton">
+				<TabNavigation tabs={SAMPLE_TABS} />
+				<div className="wrap">
+					<MoveButton text="목록으로" frontIcon={<LuArrowLeft />} />
+					<MoveButton text="다음 글" backIcon={<LuArrowRight />} />
+					<MoveButton text="비활성" disabled />
+				</div>
+				<Text size="extraSmall" color="subText">
+					Dropdown은 헤더(프로필 메뉴·모바일 메뉴) 위치에 맞춰진 컴포넌트라, 헤더의 프로필 사진을 눌러 확인하세요.
+				</Text>
+			</Section>
+
+			<Section id="link" title="링크 · 아이콘" note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon">
+				<Text size="small">
+					<ExternalLink href="https://kopico.go.kr">kopico.go.kr</ExternalLink> — 마우스를 올리면 화살표가 움직입니다
+				</Text>
+				<div className="wrap">
+					<LinkCopyIcon id="ds" />
+					<OrigLinkIcon />
+					<CustomIcon onClick={() => showToast('아이콘을 눌렀습니다.', 'info')}>
+						<LuShare2 />
+					</CustomIcon>
+				</div>
+				<Text size="extraSmall" color="subText">
+					BookmarkIcon은 누르면 실제로 북마크를 저장해 여기서는 빼 두었습니다.
+				</Text>
+			</Section>
+
+			<Section id="subscribe" title="구독" note="SubscribeInduce(기사 하단) · AgreementCheck">
+				<SubscribeInduce />
+				<AgreementCheck name="ds-agreement" />
+			</Section>
+
+			<Section id="empty" title="빈 화면 · 구분선" note="NoContentsPage · BarWidth · BarHeight">
+				<NoContentsPage text="북마크한 뉴스레터가 없습니다." btnText="뉴스레터 보러 가기" moveTo="/articles" />
+				<BarWidth />
+				<div className="wrap">
+					<Text size="small">왼쪽</Text>
+					<BarHeight height="1rem" />
+					<Text size="small">오른쪽</Text>
+				</div>
+			</Section>
+
 			<Section id="loading" title="로딩" note="Spinner · Skeleton">
 				<div className="wrap">
 					<Spinner />
@@ -529,6 +649,20 @@ const StyledPage = styled.div`
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem;
+	}
+
+	.images {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: flex-end;
+		gap: 1rem;
+	}
+
+	.image {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		width: 8rem;
 	}
 
 	.grid {
