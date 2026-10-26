@@ -225,7 +225,7 @@ const StyledListSection = styled.section`
 
 			.tag {
 				white-space: nowrap;
-				border-radius: ${({ theme }) => theme.radius.control};
+				border-radius: ${({ theme }) => theme.radius.chip};
 				background: ${({ theme }) => theme.color.tertiary};
 				color: ${({ theme }) => theme.color.primary};
 				padding: 0.25rem 1rem;

@@ -128,7 +128,7 @@ const StyledSubscribeSheet = styled.div`
 	.chip {
 		padding: 0.5rem 1rem;
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.control};
+		border-radius: ${({ theme }) => theme.radius.chip};
 		background: ${({ theme }) => theme.color.background};
 		font-size: ${({ theme }) => theme.fontSize.small};
 		color: ${({ theme }) => theme.color.text};

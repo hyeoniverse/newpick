@@ -91,7 +91,7 @@ const TeamHeader = styled.div`
 	padding: 0.5rem;
 	text-align: center;
 	font-weight: ${({ theme }) => theme.fontWeight.bold};
-	border-radius: ${({ theme }) => theme.radius.control};
+	border-radius: ${({ theme }) => theme.radius.chip};
 `;
 
 const MemberList = styled.div`

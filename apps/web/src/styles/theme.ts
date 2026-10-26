@@ -25,12 +25,13 @@ export type FontWeight = 'light' | 'regular' | 'medium' | 'semiBold' | 'bold' | 
 
 export type BorderRadius = 'flat' | 'soft' | 'medium' | 'rounded' | 'capsule' | 'circle';
 /**
- * control: 누르는 것 (버튼·입력칸·선택 목록·체크 상자·칩·태그) — 각지게
+ * control: 누르는 것 (버튼·입력칸·선택 목록·체크 상자) — 각지게
+ * chip: 분류·고르기 (태그·분야 칩·꼬리표) — 알약 모양. 동작 버튼과 모양으로 구분된다
  * surface: 담는 것 (카드·사진·펼친 목록·안내 상자) — 살짝 둥글게
  * floating: 화면 위에 뜨는 것 (시트·토스트) — 바탕과 구분되게 더 둥글게
  * 원래 둥근 것(프로필 사진·라디오·점)은 borderRadius.circle
  */
-export type RadiusRole = 'control' | 'surface' | 'floating';
+export type RadiusRole = 'control' | 'chip' | 'surface' | 'floating';
 export type Shadow = 'light' | 'medium' | 'heavy';
 
 export type ButtonSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
@@ -150,6 +151,7 @@ export const lightTheme: Theme = {
 	},
 	radius: {
 		control: '0',
+		chip: '9999px',
 		surface: '8px',
 		floating: '16px',
 	},

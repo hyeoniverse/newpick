@@ -182,14 +182,14 @@ const StyeldStartSubscription = styled.div`
 		.category-btn {
 			width: max-content;
 			color: ${({ theme }) => theme.color.primary};
-			border-radius: ${({ theme }) => theme.radius.control};
+			border-radius: ${({ theme }) => theme.radius.chip};
 			border: 1px solid ${({ theme }) => theme.color.primary};
 		}
 
 		.active {
 			color: ${({ theme }) => theme.color.background};
 			background-color: ${({ theme }) => theme.color.primary};
-			border-radius: ${({ theme }) => theme.radius.control};
+			border-radius: ${({ theme }) => theme.radius.chip};
 		}
 	}
 

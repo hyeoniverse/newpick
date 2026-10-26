@@ -208,7 +208,8 @@ function DesignSystemBody() {
 				<div className="radii">
 					{(
 						[
-							['control', '누르는 것', '버튼·입력칸·칩·태그'],
+							['control', '누르는 것', '버튼·입력칸·선택 목록'],
+							['chip', '분류·고르기', '태그·분야 칩·꼬리표'],
 							['surface', '담는 것', '카드·사진·펼친 목록'],
 							['floating', '뜨는 것', '시트·토스트'],
 						] as const
