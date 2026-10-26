@@ -88,7 +88,7 @@ const StyledDropdown = styled.div`
 			background: ${({ theme }) => theme.color.surface};
 			box-shadow: ${({ theme }) => theme.shadow.medium};
 			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.borderRadius.soft};
+			border-radius: ${({ theme }) => theme.radius.surface};
 			z-index: 1000;
 			white-space: nowrap;
 

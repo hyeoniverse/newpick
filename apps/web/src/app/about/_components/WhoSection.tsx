@@ -92,7 +92,7 @@ const TeamHeader = styled.div`
 	padding: 0.5rem;
 	text-align: center;
 	font-weight: ${({ theme }) => theme.fontWeight.bold};
-	border-radius: ${({ theme }) => theme.borderRadius.capsule};
+	border-radius: ${({ theme }) => theme.radius.chip};
 `;
 
 const MemberList = styled.div`
@@ -120,7 +120,7 @@ const ProfileImage = styled(ExternalLink)`
 	background: ${({ theme }) => theme.color.neutral};
 	color: ${({ theme }) => theme.color.text};
 	font-weight: ${({ theme }) => theme.fontWeight.bold};
-	border-radius: ${({ theme }) => theme.borderRadius.medium};
+	border-radius: ${({ theme }) => theme.radius.surface};
 	overflow: hidden;
 `;
 
@@ -165,5 +165,5 @@ const LeaderTag = styled.span`
 	font-weight: bold;
 	padding: 0.2rem 0.5rem;
 	margin-right: 0.5rem;
-	border-radius: ${({ theme }) => theme.borderRadius.medium};
+	border-radius: ${({ theme }) => theme.radius.surface};
 `;

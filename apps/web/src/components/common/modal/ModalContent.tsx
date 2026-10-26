@@ -97,7 +97,7 @@ const ModalContentsStyled = styled.div`
 			flex: 1;
 			min-width: 0;
 			height: 2.75rem;
-			border-radius: ${({ theme }) => theme.borderRadius.medium};
+			border-radius: ${({ theme }) => theme.radius.control};
 		}
 	}
 `;

@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useId } from 'react';
 import styled from 'styled-components';
+import { fieldControl, fieldLabel } from '@/components/common/field';
 
 interface Props extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onBlur'> {
 	label?: string;
@@ -9,7 +10,11 @@ interface Props extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onBlu
 }
 
 const InputText = React.forwardRef<HTMLInputElement, Props>(
-	({ label, placeholder, inputType = 'text', onBlur, onChange, ...props }, ref) => {
+	({ label, placeholder, inputType = 'text', onBlur, onChange, id, ...props }, ref) => {
+		// 이름표를 누르면 칸에 초점이 가도록 연결한다
+		const autoId = useId();
+		const inputId = id ?? autoId;
+
 		const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
 			const { name, value } = e.target;
 			if (onBlur) {
@@ -19,8 +24,9 @@ const InputText = React.forwardRef<HTMLInputElement, Props>(
 
 		return (
 			<StyledInputText className="input-text">
-				{label && <label>{label}</label>}
+				{label && <label htmlFor={inputId}>{label}</label>}
 				<input
+					id={inputId}
 					placeholder={placeholder}
 					ref={ref}
 					type={inputType}
@@ -30,38 +36,23 @@ const InputText = React.forwardRef<HTMLInputElement, Props>(
 				/>
 			</StyledInputText>
 		);
-	}
+	},
 );
 
+/** 이름표는 칸 위에 (다른 입력칸과 같게). 예전에는 옆에 붙어 좁으면 글자가 세로로 꺾였다 */
 const StyledInputText = styled.div`
 	display: flex;
+	flex-direction: column;
 	width: 100%;
-	line-height: 1.8;
+
+	label {
+		${fieldLabel}
+	}
 
 	input {
-		display: flex;
-		width: 100%;
-		height: 3rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		overflow: visible;
-		padding: 0.6rem 1.2rem;
-		line-height: 1.8;
-
-		color: ${({ theme }) => theme.color.text};
-		background: ${({ theme }) => theme.color.background};
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
-		font-size: ${({ theme }) => theme.fontSize.small};
-
-		&:focus {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-
-		&::placeholder {
-			color: ${({ theme }) => theme.color.neutral};
-		}
+		${fieldControl}
 	}
 `;
 
 InputText.displayName = 'InputText'; // Next.js에서 유용한 컴포넌트 이름 설정
-
 export default InputText;
