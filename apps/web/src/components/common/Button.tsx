@@ -118,10 +118,11 @@ export const StyledButton = styled.button.withConfig({
 		margin: 0;
 	}
 
+	/* 아이콘은 글자 높이(1em)에 맞춘다. 더 크면 아이콘이 있는 버튼만 키가 커진다 */
 	svg {
 		flex-shrink: 0;
-		width: 1.1em;
-		height: 1.1em;
+		width: 1em;
+		height: 1em;
 		color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].color};
 	}
 

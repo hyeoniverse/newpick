@@ -432,7 +432,7 @@ function DesignSystemBody() {
 				<div className="wrap">
 					<LinkCopyIcon id="ds" />
 					<OrigLinkIcon />
-					<CustomIcon onClick={() => showToast('아이콘을 눌렀습니다.', 'info')}>
+					<CustomIcon label="공유" onClick={() => showToast('아이콘을 눌렀습니다.', 'info')}>
 						<LuShare2 />
 					</CustomIcon>
 				</div>
