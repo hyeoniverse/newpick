@@ -5,13 +5,25 @@ import { TOAST } from '@/constants/numbers';
 import { ToastItem, ToastPosition, ToastType } from '@/models/toast.model';
 import { useToast } from '@/hooks/useToast';
 
-import styled from 'styled-components';
-import Button from '@/components/common/Button';
-import { FaCheck, FaInfoCircle } from 'react-icons/fa';
-import { IoIosWarning } from 'react-icons/io';
-import { IoClose } from 'react-icons/io5';
+import styled, { DefaultTheme } from 'styled-components';
+import { LuCircleCheck, LuCircleX, LuInfo, LuTriangleAlert, LuX } from 'react-icons/lu';
 
-const Toast = React.memo(({ id, message, type, duration = TOAST.DURATION, index }: ToastItem & { index: number }) => {
+const ICONS: Record<ToastType, React.ReactNode> = {
+	info: <LuInfo />,
+	success: <LuCircleCheck />,
+	warning: <LuTriangleAlert />,
+	error: <LuCircleX />,
+};
+
+const typeColor = (theme: DefaultTheme, type: ToastType) =>
+	({
+		info: theme.color.primary,
+		success: theme.color.success,
+		warning: theme.color.warning,
+		error: theme.color.error,
+	})[type];
+
+const Toast = React.memo(({ id, message, type, duration = TOAST.DURATION }: ToastItem & { index: number }) => {
 	const { removeToast, position } = useToast();
 	const [isFadingOut, setIsFadingOut] = useState(false);
 	const [progress, setProgress] = useState(100); // ⏳ 프로그레스 바 (100% → 0%)
@@ -51,22 +63,20 @@ const Toast = React.memo(({ id, message, type, duration = TOAST.DURATION, index 
 
 	return (
 		<StyledToast
-			className={`${isFadingOut ? 'fade-out' : 'fade-in'} ${type}`}
+			className={isFadingOut ? 'fade-out' : 'fade-in'}
+			// 오류는 바로 읽히게(alert), 나머지는 하던 일을 끊지 않게(status)
+			role={type === 'error' ? 'alert' : 'status'}
 			$type={type}
 			$position={position}
-			$index={index}
 			onMouseEnter={handleMouseEnter}
 			onMouseLeave={handleMouseLeave}
 			onAnimationEnd={handleAnimationEnd}
 		>
-			<p>
-				{type === 'info' && <FaInfoCircle />}
-				{type === 'success' && <FaCheck />}
-				{type === 'warning' && <IoIosWarning />}
-				{type === 'error' && <IoIosWarning />}
-				{message}
-			</p>
-			<Button scheme="secondary" onClick={startFadeOut} icon={<IoClose />} />
+			<span className="icon">{ICONS[type]}</span>
+			<p>{message}</p>
+			<button type="button" className="close" onClick={startFadeOut} aria-label="알림 닫기">
+				<LuX />
+			</button>
 			<ProgressBar $type={type} $progress={progress} />
 		</StyledToast>
 	);
@@ -75,108 +85,108 @@ const Toast = React.memo(({ id, message, type, duration = TOAST.DURATION, index 
 interface StyledProps {
 	$type: ToastType;
 	$position: ToastPosition;
-	$index: number;
 }
 
+/** 위쪽에 뜨는 토스트는 위에서, 아래쪽은 아래에서 들어온다 */
+const enterFrom = ({ $position }: StyledProps) => ($position.includes('top') ? '-12px' : '12px');
+
 const StyledToast = styled.div<StyledProps>`
-	@keyframes fade-in {
+	@keyframes toast-in {
 		from {
 			opacity: 0;
-			transform: translateY(${(props) => (props.$position.includes('top') ? '-20px' : '20px')}) scaleY(0.9);
+			transform: translateY(${enterFrom}) scale(0.98);
 		}
 		to {
 			opacity: 1;
-			transform: translateY(0) scaleY(1);
+			transform: translateY(0) scale(1);
 		}
 	}
 
-	@keyframes fade-out {
+	@keyframes toast-out {
 		from {
 			opacity: 1;
-			transform: translateY(0) scaleY(1);
-			max-height: 100px;
-			margin-bottom: 0.5rem;
+			max-height: 6rem;
 		}
 		to {
 			opacity: 0;
-			transform: translateY(${(props) => (props.$position.includes('top') ? '-20px' : '20px')}) scaleY(0);
-			max-height: 0px;
-			margin-bottom: 0px;
+			transform: translateY(${enterFrom}) scale(0.98);
+			max-height: 0;
+			margin-top: -0.5rem;
 		}
+	}
+
+	&.fade-in {
+		animation: toast-in 0.25s ease-out forwards;
+	}
+
+	&.fade-out {
+		animation: toast-out 0.25s ease-in forwards;
 	}
 
 	position: relative;
 	display: flex;
-	justify-content: space-between;
 	align-items: center;
-	padding: 0.5rem 1.5rem;
-	margin: 0.5rem;
-	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.borderRadius.medium};
-	box-shadow: ${({ theme }) => theme.shadow.light};
-	gap: 1rem;
-	transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, max-height 0.3s ease-in-out,
-		margin-bottom 0.3s ease-in-out;
-	transform: translateY(${({ $index }) => -$index * 5}px);
-	opacity: 1;
+	gap: 0.75rem;
+	min-width: min(16rem, calc(100vw - 2rem));
+	max-width: min(26rem, calc(100vw - 2rem));
+	padding: 0.75rem 0.625rem 0.75rem 0.875rem;
 	overflow: hidden;
 
-	background: ${({ theme }) => theme.color.surface};
-	color: ${({ theme, $type }) =>
-		$type === 'info' || $type === 'success' || $type === 'error' ? theme.color.text : theme.color.text};
+	border: 1px solid ${({ theme }) => theme.color.border};
+	border-radius: ${({ theme }) => theme.borderRadius.rounded};
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+	background: ${({ theme }) => theme.color.background};
+	color: ${({ theme }) => theme.color.text};
 
-	&.fade-in {
-		animation: fade-in 0.3s ease-in-out forwards;
-	}
+	/* 종류별 색의 원형 배지 */
+	.icon {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: ${({ theme }) => theme.borderRadius.circle};
+		color: ${({ theme, $type }) => typeColor(theme, $type)};
+		background: ${({ theme, $type }) => `color-mix(in srgb, ${typeColor(theme, $type)} 14%, transparent)`};
 
-	&.fade-out {
-		animation: fade-out 0.3s ease-in-out forwards;
+		svg {
+			width: 1.125rem;
+			height: 1.125rem;
+		}
 	}
 
 	p {
+		flex: 1;
+		margin: 0;
 		font-size: ${({ theme }) => theme.fontSize.small};
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-
-		svg {
-			color: ${({ theme, $type }) =>
-				$type === 'info'
-					? theme.color.primary
-					: $type === 'success'
-					? theme.color.success
-					: $type === 'warning'
-					? theme.color.warning
-					: theme.color.error};
-		}
+		font-weight: ${({ theme }) => theme.fontWeight.medium};
+		line-height: 1.5;
+		word-break: keep-all;
 	}
 
-	button {
-		aspect-ratio: 1;
-		width: 1.5rem;
-		background: transparent;
+	.close {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		padding: 0;
 		border: none;
+		border-radius: ${({ theme }) => theme.borderRadius.circle};
+		background: transparent;
+		color: ${({ theme }) => theme.color.subText};
 		cursor: pointer;
 
 		svg {
-			transition: transform 0.3s ease-in-out;
-			transform: rotate(0deg);
+			width: 1rem;
+			height: 1rem;
 		}
 
 		&:hover {
-			background: transparent;
-
-			svg {
-				transform: rotate(90deg);
-				color: ${({ theme, $type }) =>
-					$type === 'info'
-						? theme.color.primary
-						: $type === 'success'
-						? theme.color.success
-						: $type === 'warning'
-						? theme.color.warning
-						: theme.color.error};
-			}
+			background: ${({ theme }) => theme.color.surface};
+			color: ${({ theme }) => theme.color.text};
 		}
 	}
 `;
@@ -186,23 +196,18 @@ interface ProgressProps {
 	$progress: number;
 }
 
+/** 남은 시간: 아래쪽 얇은 줄 (마우스를 올리면 멈춤) */
 const ProgressBar = styled.div.attrs<ProgressProps>(({ $progress, theme, $type }) => ({
 	style: {
 		width: `${$progress}%`,
-		background:
-			$type === 'info'
-				? theme.color.primary
-				: $type === 'success'
-				? theme.color.success
-				: $type === 'warning'
-				? theme.color.warning
-				: theme.color.error,
+		background: typeColor(theme, $type),
 	},
 }))<ProgressProps>`
 	position: absolute;
 	bottom: 0;
 	left: 0;
-	height: 4px;
+	height: 2px;
+	opacity: 0.6;
 	transition: width 0.1s linear;
 `;
 

@@ -1,20 +1,32 @@
 import { test, expect } from './support/fixtures';
+import { SEEDED_NEWSLETTERS } from './support/db.mjs';
 
-// #28: 로캘 날짜 문자열을 다시 파싱해서 Safari(WebKit)에서는 "Invalid Date"가 전송되고 api가 400을 돌려줬다.
-// chromium과 webkit 두 프로젝트에서 모두 실행된다.
-test('무료 체험은 브라우저와 관계없이 YYYY-MM-DD 날짜로 요청한다', async ({ page }) => {
+// #54: 체험하기는 Claude로 생성하지 않고, 고른 분야의 최신 발행본으로 구독 메일을 미리 보여 준다.
+// (#28의 Safari 날짜 문제는 체험이 날짜를 보내지 않게 되면서 사라졌다)
+test('체험하기는 생성 없이 고른 분야의 최신 발행본을 메일 모양으로 보여 준다', async ({ page }) => {
+	const summarize: string[] = [];
+	page.on('request', (r) => {
+		if (r.url().includes('/ai-summary/')) summarize.push(r.url());
+	});
+
 	await page.goto('/');
 	await page.getByRole('button', { name: 'AI 뉴스레터 체험하기' }).first().click();
+	const sheet = page.getByRole('dialog');
 
-	const [request] = await Promise.all([
-		page.waitForRequest((r) => r.url().endsWith('/api/ai-summary/summarize')),
-		page.getByRole('button', { name: '생성하기' }).click(),
-	]);
-	const body = request.postDataJSON();
-	const response = await request.response();
+	// 기본은 IT. 경제를 더 고르면 두 분야가 한 통의 메일로
+	await sheet.getByRole('button', { name: '경제', exact: true }).click();
+	await expect(sheet.getByText(SEEDED_NEWSLETTERS[0].title)).toBeVisible(); // 카테고리 1 = IT
+	await expect(sheet.getByText(SEEDED_NEWSLETTERS[2].title)).toBeVisible(); // 카테고리 3 = 경제
+	await expect(sheet.getByRole('heading', { name: /뉴픽 · 2개 분야/ })).toBeVisible();
+	await expect(sheet.getByRole('button', { name: '이 구성으로 구독하기 (2개 분야)' })).toBeEnabled();
 
-	expect(body.dateStart).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-	expect(body.dateEnd).toBe(body.dateStart);
-	// 테스트 환경에는 크롤링 원문이 없어 404가 정상. 400(날짜 검증 실패)만 아니면 된다
-	expect(response?.status()).not.toBe(400);
+	expect(summarize).toEqual([]);
+});
+
+test('로그인 없이 구독하기를 누르면 로그인 안내', async ({ page }) => {
+	await page.goto('/');
+	await page.getByRole('button', { name: 'AI 뉴스레터 체험하기' }).first().click();
+	await page.getByRole('button', { name: /이 구성으로 구독하기/ }).click();
+
+	await expect(page.getByText('로그인이 필요합니다.')).toBeVisible();
 });

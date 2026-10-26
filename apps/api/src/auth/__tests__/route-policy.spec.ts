@@ -48,7 +48,7 @@ const EXPECTED: Record<string, Policy> = {
   'GET crawling': 'admin',
   'GET crawling/category/:categoryId': 'admin',
 
-  'POST ai-summary/summarize': 'public',
+  'POST ai-summary/summarize': 'admin', // 체험은 최신 발행본으로 (#54). 공개 Claude 호출 경로 없음
   'POST ai-summary/get-news': 'admin',
 
   'POST feedback/bookmark': 'auth',

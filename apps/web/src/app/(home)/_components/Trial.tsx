@@ -1,282 +1,411 @@
 import { useState } from 'react';
-import parse from 'html-react-parser';
-import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import Link from 'next/link';
+import { useQuery } from '@tanstack/react-query';
 
-import { DEFAULT_IMAGES } from '@/constants/images';
-import { ArticleDetail as IArticleDetail } from '@/models/article.model';
-import { dateFormatter, kstDate } from '@/utils/formatter';
-import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
-import { parseUrls } from '@/utils/parseArticles';
-import { summarizeNews } from '@/api/ai';
-
-import styled from 'styled-components';
-import { GiNothingToSay } from 'react-icons/gi';
-import { BiSolidMessageRoundedError } from 'react-icons/bi';
-import Button from '@/components/common/Button';
-import Title from '@/components/common/Title';
-import Text from '@/components/common/Text';
-import Imgae from '@/components/common/Image';
-import Skeleton from '@/components/common/loader/Skeleton';
-import OpenGraphCard from '@/components/common/article/OpenGraphCard';
-import SubscribeInduce from '@/components/common/article/SubscribeInduce';
-import CategoryTags from '@/components/common/article/CategoryTags';
+import { CATEGORIES } from '@/constants/categories';
+import { ArticleDetail } from '@/models/article.model';
+import { fetchTrendList } from '@/api/article';
+import { useModal } from '@/hooks/useModal';
+import { useOpenSubscribe } from '@/hooks/useOpenSubscribe';
 import { getFirstImage } from '@/utils/getFirstImage';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 
+import styled from 'styled-components';
+import { LuCircleAlert, LuMailOpen } from 'react-icons/lu';
+import Button from '@/components/common/Button';
+import Title from '@/components/common/Title';
+import Text from '@/components/common/Text';
+import Skeleton from '@/components/common/loader/Skeleton';
+
+/** 분야별 최신 발행본. 부제·키워드는 #45 이후 발행본에만 있다 */
+type Latest = ArticleDetail & { subtitle?: string | null; keywords?: string[] | null };
+
+const INTERESTS = CATEGORIES.slice(1).map((c) => c.name);
+
+const monthDay = (date: string) =>
+	new Date(date).toLocaleDateString('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' });
+
+/**
+ * 체험하기 = 내 뉴스레터 미리보기 (#54).
+ * 생성하지 않고 분야별 최신 발행본으로, 구독하면 받을 메일을 그대로 보여 준다 (Claude 호출 없음, 비용 0).
+ * '이 구성으로 구독하기'는 고른 분야가 미리 선택된 구독 시트를 연다
+ */
 export default function Trial() {
-	const [newsletter, setNewsletter] = useState<IArticleDetail | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
-	const [errorMessage, setErrorMessage] = useState<string | null>(null);
-	const [selectedInterest, setSelectedInterest] = useState<string>('IT'); // 전역 상태 제거
+	const [selected, setSelected] = useState<string[]>(['IT']);
+	const { closeModal } = useModal();
+	const openSubscribe = useOpenSubscribe();
 
-	// 크롤링은 매일 08:00(KST)에 돌아서, 그 전에는 오늘 뉴스가 없습니다. 항상 하루치가 있는 어제를 요약합니다.
-	const getStartDate = () => kstDate(1);
+	const { data, isLoading, isError, refetch } = useQuery<Latest[]>({
+		queryKey: ['trends', 'latest-raw'],
+		queryFn: () => fetchTrendList() as Promise<Latest[]>,
+		staleTime: 1000 * 60 * 5,
+		retry: 1,
+	});
 
-	const handleGenerateNewsletter = async () => {
-		setIsLoading(true);
-		setNewsletter(null);
-		setErrorMessage(null);
+	const toggle = (name: string) =>
+		setSelected((prev) => (prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]));
+	const isAll = selected.length === INTERESTS.length;
 
-		const category = mapTitleToId([selectedInterest]);
-		const startDate = getStartDate();
-
-		try {
-			const result = await summarizeNews(category[0], startDate);
-
-			if (!result || !result.newsletter) {
-				throw new Error('올바른 뉴스 요약 데이터가 없습니다.');
-			}
-
-			// `contentAsHTML`에서 ` ```html ` 코드 블록 제거
-			const cleanedHtml = stripCodeFence(result.newsletter.html, 'html');
-			const newsletter: IArticleDetail = {
-				// 체험 결과는 저장되지 않으므로 id·조회수가 없습니다.
-				id: 0,
-				viewcount: 0,
-				content: result.newsletter.content ?? '',
-				title: result.newsletter.title,
-				categoryId: result.newsletter.categoryId,
-				createdAt: startDate,
-				contentAsHTML: cleanedHtml || '',
-				imageUrl: getFirstImage(result.newsletter.imageUrl || ''),
-				usedNews: result.newsletter.newslinks || '',
-			};
-
-			setNewsletter(newsletter);
-		} catch {
-			setErrorMessage('뉴스 요약을 가져오는 데 실패했습니다.');
-		} finally {
-			setIsLoading(false);
-		}
-	};
+	// 고른 순서가 아니라 분야 순서대로
+	const picked = INTERESTS.filter((name) => selected.includes(name)).map((name) => ({
+		name,
+		newsletter: data?.find((n) => CATEGORIES.find((c) => c.id === n.categoryId)?.name === name),
+	}));
+	const published = picked.filter((p) => p.newsletter);
+	const latestDate = published
+		.map((p) => p.newsletter!.createdAt)
+		.sort()
+		.at(-1);
 
 	return (
 		<StyledTrial>
 			<div className="header">
-				<Text size="medium">생성하고 싶은 AI 뉴스레터의 관심사를 선택해주세요.</Text>
-				<CategoryTags selectType="localSingle" onSelect={setSelectedInterest} selected={selectedInterest} />
+				<Title size="small" weight="bold">
+					내 뉴스레터 미리보기
+				</Title>
+				<Text size="small" color="subText">
+					관심 분야를 고르면, 구독했을 때 받을 메일을 최신 발행본으로 보여 드려요.
+				</Text>
+				<div className="chips" role="group" aria-label="관심 분야">
+					<button
+						type="button"
+						className={isAll ? 'chip selected' : 'chip'}
+						aria-pressed={isAll}
+						onClick={() => setSelected(isAll ? [] : INTERESTS)}
+					>
+						전체
+					</button>
+					{INTERESTS.map((name) => (
+						<button
+							key={name}
+							type="button"
+							className={selected.includes(name) ? 'chip selected' : 'chip'}
+							aria-pressed={selected.includes(name)}
+							onClick={() => toggle(name)}
+						>
+							{name}
+						</button>
+					))}
+				</div>
 			</div>
-			<StyledContent>
+
+			<StyledMail aria-live="polite" aria-busy={isLoading}>
 				{isLoading ? (
 					<Skeleton />
-				) : errorMessage ? (
+				) : isError ? (
 					<div className="info">
-						<BiSolidMessageRoundedError />
-						<Text size="large">{errorMessage}</Text>
+						<span className="badge error">
+							<LuCircleAlert />
+						</span>
+						<Text size="medium" weight="semiBold">
+							뉴스레터를 불러오지 못했어요
+						</Text>
+						<Button scheme="outline" size="small" onClick={() => refetch()}>
+							다시 불러오기
+						</Button>
 					</div>
-				) : newsletter ? (
-					<div className="content">
-						<div className="article-header">
-							{newsletter.categoryId && (
-								<Title size="extraSmall" color="primary" className="tag">
-									{mapIdToTitle([newsletter.categoryId])[0]}
-								</Title>
-							)}
-							<Title size="large" weight="semiBold" color="primary">
-								{newsletter ? newsletter.title : 'AI 뉴스레터 체험하기'}
-							</Title>
-
-							<Text size="small" color="subText" className="date">
-								{dateFormatter(newsletter.createdAt)}
-							</Text>
-							<hr />
-						</div>
-						<div className="newsletter">
-							<div className="image-placeholder">
-								{newsletter.imageUrl && (
-									<Imgae src={newsletter.imageUrl || DEFAULT_IMAGES.MONO} alt={newsletter.title} />
-								)}
-							</div>
-							<StyledArticle>
-								<div className="body">{parse(sanitizeHtml(newsletter.contentAsHTML))}</div>
-							</StyledArticle>
-						</div>
-						<div className="action">
-							{newsletter.usedNews != '' && <OpenGraphCard urls={parseUrls(newsletter.usedNews)} />}
-							<SubscribeInduce />
-						</div>
+				) : !selected.length ? (
+					<div className="info">
+						<span className="badge">
+							<LuMailOpen />
+						</span>
+						<Text size="medium" weight="semiBold">
+							관심 분야를 하나 이상 골라 주세요
+						</Text>
+					</div>
+				) : !published.length ? (
+					<div className="info">
+						<span className="badge">
+							<LuMailOpen />
+						</span>
+						<Text size="medium" weight="semiBold">
+							아직 발행된 뉴스레터가 없어요
+						</Text>
+						<Text size="small" color="subText">
+							뉴스레터는 매일 아침 8시 30분쯤 발행돼요.
+						</Text>
 					</div>
 				) : (
-					<div className="info">
-						<GiNothingToSay />
-						<Text size="large">아직 데이터가 없습니다.</Text>
-					</div>
+					<article className="mail">
+						<header className="mail-head">
+							<span className="avatar" aria-hidden>
+								NP
+							</span>
+							<div>
+								<p className="from">뉴픽 NewPick</p>
+								<h3 className="subject">
+									{latestDate && `${monthDay(latestDate)} `}뉴픽 · {published.length}개 분야
+								</h3>
+							</div>
+						</header>
+						{picked.map(({ name, newsletter }) =>
+							newsletter ? (
+								<section key={name} className="item">
+									<div className="text">
+										<p className="category">{name}</p>
+										<Link href={`/articles/detail/${newsletter.id}`} className="title" onClick={closeModal}>
+											{stripCodeFence(newsletter.title)}
+										</Link>
+										{newsletter.subtitle && <p className="subtitle">{newsletter.subtitle}</p>}
+										<p className="summary">{stripCodeFence(newsletter.content)}</p>
+										{!!newsletter.keywords?.length && (
+											<p className="keywords">
+												{newsletter.keywords
+													.slice(0, 4)
+													.map((k) => `#${k}`)
+													.join(' ')}
+											</p>
+										)}
+									</div>
+									{getFirstImage(newsletter.imageUrl ?? '') && (
+										// 메일 미리보기라 next/image 대신 원본 그대로 (원출처 사진)
+										// eslint-disable-next-line @next/next/no-img-element
+										<img className="thumb" src={getFirstImage(newsletter.imageUrl ?? '')!} alt="" loading="lazy" />
+									)}
+								</section>
+							) : (
+								<section key={name} className="item pending">
+									<p className="category">{name}</p>
+									<Text size="small" color="subText">
+										아직 발행 전이에요. 발행되면 함께 보내 드려요.
+									</Text>
+								</section>
+							),
+						)}
+					</article>
 				)}
-			</StyledContent>
-			<Button size="medium" scheme="primary" onClick={handleGenerateNewsletter} disabled={isLoading}>
-				{newsletter || errorMessage ? '다시 하기' : '생성하기'}
+			</StyledMail>
+
+			<Button
+				size="medium"
+				scheme="primary"
+				className="subscribe"
+				disabled={!selected.length}
+				onClick={() => openSubscribe(isAll ? CATEGORIES.map((c) => c.name) : selected)}
+			>
+				{selected.length
+					? `이 구성으로 구독하기 (${isAll ? '전체' : `${selected.length}개 분야`})`
+					: '분야를 골라 주세요'}
 			</Button>
 		</StyledTrial>
 	);
 }
 
 const StyledTrial = styled.div`
-	width: 80vw;
-	height: 80vh;
-	max-width: calc(${({ theme }) => theme.layout.width.large} - 2rem);
-
+	/* 넓은 시트(large) 안을 채운다. 시트 최대 높이 85vh에서 위아래 여백을 뺀 만큼 */
+	width: 100%;
+	height: min(46rem, calc(85vh - 4rem));
 	display: flex;
 	flex-direction: column;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 1.5rem;
-	padding: 1rem 1.5rem;
-	overflow: hidden;
+	gap: 1.25rem;
 
 	.header {
-		width: 100%;
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 0rem 0.5rem;
+		gap: 0.5rem;
+	}
 
-		span {
-			padding: 0 0.25rem;
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-top: 0.5rem;
+	}
+
+	.chip {
+		padding: 0.375rem 0.875rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.borderRadius.capsule};
+		background: ${({ theme }) => theme.color.background};
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.text};
+		cursor: pointer;
+
+		&:hover {
+			border-color: ${({ theme }) => theme.color.primary};
 		}
+
+		&.selected {
+			border-color: ${({ theme }) => theme.color.primary};
+			background: ${({ theme }) => theme.color.primary};
+			color: ${({ theme }) => theme.color.background};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		}
+	}
+
+	.subscribe {
+		flex-shrink: 0;
+		width: 100%;
+		height: 3rem;
+		border-radius: ${({ theme }) => theme.borderRadius.medium};
 	}
 `;
 
-const StyledContent = styled.div`
-	width: 100%;
-	height: 100%;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 1rem;
-	overflow-y: scroll;
-	padding: 2rem;
+/** 받은편지함에서 연 메일 모양 */
+const StyledMail = styled.div`
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	padding: 1.25rem;
+	border-radius: ${({ theme }) => theme.borderRadius.rounded};
+	background: ${({ theme }) => theme.color.surface};
 
-	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.borderRadius.soft};
-
-	.article-header {
-		.tag {
-			width: fit-content;
-			height: fit-content;
-			padding: 0 1.5rem;
-			margin-bottom: 0.5rem;
-			background: ${({ theme }) => theme.color.tertiary};
-			color: ${({ theme }) => theme.color.primary};
-			border-radius: ${({ theme }) => theme.borderRadius.capsule};
-		}
-
-		.date {
-			width: 100%;
-			display: flex;
-			justify-content: flex-end;
-			text-decoration: underline;
-			margin: 1rem 0;
-		}
-
-		hr {
-			width: 100%;
-			margin-bottom: 2rem;
-			padding: 0;
-			border: none;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-		}
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		padding: 0.75rem;
 	}
 
 	.info {
-		width: 100%;
 		height: 100%;
 		display: flex;
 		flex-direction: column;
-		justify-content: center;
 		align-items: center;
-		gap: 1rem;
-
-		svg {
-			font-size: 3rem;
-			color: ${({ theme }) => theme.color.secondary};
-		}
-	}
-
-	.newsletter {
-		width: 100%;
-		height: fit-content;
-		display: flex;
-		flex-direction: column;
-		justify-content: flex-start;
-		align-items: flex-start;
-	}
-
-	.action {
-		width: 100%;
-		height: fit-content;
-		display: flex;
-		flex-direction: column;
-		padding: 2rem 0;
-	}
-
-	.image-placeholder {
-		width: 100%;
-		display: flex;
 		justify-content: center;
-		align-items: center;
-		margin-bottom: 2rem;
+		gap: 0.5rem;
+		text-align: center;
+		word-break: keep-all;
 
-		img {
-			width: 100%;
-			height: auto;
-			border-radius: ${({ theme }) => theme.borderRadius.soft};
-		}
-	}
-`;
-
-const StyledArticle = styled.div`
-	width: 100%;
-	height: fit-content;
-	display: flex;
-	flex-direction: column;
-	justify-content: flex-start;
-	align-items: center;
-	gap: 1rem;
-	line-height: 1.6;
-	white-space: no-wrap;
-
-	.body {
-		width: 100%;
-
-		h1,
-		h2,
-		h3,
-		h4 {
-			font-size: ${({ theme }) => theme.fontSize.extraLarge};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		}
-
-		p,
-		span {
-			line-height: 1.8;
-			font-size: ${({ theme }) => theme.fontSize.small};
-		}
-
-		strong {
-			color: ${({ theme }) => theme.color.primary};
+		.badge {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 3.5rem;
+			height: 3.5rem;
+			margin-bottom: 0.5rem;
+			border-radius: ${({ theme }) => theme.borderRadius.circle};
 			background: ${({ theme }) => theme.color.tertiary};
-			padding: 0.15rem 0.25rem;
+			color: ${({ theme }) => theme.color.primary};
+
+			svg {
+				width: 1.75rem;
+				height: 1.75rem;
+			}
+
+			&.error {
+				color: ${({ theme }) => theme.color.error};
+			}
+		}
+	}
+
+	.mail {
+		max-width: 40rem;
+		margin: 0 auto;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.borderRadius.medium};
+		background: ${({ theme }) => theme.color.background};
+	}
+
+	.mail-head {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1rem 1.25rem;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+		.avatar {
+			flex-shrink: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 2.5rem;
+			height: 2.5rem;
+			border-radius: ${({ theme }) => theme.borderRadius.circle};
+			background: ${({ theme }) => theme.color.primary};
+			color: ${({ theme }) => theme.color.background};
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+		}
+
+		.from {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.subText};
+		}
+
+		.subject {
+			margin: 0.125rem 0 0;
+			font-size: ${({ theme }) => theme.fontSize.medium};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.text};
+		}
+	}
+
+	.item {
+		display: flex;
+		gap: 1rem;
+		padding: 1.25rem;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+		&:last-child {
+			border-bottom: none;
+		}
+
+		&.pending {
+			flex-direction: column;
+			gap: 0.25rem;
+		}
+
+		.text {
+			flex: 1;
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 0.375rem;
+		}
+
+		.category {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		.title {
+			font-size: ${({ theme }) => theme.fontSize.medium};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			line-height: 1.4;
+			color: ${({ theme }) => theme.color.text};
+			word-break: keep-all;
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+
+		.subtitle,
+		.summary,
+		.keywords {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			line-height: 1.6;
+		}
+
+		.subtitle {
+			color: ${({ theme }) => theme.color.mediumGrey};
+		}
+
+		.summary {
+			color: ${({ theme }) => theme.color.subText};
+			display: -webkit-box;
+			-webkit-line-clamp: 3;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
+		}
+
+		.keywords {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		.thumb {
+			flex-shrink: 0;
+			width: 7rem;
+			aspect-ratio: 4 / 3;
+			object-fit: cover;
+			border-radius: ${({ theme }) => theme.borderRadius.medium};
+
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				width: 5rem;
+			}
 		}
 	}
 `;
