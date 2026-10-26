@@ -12,7 +12,8 @@ interface ToastState {
 
 const useToastStore = create<ToastState>((set) => ({
 	toasts: [],
-	position: 'center-bottom',
+	// 모달이 모두 아래에서 올라오는 시트라 위쪽에 (#52). 헤더·펼친 메뉴 아래로 비켜 선다 (ToastContainer)
+	position: 'top-right',
 
 	addToast: (message, type = 'info', duration = TOAST.DURATION): string => {
 		const newToast: ToastItem = {

@@ -40,7 +40,6 @@ export const API_ENDPOINTS = {
 		TRENDS: (category?: number) => `${API_URL}/newsletters/trends` + (category ? `?categoryId=${category}` : ''),
 		POPULAR: (limit: number, offset: number, trend: boolean) =>
 			`${API_URL}/newsletters?limit=${limit}&offset=${offset}&trend=${trend}`,
-		SUMMARIZE: () => `${API_URL}/ai-summary/summarize`,
 		DATE: (limit: number, offset: number, startDate?: string, endDate?: string) =>
 			`${API_URL}/newsletters?limit=${limit}&offset=${offset}&startDate=${startDate}&endDate=${endDate}`,
 	},

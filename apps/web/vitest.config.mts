@@ -5,6 +5,8 @@ export default defineConfig({
 	resolve: {
 		alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
 	},
+	// tsconfig는 Next를 위해 jsx: preserve라, 컴포넌트를 시험하려면 여기서 JSX를 변환한다 (#52)
+	oxc: { jsx: { runtime: 'automatic' } },
 	test: {
 		// 브라우저 API(DOMPurify, window)를 쓰는 코드가 많아 기본 환경은 jsdom. 서버 동작은 파일 단위로 node 환경을 지정합니다.
 		environment: 'jsdom',

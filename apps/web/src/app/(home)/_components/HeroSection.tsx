@@ -10,7 +10,7 @@ export default function HeroSection() {
 	const { openModal } = useModal();
 
 	const handleOpenModal = () => {
-		openModal(<Trial />);
+		openModal(<Trial />, { size: 'large' });
 	};
 
 	return (
