@@ -81,6 +81,10 @@ function Article() {
         <Suspense fallback={<Skeleton />}>
           <SummaryTextBox>{newsletterContent.content}</SummaryTextBox>
         </Suspense>
+        {/* 생성형 AI 결과물 표시 (인공지능 기본법 제31조, 이용약관 제5조) */}
+        <Text as="p" size="extraSmall" color="subText" className="ai-notice">
+          이 뉴스레터는 AI가 여러 언론사 기사를 요약·재구성했습니다. 수치·발언은 각 소식의 출처 기사를 함께 확인하세요.
+        </Text>
         <div className="content-section">
           <Suspense fallback={<Skeleton />}>
             <ArticleContent
@@ -116,6 +120,12 @@ const ArticleStyled = styled.div`
     position: relative;
     width: 100%;
     height: auto;
+
+    .ai-notice {
+        margin: 0.5rem 0 0;
+        line-height: 1.6;
+        word-break: keep-all;
+    }
 
     .content-section {
         display: flex;
