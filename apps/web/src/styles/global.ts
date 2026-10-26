@@ -3,15 +3,21 @@
 import 'sanitize.css';
 import { createGlobalStyle } from 'styled-components';
 import { STYLE } from '@/constants/numbers';
-import { ThemeName } from '@/styles/theme';
-
-interface Props {
-	themeName: ThemeName;
-}
+import { darkTheme, lightTheme, themeVars } from '@/styles/theme';
 
 const Pretendard = '/fonts/Pretendard.woff2';
 
-export const GlobalStyle = createGlobalStyle<Props>`
+export const GlobalStyle = createGlobalStyle`
+    /* 테마 색: <html data-theme>(머리의 스크립트가 그리기 전에 정한다)에 따라 바뀐다 */
+    :root {
+        ${themeVars(lightTheme)}
+    }
+
+    :root[data-theme='dark'] {
+        ${themeVars(darkTheme)}
+        color-scheme: dark;
+    }
+
     @font-face {
         font-family: 'Pretendard';
         src: local('Pretendard'), url(${Pretendard}) format('woff2');

@@ -377,3 +377,32 @@ export const darkTheme: Theme = {
 export const getTheme = (themeName: ThemeName): Theme => {
 	return themeName === 'dark' ? darkTheme : lightTheme;
 };
+
+/**
+ * 라이트·다크에 따라 바뀌는 값(색·버튼 색·그림자)을 CSS 변수로 바꾼다.
+ * 서버는 페이지를 저장된 테마를 모른 채 미리 만들어 두므로, 컴포넌트가 테마마다 다른 값을 쓰면
+ * 브라우저에서 다크로 그릴 때 서버가 만든 화면과 class가 달라진다(하이드레이션 불일치).
+ * 컴포넌트에는 늘 같은 var(--…)를 주고, 실제 색은 <html data-theme>에 따라 GlobalStyle이 정한다
+ */
+type ThemedPart = Pick<Theme, 'color' | 'buttonScheme' | 'shadow'>;
+
+const toVarName = (path: string[]) => `--np-${path.map((p) => p.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)).join('-')}`;
+
+/** 같은 모양의 객체에서 글자 값만 var(--np-…)로 바꾼다 */
+const toVarRefs = <T>(value: T, path: string[]): T => {
+	if (typeof value === 'string') return `var(${toVarName(path)})` as T;
+	return Object.fromEntries(Object.entries(value as object).map(([key, v]) => [key, toVarRefs(v, [...path, key])])) as T;
+};
+
+/** --np-color-primary: #3610e1; 같은 선언 목록 */
+const toVarDeclarations = (value: unknown, path: string[]): string[] =>
+	typeof value === 'string'
+		? [`${toVarName(path)}: ${value};`]
+		: Object.entries(value as object).flatMap(([key, v]) => toVarDeclarations(v, [...path, key]));
+
+const themedPart = ({ color, buttonScheme, shadow }: Theme): ThemedPart => ({ color, buttonScheme, shadow });
+
+export const themeVars = (theme: Theme) => toVarDeclarations(themedPart(theme), []).join('\n');
+
+/** 컴포넌트가 쓰는 테마: 크기·글꼴 등은 그대로, 바뀌는 색은 CSS 변수. 라이트·다크 어느 쪽이든 같다 */
+export const cssVarTheme: Theme = { ...lightTheme, ...toVarRefs(themedPart(lightTheme), []) };

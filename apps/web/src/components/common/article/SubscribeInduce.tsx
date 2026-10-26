@@ -2,7 +2,7 @@
 
 import { useOpenSubscribe } from '@/hooks/useOpenSubscribe';
 
-import styled, { useTheme } from 'styled-components';
+import styled from 'styled-components';
 import Button from '@/components/common/Button';
 
 interface Props {
@@ -12,10 +12,9 @@ interface Props {
 function SubscribeInduce({ className }: Props) {
 	// 마이페이지로 보내지 않고 이 자리에서 구독 (#52)
 	const openSubscribe = useOpenSubscribe();
-	const { name: themeName } = useTheme();
 
 	return (
-		<SubscribeInduceStyled className={className} $themeName={themeName}>
+		<SubscribeInduceStyled className={className}>
 			<p>뉴픽이 보내드리는 뉴스레터를 구독해보세요!</p>
 			<Button scheme="primary" size="medium" onClick={() => openSubscribe()}>
 				구독하기
@@ -24,11 +23,7 @@ function SubscribeInduce({ className }: Props) {
 	);
 }
 
-interface StyledProps {
-	$themeName: 'light' | 'dark';
-}
-
-const SubscribeInduceStyled = styled.div<StyledProps>`
+const SubscribeInduceStyled = styled.div`
 	background-color: ${({ theme }) => theme.color.tertiary};
 	border-radius: ${({ theme }) => theme.radius.surface};
 	padding: 2rem 4rem;
@@ -42,14 +37,16 @@ const SubscribeInduceStyled = styled.div<StyledProps>`
 		width: 100%;
 		font-size: ${({ theme }) => theme.fontSize.extraLarge};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		background: ${({ $themeName }) =>
-			$themeName === 'light'
-				? 'linear-gradient(to right top, #0c0042, #2d11b1, #5537dd, #0e004d)'
-				: 'linear-gradient(to right top, #3b1d91, #5b40e0, #7761ff, #a28eff)'};
+		background: linear-gradient(to right top, #0c0042, #2d11b1, #5537dd, #0e004d);
 		color: transparent;
 		-webkit-background-clip: text;
 
 		word-break: keep-all;
+
+		:root[data-theme='dark'] & {
+			background: linear-gradient(to right top, #3b1d91, #5b40e0, #7761ff, #a28eff);
+			-webkit-background-clip: text;
+		}
 	}
 
 	button {

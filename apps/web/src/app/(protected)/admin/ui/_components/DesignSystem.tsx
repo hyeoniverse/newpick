@@ -9,6 +9,7 @@ import { useModal } from '@/hooks/useModal';
 import { useToast } from '@/hooks/useToast';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { ToastPosition, ToastType } from '@/models/toast.model';
+import { useThemeStore } from '@/stores/useThemeStore';
 import {
 	ButtonScheme,
 	ButtonSize,
@@ -129,6 +130,7 @@ export default function DesignSystem() {
 
 function DesignSystemBody() {
 	const theme = useTheme();
+	const { themeName } = useThemeStore();
 	const { showToast, setPosition, position } = useToast();
 	const { openModal, closeModal } = useModal();
 	const { isChecked } = useInputCheck('ds-check');
@@ -144,7 +146,7 @@ function DesignSystemBody() {
 					디자인 시스템
 				</Title>
 				<Text size="small" color="subText">
-					지금 테마: {theme.name === 'dark' ? '다크' : '라이트'} · 오른쪽 위 해/달 버튼으로 바꿔 보세요
+					지금 테마: {themeName === 'dark' ? '다크' : '라이트'} · 오른쪽 위 해/달 버튼으로 바꿔 보세요
 				</Text>
 				<nav className="toc" aria-label="목차">
 					{SECTIONS.map((s) => (
