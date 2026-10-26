@@ -31,8 +31,7 @@ jobs:
         run: npx prisma generate --schema=prisma/mysql.schema.prisma
       - run: npm run typecheck
       - run: npm run lint
-      - if: matrix.app == 'api'
-        run: npm test
+      - run: npm test
       - run: npm run build
 
   api-docker:
