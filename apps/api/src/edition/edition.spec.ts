@@ -314,7 +314,11 @@ describe('메일 HTML (#55)', () => {
     [1],
     DATE,
   )!;
-  const mail = renderEditionMail(edition, 'https://newpick.app/');
+  const mail = renderEditionMail(
+    edition,
+    'https://newpick.app/',
+    'hello@newpick.app',
+  );
 
   it('사이트 CSS 없이 보이도록 인라인 스타일만 쓴다', () => {
     expect(mail).not.toMatch(/<style|class=/);
@@ -329,6 +333,13 @@ describe('메일 HTML (#55)', () => {
     expect(mail).toContain('href="https://news.kbs.co.kr/1"');
     expect(mail).toContain('href="https://newpick.app/articles/detail/10"');
     expect(mail).toContain('href="https://newpick.app/mypage?tab=settings"');
+  });
+
+  it('아래쪽에 수신 거부·약관 링크와 문의처(발송 주소)를 둔다', () => {
+    expect(mail).toContain('수신 거부');
+    expect(mail).toContain('href="https://newpick.app/terms"');
+    expect(mail).toContain('href="https://newpick.app/privacy"');
+    expect(mail).toContain('href="mailto:hello@newpick.app"');
   });
 
   it('글자는 이스케이프하고, http(s)가 아닌 링크는 걸지 않는다', () => {

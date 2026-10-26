@@ -132,7 +132,11 @@ export class EditionService {
     if (!composed) return null;
     return {
       subject: composed.subject,
-      html: renderEditionMail(composed, process.env.FRONTEND_URL ?? ''),
+      html: renderEditionMail(
+        composed,
+        process.env.FRONTEND_URL ?? '',
+        process.env.MAIL_USER,
+      ),
       newsletterIds: composed.sections.map((s) => s.newsletterId),
     };
   }

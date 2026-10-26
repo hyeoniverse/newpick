@@ -124,6 +124,8 @@ const card = (inner: string) =>
 export function renderEditionMail(
   edition: ComposedEdition,
   frontendUrl: string,
+  /** 문의처: 메일을 보내는 주소 (답장도 여기로 온다) */
+  contactEmail = '',
 ): string {
   const base = frontendUrl.replace(/\/$/, '');
 
@@ -183,7 +185,20 @@ export function renderEditionMail(
       )
     : '';
 
-  const footer = `<tr><td style="padding:8px 24px 0;font-size:12px;line-height:1.7;color:${C.muted};text-align:center;">뉴픽은 AI가 여러 언론사 기사를 모아 정리한 뉴스레터입니다. 수치·발언은 출처 기사를 함께 확인하세요.<br><a href="${esc(`${base}/mypage?tab=settings`)}" target="_blank" rel="noopener noreferrer" style="color:${C.muted};text-decoration:underline;">관심 분야 바꾸기 · 구독 관리</a></td></tr>`;
+  // 문의처·약관·수신 거부(구독 관리) 링크 (정보통신망법 제50조: 수신 거부 방법 안내)
+  const footerLink = (text: string, href: string) =>
+    `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="color:${C.muted};text-decoration:underline;">${esc(text)}</a>`;
+  const footer = `<tr><td style="padding:8px 24px 0;font-size:12px;line-height:1.8;color:${C.muted};text-align:center;">뉴픽은 AI가 여러 언론사 기사를 모아 정리한 뉴스레터입니다. 수치·발언은 출처 기사를 함께 확인하세요.<br>${[
+    footerLink('관심 분야 바꾸기', `${base}/mypage?tab=settings`),
+    footerLink('수신 거부', `${base}/mypage?tab=settings`),
+    footerLink('뉴픽 홈', `${base}/`),
+    footerLink('이용약관', `${base}/terms`),
+    footerLink('개인정보처리방침', `${base}/privacy`),
+  ].join(' · ')}${
+    contactEmail
+      ? `<br>문의 ${footerLink(contactEmail, `mailto:${contactEmail}`)}`
+      : ''
+  }</td></tr>`;
 
   // 받은편지함 목록에 보이는 미리보기 글 (본문에는 보이지 않음)
   const preheader = edition.top[0]?.line
