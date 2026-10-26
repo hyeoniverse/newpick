@@ -59,3 +59,7 @@ build
 next-env.d.ts
 
 # End of https://www.toptal.com/developers/gitignore/api/nextjs
+# Playwright
+/test-results/
+/playwright-report/
+/blob-report/
