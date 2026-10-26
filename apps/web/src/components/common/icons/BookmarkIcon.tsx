@@ -1,10 +1,8 @@
 'use client';
 
-import { LuBookmark } from 'react-icons/lu';
-import { IconStyled } from '@/styles/Icon';
+import BookmarkToggle from '@/components/common/icons/BookmarkToggle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useToast } from '@/hooks/useToast'; // Toast 훅 (필요 시)
-import { useTheme } from 'styled-components';
 import { useAddBookmarkMutation, useBookmarksList, useRemoveBookmarkMutation } from '@/hooks/useBookmark';
 
 interface BookmarkIconProps {
@@ -13,8 +11,8 @@ interface BookmarkIconProps {
 	className?: string;
 }
 
+/** 북마크 저장·해제 (API). 모양은 BookmarkToggle */
 export default function BookmarkIcon({ newsId, className, newsletterId }: BookmarkIconProps) {
-	const theme = useTheme();
 	const { user } = useAuthStore();
 	const { data: bookmarks } = useBookmarksList();
 	const addBookmarkMutation = useAddBookmarkMutation();
@@ -48,20 +46,5 @@ export default function BookmarkIcon({ newsId, className, newsletterId }: Bookma
 		}
 	};
 
-	return (
-		<IconStyled
-			type="button"
-			onClick={handleToggle}
-			className={className}
-			aria-label={isBookmarked ? '북마크 해제' : '북마크'}
-			aria-pressed={!!isBookmarked}
-		>
-			<LuBookmark
-				style={{
-					fill: isBookmarked ? theme.color.primary : '',
-				}}
-				size={24}
-			/>
-		</IconStyled>
-	);
+	return <BookmarkToggle pressed={!!isBookmarked} onToggle={handleToggle} className={className} />;
 }

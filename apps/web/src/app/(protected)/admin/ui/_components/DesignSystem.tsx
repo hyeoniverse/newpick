@@ -38,6 +38,7 @@ import NoContentsPage from '@/components/common/NoContentsPage';
 import AgreementCheck from '@/components/common/article/AgreementCheck';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import CustomIcon from '@/components/common/icons/CustomIcon';
+import BookmarkToggle from '@/components/common/icons/BookmarkToggle';
 import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import ExternalLink from '@/components/common/ExternalLink';
@@ -133,6 +134,7 @@ function DesignSystemBody() {
 	const [selectValue, setSelectValue] = useState('');
 	const [date, setDate] = useState<Date | null>(null);
 	const [cycle, setCycle] = useState<'daily' | 'weekly'>('daily');
+	const [bookmarked, setBookmarked] = useState(false);
 
 	return (
 		<StyledPage>
@@ -423,7 +425,7 @@ function DesignSystemBody() {
 				</Text>
 			</Section>
 
-			<Section id="link" title="링크 · 아이콘" note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon">
+			<Section id="link" title="링크 · 아이콘" note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon · BookmarkToggle">
 				<Text size="small">
 					<ExternalLink href="https://kopico.go.kr">kopico.go.kr</ExternalLink> — 마우스를 올리면 화살표가 움직입니다
 				</Text>
@@ -434,9 +436,12 @@ function DesignSystemBody() {
 						<LuShare2 />
 					</CustomIcon>
 				</div>
-				<Text size="extraSmall" color="subText">
-					BookmarkIcon은 누르면 실제로 북마크를 저장해 여기서는 빼 두었습니다.
-				</Text>
+				<div className="wrap">
+					<BookmarkToggle pressed={bookmarked} onToggle={() => setBookmarked((v) => !v)} />
+					<Text size="extraSmall" color="subText">
+						BookmarkToggle — BookmarkIcon의 모양만. 여기서는 눌러도 저장하지 않습니다 (BookmarkIcon은 뉴스레터 id로 API를 부름)
+					</Text>
+				</div>
 			</Section>
 
 			<Section id="subscribe" title="구독" note="SubscribeInduce(기사 하단) · AgreementCheck">
