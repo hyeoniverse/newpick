@@ -221,6 +221,7 @@ nano api.env   # 빈 값을 채운다
 | `CLAUDE_MODEL`, `CLAUDE_FAST_MODEL` | | 뉴스레터 쓰기 모델(기본 `claude-sonnet-5-5`)과 기사 고르기·분류 모델(기본 `claude-haiku-5-5`). 비워 두면 기본값 |
 | `MAIL_USER`, `MAIL_PASSWORD` | 메일 | Gmail 주소와 **앱 비밀번호**(16자리). 실제 비밀번호는 SMTP 로그인이 거절된다. 2단계 인증을 켜고 https://myaccount.google.com/apppasswords 에서 만든다 |
 | `ADMIN_NOTIFY_EMAIL` | | 요약이 끝나면 결과를 받을 주소 |
+| `SENTRY_DSN` | | 오류 기록·성능 측정(Sentry). **필수 아님**: 비우면 "SENTRY_DSN이 없어 Sentry 없이 실행합니다"를 남기고 그대로 실행. 켜는 방법과 개인정보 처리방침에 미치는 영향은 #67 |
 
 전체 목록은 `apps/api/.env.example`에 있습니다. `NODE_ENV=production`, `TZ=Asia/Seoul`은 Dockerfile에 들어 있습니다.
 
