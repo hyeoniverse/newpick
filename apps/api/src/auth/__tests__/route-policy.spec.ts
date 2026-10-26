@@ -76,6 +76,7 @@ const EXPECTED: Record<string, Policy> = {
   'GET email-archives': 'admin',
   'GET email-archives/:id': 'admin',
   'GET health': 'public',
+  'GET contact': 'public',
   'DELETE email-archives/:id': 'admin',
 
   'POST scheduler/toggle/crawling': 'admin',

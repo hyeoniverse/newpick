@@ -8,9 +8,11 @@ import ScrollButtons from '@/components/common/ScrollButtons';
 
 interface Props {
 	children: React.ReactNode;
+	/** 아래쪽 문의처 (서버에서 받음) */
+	contactEmail?: string | null;
 }
 
-export default function Layout({ children }: Props) {
+export default function Layout({ children, contactEmail }: Props) {
 	const { headerHeight } = useHeader();
 
 	return (
@@ -18,7 +20,7 @@ export default function Layout({ children }: Props) {
 			<Header />
 			<Content className="content">{children}</Content>
 			<ScrollButtons />
-			<Footer />
+			<Footer contactEmail={contactEmail} />
 		</StyledLayout>
 	);
 }

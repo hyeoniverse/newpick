@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { fetchTrendList } from '@/api/article';
+import { fetchContactEmail } from '@/api/contact';
 import { parseArticles } from '@/utils/parseArticles';
 import { SESSION_HINT_COOKIE } from '@/constants/api';
 
@@ -31,12 +32,14 @@ export default async function RootLayout({
 	// 요청 쿠키를 읽지 않아 모든 페이지를 정적으로 만들 수 있습니다. 로그인 사용자는 브라우저에서 조회합니다.
 	// 트렌드는 10분간 캐시됩니다.
 	let parsedTrends: IArticleSummary[] = [];
+	const contactPromise = fetchContactEmail();
 	try {
 		const trends: IArticleDetail[] = await fetchTrendList();
 		parsedTrends = parseArticles(trends);
 	} catch (error) {
 		console.error(error);
 	}
+	const contactEmail = await contactPromise;
 
 	return (
 		<html lang="ko" suppressHydrationWarning>
@@ -47,7 +50,7 @@ export default async function RootLayout({
 			<body>
 				<StyledComponentsRegistry>
 					<Providers initialTrends={parsedTrends}>
-						<Layout>{children}</Layout>
+						<Layout contactEmail={contactEmail}>{children}</Layout>
 						<ToastContainer />
 						<ModalContainer />
 						<SpeedInsights />
