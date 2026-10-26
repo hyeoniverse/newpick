@@ -28,6 +28,10 @@ export const API_ENDPOINTS = {
 		PAUSE: () => `${API_URL}/subscribers/pause`,
 		CANCEL: () => `${API_URL}/subscribers/cancel`,
 	},
+	EDITION: {
+		/** 고른 분야로 엮은 구독 메일 미리보기 (#55). 생성 없음 */
+		PREVIEW: (categoryIds: number[]) => `${API_URL}/edition/preview?categories=${categoryIds.join(',')}`,
+	},
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
 		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,

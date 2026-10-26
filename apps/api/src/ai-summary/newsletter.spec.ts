@@ -1,4 +1,3 @@
-import { Newsletter } from '@prisma/client';
 import {
   clean,
   keywords,
@@ -24,7 +23,6 @@ import {
 } from './articlePrep';
 import { renderNewsletterHtml } from './newsletterHtml';
 import { AiSummaryService, usedArticles } from './ai-summary.service';
-import { newsletterTemplate } from '../mail/htmlTemplate';
 import { CLAUDE_FAST_MODEL } from './claude.service';
 
 const written = (
@@ -533,30 +531,5 @@ describe('파이프라인', () => {
       'i2',
       ['코스피', '외국인 매도'],
     );
-  });
-});
-
-describe('구독 메일 카드', () => {
-  const base = {
-    id: 1,
-    title: '제목',
-    content: '가'.repeat(150),
-    imageUrl: null,
-    viewcount: 0,
-    createdAt: new Date('2026-10-27'),
-  };
-
-  it('부제목이 있으면 본문 앞부분 대신 부제목을 보여 준다', () => {
-    const html = newsletterTemplate({
-      ...base,
-      subtitle: '부제목 한 줄',
-    } as Newsletter);
-    expect(html).toContain('부제목 한 줄');
-    expect(html).not.toContain('가'.repeat(100));
-  });
-
-  it('부제목이 없는 이전 뉴스레터는 본문 앞 100자', () => {
-    const html = newsletterTemplate({ ...base, subtitle: null } as Newsletter);
-    expect(html).toContain('가'.repeat(100) + '...');
   });
 });

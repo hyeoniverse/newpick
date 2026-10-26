@@ -147,9 +147,24 @@ model Bookmark {
 model ScheduleConfig {
   id        Int      @id @default(autoincrement())
   hour      Int      @default(8)
-  day       Int      @default(1) // 1: 월요일, 2: 화요일, 3: 수요일, 4: 목요일, 5: 금요일, 6: 토요일, 0: 일요일
+  day       Int      @default(7) // 0: 일요일 ~ 6: 토요일, 7: 매일 (#55)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("schedule_configs")
+}
+
+/// 하루 한 번 전 분야 소식을 편집한 결과 (#55). 구독 메일은 이것으로 구독자마다 엮는다
+model DailyEdition {
+  id            Int      @id @default(autoincrement())
+  /// KST 날짜 'YYYY-MM-DD'
+  date          String   @unique @db.VarChar(10)
+  /// 편집에 쓴 뉴스레터 id 목록
+  newsletterIds Json
+  /// 중요도·같은 사건·분야를 넘는 흐름 (edition/editor.ts Editorial). 편집 호출이 실패하면 null
+  editorial     Json?
+  token         Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  @@map("daily_editions")
 }
