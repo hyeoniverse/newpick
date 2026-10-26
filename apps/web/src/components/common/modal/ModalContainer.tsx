@@ -11,7 +11,7 @@ interface Props {
 }
 
 function Modal({ onClose }: Props) {
-	const { isOpen, content, closeModal } = useModal();
+	const { isOpen, content, variant, closeModal } = useModal();
 	const [isAnimating, setIsAnimating] = useState(false);
 	const modalRef = useRef<HTMLDivElement | null>(null);
 	const previousFocusedElement = useRef<HTMLElement | null>(null);
@@ -64,11 +64,11 @@ function Modal({ onClose }: Props) {
 
 	return createPortal(
 		<StyledModal
-			className={isAnimating ? 'fade-out' : 'fade-in'} // 애니메이션 클래스 적용
+			className={`${isAnimating ? 'fade-out' : 'fade-in'} ${variant}`} // 애니메이션 클래스 적용
 			onClick={handleOverlayClick}
 			onAnimationEnd={handleAnimationEnd}
 		>
-			<div className="modal-body" ref={modalRef} role="dialog" tabIndex={-1}>
+			<div className="modal-body" ref={modalRef} role="dialog" aria-modal="true" tabIndex={-1}>
 				<div className="modal-contents">{content}</div>
 				<button className="modal-close" onClick={handleClose} aria-label="Close modal">
 					<IoClose />
@@ -155,6 +155,55 @@ const StyledModal = styled.div`
 		overflow: hidden;
 		padding: 0.5rem 1rem;
 		border-radius: ${({ theme }) => theme.borderRadius.medium};
+	}
+
+	/* sheet (#52): 데스크톱은 가운데, 모바일은 아래에서 올라오는 시트 */
+	&.sheet .modal-body {
+		width: min(34rem, calc(100vw - 2rem));
+		min-width: 0;
+		max-height: calc(100vh - 4rem);
+		overflow-y: auto;
+		padding: 2rem 1.5rem 1.5rem;
+		align-items: stretch;
+
+		.modal-contents {
+			padding: 0;
+		}
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			@keyframes sheet-up {
+				from {
+					transform: translateY(100%);
+				}
+				to {
+					transform: translateY(0);
+				}
+			}
+
+			top: auto;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			max-width: none;
+			max-height: 85vh;
+			transform: none;
+			padding: 1.75rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+			border-radius: ${({ theme }) => theme.borderRadius.medium} ${({ theme }) => theme.borderRadius.medium} 0 0;
+			animation: sheet-up 0.3s ease-out;
+
+			/* 끌어 내릴 수 있을 것 같은 손잡이 모양 (닫기는 바깥 누르기·닫기 버튼) */
+			&::before {
+				content: '';
+				position: absolute;
+				top: 0.625rem;
+				left: 50%;
+				width: 2.5rem;
+				height: 4px;
+				margin-left: -1.25rem;
+				border-radius: 2px;
+				background: ${({ theme }) => theme.color.border};
+			}
+		}
 	}
 
 	.modal-close {
