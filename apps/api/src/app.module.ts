@@ -25,6 +25,7 @@ import { ConfigLoggerMiddleware } from './middleware/config-logger.middleware';
 import { CoopMiddleware } from './middleware/coop.middleware';
 // import { CommonResponseInterceptor } from './common/response.interceptor';
 
+import { EditionModule } from './edition/edition.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -48,6 +49,7 @@ import { CoopMiddleware } from './middleware/coop.middleware';
     CategoryModule, // 카테고리 모듈
     ScheduleModule.forRoot(),
     BasicRepositoryModule,
+    EditionModule, // 구독 메일 편집 (#55)
   ],
   controllers: [AppController], // 컨트롤러 등록
   providers: [

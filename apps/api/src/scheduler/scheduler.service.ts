@@ -5,7 +5,6 @@ import { AiSummaryService } from 'src/ai-summary/ai-summary.service';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
-import dayjs from 'dayjs';
 import { KST, kstDaysAgo } from 'src/common/kst';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { CategoryRepository } from 'src/category/category.repository';
@@ -13,6 +12,7 @@ import { CronExpression } from 'src/common/constants';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
 import { CronJob, CronTime } from 'cron';
 import { setTimeofCycle } from 'src/common/helpers';
+import { EditionService } from 'src/edition/edition.service';
 /** schedule_configs에서 메일 발송 주기를 저장하는 행 */
 const MAIL_CYCLE_CONFIG_ID = 1;
 const MAIL_JOB_NAME = 'sendNewsletter';
@@ -22,6 +22,8 @@ export class SchedulerService implements OnApplicationBootstrap {
   private isCrawlingEnabled = true;
   private isAiSummaryEnabled = true;
   private isMailSendEnabled = true;
+  /** 진행 중인 뉴스레터 생성. 메일 발송은 이것이 끝나기를 기다린다 (#55) */
+  private summaryRun: Promise<void> | null = null;
   constructor(
     private readonly logger: Logger,
     private readonly mailService: MailService,
@@ -33,6 +35,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     private readonly newsletterRepository: NewsletterRepo,
     private schedulerRegistry: SchedulerRegistry,
     private readonly prisma: MysqlPrismaService,
+    private readonly editionService: EditionService,
   ) {}
 
   /**
@@ -47,7 +50,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     });
     const cronTime = config
       ? setTimeofCycle(config.hour, config.day)
-      : CronExpression.EVERY_MONDAY_AT_840AM;
+      : CronExpression.EVERY_DAY_AT_840AM; // 매일 (#55)
     const job = CronJob.from({
       cronTime,
       timeZone: KST,
@@ -79,6 +82,14 @@ export class SchedulerService implements OnApplicationBootstrap {
     timeZone: KST,
   })
   async makeAiSummary() {
+    if (this.summaryRun) return this.summaryRun;
+    this.summaryRun = this.runAiSummary().finally(() => {
+      this.summaryRun = null;
+    });
+    return this.summaryRun;
+  }
+
+  private async runAiSummary() {
     this.logger.debug('AI 요약 시작');
 
     if (!this.isAiSummaryEnabled) {
@@ -128,6 +139,9 @@ export class SchedulerService implements OnApplicationBootstrap {
         this.logger.error(`요약 실패 카테고리: ${failedCategories.join(', ')}`);
       }
 
+      // 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
+      await this.editionService.ensureEdition();
+
       // 운영자 알림 메일은 ADMIN_NOTIFY_EMAIL이 설정된 경우에만 보냅니다.
       const adminEmail = process.env.ADMIN_NOTIFY_EMAIL;
       if (adminEmail && generatedNewsletter.length > 0) {
@@ -154,12 +168,21 @@ export class SchedulerService implements OnApplicationBootstrap {
   //   this.logger.debug(subscribers[0]);
   // }
 
-  // 주간 요약 뉴스 발송 (기본: 월요일 08:40 KST). cron 등록은 onApplicationBootstrap에서 합니다.
+  /**
+   * 구독 메일 발송 (기본: 매일 08:40 KST). cron 등록은 onApplicationBootstrap에서 합니다.
+   * 구독자마다 고른 분야로 오늘 소식을 엮은 한 통을 보냅니다 (#55)
+   */
   async sendEmailSummary() {
     if (!this.isMailSendEnabled) {
       this.logger.log('메일 발송 스케줄러가 비활성화되었습니다.');
       return;
     }
+    // 생성이 늦어지면 끝난 뒤에 보낸다 (빠진 분야 없이)
+    if (this.summaryRun) {
+      this.logger.log('뉴스레터 생성이 끝나기를 기다립니다.');
+      await this.summaryRun;
+    }
+
     const subscribers = await this.subscriberService.getSubscribers();
     this.logger.debug(`구독자 수: ${subscribers.length}`);
 
@@ -179,33 +202,21 @@ export class SchedulerService implements OnApplicationBootstrap {
       return;
     }
 
-    // 지난 7일간의 모든 뉴스레터를 한번에 가져옵니다
-    const allNewsletters =
-      await this.newsletterRepository.getNewsletterByDateRange(
-        dayjs().subtract(7, 'day').toDate(),
-        dayjs().toDate(),
-      );
-
-    this.logger.debug(`기간 내 뉴스레터 수: ${allNewsletters.length}`);
-
-    if (!allNewsletters.length) {
-      this.logger.debug('기간 내 뉴스레터가 없습니다.');
+    // 오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)
+    const edition = await this.editionService.ensureEdition();
+    if (!edition) {
+      this.logger.warn('오늘 나온 뉴스레터가 없어 메일을 보내지 않습니다.');
       return;
     }
 
-    // 첫 번째 뉴스레터의 content를 기본 소개글로 사용 (일시적)
-    const basicIntroductionAsHTML = allNewsletters[0].contentAsHTML
-      .replace(/```/gm, '')
-      .replace(/html/gm, '');
-
-    const result = await this.mailService.sendBulkMailWithMultipleNewsletter(
+    const result = await this.mailService.sendBulkMail(
       validSubscribers.map((subscriber) => ({
         email: subscriber.email,
         interests: subscriber.interests,
         name: subscriber.name,
       })),
-      allNewsletters,
-      basicIntroductionAsHTML,
+      (subscriber) =>
+        this.editionService.composeMail(edition, subscriber.interests),
     );
 
     this.logger.log(
@@ -237,7 +248,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     };
   }
 
-  /** 메일 발송 주기 변경. DB에 저장해 재시작 후에도 유지합니다. hour: 0~23, day: 0(일)~6(토) */
+  /** 메일 발송 주기 변경. DB에 저장해 재시작 후에도 유지합니다. hour: 0~23(그 시각 40분), day: 0(일)~6(토), 7: 매일 */
   async setMailSendCycle(hour: number, day: number) {
     await this.prisma.scheduleConfig.upsert({
       where: { id: MAIL_CYCLE_CONFIG_ID },
