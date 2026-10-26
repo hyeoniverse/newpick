@@ -5,6 +5,7 @@ import { fetchTrendList } from '@/api/article';
 import { fetchContactEmail } from '@/api/contact';
 import { parseArticles } from '@/utils/parseArticles';
 import { SESSION_HINT_COOKIE } from '@/constants/api';
+import { THEME_LOCALSTORAGE_KEY } from '@/stores/useThemeStore';
 
 import '@/styles/global';
 import StyledComponentsRegistry from '@/lib/registry';
@@ -23,6 +24,9 @@ export const metadata: Metadata = {
  * 하이드레이션 전에도 헤더가 CSS로 맞는 쪽(로그인 버튼 / 프로필 자리)만 보여 줘 깜빡이지 않습니다.
  */
 const sessionHintScript = `document.documentElement.dataset.auth=document.cookie.split('; ').includes('${SESSION_HINT_COOKIE}=1')?'in':'out'`;
+
+/** 저장된 테마도 그리기 전에 <html data-theme>에 적어, 다크 사용자가 라이트 화면을 잠깐 보지 않게 합니다 */
+const themeScript = `try{document.documentElement.dataset.theme=localStorage.getItem('${THEME_LOCALSTORAGE_KEY}')==='dark'?'dark':'light'}catch(e){}`;
 
 export default async function RootLayout({
 	children,
@@ -45,6 +49,7 @@ export default async function RootLayout({
 		<html lang="ko" suppressHydrationWarning>
 			<head>
 				<script dangerouslySetInnerHTML={{ __html: sessionHintScript }} />
+				<script dangerouslySetInnerHTML={{ __html: themeScript }} />
 				<link rel="icon" href="/icons/favicon.svg" />
 			</head>
 			<body>

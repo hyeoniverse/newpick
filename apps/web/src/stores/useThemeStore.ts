@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { ThemeName } from '@/styles/theme';
 import React from 'react';
 
-const THEME_LOCALSTORAGE_KEY = 'newpick_theme';
+export const THEME_LOCALSTORAGE_KEY = 'newpick_theme';
 
 interface ThemeState {
 	themeName: ThemeName;
@@ -31,14 +31,16 @@ export const useThemeStore = create<ThemeState>((set) => ({
 		}),
 }));
 
-// 클라이언트에서 테마 불러오기
+// 클라이언트에서 테마 불러오기. 색은 <html data-theme>을 따르므로 테마가 바뀔 때마다 맞춰 둔다
 export const useSyncTheme = () => {
-	const { setTheme } = useThemeStore();
+	const { themeName, setTheme } = useThemeStore();
 
 	React.useEffect(() => {
-		if (typeof window !== 'undefined') {
-			const savedTheme = (localStorage.getItem(THEME_LOCALSTORAGE_KEY) as ThemeName) || 'light';
-			setTheme(savedTheme);
-		}
+		const savedTheme = (localStorage.getItem(THEME_LOCALSTORAGE_KEY) as ThemeName) || 'light';
+		setTheme(savedTheme);
 	}, [setTheme]);
+
+	React.useEffect(() => {
+		document.documentElement.dataset.theme = themeName;
+	}, [themeName]);
 };
