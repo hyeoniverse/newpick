@@ -119,7 +119,7 @@ const heading = (text: string) =>
   `<h3 style="margin:0 0 14px;font-size:13px;font-weight:800;letter-spacing:0.04em;color:${C.muted};">${esc(text)}</h3>`;
 
 const card = (inner: string) =>
-  `<tr><td style="padding:28px 32px;background:#ffffff;border-radius:12px;">${inner}</td></tr><tr><td style="height:12px;line-height:12px;font-size:0;">&nbsp;</td></tr>`;
+  `<tr><td style="padding:26px 24px;background:#ffffff;border-radius:12px;">${inner}</td></tr><tr><td style="height:12px;line-height:12px;font-size:0;">&nbsp;</td></tr>`;
 
 export function renderEditionMail(
   edition: ComposedEdition,
@@ -183,12 +183,12 @@ export function renderEditionMail(
       )
     : '';
 
-  const footer = `<tr><td style="padding:8px 32px 0;font-size:12px;line-height:1.7;color:${C.muted};text-align:center;">뉴픽은 AI가 여러 언론사 기사를 모아 정리한 뉴스레터입니다. 수치·발언은 출처 기사를 함께 확인하세요.<br><a href="${esc(`${base}/mypage?tab=settings`)}" target="_blank" rel="noopener noreferrer" style="color:${C.muted};text-decoration:underline;">관심 분야 바꾸기 · 구독 관리</a></td></tr>`;
+  const footer = `<tr><td style="padding:8px 24px 0;font-size:12px;line-height:1.7;color:${C.muted};text-align:center;">뉴픽은 AI가 여러 언론사 기사를 모아 정리한 뉴스레터입니다. 수치·발언은 출처 기사를 함께 확인하세요.<br><a href="${esc(`${base}/mypage?tab=settings`)}" target="_blank" rel="noopener noreferrer" style="color:${C.muted};text-decoration:underline;">관심 분야 바꾸기 · 구독 관리</a></td></tr>`;
 
   // 받은편지함 목록에 보이는 미리보기 글 (본문에는 보이지 않음)
   const preheader = edition.top[0]?.line
     ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(edition.top[0].line)}</div>`
     : '';
 
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:24px 12px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${sections}${watch}${footer}</table></td></tr></table></body></html>`;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${sections}${watch}${footer}</table></td></tr></table></body></html>`;
 }
