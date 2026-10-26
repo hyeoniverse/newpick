@@ -6,6 +6,9 @@ import { useModal } from '@/hooks/useModal';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSelectInterests } from '@/hooks/useInterests';
 import useSubscribe from '@/hooks/useSubscribe';
+import useInterestsStore from '@/stores/useInterestStore';
+
+import { useEffect } from 'react';
 
 import styled from 'styled-components';
 import { LuMailCheck } from 'react-icons/lu';
@@ -19,14 +22,21 @@ const CHECK_NAME = 'sheet-agreement';
 
 /**
  * 기사 상세에서 바로 구독 (#52). 마이페이지로 이동하지 않고 시트에서 관심 분야 선택 · 약관 동의 · 구독까지.
- * 마이페이지 StartSubscription과 같은 훅을 쓴다
+ * 마이페이지 StartSubscription과 같은 훅을 쓴다. initialInterests: 체험 미리보기에서 고른 분야 (#54)
  */
-export default function SubscribeSheet() {
+export default function SubscribeSheet({ initialInterests }: { initialInterests?: string[] }) {
 	const { user } = useAuth();
 	const { isChanging, handleSubscribe } = useSubscribe();
 	const { selectedInterests = [], handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck(CHECK_NAME);
 	const { openModal, closeModal } = useModal();
+	const setSelectedInterests = useInterestsStore((state) => state.setSelectedInterests);
+
+	// useSelectInterests가 user 기준으로 선택을 초기화한 뒤에 덮어써야 한다 (effect는 선언 순서대로 돈다)
+	useEffect(() => {
+		if (initialInterests?.length) setSelectedInterests(initialInterests);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [user]);
 
 	const isAll = selectedInterests.length === CATEGORIES.length;
 	// 약관 동의는 처음 구독할 때만 (일시정지했다 다시 시작하면 이미 동의함)

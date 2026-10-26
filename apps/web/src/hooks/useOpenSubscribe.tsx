@@ -1,6 +1,5 @@
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
-import useInterestsStore from '@/stores/useInterestStore';
 
 import ModalContent from '@/components/common/modal/ModalContent';
 import SubscribeSheet from '@/components/common/article/SubscribeSheet';
@@ -14,12 +13,10 @@ import { LuMailCheck } from 'react-icons/lu';
 export function useOpenSubscribe() {
 	const { user } = useAuth();
 	const { openModal, closeModal } = useModal();
-	const setSelectedInterests = useInterestsStore((state) => state.setSelectedInterests);
 
 	return (interests?: string[]) => {
 		if (user && user.isSubscribed !== true) {
-			if (interests) setSelectedInterests(interests);
-			openModal(<SubscribeSheet />);
+			openModal(<SubscribeSheet initialInterests={interests} />);
 		} else if (user) {
 			openModal(
 				<ModalContent

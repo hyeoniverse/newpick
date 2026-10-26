@@ -63,6 +63,14 @@ describe('SubscribeSheet (#52)', () => {
 		expect(submit().disabled).toBe(false);
 	});
 
+	it('체험 미리보기에서 고른 분야가 저장된 관심 분야보다 먼저 선택돼 있다 (#54)', () => {
+		user = { id: 1, isSubscribed: null, interests: [1] };
+		renderWithTheme(createElement(SubscribeSheet, { initialInterests: ['IT', '경제'] }));
+		expect(chip('IT').getAttribute('aria-pressed')).toBe('true');
+		expect(chip('경제').getAttribute('aria-pressed')).toBe('true');
+		expect(submit().textContent).toBe('2개 분야 구독하기');
+	});
+
 	it('구독에 성공하면 완료 안내로 바꾼다', async () => {
 		handleSubscribe.mockResolvedValue(true);
 		renderWithTheme(createElement(SubscribeSheet));
