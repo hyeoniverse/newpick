@@ -79,6 +79,8 @@ flowchart LR
 | `BAD_GATEWAY` | 502 | 외부 서비스와 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요. |
 | `SERVICE_UNAVAILABLE` | 503 | 지금은 이용할 수 없습니다. 잠시 뒤 다시 시도해 주세요. |
 | `GOOGLE_LOGIN_UNAVAILABLE` | 503 | 지금은 구글 로그인을 쓸 수 없습니다. |
+| `SITE_CACHE_UNAVAILABLE` | 503 | 사이트 캐시 비우기가 설정되지 않았습니다. |
+| `SITE_CACHE_FAILED` | 502 | 사이트 캐시를 비우지 못했습니다. 잠시 뒤 다시 시도해 주세요. |
 | `GATEWAY_TIMEOUT` | 504 | 외부 서비스 응답이 늦습니다. 잠시 뒤 다시 시도해 주세요. |
 
 code가 없는 Nest 기본 예외는 상태 코드로 대표 code를 정합니다 (400 → `BAD_REQUEST`, 404 → `NOT_FOUND`, 429 → `TOO_MANY_REQUESTS` …). Prisma 오류는 `P2025` → `NOT_FOUND`, `P2002`·`P2003` → `CONFLICT`, `P2000` → `VALIDATION_FAILED`.

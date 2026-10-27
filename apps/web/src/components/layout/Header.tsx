@@ -97,6 +97,12 @@ export default function Header() {
 									<Link href="/mypage">
 										<Button className="item">마이페이지</Button>
 									</Link>
+									{/* 관리자에게만 보이는 진입점 (#73). 실제 권한은 API가 지킨다 */}
+									{user.role === 'admin' && (
+										<Link href="/admin">
+											<Button className="item">관리자</Button>
+										</Link>
+									)}
 									<Button className="item" onClick={handleLogout}>
 										로그아웃
 									</Button>

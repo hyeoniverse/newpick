@@ -26,6 +26,7 @@ import { CoopMiddleware } from './middleware/coop.middleware';
 // import { CommonResponseInterceptor } from './common/response.interceptor';
 
 import { EditionModule } from './edition/edition.module';
+import { SiteCacheModule } from './site-cache/site-cache.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -50,6 +51,7 @@ import { EditionModule } from './edition/edition.module';
     ScheduleModule.forRoot(),
     BasicRepositoryModule,
     EditionModule, // 구독 메일 편집 (#55)
+    SiteCacheModule, // 웹 사이트 캐시 비우기 (#73)
   ],
   controllers: [AppController], // 컨트롤러 등록
   providers: [

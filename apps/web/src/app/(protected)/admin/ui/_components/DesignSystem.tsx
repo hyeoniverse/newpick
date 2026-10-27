@@ -4,7 +4,7 @@ import { useState } from 'react';
 import styled, { useTheme } from 'styled-components';
 import { LuArrowLeft, LuArrowRight, LuBell, LuMailCheck, LuSparkles } from 'react-icons/lu';
 
-import { useAuth } from '@/hooks/useAuth';
+import AdminGate from '@/components/common/auth/AdminGate';
 import { useModal } from '@/hooks/useModal';
 import { useToast } from '@/hooks/useToast';
 import { useInputCheck } from '@/hooks/useInputCheck';
@@ -112,21 +112,11 @@ const SAMPLE_TABS = [
  * 값은 styles/theme.ts에서 바로 읽으므로 테마를 바꾸면 여기도 따라 바뀐다
  */
 export default function DesignSystem() {
-	const { user, session } = useAuth();
-
-	if (!user) {
-		return session === 'out' ? (
-			<ErrorState code={401} {...ERROR_STATES[401]} />
-		) : (
-			<StyledGate>
-				<Spinner />
-			</StyledGate>
-		);
-	}
-	if (user.role !== 'admin') {
-		return <ErrorState code={403} {...ERROR_STATES[403]} />;
-	}
-	return <DesignSystemBody />;
+	return (
+		<AdminGate>
+			<DesignSystemBody />
+		</AdminGate>
+	);
 }
 
 function DesignSystemBody() {
@@ -532,12 +522,6 @@ function Section({
 		</section>
 	);
 }
-
-const StyledGate = styled.div`
-	display: flex;
-	justify-content: center;
-	padding: 6rem 1rem;
-`;
 
 const Chip = styled.span<{ $color: string }>`
 	width: 2.5rem;

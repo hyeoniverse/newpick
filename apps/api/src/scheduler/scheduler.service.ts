@@ -13,6 +13,7 @@ import { NewsletterRepo } from 'src/repository/newsletter.repository';
 import { CronJob, CronTime } from 'cron';
 import { setTimeofCycle } from 'src/common/helpers';
 import { EditionService } from 'src/edition/edition.service';
+import { SiteCacheService } from 'src/site-cache/site-cache.service';
 /** schedule_configs에서 메일 발송 주기를 저장하는 행 */
 const MAIL_CYCLE_CONFIG_ID = 1;
 const MAIL_JOB_NAME = 'sendNewsletter';
@@ -36,6 +37,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     private schedulerRegistry: SchedulerRegistry,
     private readonly prisma: MysqlPrismaService,
     private readonly editionService: EditionService,
+    private readonly siteCache: SiteCacheService,
   ) {}
 
   /**
@@ -141,6 +143,11 @@ export class SchedulerService implements OnApplicationBootstrap {
 
       // 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
       await this.editionService.ensureEdition();
+
+      // 새 글이 생겼으면 사이트 첫 화면·목록이 10분 기다리지 않고 바로 보여 주게 (#73)
+      if (generatedNewsletter.length > 0) {
+        await this.siteCache.refresh('뉴스레터 생성');
+      }
 
       // 운영자 알림 메일은 ADMIN_NOTIFY_EMAIL이 설정된 경우에만 보냅니다.
       const adminEmail = process.env.ADMIN_NOTIFY_EMAIL;
