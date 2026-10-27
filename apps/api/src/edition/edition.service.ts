@@ -13,6 +13,7 @@ import {
   storyRef,
 } from './editor';
 import { composeEdition, EditionNewsletter } from './compose';
+import { createUnsubscribeToken } from 'src/subscriber/unsubscribe-token';
 import { renderEditionMail } from './mail';
 
 export type Edition = {
@@ -122,7 +123,12 @@ export class EditionService {
   }
 
   /** 구독자 한 명의 메일. 고른 분야 소식이 그날 하나도 없으면 null */
-  composeMail(edition: Edition, interests: number[]) {
+  /**
+   * 구독자 한 명의 메일. userId를 주면(실제 발송) 그 사람의 원클릭 해지를 붙인다 (#18)
+   * - 본문 아래 '수신 거부': 로그인 없이 여는 확인 화면 /unsubscribe?token=
+   * - 메일 헤더 List-Unsubscribe(+ -Post): 메일 앱의 '구독 취소' 버튼이 사이트를 거쳐 API로 바로 POST (RFC 8058)
+   */
+  composeMail(edition: Edition, interests: number[], userId?: number) {
     const composed = composeEdition(
       edition.sources,
       edition.editorial,
@@ -130,14 +136,25 @@ export class EditionService {
       dayjs.tz(edition.date, KST).toDate(),
     );
     if (!composed) return null;
+
+    const base = (process.env.FRONTEND_URL ?? '').replace(/\/$/, '');
+    const token =
+      userId !== undefined ? createUnsubscribeToken(userId) : undefined;
     return {
       subject: composed.subject,
       html: renderEditionMail(
         composed,
-        process.env.FRONTEND_URL ?? '',
+        base,
         process.env.MAIL_USER,
+        token && `${base}/unsubscribe?token=${token}`,
       ),
       newsletterIds: composed.sections.map((s) => s.newsletterId),
+      ...(token && {
+        headers: {
+          'List-Unsubscribe': `<${base}/api/subscribers/unsubscribe?token=${token}>`,
+          'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+        },
+      }),
     };
   }
 

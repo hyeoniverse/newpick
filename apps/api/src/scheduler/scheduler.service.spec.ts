@@ -36,8 +36,8 @@ function setup(failingCategoryId: number, edition: unknown = null) {
   };
   const subscriberService = {
     getSubscribers: jest.fn().mockResolvedValue([
-      { email: 'a@example.com', interests: [1, 3], name: 'a' },
-      { email: 'b@example.com', interests: [], name: 'b' },
+      { email: 'a@example.com', interests: [1, 3], name: 'a', userId: 7 },
+      { email: 'b@example.com', interests: [], name: 'b', userId: 8 },
     ]),
   };
   const siteCache = { refresh: jest.fn().mockResolvedValue({ ok: true }) };
@@ -121,7 +121,8 @@ describe('구독 메일 (#55)', () => {
 
     const [subscribers] = mailService.sendBulkMail.mock.calls[0];
     expect(subscribers.map((s) => s.email)).toEqual(['a@example.com']);
-    expect(editionService.composeMail).toHaveBeenCalledWith(edition, [1, 3]);
+    // 사람마다 원클릭 해지(#18)를 붙이도록 회원 id도 넘긴다
+    expect(editionService.composeMail).toHaveBeenCalledWith(edition, [1, 3], 7);
   });
 
   it('오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)', async () => {

@@ -126,6 +126,11 @@ export const ERROR_CODES = {
     status: HttpStatus.NOT_FOUND,
     message: '구독 정보가 없습니다.',
   },
+  UNSUBSCRIBE_LINK_INVALID: {
+    status: HttpStatus.BAD_REQUEST,
+    message:
+      '수신 거부 링크가 올바르지 않습니다. 메일의 링크를 다시 눌러 주세요.',
+  },
   ALREADY_SUBSCRIBED: {
     status: HttpStatus.CONFLICT,
     message: '이미 구독 중입니다.',

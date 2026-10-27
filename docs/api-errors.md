@@ -71,6 +71,7 @@ flowchart LR
 | `CONFLICT` | 409 | 이미 처리된 요청입니다. |
 | `CATEGORY_ALREADY_EXISTS` | 409 | 이미 있는 분야입니다. |
 | `BOOKMARK_ALREADY_EXISTS` | 409 | 이미 북마크한 뉴스레터입니다. |
+| `UNSUBSCRIBE_LINK_INVALID` | 400 | 수신 거부 링크가 올바르지 않습니다. 메일의 링크를 다시 눌러 주세요. |
 | `ALREADY_SUBSCRIBED` | 409 | 이미 구독 중입니다. |
 | `PAYLOAD_TOO_LARGE` | 413 | 보낸 내용이 너무 큽니다. |
 | `UNPROCESSABLE` | 422 | 처리할 수 없는 값이 있습니다. |

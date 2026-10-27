@@ -19,13 +19,21 @@ export type MailResult = {
   error?: string;
 };
 
-export type Subscriber = { email: string; interests: number[]; name: string };
+export type Subscriber = {
+  email: string;
+  interests: number[];
+  name: string;
+  /** 원클릭 해지 토큰을 만들 회원 id (#18) */
+  userId?: number;
+};
 
 /** 구독자 한 명에게 보낼 메일. newsletterIds: 이 메일에 엮은 뉴스레터 (발송 기록) */
 export type BuiltMail = {
   subject: string;
   html: string;
   newsletterIds: number[];
+  /** 덧붙일 메일 헤더 (List-Unsubscribe 등, #18) */
+  headers?: Record<string, string>;
 };
 
 export type BulkMailResult = {
@@ -108,6 +116,7 @@ export class MailService {
           to: subscriber.email,
           subject: mail.subject,
           html: mail.html,
+          ...(mail.headers && { headers: mail.headers }),
         });
         await this.archive(subscriber.email, mail.newsletterIds);
         return { email: subscriber.email, success: true, attempts: attempt };

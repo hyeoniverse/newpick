@@ -224,6 +224,7 @@ nano api.env   # 빈 값을 채운다
 | `CLAUDE_MODEL`, `CLAUDE_FAST_MODEL` | | 뉴스레터 쓰기 모델(기본 `claude-sonnet-5-5`)과 기사 고르기·분류 모델(기본 `claude-haiku-5-5`). 비워 두면 기본값 |
 | `MAIL_USER`, `MAIL_PASSWORD` | 메일 | Gmail 주소와 **앱 비밀번호**(16자리). 실제 비밀번호는 SMTP 로그인이 거절된다. 2단계 인증을 켜고 https://myaccount.google.com/apppasswords 에서 만든다 |
 | `ADMIN_NOTIFY_EMAIL` | | 요약이 끝나면 결과를 받을 주소 |
+| `UNSUBSCRIBE_SECRET` | | 메일 원클릭 수신 거부 링크의 서명([#18](https://github.com/hyeoniverse/newpick/issues/18)). **필수 아님**: 비우면 `JWT_SECRET`에서 용도를 붙여 만든 값을 씀. 바꾸면 이미 보낸 메일의 수신 거부 링크가 모두 무효가 되니 한 번 정하면 그대로 둠 |
 | `REVALIDATE_SECRET` | | 사이트 캐시 비우기([#73](https://github.com/hyeoniverse/newpick/issues/73)). Vercel의 `REVALIDATE_SECRET`과 같은 값. **필수 아님**: 비우면 뉴스레터를 만들거나 지워도 첫 화면·목록이 최대 10분 뒤에 바뀌고, `/admin`의 캐시 비우기는 503 |
 | `SENTRY_DSN` | | 오류 기록·성능 측정(Sentry). **필수 아님**: 비우면 "SENTRY_DSN이 없어 Sentry 없이 실행합니다"를 남기고 그대로 실행. 켜는 방법과 개인정보 처리방침에 미치는 영향은 #67 |
 

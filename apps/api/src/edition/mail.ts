@@ -126,6 +126,8 @@ export function renderEditionMail(
   frontendUrl: string,
   /** 문의처: 메일을 보내는 주소 (답장도 여기로 온다) */
   contactEmail = '',
+  /** 받는 사람의 원클릭 해지 화면 주소 (#18). 없으면(미리보기 등) 마이페이지 설정 */
+  unsubscribeUrl?: string,
 ): string {
   const base = frontendUrl.replace(/\/$/, '');
 
@@ -190,7 +192,7 @@ export function renderEditionMail(
     `<a href="${esc(href)}" target="_blank" rel="noopener noreferrer" style="color:${C.muted};text-decoration:underline;">${esc(text)}</a>`;
   const footer = `<tr><td style="padding:8px 24px 0;font-size:12px;line-height:1.8;color:${C.muted};text-align:center;">뉴픽은 AI가 여러 언론사 기사를 모아 정리한 뉴스레터입니다. 수치·발언은 출처 기사를 함께 확인하세요.<br>${[
     footerLink('관심 분야 바꾸기', `${base}/mypage?tab=settings`),
-    footerLink('수신 거부', `${base}/mypage?tab=settings`),
+    footerLink('수신 거부', unsubscribeUrl ?? `${base}/mypage?tab=settings`),
     footerLink('뉴픽 홈', `${base}/`),
     footerLink('이용약관', `${base}/terms`),
     footerLink('개인정보 처리방침', `${base}/privacy`),

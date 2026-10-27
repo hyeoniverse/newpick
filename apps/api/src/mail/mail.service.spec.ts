@@ -30,6 +30,21 @@ const build = (s: Subscriber): BuiltMail | null =>
       };
 
 describe('MailService.sendBulkMail', () => {
+  it('메일에 붙인 헤더(List-Unsubscribe 등)를 그대로 보낸다 (#18)', async () => {
+    const sendMail = jest.fn().mockResolvedValue({});
+    const { service } = setup(sendMail);
+    const headers = {
+      'List-Unsubscribe':
+        '<https://newpick.app/api/subscribers/unsubscribe?token=t>',
+      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
+    };
+    await service.sendBulkMail(
+      [{ email: 'a@example.com', interests: [1], name: 'a', userId: 1 }],
+      (s) => ({ ...build(s)!, headers }),
+    );
+    expect(sendMail).toHaveBeenCalledWith(expect.objectContaining({ headers }));
+  });
+
   it('일시적으로 실패한 메일은 다시 보내고, 성공하면 엮은 뉴스레터마다 기록을 남긴다', async () => {
     const sendMail = jest
       .fn()
