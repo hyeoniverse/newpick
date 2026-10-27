@@ -1,13 +1,4 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Put,
-  Req,
-  Res,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Put, Req, Res } from '@nestjs/common';
 import { Response } from 'express';
 import {
   SESSION_HINT_COOKIE,
@@ -16,6 +7,7 @@ import {
 } from 'src/auth/cookie-options';
 import { MyPageService } from './mypage.service';
 import { InterestsDto } from 'src/common/dto/interests.dto';
+import { AppException } from '../common/errors/app.exception';
 
 /** 로그인 필요 (전역 JwtAuthGuard). 구독 상태·기록은 /subscribers에서 조회합니다. */
 @Controller('mypage')
@@ -72,7 +64,7 @@ export class MyPageController {
   private userIdOf(req): number {
     const userId = Number(req.user?.id);
     if (!Number.isInteger(userId) || userId <= 0) {
-      throw new UnauthorizedException('User not authenticated');
+      throw new AppException('UNAUTHORIZED');
     }
     return userId;
   }

@@ -33,6 +33,38 @@ describe('apiFetch', () => {
 		expect(API_ENDPOINTS.MY.PROFILE()).toBe('/api/mypage/profile');
 	});
 
+	it('API 오류 응답의 status · code · message를 ApiError에 담는다', async () => {
+		mockFetch({
+			'/api/newsletters/6': [
+				() =>
+					json(404, {
+						statusCode: 404,
+						code: 'NEWSLETTER_NOT_FOUND',
+						message: '뉴스레터를 찾을 수 없습니다.',
+						path: '/newsletters/6',
+						timestamp: '2026-10-27T00:00:00.000Z',
+					}),
+			],
+		});
+
+		await expect(apiFetch('/api/newsletters/6')).rejects.toMatchObject({
+			status: 404,
+			code: 'NEWSLETTER_NOT_FOUND',
+			message: '뉴스레터를 찾을 수 없습니다.',
+		});
+	});
+
+	it('JSON이 아닌 오류 응답(프록시 등)은 code 없이 상태 문구로', async () => {
+		mockFetch({ '/api/x': [() => new Response('Bad Gateway', { status: 502, statusText: 'Bad Gateway' })] });
+
+		const error = await apiFetch('/api/x').catch((e: unknown) => e);
+		expect(error).toBeInstanceOf(ApiError);
+		const apiError = error as ApiError;
+		expect(apiError.status).toBe(502);
+		expect(apiError.code).toBeUndefined();
+		expect(apiError.message).toBe('Bad Gateway');
+	});
+
 	it('객체 body는 JSON으로 보내고, 응답 JSON을 돌려준다', async () => {
 		const fetchMock = mockFetch({ '/api/category': [() => json(200, { data: [1] })] });
 

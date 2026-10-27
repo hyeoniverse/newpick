@@ -4,10 +4,9 @@ import {
   ExecutionContext,
   CallHandler,
   HttpStatus,
-  HttpException,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { map } from 'rxjs/operators';
 
 interface Response<T> {
   data: T;
@@ -22,37 +21,21 @@ export class CommonResponseInterceptor implements NestInterceptor {
         const statusCode: HttpStatus = context
           .switchToHttp()
           .getResponse().statusCode;
-        const message = response.message || '';
-        const data = response.data || response;
+        const message = response?.message || '';
+        // data가 null·0·빈 문자열이어도 그대로 둔다 (예전에는 || 로 응답 전체가 data에 들어갔다)
+        const data =
+          response && typeof response === 'object' && 'data' in response
+            ? response.data
+            : response;
         return {
           statusCode,
           message,
           timestamp: new Date().toISOString(),
-          dataCount: Array.isArray(data) ? data.length : 1,
+          dataCount: Array.isArray(data) ? data.length : data == null ? 0 : 1,
           data,
         };
       }),
-      catchError((error) => {
-        const status = error.status || HttpStatus.INTERNAL_SERVER_ERROR;
-        let errorMessage = error.message;
-
-        // ValidationPipe 에러 처리
-        if (error.response && error.response.message) {
-          errorMessage = Array.isArray(error.response.message)
-            ? error.response.message
-            : [error.response.message];
-        }
-
-        throw new HttpException(
-          {
-            statusCode: status,
-            timestamp: new Date().toISOString(),
-            errorTitle: error.name || 'ValidationError',
-            errorMessage: errorMessage,
-          },
-          status,
-        );
-      }),
+      // 오류는 여기서 바꾸지 않고 ApiExceptionFilter가 한 모양으로 만든다
     );
   }
 }

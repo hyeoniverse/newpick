@@ -1,14 +1,8 @@
-import {
-  BadRequestException,
-  Controller,
-  Get,
-  NotFoundException,
-  Query,
-  UseInterceptors,
-} from '@nestjs/common';
+import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
 import { Public } from 'src/auth/decorators/auth.decorators';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { EditionService } from './edition.service';
+import { AppException } from '../common/errors/app.exception';
 
 @Controller('edition')
 @UseInterceptors(CommonResponseInterceptor)
@@ -26,11 +20,11 @@ export class EditionController {
       ...new Set(categories.split(',').filter(Boolean).map(Number)),
     ];
     if (!interests.length || interests.some((n) => !Number.isInteger(n))) {
-      throw new BadRequestException('분야 id를 쉼표로 구분해 주세요');
+      throw new AppException('BAD_REQUEST', '분야 id를 쉼표로 구분해 주세요.');
     }
     const edition = await this.editionService.latestEdition();
     const mail = edition && this.editionService.composeMail(edition, interests);
-    if (!mail) throw new NotFoundException('고른 분야의 발행본이 없습니다');
+    if (!mail) throw new AppException('EDITION_NOT_FOUND');
     return { date: edition.date, subject: mail.subject, html: mail.html };
   }
 }

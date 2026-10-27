@@ -1,9 +1,10 @@
-import { Controller, Body, Post, NotFoundException } from '@nestjs/common';
+import { Controller, Body, Post } from '@nestjs/common';
 import { TrialSummarizeDto } from './dto/trial-summarize.dto';
 import { AiSummaryService } from './ai-summary.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { Logger } from '@nestjs/common';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
+import { AppException } from '../common/errors/app.exception';
 
 const TRIAL_CACHE_TTL = 6 * 60 * 60 * 1000;
 const TRIAL_CACHE_MAX = 200;
@@ -49,7 +50,7 @@ export class AiSummaryController {
       `dateStart: ${dateStart}, dateEnd: ${dateEnd}, categoryId: ${categoryId}, 검색된 뉴스 수: ${news.news.length}`,
     );
     if (news.news.length === 0) {
-      throw new NotFoundException('No news found');
+      throw new AppException('NEWS_NOT_FOUND');
     }
     const result = await this.aiSummaryService.summarizeText(
       news.news,

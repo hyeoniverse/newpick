@@ -15,10 +15,10 @@ import { MailModule } from './mail/mail.module'; // 메일 모듈
 import { CategoryModule } from './category/category.module'; // 카테고리 모듈
 import { SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
+import { ApiExceptionFilter } from './common/errors/api-exception.filter';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { validateEnv } from './config/env.validation';
-import { SentryGlobalFilter } from '@sentry/nestjs/setup';
 import { ScheduleModule } from '@nestjs/schedule';
 import { BasicRepositoryModule } from './repository/module';
 import { ConfigLoggerMiddleware } from './middleware/config-logger.middleware';
@@ -56,7 +56,7 @@ import { EditionModule } from './edition/edition.module';
     AppService,
     {
       provide: APP_FILTER,
-      useClass: SentryGlobalFilter,
+      useClass: ApiExceptionFilter, // 모든 오류를 { statusCode, code, message } 한 모양으로
     },
     // 순서대로 실행: 요청 제한 → 로그인 확인(@Public 제외)
     { provide: APP_GUARD, useClass: ThrottlerGuard },

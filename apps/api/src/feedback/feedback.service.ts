@@ -1,10 +1,7 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { MysqlPrismaService } from 'prisma/mysql.service';
+import { AppException } from '../common/errors/app.exception';
 
 @Injectable()
 export class FeedbackService {
@@ -17,7 +14,7 @@ export class FeedbackService {
       select: { id: true },
     });
     if (!newsletter) {
-      throw new NotFoundException('Newsletter not found.');
+      throw new AppException('NEWSLETTER_NOT_FOUND');
     }
 
     try {
@@ -29,7 +26,7 @@ export class FeedbackService {
         error instanceof Prisma.PrismaClientKnownRequestError &&
         error.code === 'P2002'
       ) {
-        throw new ConflictException('This item is already bookmarked.');
+        throw new AppException('BOOKMARK_ALREADY_EXISTS');
       }
       throw error;
     }
@@ -40,7 +37,7 @@ export class FeedbackService {
       where: { userId, newsletterId },
     });
     if (count === 0) {
-      throw new NotFoundException('Bookmark not found.');
+      throw new AppException('BOOKMARK_NOT_FOUND');
     }
     return { success: true };
   }

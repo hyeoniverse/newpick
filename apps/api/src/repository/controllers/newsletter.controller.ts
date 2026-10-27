@@ -5,8 +5,6 @@ import {
   Query,
   Param,
   Delete,
-  BadRequestException,
-  NotFoundException,
   ParseIntPipe,
   ValidationPipe,
   Post,
@@ -21,6 +19,7 @@ import {
 } from './newsletter.dto';
 import dayjs from 'dayjs';
 import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
+import { AppException } from '../../common/errors/app.exception';
 
 @Controller('newsletters')
 @UseInterceptors(CommonResponseInterceptor)
@@ -99,21 +98,14 @@ export class BasicRepositoryController {
         0, // 최신 뉴스 1개 가져오기
         1,
       );
-      if (!newsletter.length) {
-        throw new NotFoundException(
-          '해당 카테고리의 최신 뉴스레터가 없습니다.',
-        );
-      }
+      // 아직 발행본이 없으면 오류가 아니라 빈 결과 (200, data: null)
       return {
         message: '해당 카테고리 최신 뉴스레터 조회 성공',
-        data: newsletter[0],
+        data: newsletter[0] ?? null,
       };
     } else {
       const newsletters =
         await this.newsletterRepo.getLatestNewslettersForAllCategories();
-      if (!newsletters.length) {
-        throw new NotFoundException('각 카테고리의 최신 뉴스레터가 없습니다.');
-      }
       return {
         message: '모든 카테고리 최신 뉴스레터 조회 성공',
         data: newsletters,
@@ -134,11 +126,11 @@ export class BasicRepositoryController {
   ) {
     id = Number(id);
     if (!id) {
-      throw new BadRequestException('Newsletter ID is required');
+      throw new AppException('BAD_REQUEST', '뉴스레터 id가 필요합니다.');
     }
     const newsletter = await this.newsletterRepo.getNewsletterById(id);
     if (!newsletter) {
-      throw new NotFoundException('Newsletter not found');
+      throw new AppException('NEWSLETTER_NOT_FOUND');
     }
     return {
       message: '상세 조회 성공',
@@ -172,7 +164,7 @@ export class BasicRepositoryController {
     query: NewsletterCategoryDto,
   ) {
     if (!categoryId) {
-      throw new BadRequestException('Category ID is required');
+      throw new AppException('BAD_REQUEST', '분야 id가 필요합니다.');
     }
     const offset = Number(query.offset);
     const limit = Number(query.limit);
@@ -182,7 +174,7 @@ export class BasicRepositoryController {
       limit,
     );
     if (!data) {
-      throw new NotFoundException('Newsletter not found');
+      throw new AppException('NEWSLETTER_NOT_FOUND');
     }
     return {
       message: '카테고리 조회 성공',
@@ -195,11 +187,11 @@ export class BasicRepositoryController {
   async deleteNewsletter(@Param('id') id: number) {
     id = Number(id);
     if (!id) {
-      throw new BadRequestException('Newsletter ID is required');
+      throw new AppException('BAD_REQUEST', '뉴스레터 id가 필요합니다.');
     }
     const data = await this.newsletterRepo.deleteNewsletter(id);
     if (!data) {
-      throw new NotFoundException('Newsletter not found');
+      throw new AppException('NEWSLETTER_NOT_FOUND');
     }
     return {
       message: '삭제 성공',
@@ -215,17 +207,12 @@ export class BasicRepositoryController {
 
     const dateStart = dayjs().subtract(from, 'day').startOf('day').toDate();
     const dateEnd = dayjs().endOf('day').toDate();
-    console.log('sdfsdfsdf', num, from);
 
     const newsletters = await this.newsletterRepo.getRandomNewsletters(
       dateStart,
       dateEnd,
       num,
     );
-
-    if (!newsletters.length) {
-      throw new NotFoundException('해당 기간에 뉴스레터가 없습니다');
-    }
 
     return {
       message: '랜덤 조회 성공',
@@ -238,11 +225,11 @@ export class BasicRepositoryController {
   async addViewcount(@Param('id') id: number) {
     id = Number(id);
     if (!id) {
-      throw new BadRequestException('Newsletter ID is required');
+      throw new AppException('BAD_REQUEST', '뉴스레터 id가 필요합니다.');
     }
     const data = await this.newsletterRepo.addViewcount(id);
     if (!data) {
-      throw new NotFoundException('Newsletter not found');
+      throw new AppException('NEWSLETTER_NOT_FOUND');
     }
     return {
       message: '조회수 증가 성공',
@@ -255,11 +242,11 @@ export class BasicRepositoryController {
   async resetViewcount(@Param('id') id: number) {
     id = Number(id);
     if (!id) {
-      throw new BadRequestException('Newsletter ID is required');
+      throw new AppException('BAD_REQUEST', '뉴스레터 id가 필요합니다.');
     }
     const data = await this.newsletterRepo.resetViewcount(id);
     if (!data) {
-      throw new NotFoundException('Newsletter not found');
+      throw new AppException('NEWSLETTER_NOT_FOUND');
     }
     return {
       message: '조회수 초기화 성공',

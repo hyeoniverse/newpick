@@ -1,4 +1,4 @@
-import { BadRequestException, ConflictException, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { SubscriberService } from './subscriber.service';
 
 /** Prisma 호출을 기록만 하는 가짜 클라이언트. $transaction에 넘어온 작업 목록을 확인합니다. */
@@ -41,7 +41,7 @@ describe('SubscriberService.startSubscription', () => {
     });
     await expect(
       serviceWith(prisma).startSubscription(1, [2, 3]),
-    ).rejects.toBeInstanceOf(ConflictException);
+    ).rejects.toMatchObject({ code: 'ALREADY_SUBSCRIBED', status: 409 });
     expect(prisma.userInterest.deleteMany).not.toHaveBeenCalled();
     expect(prisma.userInterest.createMany).not.toHaveBeenCalled();
     expect(prisma.$transaction).not.toHaveBeenCalled();
@@ -51,7 +51,7 @@ describe('SubscriberService.startSubscription', () => {
     const prisma = fakePrisma({ id: 1, subscribers: [] });
     await expect(
       serviceWith(prisma).startSubscription(1, [1, 99]),
-    ).rejects.toBeInstanceOf(BadRequestException);
+    ).rejects.toMatchObject({ code: 'INVALID_INTERESTS', status: 400 });
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 

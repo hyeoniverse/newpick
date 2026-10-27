@@ -1,4 +1,3 @@
-import { NotFoundException } from '@nestjs/common';
 import { deleteAccount } from './delete-account';
 import { MyPageController } from 'src/mypage/mypage.controller';
 
@@ -41,9 +40,10 @@ describe('회원 탈퇴 (#65)', () => {
 
   it('없는 회원이면 404, 아무것도 지우지 않는다', async () => {
     const { prisma } = prismaMock(null);
-    await expect(deleteAccount(prisma as never, 9)).rejects.toBeInstanceOf(
-      NotFoundException,
-    );
+    await expect(deleteAccount(prisma as never, 9)).rejects.toMatchObject({
+      code: 'USER_NOT_FOUND',
+      status: 404,
+    });
     expect(prisma.$transaction).not.toHaveBeenCalled();
   });
 

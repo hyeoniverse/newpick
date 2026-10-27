@@ -1,14 +1,10 @@
-import {
-  Injectable,
-  NotFoundException,
-  ConflictException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import {
   replaceInterestsOps,
   validateCategoryIds,
 } from 'src/common/user-interests';
+import { AppException } from '../common/errors/app.exception';
 @Injectable()
 export class SubscriberService {
   constructor(
@@ -29,12 +25,12 @@ export class SubscriberService {
       select: { id: true, subscribers: true },
     });
     if (!user) {
-      throw new NotFoundException(`User with ID ${userId} does not exist.`);
+      throw new AppException('USER_NOT_FOUND');
     }
 
     const existing = user.subscribers[0];
     if (existing?.status === 'active') {
-      throw new ConflictException('User is already subscribed.');
+      throw new AppException('ALREADY_SUBSCRIBED');
     }
 
     const categoryIds = interests
@@ -69,8 +65,9 @@ export class SubscriberService {
     });
 
     if (!subscription) {
-      throw new NotFoundException(
-        'No active subscription found for this user.',
+      throw new AppException(
+        'SUBSCRIPTION_NOT_FOUND',
+        '진행 중인 구독이 없습니다.',
       );
     }
 
@@ -90,7 +87,7 @@ export class SubscriberService {
     });
 
     if (!subscription) {
-      throw new NotFoundException('No subscription found for this user.');
+      throw new AppException('SUBSCRIPTION_NOT_FOUND');
     }
 
     // 구독 취소: 관심사를 비우고 구독 상태를 바꿉니다. 둘 중 하나만 반영되지 않도록 한 트랜잭션으로 처리합니다.
@@ -134,7 +131,7 @@ export class SubscriberService {
     });
 
     if (!userExists) {
-      throw new NotFoundException(`User with ID ${userId} does not exist.`);
+      throw new AppException('USER_NOT_FOUND');
     }
 
     return this.prisma.subscriber.findMany({

@@ -1,7 +1,13 @@
 import { API_ENDPOINTS } from '@/constants/api';
 
-/** API가 실패 응답을 보냈을 때. status로 분기할 수 있습니다. */
+/**
+ * API가 실패 응답을 보냈을 때. API의 오류 응답은 늘 { statusCode, code, message, details? } 모양이라
+ * status(HTTP 상태)나 code(예: NEWSLETTER_NOT_FOUND)로 분기하고, message는 사용자에게 그대로 보여 줘도 된다
+ */
 export class ApiError extends Error {
+	/** API 오류 code. 응답이 JSON이 아니면(프록시 오류 등) 없음 */
+	public readonly code?: string;
+
 	constructor(
 		public readonly status: number,
 		message: string,
@@ -9,6 +15,8 @@ export class ApiError extends Error {
 	) {
 		super(message);
 		this.name = 'ApiError';
+		const code = (body as { code?: unknown } | undefined)?.code;
+		if (typeof code === 'string') this.code = code;
 	}
 }
 

@@ -1,9 +1,10 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CrawledNews } from './schema/crawling.schema';
 import { CategoryRepository } from 'src/category/category.repository';
 import { kstDayRange } from 'src/common/kst';
+import { AppException } from '../common/errors/app.exception';
 
 @Injectable()
 export class CrawlingRepository {
@@ -91,7 +92,7 @@ export class CrawlingRepository {
         .exec();
 
       if (!news) {
-        throw new NotFoundException('Not Found');
+        throw new AppException('NOT_FOUND');
       }
 
       return news;
