@@ -758,7 +758,16 @@ const StyledDatePicker = styled.div<{ $size: Size; $range?: boolean }>`
 		gap: 0.375rem;
 
 		.control {
-			flex: ${({ $size }) => ($size === 'small' ? '0 1 9.5rem' : '1 1 0')};
+			/* 작은 칸은 폭을 못 박는다 (flex-basis만 주면 Safari가 바깥 줄의 폭을 0으로 잡아 줄이 바뀐다) */
+			${({ $size }) =>
+				$size === 'small'
+					? css`
+							flex: none;
+							width: 9.5rem;
+						`
+					: css`
+							flex: 1 1 0;
+						`}
 			min-width: 0;
 		}
 	}

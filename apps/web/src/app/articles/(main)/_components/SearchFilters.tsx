@@ -161,7 +161,7 @@ const StyledSearchFilters = styled.div`
 			}
 
 			.dates .control {
-				flex-basis: 6.5rem;
+				width: 6.5rem;
 			}
 
 			.dates .calendar-icon {
