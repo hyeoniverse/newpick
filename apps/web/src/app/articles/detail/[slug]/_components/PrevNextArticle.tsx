@@ -157,12 +157,11 @@ const PrevNextArticleStyled = styled.section`
 			&.disabled {
 				pointer-events: none;
 
-				/* 안내 문구는 남은 자리 가운데에 */
+				/* 안내 문구는 세로 가운데, 가로는 왼쪽 */
 				.text-section {
 					align-self: stretch;
 					display: flex;
 					align-items: center;
-					justify-content: center;
 				}
 
 				.title {
