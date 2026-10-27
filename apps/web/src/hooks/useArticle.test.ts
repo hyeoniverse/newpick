@@ -27,4 +27,11 @@ describe('getRelatedNews', () => {
 
 		await expect(getRelatedNews(['https://n.news/a'])).resolves.toEqual([]);
 	});
+
+	// 스크롤마다 다시 요청하던 때 요청 제한(429)에 걸려 빈 목록이 캐시되고 카드가 사라졌다
+	it('모두 실패했고 404가 아닌 실패가 있으면 오류를 던져 다시 시도하게 한다', async () => {
+		vi.mocked(fetchRelatedNews).mockRejectedValue(new ApiError(429, 'Too Many Requests'));
+
+		await expect(getRelatedNews(['https://n.news/a', 'https://n.news/b'])).rejects.toMatchObject({ status: 429 });
+	});
 });

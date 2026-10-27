@@ -23,7 +23,7 @@ function MoveButton({onClick, frontIcon, backIcon, text, className, width, disab
     >
       
       {frontIcon}
-      {text}
+      {text && <span className="move-text">{text}</span>}
       {backIcon}
     
     </MoveButtonStyled>

@@ -27,11 +27,12 @@ function ArticleContent({ content, flex, className, articleImage, related = [] }
 				<div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
 				<div className="content-bottom-margin" />
 			</NewsletterContentStyled>
+			{/* 본문을 다 읽은 자리에서 바로 구독 권유, 그 아래 출처(관련 뉴스) */}
+			<SubscribeInduce className="subscribe" />
 			<hr />
 			<OpenGraphCardContainer>
 				<OpenGraphCard urls={related} />
 			</OpenGraphCardContainer>
-			<SubscribeInduce className="subscribe" />
 		</ContainerStyled>
 	);
 }
@@ -45,7 +46,7 @@ const ContainerStyled = styled.div<Omit<NewsletterContentProps, 'content'>>`
 
 	hr {
 		width: 100%;
-		margin: 0;
+		margin: 2.5rem 0 0;
 		border: none;
 		border-bottom: 1px solid ${({ theme }) => theme.color.border};
 	}

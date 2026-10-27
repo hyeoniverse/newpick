@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import styled from 'styled-components';
-import MoveButton from '@/components/common/MoveButton';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowUp, IoArrowDown } from 'react-icons/io5';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import Link from 'next/link';
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
@@ -26,7 +25,8 @@ function PrevNextArticle({ className, prev, next }: Props) {
 		const isDisabled = !article;
 		const href = isDisabled ? '#' : `/articles/detail/${article?.id}`;
 		const text = isPrev ? '이전글' : '다음글';
-		const icon = isPrev ? <IoArrowBack /> : <IoArrowForward />;
+		// 이전글이 위 줄, 다음글이 아래 줄이라 화살표도 위 · 아래로
+		const icon = isPrev ? <IoArrowUp /> : <IoArrowDown />;
 		const isActive = activeArticle === type;
 
 		const title = article ? article.title : isPrev ? '이전글이 없습니다.' : '다음글이 없습니다.';
@@ -42,14 +42,12 @@ function PrevNextArticle({ className, prev, next }: Props) {
 						onMouseEnter={handleMouseEnter(type)}
 						onMouseLeave={handleMouseLeave}
 					>
-						{isPrev ? (
-							<MoveButton className="btn" text={text} frontIcon={icon} />
-						) : (
-							<MoveButton className="btn" text={text} backIcon={icon} />
-						)}
-
+						<span className="tag">
+							{text}
+							{icon}
+						</span>
 						<div className="img">
-							<HeightAutoImg src={src} aspectratio={1} />
+							<HeightAutoImg src={src} aspectratio={16 / 9} />
 						</div>
 						<div className="text-section">
 							<p className="title">{title}</p>
@@ -63,14 +61,10 @@ function PrevNextArticle({ className, prev, next }: Props) {
 		return (
 			<li className={`prev-next ${type} disabled`}>
 				<div className="link">
-					{isPrev ? (
-						<MoveButton className="btn" text={text} frontIcon={icon} disabled />
-					) : (
-						<MoveButton className="btn" text={text} backIcon={icon} disabled />
-					)}
-					<div className="img">
-						<HeightAutoImg src={src} aspectratio={1} />
-					</div>
+					<span className="tag">
+						{text}
+						{icon}
+					</span>
 					<div className="text-section">
 						<p className="title">{title}</p>
 						<p className="date">{date}</p>
@@ -93,33 +87,50 @@ function PrevNextArticle({ className, prev, next }: Props) {
 const PrevNextArticleStyled = styled.section`
 	border-top: 1px solid ${({ theme }) => theme.color.border};
 
+	/* 두 줄 높이를 늘 같게: 글이 없는 줄도 글이 있는 줄만큼 */
 	ul {
+		display: grid;
+		grid-auto-rows: 1fr;
+
 		li.prev-next {
 			display: flex;
 			flex-direction: row;
 			gap: 1.5rem;
 			align-items: center;
-			height: fit-content;
 			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-			padding: 2.5rem 1rem;
+			padding: 2.5rem 0;
 
 			.link {
 				display: contents;
 
-				.btn {
-					flex: 0.8;
+				/* 이전글 ↑ · 다음글 ↓: 테두리 없는 글자 꼬리표 */
+				.tag {
+					display: inline-flex;
+					align-items: center;
+					gap: 0.25rem;
+					flex-shrink: 0;
+					width: 4.5rem;
+					font-size: ${({ theme }) => theme.fontSize.small};
+					font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+					color: ${({ theme }) => theme.color.primary};
 				}
 
+				/* 사진: 가로형(16:9) 작은 칸 */
 				.img {
-					flex: 1.2;
+					flex-shrink: 0;
+					width: 9rem;
 					margin: 0;
+					overflow: hidden;
+					border-radius: ${({ theme }) => theme.radius.surface};
+
 				}
 
 				.text-section {
-					flex: 8;
+					flex: 1;
+					min-width: 0;
 
 					.title {
-						color: ${({ theme }) => theme.color.mediumGrey};
+						color: ${({ theme }) => theme.color.text};
 						font-size: ${({ theme }) => theme.fontSize.medium};
 						font-weight: ${({ theme }) => theme.fontWeight.medium};
 						margin-bottom: 0.5rem;
@@ -146,12 +157,21 @@ const PrevNextArticleStyled = styled.section`
 			&.disabled {
 				pointer-events: none;
 
-				.btn {
-					opacity: 0.5;
+				/* 안내 문구는 세로 가운데, 가로는 왼쪽 */
+				.text-section {
+					align-self: stretch;
+					display: flex;
+					align-items: center;
 				}
 
-				.title {
-					color: ${({ theme }) => theme.color.lightGrey};
+				/* 제목 아래 여백(날짜와의 간격)이 남으면 꼬리표보다 4px 위로 뜬다 */
+				.link .text-section .title {
+					margin: 0;
+					color: ${({ theme }) => theme.color.text};
+				}
+
+				.date {
+					display: none;
 				}
 			}
 		}
@@ -159,11 +179,9 @@ const PrevNextArticleStyled = styled.section`
 
 	@media screen and ${({ theme }) => theme.mediaQuery.tablet} {
 		ul {
-			display: flex;
-			flex-direction: column;
 
 			li.prev-next {
-				padding: 1.5rem 1rem;
+				padding: 1.5rem 0;
 				gap: 1rem;
 
 				.img {

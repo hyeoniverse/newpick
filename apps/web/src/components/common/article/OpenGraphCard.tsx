@@ -1,145 +1,198 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { NewsInfo as INewsInfo } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 import { getRelatedNews } from '@/hooks/useArticle';
+import { DEFAULT_IMAGES } from '@/constants/images';
 
-import { FaLink } from 'react-icons/fa';
-import Text from '@/components/common/Text';
-import Skeleton from '@/components/common/loader/Skeleton';
 import { styled } from 'styled-components';
-const LazyCard = lazy(() => import('@/components/common/Card'));
+import { FaLink } from 'react-icons/fa';
+import ExternalLink from '@/components/common/ExternalLink';
+import Image from '@/components/common/Image';
 
 interface Props {
 	urls: string[];
 }
 
+/**
+ * 관련 뉴스: 이 뉴스레터를 만들 때 쓴 언론사 기사. 누르면 새 탭으로 원문.
+ * 배경 · 테두리 없이 얇은 선으로 나눈 목록, 사진은 오른쪽
+ */
 export default function OpenGraphCard({ urls }: Props) {
-	const [relatedNewsData, setRelatedNewsData] = useState<INewsInfo[]>([]);
+	// 주소 목록(내용)으로 캐시해, 화면이 다시 그려져도(스크롤 등) 다시 요청하지 않는다.
+	// 예전에는 urls 배열이 그릴 때마다 새로 만들어져 useEffect가 매번 다시 요청했고,
+	// API 요청 제한(429)에 걸린 요청이 빠지면서 카드가 떴다 사라졌다
+	const { data: relatedNewsData = [] } = useQuery<INewsInfo[]>({
+		queryKey: ['relatedNews', urls.join(',')],
+		queryFn: () => getRelatedNews(urls),
+		enabled: urls.length > 0,
+		staleTime: 1000 * 60 * 30,
+	});
 
-	// 비동기 데이터를 useEffect에서 처리
-	useEffect(() => {
-		const fetchData = async () => {
-			if (urls.length > 0) {
-				const data = await getRelatedNews(urls);
-				setRelatedNewsData(data); // 상태 업데이트
-			}
-		};
-		fetchData();
-	}, [urls]);
+	if (relatedNewsData.length === 0) return null;
 
 	return (
-		<Suspense fallback={<Skeleton />}>
-			<StyledOpenGraphCard>
-				<TagTitle>
-					<FaLink />
-					<Text size="medium" weight="semiBold">
-						관련 뉴스
-					</Text>
-				</TagTitle>
+		<StyledRelated>
+			<h2 className="heading">
+				<FaLink aria-hidden />
+				관련 뉴스
+			</h2>
+			<ul className="list">
 				{relatedNewsData.map((news) => (
-					<LazyCard
-						className="card"
-						type="list"
-						newTab={true}
-						key={news.link}
-						data={{
-							id: news.id,
-							url: news.link,
-							image: news.images[0],
-							header: (
-								<div className="news-header">
-									<Text size="medium" weight="semiBold" color="primary">
-										{news.category[0]}
-									</Text>
-									<Text size="medium" color="subText" className="source">
-										{news.source}
-									</Text>
-								</div>
-							),
-							main: {
-								title: news.title,
-								description: news.content,
-							},
-							footer: (
-								<>
-									<Text color="subText">{dateFormatter(news.publishedAt)}</Text>
-								</>
-							),
-						}}
-					/>
+					<li key={news.link}>
+						<ExternalLink href={news.link} showIcon={false} className="item">
+							<span className="photo">
+								<Image src={news.images[0] || DEFAULT_IMAGES.MONO} alt="" ratio="wide" priority={false} />
+							</span>
+							<span className="text">
+								<span className="meta">
+									<span className="source">{news.source}</span>
+									<span aria-hidden>·</span>
+									<span>{dateFormatter(news.publishedAt)}</span>
+								</span>
+								<span className="title">{news.title}</span>
+								<span className="summary">{news.content}</span>
+							</span>
+						</ExternalLink>
+					</li>
 				))}
-			</StyledOpenGraphCard>
-		</Suspense>
+			</ul>
+		</StyledRelated>
 	);
 }
 
-const TagTitle = styled.div`
-	display: flex;
-	flex-direction: row;
-	align-items: center;
-	margin: 0;
-	padding: 0.5rem 1rem;
-	gap: 0.5rem;
+const StyledRelated = styled.section`
+	margin: 2rem 0 4rem;
 
-	border-radius: ${({ theme }) => theme.radius.chip};
-	background: ${({ theme }) => theme.color.tertiary};
-	color: ${({ theme }) => theme.color.primary};
-`;
+	.heading {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		margin-bottom: 0.75rem;
+		font-size: ${({ theme }) => theme.fontSize.medium};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.text};
 
-const StyledOpenGraphCard = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	gap: 1rem;
-	margin-top: 2rem;
-	margin-bottom: 4rem;
+		svg {
+			width: 0.875rem;
+			color: ${({ theme }) => theme.color.primary};
+		}
+	}
 
-	.card {
-		background: ${({ theme }) => theme.color.surface};
-		border: 1px solid ${({ theme }) => theme.color.border};
+	ul {
+		margin: 0;
+		padding: 0;
+	}
+
+	.item {
+		display: flex;
+		gap: 1.25rem;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.photo {
+		display: block;
+		flex-shrink: 0;
+		overflow: hidden;
 		border-radius: ${({ theme }) => theme.radius.surface};
-		padding: 1rem;
-		gap: 0;
 
-		.news-header {
-			display: flex;
-			flex-direction: row;
+		img {
+			transition: transform 0.4s ease;
+		}
+	}
+
+	.text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		min-width: 0;
+	}
+
+	.meta {
+		display: flex;
+		gap: 0.375rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+
+		.source {
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+		}
+	}
+
+	.title {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		line-height: 1.45;
+		word-break: keep-all;
+		color: ${({ theme }) => theme.color.text};
+		transition: color 0.2s ease;
+	}
+
+	.summary {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		line-height: 1.55;
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	.item:hover {
+		.title {
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		.photo img {
+			transform: scale(1.04);
+		}
+	}
+
+	/* 구분선 목록: 배경 · 테두리 없이 얇은 선으로 나누고 사진은 오른쪽 */
+	.list {
+		border-top: 1px solid ${({ theme }) => theme.color.text};
+
+		li {
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		}
+
+		.item {
+			flex-direction: row-reverse;
 			justify-content: space-between;
 			align-items: center;
-			gap: 0.25rem;
+			padding: 1.25rem 0;
+		}
 
-			.source {
-				padding: 0.1rem 1rem;
-				border-radius: ${({ theme }) => theme.radius.chip};
-				border: 1px solid ${({ theme }) => theme.color.border};
-			}
+		.photo {
+			width: 11rem;
 
-			.bar {
-				width: 1px;
-				height: ${({ theme }) => theme.fontSize.medium};
-				border-left: 1px solid ${({ theme }) => theme.color.subText};
-				margin: 0 0.5rem;
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				width: 6.5rem;
 			}
 		}
 
-		.card-body {
-			border: none;
-			margin: 0;
-			padding: 0;
-			display: flex;
-			flex-direction: column;
-			justify-content: flex-start;
+		.text {
+			flex: 1;
+		}
 
-			.content {
-				padding: 0;
-				margin: 0;
-				gap: 1rem;
-				border: none;
-
-				.left {
-					padding: 0;
-					margin: 0;
-				}
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			.summary {
+				display: none;
 			}
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.photo img {
+			transition: none;
+		}
+
+		.item:hover .photo img {
+			transform: none;
 		}
 	}
 `;

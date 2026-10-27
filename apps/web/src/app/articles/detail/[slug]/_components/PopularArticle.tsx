@@ -103,12 +103,14 @@ const PopularNewsletterStyled = styled.div<Omit<Props, 'popular'>>`
 	top: 4rem;
 
 	.index {
-		color: ${({ theme }) => theme.color.mediumGrey};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
 	}
 
 	.section-title {
 		font-size: ${({ theme }) => theme.fontSize.medium};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
 		padding: 0 0 1rem 0;
 		border-bottom: 1px solid ${({ theme }) => theme.color.border};
 	}
