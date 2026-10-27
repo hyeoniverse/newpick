@@ -177,6 +177,18 @@ const push = keyframes`
 `;
 
 const StyledCore = styled.section`
+	/* 처음 디자인처럼 화면 폭 전체에 회색 띠. 안쪽 내용은 본문 폭 그대로
+	   (100vw가 스크롤바만큼 넘치는 부분은 시작하기 페이지의 body overflow-x: clip이 자른다) */
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+	padding: 8rem max(1rem, calc((100vw - ${({ theme }) => theme.layout.width.large}) / 2));
+	background: ${({ theme }) => theme.color.surface};
+
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
+		padding-top: 5rem;
+		padding-bottom: 5rem;
+	}
+
 	.features {
 		display: flex;
 		flex-direction: column;
@@ -237,8 +249,10 @@ const StyledCore = styled.section`
 		width: 100%;
 		min-height: 26rem;
 		padding: 3rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.surface};
+		/* 회색 띠 위라 장면 판은 바탕색 */
+		background: ${({ theme }) => theme.color.background};
 		transform: translateY(calc((1 - var(--progress)) * 2rem)) scale(calc(0.92 + var(--progress) * 0.08));
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
