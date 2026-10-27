@@ -74,7 +74,7 @@ export default function WhoSection() {
 							<span className="label">{V2.label}</span>
 						</p>
 						<div className="v2">
-							<MemberCard {...V2.member} />
+							<MemberCard {...V2.member} variant="row" />
 							<div className="works">
 								{V2.works.map(({ area, items }) => (
 									<section key={area} className="work" aria-label={area}>
@@ -258,26 +258,50 @@ const StyledWhoSection = styled.div`
 		}
 	}
 
-	/* v2: 사진 한 장 + 영역별 한 일. 모바일은 사진 위, 목록 아래 */
+	/* v2: v1과 같은 사진 중심. 사진 옆에 이름·역할, 그 아래 영역별 한 일.
+	   member를 display: contents로 풀어 사진·이름·한 일을 한 격자에 놓는다. 모바일은 한 일만 전체 폭 */
 	.v2 {
 		display: grid;
-		grid-template-columns: 10rem 1fr;
-		gap: 2rem;
+		grid-template-columns: 9rem minmax(0, 1fr);
+		column-gap: 1.25rem;
+		row-gap: 1.75rem;
 		align-items: start;
 
+		.member.row {
+			display: contents;
+		}
+
+		.photo {
+			grid-row: span 2;
+		}
+
+		.info {
+			align-self: end;
+		}
+
+		.member.row .name {
+			margin: 0 0 0.25rem;
+			font-size: ${({ theme }) => theme.fontSize.large};
+		}
+
+		.works {
+			grid-column: 2;
+		}
+
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: 1fr;
-			gap: 1.5rem;
+			grid-template-columns: 7rem minmax(0, 1fr);
+			column-gap: 1rem;
 
-			.member {
-				display: grid;
-				grid-template-columns: 5rem 1fr;
-				column-gap: 1rem;
-				align-items: center;
+			.photo {
+				grid-row: auto;
+			}
 
-				.name {
-					margin: 0 0 0.25rem;
-				}
+			.info {
+				align-self: center;
+			}
+
+			.works {
+				grid-column: 1 / -1;
 			}
 		}
 	}
