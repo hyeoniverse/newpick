@@ -78,7 +78,8 @@ export function HeaderSelect({ label, options, value, onChange, highlight = true
 							type="button"
 							aria-pressed={option.value === value}
 							onClick={() => {
-								onChange(option.value);
+								// 고른 항목을 다시 누르면 해제하고 '전체'('')로 (전체 항목이 있을 때)
+								onChange(option.value === value && options.some((o) => o.value === '') ? '' : option.value);
 								setPos(null);
 							}}
 						>

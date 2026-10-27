@@ -31,8 +31,15 @@ export default function SearchFilters() {
 		staleTime: 1000 * 60 * 10,
 	});
 
+	// 고른 기간을 다시 누르면 해제하고 전체 기간으로
 	const setPeriod = (period: SearchPeriod) =>
-		go(period === 'custom' ? { period, from: filters.from || kstDate(29), to: filters.to || kstDate(0) } : { period });
+		filters.period === period && period !== 'all'
+			? go({ period: 'all' })
+			: go(
+					period === 'custom'
+						? { period, from: filters.from || kstDate(29), to: filters.to || kstDate(0) }
+						: { period },
+				);
 
 	return (
 		<StyledSearchFilters>

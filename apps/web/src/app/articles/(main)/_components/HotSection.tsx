@@ -64,8 +64,8 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 				{CATEGORIES.map((c) => (
 					<Link
 						key={c.id}
-						// 관심사를 바꿔도 검색어 · 기간 · 정렬은 그대로
-						href={toPageHref({ ...filters, categoryId: c.id })}
+						// 관심사를 바꿔도 검색어 · 기간 · 정렬은 그대로. 고른 관심사를 다시 누르면 전체로
+						href={toPageHref({ ...filters, categoryId: c.name === categoryName ? 0 : c.id })}
 						className="chip"
 						aria-current={c.name === categoryName ? 'page' : undefined}
 					>
