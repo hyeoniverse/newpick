@@ -124,7 +124,13 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 				{type === 'main' && (
 					<>
 						{data.map((_, index) => (
-							<Button key={index} className="indicator" onClick={() => goToSlide(index)}>
+							<Button
+								key={index}
+								className="indicator"
+								onClick={() => goToSlide(index)}
+								aria-label={`${index + 1}번째 기사`}
+								aria-current={index === currentIndex || undefined}
+							>
 								{index === currentIndex ? <div className="filled" /> : <div className="empty" />}
 							</Button>
 						))}
@@ -134,13 +140,15 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 				<div className="arrow">
 					<Button
 						className="left"
-						icon={<IoIosArrowBack />}
+						icon={<IoIosArrowBack aria-hidden />}
+						aria-label="이전"
 						onClick={() => handleScroll('left')}
 						disabled={type !== 'main' && !canScrollLeft}
 					/>
 					<Button
 						className="right"
-						icon={<IoIosArrowForward />}
+						icon={<IoIosArrowForward aria-hidden />}
+						aria-label="다음"
 						onClick={() => handleScroll('right')}
 						disabled={type !== 'main' && !canScrollRight}
 					/>
@@ -207,7 +215,8 @@ const StyledCardSlider = styled.div<StyledProps>`
 		flex-direction: row;
 		justify-content: flex-start;
 		align-items: center;
-		gap: 0.5rem;
+		/* 점과 점의 중심 거리를 24px 넘게: 손가락으로 눌러도 옆 점이 눌리지 않게 (#16) */
+		gap: 0.75rem;
 
 		.arrow {
 			display: flex;

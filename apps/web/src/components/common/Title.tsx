@@ -9,11 +9,13 @@ interface Props {
 	size?: HeadingSize;
 	weight?: FontWeight;
 	color?: ColorKey;
+	/** 문서 구조상 제목 단계 (기본 h1). 모양은 size로 따로 정한다 */
+	as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p';
 }
 
-const Title = ({ children, className, size = 'medium', weight, color }: Props) => {
+const Title = ({ children, className, size = 'medium', weight, color, as }: Props) => {
 	return (
-		<StyledTitle className={`${className}`} $size={size} $weight={weight} $color={color}>
+		<StyledTitle as={as} className={`${className}`} $size={size} $weight={weight} $color={color}>
 			{children}
 		</StyledTitle>
 	);

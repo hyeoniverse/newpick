@@ -5,8 +5,6 @@ import { createGlobalStyle } from 'styled-components';
 import { STYLE } from '@/constants/numbers';
 import { darkTheme, lightTheme, themeVars } from '@/styles/theme';
 
-const Pretendard = '/fonts/Pretendard.woff2';
-
 export const GlobalStyle = createGlobalStyle`
     /* 테마 색: <html data-theme>(머리의 스크립트가 그리기 전에 정한다)에 따라 바뀐다 */
     :root {
@@ -18,13 +16,9 @@ export const GlobalStyle = createGlobalStyle`
         color-scheme: dark;
     }
 
-    @font-face {
-        font-family: 'Pretendard';
-        src: local('Pretendard'), url(${Pretendard}) format('woff2');
-    }
-
+    /* 글꼴: Pretendard 다이나믹 서브셋 (styles/pretendard.css, #14). 받는 동안은 시스템 글꼴 */
     * {
-        font-family: 'Pretendard', sans-serif;
+        font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
     }
 
     html, body {
@@ -68,10 +62,34 @@ export const GlobalStyle = createGlobalStyle`
       button {
           border: none;
           background-color: transparent;
-
-          &:focus {
-              outline: none;
-          }
       }
+    }
+
+    /* 키보드로 옮겨 다닐 때만 보이는 포커스 테두리 (#16). 마우스로 누를 때는 보이지 않는다 */
+    :focus-visible {
+        outline: 2px solid ${({ theme }) => theme.color.primary};
+        outline-offset: 2px;
+    }
+
+    :focus:not(:focus-visible) {
+        outline: none;
+    }
+
+    /* 본문 바로가기: 평소엔 숨기고 Tab을 처음 누르면 왼쪽 위에 보인다 */
+    .skip-link {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        z-index: 10000;
+        padding: 0.625rem 1rem;
+        border-radius: ${({ theme }) => theme.radius.surface};
+        background: ${({ theme }) => theme.color.primary};
+        color: #ffffff;
+        font-weight: 600;
+        transform: translateY(-200%);
+
+        &:focus-visible {
+            transform: none;
+        }
     }
 `;

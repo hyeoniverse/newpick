@@ -80,10 +80,11 @@ export default function Header() {
 							<Dropdown
 								type="auth"
 								className="auth"
+								label="내 계정 메뉴"
 								toggleButton={
 									user.profileImg ? (
 										<StyledUserCircle>
-											<Imgae src={user.profileImg} alt="profile" ratio="square" />
+											<Imgae src={user.profileImg} alt="" ratio="square" />
 										</StyledUserCircle>
 									) : (
 										<StyledUserCircle>
@@ -95,12 +96,16 @@ export default function Header() {
 								<>
 									<ThemeSwitcher className="item" />
 									<Link href="/mypage">
-										<Button className="item">마이페이지</Button>
+										<Button as="span" className="item">
+											마이페이지
+										</Button>
 									</Link>
 									{/* 관리자에게만 보이는 진입점 (#73). 실제 권한은 API가 지킨다 */}
 									{user.role === 'admin' && (
 										<Link href="/admin">
-											<Button className="item">관리자</Button>
+											<Button as="span" className="item">
+												관리자
+											</Button>
 										</Link>
 									)}
 									<Button className="item" onClick={handleLogout}>

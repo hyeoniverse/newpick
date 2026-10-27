@@ -14,8 +14,14 @@ const ThemeSwitcher = ({ className, scheme, styles }: Props) => {
 	const { themeName, toggleTheme } = useThemeStore(); // Zustand 사용
 
 	return (
-		<Button className={className} scheme={scheme} onClick={toggleTheme} style={styles}>
-			{themeName === 'light' ? <MdLightMode className="light" /> : <MdDarkMode className="dark" />}
+		<Button
+			className={className}
+			scheme={scheme}
+			onClick={toggleTheme}
+			style={styles}
+			aria-label={themeName === 'light' ? '어두운 화면으로 바꾸기' : '밝은 화면으로 바꾸기'}
+		>
+			{themeName === 'light' ? <MdLightMode className="light" aria-hidden /> : <MdDarkMode className="dark" aria-hidden />}
 		</Button>
 	);
 };

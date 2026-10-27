@@ -138,7 +138,7 @@ export default function ListSection({ excludeId }: Props) {
 		<StyledListSection>
 			<div className="header">
 				<div className="title">
-					<Title size="extraSmall" weight="semiBold" color="primary" className="tag">
+					<Title as="h2" size="extraSmall" weight="semiBold" color="primary" className="tag">
 						전체
 					</Title>
 				</div>

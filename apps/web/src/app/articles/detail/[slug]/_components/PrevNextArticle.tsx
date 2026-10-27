@@ -142,9 +142,17 @@ const PrevNextArticleStyled = styled.section`
 				background-color: ${({ theme }) => theme.color.surface};
 			}
 
+			/* 글이 없을 때: 버튼만 흐리게, 안내 문구는 읽을 수 있는 대비로 (#16) */
 			&.disabled {
-				opacity: 0.5;
 				pointer-events: none;
+
+				.btn {
+					opacity: 0.5;
+				}
+
+				.title {
+					color: ${({ theme }) => theme.color.lightGrey};
+				}
 			}
 		}
 	}

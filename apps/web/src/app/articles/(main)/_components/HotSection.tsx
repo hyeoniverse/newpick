@@ -107,12 +107,12 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 			<hr />
 			{/* 화면 폭 전체의 옅은 강조색 띠(::before) 위에 오늘의 톱 카드(흰 카드·그림자)를 올려 한 단계 떠 보이게 */}
 			<div className="stage">
-				<div className="stage-head">
+				<h2 className="stage-head">
 					<span className="label">TODAY</span>
 					<Text size="small" color="subText" className="today">
 						{todayLabel()} · 오늘의 {isAll ? '톱' : categoryName} 뉴스레터
 					</Text>
-				</div>
+				</h2>
 				<CardSlider
 					className="card-slider"
 					type="main"
@@ -306,6 +306,8 @@ const StyledHotSection = styled.section<StyledProps>`
 		align-items: center;
 		gap: 0.75rem;
 		margin-bottom: 1rem;
+		font-size: inherit;
+		font-weight: inherit;
 	}
 
 	/* 지면의 "오늘의 톱" 표시: 강조색 칩 */

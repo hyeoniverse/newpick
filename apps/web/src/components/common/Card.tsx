@@ -46,7 +46,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 									{header}
 								</Text>
 								{main.title && (
-									<Title className="title" weight="bold">
+									<Title as="h3" className="title" weight="bold">
 										{main.title}
 									</Title>
 								)}

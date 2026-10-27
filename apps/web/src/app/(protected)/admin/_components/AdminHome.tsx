@@ -38,7 +38,7 @@ function SiteCacheTool() {
 	return (
 		<StyledTool>
 			<div>
-				<Title size="extraSmall" weight="bold">
+				<Title as="h2" size="extraSmall" weight="bold">
 					사이트 캐시 비우기
 				</Title>
 				<Text size="small" color="subText">
@@ -67,7 +67,7 @@ export default function AdminHome() {
 				<SiteCacheTool />
 				<StyledTool>
 					<div>
-						<Title size="extraSmall" weight="bold">
+						<Title as="h2" size="extraSmall" weight="bold">
 							디자인 시스템
 						</Title>
 						<Text size="small" color="subText">

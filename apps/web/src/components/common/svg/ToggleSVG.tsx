@@ -1,6 +1,6 @@
 import styled from 'styled-components';
 
-interface ToggleProps {
+interface ToggleProps extends React.SVGAttributes<SVGSVGElement> {
   $toggle: boolean;
   className?: string;
 }

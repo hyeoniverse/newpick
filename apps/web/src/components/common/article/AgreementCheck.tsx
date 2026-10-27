@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import useSubscribe from '@/hooks/useSubscribe';
@@ -13,6 +14,8 @@ interface Props {
 export default function ArgreementCheck({ name, className }: Props) {
 	const { user } = useAuth();
 	const { status: isSubscribed = user?.isSubscribed, isChanging: isChangingSubscription } = useSubscribe();
+	// 옆의 동의 문구(링크가 섞여 있어 label로 감쌀 수 없음)를 체크 상자의 이름으로 (#16)
+	const textId = useId();
 
 	return (
 		<StyledAgreement className={className}>
@@ -22,8 +25,10 @@ export default function ArgreementCheck({ name, className }: Props) {
 						className="agreement-check"
 						name={name}
 						disabled={isChangingSubscription || isSubscribed !== null}
+						aria-labelledby={textId}
+						aria-required
 					/>
-					<div className="agreement-text">
+					<div id={textId} className="agreement-text">
 						<Text size="extraSmall" weight="semiBold" color="primary">
 							[필수]&nbsp;
 						</Text>

@@ -38,7 +38,8 @@ const Button = ({
 	return (
 		<StyledButton
 			as={as}
-			title={textContent}
+			// 글자가 없는 아이콘 버튼은 빈 title을 달지 않는다. 이름은 aria-label로 준다 (#16)
+			title={textContent || undefined}
 			ref={ref}
 			size={size}
 			scheme={scheme}
