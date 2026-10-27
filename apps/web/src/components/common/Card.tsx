@@ -362,23 +362,22 @@ const mainCardStyles = css`
 	}
 
 	/*
-	 * PC · 노트북: 사진 | 분야 · 제목 · 설명 · 소식 · 태그 · 날짜 (오른쪽 칸 전체를 사진 높이 가운데로)
+	 * PC · 노트북: 사진 | 분야 · 제목 · 설명 · 소식, 아래 카드 전체 폭으로 태그 · 날짜
 	 * 태블릿: 위는 사진 | 분야 · 제목 · 설명, 아래 카드 전체 폭으로 소식 · 태그 · 날짜
 	 * 휴대폰: 모두 한 줄씩
 	 */
 	a {
 		display: grid;
 		grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
-		grid-template-rows: 1fr auto auto auto auto auto auto 1fr;
+		/* 사진이 글보다 길면 남는 높이는 소식 칸 아래로 */
+		grid-template-rows: auto auto auto 1fr auto auto;
 		grid-template-areas:
-			'img .'
 			'img category'
 			'img title'
 			'img desc'
 			'img points'
-			'img tags'
-			'img footer'
-			'img .';
+			'tags tags'
+			'footer footer';
 		column-gap: 2rem;
 		row-gap: 0.5rem;
 		width: 100%;
@@ -570,16 +569,12 @@ const mainCardStyles = css`
 			}
 		}
 
+		/* 카드 전체 폭의 날짜 줄 위에 얇은 구분선 */
 		.card-footer {
-			margin-top: 0.75rem;
+			margin-top: 0.5rem;
+			padding-top: 0.75rem;
+			border-top: 1px solid ${({ theme }) => theme.color.border};
 			white-space: nowrap;
-
-			/* 태블릿 이하: 카드 전체 폭의 날짜 줄 위에 얇은 구분선 */
-			@media ${({ theme }) => theme.mediaQuery.tablet} {
-				margin-top: 0.5rem;
-				padding-top: 0.75rem;
-				border-top: 1px solid ${({ theme }) => theme.color.border};
-			}
 		}
 	}
 `;
