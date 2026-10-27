@@ -36,6 +36,8 @@ import ModalContent from '@/components/common/modal/ModalContent';
 import BarHeight from '@/components/common/BarHeight';
 import BarWidth from '@/components/common/BarWidth';
 import NoContentsPage from '@/components/common/NoContentsPage';
+import ErrorState from '@/components/common/ErrorState';
+import { DELETED_NEWSLETTER, ERROR_STATES } from '@/constants/errors';
 import AgreementCheck from '@/components/common/article/AgreementCheck';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import CustomIcon from '@/components/common/icons/CustomIcon';
@@ -82,6 +84,7 @@ const SECTIONS = [
 	{ id: 'subscribe', title: '구독' },
 	{ id: 'empty', title: '빈 화면 · 구분선' },
 	{ id: 'loading', title: '로딩' },
+	{ id: 'error', title: '오류 화면' },
 ];
 
 /** 카드 예시 데이터 (실제 API를 부르지 않는다) */
@@ -112,18 +115,16 @@ export default function DesignSystem() {
 	const { user, session } = useAuth();
 
 	if (!user) {
-		return (
+		return session === 'out' ? (
+			<ErrorState code={401} {...ERROR_STATES[401]} />
+		) : (
 			<StyledGate>
-				{session === 'out' ? <Text>로그인이 필요합니다.</Text> : <Spinner />}
+				<Spinner />
 			</StyledGate>
 		);
 	}
 	if (user.role !== 'admin') {
-		return (
-			<StyledGate>
-				<Text weight="semiBold">관리자만 볼 수 있는 화면입니다.</Text>
-			</StyledGate>
-		);
+		return <ErrorState code={403} {...ERROR_STATES[403]} />;
 	}
 	return <DesignSystemBody />;
 }
@@ -137,6 +138,7 @@ function DesignSystemBody() {
 	const [selectValue, setSelectValue] = useState('');
 	const [date, setDate] = useState<Date | null>(null);
 	const [cycle, setCycle] = useState<'daily' | 'weekly'>('daily');
+	const [errorKey, setErrorKey] = useState('deleted');
 	const [bookmarked, setBookmarked] = useState(false);
 
 	return (
@@ -429,7 +431,11 @@ function DesignSystemBody() {
 				</Text>
 			</Section>
 
-			<Section id="link" title="링크 · 아이콘" note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon · BookmarkToggle">
+			<Section
+				id="link"
+				title="링크 · 아이콘"
+				note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon · BookmarkToggle"
+			>
 				<Text size="small">
 					<ExternalLink href="https://kopico.go.kr">kopico.go.kr</ExternalLink> — 마우스를 올리면 화살표가 움직입니다
 				</Text>
@@ -443,7 +449,8 @@ function DesignSystemBody() {
 				<div className="wrap">
 					<BookmarkToggle pressed={bookmarked} onToggle={() => setBookmarked((v) => !v)} />
 					<Text size="extraSmall" color="subText">
-						BookmarkToggle — BookmarkIcon의 모양만. 여기서는 눌러도 저장하지 않습니다 (BookmarkIcon은 뉴스레터 id로 API를 부름)
+						BookmarkToggle — BookmarkIcon의 모양만. 여기서는 눌러도 저장하지 않습니다 (BookmarkIcon은 뉴스레터 id로
+						API를 부름)
 					</Text>
 				</div>
 			</Section>
@@ -471,11 +478,48 @@ function DesignSystemBody() {
 				</div>
 				<Skeleton />
 			</Section>
+
+			<Section id="error" title="오류 화면" note="ErrorState · constants/errors.ts (HTTP 4xx·5xx 전부 + 지운 뉴스레터)">
+				<InputSelect
+					name="ds-error"
+					label="상태"
+					value={errorKey}
+					onChange={setErrorKey}
+					options={[
+						{ label: '지운 뉴스레터', value: 'deleted' },
+						...Object.entries(ERROR_STATES).map(([code, copy]) => ({
+							label: `${code} · ${copy.title}`,
+							value: code,
+						})),
+					]}
+				/>
+				<div className="error-preview">
+					{errorKey === 'deleted' ? (
+						<ErrorState code={404} {...DELETED_NEWSLETTER} onRetry={() => showToast('다시 시도', 'info')} />
+					) : (
+						<ErrorState
+							code={Number(errorKey)}
+							{...ERROR_STATES[Number(errorKey)]}
+							onRetry={() => showToast('다시 시도', 'info')}
+						/>
+					)}
+				</div>
+			</Section>
 		</StyledPage>
 	);
 }
 
-function Section({ id, title, note, children }: { id: string; title: string; note: string; children: React.ReactNode }) {
+function Section({
+	id,
+	title,
+	note,
+	children,
+}: {
+	id: string;
+	title: string;
+	note: string;
+	children: React.ReactNode;
+}) {
 	return (
 		<section id={id} className="section">
 			<div className="section-head">
@@ -650,6 +694,16 @@ const StyledPage = styled.div`
 			text-align: left;
 			vertical-align: middle;
 			white-space: nowrap;
+		}
+	}
+
+	.error-preview {
+		margin-top: 1rem;
+		border: 1px dashed ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+
+		> section {
+			padding: 3rem 1rem;
 		}
 	}
 

@@ -1,6 +1,5 @@
 import API_ENDPOINTS from '@/constants/api';
-import { notFound } from 'next/navigation';
-import { ApiError, apiFetch } from '@/api/client';
+import { apiFetch } from '@/api/client';
 import { ArticleDetail, ArticleInfo, NewsInfo } from '@/models/article.model';
 
 type ArticleList = { data: ArticleDetail[] };
@@ -11,14 +10,10 @@ const TRENDS_REVALIDATE_SECONDS = 600;
 export const fetchArticleList = async (limit: number = 5, offset: number = 0) =>
 	apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.LIST(limit, offset));
 
+/** 브라우저에서 부른다. 없는 뉴스레터(404)는 ApiError 그대로 던져 화면이 안내하게 한다 */
 export const fetchArticle = async (slug: string) => {
-	try {
-		const article = await apiFetch<{ data: ArticleInfo }>(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`);
-		return article.data;
-	} catch (error) {
-		if (error instanceof ApiError && error.status === 404) notFound();
-		throw error;
-	}
+	const article = await apiFetch<{ data: ArticleInfo }>(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`);
+	return article.data;
 };
 
 export const fetchPopularArticle = async (limit: number = 5, offset: number = 0, popular: boolean) =>
@@ -39,5 +34,9 @@ export const fetchRelatedNews = async (link: string) => {
 	return news.data;
 };
 
-export const fetchDateNewsletter = async (limit: number = 5, offset: number = 0, startDate?: string, endDate?: string) =>
-	apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.DATE(limit, offset, startDate, endDate));
+export const fetchDateNewsletter = async (
+	limit: number = 5,
+	offset: number = 0,
+	startDate?: string,
+	endDate?: string,
+) => apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.DATE(limit, offset, startDate, endDate));
