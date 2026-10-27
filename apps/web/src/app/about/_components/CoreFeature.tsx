@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
@@ -94,55 +94,78 @@ const FEATURES = [
 ];
 
 /**
- * 기능 하나: 가운데 정렬로 작은 기능 이름 → 아주 큰 한 문장 → 설명 → 큰 장면.
- * 장면은 스크롤할수록 커지며 올라오고(--progress), 화면에 들어오면 안의 움직임이 시작된다
+ * 기능 한 장 (화면 폭 하나). 왼쪽 이름 · 큰 한 문장 · 설명, 오른쪽 장면.
+ * 한 번 화면 가운데에 온 장은 data-inview가 켜져 안의 움직임이 시작된다
  */
-function FeatureBlock({ name, headline, text, Demo }: (typeof FEATURES)[number]) {
-	const stageRef = useScrollProgress<HTMLDivElement>('enter');
-	const ref = useRef<HTMLLIElement>(null);
-	const [inView, setInView] = useState(false);
-
-	useEffect(() => {
-		const el = ref.current;
-		if (!el) return;
-		const observer = new IntersectionObserver(
-			([entry]) => {
-				if (!entry.isIntersecting) return;
-				setInView(true);
-				observer.disconnect();
-			},
-			{ rootMargin: '0px 0px -30% 0px' },
-		);
-		observer.observe(el);
-		return () => observer.disconnect();
-	}, []);
-
+function FeaturePanel({
+	name,
+	headline,
+	text,
+	Demo,
+	index,
+	seen,
+}: (typeof FEATURES)[number] & { index: number; seen: boolean }) {
 	return (
-		<li ref={ref} className="feature" data-inview={inView}>
-			<p className="name">{name}</p>
-			<h3 className="headline">
-				{headline.split('\n').map((line) => (
-					<span key={line}>{line}</span>
-				))}
-			</h3>
-			<p className="desc">{text}</p>
-			<div ref={stageRef} className="stage" aria-hidden>
+		<li className="panel" data-inview={seen} aria-label={`${index + 1} / ${FEATURES.length} ${name}`}>
+			<div className="copy">
+				<p className="name">
+					<span className="no">{String(index + 1).padStart(2, '0')}</span>
+					{name}
+				</p>
+				<h3 className="headline">
+					{headline.split('\n').map((line) => (
+						<span key={line}>{line}</span>
+					))}
+				</h3>
+				<p className="desc">{text}</p>
+			</div>
+			<div className="stage" aria-hidden>
 				<Demo />
 			</div>
 		</li>
 	);
 }
 
-/** 핵심 기능: 기능마다 애플 제품 페이지처럼 큰 제목 + 큰 장면을 세로로 */
+/**
+ * 핵심 기능: 화면 폭 회색 띠 + 붙는 가로 스크롤.
+ * 섹션이 화면에 붙어 있는 동안 아래로 스크롤하면 기능 세 장이 옆으로 넘어간다
+ * (track 높이 = 장 수 × 100vh, 처음 · 끝 8%는 멈춰 있는 구간)
+ */
 export default function CoreFeature() {
+	const [active, setActive] = useState(0);
+	const [seen, setSeen] = useState(1); // 몇 번째 장까지 보였는지
+	const trackRef = useScrollProgress<HTMLDivElement>('pinned', (progress) => {
+		const moved = Math.min(1, Math.max(0, (progress - 0.08) / 0.84));
+		const index = Math.round(moved * (FEATURES.length - 1));
+		setActive((prev) => (prev === index ? prev : index));
+		setSeen((prev) => Math.max(prev, index + 1));
+	});
+
 	return (
-		<StyledCore>
-			<SectionHeading label="CORE FEATURE" />
-			<ol className="features">
-				{FEATURES.map((feature) => (
-					<FeatureBlock key={feature.name} {...feature} />
-				))}
-			</ol>
+		<StyledCore style={{ '--n': FEATURES.length } as React.CSSProperties}>
+			<div className="inner">
+				<SectionHeading label="CORE FEATURE" />
+			</div>
+			<div ref={trackRef} className="track">
+				<div className="sticky">
+					<ol className="rail">
+						{FEATURES.map((feature, i) => (
+							<FeaturePanel key={feature.name} {...feature} index={i} seen={i < seen} />
+						))}
+					</ol>
+					<div className="pager" aria-hidden>
+						<span className="pager-count">
+							{String(active + 1).padStart(2, '0')}{' '}
+							<span className="of">/ {String(FEATURES.length).padStart(2, '0')}</span>
+						</span>
+						<span className="bars">
+							{FEATURES.map((feature, i) => (
+								<span key={feature.name} className={i === active ? 'bar on' : 'bar'} />
+							))}
+						</span>
+					</div>
+				</div>
+			</div>
 		</StyledCore>
 	);
 }
@@ -177,40 +200,88 @@ const push = keyframes`
 `;
 
 const StyledCore = styled.section`
-	.features {
+	/* 화면 폭 전체 회색 띠 (100vw가 스크롤바만큼 넘치는 부분은 시작하기 페이지의 body overflow-x: clip이 자른다) */
+	--gutter: max(1rem, calc((100vw - ${({ theme }) => theme.layout.width.large}) / 2));
+	width: 100vw;
+	margin-left: calc(50% - 50vw);
+	padding-top: 8rem;
+	background: ${({ theme }) => theme.color.surface};
+
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
+		padding-top: 5rem;
+	}
+
+	.inner {
+		padding: 0 var(--gutter);
+	}
+
+	/* 붙는 구간: 장 수만큼 화면 높이. 그동안 아래 sticky가 헤더 밑에 붙어 있다 */
+	.track {
+		--progress: 0;
+		position: relative;
+		height: calc(var(--n) * 100vh);
+	}
+
+	.sticky {
+		position: sticky;
+		top: 4rem;
 		display: flex;
 		flex-direction: column;
-		gap: 9rem;
+		justify-content: center;
+		height: calc(100vh - 4rem);
+		height: calc(100svh - 4rem);
+		overflow: hidden;
+	}
+
+	/* 세 장을 가로로 늘어놓고, 처음 · 끝 8%를 뺀 진행도만큼 왼쪽으로 민다 */
+	.rail {
+		--moved: clamp(0, (var(--progress) - 0.08) / 0.84, 1);
+		display: flex;
+		width: calc(var(--n) * 100vw);
 		margin: 0;
 		padding: 0;
 		list-style: none;
+		transform: translateX(calc(var(--moved) * (1 - var(--n)) * 100vw));
+		will-change: transform;
+	}
+
+	.panel {
+		display: grid;
+		grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+		align-items: center;
+		gap: 4rem;
+		width: 100vw;
+		padding: 0 var(--gutter);
+		word-break: keep-all;
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			gap: 5rem;
+			grid-template-columns: 1fr;
+			align-content: center;
+			gap: 1.5rem;
 		}
 	}
 
-	/* 가운데 정렬: 작은 기능 이름 → 큰 한 문장 → 설명 → 큰 장면 */
-	.feature {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		text-align: center;
-		word-break: keep-all;
-	}
-
 	.name {
+		display: flex;
+		align-items: baseline;
+		gap: 0.625rem;
 		margin: 0 0 1rem;
 		font-size: ${({ theme }) => theme.fontSize.medium};
 		font-weight: 800;
 		color: ${({ theme }) => theme.color.primary};
+
+		.no {
+			font-size: ${({ theme }) => theme.fontSize.small};
+			font-variant-numeric: tabular-nums;
+			color: ${({ theme }) => theme.color.subText};
+		}
 	}
 
 	.headline {
 		display: flex;
 		flex-direction: column;
 		margin: 0 0 1.25rem;
-		font-size: clamp(2.25rem, 6vw, 4.5rem);
+		font-size: clamp(2rem, 4.2vw, 3.5rem);
 		font-weight: 800;
 		line-height: 1.12;
 		letter-spacing: -0.03em;
@@ -218,32 +289,26 @@ const StyledCore = styled.section`
 	}
 
 	.desc {
-		max-width: 32rem;
-		margin: 0 0 3.5rem;
-		font-size: clamp(1rem, 1.6vw, 1.25rem);
+		max-width: 26rem;
+		margin: 0;
+		font-size: clamp(1rem, 1.5vw, 1.125rem);
 		line-height: 1.7;
 		color: ${({ theme }) => theme.color.subText};
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			margin-bottom: 2rem;
-		}
 	}
 
-	/* 큰 장면: 스크롤할수록 92% → 100%로 커지며 2rem 아래에서 올라온다 */
+	/* 장면 판: 회색 띠 위라 바탕색 + 얇은 테두리 */
 	.stage {
-		--progress: 0;
 		display: grid;
 		place-items: center;
-		width: 100%;
-		min-height: 26rem;
-		padding: 3rem;
+		min-height: 24rem;
+		padding: 2.5rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.surface};
-		transform: translateY(calc((1 - var(--progress)) * 2rem)) scale(calc(0.92 + var(--progress) * 0.08));
+		background: ${({ theme }) => theme.color.background};
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			min-height: 16rem;
-			padding: 1.5rem;
+			min-height: 14rem;
+			padding: 1.25rem;
 		}
 	}
 
@@ -251,6 +316,49 @@ const StyledCore = styled.section`
 		width: 100%;
 		max-width: 30rem;
 		text-align: left;
+	}
+
+	/* 아래 진행 표시: 01 / 03 + 막대 */
+	.pager {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin-top: 3rem;
+		padding: 0 var(--gutter);
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			margin-top: 1.5rem;
+		}
+
+		.pager-count {
+			font-size: ${({ theme }) => theme.fontSize.small};
+			font-weight: 800;
+			font-variant-numeric: tabular-nums;
+			color: ${({ theme }) => theme.color.text};
+
+			.of {
+				color: ${({ theme }) => theme.color.subText};
+			}
+		}
+
+		.bars {
+			display: flex;
+			gap: 0.375rem;
+		}
+
+		.bar {
+			width: 1.5rem;
+			height: 3px;
+			background: ${({ theme }) => theme.color.border};
+			transition:
+				width 0.3s ease,
+				background 0.3s ease;
+
+			&.on {
+				width: 3rem;
+				background: ${({ theme }) => theme.color.primary};
+			}
+		}
 	}
 
 	/* ---------- AI 큐레이션 ---------- */
@@ -321,7 +429,7 @@ const StyledCore = styled.section`
 		}
 	}
 
-	.feature[data-inview='true'] .curation {
+	.panel[data-inview='true'] .curation {
 		.ink {
 			animation: ${write} 0.7s ease both;
 			animation-delay: calc(0.2s + var(--i) * 0.35s);
@@ -371,7 +479,7 @@ const StyledCore = styled.section`
 		}
 	}
 
-	.feature[data-inview='true'] .subscribe {
+	.panel[data-inview='true'] .subscribe {
 		.chip-toggle.on {
 			animation: ${turnOn} 0.3s ease both;
 			animation-delay: calc(0.3s + var(--o) * 0.4s);
@@ -459,7 +567,7 @@ const StyledCore = styled.section`
 	}
 
 	/* 새 메일이 위에서 들어오고, 아래 메일들은 한 칸 밀려난다 */
-	.feature[data-inview='true'] .send {
+	.panel[data-inview='true'] .send {
 		.new {
 			animation: ${arrive} 0.6s ease 0.6s both;
 		}
@@ -470,11 +578,11 @@ const StyledCore = styled.section`
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.stage {
-			transform: none;
+		.bar {
+			transition: none;
 		}
 
-		.feature[data-inview='true'] .demo * {
+		.panel[data-inview='true'] .demo * {
 			animation: none !important;
 		}
 

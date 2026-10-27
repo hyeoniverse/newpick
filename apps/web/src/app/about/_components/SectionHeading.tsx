@@ -22,7 +22,8 @@ export default function SectionHeading({ label, title, sub, className }: Props) 
 	);
 }
 
-const StyledHeading = styled.header`
+// header 태그는 레이아웃이 1024px 이하에서 좌우 여백을 넣으므로(MainLayout) div로
+const StyledHeading = styled.div`
 	margin-bottom: 3.5rem;
 	word-break: keep-all;
 
