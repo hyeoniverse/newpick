@@ -41,7 +41,8 @@ test.describe('비로그인 탐색', () => {
 	// #20: 검색어 + 관심사로 찾고, 주소에 남아 새로 고침해도 같은 결과
 	test('뉴스레터 검색: 검색어와 관심사로 걸러 보고, 결과가 없으면 안내', async ({ page }) => {
 		const third = SEEDED_NEWSLETTERS[2];
-		await page.goto(`/articles?categoryId=${third.categoryId}`);
+		// 화면이 다 붙기(하이드레이션) 전에 입력하면 그 글자가 지워져 빈 검색이 된다 (WebKit에서 드러남)
+		await page.goto(`/articles?categoryId=${third.categoryId}`, { waitUntil: 'networkidle' });
 		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('카테고리');
 		await page.keyboard.press('Enter');
 
