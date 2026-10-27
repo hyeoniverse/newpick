@@ -2,13 +2,9 @@
 
 import Link from 'next/link';
 import styled from 'styled-components';
-import { IoArrowBack, IoArrowForward } from 'react-icons/io5';
+import { IoArrowUp, IoArrowDown } from 'react-icons/io5';
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
-import { DEFAULT_IMAGES } from '@/constants/images';
 import { dateFormatter } from '@/utils/formatter';
-import { getFirstImage } from '@/utils/getFirstImage';
-import { mapIdToTitle } from '@/utils/mapInterests';
-import Image from '@/components/common/Image';
 
 interface Props {
 	className?: string;
@@ -16,169 +12,131 @@ interface Props {
 	next: IArticleDetail | null;
 }
 
-const LABELS = { prev: '이전 뉴스레터', next: '다음 뉴스레터' } as const;
+const ROWS = {
+	prev: { label: '이전', name: '이전 뉴스레터', icon: <IoArrowUp aria-hidden />, empty: '첫 뉴스레터예요' },
+	next: { label: '다음', name: '다음 뉴스레터', icon: <IoArrowDown aria-hidden />, empty: '가장 최근 뉴스레터예요' },
+} as const;
 
 /**
- * 이전 · 다음 뉴스레터. 테두리 칸 없이 사진을 크게 깔고 그 아래 관심사 · 제목 · 날짜.
- * 왼쪽이 이전(더 오래된 글), 오른쪽이 다음. 없는 쪽은 비워 둔다
+ * 이전 · 다음 뉴스레터. 신문 목록처럼 얇은 선 사이 두 줄: 꼬리표 · 제목 · 날짜.
+ * 줄 전체가 링크이고, 없는 쪽은 흐린 글씨로 안내만
  */
 function PrevNextArticle({ className, prev, next }: Props) {
-	const renderSide = (article: IArticleDetail | null, type: 'prev' | 'next') => {
-		if (!article) return <li className={`side ${type} empty`} aria-hidden />;
+	const renderRow = (article: IArticleDetail | null, type: 'prev' | 'next') => {
+		const { label, name, icon, empty } = ROWS[type];
+		const tag = (
+			<span className="tag">
+				{label}
+				{icon}
+			</span>
+		);
 
-		const label = LABELS[type];
-		const image = (article.imageUrl && getFirstImage(article.imageUrl)) || DEFAULT_IMAGES.MONO;
+		if (!article) {
+			return (
+				<li className="row empty">
+					{tag}
+					<span className="title">{empty}</span>
+				</li>
+			);
+		}
+
 		return (
-			<li className={`side ${type}`}>
-				<Link href={`/articles/detail/${article.id}`} className="link" aria-label={`${label}: ${article.title}`}>
-					<span className="label">
-						{type === 'prev' && <IoArrowBack aria-hidden />}
-						{label}
-						{type === 'next' && <IoArrowForward aria-hidden />}
-					</span>
-					<div className="photo">
-						<Image src={image} alt="" ratio="wide" priority={false} />
-					</div>
-					<span className="category">{mapIdToTitle([article.categoryId])[0]}</span>
-					<p className="title">{article.title}</p>
-					<p className="date">{dateFormatter(article.createdAt)}</p>
+			<li className="row">
+				<Link href={`/articles/detail/${article.id}`} className="link" aria-label={`${name}: ${article.title}`}>
+					{tag}
+					<span className="title">{article.title}</span>
+					<span className="date">{dateFormatter(article.createdAt)}</span>
 				</Link>
 			</li>
 		);
 	};
 
-	if (!prev && !next) return null;
-
 	return (
 		<PrevNextArticleStyled className={className} aria-label="이전 · 다음 뉴스레터">
 			<ul>
-				{renderSide(prev, 'prev')}
-				{renderSide(next, 'next')}
+				{renderRow(prev, 'prev')}
+				{renderRow(next, 'next')}
 			</ul>
 		</PrevNextArticleStyled>
 	);
 }
 
 const PrevNextArticleStyled = styled.nav`
-	padding: 2.5rem 0;
-	border-top: 1px solid ${({ theme }) => theme.color.border};
+	margin: 2.5rem 0;
 
 	ul {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 2rem;
 		margin: 0;
 		padding: 0;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			gap: 1rem;
-		}
+		border-top: 1px solid ${({ theme }) => theme.color.text};
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
 	}
 
-	.side {
-		min-width: 0;
-
+	.row {
 		/* sanitize.css가 nav 안 li 앞에 넣는 빈 글자(한 줄 높이)를 없앤다 */
 		&::before {
 			content: none;
 		}
+
+		& + .row {
+			border-top: 1px solid ${({ theme }) => theme.color.border};
+		}
 	}
 
-	.link {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
+	.link,
+	.empty {
+		display: grid;
+		grid-template-columns: 4.5rem 1fr auto;
+		align-items: center;
+		gap: 1rem;
+		padding: 1.125rem 0.25rem;
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			grid-template-columns: 3.5rem 1fr;
+			gap: 0.75rem;
+		}
 	}
 
-	/* 다음은 오른쪽 정렬: 화살표 방향과 같은 쪽으로 */
-	.next .link {
-		align-items: flex-end;
-		text-align: right;
-	}
-
-	.label {
+	.tag {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.375rem;
-		margin-bottom: 0.375rem;
+		gap: 0.25rem;
 		font-size: ${({ theme }) => theme.fontSize.small};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		color: ${({ theme }) => theme.color.subText};
 
 		svg {
-			transition: transform 0.2s ease;
+			width: 0.875rem;
+			height: 0.875rem;
 		}
-	}
-
-	.photo {
-		width: 100%;
-		margin-bottom: 0.5rem;
-		overflow: hidden;
-		border-radius: ${({ theme }) => theme.radius.surface};
-
-		img {
-			transition: transform 0.4s ease;
-		}
-	}
-
-	.category {
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.primary};
 	}
 
 	.title {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
+		min-width: 0;
 		overflow: hidden;
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		line-height: 1.45;
-		word-break: keep-all;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		font-weight: ${({ theme }) => theme.fontWeight.medium};
 		color: ${({ theme }) => theme.color.text};
 		transition: color 0.2s ease;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			font-size: ${({ theme }) => theme.fontSize.small};
-		}
 	}
 
 	.date {
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		font-size: ${({ theme }) => theme.fontSize.small};
 		font-variant-numeric: tabular-nums;
 		color: ${({ theme }) => theme.color.subText};
-	}
 
-	/* 마우스를 올리면 사진이 살짝 가까워지고 제목 · 화살표가 반응 */
-	.link:hover {
-		.photo img {
-			transform: scale(1.04);
-		}
-
-		.title {
-			color: ${({ theme }) => theme.color.primary};
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			display: none;
 		}
 	}
 
-	.prev .link:hover .label svg {
-		transform: translateX(-3px);
+	.link:hover .title {
+		color: ${({ theme }) => theme.color.primary};
 	}
 
-	.next .link:hover .label svg {
-		transform: translateX(3px);
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.photo img,
-		.label svg {
-			transition: none;
-		}
-
-		.link:hover .photo img,
-		.link:hover .label svg {
-			transform: none;
-		}
+	.empty .title {
+		font-weight: ${({ theme }) => theme.fontWeight.regular};
+		color: ${({ theme }) => theme.color.subText};
 	}
 `;
 
