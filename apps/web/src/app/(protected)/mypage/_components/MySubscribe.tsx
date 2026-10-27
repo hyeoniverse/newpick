@@ -5,7 +5,8 @@ import { useTab } from '@/hooks/useTab';
 import useSubscribe from '@/hooks/useSubscribe';
 
 import styled from 'styled-components';
-import NoContentsPage from '@/components/common/NoContentsPage';
+import { LuMailPlus } from 'react-icons/lu';
+import EmptyState from '@/components/common/EmptyState';
 import MySubscribeNav from '@/app/(protected)/mypage/_components/subscribe/MySubscribeNav';
 import MySummaryCategory from '@/app/(protected)/mypage/_components/subscribe/MySubscribeSummaryCategory';
 import { useAuth } from '@/hooks/useAuth';
@@ -91,15 +92,15 @@ export default function MySubscribe() {
 		};
 	}, [isSubscribed, trends, activeCategory, isAtBottom]); // ⬅️ isAtBottom 상태가 변경될 때도 useEffect 실행
 
-	// 구독중이면 네비 + 컨텐츠 표시, 아니면 NoContentsPage 표시
+	// 구독중이면 네비 + 컨텐츠 표시, 아니면 구독 안내
 	return (
 		<>
 			{isSubscribed === null ? (
-				<NoContentsPage
-					text={`뉴스레터를 구독 중이 아닙니다.
-            새로운 뉴스레터 구독을 시작해보시겠습니까?`}
-					btnText={'구독 바로가기'}
-					onClick={handleConfirm}
+				<EmptyState
+					icon={LuMailPlus}
+					title="아직 구독하지 않았어요"
+					description={'관심사를 고르면 매일 아침 8시 40분에\n그 관심사만 엮은 뉴스레터를 보내 드려요.'}
+					action={{ label: '구독 시작하기', onClick: handleConfirm }}
 				/>
 			) : (
 				<>

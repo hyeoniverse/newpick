@@ -21,12 +21,12 @@ export const MYPAGE_NAVIGATION: INavigation[] = [
 	},
 	{
 		id: 1,
-		title: `북마크한 뉴스레터`,
+		title: `북마크`,
 		link: `bookmarks`,
 	},
 	{
 		id: 2,
-		title: `뉴스레터 설정`,
+		title: `구독 설정`,
 		link: `settings`,
 	},
 ];

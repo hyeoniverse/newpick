@@ -11,20 +11,36 @@ import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import BarWidth from '@/components/common/BarWidth';
 import SummaryTextBox from '@/components/common/article/SummaryTextBox';
 import Image from '@/components/common/Image';
-import Spinner from '@/components/common/loader/Spinner';
-import NoContentsPage from '@/components/common/NoContentsPage';
+import { LuNewspaper } from 'react-icons/lu';
+import { SkeletonBlock } from '@/components/common/loader/Skeleton';
+import EmptyState from '@/components/common/EmptyState';
+import ErrorState from '@/components/common/ErrorState';
+import { errorStateFor } from '@/constants/errors';
 // import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import { DEFAULT_IMAGES } from '@/constants/images';
 
 function MySummaryCategory() {
 	const { user } = useAuth();
-	const { trends, isLoading, isError } = useTrends();
+	const { trends, isLoading, isError, refetch } = useTrends();
 
 	const userInterests = mapIdToTitle(user?.interests ?? []);
 	const userArticles = filterByCategories(trends, userInterests);
 
-	if (isLoading) return <Spinner />;
-	if (isError) return <div>Error: 뉴스레터를 불러오는 중 문제가 발생했습니다.</div>;
+	// 불러오는 동안: 뉴스레터 한 편 모양(분야 · 제목 · 사진 + 요약)
+	if (isLoading)
+		return (
+			<MySummaryCategoryStyled aria-busy>
+				<div className="my-subs-content skeleton" aria-hidden>
+					<SkeletonBlock $width="5rem" $height="0.875rem" />
+					<SkeletonBlock $width="70%" $height="1.5rem" />
+					<div className="skeleton-row">
+						<SkeletonBlock $height="10rem" $radius="8px" />
+						<SkeletonBlock $height="10rem" $radius="8px" />
+					</div>
+				</div>
+			</MySummaryCategoryStyled>
+		);
+	if (isError) return <ErrorState inline {...errorStateFor(500)} onRetry={() => refetch()} />;
 
 	return (
 		<>
@@ -67,7 +83,12 @@ function MySummaryCategory() {
 					})
 				) : (
 					<>
-						<NoContentsPage text={'오늘의 뉴스레터가 없습니다'} btnText={'메인으로'} moveTo={'/'} />
+						<EmptyState
+							icon={LuNewspaper}
+							title="오늘 내 관심사 뉴스레터가 아직 없어요"
+							description="매일 아침 8시 40분에 발행돼요. 그동안 다른 관심사 뉴스레터를 둘러보세요."
+							action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+						/>
 					</>
 				)}
 			</MySummaryCategoryStyled>
@@ -76,6 +97,20 @@ function MySummaryCategory() {
 }
 
 const MySummaryCategoryStyled = styled.div`
+    .skeleton {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 2rem 0;
+
+        .skeleton-row {
+            display: grid;
+            grid-template-columns: 1fr 3fr;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+    }
+
     @keyframes moveForward {
         0% {
             transform: translateX(0);

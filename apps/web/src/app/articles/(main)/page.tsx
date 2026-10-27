@@ -2,6 +2,7 @@ import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } fr
 import { parseArticles } from '@/utils/parseArticles';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { fetchArticleByCategory, fetchTrendList } from '@/api/article';
 import { CATEGORIES } from '@/constants/categories';
 import { pageMetadata } from '@/constants/site';
@@ -9,6 +10,7 @@ import { pageMetadata } from '@/constants/site';
 import styles from '@/app/articles/(main)/category.module.css';
 import HotSection, { CategoryStats } from '@/app/articles/(main)/_components/HotSection';
 import ListSection from '@/app/articles/(main)/_components/ListSection';
+import ArticlesLoading from '@/app/articles/(main)/_components/ArticlesLoading';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
@@ -48,9 +50,21 @@ export async function generateMetadata({
 		: pageMetadata('뉴스레터', '관심사별로 AI가 고르고 요약한 뉴픽 뉴스레터를 모아 봅니다.', '/articles');
 }
 
+/**
+ * 관심사 칩은 같은 페이지의 ?categoryId=만 바꾸므로 loading.tsx가 다시 뜨지 않는다.
+ * 관심사마다 key가 다른 Suspense로 감싸, 바꿀 때마다 새 목록을 받는 동안 자리(ArticlesLoading)를 보여 준다 (#17)
+ */
 export default async function CategoryPage({ searchParams }: { searchParams: Promise<{ categoryId?: string }> }) {
 	const categoryId = Number((await searchParams).categoryId) || 0;
 
+	return (
+		<Suspense key={categoryId} fallback={<ArticlesLoading />}>
+			<CategoryContent categoryId={categoryId} />
+		</Suspense>
+	);
+}
+
+async function CategoryContent({ categoryId }: { categoryId: number }) {
 	let parsedTrends: IArticleSummary[] = [];
 	let stats: CategoryStats | undefined;
 	try {

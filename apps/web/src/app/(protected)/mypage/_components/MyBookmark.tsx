@@ -2,7 +2,11 @@
 
 import styled from 'styled-components';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
-import NoContentsPage from '@/components/common/NoContentsPage';
+import { LuBookmark } from 'react-icons/lu';
+import EmptyState from '@/components/common/EmptyState';
+import ErrorState from '@/components/common/ErrorState';
+import Skeleton from '@/components/common/loader/Skeleton';
+import { errorStateFor, statusOf } from '@/constants/errors';
 import Card from '@/components/common/Card';
 import Text from '@/components/common/Text';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -12,27 +16,30 @@ import { getFirstImage } from '@/utils/getFirstImage';
 
 function MyBookmark() {
   const { user } = useAuthStore();
-  const { data: bookmarks, isError, error } = useBookmarksList();
+  const { data: bookmarks, isPending, isError, error, refetch } = useBookmarksList();
 
-  if (!user) {
+  // 마이페이지는 로그인해야 들어오므로(가드) 사용자 정보를 받는 중이거나 목록을 받는 중이면 자리만 채운다 (#17)
+  if (!user || isPending) {
     return (
-      <NoContentsPage
-      text={`권한이 없습니다. \n 로그인 후 이용해주세요.`}
-      btnText={'메인으로'}
-      moveTo={'/'}
-    />)
+      <MyBookmarkStyled aria-busy>
+        <div className="trend-cards">
+          <Skeleton />
+        </div>
+      </MyBookmarkStyled>
+    );
   }
 
   if (isError) {
-    return <div>에러가 발생했습니다: {(error as Error).message}</div>;
+    return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
   }
 
-  if (!bookmarks || bookmarks.length === 0) {
+  if (bookmarks.length === 0) {
     return (
-      <NoContentsPage
-        text={`북마크한 뉴스레터가 없습니다.\n 다른 뉴스레터를 찾아보세요.`}
-        btnText={'오늘의 뉴스레터'}
-        moveTo={'/'}
+      <EmptyState
+        icon={LuBookmark}
+        title="북마크한 뉴스레터가 없어요"
+        description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모여요."
+        action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
       />
     );
   }

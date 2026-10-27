@@ -115,6 +115,8 @@ const TitleSectionStyled = styled.div`
 
 	.title-text {
 		margin-bottom: 1rem;
+		/* '서비 / 스'처럼 낱말 가운데서 줄이 바뀌지 않게 */
+		word-break: keep-all;
 	}
 
 	p {

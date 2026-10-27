@@ -10,12 +10,12 @@ export const TRENDS_QUERY_KEY = ['trends'] as const;
  * (이전에는 같은 데이터를 React Query와 Zustand에 이중으로 저장했습니다.)
  */
 export const useTrends = () => {
-	const { data, error, isLoading } = useQuery<ArticleSummary[]>({
+	const { data, error, isLoading, refetch } = useQuery<ArticleSummary[]>({
 		queryKey: TRENDS_QUERY_KEY,
 		queryFn: async () => parseArticles(await fetchTrendList()),
 		staleTime: 1000 * 60 * 5,
 		retry: 1,
 	});
 
-	return { trends: data ?? [], isLoading, isSuccess: !isLoading && !error, isError: !!error };
+	return { trends: data ?? [], isLoading, isSuccess: !isLoading && !error, isError: !!error, refetch };
 };
