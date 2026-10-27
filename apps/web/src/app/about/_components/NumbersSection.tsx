@@ -125,6 +125,7 @@ const StyledNumbers = styled.section`
 		color: ${({ theme }) => theme.color.text};
 
 		strong {
+			white-space: nowrap;
 			font-size: clamp(2.5rem, 5vw, 3.75rem);
 			font-weight: 800;
 			line-height: 1;

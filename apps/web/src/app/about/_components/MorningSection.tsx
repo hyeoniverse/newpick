@@ -174,7 +174,7 @@ const StyledMorning = styled.section`
 		position: sticky;
 		top: 4rem;
 		display: grid;
-		grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+		grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
 		grid-template-rows: auto 1fr auto;
 		column-gap: 3rem;
 		height: calc(100vh - 4rem);
@@ -192,10 +192,12 @@ const StyledMorning = styled.section`
 		grid-column: 1;
 		grid-row: 1;
 		margin: 0;
-		font-size: clamp(3.5rem, 9vw, 7.5rem);
+		font-size: clamp(3.5rem, 9vw, 7rem);
 		font-weight: 800;
 		line-height: 1;
 		letter-spacing: -0.04em;
+		/* 넓은 화면에서 '08:' / '00'으로 줄바꿈되지 않게 */
+		white-space: nowrap;
 		font-variant-numeric: tabular-nums;
 		color: ${({ theme }) => theme.color.text};
 	}
