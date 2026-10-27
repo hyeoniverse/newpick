@@ -84,6 +84,11 @@ const StyledDropdown = styled.div`
 	cursor: pointer;
 	z-index: 1000;
 
+	/* 메뉴 칸은 넘친 부분을 잘라 내므로 포커스 테두리를 안쪽에 그린다 */
+	.panel :focus-visible {
+		outline-offset: -2px;
+	}
+
 	.toggle-button {
 		display: block;
 		background: none;
