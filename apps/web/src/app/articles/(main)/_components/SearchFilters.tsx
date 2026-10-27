@@ -75,22 +75,25 @@ export default function SearchFilters() {
 			</div>
 			{keywords.length > 0 && (
 				<div className="tags" role="group" aria-label="자주 나온 태그 (최근 30일)">
+					{/* 이름표는 제자리, 태그만 옆으로 넘긴다 */}
 					<span className="tags-label">태그</span>
-					{keywords.map(({ keyword, count }) => {
-						const active = filters.keyword === keyword;
-						return (
-							<button
-								key={keyword}
-								type="button"
-								aria-pressed={active}
-								title={`최근 30일 ${count}편`}
-								onClick={() => go({ keyword: active ? '' : keyword })}
-							>
-								<span className="hash">#</span>
-								{keyword}
-							</button>
-						);
-					})}
+					<div className="tags-list">
+						{keywords.map(({ keyword, count }) => {
+							const active = filters.keyword === keyword;
+							return (
+								<button
+									key={keyword}
+									type="button"
+									aria-pressed={active}
+									title={`최근 30일 ${count}편`}
+									onClick={() => go({ keyword: active ? '' : keyword })}
+								>
+									<span className="hash">#</span>
+									{keyword}
+								</button>
+							);
+						})}
+					</div>
 				</div>
 			)}
 		</StyledSearchFilters>
@@ -143,17 +146,29 @@ const StyledSearchFilters = styled.div`
 	.tags {
 		display: flex;
 		align-items: center;
-		gap: 0.375rem;
+		gap: 0.5rem;
 		max-width: 100%;
-		overflow-x: auto;
-		scrollbar-width: none;
 
 		.tags-label {
 			flex-shrink: 0;
-			margin-right: 0.25rem;
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			color: ${({ theme }) => theme.color.subText};
+		}
+
+		/* 옆으로 넘기는 칸. 넘기는 칸은 위아래도 잘라 내므로, 테두리 · 초점 표시가 잘리지 않게 위아래 여유를 둔다 */
+		.tags-list {
+			display: flex;
+			align-items: center;
+			gap: 0.375rem;
+			min-width: 0;
+			padding: 0.25rem 0.125rem;
+			overflow-x: auto;
+			scrollbar-width: none;
+
+			&::-webkit-scrollbar {
+				display: none;
+			}
 		}
 
 		button {
