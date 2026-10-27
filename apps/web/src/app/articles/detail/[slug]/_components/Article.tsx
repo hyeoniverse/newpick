@@ -22,6 +22,7 @@ import Title from '@/components/common/Title';
 import Tags from '@/components/common/Tags';
 import { useArticleContentQuery } from '@/hooks/useArticle';
 import { useViewCount } from '@/hooks/useViewCount';
+import { useHeader } from '@/hooks/useHeader';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { parseUrls } from '@/utils/parseArticles';
@@ -36,6 +37,7 @@ function Article() {
 
   const { data: articleContent, error, refetch } = useArticleContentQuery(slug);
   const increasedViewCount = useViewCount(Number(slug));
+  const { isHeaderOpen } = useHeader();
 
   // 서버 확인 뒤에 지워졌거나(404) 서버 오류면 빈 화면 대신 안내
   if (error) {
@@ -56,12 +58,16 @@ function Article() {
 
   return (
     <>
-      <TitleSectionStyled>
+      {/* 목록으로: 스크롤해도 따라온다. 헤더처럼 내릴 땐 화살표만 남기고 접고, 올릴 땐 펼친다 */}
+      <BackBarStyled $folded={!isHeaderOpen}>
         <MoveButton
+          className="back"
           onClick={() => router.push(`/articles?categoryId=${newsletterContent.categoryId}`)}
           text="목록으로"
-          frontIcon={<IoArrowBack />}
+          frontIcon={<IoArrowBack aria-hidden />}
         />
+      </BackBarStyled>
+      <TitleSectionStyled>
         <div className="title-section">
           <Link href={`/articles?categoryId=${newsletterContent.categoryId}`} className="category">
             {mapIdToTitle([newsletterContent.categoryId])[0] || `#${newsletterContent.categoryId}`}
@@ -191,8 +197,43 @@ const ArticleStyled = styled.div`
     }
 `;
 
-const TitleSectionStyled = styled.div`
+/**
+ * 화면에 붙는 '목록으로'. 페이지 흐름에선 지금 자리(제목 위)를 지키고, 스크롤하면 위에 붙는다.
+ * 헤더가 펼쳐져 있으면 헤더(3rem) 아래, 접히면 맨 위로 같이 올라가며 글자를 접는다
+ */
+const BackBarStyled = styled.div<{ $folded: boolean }>`
+    position: sticky;
+    top: ${({ $folded }) => ($folded ? '0.75rem' : 'calc(3rem + 0.75rem)')};
+    z-index: 900;
+    width: fit-content;
     margin-top: 4rem;
+    transition: top 0.3s ease;
+
+    .back {
+        background: ${({ theme }) => theme.color.background};
+        gap: ${({ $folded }) => ($folded ? '0' : '0.5rem')};
+        transition: gap 0.3s ease, padding 0.3s ease;
+    }
+
+    .move-text {
+        display: inline-block;
+        overflow: hidden;
+        white-space: nowrap;
+        max-width: ${({ $folded }) => ($folded ? '0' : '5rem')};
+        opacity: ${({ $folded }) => ($folded ? 0 : 1)};
+        transition: max-width 0.3s ease, opacity 0.2s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &,
+        .back,
+        .move-text {
+            transition: none;
+        }
+    }
+`;
+
+const TitleSectionStyled = styled.div`
     display: flex;
     flex-direction: column;
     border-bottom: 1px solid ${({ theme }) => theme.color.border};
