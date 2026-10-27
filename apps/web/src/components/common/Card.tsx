@@ -51,7 +51,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 			<div className="card-body">
 				{type === 'main' && (
 					<>
-						{/* 톱 기사 형식: 사진 | 분야 · 제목 · 부제 · 키워드 · 날짜 (모바일은 사진이 위) */}
+						{/* 톱 기사 형식: 위는 사진 | 분야 · 제목 · 부제, 아래는 카드 전체 폭으로 이 뉴스레터의 소식 · 태그 · 날짜 (모바일은 모두 한 줄씩) */}
 						<CardLink href={url || ''} newTab={newTab}>
 							<div className="image-placeholder">
 								<Image src={image || '/img/newpick_default_img.jpg'} alt={main.title || 'card'} />
@@ -361,22 +361,78 @@ const mainCardStyles = css`
 		width: 100%;
 	}
 
+	/*
+	 * 사진     | (여백)
+	 * 사진     | 분야
+	 * 사진     | 제목
+	 * 사진     | 설명
+	 * 사진     | (여백)     ← 분야 · 제목 · 설명을 사진 높이 가운데로
+	 * 이 뉴스레터의 소식 (전체 폭)
+	 * 태그 (전체 폭)
+	 * 날짜 · 조회수 · 북마크 (전체 폭)
+	 */
 	a {
 		display: grid;
 		grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
-		align-items: center;
-		gap: 2rem;
+		grid-template-rows: 1fr auto auto auto 1fr auto auto auto;
+		grid-template-areas:
+			'img .'
+			'img category'
+			'img title'
+			'img desc'
+			'img .'
+			'points points'
+			'tags tags'
+			'footer footer';
+		column-gap: 2rem;
+		row-gap: 0.5rem;
 		width: 100%;
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
 			grid-template-columns: 1fr;
-			gap: 1rem;
+			grid-template-rows: none;
+			grid-template-areas: 'img' 'category' 'title' 'desc' 'points' 'tags' 'footer';
 		}
 	}
 
 	.image-placeholder {
+		grid-area: img;
+		align-self: center;
 		margin: 0;
 		aspect-ratio: 16 / 9;
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			margin-bottom: 0.5rem;
+		}
+	}
+
+	/* 안쪽 칸들이 바로 위 격자의 칸이 되게 (공통 .card-body .card-main의 flex보다 앞서도록 같은 깊이로) */
+	.card-body .card-main {
+		display: contents;
+	}
+
+	.category {
+		grid-area: category;
+	}
+
+	.title {
+		grid-area: title;
+	}
+
+	.description {
+		grid-area: desc;
+	}
+
+	.points {
+		grid-area: points;
+	}
+
+	.tags {
+		grid-area: tags;
+	}
+
+	.card-footer {
+		grid-area: footer;
 	}
 
 	.card-main {
@@ -408,10 +464,10 @@ const mainCardStyles = css`
 			}
 		}
 
-		/* 분야 페이지 배너: 이 뉴스레터에 담긴 소식 */
+		/* 분야 페이지 배너: 이 뉴스레터에 담긴 소식 (사진 아래, 카드 전체 폭) */
 		.points {
 			width: 100%;
-			margin-top: 0.25rem;
+			margin-top: 1rem;
 
 			.points-title {
 				margin: 0 0 0.375rem;
@@ -465,7 +521,9 @@ const mainCardStyles = css`
 		}
 
 		.card-footer {
-			margin-top: 0.75rem;
+			margin-top: 0.5rem;
+			padding-top: 0.75rem;
+			border-top: 1px solid ${({ theme }) => theme.color.border};
 			white-space: nowrap;
 		}
 	}
