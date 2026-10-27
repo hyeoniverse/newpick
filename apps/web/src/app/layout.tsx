@@ -6,6 +6,7 @@ import { fetchContactEmail } from '@/api/contact';
 import { parseArticles } from '@/utils/parseArticles';
 import { SESSION_HINT_COOKIE } from '@/constants/api';
 import { THEME_LOCALSTORAGE_KEY } from '@/stores/useThemeStore';
+import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/constants/site';
 
 import '@/styles/global';
 import StyledComponentsRegistry from '@/lib/registry';
@@ -14,9 +15,30 @@ import Layout from '@/components/layout/MainLayout';
 import ToastContainer from '@/components/common/toast/ToastContainer';
 import ModalContainer from '@/components/common/modal/ModalContainer';
 
+/**
+ * 사이트 공통 메타데이터 (#15). 화면마다 title만 주면 '제목 | 뉴픽: NewPick'이 되고,
+ * 공유 미리보기는 기본 이미지(/og.png)를 쓴다. 기사 상세는 기사 제목 · 부제 · 사진으로 덮어쓴다
+ */
 export const metadata: Metadata = {
-	title: '뉴픽: NewPick',
-	description: '뉴스를 새롭게 고르다',
+	metadataBase: new URL(SITE_URL),
+	title: { default: SITE_NAME, template: `%s | ${SITE_NAME}` },
+	description: SITE_DESCRIPTION,
+	applicationName: SITE_NAME,
+	openGraph: {
+		type: 'website',
+		siteName: SITE_NAME,
+		locale: 'ko_KR',
+		url: '/',
+		title: SITE_NAME,
+		description: SITE_DESCRIPTION,
+		images: [DEFAULT_OG_IMAGE],
+	},
+	twitter: {
+		card: 'summary_large_image',
+		title: SITE_NAME,
+		description: SITE_DESCRIPTION,
+		images: [DEFAULT_OG_IMAGE.url],
+	},
 };
 
 /**
