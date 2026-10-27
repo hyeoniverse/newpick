@@ -2,7 +2,7 @@
 
 import { TEAMS, V1, V2 } from '@/constants/about';
 import { styled } from 'styled-components';
-import { LuExternalLink } from 'react-icons/lu';
+import { LuChevronDown, LuExternalLink } from 'react-icons/lu';
 import Image from '@/components/common/Image';
 import BorderTitle from '@/components/common/BorderTitle';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
@@ -65,14 +65,19 @@ export default function WhoSection() {
 						</div>
 					</section>
 
-					<section className="version" aria-label="v1">
-						<p className="version-head">
+					{/* v1: 지난 팀 프로젝트. 기본은 접어 두고 눌러서 펼친다 */}
+					<details className="version">
+						<summary className="version-head">
 							<span className="version-chip">v1</span>
 							<span className="period">{V1.period}</span>
 							<span className="label">
 								{V1.label} · {TEAMS.reduce((sum, team) => sum + team.members.length, 0)}명
 							</span>
-						</p>
+							<span className="toggle">
+								<span className="toggle-text" aria-hidden />
+								<LuChevronDown aria-hidden />
+							</span>
+						</summary>
 						<div className="teams">
 							{TEAMS.map((team) => (
 								<section key={team.role} className="team" aria-label={team.role}>
@@ -91,7 +96,7 @@ export default function WhoSection() {
 								</section>
 							))}
 						</div>
-					</section>
+					</details>
 				</div>
 			</FullWidthPanel>
 		</StyledWhoSection>
@@ -164,6 +169,67 @@ const StyledWhoSection = styled.div`
 			font-variant-numeric: tabular-nums;
 			color: #f1f1f1;
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		}
+	}
+
+	/* 접는 v1: 머리 줄 전체가 버튼. 펼치면 화살표가 돌고 글자가 바뀐다 */
+	details.version {
+		summary {
+			margin: 0;
+			cursor: pointer;
+			list-style: none;
+			border-radius: ${({ theme }) => theme.radius.chip};
+
+			&::-webkit-details-marker {
+				display: none;
+			}
+
+			&:hover .toggle {
+				color: #ffffff;
+			}
+
+			&:focus-visible {
+				outline: 2px solid #ffffff;
+				outline-offset: 4px;
+			}
+		}
+
+		.toggle {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.25rem;
+			margin-left: auto;
+			color: #c1c1c1;
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			white-space: nowrap;
+
+			.toggle-text::before {
+				content: '펼쳐 보기';
+			}
+
+			svg {
+				transition: transform 0.25s ease;
+			}
+		}
+
+		&[open] {
+			summary {
+				margin-bottom: 2rem;
+			}
+
+			.toggle-text::before {
+				content: '접기';
+			}
+
+			.toggle svg {
+				transform: rotate(180deg);
+			}
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.toggle svg {
+				transition: none;
+			}
 		}
 	}
 
