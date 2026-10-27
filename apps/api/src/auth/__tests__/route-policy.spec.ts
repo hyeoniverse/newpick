@@ -71,6 +71,7 @@ const EXPECTED: Record<string, Policy> = {
   'DELETE admin/users/:id': 'admin',
   'GET admin/bookmarks': 'admin',
   'PATCH admin/users/:id': 'admin',
+  'POST admin/site-cache/refresh': 'admin',
 
   'GET ai-processing-logs': 'admin',
   'GET ai-processing-logs/:id': 'admin',

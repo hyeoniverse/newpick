@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { ApiError, apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
+import { NEWSLETTER_CACHE_TAG } from '@/constants/cache';
 import Article from '@/app/articles/detail/[slug]/_components/Article';
 
 /**
@@ -13,7 +14,9 @@ export default async function NewsletterDetailPage({ params }: { params: Promise
 	if (!/^\d+$/.test(slug)) notFound();
 
 	try {
-		await apiFetch(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`, { next: { revalidate: 60 } });
+		await apiFetch(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`, {
+			next: { revalidate: 60, tags: [NEWSLETTER_CACHE_TAG] },
+		});
 	} catch (error) {
 		if (error instanceof ApiError && (error.status === 404 || error.status === 400)) notFound();
 		// 서버 오류면 화면은 그대로 그리고, 브라우저 조회에서 다시 시도·안내한다

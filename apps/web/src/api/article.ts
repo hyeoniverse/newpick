@@ -1,5 +1,6 @@
 import API_ENDPOINTS from '@/constants/api';
 import { apiFetch } from '@/api/client';
+import { NEWSLETTER_CACHE_TAG } from '@/constants/cache';
 import { ArticleDetail, ArticleInfo, NewsInfo } from '@/models/article.model';
 
 type ArticleList = { data: ArticleDetail[] };
@@ -21,7 +22,8 @@ export const fetchPopularArticle = async (limit: number = 5, offset: number = 0,
 
 export const fetchTrendList = async (categoryId?: number) => {
 	const trends = await apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.TRENDS(categoryId), {
-		next: { revalidate: TRENDS_REVALIDATE_SECONDS },
+		// 뉴스레터를 만들거나 지우면 API가 이 꼬리표로 바로 비운다 (#73). 10분은 그게 실패했을 때의 상한
+		next: { revalidate: TRENDS_REVALIDATE_SECONDS, tags: [NEWSLETTER_CACHE_TAG] },
 	});
 	return trends.data;
 };

@@ -77,6 +77,16 @@ export const ERROR_CODES = {
     message: '지금은 구글 로그인을 쓸 수 없습니다.',
   },
 
+  // 사이트 캐시 (#73)
+  SITE_CACHE_UNAVAILABLE: {
+    status: HttpStatus.SERVICE_UNAVAILABLE,
+    message: '사이트 캐시 비우기가 설정되지 않았습니다.',
+  },
+  SITE_CACHE_FAILED: {
+    status: HttpStatus.BAD_GATEWAY,
+    message: '사이트 캐시를 비우지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
+  },
+
   // 뉴스레터·분야·발행본
   NEWSLETTER_NOT_FOUND: {
     status: HttpStatus.NOT_FOUND,

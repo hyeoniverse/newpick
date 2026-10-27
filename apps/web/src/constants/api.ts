@@ -16,6 +16,10 @@ export const API_ENDPOINTS = {
 		LOGOUT: () => `${API_URL}/auth/logout`,
 		REFRESH: () => `${API_URL}/auth/refresh`,
 	},
+	ADMIN: {
+		/** 사이트 캐시 비우기 (#73) */
+		SITE_CACHE_REFRESH: () => `${API_URL}/admin/site-cache/refresh`,
+	},
 	MY: {
 		PROFILE: () => `${API_URL}/mypage/profile`,
 		BOOKMARKS: () => `${API_URL}/mypage/bookmarks`,

@@ -20,11 +20,15 @@ import {
 import dayjs from 'dayjs';
 import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
 import { AppException } from '../../common/errors/app.exception';
+import { SiteCacheService } from '../../site-cache/site-cache.service';
 
 @Controller('newsletters')
 @UseInterceptors(CommonResponseInterceptor)
 export class BasicRepositoryController {
-  constructor(private readonly newsletterRepo: NewsletterRepo) {}
+  constructor(
+    private readonly newsletterRepo: NewsletterRepo,
+    private readonly siteCache: SiteCacheService,
+  ) {}
 
   @Public()
   @Get('')
@@ -193,6 +197,8 @@ export class BasicRepositoryController {
     if (!data) {
       throw new AppException('NEWSLETTER_NOT_FOUND');
     }
+    // 지운 글이 첫 화면·목록에 10분 동안 남지 않게 (#73)
+    await this.siteCache.refresh(`뉴스레터 ${id} 삭제`);
     return {
       message: '삭제 성공',
       data: data,

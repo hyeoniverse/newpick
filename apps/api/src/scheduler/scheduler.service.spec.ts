@@ -40,6 +40,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
       { email: 'b@example.com', interests: [], name: 'b' },
     ]),
   };
+  const siteCache = { refresh: jest.fn().mockResolvedValue({ ok: true }) };
   const service = new SchedulerService(
     new Logger(),
     mailService as never,
@@ -52,6 +53,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     {} as never,
     {} as never,
     editionService as never,
+    siteCache as never,
   );
   return {
     service,
@@ -59,6 +61,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     aiSummaryService,
     editionService,
     mailService,
+    siteCache,
   };
 }
 
@@ -78,6 +81,24 @@ describe('SchedulerService.makeAiSummary', () => {
     const [start, end] = crawlingRepository.getCrawledNews.mock.calls[0];
     expect(start).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     expect(end).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+});
+
+describe('사이트 캐시 (#73)', () => {
+  it('새 뉴스레터를 만든 뒤 사이트 캐시를 한 번 비운다', async () => {
+    const { service, siteCache, editionService } = setup(0);
+    await service.makeAiSummary();
+    expect(siteCache.refresh).toHaveBeenCalledTimes(1);
+    expect(siteCache.refresh.mock.invocationCallOrder[0]).toBeGreaterThan(
+      editionService.ensureEdition.mock.invocationCallOrder[0],
+    );
+  });
+
+  it('만든 뉴스레터가 없으면 비우지 않는다', async () => {
+    const { service, siteCache, aiSummaryService } = setup(0);
+    aiSummaryService.summarizeText.mockResolvedValue({ newsletter: [] });
+    await service.makeAiSummary();
+    expect(siteCache.refresh).not.toHaveBeenCalled();
   });
 });
 

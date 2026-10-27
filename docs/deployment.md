@@ -53,6 +53,7 @@ flowchart LR
    | 키 | 값 | 환경 |
    |---|---|---|
    | `API_URL` | `https://newpick-api.hyeoniverse.com` (끝에 `/` 없이) | Production, Preview |
+   | `REVALIDATE_SECRET` | 서버 `api.env`의 `REVALIDATE_SECRET`과 같은 값 (`openssl rand -hex 32`) | Production |
 
    `API_URL`은 빌드할 때 프록시 주소로 들어갑니다. 바꾼 뒤에는 **Redeploy**해야 반영됩니다. 없으면 `http://localhost:3001`로 프록시해서 `/api/*`가 `404 DNS_HOSTNAME_RESOLVED_PRIVATE`가 됩니다.
 4. **Settings → Domains**에 `newpick.hyeoniverse.com`을 추가하고, Vercel이 알려 주는 CNAME 값을 Cloudflare DNS에 **DNS only(회색 구름)**로 넣습니다. 값은 프로젝트마다 다릅니다(`….vercel-dns-0xx.com`).
@@ -223,6 +224,7 @@ nano api.env   # 빈 값을 채운다
 | `CLAUDE_MODEL`, `CLAUDE_FAST_MODEL` | | 뉴스레터 쓰기 모델(기본 `claude-sonnet-5-5`)과 기사 고르기·분류 모델(기본 `claude-haiku-5-5`). 비워 두면 기본값 |
 | `MAIL_USER`, `MAIL_PASSWORD` | 메일 | Gmail 주소와 **앱 비밀번호**(16자리). 실제 비밀번호는 SMTP 로그인이 거절된다. 2단계 인증을 켜고 https://myaccount.google.com/apppasswords 에서 만든다 |
 | `ADMIN_NOTIFY_EMAIL` | | 요약이 끝나면 결과를 받을 주소 |
+| `REVALIDATE_SECRET` | | 사이트 캐시 비우기([#73](https://github.com/hyeoniverse/newpick/issues/73)). Vercel의 `REVALIDATE_SECRET`과 같은 값. **필수 아님**: 비우면 뉴스레터를 만들거나 지워도 첫 화면·목록이 최대 10분 뒤에 바뀌고, `/admin`의 캐시 비우기는 503 |
 | `SENTRY_DSN` | | 오류 기록·성능 측정(Sentry). **필수 아님**: 비우면 "SENTRY_DSN이 없어 Sentry 없이 실행합니다"를 남기고 그대로 실행. 켜는 방법과 개인정보 처리방침에 미치는 영향은 #67 |
 
 전체 목록은 `apps/api/.env.example`에 있습니다. `NODE_ENV=production`, `TZ=Asia/Seoul`은 Dockerfile에 들어 있습니다.
@@ -352,6 +354,27 @@ cd ~/deploy
 gunzip -c ~/backups/newpick-…-daily.sql.gz \
   | docker compose exec -T mysql sh -c 'exec mysql -uroot -p"$MYSQL_ROOT_PASSWORD" newpick'
 ```
+
+### 운영 데이터를 고친 뒤 (사이트 캐시)
+
+웹은 첫 화면·목록의 뉴스레터를 최대 10분 동안 저장해 두고 씁니다(Next 캐시). 그래서 DB를 바꿔도 사이트에는 잠시 예전 글이 보일 수 있습니다 ([#73](https://github.com/hyeoniverse/newpick/issues/73)).
+
+```mermaid
+flowchart LR
+  a["뉴스레터 생성 (매일 · 수동)<br/>뉴스레터 삭제 (관리자)"] --> api[api SiteCacheService]
+  btn["/admin '지금 비우기'"] -->|POST /admin/site-cache/refresh<br/>관리자만| api
+  api -->|"POST {FRONTEND_URL}/api/revalidate<br/>x-revalidate-secret"| web[웹 /api/revalidate]
+  web --> c["revalidateTag('newsletters')<br/>revalidatePath('/', 'layout')"]
+```
+
+| 언제 | 할 일 |
+|---|---|
+| 매일 생성 · 수동 생성 · 관리자 API로 삭제 | 없음. api가 끝나고 바로 캐시를 비웁니다 (로그 `[SiteCache] 사이트 캐시를 비움`) |
+| DB를 손으로 고침 (SQL 등) | `/admin`에서 **사이트 캐시 비우기 → 지금 비우기** |
+| 캐시 비우기가 실패함 | 그대로 둬도 최대 10분 뒤 바뀝니다. 로그 `[SiteCache] … 실패`의 이유(비밀 값 불일치 401, 웹 주소 등)를 봅니다 |
+
+- 웹과 api의 `REVALIDATE_SECRET`이 같아야 합니다. 다르면 웹이 401을 돌려줍니다.
+- 이 기능을 쓰지 않으려면 두 곳 모두 비워 둡니다. 생성 · 삭제는 그대로 되고, 사이트만 최대 10분 늦게 바뀝니다.
 
 ### 확인할 것
 
