@@ -9,6 +9,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import { useArticleListQuery } from '@/hooks/useArticle';
+import { SkeletonBlock } from '@/components/common/loader/Skeleton';
 
 interface Props {
 	className?: string;
@@ -16,9 +17,25 @@ interface Props {
 
 function LatestArticle({ className }: Props) {
 
-	const {
-		data: articleList,
-	} = useArticleListQuery();
+	const { data: articleList, isPending, isError } = useArticleListQuery();
+
+	// 본문 아래 덧붙이는 띠라, 실패하거나 비면 띠째 감춘다 (#17)
+	if (isError || articleList?.length === 0) return null;
+
+	if (isPending) {
+		return (
+			<LatestArticleStyled className={className} aria-busy>
+				<div className="section-title">
+					<h3>최신 뉴스레터</h3>
+				</div>
+				<div className="skeleton-row" aria-hidden>
+					{Array.from({ length: 3 }).map((_, index) => (
+						<SkeletonBlock key={index} $height="6.5rem" $radius="8px" />
+					))}
+				</div>
+			</LatestArticleStyled>
+		);
+	}
 
 	return (
 		<LatestArticleStyled className={className}>
@@ -85,6 +102,21 @@ const LatestArticleStyled = styled.section`
         transform: translateX(-50%);
         content: '';
         z-index: -1;
+    }
+
+    .skeleton-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+        opacity: 0.35;
+
+        @media ${({ theme }) => theme.mediaQuery.desktop} {
+            grid-template-columns: repeat(2, 1fr);
+
+            > :nth-child(3) {
+                display: none;
+            }
+        }
     }
 
     .section-title {

@@ -14,7 +14,7 @@ function MyTabs() {
 
 	return (
 		<Suspense fallback={<Skeleton />}>
-			<div className="tab-contents">
+			<div className="tab-contents" role="tabpanel">
 				{activeTab === 'subscriptions' && <MySubscribe />}
 				{activeTab === 'bookmarks' && <MyBookmark />}
 				{activeTab === 'settings' && <MySettings />}

@@ -12,18 +12,31 @@ interface Props {
 export default function TabNavigation({ tabs }: Props) {
 	const { activeTab, setActiveTab } = useTabStore();
 
+	// 처음엔 주소의 ?tab=(예: 수신 거부 화면의 '마이페이지에서 해지' → ?tab=settings)을 따르고, 없으면 첫 탭 (#17)
 	useEffect(() => {
-		setActiveTab(tabs[0].link);
+		const fromUrl = new URLSearchParams(window.location.search).get('tab');
+		setActiveTab(tabs.some((tab) => tab.link === fromUrl) ? fromUrl! : tabs[0].link);
 	}, [setActiveTab, tabs]);
 
-	const handleTabClick = (link: string) => {
-		setActiveTab(link);
-	};
+	// 고른 탭을 주소에도 남겨, 새로 고침 · 뒤로 와도 같은 탭 (기록은 쌓지 않음)
+	useEffect(() => {
+		const url = new URL(window.location.href);
+		if (url.searchParams.get('tab') === activeTab) return;
+		url.searchParams.set('tab', activeTab);
+		window.history.replaceState(window.history.state, '', url);
+	}, [activeTab]);
 
 	return (
-		<TabNavigationStyled>
+		<TabNavigationStyled role="tablist">
 			{tabs.map(({ id, title, link }) => (
-				<button key={id} className={activeTab === link ? 'active' : ''} onClick={() => handleTabClick(link)}>
+				<button
+					key={id}
+					type="button"
+					role="tab"
+					aria-selected={activeTab === link}
+					className={activeTab === link ? 'active' : ''}
+					onClick={() => setActiveTab(link)}
+				>
 					<span>{title}</span>
 				</button>
 			))}
@@ -56,7 +69,7 @@ const TabNavigationStyled = styled.div`
 			display: flex;
 			justify-content: center;
 			align-items: center;
-			flex-wrap: wrap;
+			white-space: nowrap;
 		}
 
 		&.active {

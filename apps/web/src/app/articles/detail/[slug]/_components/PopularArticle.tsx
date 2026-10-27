@@ -4,6 +4,7 @@ import HeightAutoImg from '@/components/common/HeightAutoImg';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
 import { usePopularArticlesQuery } from '@/hooks/useArticle';
+import { SkeletonBlock } from '@/components/common/loader/Skeleton';
 
 interface Props {
 	flex?: number;
@@ -12,14 +13,36 @@ interface Props {
 
 function PopularArticle({ flex, className }: Props) {
 
-	const {
-		data: popularArticles,
-	} = usePopularArticlesQuery();
+	const { data: popularArticles, isPending, isError, refetch } = usePopularArticlesQuery();
 
 	return (
 		<PopularNewsletterStyled flex={flex} className={className}>
 			<h3 className="section-title">지금 인기 뉴스레터 TOP 5</h3>
-			<ul className="popular-list">
+			{/* 불러오는 중 · 실패 · 비어 있음 (#17). 옆 칸이라 작게 */}
+			{isPending && (
+				<ul className="popular-list" aria-hidden>
+					{Array.from({ length: 5 }).map((_, index) => (
+						<li key={index} className="skeleton">
+							<SkeletonBlock $width="1rem" $height="1rem" />
+							<span className="skeleton-text">
+								<SkeletonBlock $width="90%" />
+								<SkeletonBlock $width="40%" $height="0.75rem" />
+							</span>
+							<SkeletonBlock $width="3.25rem" $height="3.25rem" $radius="8px" />
+						</li>
+					))}
+				</ul>
+			)}
+			{isError && (
+				<p className="state">
+					인기 뉴스레터를 불러오지 못했어요.{' '}
+					<button type="button" className="retry" onClick={() => refetch()}>
+						다시 시도
+					</button>
+				</p>
+			)}
+			{popularArticles?.length === 0 && <p className="state">아직 인기 뉴스레터가 없어요.</p>}
+			<ul className="popular-list" hidden={!popularArticles?.length}>
 				{popularArticles && popularArticles.map((article, index) => (
 					<li key={index}>
 						<p className="index">{index + 1}</p>
@@ -44,6 +67,36 @@ function PopularArticle({ flex, className }: Props) {
 }
 
 const PopularNewsletterStyled = styled.div<Omit<Props, 'popular'>>`
+	/* display: flex라 hidden 속성이 안 먹으므로 직접 */
+	.popular-list[hidden] {
+		display: none;
+	}
+
+	.skeleton {
+		align-items: center;
+
+		.skeleton-text {
+			display: flex;
+			flex-direction: column;
+			gap: 0.375rem;
+			flex: 1;
+		}
+	}
+
+	.state {
+		padding: 1rem 0;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.subText};
+
+		.retry {
+			padding: 0;
+			font-size: inherit;
+			color: ${({ theme }) => theme.color.primary};
+			text-decoration: underline;
+			cursor: pointer;
+		}
+	}
+
 	position: sticky;
 	overflow: auto;
 	height: 100%;
