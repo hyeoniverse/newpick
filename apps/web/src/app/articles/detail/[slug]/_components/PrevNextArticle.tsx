@@ -112,7 +112,7 @@ const PrevNextArticleStyled = styled.section`
 					width: 4.5rem;
 					font-size: ${({ theme }) => theme.fontSize.small};
 					font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-					color: ${({ theme }) => theme.color.subText};
+					color: ${({ theme }) => theme.color.primary};
 				}
 
 				/* 사진: 가로형(16:9) 작은 칸 */
@@ -167,7 +167,7 @@ const PrevNextArticleStyled = styled.section`
 				/* 제목 아래 여백(날짜와의 간격)이 남으면 꼬리표보다 4px 위로 뜬다 */
 				.link .text-section .title {
 					margin: 0;
-					color: ${({ theme }) => theme.color.lightGrey};
+					color: ${({ theme }) => theme.color.text};
 				}
 
 				.date {
