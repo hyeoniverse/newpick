@@ -102,14 +102,15 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 								</>
 							)}
 							{summaryKeywords.length > 0 && (
-								<>
-									{' · 자주 나온 키워드 '}
+								// 모바일에서는 키워드만 아래 줄로 내려 옆으로 넘긴다 (…로 잘리지 않게)
+								<span className="keywords">
+									<span className="keywords-label">{' · 자주 나온 키워드 '}</span>
 									{summaryKeywords.map((k) => (
 										<Link key={k} href={toPageHref({ ...filters, keyword: k })} className="keyword">
 											#{k}
 										</Link>
 									))}
-								</>
+								</span>
 							)}
 						</p>
 					</div>
@@ -307,6 +308,71 @@ const StyledHotSection = styled.section<StyledProps>`
 				svg {
 					width: 5.5rem;
 					height: 5.5rem;
+				}
+			}
+		}
+
+		/* 모바일 배너: 아이콘은 제목 오른쪽 위로 작게(글자와 겹치지 않게), 설명은 두 줄까지, 키워드는 아래 줄에서 옆으로 넘김 */
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			gap: 0.25rem;
+			padding-right: 3.25rem;
+
+			h1,
+			h2 {
+				font-size: 1.75rem;
+			}
+
+			.description {
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				-webkit-line-clamp: 2;
+				/* 분야마다 줄 수가 달라도 높이가 같게 두 줄 자리 */
+				min-height: 3em;
+				white-space: normal;
+				word-break: keep-all;
+				font-size: ${({ theme }) => theme.fontSize.small};
+				line-height: 1.5;
+			}
+
+			.stats {
+				overflow: visible;
+				white-space: normal;
+				margin-right: -3.25rem;
+			}
+
+			.keywords {
+				display: flex;
+				gap: 0.375rem;
+				margin-top: 0.375rem;
+				overflow-x: auto;
+				scrollbar-width: none;
+
+				&::-webkit-scrollbar {
+					display: none;
+				}
+			}
+
+			.keywords-label {
+				display: none;
+			}
+
+			.keyword {
+				flex-shrink: 0;
+				margin-left: 0;
+				padding: 0.125rem 0.5rem;
+				border: 1px solid ${({ theme }) => theme.color.border};
+				border-radius: ${({ theme }) => theme.radius.chip};
+				background: ${({ theme }) => theme.color.background};
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+
+			.watermark {
+				top: 0.25rem;
+				transform: none;
+
+				svg {
+					width: 3rem;
+					height: 3rem;
 				}
 			}
 		}
