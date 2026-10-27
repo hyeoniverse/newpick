@@ -31,7 +31,14 @@ function MemberCard({ name, position, detail, isLeader, link, image }: Member) {
 				{isLeader && <span className="leader">팀장</span>}
 				<span className="role">{position}</span>
 			</p>
-			{detail && <p className="detail">{detail}</p>}
+			{/* 맡은 일은 ' · '로 나눠 한 줄에 하나씩 (좁은 칸에서 단어가 중간에 끊기지 않게) */}
+			{detail && (
+				<ul className="detail">
+					{detail.split(' · ').map((item) => (
+						<li key={item}>{item}</li>
+					))}
+				</ul>
+			)}
 		</div>
 	);
 }
@@ -466,7 +473,12 @@ const StyledWhoSection = styled.div`
 	}
 
 	.detail {
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
 		margin: 0.375rem 0 0;
+		padding: 0;
+		list-style: none;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		line-height: 1.5;
 		color: #999999;

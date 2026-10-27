@@ -91,20 +91,23 @@ export const TEAMS = [
 		members: [
 			{
 				name: '유지상',
-				position: '백엔드',
+				position: '인증 · 구독',
+				detail: '구글 로그인·JWT 인증 · 구독·북마크·마이페이지 API · 서버 배포·코드 통합',
 				isLeader: true,
 				link: `${GITHUB.BACK_1}`,
 				image: `${PROFILE_IMAGES.BACK_1}`,
 			},
 			{
 				name: '김재영',
-				position: '백엔드',
+				position: '크롤링 · 스케줄러',
+				detail: '뉴스 크롤링·MongoDB 저장 · 크롤링·정리 스케줄러 · 배포 자동화',
 				link: `${GITHUB.BACK_2}`,
 				image: `${PROFILE_IMAGES.BACK_2}`,
 			},
 			{
 				name: '이희찬',
-				position: '백엔드',
+				position: 'AI · 데이터',
+				detail: 'DB 설계 · AI 요약·뉴스레터 생성 · 뉴스레터·분야 API · 메일 발송·Sentry',
 				link: `${GITHUB.BACK_3}`,
 				image: `${PROFILE_IMAGES.BACK_3}`,
 			},
