@@ -2,76 +2,72 @@
 
 import { useRouter } from 'next/navigation';
 import styled, { keyframes } from 'styled-components';
-import { LuArrowDown } from 'react-icons/lu';
+import { LuChevronRight } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import { useOpenSubscribe } from '@/hooks/useOpenSubscribe';
+import { useScrollProgress } from '@/hooks/useScrollProgress';
 
-const HEADLINE = ['쏟아지는 뉴스 속에서', '내 관심사만 골라', '매일 아침 한 통으로'];
+const HEADLINE = ['내 관심사만 골라,', '매일 아침 한 통으로.'];
 
-/** 오른쪽 메일 미리보기에 보이는 소식 (모양만 보여 주는 장식) */
+/** 메일 미리보기에 보이는 소식 (모양만 보여 주는 장식) */
 const PREVIEW = [
-	{ category: 'IT', title: '오늘 가장 많이 다뤄진 소식', lines: 2 },
-	{ category: '경제', title: '같은 사건은 하나로 묶어서', lines: 2 },
-	{ category: '세계', title: '요약 · 시사점 · 문답까지', lines: 1 },
+	{ category: 'IT', title: '오늘 가장 많이 다뤄진 소식', lines: 3 },
+	{ category: '경제', title: '같은 사건은 하나로 묶어서', lines: 3 },
+	{ category: '세계', title: '요약 · 시사점 · 문답까지', lines: 2 },
 ];
 
 /**
- * 시작하기 첫 화면. 페이지를 열면 제목 줄이 아래에서 차례로 올라오고,
- * 오른쪽 메일 미리보기가 한 장씩 겹쳐 들어온다 (스크롤 없이 바로 보이는 곳이라 열릴 때 움직인다)
+ * 시작하기 첫 화면. 열리면 제목 줄이 아래에서 차례로 올라오고,
+ * 아래 메일 미리보기는 스크롤할수록 커지며 제자리로 올라온다 (--progress: 0 → 1)
  */
 export default function HeroSection() {
 	const router = useRouter();
 	const openSubscribe = useOpenSubscribe();
-
-	const scrollNext = () => document.getElementById('about-numbers')?.scrollIntoView({ behavior: 'smooth' });
+	const stageRef = useScrollProgress<HTMLDivElement>('enter');
 
 	return (
 		<StyledHero>
-			<div className="copy">
-				<p className="eyebrow">AI 뉴스 큐레이션 · NEWPICK</p>
-				<h1 className="headline">
-					{HEADLINE.map((line, i) => (
-						<span key={line} className="line" style={{ '--i': i } as React.CSSProperties}>
-							<span className={i === 1 ? 'mark' : undefined}>{line}</span>
-						</span>
-					))}
-				</h1>
-				<p className="lead">
-					NEWPICK은 AI가 그날의 기사를 읽고 중요한 소식만 골라 요약합니다.
-					<br className="desktop-only" /> 고른 관심사를 엮은 메일 한 통을 매일 아침 받아 보세요.
-				</p>
-				<div className="actions">
-					<Button scheme="primary" size="large" onClick={() => openSubscribe()}>
-						무료로 구독하기
-					</Button>
-					<Button scheme="outline" size="large" onClick={() => router.push('/articles')}>
-						뉴스레터 둘러보기
-					</Button>
-				</div>
+			<p className="eyebrow">AI 뉴스 큐레이션 · NEWPICK</p>
+			<h1 className="headline">
+				{HEADLINE.map((line, i) => (
+					<span key={line} className="line" style={{ '--i': i } as React.CSSProperties}>
+						<span className={i === 0 ? 'mark' : undefined}>{line}</span>
+					</span>
+				))}
+			</h1>
+			<p className="lead">
+				AI가 그날의 기사를 읽고 중요한 소식만 골라 요약합니다.
+				<br className="desktop-only" /> 고른 관심사를 엮은 메일 한 통을 매일 아침 받아 보세요.
+			</p>
+			<div className="actions">
+				<Button scheme="primary" size="large" onClick={() => openSubscribe()}>
+					무료로 구독하기
+				</Button>
+				<button type="button" className="text-link" onClick={() => router.push('/articles')}>
+					뉴스레터 둘러보기 <LuChevronRight aria-hidden />
+				</button>
 			</div>
 
-			<div className="visual" aria-hidden>
+			<div ref={stageRef} className="stage" aria-hidden>
 				<div className="mail">
-					<div className="mail-head">
+					<div className="mail-bar">
 						<span className="logo">NEWPICK</span>
-						<span className="time">오늘 08:40</span>
+						<span className="meta">오늘 08:40 · 관심사 3개</span>
 					</div>
-					<p className="mail-title">오늘의 뉴픽 · IT · 경제 · 세계</p>
-					{PREVIEW.map((item, i) => (
-						<div key={item.title} className="story" style={{ '--i': i } as React.CSSProperties}>
-							<span className="chip">{item.category}</span>
-							<p className="story-title">{item.title}</p>
-							{Array.from({ length: item.lines }, (_, l) => (
-								<span key={l} className="bar" />
-							))}
-						</div>
-					))}
+					<p className="mail-title">오늘의 뉴픽</p>
+					<div className="stories">
+						{PREVIEW.map((item, i) => (
+							<div key={item.title} className="story" style={{ '--i': i } as React.CSSProperties}>
+								<span className="chip">{item.category}</span>
+								<p className="story-title">{item.title}</p>
+								{Array.from({ length: item.lines }, (_, l) => (
+									<span key={l} className="bar" />
+								))}
+							</div>
+						))}
+					</div>
 				</div>
 			</div>
-
-			<button type="button" className="cue" onClick={scrollNext} aria-label="아래로 이동">
-				<LuArrowDown />
-			</button>
 		</StyledHero>
 	);
 }
@@ -87,33 +83,20 @@ const fadeUp = keyframes`
 `;
 
 const sweep = keyframes`
-	from { background-size: 0% 40%; }
-	to { background-size: 100% 40%; }
-`;
-
-const bounce = keyframes`
-	0%, 100% { transform: translateY(0); }
-	50% { transform: translateY(0.375rem); }
+	from { background-size: 0% 35%; }
+	to { background-size: 100% 35%; }
 `;
 
 const StyledHero = styled.section`
-	position: relative;
-	display: grid;
-	grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+	display: flex;
+	flex-direction: column;
 	align-items: center;
-	gap: 3rem;
-	min-height: calc(100svh - 10rem);
-	padding: 2rem 0 5rem;
-
-	@media ${({ theme }) => theme.mediaQuery.tablet} {
-		grid-template-columns: 1fr;
-		min-height: auto;
-		gap: 2.5rem;
-		padding: 0 0 4rem;
-	}
+	padding-top: clamp(3rem, 10vh, 7rem);
+	text-align: center;
+	word-break: keep-all;
 
 	.eyebrow {
-		margin: 0 0 1.25rem;
+		margin: 0 0 1.5rem;
 		font-size: ${({ theme }) => theme.fontSize.small};
 		font-weight: ${({ theme }) => theme.fontWeight.bold};
 		letter-spacing: 0.08em;
@@ -122,47 +105,45 @@ const StyledHero = styled.section`
 	}
 
 	.headline {
-		margin: 0 0 1.5rem;
-		font-size: clamp(2.25rem, 5.5vw, 4rem);
+		margin: 0 0 1.75rem;
+		font-size: clamp(2.5rem, 7.5vw, 5.5rem);
 		font-weight: 800;
-		line-height: 1.2;
-		letter-spacing: -0.02em;
-		word-break: keep-all;
+		line-height: 1.12;
+		letter-spacing: -0.03em;
 		color: ${({ theme }) => theme.color.text};
 
 		/* 줄마다 가림막 안에서 아래 → 위로 */
 		.line {
 			display: block;
 			overflow: hidden;
-			padding-bottom: 0.08em;
+			padding-bottom: 0.06em;
 
 			& > span {
 				display: inline-block;
-				animation: ${rise} 0.8s cubic-bezier(0.22, 1, 0.36, 1) both;
-				animation-delay: calc(0.15s + var(--i) * 0.12s);
+				animation: ${rise} 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+				animation-delay: calc(0.15s + var(--i) * 0.14s);
 			}
-		}
 
-		/* '내 관심사만 골라'에 형광펜이 그어진다 */
-		.line > .mark {
-			background: linear-gradient(
-					color-mix(in srgb, ${({ theme }) => theme.color.primary} 28%, transparent),
-					color-mix(in srgb, ${({ theme }) => theme.color.primary} 28%, transparent)
-				)
-				no-repeat left 88% / 100% 40%;
-			animation:
-				${rise} 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.27s both,
-				${sweep} 0.7s ease 1s both;
+			/* '내 관심사만 골라,'에 형광펜 */
+			& > .mark {
+				background: linear-gradient(
+						color-mix(in srgb, ${({ theme }) => theme.color.primary} 26%, transparent),
+						color-mix(in srgb, ${({ theme }) => theme.color.primary} 26%, transparent)
+					)
+					no-repeat left 90% / 100% 35%;
+				animation:
+					${rise} 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.15s both,
+					${sweep} 0.8s ease 1s both;
+			}
 		}
 	}
 
 	.lead {
-		margin: 0 0 2.25rem;
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		line-height: 1.8;
+		margin: 0 0 2.5rem;
+		font-size: clamp(1rem, 1.6vw, 1.25rem);
+		line-height: 1.7;
 		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
-		animation: ${fadeUp} 0.7s ease 0.6s both;
+		animation: ${fadeUp} 0.7s ease 0.55s both;
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			.desktop-only {
@@ -174,36 +155,65 @@ const StyledHero = styled.section`
 	.actions {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.75rem;
-		animation: ${fadeUp} 0.7s ease 0.75s both;
+		align-items: center;
+		justify-content: center;
+		gap: 1rem 2rem;
+		animation: ${fadeUp} 0.7s ease 0.7s both;
+	}
 
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			button {
-				flex: 1 1 100%;
+	.text-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.125rem;
+		padding: 0;
+		border: none;
+		background: none;
+		cursor: pointer;
+		font-size: ${({ theme }) => theme.fontSize.medium};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
+
+		svg {
+			transition: transform 0.2s ease;
+		}
+
+		&:hover {
+			text-decoration: underline;
+
+			svg {
+				transform: translateX(0.2rem);
 			}
 		}
 	}
 
-	/* 메일 미리보기: 틀이 먼저 나오고, 소식이 한 줄씩 들어온다 */
-	.visual {
-		display: flex;
-		justify-content: center;
-		animation: ${fadeUp} 0.9s ease 0.4s both;
+	/* 메일 미리보기: 스크롤할수록 88% → 100%로 커지고 3rem 아래에서 제자리로 */
+	.stage {
+		--progress: 0;
+		width: 100%;
+		margin-top: clamp(3.5rem, 9vh, 6rem);
+		animation: ${fadeUp} 0.9s ease 0.85s both;
 	}
 
 	.mail {
-		width: min(100%, 24rem);
-		padding: 1.5rem;
+		width: 100%;
+		max-width: 60rem;
+		margin: 0 auto;
+		overflow: hidden;
 		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.background};
+		text-align: left;
+		transform: translateY(calc((1 - var(--progress)) * 3rem)) scale(calc(0.88 + var(--progress) * 0.12));
+		transform-origin: center top;
 	}
 
-	.mail-head {
+	.mail-bar {
 		display: flex;
 		justify-content: space-between;
 		align-items: center;
-		margin-bottom: 0.75rem;
+		padding: 0.875rem 1.5rem;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		background: ${({ theme }) => theme.color.surface};
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		color: ${({ theme }) => theme.color.subText};
 
@@ -214,24 +224,39 @@ const StyledHero = styled.section`
 	}
 
 	.mail-title {
-		margin: 0 0 1rem;
-		padding-bottom: 0.75rem;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		margin: 0;
+		padding: 1.75rem 1.5rem 0;
+		font-size: ${({ theme }) => theme.fontSize.large};
+		font-weight: 800;
 		color: ${({ theme }) => theme.color.text};
+	}
+
+	.stories {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1.5rem;
+		padding: 1.25rem 1.5rem 2rem;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			grid-template-columns: 1fr;
+			gap: 1rem;
+		}
 	}
 
 	.story {
 		display: flex;
 		flex-direction: column;
-		gap: 0.375rem;
-		padding: 0.75rem 0;
+		gap: 0.5rem;
+		padding: 1.25rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		animation: ${fadeUp} 0.6s ease both;
-		animation-delay: calc(0.9s + var(--i) * 0.18s);
+		animation-delay: calc(1.1s + var(--i) * 0.15s);
 
-		& + .story {
-			border-top: 1px dashed ${({ theme }) => theme.color.border};
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			&:nth-child(n + 3) {
+				display: none;
+			}
 		}
 
 		.chip {
@@ -245,9 +270,9 @@ const StyledHero = styled.section`
 		}
 
 		.story-title {
-			margin: 0;
+			margin: 0 0 0.25rem;
 			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
 			color: ${({ theme }) => theme.color.text};
 		}
 
@@ -257,41 +282,20 @@ const StyledHero = styled.section`
 			background: ${({ theme }) => theme.color.surface};
 
 			&:last-child {
-				width: 70%;
+				width: 65%;
 			}
-		}
-	}
-
-	.cue {
-		position: absolute;
-		left: 50%;
-		bottom: 0.5rem;
-		display: grid;
-		place-items: center;
-		width: 2.5rem;
-		height: 2.5rem;
-		margin-left: -1.25rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: 50%;
-		color: ${({ theme }) => theme.color.subText};
-		background: ${({ theme }) => theme.color.background};
-		cursor: pointer;
-		animation: ${bounce} 1.8s ease-in-out 1.6s infinite;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			display: none;
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
 		*,
-		.cue,
-		.headline .line > span {
+		.headline .line > span,
+		.headline .line > .mark {
 			animation: none !important;
+		}
+
+		.mail {
+			transform: none;
 		}
 	}
 `;

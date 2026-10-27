@@ -3,7 +3,7 @@
 import styled from 'styled-components';
 import Img from 'next/image';
 import { FcGoogle } from 'react-icons/fc';
-import BorderTitle from '@/components/common/BorderTitle';
+import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollSequence } from '@/hooks/useScrollSequence';
 
 interface Step {
@@ -63,8 +63,11 @@ export default function HowToUseSection() {
 
 	return (
 		<StyledHowToUse>
-			<BorderTitle text="HOW TO USE" />
-			<p className="sub-text">로그인하고 관심사만 고르면, 매일 아침 뉴스레터가 옵니다.</p>
+			<SectionHeading
+				eyebrow="HOW TO USE"
+				title="시작은 세 번의 클릭."
+				sub="로그인하고 관심사만 고르면, 매일 아침 뉴스레터가 옵니다."
+			/>
 
 			<div className="layout">
 				<ol ref={containerRef} className="steps">
@@ -124,13 +127,6 @@ export default function HowToUseSection() {
 }
 
 const StyledHowToUse = styled.section`
-	.sub-text {
-		margin: -1.5rem 0 3rem;
-		line-height: 1.8;
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
-	}
-
 	.layout {
 		display: grid;
 		grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);

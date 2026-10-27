@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { LuPlus } from 'react-icons/lu';
-import BorderTitle from '@/components/common/BorderTitle';
+import SectionHeading from '@/app/about/_components/SectionHeading';
 
 /** 답은 실제 동작 기준 (이용약관 요약·발송 예약·탈퇴 처리와 같은 내용) */
 const FAQ = [
@@ -63,7 +63,7 @@ export default function FaqSection() {
 
 	return (
 		<StyledFaq aria-label="자주 묻는 질문">
-			<BorderTitle text="FAQ" />
+			<SectionHeading eyebrow="FAQ" title="자주 묻는 질문" />
 			<ul className="list">
 				{FAQ.map(({ q, a }, i) => (
 					<li
@@ -99,7 +99,8 @@ export default function FaqSection() {
 
 const StyledFaq = styled.section`
 	.list {
-		margin: 0;
+		max-width: 48rem;
+		margin: 0 auto;
 		padding: 0;
 		list-style: none;
 		border-top: 1px solid ${({ theme }) => theme.color.text};

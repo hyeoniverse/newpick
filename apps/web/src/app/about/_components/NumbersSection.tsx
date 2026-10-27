@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
+import SectionHeading from '@/app/about/_components/SectionHeading';
 
 /** 숫자는 서비스 설정에서 온 값이다 (관심사 6개, 하루 한 통, 08:40 발송, AI 2단계, 무료) */
 const NUMBERS = [
@@ -69,7 +70,7 @@ export default function NumbersSection() {
 
 	return (
 		<StyledNumbers id="about-numbers" aria-label="숫자로 보는 NEWPICK">
-			<p className="label">숫자로 보는 NEWPICK</p>
+			<SectionHeading eyebrow="숫자로 보는 NEWPICK" title="하루 한 통이면 충분합니다." />
 			<ul ref={ref} className="list">
 				{NUMBERS.map((item) => (
 					<NumberItem key={item.text} {...item} start={start} />
@@ -81,13 +82,6 @@ export default function NumbersSection() {
 
 const StyledNumbers = styled.section`
 	scroll-margin-top: 6rem;
-
-	.label {
-		margin: 0 0 1.5rem;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		color: ${({ theme }) => theme.color.subText};
-	}
 
 	.list {
 		display: grid;
@@ -108,29 +102,30 @@ const StyledNumbers = styled.section`
 	}
 
 	.item {
-		padding: 1.75rem 1.25rem;
+		padding: 2.5rem 1rem;
 		border-left: 1px solid ${({ theme }) => theme.color.border};
+		text-align: center;
 
 		&:first-child {
 			border-left: none;
-			padding-left: 0;
 		}
 
 		@media ${({ theme }) => theme.mediaQuery.desktop} {
 			border-left: none;
-			padding: 1.25rem 0;
+			padding: 1.75rem 0.5rem;
 		}
 	}
 
 	.value {
 		display: flex;
 		align-items: baseline;
+		justify-content: center;
 		gap: 0.25rem;
 		margin: 0 0 0.5rem;
 		color: ${({ theme }) => theme.color.text};
 
 		strong {
-			font-size: clamp(2rem, 4vw, 2.75rem);
+			font-size: clamp(2.5rem, 5vw, 3.75rem);
 			font-weight: 800;
 			line-height: 1;
 			font-variant-numeric: tabular-nums;

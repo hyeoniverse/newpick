@@ -1,7 +1,13 @@
 .about {
     display: flex;
-    gap: 6rem;
+    gap: 10rem;
     flex-direction: column;
     margin-top: 2rem;
 }
 
+
+@media (max-width: 768px) {
+    .about {
+        gap: 6rem;
+    }
+}

@@ -1,9 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { LuNewspaper, LuLayers, LuPenLine, LuMailOpen } from 'react-icons/lu';
-import BorderTitle from '@/components/common/BorderTitle';
-import { useScrollSequence } from '@/hooks/useScrollSequence';
+import { useScrollProgress } from '@/hooks/useScrollProgress';
 
 /** 서버 예약 작업 순서 그대로: 08:00 수집 → 08:30 AI 편집(고르기 → 쓰기) → 08:40 발송 */
 const STEPS = [
@@ -34,52 +34,40 @@ const STEPS = [
 ];
 
 /**
- * 스크롤 시퀀스: 오른쪽 단계를 내려가는 동안 왼쪽 시계 판이 따라 붙어 지금 시각과 단계를 보여 주고,
- * 단계 옆 세로줄이 지나온 만큼 채워진다. 좁은 화면은 시계 판 없이 세로줄과 단계만
+ * 스크롤 시퀀스 (붙는 장면): 섹션이 화면에 붙어 있는 동안 스크롤하면 시각·단계가 차례로 바뀌고
+ * 아래 진행 막대가 채워진다. 섹션 높이 = 단계 수 × 80vh라 단계마다 한 화면쯤 스크롤한다
  */
 export default function MorningSection() {
-	const { containerRef, stepRef, active } = useScrollSequence<HTMLDivElement, HTMLLIElement>(STEPS.length);
-	const current = STEPS[active];
+	const [active, setActive] = useState(0);
+	const ref = useScrollProgress<HTMLElement>('pinned', (progress) => {
+		const next = Math.min(STEPS.length - 1, Math.floor(progress * STEPS.length));
+		setActive((prev) => (prev === next ? prev : next));
+	});
 
 	return (
-		<StyledMorning aria-label="뉴스레터가 만들어지는 아침">
-			<BorderTitle text="08:00 → 08:40" />
-			<p className="sub-text">아침 8시부터 40분 동안, 뉴스레터는 이렇게 만들어집니다.</p>
+		<StyledMorning ref={ref} aria-label="뉴스레터가 만들어지는 아침" style={{ '--steps': STEPS.length } as React.CSSProperties}>
+			<div className="scene">
+				<p className="eyebrow">매일 아침 40분</p>
+				<p className="time" key={`time-${active}`} aria-hidden>
+					{STEPS[active].time}
+				</p>
 
-			<div className="layout">
-				<div className="panel" aria-hidden>
-					<div className="clock">
-						<span className="time" key={active}>
-							{current.time}
-						</span>
-						<span className="step-no">
-							{String(active + 1).padStart(2, '0')} / {String(STEPS.length).padStart(2, '0')}
-						</span>
-					</div>
-					<div className="dots">
-						{STEPS.map((step, i) => (
-							<span key={step.title} className={i <= active ? 'dot on' : 'dot'} />
-						))}
-					</div>
-					<current.icon className="panel-icon" key={`icon-${active}`} />
-				</div>
-
-				<div ref={containerRef} className="steps">
-					<span className="track" aria-hidden>
-						<span className="fill" />
-					</span>
-					<ol>
+				<ol className="steps">
 					{STEPS.map((step, i) => (
-						<li key={step.title} ref={stepRef(i)} className="step" data-active={i === active}>
-							<span className="marker" aria-hidden>
-								<step.icon />
-							</span>
-							<p className="step-time">{step.time}</p>
-							<h3 className="step-title">{step.title}</h3>
-							<p className="step-text">{step.text}</p>
+						<li key={step.title} className="step" data-active={i === active} aria-current={i === active ? 'step' : undefined}>
+							<step.icon className="icon" aria-hidden />
+							<h3>{step.title}</h3>
+							<p>{step.text}</p>
 						</li>
 					))}
-					</ol>
+				</ol>
+
+				<div className="bar" aria-hidden>
+					{STEPS.map((step, i) => (
+						<span key={step.title} className={i <= active ? 'seg on' : 'seg'}>
+							<span className="seg-label">{step.time}</span>
+						</span>
+					))}
 				</div>
 			</div>
 		</StyledMorning>
@@ -87,207 +75,132 @@ export default function MorningSection() {
 }
 
 const tick = keyframes`
-	from { opacity: 0; transform: translateY(0.75rem); }
+	from { opacity: 0; transform: translateY(1rem); }
 	to { opacity: 1; transform: none; }
 `;
 
 const StyledMorning = styled.section`
-	.sub-text {
-		margin: -1.5rem 0 3rem;
-		line-height: 1.8;
-		color: ${({ theme }) => theme.color.subText};
+	--progress: 0;
+	position: relative;
+	height: calc(var(--steps) * 80vh);
+
+	/* 화면에 붙어 있는 장면 (헤더 높이만큼 아래) */
+	.scene {
+		position: sticky;
+		top: 4rem;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		height: calc(100vh - 4rem);
+		height: calc(100svh - 4rem);
+		text-align: center;
 		word-break: keep-all;
 	}
 
-	.layout {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-		gap: 4rem;
-		align-items: start;
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			grid-template-columns: 1fr;
-		}
+	.eyebrow {
+		margin: 0 0 0.5rem;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		letter-spacing: 0.08em;
+		color: ${({ theme }) => theme.color.primary};
 	}
 
-	/* 왼쪽: 스크롤하는 동안 화면에 붙어 있는 시계 판 */
-	.panel {
-		position: sticky;
-		top: 7rem;
+	.time {
+		margin: 0 0 1.5rem;
+		font-size: clamp(5rem, 17vw, 12rem);
+		font-weight: 800;
+		line-height: 1;
+		letter-spacing: -0.04em;
+		font-variant-numeric: tabular-nums;
+		color: ${({ theme }) => theme.color.text};
+		animation: ${tick} 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+	}
+
+	/* 단계는 같은 자리에 겹쳐 두고 지금 단계만 보인다 */
+	.steps {
+		display: grid;
+		width: 100%;
+		max-width: 36rem;
+		min-height: 9.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.step {
+		grid-area: 1 / 1;
 		display: flex;
 		flex-direction: column;
-		gap: 1.5rem;
-		padding: 2.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		color: ${({ theme }) => theme.color.primary};
-		background: ${({ theme }) => theme.color.surface};
+		align-items: center;
+		opacity: 0;
+		transform: translateY(1rem);
+		transition:
+			opacity 0.4s ease,
+			transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+		pointer-events: none;
 
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			display: none;
+		&[data-active='true'] {
+			opacity: 1;
+			transform: none;
+			pointer-events: auto;
+		}
+
+		.icon {
+			width: 1.75rem;
+			height: 1.75rem;
+			margin-bottom: 0.75rem;
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		h3 {
+			margin: 0 0 0.75rem;
+			font-size: clamp(1.375rem, 2.6vw, 2rem);
+			font-weight: 800;
+			color: ${({ theme }) => theme.color.text};
+		}
+
+		p {
+			margin: 0;
+			line-height: 1.7;
+			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 
-	.clock {
+	/* 진행 막대: 지난 단계까지 채워짐 */
+	.bar {
 		display: flex;
-		align-items: baseline;
-		justify-content: space-between;
-		gap: 1rem;
+		gap: 0.5rem;
+		width: 100%;
+		max-width: 36rem;
+		margin-top: 2.5rem;
 
-		.time {
-			font-size: clamp(3rem, 6vw, 4.5rem);
-			font-weight: 800;
-			line-height: 1;
-			font-variant-numeric: tabular-nums;
-			animation: ${tick} 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+		.seg {
+			flex: 1;
+			padding-top: 0.625rem;
+			border-top: 3px solid ${({ theme }) => theme.color.border};
+			transition: border-color 0.3s ease;
+
+			&.on {
+				border-color: ${({ theme }) => theme.color.primary};
+			}
 		}
 
-		.step-no {
-			font-size: ${({ theme }) => theme.fontSize.small};
+		.seg-label {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
 			font-variant-numeric: tabular-nums;
 			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 
-	.dots {
-		display: flex;
-		gap: 0.375rem;
-
-		.dot {
-			flex: 1;
-			height: 0.25rem;
-			border-radius: 0.125rem;
-			background: ${({ theme }) => theme.color.border};
-			transition: background 0.3s ease;
-
-			&.on {
-				background: currentColor;
-			}
-		}
-	}
-
-	.panel-icon {
-		align-self: flex-end;
-		width: 5rem;
-		height: 5rem;
-		opacity: 0.9;
-		animation: ${tick} 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-	}
-
-	/* 오른쪽: 단계 목록. 세로줄은 지나온 만큼(--progress) 채워진다 */
-	.steps {
-		--progress: 0;
-		position: relative;
-		padding-left: 3.5rem;
-
-		ol {
-			display: flex;
-			flex-direction: column;
-			margin: 0;
-			padding: 0;
-			list-style: none;
-		}
-	}
-
-	.track {
-		position: absolute;
-		left: 1.25rem;
-		top: 1.25rem;
-		bottom: 1.25rem;
-		width: 2px;
-		background: ${({ theme }) => theme.color.border};
-
-		.fill {
-			display: block;
-			width: 100%;
-			height: 100%;
-			background: ${({ theme }) => theme.color.primary};
-			transform-origin: top;
-			transform: scaleY(var(--progress));
-		}
-	}
-
-	.step {
-		position: relative;
-		min-height: 40vh;
-		padding: 0.25rem 0 3rem;
-		opacity: 0.35;
-		transition: opacity 0.35s ease;
-
-		&[data-active='true'] {
-			opacity: 1;
-
-			.marker {
-				color: #ffffff;
-				background: ${({ theme }) => theme.color.primary};
-				border-color: ${({ theme }) => theme.color.primary};
-				transform: scale(1.1);
-			}
-		}
-
-		&:last-child {
-			min-height: auto;
-			padding-bottom: 0;
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			min-height: auto;
-			padding-bottom: 2.5rem;
-		}
-	}
-
-	.marker {
-		position: absolute;
-		left: -3.5rem;
-		top: 0;
-		display: grid;
-		place-items: center;
-		width: 2.5rem;
-		height: 2.5rem;
-		border: 2px solid ${({ theme }) => theme.color.border};
-		border-radius: 50%;
-		color: ${({ theme }) => theme.color.subText};
-		background: ${({ theme }) => theme.color.background};
-		transition:
-			background 0.3s ease,
-			color 0.3s ease,
-			border-color 0.3s ease,
-			transform 0.3s ease;
-	}
-
-	.step-time {
-		margin: 0 0 0.25rem;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		font-variant-numeric: tabular-nums;
-		color: ${({ theme }) => theme.color.primary};
-	}
-
-	.step-title {
-		margin: 0 0 0.75rem;
-		font-size: ${({ theme }) => theme.fontSize.large};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	.step-text {
-		margin: 0;
-		max-width: 32rem;
-		line-height: 1.8;
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
-	}
-
 	@media (prefers-reduced-motion: reduce) {
-		.clock .time,
-		.panel-icon {
+		.time {
 			animation: none;
 		}
 
 		.step,
-		.marker,
-		.dot {
+		.bar .seg {
 			transition: none;
 		}
 	}
