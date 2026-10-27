@@ -31,6 +31,8 @@ export default function SearchFilters() {
 		staleTime: 1000 * 60 * 10,
 	});
 
+	const custom = filters.period === 'custom';
+
 	// 고른 기간을 다시 누르면 해제하고 전체 기간으로
 	const setPeriod = (period: SearchPeriod) =>
 		filters.period === period && period !== 'all'
@@ -44,18 +46,25 @@ export default function SearchFilters() {
 	return (
 		<StyledSearchFilters>
 			<div className="filters">
-				<div className="periods" role="group" aria-label="기간">
-					{PERIOD_OPTIONS.map((option) => (
-						<button
-							key={option.value}
-							type="button"
-							aria-pressed={filters.period === option.value}
-							onClick={() => setPeriod(option.value)}
-						>
-							{option.label}
-						</button>
-					))}
-					{/* 직접 지정 바로 오른쪽. 자리가 모자라면 날짜 칸만 다음 줄로 (기간 버튼은 잘리지 않게) */}
+				<div className={custom ? 'periods custom' : 'periods'} role="group" aria-label="기간">
+					{PERIOD_OPTIONS.map((option) => {
+						// 직접 지정 중에는 오늘 · 1주 · 1달을 옆으로 접어 그 자리에 날짜 칸이 들어온다 (줄이 늘지 않게)
+						const folded = custom && option.value !== 'all' && option.value !== 'custom';
+						return (
+							<button
+								key={option.value}
+								type="button"
+								className={folded ? 'folded' : undefined}
+								aria-hidden={folded || undefined}
+								tabIndex={folded ? -1 : undefined}
+								aria-pressed={filters.period === option.value}
+								onClick={() => setPeriod(option.value)}
+							>
+								{option.label}
+							</button>
+						);
+					})}
+					{/* 직접 지정 바로 오른쪽 */}
 					{filters.period === 'custom' && (
 						<DateRangePicker
 							size="small"
@@ -122,11 +131,21 @@ const StyledSearchFilters = styled.div`
 	}
 
 	/* 기간 버튼 + 직접 지정 날짜 칸. 자리가 모자라면 날짜 칸만 다음 줄로 */
+	/* 기간 버튼 + 직접 지정 날짜 칸. 직접 지정이면 오늘 · 1주 · 1달이 접혀 한 줄에 들어간다 */
+	@keyframes datesIn {
+		from {
+			opacity: 0;
+			transform: translateX(-0.5rem);
+		}
+		to {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
 	.periods {
 		display: flex;
-		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.25rem;
 		max-width: 100%;
 		/* 날짜 칸(2.25rem)이 나타나도 줄 높이가 그대로이게 처음부터 그 높이 */
 		min-height: 2.25rem;
@@ -134,10 +153,20 @@ const StyledSearchFilters = styled.div`
 		.dates {
 			flex-shrink: 0;
 			margin-left: 0.25rem;
+			animation: datesIn 0.25s ease-out;
 		}
 
 		> button {
 			flex-shrink: 0;
+			max-width: 6rem;
+			margin-right: 0.25rem;
+			overflow: hidden;
+			transition:
+				max-width 0.25s ease,
+				padding 0.25s ease,
+				margin 0.25s ease,
+				opacity 0.2s ease,
+				visibility 0.25s;
 			padding: 0.375rem 0.75rem;
 			border-radius: ${({ theme }) => theme.radius.chip};
 			font-size: ${({ theme }) => theme.fontSize.small};
@@ -154,9 +183,27 @@ const StyledSearchFilters = styled.div`
 				color: ${({ theme }) => theme.color.primary};
 				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			}
+
+			/* 접힘: 폭 · 여백을 0으로 줄이며 사라진다 */
+			&.folded {
+				max-width: 0;
+				margin-right: 0;
+				padding-left: 0;
+				padding-right: 0;
+				opacity: 0;
+				visibility: hidden;
+			}
 		}
 
-		/* 좁은 화면: 버튼 · 날짜 칸을 줄여(달력 아이콘 빼고) '직접 지정' 오른쪽 같은 줄에 붙인다 (휴대폰 폭은 날짜 칸만 다음 줄) */
+		@media (prefers-reduced-motion: reduce) {
+			.dates,
+			> button {
+				animation: none;
+				transition: none;
+			}
+		}
+
+		/* 좁은 화면: 버튼 · 날짜 칸을 줄여(달력 아이콘 빼고) 한 줄에 */
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			> button {
 				padding: 0.375rem 0.5rem;
@@ -174,6 +221,18 @@ const StyledSearchFilters = styled.div`
 				padding: 0 0.5rem;
 				font-size: ${({ theme }) => theme.fontSize.extraSmall};
 				text-align: center;
+			}
+		}
+
+		/* 휴대폰: 날짜 칸을 더 줄여 '전체 기간 · 직접 지정 · [시작] ~ [종료]'가 한 줄에 */
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			.dates .control {
+				width: 5.25rem;
+			}
+
+			.dates .date-input {
+				padding: 0 0.25rem;
+				font-size: 0.75rem;
 			}
 		}
 	}
