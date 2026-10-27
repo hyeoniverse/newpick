@@ -6,12 +6,14 @@ interface Props {
 	className?: string;
 	text: string;
 	color?: ColorKey;
+	/** 섹션 제목이므로 기본 h2 (페이지 제목 h1은 하나만). 바로 아래 진짜 제목이 따로 있으면 p */
+	as?: 'h2' | 'p';
 }
 
-export default function BorderTitle({ className, text, color }: Props) {
+export default function BorderTitle({ className, text, color, as = 'h2' }: Props) {
 	return (
 		<StyledBorderTitle $color={color} className={className}>
-			<Title size="small" weight="semiBold" className="title">
+			<Title as={as} size="small" weight="semiBold" className="title">
 				{text}
 			</Title>
 			<div className="bar" />

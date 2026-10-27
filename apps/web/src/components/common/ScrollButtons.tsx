@@ -41,11 +41,24 @@ function ScrollButtons() {
 
 	return (
 		<ScrollButtonsContainer>
-			<ScrollButton onClick={handleScrollToTop} className={showButtons ? 'fade-in' : 'fade-out'}>
-				<FaChevronUp />
+			{/* 숨어 있을 때는 탭으로도 잡히지 않게 (#16) */}
+			<ScrollButton
+				onClick={handleScrollToTop}
+				className={showButtons ? 'fade-in' : 'fade-out'}
+				aria-label="맨 위로"
+				tabIndex={showButtons ? 0 : -1}
+				aria-hidden={!showButtons}
+			>
+				<FaChevronUp aria-hidden />
 			</ScrollButton>
-			<ScrollButton onClick={handleScrollToBottom} className={showButtons ? 'fade-in' : 'fade-out'}>
-				<FaChevronDown />
+			<ScrollButton
+				onClick={handleScrollToBottom}
+				className={showButtons ? 'fade-in' : 'fade-out'}
+				aria-label="맨 아래로"
+				tabIndex={showButtons ? 0 : -1}
+				aria-hidden={!showButtons}
+			>
+				<FaChevronDown aria-hidden />
 			</ScrollButton>
 		</ScrollButtonsContainer>
 	);

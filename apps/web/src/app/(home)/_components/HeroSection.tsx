@@ -18,8 +18,10 @@ export default function HeroSection() {
 			<div className="content">
 				<div className="left-section">
 					<div className="description">
-						<Title size="small">새로운 AI 구독 서비스</Title>
-						<Title size="large" weight="semiBold">
+						<Title as="p" size="small">
+							새로운 AI 구독 서비스
+						</Title>
+						<Title as="h2" size="large" weight="semiBold">
 							원하는 분야만 골라보는 나만의 뉴스
 						</Title>
 					</div>

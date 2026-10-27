@@ -19,8 +19,13 @@ export default function Layout({ children, contactEmail }: Props) {
 
 	return (
 		<StyledLayout $headerHeight={headerHeight}>
+			<a className="skip-link" href="#main">
+				본문 바로가기
+			</a>
 			<Header />
-			<Content className="content">{children}</Content>
+			<Content id="main" className="content" tabIndex={-1}>
+				{children}
+			</Content>
 			<ScrollButtons />
 			<LoginPopupBridge />
 			<LoginParamNotice />

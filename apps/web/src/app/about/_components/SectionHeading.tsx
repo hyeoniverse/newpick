@@ -15,7 +15,7 @@ interface Props {
 export default function SectionHeading({ label, title, sub, className }: Props) {
 	return (
 		<StyledHeading className={className}>
-			<BorderTitle text={label} className="border-title" />
+			<BorderTitle text={label} className="border-title" as={title ? 'p' : 'h2'} />
 			{title && <h2 className="heading">{title}</h2>}
 			{sub && <p className="sub">{sub}</p>}
 		</StyledHeading>

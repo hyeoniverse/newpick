@@ -124,7 +124,13 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 				{type === 'main' && (
 					<>
 						{data.map((_, index) => (
-							<Button key={index} className="indicator" onClick={() => goToSlide(index)}>
+							<Button
+								key={index}
+								className="indicator"
+								onClick={() => goToSlide(index)}
+								aria-label={`${index + 1}번째 기사`}
+								aria-current={index === currentIndex || undefined}
+							>
 								{index === currentIndex ? <div className="filled" /> : <div className="empty" />}
 							</Button>
 						))}
@@ -134,13 +140,15 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 				<div className="arrow">
 					<Button
 						className="left"
-						icon={<IoIosArrowBack />}
+						icon={<IoIosArrowBack aria-hidden />}
+						aria-label="이전"
 						onClick={() => handleScroll('left')}
 						disabled={type !== 'main' && !canScrollLeft}
 					/>
 					<Button
 						className="right"
-						icon={<IoIosArrowForward />}
+						icon={<IoIosArrowForward aria-hidden />}
+						aria-label="다음"
 						onClick={() => handleScroll('right')}
 						disabled={type !== 'main' && !canScrollRight}
 					/>

@@ -14,6 +14,7 @@ const Drawer = () => {
 		<Dropdown
 			type="drawer"
 			className="drawer"
+			label="메뉴"
 			toggleButton={
 				<StyledDrawerButton>
 					<span></span>
@@ -25,9 +26,9 @@ const Drawer = () => {
 			{!user && <ThemeSwitcher className="item" />}
 			{NAVIGATION.map((item, index) => (
 				<div className="item" key={`drawer-${index}`}>
-					<Button>
-						<Link href={item.link}>{item.title}</Link>
-					</Button>
+					<Link href={item.link}>
+						<Button as="span">{item.title}</Button>
+					</Link>
 				</div>
 			))}
 		</Dropdown>

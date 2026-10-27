@@ -59,7 +59,7 @@ const SubscribeSection = () => {
 	return (
 		<StyledSubscribe>
 			<FullWidthPanel>
-				<Title size="extraLarge" weight="bold" color="background">
+				<Title as="h2" size="extraLarge" weight="bold" color="background">
 					📩 지금 뉴스레터를 시작해보세요
 				</Title>
 			</FullWidthPanel>
@@ -104,7 +104,7 @@ const SubscribeSection = () => {
 				/>
 
 				<div className="subscription-form">
-					<Title size="medium" weight="bold">
+					<Title as="h2" size="medium" weight="bold">
 						주요 분야 빠른 구독하기
 					</Title>
 					<Text size="small">선택한 분야를 이메일로 보내드릴게요.</Text>

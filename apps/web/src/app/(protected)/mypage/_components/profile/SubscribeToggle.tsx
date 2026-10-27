@@ -30,7 +30,8 @@ function SubscribeToggle() {
 			{/*구독 진행 중에 따라 노출 변경 필요*/}
 			{isSubscribed === null ? (
 				<>
-					<div
+					<button
+						type="button"
 						className="not-subscribe"
 						onClick={() =>
 							openModal(
@@ -46,15 +47,23 @@ function SubscribeToggle() {
 							)
 						}
 					>
-						<LuBellOff />
-						<p>구독 상태가 아닙니다.</p>
-					</div>
+						<LuBellOff aria-hidden />
+						<span>구독 상태가 아닙니다.</span>
+					</button>
 				</>
 			) : (
-				<div className={isSubscribed === true ? 'subscribe-on' : 'subscribe-off'} onClick={onToggle}>
-					<ToggleIcon className="svg" $toggle={isSubscribed === true} />
-					<p>{isSubscribed === true ? '구독 진행중' : '구독 일시정지 중'}</p>
-				</div>
+				// 켜고 끄는 스위치: 키보드(Space · Enter)로도 바꾸고, 지금 상태를 화면 읽기 프로그램에 알린다 (#16)
+				<button
+					type="button"
+					role="switch"
+					aria-checked={isSubscribed === true}
+					aria-label="뉴스레터 받기"
+					className={isSubscribed === true ? 'subscribe-on' : 'subscribe-off'}
+					onClick={onToggle}
+				>
+					<ToggleIcon className="svg" $toggle={isSubscribed === true} aria-hidden />
+					<span aria-hidden>{isSubscribed === true ? '구독 진행중' : '구독 일시정지 중'}</span>
+				</button>
 			)}
 		</SubscribeToggleStyled>
 	);
@@ -72,6 +81,8 @@ const SubscribeToggleStyled = styled.div`
 		border-radius: ${({ theme }) => theme.radius.surface};
 		height: 3.875rem;
 		width: 14rem;
+		font-size: inherit;
+		text-align: left;
 		font-weight: ${({ theme }) => theme.fontWeight.medium};
 		cursor: pointer;
 

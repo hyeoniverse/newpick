@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useDropdown } from '@/hooks/useDropdown';
 import styled from 'styled-components';
@@ -10,12 +10,17 @@ interface Props {
 	type: string | string[];
 	children: React.ReactNode;
 	toggleButton?: React.ReactNode;
+	/** 여닫는 버튼의 이름 (화면 읽기 프로그램용). 버튼 안이 그림뿐이라 꼭 준다 */
+	label: string;
 }
 
-const Dropdown = ({ type, children, toggleButton, className }: Props) => {
+/** 버튼으로 여닫는 메뉴. 키보드로도 열고(Enter · Space) Esc로 닫으면 버튼으로 포커스를 돌린다 (#16) */
+const Dropdown = ({ type, children, toggleButton, className, label }: Props) => {
 	const pathname = usePathname();
 	const { isDropdownOpen, closeDropdown, toggleDropdown } = useDropdown(type);
 	const dropdownRef = useRef<HTMLDivElement>(null);
+	const buttonRef = useRef<HTMLButtonElement>(null);
+	const panelId = useId();
 
 	useEffect(() => {
 		closeDropdown();
@@ -36,9 +41,29 @@ const Dropdown = ({ type, children, toggleButton, className }: Props) => {
 		};
 	}, [isDropdownOpen, closeDropdown]);
 
+	// Esc로 닫기
+	useEffect(() => {
+		if (!isDropdownOpen) return;
+		const handleKeydown = (event: KeyboardEvent) => {
+			if (event.key !== 'Escape') return;
+			closeDropdown();
+			buttonRef.current?.focus();
+		};
+		document.addEventListener('keydown', handleKeydown);
+		return () => document.removeEventListener('keydown', handleKeydown);
+	}, [isDropdownOpen, closeDropdown]);
+
 	return (
 		<StyledDropdown ref={dropdownRef} className={`${className}`}>
-			<div className="toggle-button" onClick={toggleDropdown}>
+			<button
+				ref={buttonRef}
+				type="button"
+				className="toggle-button"
+				onClick={toggleDropdown}
+				aria-label={label}
+				aria-expanded={isDropdownOpen}
+				aria-controls={panelId}
+			>
 				{toggleButton &&
 					React.isValidElement(toggleButton) &&
 					(toggleButton.type !== React.Fragment
@@ -46,8 +71,10 @@ const Dropdown = ({ type, children, toggleButton, className }: Props) => {
 								className: isDropdownOpen ? 'open' : '',
 						  })
 						: toggleButton)}
+			</button>
+			<div id={panelId} className={`panel ${isDropdownOpen ? 'open' : ''}`}>
+				{children}
 			</div>
-			<div className={`panel ${isDropdownOpen ? 'open' : ''}`}>{children}</div>
 		</StyledDropdown>
 	);
 };
@@ -58,9 +85,11 @@ const StyledDropdown = styled.div`
 	z-index: 1000;
 
 	.toggle-button {
+		display: block;
 		background: none;
+		border: none;
+		color: inherit;
 		cursor: pointer;
-		outline: none;
 		width: 100%;
 		height: 100%;
 		padding: 0;
@@ -142,6 +171,14 @@ const StyledDropdown = styled.div`
 	}
 
 	&.drawer {
+		.toggle-button {
+			display: none;
+
+			@media ${({ theme }) => theme.mediaQuery.tablet} {
+				display: block;
+			}
+		}
+
 		.panel {
 			visibility: hidden;
 			position: absolute;
@@ -214,7 +251,8 @@ const StyledDropdown = styled.div`
 
 				@media ${({ theme }) => theme.mediaQuery.tablet} {
 					height: fit-content;
-					visibility: visible;
+					/* 닫힌 메뉴의 항목이 탭으로 잡히지 않게, 보임 여부는 panel을 따른다 */
+					visibility: inherit;
 					opacity: 1;
 					transform: scaleY(1);
 				}
