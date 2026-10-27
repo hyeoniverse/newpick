@@ -153,6 +153,27 @@ const StyledSearchFilters = styled.div`
 				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			}
 		}
+
+		/* 좁은 화면: 버튼 · 날짜 칸을 줄여(달력 아이콘 빼고) '직접 지정' 오른쪽 같은 줄에 붙인다 (휴대폰 폭은 날짜 칸만 다음 줄) */
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			> button {
+				padding: 0.375rem 0.5rem;
+			}
+
+			.dates .control {
+				flex-basis: 6.5rem;
+			}
+
+			.dates .calendar-icon {
+				display: none;
+			}
+
+			.dates .date-input {
+				padding: 0 0.5rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				text-align: center;
+			}
+		}
 	}
 
 	/* 자주 나온 태그: 카드 태그와 같은 모양(얇은 테두리 · 진한 회색 · #만 강조색), 고르면 강조색 */
