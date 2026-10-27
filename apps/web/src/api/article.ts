@@ -42,3 +42,11 @@ export const fetchDateNewsletter = async (
 	startDate?: string,
 	endDate?: string,
 ) => apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.DATE(limit, offset, startDate, endDate));
+
+/** 지난 뉴스레터 검색 · 필터 (#20). 쿼리스트링은 utils/newsletterSearch의 toApiQuery */
+export const fetchSearchNewsletters = async (query: string) => {
+	const { data } = await apiFetch<{ data: { items: ArticleDetail[]; total: number } }>(
+		API_ENDPOINTS.NEWSLETTER.SEARCH(query),
+	);
+	return data;
+};

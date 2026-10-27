@@ -13,6 +13,8 @@ import CardSlider from '@/components/common/slider/CardSlider';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { filterByCategories } from '@/utils/queryNewsletters';
+import { isSearching, readFilters, toPageHref } from '@/utils/newsletterSearch';
+import SearchFilters from '@/app/articles/(main)/_components/SearchFilters';
 
 /** 분야 페이지 배너 요약 (page.tsx가 서버에서 계산) */
 export interface CategoryStats {
@@ -40,8 +42,10 @@ interface Props {
 
 export default function HotSection({ trends: initiallData = [], stats }: Props) {
 	const searchParams = useSearchParams();
-	const categoryId = searchParams.get('categoryId'); // Query Parameter 가져오기
-	const categoryName = mapIdToTitle([Number(categoryId)])[0]; // Query Parameter를 카테고리 이름으로 변환
+	const filters = readFilters(searchParams);
+	const categoryName = mapIdToTitle([filters.categoryId])[0]; // Query Parameter를 카테고리 이름으로 변환
+	// 검색어 · 키워드 · 기간으로 찾는 중이면 오늘의 배너 대신 결과만 (#20)
+	const filtering = isSearching(filters) || filters.period !== 'all';
 	const isAll = categoryName === '전체';
 	const category = CATEGORIES.find((c) => c.name === categoryName);
 	let filteredTrends = [...initiallData];
@@ -56,11 +60,12 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 	return (
 		<StyledHotSection $isAll={isAll}>
 			{/* 분야 사이를 바로 옮기는 칩 (헤더 하위 메뉴를 열지 않아도) */}
-			<nav className="category-chips" aria-label="분야">
+			<nav className="category-chips" aria-label="관심사">
 				{CATEGORIES.map((c) => (
 					<Link
 						key={c.id}
-						href={c.id === 0 ? '/articles' : `/articles?categoryId=${c.id}`}
+						// 관심사를 바꿔도 검색어 · 기간 · 정렬은 그대로
+						href={toPageHref({ ...filters, categoryId: c.id })}
 						className="chip"
 						aria-current={c.name === categoryName ? 'page' : undefined}
 					>
@@ -69,79 +74,85 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 				))}
 			</nav>
 
-			<div className="intro">
-				<span className="watermark" aria-hidden>
-					{CATEGORY_ICONS[categoryName]}
-				</span>
-				<Title size="large" weight="semiBold">
-					{categoryName} 뉴스레터
-				</Title>
-				{category?.description && (
-					<Text size="medium" color="subText" className="description">
-						{category.description}을 매일 아침 정리합니다.
-					</Text>
-				)}
-				{/* 요약 줄은 전체·분야 모두 같은 자리에 한 줄 (분야를 바꿔도 높이가 같게) */}
-				<p className="stats">
-					{isAll ? (
-						<>
-							오늘 <strong>{initiallData.length}개 분야</strong> 발행
-						</>
-					) : (
-						<>
-							최근 7일 <strong>{stats?.weekCount ?? 0}편</strong>
-						</>
-					)}
-					{summaryKeywords.length > 0 && (
-						<>
-							{' · 자주 나온 키워드 '}
-							{summaryKeywords.map((k) => (
-								<span key={k} className="keyword">
-									#{k}
-								</span>
-							))}
-						</>
-					)}
-				</p>
-			</div>
-			<hr />
-			{/* 화면 폭 전체의 옅은 강조색 띠(::before) 위에 오늘의 톱 카드(흰 카드·그림자)를 올려 한 단계 떠 보이게 */}
-			<div className="stage">
-				<h2 className="stage-head">
-					<span className="label">TODAY</span>
-					<Text size="small" color="subText" className="today">
-						{todayLabel()} · 오늘의 {isAll ? '톱' : categoryName} 뉴스레터
-					</Text>
-				</h2>
-				<CardSlider
-					className="card-slider"
-					type="main"
-					data={filteredTrends.map((trend) => ({
-						id: trend.id,
-						image: trend.image,
-						// 분야 페이지는 제목에 이미 분야가 있어, 같은 자리에 소식 수를 둔다 (높이 유지)
-						header: isAll ? trend.categoryName : `소식 ${trend.stories?.length || 1}개`,
-						main: {
-							title: trend.title,
-							// 부제목이 있으면 본문 앞부분 대신 (#42)
-							description: trend.subtitle || trend.summary,
-							tags: trend.keywords,
-							// 이 뉴스레터에 담긴 소식 (전체·분야 같은 모양)
-							points: trend.stories,
-						},
-						footer: (
-							<>
-								<Text color="subText">{trend.date}</Text>
-								<Text color="subText">|&nbsp;&nbsp;조회수 {trend.views}</Text>
-								<div className="right">
-									<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
-								</div>
-							</>
-						),
-						url: `/articles/detail/${trend.id}`,
-					}))}
-				/>
-			</div>
+			<SearchFilters />
+
+			{!filtering && (
+				<>
+					<div className="intro">
+						<span className="watermark" aria-hidden>
+							{CATEGORY_ICONS[categoryName]}
+						</span>
+						<Title size="large" weight="semiBold">
+							{categoryName} 뉴스레터
+						</Title>
+						{category?.description && (
+							<Text size="medium" color="subText" className="description">
+								{category.description}을 매일 아침 정리합니다.
+							</Text>
+						)}
+						{/* 요약 줄은 전체·분야 모두 같은 자리에 한 줄 (분야를 바꿔도 높이가 같게) */}
+						<p className="stats">
+							{isAll ? (
+								<>
+									오늘 <strong>{initiallData.length}개 분야</strong> 발행
+								</>
+							) : (
+								<>
+									최근 7일 <strong>{stats?.weekCount ?? 0}편</strong>
+								</>
+							)}
+							{summaryKeywords.length > 0 && (
+								<>
+									{' · 자주 나온 키워드 '}
+									{summaryKeywords.map((k) => (
+										<Link key={k} href={toPageHref({ ...filters, keyword: k })} className="keyword">
+											#{k}
+										</Link>
+									))}
+								</>
+							)}
+						</p>
+					</div>
+					<hr />
+					{/* 화면 폭 전체의 옅은 강조색 띠(::before) 위에 오늘의 톱 카드(흰 카드·그림자)를 올려 한 단계 떠 보이게 */}
+					<div className="stage">
+						<h2 className="stage-head">
+							<span className="label">TODAY</span>
+							<Text size="small" color="subText" className="today">
+								{todayLabel()} · 오늘의 {isAll ? '톱' : categoryName} 뉴스레터
+							</Text>
+						</h2>
+						<CardSlider
+							className="card-slider"
+							type="main"
+							data={filteredTrends.map((trend) => ({
+								id: trend.id,
+								image: trend.image,
+								// 분야 페이지는 제목에 이미 분야가 있어, 같은 자리에 소식 수를 둔다 (높이 유지)
+								header: isAll ? trend.categoryName : `소식 ${trend.stories?.length || 1}개`,
+								main: {
+									title: trend.title,
+									// 부제목이 있으면 본문 앞부분 대신 (#42)
+									description: trend.subtitle || trend.summary,
+									tags: trend.keywords,
+									// 이 뉴스레터에 담긴 소식 (전체·분야 같은 모양)
+									points: trend.stories,
+								},
+								footer: (
+									<>
+										<Text color="subText">{trend.date}</Text>
+										<Text color="subText">|&nbsp;&nbsp;조회수 {trend.views}</Text>
+										<div className="right">
+											<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
+										</div>
+									</>
+								),
+								url: `/articles/detail/${trend.id}`,
+							}))}
+						/>
+					</div>
+				</>
+			)}
 		</StyledHotSection>
 	);
 }

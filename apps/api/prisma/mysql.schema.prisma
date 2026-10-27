@@ -74,6 +74,8 @@ model Newsletter {
   bookmarks Bookmark[]
   archives  EmailArchive[]
 
+  /// 지난 뉴스레터 검색 (#20). 실제 인덱스는 한국어를 2글자씩 나누는 ngram 파서로 만든다(마이그레이션 SQL)
+  @@fulltext([title, subtitle, content], map: "newsletters_search_idx")
   @@map("newsletters")
 }
 

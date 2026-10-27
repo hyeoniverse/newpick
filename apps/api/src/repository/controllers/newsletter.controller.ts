@@ -16,7 +16,10 @@ import {
   NewsletterTrendDto,
   NewsletterCategoryDto,
   NewsletterRandomDto,
+  NewsletterSearchDto,
 } from './newsletter.dto';
+import { toBooleanQuery } from '../search/search-terms';
+import { kstDayRange } from '../../common/kst';
 import dayjs from 'dayjs';
 import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
 import { AppException } from '../../common/errors/app.exception';
@@ -86,6 +89,47 @@ export class BasicRepositoryController {
         ),
       };
     }
+  }
+
+  /**
+   * 지난 뉴스레터 검색 · 필터 (#20). 검색어 · 키워드 · 관심사 · 기간 · 정렬, 페이지와 전체 건수.
+   * 조건이 하나도 없으면 전체 목록(최신순)과 같다
+   */
+  @Public()
+  @Get('search')
+  async searchNewsletters(@Query() query: NewsletterSearchDto) {
+    const booleanQuery = query.q ? toBooleanQuery(query.q) : null;
+    if (query.q && !booleanQuery) {
+      throw new AppException(
+        'BAD_REQUEST',
+        '검색어는 2글자 이상인 낱말로 입력해 주세요.',
+      );
+    }
+    const from = query.from
+      ? kstDayRange(query.from, query.from).start
+      : undefined;
+    const to = query.to ? kstDayRange(query.to, query.to).end : undefined;
+    if (from && to && from > to) {
+      throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦어요.');
+    }
+
+    const limit = query.limit ?? 10;
+    const offset = query.offset ?? 0;
+    const { items, total } = await this.newsletterRepo.searchNewsletters({
+      booleanQuery,
+      keyword: query.keyword,
+      categoryId: query.categoryId,
+      from,
+      to,
+      sort: query.sort ?? 'latest',
+      limit,
+      offset,
+    });
+
+    return {
+      message: '뉴스레터 검색 성공',
+      data: { items, total, limit, offset },
+    };
   }
 
   /**

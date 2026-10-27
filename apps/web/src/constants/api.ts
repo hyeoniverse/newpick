@@ -51,6 +51,8 @@ export const API_ENDPOINTS = {
 				: `${API_URL}/newsletters?limit=${limit}&offset=${offset}`,
 		CATEGORY: (category: number, limit: number, offset: number) =>
 			`${API_URL}/newsletters/category/${category}?limit=${limit}&offset=${offset}`,
+		/** 지난 뉴스레터 검색 · 필터 (#20). 쿼리스트링은 utils/newsletterSearch가 만든다 */
+		SEARCH: (query: string) => `${API_URL}/newsletters/search${query ? `?${query}` : ''}`,
 		TRENDS: (category?: number) => `${API_URL}/newsletters/trends` + (category ? `?categoryId=${category}` : ''),
 		POPULAR: (limit: number, offset: number, trend: boolean) =>
 			`${API_URL}/newsletters?limit=${limit}&offset=${offset}&trend=${trend}`,

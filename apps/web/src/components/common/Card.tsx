@@ -9,12 +9,15 @@ import Text from '@/components/common/Text';
 import Image from '@/components/common/Image';
 import Tags from '@/components/common/Tags';
 import ExternalLink from '@/components/common/ExternalLink';
+import Highlight from '@/components/common/Highlight';
 
 interface Props {
 	className?: string;
 	type?: 'main' | 'sub' | 'list';
 	data: ICard;
 	newTab?: boolean;
+	/** 검색 결과 목록: 제목 · 설명에서 이 검색어를 강조 (#20) */
+	highlight?: string;
 }
 
 /** 새 탭이면 사이트 밖 링크(관련 뉴스의 언론사 기사)라 ExternalLink, 아니면 사이트 안 이동 */
@@ -28,7 +31,7 @@ function CardLink({ href, newTab, children }: { href: string; newTab: boolean; c
 	);
 }
 
-const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data, newTab = false }, ref) => {
+const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data, newTab = false, highlight }, ref) => {
 	const { image, header, main, footer, url } = data;
 
 	return (
@@ -128,12 +131,12 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 									<div className="left">
 										{main.title && (
 											<Text className="title" size="medium" weight="semiBold">
-												{main.title}
+												<Highlight text={main.title} query={highlight} />
 											</Text>
 										)}
 										{main.description && (
 											<Text className="description" size="small">
-												{main.description}
+												<Highlight text={main.description} query={highlight} />
 											</Text>
 										)}
 										<Tags tags={main.tags} max={4} className="tags" />
@@ -164,6 +167,14 @@ interface StyledProps {
 }
 
 const StyledCard = styled.div<StyledProps>`
+	/* 검색어 강조 (#20): 강조색 옅은 배경, 글자는 그대로 */
+	mark {
+		padding: 0 0.125rem;
+		border-radius: 2px;
+		background: ${({ theme }) => theme.color.tertiary};
+		color: ${({ theme }) => theme.color.primary};
+	}
+
 	width: 100%;
 	display: flex;
 	flex-direction: column;

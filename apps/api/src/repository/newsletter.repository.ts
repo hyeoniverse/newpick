@@ -71,6 +71,61 @@ export class NewsletterRepo {
     }
   }
 
+  /**
+   * 지난 뉴스레터 검색 (#20). 조건을 모두 만족하는 것만, 페이지와 전체 건수를 함께 돌려준다.
+   * 검색어는 FULLTEXT(ngram) 불린 모드, 키워드는 JSON 배열에 정확히 같은 값, 기간은 KST 날짜 경계
+   */
+  async searchNewsletters(params: {
+    booleanQuery: string | null;
+    keyword?: string;
+    categoryId?: number;
+    from?: Date;
+    to?: Date;
+    sort: 'latest' | 'popular';
+    limit: number;
+    offset: number;
+  }) {
+    const conditions: Prisma.Sql[] = [];
+    if (params.booleanQuery) {
+      conditions.push(
+        Prisma.sql`MATCH(title, subtitle, content) AGAINST (${params.booleanQuery} IN BOOLEAN MODE)`,
+      );
+    }
+    if (params.keyword) {
+      conditions.push(
+        Prisma.sql`JSON_CONTAINS(keywords, JSON_QUOTE(${params.keyword}))`,
+      );
+    }
+    if (params.categoryId) {
+      conditions.push(Prisma.sql`categoryId = ${params.categoryId}`);
+    }
+    if (params.from) conditions.push(Prisma.sql`createdAt >= ${params.from}`);
+    if (params.to) conditions.push(Prisma.sql`createdAt <= ${params.to}`);
+
+    const where = conditions.length
+      ? Prisma.sql`WHERE ${Prisma.join(conditions, ' AND ')}`
+      : Prisma.empty;
+    const orderBy =
+      params.sort === 'popular'
+        ? Prisma.sql`ORDER BY viewcount DESC, createdAt DESC, id DESC`
+        : Prisma.sql`ORDER BY createdAt DESC, id DESC`;
+
+    const [items, counts] = await Promise.all([
+      // 목록 카드에는 본문 앞부분만 쓰므로 400자만 (LongText 전체를 보내지 않음)
+      this.prisma.$queryRaw<
+        Array<Omit<Newsletter, 'contentAsHTML' | 'usedNews'>>
+      >`SELECT id, title, subtitle, keywords, imageUrl, categoryId, viewcount, createdAt,
+               LEFT(content, 400) AS content
+        FROM newsletters ${where} ${orderBy}
+        LIMIT ${params.limit} OFFSET ${params.offset}`,
+      this.prisma.$queryRaw<
+        Array<{ total: bigint }>
+      >`SELECT COUNT(*) AS total FROM newsletters ${where}`,
+    ]);
+
+    return { items, total: Number(counts[0]?.total ?? 0) };
+  }
+
   async getNewsletterById(id: number) {
     return this.prisma.newsletter.findUnique({
       where: { id },
