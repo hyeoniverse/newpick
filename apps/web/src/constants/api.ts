@@ -19,6 +19,12 @@ export const API_ENDPOINTS = {
 	ADMIN: {
 		/** 사이트 캐시 비우기 (#73) */
 		SITE_CACHE_REFRESH: () => `${API_URL}/admin/site-cache/refresh`,
+		/** 관리자 대시보드: 스케줄러 · 수집 · 발행 · AI 요약 기록 · 발송 (#21) */
+		DASHBOARD: () => `${API_URL}/scheduler/dashboard`,
+		/** 스케줄러 켜기 · 끄기 (본문 { enable }) */
+		TOGGLE: (job: 'crawling' | 'ai-summary' | 'mail-send') => `${API_URL}/scheduler/toggle/${job}`,
+		/** 지금 실행 (응답은 바로 오고 작업은 서버에서 계속) */
+		RUN_NOW: (job: 'crawling' | 'ai-summary' | 'mail-send') => `${API_URL}/scheduler/manual/${job}`,
 	},
 	MY: {
 		PROFILE: () => `${API_URL}/mypage/profile`,

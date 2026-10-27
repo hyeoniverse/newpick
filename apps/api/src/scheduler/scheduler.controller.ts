@@ -7,6 +7,7 @@ import { MailService } from '../mail/mail.service';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
+import { DashboardService } from './dashboard.service';
 
 @AdminOnly()
 @Controller('scheduler')
@@ -17,7 +18,17 @@ export class SchedulerController {
     private readonly logger: Logger,
     private readonly mailService: MailService,
     private readonly newsletterRepository: NewsletterRepo,
+    private readonly dashboardService: DashboardService,
   ) {}
+
+  /** 관리자 대시보드: 스케줄러 · 오늘 수집 · 발행 · AI 요약 기록 · 발송을 한 번에 (#21) */
+  @Get('dashboard')
+  async getDashboard() {
+    return {
+      message: '대시보드 조회 성공',
+      data: await this.dashboardService.getDashboard(),
+    };
+  }
 
   @Post('toggle/crawling')
   toggleCrawling(@Body() data: ToggleDto) {

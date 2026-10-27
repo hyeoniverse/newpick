@@ -11,6 +11,7 @@ import AdminGate from '@/components/common/auth/AdminGate';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
+import Dashboard from '@/app/(protected)/admin/_components/Dashboard';
 
 /** 마지막으로 비운 시각을 '오후 3:04:12'처럼 */
 const timeText = (iso: string) => new Date(iso).toLocaleTimeString('ko-KR');
@@ -58,12 +59,13 @@ function SiteCacheTool() {
 	);
 }
 
-/** 관리자 첫 화면: 운영 도구 목록. 마이페이지와 같은 틀(제목 한 줄 · 구분선으로 나눈 줄 · 작은 버튼) */
+/** 관리자 첫 화면: 대시보드(#21) + 운영 도구 목록. 마이페이지와 같은 틀(제목 한 줄 · 구분선으로 나눈 줄 · 작은 버튼) */
 export default function AdminHome() {
 	return (
 		<AdminGate>
 			<div className={styles.page}>
 				<Title size="extraSmall">관리자</Title>
+				<Dashboard />
 				<SiteCacheTool />
 				<StyledTool>
 					<div>

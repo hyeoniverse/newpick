@@ -18,6 +18,28 @@ import { SiteCacheService } from 'src/site-cache/site-cache.service';
 const MAIL_CYCLE_CONFIG_ID = 1;
 const MAIL_JOB_NAME = 'sendNewsletter';
 
+export type JobName = 'crawling' | 'summary' | 'mail';
+
+/**
+ * 작업의 마지막 실행 (#21 관리자 대시보드). 서버 메모리에만 두므로 재시작하면 비어 있다.
+ * success: 다 됨, partial: 일부 실패, failed: 실패, skipped: 꺼져 있거나 할 일이 없어 건너뜀
+ */
+export interface JobRun {
+  running: boolean;
+  startedAt: string | null;
+  finishedAt: string | null;
+  status: 'success' | 'partial' | 'failed' | 'skipped' | null;
+  message: string | null;
+}
+
+const emptyRun = (): JobRun => ({
+  running: false,
+  startedAt: null,
+  finishedAt: null,
+  status: null,
+  message: null,
+});
+
 @Injectable()
 export class SchedulerService implements OnApplicationBootstrap {
   private isCrawlingEnabled = true;
@@ -25,6 +47,11 @@ export class SchedulerService implements OnApplicationBootstrap {
   private isMailSendEnabled = true;
   /** 진행 중인 뉴스레터 생성. 메일 발송은 이것이 끝나기를 기다린다 (#55) */
   private summaryRun: Promise<void> | null = null;
+  private readonly runs: Record<JobName, JobRun> = {
+    crawling: emptyRun(),
+    summary: emptyRun(),
+    mail: emptyRun(),
+  };
   constructor(
     private readonly logger: Logger,
     private readonly mailService: MailService,
@@ -71,11 +98,23 @@ export class SchedulerService implements OnApplicationBootstrap {
   async startCrawling() {
     if (!this.isCrawlingEnabled) {
       this.logger.log('크롤링 스케줄러가 비활성화되었습니다.');
+      this.finishRun('crawling', 'skipped', '스케줄러가 꺼져 있어 건너뜀');
       return;
     }
 
     this.logger.debug(`크롤링 스케줄러가 활성화되었습니다.`);
-    await this.crawlingService.crawling();
+    this.startRun('crawling');
+    try {
+      const created = await this.crawlingService.crawling();
+      this.finishRun(
+        'crawling',
+        'success',
+        `기사 ${created?.length ?? 0}건 수집`,
+      );
+    } catch (error) {
+      this.finishRun('crawling', 'failed', error.message);
+      throw error;
+    }
   }
   // ai 요약 스케줄러
   @Cron(CronExpression.EVERY_DAY_AT_830AM, {
@@ -96,8 +135,10 @@ export class SchedulerService implements OnApplicationBootstrap {
 
     if (!this.isAiSummaryEnabled) {
       this.logger.log('ai 요약 스케줄러가 비활성화되었습니다.');
+      this.finishRun('summary', 'skipped', '스케줄러가 꺼져 있어 건너뜀');
       return;
     }
+    this.startRun('summary');
 
     try {
       const categoryList = await this.categoryRepository.findAll();
@@ -140,6 +181,19 @@ export class SchedulerService implements OnApplicationBootstrap {
       if (failedCategories.length) {
         this.logger.error(`요약 실패 카테고리: ${failedCategories.join(', ')}`);
       }
+      const made = `뉴스레터 ${generatedNewsletter.length}편 생성`;
+      const failed = failedCategories.length
+        ? ` · 실패: ${failedCategories.join(', ')}`
+        : '';
+      this.finishRun(
+        'summary',
+        failedCategories.length === 0
+          ? 'success'
+          : generatedNewsletter.length > 0
+            ? 'partial'
+            : 'failed',
+        made + failed,
+      );
 
       // 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
       await this.editionService.ensureEdition();
@@ -163,6 +217,8 @@ export class SchedulerService implements OnApplicationBootstrap {
       }
     } catch (error) {
       this.logger.error(`AI 요약 실패: ${error.message}`);
+      // 뉴스레터는 이미 만들어졌고 뒤의 편집 · 캐시 · 알림에서 실패했을 수도 있어 실패로 덮어쓴다
+      this.finishRun('summary', 'failed', error.message);
     }
   }
   // @Cron(CronExpression.EVERY_5_SECONDS)
@@ -182,8 +238,19 @@ export class SchedulerService implements OnApplicationBootstrap {
   async sendEmailSummary() {
     if (!this.isMailSendEnabled) {
       this.logger.log('메일 발송 스케줄러가 비활성화되었습니다.');
+      this.finishRun('mail', 'skipped', '스케줄러가 꺼져 있어 건너뜀');
       return;
     }
+    this.startRun('mail');
+    try {
+      await this.sendEditionToSubscribers();
+    } catch (error) {
+      this.finishRun('mail', 'failed', error.message);
+      throw error;
+    }
+  }
+
+  private async sendEditionToSubscribers() {
     // 생성이 늦어지면 끝난 뒤에 보낸다 (빠진 분야 없이)
     if (this.summaryRun) {
       this.logger.log('뉴스레터 생성이 끝나기를 기다립니다.');
@@ -196,6 +263,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     // cron 안에서 예외를 던지면 받는 곳이 없으므로 로그만 남깁니다.
     if (subscribers.length === 0) {
       this.logger.warn('구독자가 없습니다.');
+      this.finishRun('mail', 'skipped', '구독자 없음');
       return;
     }
 
@@ -206,6 +274,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 
     if (validSubscribers.length === 0) {
       this.logger.warn('관심사가 설정된 구독자가 없습니다.');
+      this.finishRun('mail', 'skipped', '관심사를 고른 구독자 없음');
       return;
     }
 
@@ -213,6 +282,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     const edition = await this.editionService.ensureEdition();
     if (!edition) {
       this.logger.warn('오늘 나온 뉴스레터가 없어 메일을 보내지 않습니다.');
+      this.finishRun('mail', 'skipped', '오늘 나온 뉴스레터 없음');
       return;
     }
 
@@ -234,6 +304,15 @@ export class SchedulerService implements OnApplicationBootstrap {
 
     this.logger.log(
       `발송 결과 ${result.success}건 성공, ${result.failed}건 실패, ${result.skipped}건 해당 없음`,
+    );
+    this.finishRun(
+      'mail',
+      result.failed === 0
+        ? 'success'
+        : result.success > 0
+          ? 'partial'
+          : 'failed',
+      `성공 ${result.success} · 실패 ${result.failed} · 해당 없음 ${result.skipped}`,
     );
   }
 
@@ -258,6 +337,36 @@ export class SchedulerService implements OnApplicationBootstrap {
       aiSummary: this.isAiSummaryEnabled,
       mailing: this.isMailSendEnabled,
       mailSendCycle: this.getMailSendCycle(),
+      runs: this.getRuns(),
+    };
+  }
+
+  /** 작업별 마지막 실행 (복사본) */
+  getRuns(): Record<JobName, JobRun> {
+    return {
+      crawling: { ...this.runs.crawling },
+      summary: { ...this.runs.summary },
+      mail: { ...this.runs.mail },
+    };
+  }
+
+  private startRun(name: JobName) {
+    this.runs[name] = {
+      ...emptyRun(),
+      running: true,
+      startedAt: new Date().toISOString(),
+    };
+  }
+
+  private finishRun(name: JobName, status: JobRun['status'], message: string) {
+    const run = this.runs[name];
+    this.runs[name] = {
+      running: false,
+      // 꺼져 있어 바로 건너뛴 경우는 시작 시각도 지금
+      startedAt: run.running ? run.startedAt : new Date().toISOString(),
+      finishedAt: new Date().toISOString(),
+      status,
+      message,
     };
   }
 
