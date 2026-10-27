@@ -62,10 +62,34 @@ export const GlobalStyle = createGlobalStyle`
       button {
           border: none;
           background-color: transparent;
-
-          &:focus {
-              outline: none;
-          }
       }
+    }
+
+    /* 키보드로 옮겨 다닐 때만 보이는 포커스 테두리 (#16). 마우스로 누를 때는 보이지 않는다 */
+    :focus-visible {
+        outline: 2px solid ${({ theme }) => theme.color.primary};
+        outline-offset: 2px;
+    }
+
+    :focus:not(:focus-visible) {
+        outline: none;
+    }
+
+    /* 본문 바로가기: 평소엔 숨기고 Tab을 처음 누르면 왼쪽 위에 보인다 */
+    .skip-link {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        z-index: 10000;
+        padding: 0.625rem 1rem;
+        border-radius: ${({ theme }) => theme.radius.surface};
+        background: ${({ theme }) => theme.color.primary};
+        color: #ffffff;
+        font-weight: 600;
+        transform: translateY(-200%);
+
+        &:focus-visible {
+            transform: none;
+        }
     }
 `;

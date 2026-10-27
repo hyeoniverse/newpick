@@ -14,6 +14,9 @@ const DRAG_CLOSE_RATIO = 0.25;
 const DRAG_CLOSE_MIN = 80;
 const DRAG_CLOSE_VELOCITY = 0.5; // px/ms
 
+/** 시트 안에서 Tab으로 옮겨 다닐 수 있는 것들 */
+const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 /**
  * 모든 모달은 화면 아래에서 올라오는 시트다 (#52).
  * 닫기: 핸들 끌어 내리기·핸들 탭(키보드 포함)·Esc·바깥 누르기. 열려 있는 동안 뒤 화면은 스크롤되지 않는다
@@ -86,6 +89,23 @@ function Modal({ onClose }: Props) {
 		(e: KeyboardEvent) => {
 			if (e.key === 'Escape') {
 				handleClose();
+				return;
+			}
+			// Tab이 시트 밖(뒤 화면)으로 나가지 않게 처음 ↔ 끝을 잇는다 (#16)
+			if (e.key !== 'Tab' || !modalRef.current) return;
+			const focusables = [...modalRef.current.querySelectorAll<HTMLElement>(FOCUSABLE)].filter(
+				(el) => el.getClientRects().length > 0,
+			);
+			if (focusables.length === 0) return;
+			const first = focusables[0];
+			const last = focusables[focusables.length - 1];
+			const active = document.activeElement;
+			if (e.shiftKey && (active === first || active === modalRef.current)) {
+				e.preventDefault();
+				last.focus();
+			} else if (!e.shiftKey && (active === last || !modalRef.current.contains(active))) {
+				e.preventDefault();
+				first.focus();
 			}
 		},
 		[handleClose],
@@ -107,6 +127,12 @@ function Modal({ onClose }: Props) {
 		window.addEventListener('keydown', handleKeydown);
 		// 포커스를 옮길 때 페이지가 스크롤되지 않게
 		modalRef.current?.focus({ preventScroll: true });
+		// 시트 안의 첫 제목을 시트의 이름으로 (화면 읽기 프로그램이 '대화상자, ○○'로 읽는다)
+		const heading = modalRef.current?.querySelector<HTMLElement>('h1, h2, h3');
+		if (heading && modalRef.current) {
+			heading.id ||= 'modal-title';
+			modalRef.current.setAttribute('aria-labelledby', heading.id);
+		}
 
 		// 뒤 화면 스크롤 막기. body만 잠근다: html까지 잠그면 페이지가 맨 위로 튄다.
 		// 스크롤바가 사라지며 화면이 옆으로 밀리지 않게 그 폭만큼 여백을 준다

@@ -10,8 +10,8 @@ interface Props {
 
 const Logo = ({ logoType }: Props) => {
 	return (
-		<Link href="/">
-			<StyledLogo>
+		<Link href="/" aria-label="뉴픽 홈">
+			<StyledLogo aria-hidden>
 				<PCLogo className={logoType === 'footer-logo' ? 'footer-desktop-logo' : 'desktop-logo'} />
 				<MoLogo className={logoType === 'footer-logo' ? 'footer-mobile-logo' : 'mobile-logo'} />
 			</StyledLogo>

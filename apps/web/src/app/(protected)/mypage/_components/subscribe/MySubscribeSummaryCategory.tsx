@@ -45,7 +45,7 @@ function MySummaryCategory() {
 										<IoIosArrowForward />
 									</Link>
 									<Link href={`/articles/detail/${article.id}`} className="title-section">
-										<h3 className="title-text">{article.title}</h3>
+										<h2 className="title-text">{article.title}</h2>
 									</Link>
 								</div>
 								<div className="bottom">
@@ -59,7 +59,7 @@ function MySummaryCategory() {
 											{/* <OrigLinkIcon /> */}
 										</div>
 									</div>
-									<SummaryTextBox flex={3}>{article.summary}</SummaryTextBox>
+									<SummaryTextBox flex={3} headingAs="h3">{article.summary}</SummaryTextBox>
 								</div>
 								<BarWidth width={'100%'} className="bar" />
 							</div>

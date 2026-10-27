@@ -16,7 +16,7 @@ const Navigation = () => {
 				{NAVIGATION.map((item) => (
 					<li key={item.id} className={pathname.startsWith(item.link) ? 'current' : undefined}>
 						<Link href={item.link} aria-current={pathname.startsWith(item.link) ? 'page' : undefined}>
-							<Button>{item.title}</Button>
+							<Button as="span">{item.title}</Button>
 						</Link>
 					</li>
 				))}

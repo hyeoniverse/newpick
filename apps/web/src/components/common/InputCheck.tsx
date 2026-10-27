@@ -56,8 +56,9 @@ const StyledInputCheck = styled.label<StyleProps>`
 
 	input {
 		display: block;
-		width: ${({ $size, theme }) => ($size ? theme.fontSize[$size] : theme.fontSize.large)};
-		height: ${({ $size, theme }) => ($size ? theme.fontSize[$size] : theme.fontSize.large)};
+		/* 기본 24px: 손가락으로 누르기 충분한 크기 (#16) */
+		width: ${({ $size, theme }) => ($size ? theme.fontSize[$size] : '1.5rem')};
+		height: ${({ $size, theme }) => ($size ? theme.fontSize[$size] : '1.5rem')};
 		margin: 0;
 		appearance: none;
 		cursor: pointer;

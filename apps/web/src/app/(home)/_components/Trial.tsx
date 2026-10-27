@@ -41,7 +41,7 @@ export default function Trial() {
 	return (
 		<StyledTrial>
 			<div className="header">
-				<Title size="small" weight="bold">
+				<Title as="h2" size="small" weight="bold">
 					내 뉴스레터 미리보기
 				</Title>
 				<Text size="small" color="subText">

@@ -53,7 +53,7 @@ const BannerSlider = ({ banners }: Props) => {
 						</div>
 						<div className="overlay">
 							<div className="content">
-								<h1>{item.title}</h1>
+								<h2>{item.title}</h2>
 								<p>{item.description}</p>
 							</div>
 						</div>
@@ -62,16 +62,22 @@ const BannerSlider = ({ banners }: Props) => {
 			</div>
 			<div className="controls">
 				{banners.map((_, index) => (
-					<Button key={index} className="indicator" onClick={() => goToSlide(index)}>
+					<Button
+						key={index}
+						className="indicator"
+						onClick={() => goToSlide(index)}
+						aria-label={`${index + 1}번째 배너`}
+						aria-current={index === currentIndex || undefined}
+					>
 						{index === currentIndex ? <div className="filled" /> : <div className="empty" />}
 					</Button>
 				))}
 				<div className="arrow">
-					<Button onClick={goToPrevious}>
-						<IoIosArrowBack />
+					<Button onClick={goToPrevious} aria-label="이전 배너">
+						<IoIosArrowBack aria-hidden />
 					</Button>
-					<Button onClick={goToNext}>
-						<IoIosArrowForward />
+					<Button onClick={goToNext} aria-label="다음 배너">
+						<IoIosArrowForward aria-hidden />
 					</Button>
 				</div>
 			</div>
@@ -140,7 +146,7 @@ const StyledSlider = styled.div`
 				justify-content: flex-end;
 				align-items: flex-start;
 
-				h1 {
+				h2 {
 					font-size: ${({ theme }) => theme.heading.medium};
 					color: white;
 					text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
