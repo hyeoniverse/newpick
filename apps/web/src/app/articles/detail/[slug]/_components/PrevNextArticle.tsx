@@ -65,8 +65,6 @@ function PrevNextArticle({ className, prev, next }: Props) {
 						{text}
 						{icon}
 					</span>
-					{/* 사진 자리를 비워 두어 글이 있는 줄과 높이를 같게 */}
-					<div className="img blank" aria-hidden />
 					<div className="text-section">
 						<p className="title">{title}</p>
 						<p className="date">{date}</p>
@@ -89,13 +87,16 @@ function PrevNextArticle({ className, prev, next }: Props) {
 const PrevNextArticleStyled = styled.section`
 	border-top: 1px solid ${({ theme }) => theme.color.border};
 
+	/* 두 줄 높이를 늘 같게: 글이 없는 줄도 글이 있는 줄만큼 */
 	ul {
+		display: grid;
+		grid-auto-rows: 1fr;
+
 		li.prev-next {
 			display: flex;
 			flex-direction: row;
 			gap: 1.5rem;
 			align-items: center;
-			height: fit-content;
 			border-bottom: 1px solid ${({ theme }) => theme.color.border};
 			padding: 2.5rem 0;
 
@@ -122,9 +123,6 @@ const PrevNextArticleStyled = styled.section`
 					overflow: hidden;
 					border-radius: ${({ theme }) => theme.radius.surface};
 
-					&.blank {
-						aspect-ratio: 16 / 9;
-					}
 				}
 
 				.text-section {
@@ -147,8 +145,6 @@ const PrevNextArticleStyled = styled.section`
 					.date {
 						color: ${({ theme }) => theme.color.lightGrey};
 						font-size: ${({ theme }) => theme.fontSize.extraSmall};
-						/* 글이 없어 날짜가 비어도 한 줄 높이를 지킨다 */
-						min-height: 1.5em;
 					}
 				}
 			}
@@ -161,8 +157,21 @@ const PrevNextArticleStyled = styled.section`
 			&.disabled {
 				pointer-events: none;
 
+				/* 안내 문구는 남은 자리 가운데에 */
+				.text-section {
+					align-self: stretch;
+					display: flex;
+					align-items: center;
+					justify-content: center;
+				}
+
 				.title {
+					margin: 0;
 					color: ${({ theme }) => theme.color.lightGrey};
+				}
+
+				.date {
+					display: none;
 				}
 			}
 		}
@@ -170,8 +179,6 @@ const PrevNextArticleStyled = styled.section`
 
 	@media screen and ${({ theme }) => theme.mediaQuery.tablet} {
 		ul {
-			display: flex;
-			flex-direction: column;
 
 			li.prev-next {
 				padding: 1.5rem 0;
