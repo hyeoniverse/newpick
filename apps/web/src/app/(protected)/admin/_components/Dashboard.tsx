@@ -115,7 +115,12 @@ export default function Dashboard() {
 				method: 'POST',
 				body: { enable },
 			});
-			showToast(`${JOBS[job].label}을 ${enable ? '켰습니다' : '껐습니다'}. 서버를 다시 시작하면 켜진 상태로 돌아갑니다.`, 'info');
+			showToast(
+				enable
+					? `${JOBS[job].label}을 켰습니다.`
+					: `${JOBS[job].label}을 껐습니다. 서버를 다시 시작하면 다시 켜집니다.`,
+				'info',
+			);
 			refresh();
 		} catch (error) {
 			showToast(error instanceof ApiError ? error.message : '바꾸지 못했습니다.', 'error');
