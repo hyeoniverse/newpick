@@ -4,7 +4,11 @@ import Link from 'next/link';
 import styled from 'styled-components';
 import { IoArrowUp, IoArrowDown } from 'react-icons/io5';
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
+import { DEFAULT_IMAGES } from '@/constants/images';
 import { dateFormatter } from '@/utils/formatter';
+import { getFirstImage } from '@/utils/getFirstImage';
+import { mapIdToTitle } from '@/utils/mapInterests';
+import Image from '@/components/common/Image';
 
 interface Props {
 	className?: string;
@@ -18,7 +22,7 @@ const ROWS = {
 } as const;
 
 /**
- * 이전 · 다음 뉴스레터. 신문 목록처럼 얇은 선 사이 두 줄: 꼬리표 · 제목 · 날짜.
+ * 이전 · 다음 뉴스레터. 신문 목록처럼 얇은 선 사이 두 줄: 꼬리표 · 사진 · 관심사와 제목 · 날짜.
  * 줄 전체가 링크이고, 없는 쪽은 흐린 글씨로 안내만
  */
 function PrevNextArticle({ className, prev, next }: Props) {
@@ -40,11 +44,18 @@ function PrevNextArticle({ className, prev, next }: Props) {
 			);
 		}
 
+		const image = (article.imageUrl && getFirstImage(article.imageUrl)) || DEFAULT_IMAGES.MONO;
 		return (
 			<li className="row">
 				<Link href={`/articles/detail/${article.id}`} className="link" aria-label={`${name}: ${article.title}`}>
 					{tag}
-					<span className="title">{article.title}</span>
+					<span className="photo">
+						<Image src={image} alt="" ratio="wide" priority={false} />
+					</span>
+					<span className="text">
+						<span className="category">{mapIdToTitle([article.categoryId])[0]}</span>
+						<span className="title">{article.title}</span>
+					</span>
 					<span className="date">{dateFormatter(article.createdAt)}</span>
 				</Link>
 			</li>
@@ -85,15 +96,47 @@ const PrevNextArticleStyled = styled.nav`
 	.link,
 	.empty {
 		display: grid;
-		grid-template-columns: 4.5rem 1fr auto;
+		grid-template-columns: 4.5rem 8rem 1fr auto;
 		align-items: center;
-		gap: 1rem;
-		padding: 1.125rem 0.25rem;
+		gap: 1.25rem;
+		padding: 1rem 0.25rem;
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: 3.5rem 1fr;
+			grid-template-columns: 3.25rem 5.5rem 1fr;
 			gap: 0.75rem;
 		}
+	}
+
+	/* 없는 쪽은 사진 자리 없이 꼬리표 옆에 바로 안내 */
+	.empty {
+		grid-template-columns: 4.5rem 1fr;
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			grid-template-columns: 3.25rem 1fr;
+		}
+	}
+
+	.photo {
+		display: block;
+		overflow: hidden;
+		border-radius: ${({ theme }) => theme.radius.surface};
+
+		img {
+			transition: transform 0.4s ease;
+		}
+	}
+
+	.text {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		min-width: 0;
+	}
+
+	.category {
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
 	}
 
 	.tag {
@@ -111,10 +154,13 @@ const PrevNextArticleStyled = styled.nav`
 	}
 
 	.title {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
 		min-width: 0;
 		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
+		line-height: 1.45;
+		word-break: keep-all;
 		font-weight: ${({ theme }) => theme.fontWeight.medium};
 		color: ${({ theme }) => theme.color.text};
 		transition: color 0.2s ease;
@@ -130,8 +176,24 @@ const PrevNextArticleStyled = styled.nav`
 		}
 	}
 
-	.link:hover .title {
-		color: ${({ theme }) => theme.color.primary};
+	.link:hover {
+		.title {
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		.photo img {
+			transform: scale(1.05);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.photo img {
+			transition: none;
+		}
+
+		.link:hover .photo img {
+			transform: none;
+		}
 	}
 
 	.empty .title {
