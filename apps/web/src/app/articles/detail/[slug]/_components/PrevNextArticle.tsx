@@ -164,7 +164,8 @@ const PrevNextArticleStyled = styled.section`
 					align-items: center;
 				}
 
-				.title {
+				/* 제목 아래 여백(날짜와의 간격)이 남으면 꼬리표보다 4px 위로 뜬다 */
+				.link .text-section .title {
 					margin: 0;
 					color: ${({ theme }) => theme.color.lightGrey};
 				}
