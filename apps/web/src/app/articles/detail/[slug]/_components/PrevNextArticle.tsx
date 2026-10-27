@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import styled from 'styled-components';
-import MoveButton from '@/components/common/MoveButton';
 import { IoArrowUp, IoArrowDown } from 'react-icons/io5';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import Link from 'next/link';
@@ -43,14 +42,12 @@ function PrevNextArticle({ className, prev, next }: Props) {
 						onMouseEnter={handleMouseEnter(type)}
 						onMouseLeave={handleMouseLeave}
 					>
-						{isPrev ? (
-							<MoveButton className="btn" text={text} frontIcon={icon} />
-						) : (
-							<MoveButton className="btn" text={text} backIcon={icon} />
-						)}
-
+						<span className="tag">
+							{text}
+							{icon}
+						</span>
 						<div className="img">
-							<HeightAutoImg src={src} aspectratio={1} />
+							<HeightAutoImg src={src} aspectratio={16 / 9} />
 						</div>
 						<div className="text-section">
 							<p className="title">{title}</p>
@@ -64,14 +61,10 @@ function PrevNextArticle({ className, prev, next }: Props) {
 		return (
 			<li className={`prev-next ${type} disabled`}>
 				<div className="link">
-					{isPrev ? (
-						<MoveButton className="btn" text={text} frontIcon={icon} disabled />
-					) : (
-						<MoveButton className="btn" text={text} backIcon={icon} disabled />
-					)}
-					<div className="img">
-						<HeightAutoImg src={src} aspectratio={1} />
-					</div>
+					<span className="tag">
+						{text}
+						{icon}
+					</span>
 					<div className="text-section">
 						<p className="title">{title}</p>
 						<p className="date">{date}</p>
@@ -107,17 +100,30 @@ const PrevNextArticleStyled = styled.section`
 			.link {
 				display: contents;
 
-				.btn {
-					flex: 0.8;
+				/* 이전글 ↑ · 다음글 ↓: 테두리 없는 글자 꼬리표 */
+				.tag {
+					display: inline-flex;
+					align-items: center;
+					gap: 0.25rem;
+					flex-shrink: 0;
+					width: 4.5rem;
+					font-size: ${({ theme }) => theme.fontSize.small};
+					font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+					color: ${({ theme }) => theme.color.subText};
 				}
 
+				/* 사진: 가로형(16:9) 작은 칸 */
 				.img {
-					flex: 1.2;
+					flex-shrink: 0;
+					width: 9rem;
 					margin: 0;
+					overflow: hidden;
+					border-radius: ${({ theme }) => theme.radius.surface};
 				}
 
 				.text-section {
-					flex: 8;
+					flex: 1;
+					min-width: 0;
 
 					.title {
 						color: ${({ theme }) => theme.color.mediumGrey};
@@ -146,10 +152,6 @@ const PrevNextArticleStyled = styled.section`
 			/* 글이 없을 때: 버튼만 흐리게, 안내 문구는 읽을 수 있는 대비로 (#16) */
 			&.disabled {
 				pointer-events: none;
-
-				.btn {
-					opacity: 0.5;
-				}
 
 				.title {
 					color: ${({ theme }) => theme.color.lightGrey};
