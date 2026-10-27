@@ -11,11 +11,12 @@ interface Props {
 	color?: ColorKey;
 	/** 문서 구조상 제목 단계 (기본 h1). 모양은 size로 따로 정한다 */
 	as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p';
+	ref?: React.Ref<HTMLHeadingElement>;
 }
 
-const Title = ({ children, className, size = 'medium', weight, color, as }: Props) => {
+const Title = ({ children, className, size = 'medium', weight, color, as, ref }: Props) => {
 	return (
-		<StyledTitle as={as} className={`${className}`} $size={size} $weight={weight} $color={color}>
+		<StyledTitle ref={ref} as={as} className={`${className}`} $size={size} $weight={weight} $color={color}>
 			{children}
 		</StyledTitle>
 	);

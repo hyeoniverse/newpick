@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { dateFormatter } from '@/utils/formatter';
 import { mapIdToTitle } from '@/utils/mapInterests';
 
@@ -38,6 +38,18 @@ function Article() {
   const { data: articleContent, error, refetch } = useArticleContentQuery(slug);
   const increasedViewCount = useViewCount(Number(slug));
   const { isHeaderOpen } = useHeader();
+  // 제목이 화면 위로 지나가면 '목록으로' 옆에 제목을 한 줄로 띄운다
+  const [titleEl, setTitleEl] = useState<HTMLElement | null>(null);
+  const [titlePassed, setTitlePassed] = useState(false);
+
+  useEffect(() => {
+    if (!titleEl) return;
+    const observer = new IntersectionObserver(([entry]) =>
+      setTitlePassed(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+    );
+    observer.observe(titleEl);
+    return () => observer.disconnect();
+  }, [titleEl]);
 
   // 서버 확인 뒤에 지워졌거나(404) 서버 오류면 빈 화면 대신 안내
   if (error) {
@@ -58,21 +70,25 @@ function Article() {
 
   return (
     <>
-      {/* 목록으로: 스크롤해도 따라온다. 헤더처럼 내릴 땐 화살표만 남기고 접고, 올릴 땐 펼친다 */}
-      <BackBarStyled $folded={!isHeaderOpen}>
+      {/* 목록으로: 스크롤해도 따라온다. 헤더처럼 내릴 땐 화살표만 남기고 접고, 올릴 땐 펼친다.
+          제목을 지나 읽는 중이면 옆에 제목을 한 줄로 (본문 h1이 따로 있어 화면 읽기에서는 빼 둔다) */}
+      <BackBarStyled $folded={!isHeaderOpen} $withTitle={titlePassed}>
         <MoveButton
           className="back"
           onClick={() => router.push(`/articles?categoryId=${newsletterContent.categoryId}`)}
           text="목록으로"
           frontIcon={<IoArrowBack aria-hidden />}
         />
+        <p className="bar-title" aria-hidden>
+          <span>{newsletterContent.title}</span>
+        </p>
       </BackBarStyled>
       <TitleSectionStyled>
         <div className="title-section">
           <Link href={`/articles?categoryId=${newsletterContent.categoryId}`} className="category">
             {mapIdToTitle([newsletterContent.categoryId])[0] || `#${newsletterContent.categoryId}`}
           </Link>
-          <Title size="large" weight="semiBold" className="title">
+          <Title size="large" weight="semiBold" className="title" ref={setTitleEl}>
             {newsletterContent.title}
           </Title>
           {newsletterContent.subtitle && (
@@ -201,13 +217,42 @@ const ArticleStyled = styled.div`
  * 화면에 붙는 '목록으로'. 페이지 흐름에선 지금 자리(제목 위)를 지키고, 스크롤하면 위에 붙는다.
  * 헤더가 펼쳐져 있으면 헤더(3rem) 아래, 접히면 맨 위로 같이 올라가며 글자를 접는다
  */
-const BackBarStyled = styled.div<{ $folded: boolean }>`
+const BackBarStyled = styled.div<{ $folded: boolean; $withTitle: boolean }>`
     position: sticky;
     top: ${({ $folded }) => ($folded ? '0.75rem' : 'calc(3rem + 0.75rem)')};
     z-index: 900;
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
     width: fit-content;
+    max-width: min(100%, 44rem);
     margin-top: 4rem;
     transition: top 0.3s ease;
+
+    /* 제목 한 줄: 버튼과 같은 높이의 칸, 배경을 깔아 본문 위에서도 읽히게 */
+    .bar-title {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+        padding: 0 0.875rem;
+        border: 1px solid ${({ theme }) => theme.color.border};
+        border-radius: ${({ theme }) => theme.radius.control};
+        background: ${({ theme }) => theme.color.background};
+        font-size: ${({ theme }) => theme.fontSize.small};
+        font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+        color: ${({ theme }) => theme.color.text};
+
+        span {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        opacity: ${({ $withTitle }) => ($withTitle ? 1 : 0)};
+        transform: translateY(${({ $withTitle }) => ($withTitle ? '0' : '-0.25rem')});
+        visibility: ${({ $withTitle }) => ($withTitle ? 'visible' : 'hidden')};
+        transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+    }
 
     .back {
         background: ${({ theme }) => theme.color.background};
@@ -227,7 +272,8 @@ const BackBarStyled = styled.div<{ $folded: boolean }>`
     @media (prefers-reduced-motion: reduce) {
         &,
         .back,
-        .move-text {
+        .move-text,
+        .bar-title {
             transition: none;
         }
     }
