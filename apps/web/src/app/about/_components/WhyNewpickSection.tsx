@@ -38,12 +38,14 @@ const WhyNewpickSectionStyled = styled.div`
         margin-bottom: 8rem;
     }
 
+    /* 좁은 화면에서 큰 글자가 가로로 넘치지 않게 화면 폭에 맞춰 줄인다 */
     .design-text {
-        font-size: 5.125rem;
+        font-size: clamp(1.75rem, 7vw, 5.125rem);
         font-weight: 800;
         color: ${({ theme }) => theme.color.neutral};
-        letter-spacing: 10px;
-        justify-self: center;
+        letter-spacing: 0.12em;
+        text-align: center;
+        overflow-wrap: anywhere;
         margin-bottom: 2rem;
     }
 

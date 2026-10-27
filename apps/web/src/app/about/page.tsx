@@ -1,5 +1,9 @@
 import styles from '@/app/about/about.module.css';
+import HeroSection from '@/app/about/_components/HeroSection';
+import NumbersSection from '@/app/about/_components/NumbersSection';
 import WhyNewpickSection from '@/app/about/_components/WhyNewpickSection';
+import MorningSection from '@/app/about/_components/MorningSection';
+import FaqSection from '@/app/about/_components/FaqSection';
 import CoreFeature from '@/app/about/_components/CoreFeature';
 import ExploreSection from '@/app/about/_components/ExploreSection';
 import WhoSection from '@/app/about/_components/WhoSection';
@@ -7,16 +11,20 @@ import HowToUseSection from '@/app/about/_components/HowToUseSection';
 import Logos from '@/app/about/_components/Logos';
 import ScrollReveal from '@/components/common/ScrollReveal';
 
-/** 섹션 안에서 하나씩 나타날 것: 가치 문장, 핵심 기능, 사용 단계, 팀원·한 일 */
-const REVEAL_ITEMS = '.value-text p, .core-item, .sns, .categories, .newsletter-mail, .member, .work';
+/** 섹션 안에서 하나씩 나타날 것: 숫자, 가치 문장, 핵심 기능, 질문, 팀원·한 일 */
+const REVEAL_ITEMS = '#about-numbers .item, .value-text p, .core-item, details.item, .member, .work';
 
 async function AboutPage() {
 	return (
 		<ScrollReveal className={styles.about} items={REVEAL_ITEMS}>
+			<HeroSection />
+			<NumbersSection />
 			<WhyNewpickSection />
 			<CoreFeature />
+			<MorningSection />
 			<HowToUseSection />
 			<Logos />
+			<FaqSection />
 			<ExploreSection />
 			<WhoSection />
 		</ScrollReveal>
