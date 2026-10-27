@@ -18,7 +18,17 @@ export default function Tags({ tags, max, className, linkable = false }: Props) 
 		<StyledTags className={className} aria-label="키워드">
 			{shown.map((tag) => (
 				<li key={tag}>
-					{linkable ? <Link href={`/articles?keyword=${encodeURIComponent(tag)}`}>#{tag}</Link> : `#${tag}`}
+					{linkable ? (
+						<Link href={`/articles?keyword=${encodeURIComponent(tag)}`}>
+							<span className="hash">#</span>
+							{tag}
+						</Link>
+					) : (
+						<>
+							<span className="hash">#</span>
+							{tag}
+						</>
+					)}
 				</li>
 			))}
 		</StyledTags>
@@ -35,22 +45,29 @@ const StyledTags = styled.ul`
 
 	li {
 		margin: 0;
-		padding: 0.125rem 0.5rem;
+		padding: 0.0625rem 0.5rem;
+		/* 채우지 않고 얇은 테두리 + 진한 회색 글자: 관심사 · 제목(강조색)과 다투지 않으면서 또렷하게.
+		   #만 강조색으로 남겨 태그라는 표시 */
+		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.chip};
-		/* 카드의 관심사 · 제목과 다투지 않게 회색으로 한 단계 낮춤 */
-		background: ${({ theme }) => theme.color.neutral};
+		background: transparent;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		font-weight: ${({ theme }) => theme.fontWeight.medium};
 		line-height: 1.6;
-		color: ${({ theme }) => theme.color.subText};
+		color: ${({ theme }) => theme.color.mediumGrey};
 		white-space: nowrap;
+
+		.hash {
+			margin-right: 0.0625rem;
+			color: ${({ theme }) => theme.color.primary};
+		}
 
 		a {
 			color: inherit;
 		}
 
 		&:has(a):hover {
-			background: ${({ theme }) => theme.color.tertiary};
+			border-color: ${({ theme }) => theme.color.primary};
 			color: ${({ theme }) => theme.color.primary};
 		}
 	}
