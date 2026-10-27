@@ -15,7 +15,7 @@ function WhyNewpickSection({ className }: Props) {
         <p className="sub-text">
           매일 새로운 소식, 중요한 소식이 쏟아지지만 모두 챙기기 힘드셨다면?
           <br />
-          NEWPICK은 AI 큐레이션을 통해 원하는 분야의 뉴스만 골라서
+          NEWPICK은 AI 큐레이션을 통해 원하는 관심사의 뉴스만 골라서
           <br />
           간편하고 빠르게 받아볼 수 있도록 도와드립니다.
         </p>
@@ -26,7 +26,7 @@ function WhyNewpickSection({ className }: Props) {
       <div className="value-text">
         <p><strong>최신 트렌드</strong>와 이슈를 놓치지 않도록</p>
         <p><strong>빠르고 정확하게</strong> 뉴스를 습득할 수 있도록</p>
-        <p>나만의 관심 분야를 <strong>더 깊이 탐구</strong>할 수 있도록</p>
+        <p>나만의 관심사를 <strong>더 깊이 탐구</strong>할 수 있도록</p>
       </div>
     </WhyNewpickSectionStyled>
   );

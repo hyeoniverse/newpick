@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 
-/** 숫자는 서비스 설정에서 온 값이다 (분야 6개, 하루 한 통, 08:40 발송, AI 2단계, 무료) */
+/** 숫자는 서비스 설정에서 온 값이다 (관심사 6개, 하루 한 통, 08:40 발송, AI 2단계, 무료) */
 const NUMBERS = [
-	{ value: 6, unit: '개 분야', text: 'IT · 정치 · 경제 · 사회 · 생활 · 세계' },
-	{ value: 1, unit: '통', text: '고른 분야를 엮어 하루에 한 통' },
+	{ value: 6, unit: '개 관심사', text: 'IT · 정치 · 경제 · 사회 · 생활 · 세계' },
+	{ value: 1, unit: '통', text: '고른 관심사를 엮어 하루에 한 통' },
 	{ value: 40, unit: '', text: '매일 아침 8시 40분 발송', format: (n: number) => `08:${String(n).padStart(2, '0')}` },
 	{ value: 2, unit: '단계', text: 'AI가 고르고, 다시 읽고 쓰기' },
 	{ value: 0, unit: '원', text: '열람 · 구독 · 북마크 모두 무료' },

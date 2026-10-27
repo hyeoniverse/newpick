@@ -20,14 +20,14 @@ const STEPS: Step[] = [
 		text: '구글 계정으로 바로 시작합니다. 따로 가입 양식을 채울 필요가 없습니다.',
 	},
 	{
-		title: '관심 분야 고르기',
-		text: '받고 싶은 분야만 고릅니다. 여러 개를 골라도 메일은 한 통으로 옵니다.',
+		title: '관심사 고르기',
+		text: '받고 싶은 관심사만 고릅니다. 여러 개를 골라도 메일은 한 통으로 옵니다.',
 		image: '/img/about_categories.jpg',
-		alt: '관심 분야를 고르는 화면',
+		alt: '관심사를 고르는 화면',
 	},
 	{
 		title: '구독 완료',
-		text: '고른 분야로 구독이 시작됩니다. 분야는 마이페이지에서 언제든 바꿀 수 있습니다.',
+		text: '고른 관심사로 구독이 시작됩니다. 관심사는 마이페이지에서 언제든 바꿀 수 있습니다.',
 		image: '/img/about_sns-login.jpg',
 		alt: '구독 설정이 완료되었다는 안내',
 	},
@@ -44,7 +44,7 @@ function LoginMock() {
 	return (
 		<div className="login-mock">
 			<span className="mock-logo">NP</span>
-			<p className="mock-title">로그인하고 내 분야 뉴스를 받아 보세요</p>
+			<p className="mock-title">로그인하고 내 관심사 뉴스를 받아 보세요</p>
 			<span className="mock-google">
 				<FcGoogle /> Google로 계속하기
 			</span>
@@ -64,7 +64,7 @@ export default function HowToUseSection() {
 	return (
 		<StyledHowToUse>
 			<BorderTitle text="HOW TO USE" />
-			<p className="sub-text">로그인하고 분야만 고르면, 매일 아침 뉴스레터가 옵니다.</p>
+			<p className="sub-text">로그인하고 관심사만 고르면, 매일 아침 뉴스레터가 옵니다.</p>
 
 			<div className="layout">
 				<ol ref={containerRef} className="steps">

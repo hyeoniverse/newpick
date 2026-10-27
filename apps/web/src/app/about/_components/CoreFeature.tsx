@@ -31,7 +31,7 @@ function CoreFeature({ className }: Props) {
           <div className="core-item">
             <TbMailCheck />
             <h4>맞춤 구독</h4>
-            <p>원하는 분야만 선택해 구독 가능</p>
+            <p>원하는 관심사만 선택해 구독 가능</p>
             <Img src={'/img/about_subscribe.jpg'} alt={'subscribe'}               width={0}
                  height={0}
                  sizes="100vw" />

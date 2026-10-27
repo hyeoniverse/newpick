@@ -38,7 +38,7 @@ export default function HeroSection() {
 				</h1>
 				<p className="lead">
 					NEWPICK은 AI가 그날의 기사를 읽고 중요한 소식만 골라 요약합니다.
-					<br className="desktop-only" /> 고른 분야를 엮은 메일 한 통을 매일 아침 받아 보세요.
+					<br className="desktop-only" /> 고른 관심사를 엮은 메일 한 통을 매일 아침 받아 보세요.
 				</p>
 				<div className="actions">
 					<Button scheme="primary" size="large" onClick={() => openSubscribe()}>
