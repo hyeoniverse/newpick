@@ -1,7 +1,7 @@
 import { css } from 'styled-components';
 
 /**
- * 입력칸 공통 모양 (InputText · InputSelect · InputDate).
+ * 입력칸 공통 모양 (InputText · InputSelect · DatePicker).
  * 이름표는 위, 칸은 같은 높이·모서리·배경, 안내 글자는 읽을 수 있는 회색, 초점은 강조색 테두리 + 옅은 띠
  */
 export const fieldLabel = css`
