@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPopularKeywords } from '@/api/article';
@@ -31,13 +32,20 @@ export default function SearchFilters() {
 		staleTime: 1000 * 60 * 10,
 	});
 
+	// 직접 지정이면 좁은 화면에서도 날짜 칸이 보이게 기간 줄을 끝까지 넘긴다
+	const periodsRef = useRef<HTMLDivElement>(null);
+	useEffect(() => {
+		const row = periodsRef.current;
+		if (filters.period === 'custom' && row) row.scrollLeft = row.scrollWidth;
+	}, [filters.period]);
+
 	const setPeriod = (period: SearchPeriod) =>
 		go(period === 'custom' ? { period, from: filters.from || kstDate(29), to: filters.to || kstDate(0) } : { period });
 
 	return (
 		<StyledSearchFilters>
 			<div className="filters">
-				<div className="periods" role="group" aria-label="기간">
+				<div className="periods" role="group" aria-label="기간" ref={periodsRef}>
 					{PERIOD_OPTIONS.map((option) => (
 						<button
 							key={option.value}
@@ -48,17 +56,18 @@ export default function SearchFilters() {
 							{option.label}
 						</button>
 					))}
+					{/* 직접 지정 바로 오른쪽, 같은 줄 (좁은 화면에서도 아래로 떨어지지 않고 줄째 옆으로 넘김) */}
+					{filters.period === 'custom' && (
+						<DateRangePicker
+							size="small"
+							start={filters.from}
+							end={filters.to}
+							max={kstDate(0)}
+							onChange={({ start, end }) => go({ from: start, to: end })}
+							className="dates"
+						/>
+					)}
 				</div>
-				{filters.period === 'custom' && (
-					<DateRangePicker
-						size="small"
-						start={filters.from}
-						end={filters.to}
-						max={kstDate(0)}
-						onChange={({ start, end }) => go({ from: start, to: end })}
-						className="dates"
-					/>
-				)}
 				{filters.q && (
 					<button type="button" className="keyword" onClick={() => go({ q: '' }, true)}>
 						‘{filters.q}’
@@ -116,12 +125,18 @@ const StyledSearchFilters = styled.div`
 	/* 기간: 모바일은 접히지 않고 한 줄을 옆으로 넘긴다 */
 	.periods {
 		display: flex;
+		align-items: center;
 		gap: 0.25rem;
 		max-width: 100%;
 		overflow-x: auto;
 		scrollbar-width: none;
 
-		button {
+		.dates {
+			flex-shrink: 0;
+			margin-left: 0.25rem;
+		}
+
+		> button {
 			flex-shrink: 0;
 			padding: 0.375rem 0.75rem;
 			border-radius: ${({ theme }) => theme.radius.chip};
