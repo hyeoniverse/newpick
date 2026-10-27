@@ -54,7 +54,7 @@ export default function SearchFilters() {
 							<button
 								key={option.value}
 								type="button"
-								className={folded ? 'folded' : undefined}
+								className={folded ? 'folded' : option.value === 'all' ? 'all' : undefined}
 								aria-hidden={folded || undefined}
 								tabIndex={folded ? -1 : undefined}
 								aria-pressed={filters.period === option.value}
@@ -124,6 +124,8 @@ const StyledSearchFilters = styled.div`
 	width: 100%;
 
 	.filters {
+		/* 기간 줄이 자기 폭을 보고 '전체 기간'까지 접을지 정한다 (아래 @container) */
+		container-type: inline-size;
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
@@ -233,6 +235,18 @@ const StyledSearchFilters = styled.div`
 			.dates .date-input {
 				padding: 0 0.25rem;
 				font-size: 0.75rem;
+			}
+		}
+
+		/* 그래도 자리가 모자라면(폭 22rem 미만, 예: 375px 휴대폰) '전체 기간'도 접는다. 직접 지정을 다시 누르면 전체로 돌아간다 */
+		@container (max-width: 22rem) {
+			&.custom > button.all {
+				max-width: 0;
+				margin-right: 0;
+				padding-left: 0;
+				padding-right: 0;
+				opacity: 0;
+				visibility: hidden;
 			}
 		}
 	}
