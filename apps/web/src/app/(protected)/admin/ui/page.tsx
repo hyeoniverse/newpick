@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import DesignSystem from './_components/DesignSystem';
 
 export const metadata: Metadata = {
-	title: '디자인 시스템 | 뉴픽 관리자',
+	title: '디자인 시스템 (관리자)',
 	robots: { index: false, follow: false },
 };
 

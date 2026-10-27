@@ -3,7 +3,7 @@ import { fetchContactEmail } from '@/api/contact';
 import { LEGAL_EFFECTIVE_DATE, privacySections, privacySummary } from '@/constants/legal';
 import LegalDocument from '@/components/common/legal/LegalDocument';
 
-export const metadata: Metadata = { title: '개인정보 처리방침 | 뉴픽: NewPick' };
+export const metadata: Metadata = { title: '개인정보 처리방침' };
 
 export default async function Page() {
 	const email = await fetchContactEmail();

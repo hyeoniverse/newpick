@@ -1,7 +1,9 @@
 import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { parseArticles } from '@/utils/parseArticles';
 import { mapIdToTitle } from '@/utils/mapInterests';
+import type { Metadata } from 'next';
 import { fetchArticleByCategory, fetchTrendList } from '@/api/article';
+import { CATEGORIES } from '@/constants/categories';
 
 import styles from '@/app/articles/(main)/category.module.css';
 import HotSection, { CategoryStats } from '@/app/articles/(main)/_components/HotSection';
@@ -27,6 +29,22 @@ function summarize(newsletters: IArticleDetail[]): CategoryStats {
  * 정적으로 만들면 '전체' 화면이 먼저 보였다가 바뀝니다. (트렌드 조회는 10분간 캐시)
  */
 export const dynamic = 'force-dynamic';
+
+/** 관심사를 고르면 제목 · 설명도 그 관심사로 (#15) */
+export async function generateMetadata({
+	searchParams,
+}: {
+	searchParams: Promise<{ categoryId?: string }>;
+}): Promise<Metadata> {
+	const categoryId = Number((await searchParams).categoryId) || 0;
+	const category = CATEGORIES.find((c) => c.id === categoryId && c.id !== 0);
+	return category
+		? {
+				title: `${category.name} 뉴스레터`,
+				description: `${category.name}: ${category.description}. AI가 고르고 요약한 뉴픽 뉴스레터.`,
+			}
+		: { title: '뉴스레터', description: '관심사별로 AI가 고르고 요약한 뉴픽 뉴스레터를 모아 봅니다.' };
+}
 
 export default async function CategoryPage({ searchParams }: { searchParams: Promise<{ categoryId?: string }> }) {
 	const categoryId = Number((await searchParams).categoryId) || 0;

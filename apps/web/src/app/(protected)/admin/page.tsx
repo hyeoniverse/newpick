@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import AdminHome from './_components/AdminHome';
 
 export const metadata: Metadata = {
-	title: '관리자 | 뉴픽',
+	title: '관리자',
 	robots: { index: false, follow: false },
 };
 
