@@ -11,6 +11,7 @@ import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Skeleton from '@/components/common/loader/Skeleton';
+import MailView from '@/components/common/MailView';
 
 const INTERESTS = CATEGORIES.slice(1);
 
@@ -107,24 +108,7 @@ export default function Trial() {
 						</Text>
 					</div>
 				) : (
-					<article className="mail">
-						<header className="mail-head">
-							<span className="avatar" aria-hidden>
-								NP
-							</span>
-							<div>
-								<p className="from">뉴픽 NewPick</p>
-								<h3 className="subject">{data.subject}</h3>
-							</div>
-						</header>
-						{/* 실제 메일 HTML. 스크립트는 막고, 링크는 새 탭으로 연다 */}
-						<iframe
-							className="mail-body"
-							title="구독 메일 미리보기"
-							srcDoc={data.html}
-							sandbox="allow-popups allow-popups-to-escape-sandbox"
-						/>
-					</article>
+					<MailView subject={data.subject} html={data.html} title="구독 메일 미리보기" />
 				)}
 			</StyledMail>
 
@@ -233,59 +217,5 @@ const StyledMail = styled.div`
 				color: ${({ theme }) => theme.color.error};
 			}
 		}
-	}
-
-	.mail {
-		flex: 1;
-		min-height: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
-	/* 받은편지함의 보낸 사람·제목 줄 */
-	.mail-head {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-
-		.avatar {
-			flex-shrink: 0;
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 2.5rem;
-			height: 2.5rem;
-			border-radius: ${({ theme }) => theme.borderRadius.circle};
-			background: ${({ theme }) => theme.color.primary};
-			color: #ffffff;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-		}
-
-		.from {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		.subject {
-			margin: 0.125rem 0 0;
-			font-size: ${({ theme }) => theme.fontSize.medium};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			line-height: 1.4;
-			color: ${({ theme }) => theme.color.text};
-			word-break: keep-all;
-		}
-	}
-
-	/* 메일 앱처럼 본문은 라이트 그대로 (메일 HTML이 배경색을 갖고 있다) */
-	.mail-body {
-		flex: 1;
-		width: 100%;
-		min-height: 0;
-		border: none;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
 	}
 `;
