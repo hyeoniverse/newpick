@@ -37,12 +37,12 @@ const StyledTags = styled.ul`
 		margin: 0;
 		padding: 0.125rem 0.5rem;
 		border-radius: ${({ theme }) => theme.radius.chip};
-		/* 강조색을 옅게: 배경은 primary의 연한 톤, 글자는 primary */
-		background: ${({ theme }) => theme.color.tertiary};
+		/* 카드의 관심사 · 제목과 다투지 않게 회색으로 한 단계 낮춤 */
+		background: ${({ theme }) => theme.color.neutral};
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		font-weight: ${({ theme }) => theme.fontWeight.medium};
 		line-height: 1.6;
-		color: ${({ theme }) => theme.color.primary};
+		color: ${({ theme }) => theme.color.subText};
 		white-space: nowrap;
 
 		a {
@@ -50,8 +50,8 @@ const StyledTags = styled.ul`
 		}
 
 		&:has(a):hover {
-			background: ${({ theme }) => theme.color.primary};
-			color: #ffffff;
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
 		}
 	}
 `;
