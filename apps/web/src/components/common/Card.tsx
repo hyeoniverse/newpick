@@ -362,31 +362,39 @@ const mainCardStyles = css`
 	}
 
 	/*
-	 * 사진     | (여백)
-	 * 사진     | 분야
-	 * 사진     | 제목
-	 * 사진     | 설명
-	 * 사진     | (여백)     ← 분야 · 제목 · 설명을 사진 높이 가운데로
-	 * 이 뉴스레터의 소식 (전체 폭)
-	 * 태그 (전체 폭)
-	 * 날짜 · 조회수 · 북마크 (전체 폭)
+	 * PC · 노트북: 사진 | 분야 · 제목 · 설명 · 소식 · 태그 · 날짜 (오른쪽 칸 전체를 사진 높이 가운데로)
+	 * 태블릿: 위는 사진 | 분야 · 제목 · 설명, 아래 카드 전체 폭으로 소식 · 태그 · 날짜
+	 * 휴대폰: 모두 한 줄씩
 	 */
 	a {
 		display: grid;
 		grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
-		grid-template-rows: 1fr auto auto auto 1fr auto auto auto;
+		grid-template-rows: 1fr auto auto auto auto auto auto 1fr;
 		grid-template-areas:
 			'img .'
 			'img category'
 			'img title'
 			'img desc'
-			'img .'
-			'points points'
-			'tags tags'
-			'footer footer';
+			'img points'
+			'img tags'
+			'img footer'
+			'img .';
 		column-gap: 2rem;
 		row-gap: 0.5rem;
 		width: 100%;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			grid-template-rows: 1fr auto auto auto 1fr auto auto auto;
+			grid-template-areas:
+				'img .'
+				'img category'
+				'img title'
+				'img desc'
+				'img .'
+				'points points'
+				'tags tags'
+				'footer footer';
+		}
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
 			grid-template-columns: 1fr;
@@ -395,9 +403,10 @@ const mainCardStyles = css`
 		}
 	}
 
+	/* 사진은 칸 위쪽에 붙인다 (오른쪽 글이 사진보다 길어도 사진이 가운데로 내려가지 않게) */
 	.image-placeholder {
 		grid-area: img;
-		align-self: center;
+		align-self: start;
 		margin: 0;
 		aspect-ratio: 16 / 9;
 
@@ -464,10 +473,14 @@ const mainCardStyles = css`
 			}
 		}
 
-		/* 분야 페이지 배너: 이 뉴스레터에 담긴 소식 (사진 아래, 카드 전체 폭) */
+		/* 분야 페이지 배너: 이 뉴스레터에 담긴 소식 (태블릿 이하는 사진 아래, 카드 전체 폭) */
 		.points {
 			width: 100%;
-			margin-top: 1rem;
+			margin-top: 0.25rem;
+
+			@media ${({ theme }) => theme.mediaQuery.tablet} {
+				margin-top: 1rem;
+			}
 
 			.points-title {
 				margin: 0 0 0.375rem;
@@ -521,10 +534,15 @@ const mainCardStyles = css`
 		}
 
 		.card-footer {
-			margin-top: 0.5rem;
-			padding-top: 0.75rem;
-			border-top: 1px solid ${({ theme }) => theme.color.border};
+			margin-top: 0.75rem;
 			white-space: nowrap;
+
+			/* 태블릿 이하: 카드 전체 폭의 날짜 줄 위에 얇은 구분선 */
+			@media ${({ theme }) => theme.mediaQuery.tablet} {
+				margin-top: 0.5rem;
+				padding-top: 0.75rem;
+				border-top: 1px solid ${({ theme }) => theme.color.border};
+			}
 		}
 	}
 `;
