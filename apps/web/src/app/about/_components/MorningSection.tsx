@@ -1,8 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import styled, { keyframes } from 'styled-components';
-import { LuNewspaper, LuLayers, LuPenLine, LuMailOpen, LuCheck } from 'react-icons/lu';
+import styled from 'styled-components';
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 
@@ -11,106 +10,64 @@ import { useScrollProgress } from '@/hooks/useScrollProgress';
  * from → to는 그 단계를 지나는 동안 시계가 흘러가는 분 (스크롤에 맞춰 08:00 → 08:40)
  */
 const STEPS = [
-	{
-		from: 0,
-		to: 30,
-		icon: LuNewspaper,
-		title: '기사 모으기',
-		text: 'IT · 정치 · 경제 · 사회 · 생활 · 세계, 6개 관심사의 그날 기사를 모읍니다.',
-	},
+	{ from: 0, to: 30, title: '기사 모으기', text: '6개 관심사의 그날 기사가 쏟아져 들어옵니다.' },
 	{
 		from: 30,
 		to: 30,
-		icon: LuLayers,
 		title: '중요한 소식 고르기',
-		text: '제목이 비슷한 기사는 한 사건으로 묶고, AI가 제목과 첫 부분만 읽어 그날 중요한 소식을 고릅니다.',
+		text: '같은 사건은 한 묶음으로. AI가 제목과 첫 부분만 읽고 그날 중요한 소식을 고릅니다.',
 	},
 	{
 		from: 30,
 		to: 40,
-		icon: LuPenLine,
 		title: '뉴스레터 쓰기',
-		text: '고른 소식의 기사만 다시 읽고 요약 · 시사점 · 문답을 씁니다. 두 단계로 나눠 비용은 줄이고 깊이는 지켰습니다.',
+		text: '고른 소식만 다시 읽고 요약 · 시사점 · 문답을 씁니다.',
 	},
-	{
-		from: 40,
-		to: 40,
-		icon: LuMailOpen,
-		title: '내 메일 한 통',
-		text: '구독한 관심사의 뉴스레터를 엮어 한 통으로 보냅니다. 출근길에 한 번 읽으면 끝.',
-	},
+	{ from: 40, to: 40, title: '내 메일 한 통', text: '내 관심사를 엮어 한 통으로. 출근길에 한 번 읽으면 끝.' },
 ];
 
 const CATEGORIES = ['IT', '정치', '경제', '사회', '생활', '세계'];
 
-/** 단계마다 오른쪽 판에 보이는 그림 (장식) */
-function Visual({ index }: { index: number }) {
-	if (index === 0)
-		return (
-			<div className="v-collect">
-				<div className="chips">
-					{CATEGORIES.map((c, i) => (
-						<span key={c} className="chip" style={{ '--i': i } as React.CSSProperties}>
-							{c}
-						</span>
-					))}
-				</div>
-				<div className="articles">
-					{Array.from({ length: 9 }, (_, i) => (
-						<span key={i} className="article" style={{ '--i': i } as React.CSSProperties} />
-					))}
-				</div>
-			</div>
-		);
+/** 같은 사건 묶음의 자리 (무대 안 %). 0 · 2 · 3번 묶음이 뽑힌다 */
+const CLUSTERS = [
+	{ x: 22, y: 30 },
+	{ x: 52, y: 18 },
+	{ x: 78, y: 34 },
+	{ x: 36, y: 72 },
+	{ x: 70, y: 74 },
+];
+const PICKED = [0, 2, 3];
 
-	if (index === 1)
-		return (
-			<ul className="v-pick">
-				{[true, false, true, false, false].map((picked, i) => (
-					<li key={i} className={picked ? 'row picked' : 'row'} style={{ '--i': i } as React.CSSProperties}>
-						<span className="check">{picked && <LuCheck />}</span>
-						<span className="line" />
-						{i === 0 && <span className="tag">같은 사건 묶음</span>}
-					</li>
-				))}
-			</ul>
-		);
-
-	if (index === 2)
-		return (
-			<div className="v-write">
-				{['요약', '시사점', '문답'].map((label, i) => (
-					<div key={label} className="block" style={{ '--i': i } as React.CSSProperties}>
-						<span className="label">{label}</span>
-						<span className="line" />
-						<span className="line short" />
-					</div>
-				))}
-			</div>
-		);
-
-	return (
-		<div className="v-mail">
-			<div className="mail-head">
-				<span className="from">NEWPICK</span>
-				<span className="at">08:40</span>
-			</div>
-			<p className="subject">오늘의 뉴픽 · IT · 경제 · 세계</p>
-			{[0, 1, 2].map((i) => (
-				<div key={i} className="story" style={{ '--i': i } as React.CSSProperties}>
-					<span className="dot" />
-					<span className="line" />
-				</div>
-			))}
-		</div>
-	);
-}
+/**
+ * 기사 카드 16장. 단계마다 자리(phase 0~3)를 미리 정해 두고, 단계가 바뀌면 CSS 전환으로 옮겨 간다.
+ * 흩어진 자리는 고정된 의사 난수라 서버·클라이언트가 같다
+ */
+const CARDS = Array.from({ length: 16 }, (_, i) => {
+	const cluster = i % CLUSTERS.length;
+	const k = Math.floor(i / CLUSTERS.length); // 묶음 안 순서
+	const row = PICKED.indexOf(cluster);
+	return {
+		category: CATEGORIES[(i * 7) % CATEGORIES.length],
+		width: 70 + ((i * 37) % 30), // 제목 줄 길이 %
+		picked: row >= 0,
+		// 0: 흩어짐
+		x0: 14 + ((i * 53) % 72),
+		y0: 10 + ((i * 31 + 7) % 78),
+		r0: ((i * 29) % 25) - 12,
+		// 1: 사건별 묶음 (조금씩 어긋나게 겹침)
+		x1: CLUSTERS[cluster].x + k * 1.5,
+		y1: CLUSTERS[cluster].y + k * 3,
+		r1: (k - 1) * 3,
+		// 2: 뉴스레터 한 장의 줄 (뽑힌 묶음만)
+		y2: row >= 0 ? 28 + row * 22 + k * 0.8 : CLUSTERS[cluster].y,
+	};
+});
 
 const toClock = (minute: number) => `08:${String(Math.round(minute)).padStart(2, '0')}`;
 
 /**
- * 스크롤 시퀀스 (붙는 장면): 장면이 화면에 붙어 있는 동안 스크롤하면
- * 시계가 08:00 → 08:40으로 흐르고, 단계 글·오른쪽 그림이 바뀌며, 아래 선이 이어서 채워진다
+ * 스크롤 시퀀스 (붙는 장면): 장면이 화면에 붙어 있는 동안 스크롤하면 시계가 08:00 → 08:40으로 흐르고,
+ * 한 무대 위의 기사 카드들이 흩어짐 → 사건별 묶음 → 뉴스레터 한 장 → 봉투 속 메일로 이어서 바뀐다
  */
 export default function MorningSection() {
 	const [state, setState] = useState({ active: 0, minute: 0 });
@@ -132,498 +89,401 @@ export default function MorningSection() {
 			/>
 
 			<div ref={ref} className="track">
-				<div className="scene">
-					<div className="main">
-						<div className="copy">
-							<p className="time" aria-hidden>
-								{toClock(minute)}
-							</p>
-							<ol className="steps">
-								{STEPS.map((step, i) => (
-									<li
-										key={step.title}
-										className="step"
-										data-active={i === active}
-										aria-current={i === active ? 'step' : undefined}
-									>
-										<span className="step-no">
-											<step.icon aria-hidden /> {String(i + 1).padStart(2, '0')}
-										</span>
-										<h3>{step.title}</h3>
-										<p>{step.text}</p>
-									</li>
-								))}
-							</ol>
-						</div>
+				<div className="scene" data-phase={active}>
+					<p className="time" aria-hidden>
+						{toClock(minute)}
+					</p>
 
-						<div className="panel" aria-hidden>
-							{STEPS.map((step, i) => (
-								<div key={step.title} className="visual" data-active={i === active}>
-									<Visual index={i} />
-								</div>
-							))}
+					<div className="stage" aria-hidden>
+						{/* 3단계에 깔리는 뉴스레터 한 장 */}
+						<div className="sheet">
+							<span className="sheet-title">오늘의 뉴픽</span>
 						</div>
-					</div>
-
-					{/* 이어진 선: 지나온 만큼 채워지고, 지난 단계 점은 주 색 */}
-					<div className="pipeline" aria-hidden>
-						<span className="rail">
-							<span className="fill" />
-						</span>
-						{STEPS.map((step, i) => (
-							<span
-								key={step.title}
-								className={i <= active ? 'node on' : 'node'}
-								style={{ '--at': i / (STEPS.length - 1) } as React.CSSProperties}
-							>
-								<span className="node-label">{step.title}</span>
+						{PICKED.map((c, row) => (
+							<span key={c} className="sheet-lines" style={{ '--row': row } as React.CSSProperties}>
+								<span />
+								<span />
 							</span>
 						))}
+
+						{CARDS.map((card, i) => (
+							<span
+								key={i}
+								className={card.picked ? 'card picked' : 'card'}
+								style={
+									{
+										'--i': i,
+										'--x0': `${card.x0}%`,
+										'--y0': `${card.y0}%`,
+										'--r0': `${card.r0}deg`,
+										'--x1': `${card.x1}%`,
+										'--y1': `${card.y1}%`,
+										'--r1': `${card.r1}deg`,
+										'--y2': `${card.y2}%`,
+										'--w': `${card.width}%`,
+									} as React.CSSProperties
+								}
+							>
+								<span className="chip">{card.category}</span>
+								<span className="headline" />
+							</span>
+						))}
+
+						{/* 4단계: 봉투 */}
+						<div className="envelope">
+							<span className="flap" />
+							<span className="stamp">08:40</span>
+							<span className="to">오늘의 뉴픽 · 내 관심사</span>
+						</div>
 					</div>
+
+					<ol className="captions">
+						{STEPS.map((step, i) => (
+							<li
+								key={step.title}
+								className="caption"
+								data-active={i === active}
+								aria-current={i === active ? 'step' : undefined}
+							>
+								<span className="no">
+									{String(i + 1).padStart(2, '0')} <span className="of">/ {String(STEPS.length).padStart(2, '0')}</span>
+								</span>
+								<h3>{step.title}</h3>
+								<p>{step.text}</p>
+							</li>
+						))}
+					</ol>
 				</div>
 			</div>
 		</StyledMorning>
 	);
 }
 
-const appear = keyframes`
-	from { opacity: 0; transform: translateY(0.75rem); }
-	to { opacity: 1; transform: none; }
-`;
-
-const grow = keyframes`
-	from { transform: scaleX(0); }
-	to { transform: scaleX(1); }
-`;
+const EASE = 'cubic-bezier(0.65, 0, 0.35, 1)';
 
 const StyledMorning = styled.section`
-	/* 장면이 붙어 있는 구간. 높이 = 단계 수 × 75vh라 단계마다 한 화면쯤 스크롤한다 */
+	/* 장면이 붙어 있는 구간. 높이 = 단계 수 × 80vh라 단계마다 한 화면쯤 스크롤한다 */
 	.track {
 		--progress: 0;
 		position: relative;
-		height: calc(var(--steps) * 75vh);
+		height: calc(var(--steps) * 80vh);
 	}
 
+	/* 시계는 왼쪽 위, 설명은 왼쪽 아래, 무대는 오른쪽을 넓게 (모바일은 시계 → 무대 → 설명) */
 	.scene {
 		position: sticky;
 		top: 4rem;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		gap: 3rem;
+		display: grid;
+		grid-template-columns: minmax(0, 20rem) minmax(0, 1fr);
+		grid-template-rows: auto 1fr auto;
+		column-gap: 3rem;
 		height: calc(100vh - 4rem);
 		height: calc(100svh - 4rem);
+		padding: 2rem 0 3rem;
 		word-break: keep-all;
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			gap: 1.5rem;
-		}
-	}
-
-	.main {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		align-items: center;
-		gap: 4rem;
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			grid-template-columns: 1fr;
-			gap: 1.25rem;
+			padding: 1rem 0 1.5rem;
 		}
 	}
 
 	.time {
-		margin: 0 0 1.5rem;
-		font-size: clamp(4rem, 11vw, 8.5rem);
+		grid-column: 1;
+		grid-row: 1;
+		margin: 0;
+		font-size: clamp(3.5rem, 9vw, 7.5rem);
 		font-weight: 800;
 		line-height: 1;
 		letter-spacing: -0.04em;
 		font-variant-numeric: tabular-nums;
 		color: ${({ theme }) => theme.color.text};
+	}
+
+	.stage {
+		position: relative;
+		grid-column: 2;
+		grid-row: 1 / -1;
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			margin-bottom: 0.75rem;
+			grid-column: 1;
+			grid-row: 2;
+			margin: 1rem 0;
 		}
 	}
 
-	/* 단계 글은 같은 자리에 겹쳐 두고 지금 단계만 보인다 */
-	.steps {
+	/* ---------- 기사 카드 ---------- */
+	.card {
+		--x: var(--x0);
+		--y: var(--y0);
+		--r: var(--r0);
+		--s: 1;
+		position: absolute;
+		left: var(--x);
+		top: var(--y);
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		width: 9.5rem;
+		padding: 0.625rem 0.75rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.background};
+		transform: translate(-50%, -50%) rotate(var(--r)) scale(var(--s));
+		transition:
+			left 0.9s ${EASE},
+			top 0.9s ${EASE},
+			transform 0.9s ${EASE},
+			width 0.9s ${EASE},
+			opacity 0.6s ease,
+			border-color 0.4s ease;
+		transition-delay: calc(var(--i) * 18ms);
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			width: 6.5rem;
+			padding: 0.5rem;
+		}
+
+		.chip {
+			align-self: flex-start;
+			padding: 0 0.375rem;
+			border-radius: ${({ theme }) => theme.radius.chip};
+			font-size: 0.6875rem;
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.primary};
+			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 10%, transparent);
+		}
+
+		.headline {
+			width: var(--w);
+			height: 0.4375rem;
+			border-radius: 0.25rem;
+			background: ${({ theme }) => theme.color.border};
+		}
+	}
+
+	/* 1: 사건별 묶음. 뽑힌 묶음은 주 색 테두리, 나머지는 흐리게 */
+	.scene[data-phase='1'] .card {
+		--x: var(--x1);
+		--y: var(--y1);
+		--r: var(--r1);
+		opacity: 0.3;
+
+		&.picked {
+			opacity: 1;
+			border-color: ${({ theme }) => theme.color.primary};
+		}
+	}
+
+	/* 2: 뽑힌 카드만 가운데 한 장의 줄로, 나머지는 사라진다 */
+	.scene[data-phase='2'] .card {
+		--x: var(--x1);
+		--y: var(--y1);
+		--r: 0deg;
+		--s: 0.7;
+		opacity: 0;
+
+		/* 뽑힌 카드는 뉴스레터 줄 너비로 넓어진다 */
+		&.picked {
+			--x: 50%;
+			--y: var(--y2);
+			--s: 1;
+			width: min(20rem, 68%);
+			opacity: 1;
+			border-color: ${({ theme }) => theme.color.primary};
+		}
+	}
+
+	/* 3: 모두 봉투 속으로 */
+	.scene[data-phase='3'] .card {
+		--x: 50%;
+		--y: 55%;
+		--r: 0deg;
+		--s: 0.3;
+		opacity: 0;
+	}
+
+	/* ---------- 뉴스레터 한 장 ---------- */
+	.sheet {
+		position: absolute;
+		left: 50%;
+		top: 50%;
+		width: min(24rem, 80%);
+		height: 84%;
+		padding: 1.25rem 1.5rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.surface};
+		opacity: 0;
+		transform: translate(-50%, -46%) scale(0.96);
+		transition:
+			opacity 0.6s ease,
+			transform 0.9s ${EASE};
+
+		.sheet-title {
+			display: block;
+			padding-bottom: 0.75rem;
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+			font-weight: 800;
+			color: ${({ theme }) => theme.color.text};
+		}
+	}
+
+	/* 뉴스레터 줄: 카드 바로 아래로 글줄이 써진다 */
+	.sheet-lines {
+		position: absolute;
+		left: 50%;
+		top: calc((28% + var(--row) * 22%) + 2.75rem);
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+		width: min(20rem, 68%);
+		transform: translateX(-50%);
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			top: calc((28% + var(--row) * 22%) + 2.25rem);
+		}
+
+		span {
+			height: 0.3125rem;
+			border-radius: 0.25rem;
+			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 30%, transparent);
+			transform: scaleX(0);
+			transform-origin: left;
+			transition: transform 0.7s ease;
+			transition-delay: calc(0.6s + var(--row) * 0.2s);
+
+			&:last-child {
+				width: 65%;
+			}
+		}
+	}
+
+	.scene[data-phase='2'] .sheet-lines span {
+		transform: scaleX(1);
+	}
+
+	.scene[data-phase='2'] .sheet {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+
+	.scene[data-phase='3'] .sheet {
+		opacity: 0;
+		transform: translate(-50%, -30%) scale(0.4);
+	}
+
+	/* ---------- 봉투 ---------- */
+	.envelope {
+		position: absolute;
+		left: 50%;
+		top: 55%;
+		width: min(20rem, 76%);
+		aspect-ratio: 16 / 10;
+		border: 1px solid ${({ theme }) => theme.color.primary};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.background};
+		overflow: hidden;
+		opacity: 0;
+		transform: translate(-50%, -30%) scale(0.9);
+		transition:
+			opacity 0.5s ease 0.35s,
+			transform 0.8s ${EASE} 0.35s;
+
+		/* 덮개: 위쪽 삼각형 */
+		.flap {
+			position: absolute;
+			inset: 0 0 auto 0;
+			height: 55%;
+			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 10%, transparent);
+			clip-path: polygon(0 0, 100% 0, 50% 100%);
+		}
+
+		.stamp {
+			position: absolute;
+			right: 0.75rem;
+			top: 0.75rem;
+			padding: 0.125rem 0.5rem;
+			border: 1px solid ${({ theme }) => theme.color.primary};
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: 800;
+			font-variant-numeric: tabular-nums;
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		.to {
+			position: absolute;
+			left: 1rem;
+			bottom: 0.875rem;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.text};
+		}
+	}
+
+	.scene[data-phase='3'] .envelope {
+		opacity: 1;
+		transform: translate(-50%, -50%);
+	}
+
+	/* ---------- 설명 (왼쪽 아래) ---------- */
+	.captions {
+		grid-column: 1;
+		grid-row: 3;
 		display: grid;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
-	.step {
+	.caption {
 		grid-area: 1 / 1;
 		opacity: 0;
 		transform: translateY(0.75rem);
 		transition:
 			opacity 0.35s ease,
-			transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-		pointer-events: none;
+			transform 0.5s ${EASE};
 
 		&[data-active='true'] {
 			opacity: 1;
 			transform: none;
-			pointer-events: auto;
 		}
 
-		.step-no {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.375rem;
+		.no {
+			display: block;
 			margin-bottom: 0.5rem;
 			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			font-weight: 800;
 			font-variant-numeric: tabular-nums;
 			color: ${({ theme }) => theme.color.primary};
+
+			.of {
+				color: ${({ theme }) => theme.color.subText};
+				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			}
 		}
 
 		h3 {
-			margin: 0 0 0.625rem;
-			font-size: clamp(1.375rem, 2.6vw, 2rem);
+			margin: 0 0 0.5rem;
+			font-size: clamp(1.25rem, 2.2vw, 1.75rem);
 			font-weight: 800;
 			color: ${({ theme }) => theme.color.text};
 		}
 
 		p {
 			margin: 0;
-			max-width: 30rem;
 			line-height: 1.7;
 			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 
-	/* 오른쪽 판: 단계 그림을 겹쳐 두고 바꿔 보여 준다 */
-	.panel {
-		display: grid;
-		aspect-ratio: 4 / 3;
-		padding: 2rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.surface};
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			order: -1;
-			aspect-ratio: auto;
-			height: 11rem;
-			padding: 1.25rem;
-			overflow: hidden;
-		}
-	}
-
-	.visual {
-		grid-area: 1 / 1;
-		display: grid;
-		align-content: center;
-		opacity: 0;
-		transition: opacity 0.35s ease;
-
-		&[data-active='true'] {
-			opacity: 1;
-		}
-
-		/* 지금 단계 그림 안의 조각들이 차례로 들어온다 */
-		&[data-active='true'] [style*='--i'] {
-			animation: ${appear} 0.45s ease both;
-			animation-delay: calc(var(--i) * 0.07s);
-		}
-	}
-
-	.line {
-		display: block;
-		height: 0.5rem;
-		border-radius: 0.25rem;
-		background: ${({ theme }) => theme.color.border};
-
-		&.short {
-			width: 60%;
-		}
-	}
-
-	.v-collect {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-
-		.chips {
-			display: flex;
-			flex-wrap: wrap;
-			gap: 0.5rem;
-		}
-
-		.chip {
-			padding: 0.25rem 0.75rem;
-			border: 1px solid ${({ theme }) => theme.color.primary};
-			border-radius: ${({ theme }) => theme.radius.chip};
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.primary};
-			background: ${({ theme }) => theme.color.background};
-		}
-
-		.articles {
-			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-			gap: 0.5rem;
-
-			@media ${({ theme }) => theme.mediaQuery.tablet} {
-				.article:nth-child(n + 4) {
-					display: none;
-				}
-			}
-		}
-
-		.article {
-			height: 2.5rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.surface};
-			background: ${({ theme }) => theme.color.background};
-		}
-	}
-
-	.v-pick {
-		display: flex;
-		flex-direction: column;
-		gap: 0.625rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-
-		.row {
-			display: flex;
-			align-items: center;
-			gap: 0.75rem;
-			padding: 0.625rem 0.875rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.surface};
-			background: ${({ theme }) => theme.color.background};
-			opacity: 0.45;
-
-			.line {
-				flex: 1;
-			}
-
-			&.picked {
-				border-color: ${({ theme }) => theme.color.primary};
-				opacity: 1;
-
-				.line {
-					background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 35%, transparent);
-				}
-			}
-
-			@media ${({ theme }) => theme.mediaQuery.tablet} {
-				padding: 0.375rem 0.75rem;
-
-				&:nth-child(n + 4) {
-					display: none;
-				}
-			}
-		}
-
-		.check {
-			display: grid;
-			place-items: center;
-			flex-shrink: 0;
-			width: 1.25rem;
-			height: 1.25rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			color: #ffffff;
-
-			.picked & {
-				border-color: ${({ theme }) => theme.color.primary};
-				background: ${({ theme }) => theme.color.primary};
-			}
-		}
-
-		.tag {
-			flex-shrink: 0;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.v-write {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		padding: 1.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.background};
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			gap: 0.5rem;
-			padding: 0.75rem 1rem;
-
-			.block:nth-child(3) {
-				display: none;
-			}
-		}
-
-		.block {
-			display: flex;
-			flex-direction: column;
-			gap: 0.375rem;
-		}
-
-		.label {
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		.line {
-			transform-origin: left;
-		}
-	}
-
-	/* 쓰기 단계: 글줄이 왼쪽부터 그어진다 */
-	.visual[data-active='true'] .v-write .line {
-		animation: ${grow} 0.6s ease both;
-		animation-delay: 0.25s;
-	}
-
-	.v-mail {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		padding: 1.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.background};
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			gap: 0.5rem;
-			padding: 0.75rem 1rem;
-
-			.story:nth-child(n + 5) {
-				display: none;
-			}
-		}
-
-		.mail-head {
-			display: flex;
-			justify-content: space-between;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
-
-			.from {
-				font-weight: 800;
-				color: ${({ theme }) => theme.color.primary};
-			}
-		}
-
-		.subject {
-			margin: 0;
-			padding-bottom: 0.75rem;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.text};
-		}
-
-		.story {
-			display: flex;
-			align-items: center;
-			gap: 0.75rem;
-
-			.dot {
-				flex-shrink: 0;
-				width: 0.5rem;
-				height: 0.5rem;
-				border-radius: 50%;
-				background: ${({ theme }) => theme.color.primary};
-			}
-
-			.line {
-				flex: 1;
-			}
-		}
-	}
-
-	/* 이어진 선: 점 사이를 지나온 만큼 채운다 (progress × 단계 수 / (단계 수 - 1)) */
-	.pipeline {
-		position: relative;
-		height: 3.5rem;
-		margin: 0 3rem;
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			margin: 0 1.5rem;
-		}
-
-		.rail {
-			position: absolute;
-			left: 0;
-			right: 0;
-			top: 0.5rem;
-			height: 2px;
-			background: ${({ theme }) => theme.color.border};
-		}
-
-		.fill {
-			display: block;
-			width: min(100%, calc(var(--progress) * var(--steps) / (var(--steps) - 1) * 100%));
-			height: 100%;
-			background: ${({ theme }) => theme.color.primary};
-		}
-
-		.node {
-			position: absolute;
-			top: 0;
-			left: calc(var(--at) * 100%);
-			display: flex;
-			flex-direction: column;
-			align-items: center;
-			transform: translateX(-50%);
-
-			&::before {
-				content: '';
-				width: 1rem;
-				height: 1rem;
-				border: 2px solid ${({ theme }) => theme.color.border};
-				border-radius: 50%;
-				background: ${({ theme }) => theme.color.background};
-				transition:
-					border-color 0.3s ease,
-					background 0.3s ease;
-			}
-
-			&.on::before {
-				border-color: ${({ theme }) => theme.color.primary};
-				background: ${({ theme }) => theme.color.primary};
-			}
-		}
-
-		.node-label {
-			margin-top: 0.5rem;
-			white-space: nowrap;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.subText};
-
-			.on & {
-				color: ${({ theme }) => theme.color.text};
-			}
-
-			@media ${({ theme }) => theme.mediaQuery.mobile} {
-				display: none;
-			}
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
-		.step,
-		.visual,
-		.pipeline .node::before {
+		.card,
+		.sheet,
+		.sheet-lines span,
+		.envelope,
+		.caption {
 			transition: none;
-		}
-
-		.visual[data-active='true'] [style*='--i'],
-		.visual[data-active='true'] .v-write .line {
-			animation: none;
 		}
 	}
 `;
