@@ -90,9 +90,32 @@ export default function MorningSection() {
 
 			<div ref={ref} className="track">
 				<div className="scene" data-phase={active}>
-					<p className="time" aria-hidden>
-						{toClock(minute)}
-					</p>
+					<div className="side">
+						<p className="time" aria-hidden>
+							{toClock(minute)}
+						</p>
+
+						{/* 네 단계 목록: 지금 단계만 진하게, 설명이 펼쳐진다 */}
+						<ol className="captions">
+							{STEPS.map((step, i) => (
+								<li
+									key={step.title}
+									className="caption"
+									data-active={i === active}
+									data-done={i < active}
+									aria-current={i === active ? 'step' : undefined}
+								>
+									<h3>
+										<span className="no">{String(i + 1).padStart(2, '0')}</span>
+										{step.title}
+									</h3>
+									<div className="detail">
+										<p>{step.text}</p>
+									</div>
+								</li>
+							))}
+						</ol>
+					</div>
 
 					<div className="stage" aria-hidden>
 						{/* 3단계에 깔리는 뉴스레터 한 장 */}
@@ -136,23 +159,6 @@ export default function MorningSection() {
 							<span className="to">오늘의 뉴픽 · 내 관심사</span>
 						</div>
 					</div>
-
-					<ol className="captions">
-						{STEPS.map((step, i) => (
-							<li
-								key={step.title}
-								className="caption"
-								data-active={i === active}
-								aria-current={i === active ? 'step' : undefined}
-							>
-								<span className="no">
-									{String(i + 1).padStart(2, '0')} <span className="of">/ {String(STEPS.length).padStart(2, '0')}</span>
-								</span>
-								<h3>{step.title}</h3>
-								<p>{step.text}</p>
-							</li>
-						))}
-					</ol>
 				</div>
 			</div>
 		</StyledMorning>
@@ -169,28 +175,38 @@ const StyledMorning = styled.section`
 		height: calc(var(--steps) * 80vh);
 	}
 
-	/* 시계는 왼쪽 위, 설명은 왼쪽 아래, 무대는 오른쪽을 넓게 (모바일은 시계 → 무대 → 설명) */
+	/* 왼쪽: 시계 바로 아래 단계 목록을 한 묶음으로 세로 가운데, 오른쪽: 무대.
+	   모바일은 시계 → 무대 → 지금 단계 설명 */
 	.scene {
 		position: sticky;
 		top: 4rem;
 		display: grid;
 		grid-template-columns: minmax(0, 22rem) minmax(0, 1fr);
-		grid-template-rows: auto 1fr auto;
 		column-gap: 3rem;
 		height: calc(100vh - 4rem);
 		height: calc(100svh - 4rem);
-		padding: 2rem 0 3rem;
+		padding: 2rem 0;
 		word-break: keep-all;
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			grid-template-columns: 1fr;
+			grid-template-rows: auto 1fr auto;
 			padding: 1rem 0 1.5rem;
 		}
 	}
 
+	.side {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 2.5rem;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			display: contents;
+		}
+	}
+
 	.time {
-		grid-column: 1;
-		grid-row: 1;
 		margin: 0;
 		font-size: clamp(3.5rem, 9vw, 7rem);
 		font-weight: 800;
@@ -200,6 +216,10 @@ const StyledMorning = styled.section`
 		white-space: nowrap;
 		font-variant-numeric: tabular-nums;
 		color: ${({ theme }) => theme.color.text};
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			grid-row: 1;
+		}
 	}
 
 	.stage {
@@ -428,54 +448,89 @@ const StyledMorning = styled.section`
 		transform: translate(-50%, -50%);
 	}
 
-	/* ---------- 설명 (왼쪽 아래) ---------- */
+	/* ---------- 단계 목록 (왼쪽, 시계 아래) ---------- */
 	.captions {
-		grid-column: 1;
-		grid-row: 3;
-		display: grid;
 		margin: 0;
 		padding: 0;
 		list-style: none;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			grid-row: 3;
+		}
 	}
 
 	.caption {
-		grid-area: 1 / 1;
-		opacity: 0;
-		transform: translateY(0.75rem);
-		transition:
-			opacity 0.35s ease,
-			transform 0.5s ${EASE};
+		padding: 0.875rem 0;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
+		transition: border-color 0.3s ease;
 
-		&[data-active='true'] {
-			opacity: 1;
-			transform: none;
+		h3 {
+			display: flex;
+			align-items: baseline;
+			gap: 0.75rem;
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.medium};
+			font-weight: 800;
+			color: ${({ theme }) => theme.color.subText};
+			opacity: 0.6;
+			transition:
+				color 0.3s ease,
+				opacity 0.3s ease;
 		}
 
 		.no {
-			display: block;
-			margin-bottom: 0.5rem;
 			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: 800;
 			font-variant-numeric: tabular-nums;
-			color: ${({ theme }) => theme.color.primary};
+		}
 
-			.of {
+		/* 설명은 지금 단계에서만 0 → 내용 높이로 펼친다 */
+		.detail {
+			display: grid;
+			grid-template-rows: 0fr;
+			transition: grid-template-rows 0.5s ${EASE};
+
+			p {
+				min-height: 0;
+				overflow: hidden;
+				margin: 0;
+				line-height: 1.7;
 				color: ${({ theme }) => theme.color.subText};
-				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			}
 		}
 
-		h3 {
-			margin: 0 0 0.5rem;
-			font-size: clamp(1.25rem, 2.2vw, 1.75rem);
-			font-weight: 800;
-			color: ${({ theme }) => theme.color.text};
+		&[data-done='true'] h3 {
+			opacity: 1;
 		}
 
-		p {
-			margin: 0;
-			line-height: 1.7;
-			color: ${({ theme }) => theme.color.subText};
+		&[data-active='true'] {
+			border-top-color: ${({ theme }) => theme.color.primary};
+
+			h3 {
+				font-size: clamp(1.25rem, 2vw, 1.5rem);
+				color: ${({ theme }) => theme.color.text};
+				opacity: 1;
+			}
+
+			.no {
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			.detail {
+				grid-template-rows: 1fr;
+
+				p {
+					padding-top: 0.5rem;
+				}
+			}
+		}
+
+		/* 모바일은 자리가 좁아 지금 단계만 */
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			display: none;
+
+			&[data-active='true'] {
+				display: block;
+			}
 		}
 	}
 
@@ -484,7 +539,9 @@ const StyledMorning = styled.section`
 		.sheet,
 		.sheet-lines span,
 		.envelope,
-		.caption {
+		.caption,
+		.caption h3,
+		.caption .detail {
 			transition: none;
 		}
 	}
