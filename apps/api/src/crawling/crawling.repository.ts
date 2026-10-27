@@ -41,6 +41,10 @@ export class CrawlingRepository {
   async getLatestCrawledNews(): Promise<CrawledNews> {
     return await this.crawledNews.findOne().sort({ createdAt: -1 });
   }
+  /** 이 시각 이후 수집한 기사 수 (#21 관리자 대시보드) */
+  async countSince(since: Date): Promise<number> {
+    return this.crawledNews.countDocuments({ createdAt: { $gte: since } });
+  }
   // 가장 오래된 데이터 조회
   async getOldestCrawledNews(): Promise<CrawledNews> {
     return await this.crawledNews.findOne().sort({ createdAt: 1 });

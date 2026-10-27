@@ -90,6 +90,7 @@ const EXPECTED: Record<string, Policy> = {
   'POST scheduler/toggle/ai-summary': 'admin',
   'POST scheduler/toggle/mail-send': 'admin',
   'GET scheduler/status': 'admin',
+  'GET scheduler/dashboard': 'admin',
   'POST scheduler/change/mail-send-cycle': 'admin',
   'POST scheduler/manual/crawling': 'admin',
   'POST scheduler/manual/ai-summary': 'admin',

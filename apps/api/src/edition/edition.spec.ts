@@ -378,6 +378,7 @@ describe('EditionService (#55)', () => {
         findUnique: jest.fn().mockResolvedValue(saved),
         upsert: jest.fn(),
       },
+      aiProcessLog: { create: jest.fn().mockResolvedValue({}) },
       newsletter: {
         findMany: jest
           .fn()
@@ -399,6 +400,7 @@ describe('EditionService (#55)', () => {
           threads: [],
         }),
         tokens: 1234,
+        usage: { model: 'claude-sonnet-5-5', input: 1000, output: 234 },
       }),
     };
     const service = new EditionService(prisma as never, claude as never);
@@ -411,6 +413,16 @@ describe('EditionService (#55)', () => {
 
     expect(claude.generate).toHaveBeenCalledTimes(1);
     expect(edition!.sources.map((s) => s.newsletterId)).toEqual([11, 20]);
+    // 편집 호출도 AI 기록에 남는다 (#21): Sonnet 5.5 $2/$10 → 1000·234 토큰 = $0.00434
+    expect(prisma.aiProcessLog.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        processType: 'edition',
+        model: 'claude-sonnet-5-5',
+        inputTokens: 1000,
+        outputTokens: 234,
+        costUsd: 0.00434,
+      }),
+    });
     expect(prisma.dailyEdition.upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         create: expect.objectContaining({

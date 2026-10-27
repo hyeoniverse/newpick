@@ -154,3 +154,55 @@ describe('구독 메일 (#55)', () => {
     expect(setTimeofCycle(9, 1)).toBe('0 40 9 * * 1');
   });
 });
+
+describe('작업 실행 기록 (#21)', () => {
+  it('요약: 일부 관심사가 실패하면 partial과 실패한 관심사를 남긴다', async () => {
+    const { service } = setup(2);
+    await service.makeAiSummary();
+    expect(service.getRuns().summary).toMatchObject({
+      running: false,
+      status: 'partial',
+      message: '뉴스레터 2편 생성 · 실패: 정치',
+    });
+  });
+
+  it('메일: 보낸 결과를 남기고, 오늘 뉴스레터가 없으면 skipped', async () => {
+    const edition = { date: '2026-10-27', sources: [], editorial: null };
+    const sent = setup(0, edition);
+    await sent.service.sendEmailSummary();
+    expect(sent.service.getRuns().mail).toMatchObject({
+      status: 'success',
+      message: '성공 1 · 실패 0 · 해당 없음 0',
+    });
+
+    const none = setup(0, null);
+    await none.service.sendEmailSummary();
+    expect(none.service.getRuns().mail).toMatchObject({
+      status: 'skipped',
+      message: '오늘 나온 뉴스레터 없음',
+    });
+  });
+
+  it('꺼진 작업은 실행하지 않고 skipped', async () => {
+    const { service, aiSummaryService } = setup(0);
+    service.toggleAiSummaryScheduler(false);
+    await service.makeAiSummary();
+    expect(aiSummaryService.summarizeText).not.toHaveBeenCalled();
+    expect(service.getRuns().summary.status).toBe('skipped');
+  });
+
+  it('진행 중이면 running', async () => {
+    const { service, aiSummaryService } = setup(0);
+    let finish: () => void;
+    aiSummaryService.summarizeText.mockImplementationOnce(
+      () =>
+        new Promise((resolve) => (finish = () => resolve({ newsletter: [] }))),
+    );
+    const run = service.makeAiSummary();
+    await new Promise((r) => setImmediate(r));
+    expect(service.getRuns().summary.running).toBe(true);
+    finish!();
+    await run;
+    expect(service.getRuns().summary.running).toBe(false);
+  });
+});
