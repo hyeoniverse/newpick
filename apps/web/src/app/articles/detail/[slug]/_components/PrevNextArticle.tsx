@@ -102,7 +102,7 @@ const PrevNextArticleStyled = styled.section`
 			align-items: center;
 			height: fit-content;
 			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-			padding: 2.5rem 1rem;
+			padding: 2.5rem 0;
 
 			.link {
 				display: contents;
@@ -164,7 +164,7 @@ const PrevNextArticleStyled = styled.section`
 			flex-direction: column;
 
 			li.prev-next {
-				padding: 1.5rem 1rem;
+				padding: 1.5rem 0;
 				gap: 1rem;
 
 				.img {
