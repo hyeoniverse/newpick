@@ -2,16 +2,13 @@
 
 import { useEffect } from 'react';
 import { API_ENDPOINTS } from '@/constants/api';
-import { POPUP_FLAG } from '@/utils/loginPopup';
+import { setPopupCookie } from '@/utils/loginPopup';
 import Spinner from '@/components/common/loader/Spinner';
 
 export default function LoginPopupStart() {
 	useEffect(() => {
-		try {
-			sessionStorage.setItem(POPUP_FLAG, '1');
-		} catch {
-			// 저장이 막혀 있으면 돌아와서 결과를 알리지 못한다. 그래도 로그인 자체는 된다
-		}
+		// 구글을 거쳐 돌아온 이 창이 팝업인 걸 알아보도록 쿠키로 남긴다 (sessionStorage는 구글을 거치며 사라질 수 있음)
+		setPopupCookie();
 		window.location.replace(API_ENDPOINTS.AUTH.LOGIN());
 	}, []);
 

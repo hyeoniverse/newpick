@@ -1,16 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { LOGIN_CHANNEL, POPUP_FLAG } from '@/utils/loginPopup';
+import { clearPopupCookie, isLoginPopup, LOGIN_CHANNEL } from '@/utils/loginPopup';
 
 /** 팝업 창이면 돌아온 주소의 결과(ok · failed)를, 아니면 null. 다른 컴포넌트가 주소를 지우기 전에 첫 그리기에서 읽는다 */
 function readPopupResult(): boolean | null {
-	if (typeof window === 'undefined') return null;
-	try {
-		if (sessionStorage.getItem(POPUP_FLAG) !== '1') return null;
-	} catch {
-		return null;
-	}
+	if (typeof window === 'undefined' || !isLoginPopup()) return null;
 	const params = new URLSearchParams(window.location.search);
 	if (params.has('oauthSuccess')) return true;
 	if (params.get('login') === 'failed') return false;
@@ -26,12 +21,12 @@ export default function LoginPopupBridge() {
 
 	useEffect(() => {
 		if (result === null) return;
-		try {
-			sessionStorage.removeItem(POPUP_FLAG);
-		} catch {}
-		const channel = new BroadcastChannel(LOGIN_CHANNEL);
-		channel.postMessage({ ok: result });
-		channel.close();
+		clearPopupCookie();
+		if ('BroadcastChannel' in window) {
+			const channel = new BroadcastChannel(LOGIN_CHANNEL);
+			channel.postMessage({ ok: result });
+			channel.close();
+		}
 		window.close();
 	}, [result]);
 
