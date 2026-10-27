@@ -72,14 +72,14 @@ export const TEAMS = [
 			{
 				name: '김정현',
 				position: '프론트엔드 리드',
-				detail: '공통 컴포넌트 · 인증·구독 · API 연동 · 문서화',
+				detail: '프로젝트 세팅 · 공통 컴포넌트 · 구글 로그인·접근 제한 · 구독·관심사 설정 · 홈·시작하기·분야 화면 · AI 뉴스레터 체험 · 이슈·PR 템플릿',
 				link: `${GITHUB.FRONT_1}`,
 				image: `${PROFILE_IMAGES.FRONT_1}`,
 			},
 			{
 				name: '이주현',
-				position: '디자인',
-				detail: '와이어프레임 · 디자인 · API 연동',
+				position: '디자인 · 화면 개발',
+				detail: '와이어프레임·디자인 · 색·글꼴 테마 · 기사 상세 페이지 · 마이페이지·프로필 · 북마크·내 뉴스레터 · 헤더·푸터',
 				link: `${GITHUB.FRONT_2}`,
 				image: `${PROFILE_IMAGES.FRONT_2}`,
 			},
