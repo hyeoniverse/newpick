@@ -57,11 +57,18 @@ export default function WhoSection() {
 						</p>
 						<div className="v2">
 							<MemberCard {...V2.member} />
-							<ul className="works">
-								{V2.works.map((work) => (
-									<li key={work}>{work}</li>
+							<div className="works">
+								{V2.works.map(({ area, items }) => (
+									<section key={area} className="work" aria-label={area}>
+										<h3 className="work-area">{area}</h3>
+										<ul>
+											{items.map((item) => (
+												<li key={item}>{item}</li>
+											))}
+										</ul>
+									</section>
 								))}
-							</ul>
+							</div>
 						</div>
 					</section>
 
@@ -233,7 +240,7 @@ const StyledWhoSection = styled.div`
 		}
 	}
 
-	/* v2: 사진 한 장 + 한 일 목록 */
+	/* v2: 사진 한 장 + 영역별 한 일. 모바일은 사진 위, 목록 아래 */
 	.v2 {
 		display: grid;
 		grid-template-columns: 10rem 1fr;
@@ -241,15 +248,53 @@ const StyledWhoSection = styled.div`
 		align-items: start;
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: 7.5rem 1fr;
-			gap: 1rem;
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+
+			.member {
+				display: grid;
+				grid-template-columns: 5rem 1fr;
+				column-gap: 1rem;
+				align-items: center;
+
+				.photo {
+					grid-row: span 2;
+				}
+
+				.name {
+					margin: 0 0 0.25rem;
+					align-self: end;
+				}
+
+				.position {
+					align-self: start;
+				}
+			}
 		}
 	}
 
 	.works {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 2rem 2.5rem;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+	}
+
+	.work-area {
+		margin: 0 0 0.75rem;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		color: #9ca9ff;
+	}
+
+	.work ul {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: 0.5rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
