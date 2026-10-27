@@ -52,9 +52,13 @@ test.describe('비로그인 탐색', () => {
 		await expect.poll(() => viewCount(id)).toBe(before + 1);
 	});
 
-	test('로그인하지 않고 마이페이지에 가면 홈으로 보낸다', async ({ page }) => {
+	test('로그인하지 않고 마이페이지에 가면 홈에서 로그인 창을 띄운다', async ({ page }) => {
 		await page.goto('/mypage');
 
-		await expect(page).toHaveURL(/\/\?login=required$/);
+		// 서버는 /?login=required로 보내고, 화면이 그 값을 읽어 로그인 창을 연 뒤 주소에서 지운다.
+		// 지우는 시점이 화면이 뜨는 속도에 따라 달라서, 주소의 ?login= 대신 결과(홈 + 로그인 창)를 본다
+		await expect(page).toHaveURL(/\/(\?login=required)?$/);
+		await expect(page.getByText('로그인이 필요한 화면이에요')).toBeVisible();
+		await expect(page).toHaveURL(/\/$/);
 	});
 });
