@@ -1,6 +1,5 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPopularKeywords } from '@/api/article';
@@ -32,20 +31,13 @@ export default function SearchFilters() {
 		staleTime: 1000 * 60 * 10,
 	});
 
-	// 직접 지정이면 좁은 화면에서도 날짜 칸이 보이게 기간 줄을 끝까지 넘긴다
-	const periodsRef = useRef<HTMLDivElement>(null);
-	useEffect(() => {
-		const row = periodsRef.current;
-		if (filters.period === 'custom' && row) row.scrollLeft = row.scrollWidth;
-	}, [filters.period]);
-
 	const setPeriod = (period: SearchPeriod) =>
 		go(period === 'custom' ? { period, from: filters.from || kstDate(29), to: filters.to || kstDate(0) } : { period });
 
 	return (
 		<StyledSearchFilters>
 			<div className="filters">
-				<div className="periods" role="group" aria-label="기간" ref={periodsRef}>
+				<div className="periods" role="group" aria-label="기간">
 					{PERIOD_OPTIONS.map((option) => (
 						<button
 							key={option.value}
@@ -56,7 +48,7 @@ export default function SearchFilters() {
 							{option.label}
 						</button>
 					))}
-					{/* 직접 지정 바로 오른쪽, 같은 줄 (좁은 화면에서도 아래로 떨어지지 않고 줄째 옆으로 넘김) */}
+					{/* 직접 지정 바로 오른쪽. 자리가 모자라면 날짜 칸만 다음 줄로 (기간 버튼은 잘리지 않게) */}
 					{filters.period === 'custom' && (
 						<DateRangePicker
 							size="small"
@@ -122,14 +114,13 @@ const StyledSearchFilters = styled.div`
 		gap: 0.5rem 1rem;
 	}
 
-	/* 기간: 모바일은 접히지 않고 한 줄을 옆으로 넘긴다 */
+	/* 기간 버튼 + 직접 지정 날짜 칸. 자리가 모자라면 날짜 칸만 다음 줄로 */
 	.periods {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.25rem;
 		max-width: 100%;
-		overflow-x: auto;
-		scrollbar-width: none;
 
 		.dates {
 			flex-shrink: 0;
