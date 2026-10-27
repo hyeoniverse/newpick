@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import SectionHeading from '@/app/about/_components/SectionHeading';
+import { useScrollProgress } from '@/hooks/useScrollProgress';
 
 const CATEGORIES = ['IT', '정치', '경제', '사회', '생활', '세계'];
 
@@ -58,7 +59,7 @@ function SendDemo() {
 			<div className="mail new">
 				<span className="dot" />
 				<span className="from">NEWPICK</span>
-				<span className="subject">오늘의 뉴픽 · 관심사 3개</span>
+				<span className="subject">오늘의 뉴픽</span>
 				<span className="at">08:40</span>
 			</div>
 			{[0, 1, 2].map((i) => (
@@ -73,16 +74,31 @@ function SendDemo() {
 
 const FEATURES = [
 	{
-		title: 'AI 큐레이션',
-		text: '방대한 기사 중 필요한 정보만 추출하고, 요약 · 시사점 · 문답으로 정리합니다.',
+		name: 'AI 큐레이션',
+		headline: '필요한 것만 남기고,\n핵심만 정리.',
+		text: '방대한 기사 중 중요한 소식만 고르고, 요약 · 시사점 · 문답으로 정리합니다.',
 		Demo: CurationDemo,
 	},
-	{ title: '맞춤 구독', text: '원하는 관심사만 골라 구독합니다. 여러 개를 골라도 메일은 한 통.', Demo: SubscribeDemo },
-	{ title: '자동 발송', text: '매일 아침 8시 40분, 따로 찾아보지 않아도 메일함에 도착합니다.', Demo: SendDemo },
+	{
+		name: '맞춤 구독',
+		headline: '내 관심사만.\n메일은 한 통.',
+		text: '원하는 관심사만 고르면, 여러 개를 골라도 한 통으로 엮어 보냅니다.',
+		Demo: SubscribeDemo,
+	},
+	{
+		name: '자동 발송',
+		headline: '찾아보지 않아도,\n아침 8시 40분.',
+		text: '매일 아침 정해진 시간에 메일함으로 도착합니다.',
+		Demo: SendDemo,
+	},
 ];
 
-/** 한 줄: 화면에 들어오면 data-inview가 켜지고 그때부터 오른쪽 장면이 움직인다 */
-function FeatureRow({ index, title, text, Demo }: (typeof FEATURES)[number] & { index: number }) {
+/**
+ * 기능 하나: 가운데 정렬로 작은 기능 이름 → 아주 큰 한 문장 → 설명 → 큰 장면.
+ * 장면은 스크롤할수록 커지며 올라오고(--progress), 화면에 들어오면 안의 움직임이 시작된다
+ */
+function FeatureBlock({ name, headline, text, Demo }: (typeof FEATURES)[number]) {
+	const stageRef = useScrollProgress<HTMLDivElement>('enter');
 	const ref = useRef<HTMLLIElement>(null);
 	const [inView, setInView] = useState(false);
 
@@ -95,34 +111,36 @@ function FeatureRow({ index, title, text, Demo }: (typeof FEATURES)[number] & { 
 				setInView(true);
 				observer.disconnect();
 			},
-			{ rootMargin: '0px 0px -25% 0px' },
+			{ rootMargin: '0px 0px -30% 0px' },
 		);
 		observer.observe(el);
 		return () => observer.disconnect();
 	}, []);
 
 	return (
-		<li ref={ref} className="row" data-inview={inView}>
-			<div className="copy">
-				<span className="no">{String(index + 1).padStart(2, '0')}</span>
-				<h3>{title}</h3>
-				<p>{text}</p>
-			</div>
-			<div className="stage" aria-hidden>
+		<li ref={ref} className="feature" data-inview={inView}>
+			<p className="name">{name}</p>
+			<h3 className="headline">
+				{headline.split('\n').map((line) => (
+					<span key={line}>{line}</span>
+				))}
+			</h3>
+			<p className="desc">{text}</p>
+			<div ref={stageRef} className="stage" aria-hidden>
 				<Demo />
 			</div>
 		</li>
 	);
 }
 
-/** 핵심 기능: 기능마다 넓은 한 줄. 왼쪽 큰 이름 · 설명, 오른쪽 지금 디자인으로 그린 작은 장면 */
+/** 핵심 기능: 기능마다 애플 제품 페이지처럼 큰 제목 + 큰 장면을 세로로 */
 export default function CoreFeature() {
 	return (
 		<StyledCore>
-			<SectionHeading label="CORE FEATURE" title="읽을 것만, 읽기 좋게." />
-			<ol className="rows">
-				{FEATURES.map((feature, i) => (
-					<FeatureRow key={feature.title} index={i} {...feature} />
+			<SectionHeading label="CORE FEATURE" />
+			<ol className="features">
+				{FEATURES.map((feature) => (
+					<FeatureBlock key={feature.name} {...feature} />
 				))}
 			</ol>
 		</StyledCore>
@@ -159,80 +177,80 @@ const push = keyframes`
 `;
 
 const StyledCore = styled.section`
-	.rows {
+	.features {
+		display: flex;
+		flex-direction: column;
+		gap: 9rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-	}
-
-	/* 넓은 한 줄: 왼쪽 글, 오른쪽 장면. 줄 사이는 얇은 선 */
-	.row {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		align-items: center;
-		gap: 4rem;
-		padding: 3.5rem 0;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			grid-template-columns: 1fr;
-			gap: 1.75rem;
-			padding: 2.5rem 0;
-		}
-
-		&:hover h3 {
-			color: ${({ theme }) => theme.color.primary};
+			gap: 5rem;
 		}
 	}
 
-	.copy {
+	/* 가운데 정렬: 작은 기능 이름 → 큰 한 문장 → 설명 → 큰 장면 */
+	.feature {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		text-align: center;
 		word-break: keep-all;
+	}
 
-		.no {
-			display: block;
-			margin-bottom: 0.75rem;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: 800;
-			font-variant-numeric: tabular-nums;
-			color: ${({ theme }) => theme.color.primary};
-		}
+	.name {
+		margin: 0 0 1rem;
+		font-size: ${({ theme }) => theme.fontSize.medium};
+		font-weight: 800;
+		color: ${({ theme }) => theme.color.primary};
+	}
 
-		h3 {
-			margin: 0 0 1rem;
-			font-size: clamp(2rem, 4.5vw, 3.25rem);
-			font-weight: 800;
-			line-height: 1.15;
-			letter-spacing: -0.02em;
-			color: ${({ theme }) => theme.color.text};
-			transition: color 0.3s ease;
-		}
+	.headline {
+		display: flex;
+		flex-direction: column;
+		margin: 0 0 1.25rem;
+		font-size: clamp(2.25rem, 6vw, 4.5rem);
+		font-weight: 800;
+		line-height: 1.12;
+		letter-spacing: -0.03em;
+		color: ${({ theme }) => theme.color.text};
+	}
 
-		p {
-			margin: 0;
-			max-width: 26rem;
-			line-height: 1.8;
-			color: ${({ theme }) => theme.color.subText};
+	.desc {
+		max-width: 32rem;
+		margin: 0 0 3.5rem;
+		font-size: clamp(1rem, 1.6vw, 1.25rem);
+		line-height: 1.7;
+		color: ${({ theme }) => theme.color.subText};
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			margin-bottom: 2rem;
 		}
 	}
 
+	/* 큰 장면: 스크롤할수록 92% → 100%로 커지며 2rem 아래에서 올라온다 */
 	.stage {
+		--progress: 0;
 		display: grid;
 		place-items: center;
-		min-height: 15rem;
-		padding: 2rem;
+		width: 100%;
+		min-height: 26rem;
+		padding: 3rem;
 		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.surface};
+		transform: translateY(calc((1 - var(--progress)) * 2rem)) scale(calc(0.92 + var(--progress) * 0.08));
 
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			min-height: 12rem;
-			padding: 1.25rem;
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			min-height: 16rem;
+			padding: 1.5rem;
 		}
 	}
 
 	.demo {
 		width: 100%;
-		max-width: 22rem;
+		max-width: 30rem;
+		text-align: left;
 	}
 
 	/* ---------- AI 큐레이션 ---------- */
@@ -303,7 +321,7 @@ const StyledCore = styled.section`
 		}
 	}
 
-	.row[data-inview='true'] .curation {
+	.feature[data-inview='true'] .curation {
 		.ink {
 			animation: ${write} 0.7s ease both;
 			animation-delay: calc(0.2s + var(--i) * 0.35s);
@@ -333,7 +351,8 @@ const StyledCore = styled.section`
 		}
 
 		.chip-toggle {
-			padding: 0.375rem 1rem;
+			padding: 0.5rem 1.25rem;
+			font-size: ${({ theme }) => theme.fontSize.medium};
 			border: 1px solid ${({ theme }) => theme.color.primary};
 			border-radius: ${({ theme }) => theme.radius.chip};
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
@@ -352,7 +371,7 @@ const StyledCore = styled.section`
 		}
 	}
 
-	.row[data-inview='true'] .subscribe {
+	.feature[data-inview='true'] .subscribe {
 		.chip-toggle.on {
 			animation: ${turnOn} 0.3s ease both;
 			animation-delay: calc(0.3s + var(--o) * 0.4s);
@@ -440,7 +459,7 @@ const StyledCore = styled.section`
 	}
 
 	/* 새 메일이 위에서 들어오고, 아래 메일들은 한 칸 밀려난다 */
-	.row[data-inview='true'] .send {
+	.feature[data-inview='true'] .send {
 		.new {
 			animation: ${arrive} 0.6s ease 0.6s both;
 		}
@@ -451,7 +470,11 @@ const StyledCore = styled.section`
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.row[data-inview='true'] .demo * {
+		.stage {
+			transform: none;
+		}
+
+		.feature[data-inview='true'] .demo * {
 			animation: none !important;
 		}
 
