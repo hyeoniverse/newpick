@@ -102,7 +102,7 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 								</>
 							)}
 							{summaryKeywords.length > 0 && (
-								// 모바일에서는 키워드만 아래 줄로 내려 옆으로 넘긴다 (…로 잘리지 않게)
+								// 태블릿 이하에서는 키워드만 아래 줄로 내려 옆으로 넘긴다 (…로 잘리지 않게)
 								<span className="keywords">
 									<span className="keywords-label">{' · 자주 나온 키워드 '}</span>
 									{summaryKeywords.map((k) => (
@@ -312,8 +312,8 @@ const StyledHotSection = styled.section<StyledProps>`
 			}
 		}
 
-		/* 모바일 배너: 아이콘은 제목 오른쪽 위로 작게(글자와 겹치지 않게), 설명은 두 줄까지, 키워드는 아래 줄에서 옆으로 넘김 */
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
+		/* 태블릿 이하 배너: 아이콘은 제목 오른쪽 위로 작게(글자와 겹치지 않게), 설명은 두 줄까지, 키워드는 아래 줄에서 옆으로 넘김 */
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			gap: 0.25rem;
 			padding-right: 3.25rem;
 
