@@ -128,6 +128,8 @@ const StyledSearchFilters = styled.div`
 		align-items: center;
 		gap: 0.25rem;
 		max-width: 100%;
+		/* 날짜 칸(2.25rem)이 나타나도 줄 높이가 그대로이게 처음부터 그 높이 */
+		min-height: 2.25rem;
 
 		.dates {
 			flex-shrink: 0;
