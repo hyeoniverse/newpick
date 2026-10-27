@@ -215,7 +215,8 @@ const StyledCardSlider = styled.div<StyledProps>`
 		flex-direction: row;
 		justify-content: flex-start;
 		align-items: center;
-		gap: 0.5rem;
+		/* 점과 점의 중심 거리를 24px 넘게: 손가락으로 눌러도 옆 점이 눌리지 않게 (#16) */
+		gap: 0.75rem;
 
 		.arrow {
 			display: flex;
