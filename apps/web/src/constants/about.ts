@@ -72,7 +72,7 @@ export const TEAMS = [
 			{
 				name: '김정현',
 				position: '프론트엔드 리드',
-				detail: '프로젝트 세팅 · 공통 컴포넌트 · 구글 로그인·접근 제한 · 구독·관심사 설정 · 홈·시작하기·분야 화면 · AI 뉴스레터 체험 · 이슈·PR 템플릿',
+				detail: '프로젝트 세팅 · 공통 컴포넌트 · 구글 로그인·접근 제한 · 구독·관심사 설정 · 홈·시작하기·분야 화면 · AI 뉴스레터 체험 · 회의록·팀 노션 문서 작성 · 일정·트러블슈팅 정리 · README·이슈·PR 템플릿',
 				link: `${GITHUB.FRONT_1}`,
 				image: `${PROFILE_IMAGES.FRONT_1}`,
 			},
