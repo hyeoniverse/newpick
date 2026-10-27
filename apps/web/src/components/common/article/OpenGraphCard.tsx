@@ -1,4 +1,5 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { NewsInfo as INewsInfo } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
 import { getRelatedNews } from '@/hooks/useArticle';
@@ -14,18 +15,15 @@ interface Props {
 }
 
 export default function OpenGraphCard({ urls }: Props) {
-	const [relatedNewsData, setRelatedNewsData] = useState<INewsInfo[]>([]);
-
-	// 비동기 데이터를 useEffect에서 처리
-	useEffect(() => {
-		const fetchData = async () => {
-			if (urls.length > 0) {
-				const data = await getRelatedNews(urls);
-				setRelatedNewsData(data); // 상태 업데이트
-			}
-		};
-		fetchData();
-	}, [urls]);
+	// 주소 목록(내용)으로 캐시해, 화면이 다시 그려져도(스크롤 등) 다시 요청하지 않는다.
+	// 예전에는 urls 배열이 그릴 때마다 새로 만들어져 useEffect가 매번 다시 요청했고,
+	// API 요청 제한(429)에 걸린 요청이 빠지면서 카드가 떴다 사라졌다
+	const { data: relatedNewsData = [] } = useQuery<INewsInfo[]>({
+		queryKey: ['relatedNews', urls.join(',')],
+		queryFn: () => getRelatedNews(urls),
+		enabled: urls.length > 0,
+		staleTime: 1000 * 60 * 30,
+	});
 
 	return (
 		<Suspense fallback={<Skeleton />}>

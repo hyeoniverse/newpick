@@ -78,5 +78,9 @@ export const getCategoryList = async (
  */
 export const getRelatedNews = async (links: string[]): Promise<INewsInfo[]> => {
 	const results = await Promise.allSettled(links.map((link) => fetchRelatedNews(link)));
+	// 하나도 못 받았으면(요청 제한 · 서버 오류 등) 빈 목록을 캐시하지 않게 실패로 돌려 React Query가 다시 시도한다
+	if (links.length > 0 && results.every((result) => result.status === 'rejected')) {
+		throw (results[0] as PromiseRejectedResult).reason;
+	}
 	return results.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []));
 };
