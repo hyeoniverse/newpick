@@ -17,20 +17,32 @@ interface Member {
 	image: string;
 }
 
-function MemberCard({ name, position, detail, isLeader, link, image }: Member) {
+/** v2는 큰 사진(photo), v1은 맡은 일이 길어 사진을 작게 옆에 둔 카드(row) */
+function MemberCard({
+	name,
+	position,
+	detail,
+	isLeader,
+	link,
+	image,
+	variant = 'photo',
+}: Member & { variant?: 'photo' | 'row' }) {
 	return (
-		<div className="member">
+		<div className={`member ${variant}`}>
 			<ExternalLink href={link} showIcon={false} className="photo" aria-label={`${name} GitHub`}>
 				<Image ratio="square" src={image} alt="" />
 				<span className="overlay" aria-hidden>
-					GitHub <LuExternalLink />
+					{variant === 'photo' && 'GitHub '}
+					<LuExternalLink />
 				</span>
 			</ExternalLink>
-			<p className="name">{name}</p>
-			<p className="position">
-				{isLeader && <span className="leader">팀장</span>}
-				<span className="role">{position}</span>
-			</p>
+			<div className="info">
+				<p className="name">{name}</p>
+				<p className="position">
+					{isLeader && <span className="leader">팀장</span>}
+					<span className="role">{position}</span>
+				</p>
+			</div>
 			{/* 맡은 일은 ' · '로 나눠 한 줄에 하나씩 (좁은 칸에서 단어가 중간에 끊기지 않게) */}
 			{detail && (
 				<ul className="detail">
@@ -103,7 +115,7 @@ export default function WhoSection() {
 									<ul className="members">
 										{team.members.map((member) => (
 											<li key={member.name}>
-												<MemberCard {...member} />
+												<MemberCard {...member} variant="row" />
 											</li>
 										))}
 									</ul>
@@ -264,17 +276,8 @@ const StyledWhoSection = styled.div`
 				column-gap: 1rem;
 				align-items: center;
 
-				.photo {
-					grid-row: span 2;
-				}
-
 				.name {
 					margin: 0 0 0.25rem;
-					align-self: end;
-				}
-
-				.position {
-					align-self: start;
 				}
 			}
 		}
@@ -372,22 +375,91 @@ const StyledWhoSection = styled.div`
 		}
 	}
 
+	/* v1 팀원: 맡은 일이 길어 카드로. 넓으면 여러 칸, 모바일은 한 칸 */
 	.members {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
-		gap: 1.5rem;
+		grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+		gap: 1rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-			gap: 1rem 0.75rem;
+			grid-template-columns: 1fr;
+		}
+
+		& > li {
+			display: flex;
 		}
 	}
 
 	.member {
 		min-width: 0;
+	}
+
+	/* 사진은 작게 왼쪽, 이름·역할은 오른쪽, 맡은 일은 아래 전체 폭 */
+	.member.row {
+		flex: 1;
+		display: grid;
+		grid-template-columns: 3.5rem minmax(0, 1fr);
+		align-content: start;
+		gap: 1rem;
+		padding: 1.25rem;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: rgba(255, 255, 255, 0.04);
+		transition:
+			border-color 0.25s ease,
+			background 0.25s ease;
+
+		&:hover {
+			border-color: rgba(255, 255, 255, 0.24);
+			background: rgba(255, 255, 255, 0.07);
+		}
+
+		.photo {
+			align-self: center;
+
+			.overlay {
+				font-size: ${({ theme }) => theme.fontSize.small};
+			}
+		}
+
+		.info {
+			align-self: center;
+			min-width: 0;
+		}
+
+		.name {
+			margin: 0 0 0.25rem;
+			font-size: ${({ theme }) => theme.fontSize.medium};
+		}
+
+		.detail {
+			grid-column: 1 / -1;
+			margin: 0;
+			padding-top: 1rem;
+			border-top: 1px solid rgba(255, 255, 255, 0.1);
+			gap: 0.375rem;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			color: #b5b5b5;
+
+			li {
+				position: relative;
+				padding-left: 0.875rem;
+
+				&::before {
+					content: '';
+					position: absolute;
+					left: 0;
+					top: 0.65em;
+					width: 0.25rem;
+					height: 0.25rem;
+					border-radius: 50%;
+					background: #9ca9ff;
+				}
+			}
+		}
 	}
 
 	.photo {
