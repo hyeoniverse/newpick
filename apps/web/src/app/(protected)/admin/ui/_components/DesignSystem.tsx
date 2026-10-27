@@ -35,7 +35,8 @@ import Skeleton from '@/components/common/loader/Skeleton';
 import ModalContent from '@/components/common/modal/ModalContent';
 import BarHeight from '@/components/common/BarHeight';
 import BarWidth from '@/components/common/BarWidth';
-import NoContentsPage from '@/components/common/NoContentsPage';
+import EmptyState from '@/components/common/EmptyState';
+import { LuBookmark } from 'react-icons/lu';
 import ErrorState from '@/components/common/ErrorState';
 import { DELETED_NEWSLETTER, ERROR_STATES } from '@/constants/errors';
 import AgreementCheck from '@/components/common/article/AgreementCheck';
@@ -450,8 +451,13 @@ function DesignSystemBody() {
 				<AgreementCheck name="ds-agreement" />
 			</Section>
 
-			<Section id="empty" title="빈 화면 · 구분선" note="NoContentsPage · BarWidth · BarHeight">
-				<NoContentsPage text="북마크한 뉴스레터가 없습니다." btnText="뉴스레터 보러 가기" moveTo="/articles" />
+			<Section id="empty" title="빈 화면 · 구분선" note="EmptyState · BarWidth · BarHeight">
+				<EmptyState
+					icon={LuBookmark}
+					title="북마크한 뉴스레터가 없어요"
+					description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모여요."
+					action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+				/>
 				<BarWidth />
 				<div className="wrap">
 					<Text size="small">왼쪽</Text>

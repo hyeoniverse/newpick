@@ -264,6 +264,8 @@ const StyledCard = styled.div<StyledProps>`
 
 		span {
 			font-size: ${({ theme }) => theme.fontSize.small};
+			/* 좁은 화면(360px)에서 날짜 · 조회수가 '2026-10- / 27'처럼 끊기지 않게 (#17) */
+			white-space: nowrap;
 		}
 
 		.rounded-icon-button {

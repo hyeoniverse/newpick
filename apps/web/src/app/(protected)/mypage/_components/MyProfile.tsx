@@ -105,8 +105,12 @@ const ProfileStyled = styled.div`
 		}
 
 		.profile-text {
+			/* 긴 메일 주소가 좁은 화면(360px) 밖으로 나가 페이지가 옆으로 밀리지 않게 (#17) */
+			min-width: 0;
+
 			p {
 				padding: 0.25rem 0;
+				overflow-wrap: anywhere;
 			}
 
 			ul {

@@ -51,12 +51,17 @@ interface Props extends ErrorStateCopy {
 	/** '다시 시도'를 눌렀을 때. 없으면 새로 고침 */
 	onRetry?: () => void;
 	className?: string;
+	/**
+	 * 화면 일부(탭 · 옆 칸) 안에 들어가는 작은 모양 (#17). 제목이 h2, 위아래 여백이 작고 '홈으로' 버튼이 없다.
+	 * 기본은 페이지 전체를 차지하는 오류 화면
+	 */
+	inline?: boolean;
 }
 
 /**
  * 오류·빈 화면 공통. 아이콘 · 코드 · 제목 · 설명 · 다음에 할 일(주 버튼 + 홈으로)
  */
-export default function ErrorState({ code, icon, title, description, action, onRetry, className }: Props) {
+export default function ErrorState({ code, icon, title, description, action, onRetry, className, inline }: Props) {
 	const router = useRouter();
 	const openLogin = useOpenLogin();
 	const Icon = ICONS[icon];
@@ -69,19 +74,19 @@ export default function ErrorState({ code, icon, title, description, action, onR
 	};
 
 	return (
-		<StyledErrorState className={className} role="alert">
+		<StyledErrorState className={`${className ?? ''}${inline ? ' inline' : ''}`} role="alert">
 			<span className="badge" aria-hidden>
 				<Icon />
 			</span>
 			{code && <p className="code">{code}</p>}
-			<h1 className="title">{title}</h1>
+			{inline ? <h2 className="title">{title}</h2> : <h1 className="title">{title}</h1>}
 			<p className="description">{description}</p>
 
 			<div className="actions">
 				<Button scheme="primary" size="medium" onClick={runAction}>
 					{ACTION_LABELS[action]}
 				</Button>
-				{action !== 'home' && (
+				{action !== 'home' && !inline && (
 					<Button scheme="outline" size="medium" onClick={() => router.push('/')}>
 						홈으로
 					</Button>
@@ -105,6 +110,18 @@ const StyledErrorState = styled.section`
 
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
 		padding: 4rem 0;
+	}
+
+	&.inline {
+		padding: 3rem 0;
+
+		.title {
+			font-size: ${({ theme }) => theme.fontSize.medium};
+		}
+
+		.actions {
+			margin-top: 1rem;
+		}
 	}
 
 	.badge {
