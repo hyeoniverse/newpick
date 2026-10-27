@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { SchedulerService } from './scheduler.service';
 import { SchedulerController } from './scheduler.controller';
+import { DashboardService } from './dashboard.service';
 import { MailModule } from 'src/mail/mail.module';
 import { CrawlingModule } from 'src/crawling/crawling.module';
 import { AiSummaryModule } from 'src/ai-summary/ai-summary.module';
@@ -19,7 +20,7 @@ import { EditionModule } from 'src/edition/edition.module';
     BasicRepositoryModule,
     EditionModule,
   ],
-  providers: [SchedulerService],
+  providers: [SchedulerService, DashboardService],
   controllers: [SchedulerController],
 })
 export class SchedulerModule {}

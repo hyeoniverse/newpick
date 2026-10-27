@@ -503,9 +503,11 @@ describe('파이프라인', () => {
 
   it('분야 이름을 넘기고, 쓴 기사의 링크·이미지와 렌더링한 HTML을 저장한다', async () => {
     const createNewsletter = jest.fn().mockResolvedValue({ id: 1 });
-    const write = jest
-      .fn()
-      .mockResolvedValue({ newsletter: written(), tokens: 1 });
+    const write = jest.fn().mockResolvedValue({
+      newsletter: written(),
+      tokens: 1,
+      usage: [{ model: 'claude-sonnet-5-5', input: 1, output: 0 }],
+    });
     const prisma = {
       aiProcessLog: { create: jest.fn() },
       newsCategory: { findUnique: jest.fn().mockResolvedValue({ name: 'IT' }) },

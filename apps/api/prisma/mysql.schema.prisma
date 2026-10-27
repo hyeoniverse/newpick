@@ -118,15 +118,21 @@ model EmailArchive {
 
 // AiProcessLog 모델
 model AiProcessLog {
-  id          Int      @id @default(autoincrement())
-  newsId      String   @db.Text
-  processType String
-  result      String   @db.Text
-  duration    Float
-  createdAt   DateTime @default(now())
-  status      String
-  error       String?  @db.Text
-  token       Int
+  id           Int      @id @default(autoincrement())
+  newsId       String   @db.Text
+  processType  String
+  result       String   @db.Text
+  duration     Float
+  createdAt    DateTime @default(now())
+  status       String
+  error        String?  @db.Text
+  token        Int
+  /// 쓴 모델 (여럿이면 쉼표로). 이전 기록은 null
+  model        String?
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  /// 이 처리에 든 Claude 비용 (USD). 모르는 모델이거나 이전 기록이면 null
+  costUsd      Float?
 
   @@map("ai_process_logs")
 }

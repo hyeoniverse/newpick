@@ -29,6 +29,15 @@ import InputText from '@/components/common/InputText';
 import InputCheck from '@/components/common/InputCheck';
 import InputSelect from '@/components/common/InputSelect';
 import { DatePicker, DateRangePicker } from '@/components/common/DatePicker';
+import TimePicker from '@/components/common/TimePicker';
+import Pagination from '@/components/common/Pagination';
+import FilterChips from '@/components/common/FilterChips';
+import StatusBadge from '@/components/common/StatusBadge';
+import { HeaderSelect, SortButton, SortOrder } from '@/components/common/TableHeader';
+import MoreLink from '@/components/common/MoreLink';
+import BrandAvatar from '@/components/common/BrandAvatar';
+import BackBar from '@/components/common/BackBar';
+import { CATEGORY_OPTIONS } from '@/constants/categories';
 import InputRadio from '@/components/common/InputRadio';
 import Spinner from '@/components/common/loader/Spinner';
 import Skeleton from '@/components/common/loader/Skeleton';
@@ -83,6 +92,7 @@ const SECTIONS = [
 	{ id: 'nav', title: '탐색' },
 	{ id: 'link', title: '링크 · 아이콘' },
 	{ id: 'subscribe', title: '구독' },
+	{ id: 'admin', title: '날짜 · 시각 · 표 · 쪽' },
 	{ id: 'empty', title: '빈 화면 · 구분선' },
 	{ id: 'loading', title: '로딩' },
 	{ id: 'error', title: '오류 화면' },
@@ -129,6 +139,12 @@ function DesignSystemBody() {
 	const [selectValue, setSelectValue] = useState('');
 	const [date, setDate] = useState('');
 	const [range, setRange] = useState({ start: '', end: '' });
+	const [pickedDate, setPickedDate] = useState('');
+	const [time, setTime] = useState('08:30');
+	const [page, setPage] = useState(6);
+	const [chip, setChip] = useState('');
+	const [headerPick, setHeaderPick] = useState('');
+	const [sortOrder, setSortOrder] = useState<SortOrder>('');
 	const [cycle, setCycle] = useState<'daily' | 'weekly'>('daily');
 	const [errorKey, setErrorKey] = useState('deleted');
 	const [bookmarked, setBookmarked] = useState(false);
@@ -448,6 +464,43 @@ function DesignSystemBody() {
 				</div>
 			</Section>
 
+			<Section
+				id="admin"
+				title="날짜 · 시각 · 표 · 쪽"
+				note="DatePicker · TimePicker · BackBar · FilterChips · TableHeader(HeaderSelect · SortButton) · StatusBadge · MoreLink · BrandAvatar · Pagination"
+			>
+				<div className="wrap">
+					<DatePicker label="날짜" value={pickedDate} onChange={setPickedDate} />
+					<TimePicker label="시각" value={time} onChange={setTime} />
+				</div>
+				<BackBar text="목록으로" onClick={() => showToast('뒤로 막대를 눌렀어요', 'info')} />
+				<FilterChips label="관심사" options={CATEGORY_OPTIONS} value={chip} onChange={setChip} />
+				<table className="ds-table">
+					<thead>
+						<tr>
+							<th>
+								<HeaderSelect label="관심사" options={CATEGORY_OPTIONS} value={headerPick} onChange={setHeaderPick} />
+							</th>
+							<th>
+								<SortButton label="조회수" order={sortOrder} onChange={setSortOrder} />
+							</th>
+							<th>결과</th>
+						</tr>
+					</thead>
+				</table>
+				<div className="wrap">
+					<StatusBadge tone="success">성공</StatusBadge>
+					<StatusBadge tone="warning">일부 실패</StatusBadge>
+					<StatusBadge tone="failed">실패</StatusBadge>
+					<StatusBadge tone="neutral">건너뜀</StatusBadge>
+				</div>
+				<div className="wrap">
+					<MoreLink href="/admin">전체 보기 →</MoreLink>
+					<BrandAvatar />
+				</div>
+				<Pagination page={page} total={240} pageSize={20} onChange={setPage} />
+			</Section>
+
 			<Section id="subscribe" title="구독" note="SubscribeInduce(기사 하단) · AgreementCheck">
 				<SubscribeInduce />
 				<AgreementCheck name="ds-agreement" />
@@ -594,6 +647,20 @@ const StyledPage = styled.div`
 				border-color: ${({ theme }) => theme.color.primary};
 				color: ${({ theme }) => theme.color.primary};
 			}
+		}
+	}
+
+	/* 표 머리 예시 */
+	.ds-table {
+		width: 100%;
+		max-width: 32rem;
+		border-collapse: collapse;
+		font-size: ${({ theme }) => theme.fontSize.small};
+
+		th {
+			padding: 0.5rem 1rem 0.5rem 0;
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+			text-align: left;
 		}
 	}
 

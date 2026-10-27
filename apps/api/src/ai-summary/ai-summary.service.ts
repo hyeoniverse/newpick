@@ -1,3 +1,4 @@
+import { usageLog } from './pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { FindCategoryService } from './findCategory.service';
@@ -49,8 +50,11 @@ export class AiSummaryService {
           select: { name: true },
         })
       )?.name;
-      const { newsletter: written, tokens } =
-        await this.newsletterWriterService.write(news, category);
+      const {
+        newsletter: written,
+        tokens,
+        usage,
+      } = await this.newsletterWriterService.write(news, category);
       const { title, subtitle, summary, stories, keywords } = written;
 
       const used = usedArticles(
@@ -83,6 +87,7 @@ export class AiSummaryService {
           status: 'success',
           token: tokens,
           error: null,
+          ...usageLog(usage),
         },
       });
 

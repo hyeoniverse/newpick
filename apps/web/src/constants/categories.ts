@@ -37,3 +37,6 @@ export const CATEGORIES: Category[] = [
 		description: '국제 정세·외교·분쟁 소식',
 	},
 ];
+
+/** 고르기 칸 · 칩용 관심사 목록 ('전체'는 값 '') */
+export const CATEGORY_OPTIONS = CATEGORIES.map((c) => ({ label: c.name, value: c.id ? String(c.id) : '' }));
