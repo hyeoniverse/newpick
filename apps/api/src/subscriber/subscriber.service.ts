@@ -106,6 +106,37 @@ export class SubscriberService {
    * 현재 구독 상태 조회
    * @param userId 사용자 ID
    */
+  /**
+   * 원클릭 해지 대상 (#18). 로그인 없이 토큰으로 온다.
+   * 메일 주소는 가려서 돌려준다 (확인 화면용). 없는 회원이면 null
+   */
+  async unsubscribeTarget(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (!user) return null;
+    const { status } = await this.getSubscriptionStatus(userId);
+    return {
+      email: maskEmail(user.email),
+      subscribed: status === 'active' || status === 'paused',
+    };
+  }
+
+  /**
+   * 원클릭 해지 (#18). 진행 중(구독 · 일시정지)이면 해지하고, 이미 해지했거나 구독한 적이 없으면 그대로 둔다.
+   * 메일 앱이 여러 번 보내도 같은 결과가 되게 한다
+   */
+  async unsubscribeOneClick(userId: number) {
+    const active = await this.prisma.subscriber.findFirst({
+      where: { userId, status: { in: ['active', 'paused'] } },
+    });
+    if (!active) return { unsubscribed: false };
+    await this.cancelSubscription(userId);
+    this.logger.log(`원클릭 수신 거부: 회원 ${userId}`);
+    return { unsubscribed: true };
+  }
+
   async getSubscriptionStatus(userId: number) {
     const subscription = await this.prisma.subscriber.findFirst({
       where: { userId, status: { in: ['active', 'paused'] } },
@@ -148,6 +179,7 @@ export class SubscriberService {
       email: string;
       interests: number[];
       name: string;
+      userId: number;
     }[]
   > {
     const recievers = await this.prisma.subscriber.findMany({
@@ -169,9 +201,17 @@ export class SubscriberService {
         email: reciever.user.email,
         interests: reciever.user.interests.map((i) => i.categoryId),
         name: reciever.user.username,
+        userId: reciever.userId,
       };
     });
 
     return subscribersWithInterest;
   }
+}
+
+/** 확인 화면에 보일 메일 주소: 앞 두 글자만 남기고 가린다 (hy***@gmail.com) */
+export function maskEmail(email: string) {
+  const [name, domain] = email.split('@');
+  if (!domain) return '***';
+  return `${name.slice(0, 2)}${'*'.repeat(Math.max(3, name.length - 2))}@${domain}`;
 }

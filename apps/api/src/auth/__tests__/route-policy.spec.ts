@@ -12,6 +12,7 @@ import { AiProcessingLogController } from 'src/repository/controllers/aiProcessi
 import { EmailArchivesController } from 'src/repository/controllers/emailArchieve.controller';
 import { SchedulerController } from 'src/scheduler/scheduler.controller';
 import { SubscriberController } from 'src/subscriber/subscriber.controller';
+import { UnsubscribeController } from 'src/subscriber/unsubscribe.controller';
 import { EditionController } from 'src/edition/edition.controller';
 
 /**
@@ -66,6 +67,8 @@ const EXPECTED: Record<string, Policy> = {
   'GET subscribers/status': 'auth',
   'GET subscribers/history': 'auth',
   'GET subscribers/all': 'admin',
+  'GET subscribers/unsubscribe': 'public',
+  'POST subscribers/unsubscribe': 'public',
 
   'GET admin/users': 'admin',
   'DELETE admin/users/:id': 'admin',
@@ -106,6 +109,7 @@ describe('라우트 접근 정책', () => {
     FeedbackController,
     MyPageController,
     SubscriberController,
+    UnsubscribeController,
     AdminController,
     AiProcessingLogController,
     EmailArchivesController,

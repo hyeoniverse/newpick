@@ -342,6 +342,18 @@ describe('메일 HTML (#55)', () => {
     expect(mail).toContain('href="mailto:hello@newpick.app"');
   });
 
+  it('받는 사람의 해지 화면 주소가 있으면 수신 거부가 그리로 간다 (#18)', () => {
+    const withLink = renderEditionMail(
+      edition,
+      'https://newpick.app/',
+      'hello@newpick.app',
+      'https://newpick.app/unsubscribe?token=22.abc',
+    );
+    expect(withLink).toMatch(
+      /href="https:\/\/newpick\.app\/unsubscribe\?token=22\.abc"[^>]*>수신 거부</,
+    );
+  });
+
   it('글자는 이스케이프하고, http(s)가 아닌 링크는 걸지 않는다', () => {
     expect(mail).not.toContain('<script>');
     expect(mail).toContain('&lt;script&gt;');

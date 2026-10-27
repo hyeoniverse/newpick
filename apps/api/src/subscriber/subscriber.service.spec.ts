@@ -1,5 +1,5 @@
 import { Logger } from '@nestjs/common';
-import { SubscriberService } from './subscriber.service';
+import { maskEmail, SubscriberService } from './subscriber.service';
 
 /** Prisma 호출을 기록만 하는 가짜 클라이언트. $transaction에 넘어온 작업 목록을 확인합니다. */
 function fakePrisma(user: unknown, categoryIds: number[] = [1, 2, 3]) {
@@ -103,5 +103,38 @@ describe('SubscriberService.cancelSubscription', () => {
     );
     expect(ops).toEqual(['userInterest.deleteMany', 'subscriber.update']);
     expect(prisma.bookmark.deleteMany).not.toHaveBeenCalled();
+  });
+});
+
+describe('원클릭 해지 (#18)', () => {
+  it('구독 중이면 해지한다 (관심사 비우기 · 상태 cancelled)', async () => {
+    const prisma = fakePrisma(null);
+    prisma.subscriber.findFirst.mockResolvedValue({ id: 10, status: 'active' });
+    const result = await serviceWith(prisma).unsubscribeOneClick(22);
+    expect(result).toEqual({ unsubscribed: true });
+    const ops = (
+      prisma.$transaction.mock.calls[0][0] as {
+        op: string;
+        args: { data?: unknown };
+      }[]
+    ).map((o) => o.op);
+    expect(ops).toEqual(['userInterest.deleteMany', 'subscriber.update']);
+  });
+
+  it('이미 해지했거나 구독한 적이 없으면 그대로 두고 오류도 내지 않는다 (여러 번 눌러도 같음)', async () => {
+    const prisma = fakePrisma(null);
+    prisma.subscriber.findFirst.mockResolvedValue(null);
+    await expect(serviceWith(prisma).unsubscribeOneClick(22)).resolves.toEqual({
+      unsubscribed: false,
+    });
+    expect(prisma.$transaction).not.toHaveBeenCalled();
+  });
+
+  it('확인 화면의 메일 주소는 앞 두 글자만 보인다', () => {
+    expect(maskEmail('hyeoniverse.dev@gmail.com')).toBe(
+      'hy*************@gmail.com',
+    );
+    expect(maskEmail('ab@x.com')).toBe('ab***@x.com');
+    expect(maskEmail('broken')).toBe('***');
   });
 });

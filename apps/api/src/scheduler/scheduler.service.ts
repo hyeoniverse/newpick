@@ -221,9 +221,15 @@ export class SchedulerService implements OnApplicationBootstrap {
         email: subscriber.email,
         interests: subscriber.interests,
         name: subscriber.name,
+        userId: subscriber.userId,
       })),
+      // 사람마다 원클릭 해지(#18)를 붙여 만든다
       (subscriber) =>
-        this.editionService.composeMail(edition, subscriber.interests),
+        this.editionService.composeMail(
+          edition,
+          subscriber.interests,
+          subscriber.userId,
+        ),
     );
 
     this.logger.log(

@@ -33,6 +33,8 @@ export const API_ENDPOINTS = {
 		START: () => `${API_URL}/subscribers/start`,
 		PAUSE: () => `${API_URL}/subscribers/pause`,
 		CANCEL: () => `${API_URL}/subscribers/cancel`,
+		/** 메일의 원클릭 수신 거부 (#18). 로그인 없이 토큰으로 */
+		UNSUBSCRIBE: (token: string) => `${API_URL}/subscribers/unsubscribe?token=${encodeURIComponent(token)}`,
 	},
 	/** 서비스 문의처 (구독 메일 발송 주소) */
 	CONTACT: () => `${API_URL}/contact`,
