@@ -65,6 +65,8 @@ function PrevNextArticle({ className, prev, next }: Props) {
 						{text}
 						{icon}
 					</span>
+					{/* 사진 자리를 비워 두어 글이 있는 줄과 높이를 같게 */}
+					<div className="img blank" aria-hidden />
 					<div className="text-section">
 						<p className="title">{title}</p>
 						<p className="date">{date}</p>
@@ -119,6 +121,10 @@ const PrevNextArticleStyled = styled.section`
 					margin: 0;
 					overflow: hidden;
 					border-radius: ${({ theme }) => theme.radius.surface};
+
+					&.blank {
+						aspect-ratio: 16 / 9;
+					}
 				}
 
 				.text-section {
@@ -141,6 +147,8 @@ const PrevNextArticleStyled = styled.section`
 					.date {
 						color: ${({ theme }) => theme.color.lightGrey};
 						font-size: ${({ theme }) => theme.fontSize.extraSmall};
+						/* 글이 없어 날짜가 비어도 한 줄 높이를 지킨다 */
+						min-height: 1.5em;
 					}
 				}
 			}

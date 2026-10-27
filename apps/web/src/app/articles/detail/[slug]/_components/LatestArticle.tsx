@@ -18,7 +18,7 @@ interface Props {
 }
 
 /**
- * 최신 뉴스레터: 화면 폭 전체 어두운 띠 위 사진 카드 슬라이드 (사진 → 관심사 · 날짜 → 제목)
+ * 최신 뉴스레터: 화면 폭 전체 어두운 띠 위 사진 카드 슬라이드. 사진을 카드 전체로 깔고 아래쪽을 어둡게 해 그 위에 관심사 · 날짜 · 제목
  */
 function LatestArticle({ className }: Props) {
 	const { data: articleList, isPending, isError } = useArticleListQuery();
@@ -63,12 +63,14 @@ function LatestArticle({ className }: Props) {
 										priority={false}
 									/>
 								</span>
-								<span className="meta">
-									<span className="category">{mapIdToTitle([article.categoryId])[0]}</span>
-									<span aria-hidden>·</span>
-									<span className="date">{dateFormatter(article.createdAt)}</span>
+								<span className="overlay">
+									<span className="meta">
+										<span className="category">{mapIdToTitle([article.categoryId])[0]}</span>
+										<span aria-hidden>·</span>
+										<span className="date">{dateFormatter(article.createdAt)}</span>
+									</span>
+									<span className="title">{article.title}</span>
 								</span>
-								<span className="title">{article.title}</span>
 							</Link>
 						</SwiperSlide>
 					))}
@@ -80,7 +82,7 @@ function LatestArticle({ className }: Props) {
 
 const LatestArticleStyled = styled.section`
 	position: relative;
-	padding: 3rem 0 3.5rem;
+	padding: 3rem 0 5.5rem;
 	margin: 2rem 0 -4.5rem;
 	color: #ffffff;
 
@@ -165,23 +167,31 @@ const LatestArticleStyled = styled.section`
 		}
 	}
 
-	/* 카드: 사진 → 관심사 · 날짜 한 줄 → 제목(두 줄까지) */
+	/* 카드: 사진을 카드 전체로, 아래쪽 그라데이션 위에 관심사 · 날짜 → 제목(두 줄까지) */
 	.item {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
+		position: relative;
+		display: block;
+		overflow: hidden;
+		border-radius: ${({ theme }) => theme.radius.surface};
 		color: #ffffff;
 	}
 
 	.photo {
 		display: block;
-		margin-bottom: 0.25rem;
-		overflow: hidden;
-		border-radius: ${({ theme }) => theme.radius.surface};
 
 		img {
 			transition: transform 0.4s ease;
 		}
+	}
+
+	.overlay {
+		position: absolute;
+		inset: auto 0 0 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		padding: 3rem 1rem 1rem;
+		background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 100%);
 	}
 
 	.meta {
@@ -189,13 +199,13 @@ const LatestArticleStyled = styled.section`
 		align-items: center;
 		gap: 0.375rem;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: rgba(255, 255, 255, 0.65);
+		color: rgba(255, 255, 255, 0.8);
 		font-variant-numeric: tabular-nums;
 	}
 
 	.category {
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: #b3b8ff;
+		color: #ffffff;
 	}
 
 	.title {
