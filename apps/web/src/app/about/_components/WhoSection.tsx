@@ -17,7 +17,7 @@ interface Member {
 	image: string;
 }
 
-/** v2는 큰 사진(photo), v1은 맡은 일이 길어 사진을 작게 옆에 둔 카드(row) */
+/** v2는 사진 아래 이름(photo), v1은 맡은 일이 길어 사진 옆에 이름·맡은 일(row) */
 function MemberCard({
 	name,
 	position,
@@ -32,8 +32,7 @@ function MemberCard({
 			<ExternalLink href={link} showIcon={false} className="photo" aria-label={`${name} GitHub`}>
 				<Image ratio="square" src={image} alt="" />
 				<span className="overlay" aria-hidden>
-					{variant === 'photo' && 'GitHub '}
-					<LuExternalLink />
+					GitHub <LuExternalLink />
 				</span>
 			</ExternalLink>
 			<div className="info">
@@ -375,21 +374,18 @@ const StyledWhoSection = styled.div`
 		}
 	}
 
-	/* v1 팀원: 맡은 일이 길어 카드로. 넓으면 여러 칸, 모바일은 한 칸 */
+	/* v1 팀원: 사진을 크게 왼쪽에, 이름·역할·맡은 일을 오른쪽에 (v2와 같은 사진 중심). 넓으면 두 명씩, 모바일은 한 명씩 */
 	.members {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
-		gap: 1rem;
+		grid-template-columns: repeat(auto-fill, minmax(22rem, 1fr));
+		gap: 2.5rem 2rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			grid-template-columns: 1fr;
-		}
-
-		& > li {
-			display: flex;
+			gap: 2rem;
 		}
 	}
 
@@ -397,37 +393,19 @@ const StyledWhoSection = styled.div`
 		min-width: 0;
 	}
 
-	/* 사진은 작게 왼쪽, 이름·역할은 오른쪽, 맡은 일은 아래 전체 폭 */
 	.member.row {
-		flex: 1;
 		display: grid;
-		grid-template-columns: 3.5rem minmax(0, 1fr);
-		align-content: start;
-		gap: 1rem;
-		padding: 1.25rem;
-		border: 1px solid rgba(255, 255, 255, 0.1);
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: rgba(255, 255, 255, 0.04);
-		transition:
-			border-color 0.25s ease,
-			background 0.25s ease;
+		grid-template-columns: 9rem minmax(0, 1fr);
+		column-gap: 1.25rem;
+		align-items: start;
 
-		&:hover {
-			border-color: rgba(255, 255, 255, 0.24);
-			background: rgba(255, 255, 255, 0.07);
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			grid-template-columns: 7rem minmax(0, 1fr);
+			column-gap: 1rem;
 		}
 
 		.photo {
-			align-self: center;
-
-			.overlay {
-				font-size: ${({ theme }) => theme.fontSize.small};
-			}
-		}
-
-		.info {
-			align-self: center;
-			min-width: 0;
+			grid-row: span 2;
 		}
 
 		.name {
@@ -436,23 +414,18 @@ const StyledWhoSection = styled.div`
 		}
 
 		.detail {
-			grid-column: 1 / -1;
-			margin: 0;
-			padding-top: 1rem;
-			border-top: 1px solid rgba(255, 255, 255, 0.1);
-			gap: 0.375rem;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: #b5b5b5;
+			margin-top: 0.75rem;
+			gap: 0.25rem;
 
 			li {
 				position: relative;
-				padding-left: 0.875rem;
+				padding-left: 0.75rem;
 
 				&::before {
 					content: '';
 					position: absolute;
 					left: 0;
-					top: 0.65em;
+					top: 0.7em;
 					width: 0.25rem;
 					height: 0.25rem;
 					border-radius: 50%;
