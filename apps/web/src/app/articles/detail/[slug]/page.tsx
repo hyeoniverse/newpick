@@ -12,7 +12,7 @@ import Article from '@/app/articles/detail/[slug]/_components/Article';
 type Params = { params: Promise<{ slug: string }> };
 
 /**
- * 서버에서 뉴스레터를 읽는다 (조회수는 올리지 않음). 메타데이터와 화면이 같은 주소 · 옵션으로 불러
+ * 서버에서 뉴스레터(이전 · 다음 글 포함)를 읽는다 (조회수는 올리지 않음). 메타데이터와 화면이 같은 주소 · 옵션으로 불러
  * Next가 한 번만 요청한다. 없으면 null, 서버 오류면 undefined
  */
 async function loadNewsletter(slug: string) {
@@ -21,7 +21,7 @@ async function loadNewsletter(slug: string) {
 		const { data } = await apiFetch<{ data: ArticleInfo }>(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`, {
 			next: { revalidate: 60, tags: [NEWSLETTER_CACHE_TAG] },
 		});
-		return data.newsletter;
+		return data;
 	} catch (error) {
 		if (error instanceof ApiError && (error.status === 404 || error.status === 400)) return null;
 		return undefined;
@@ -34,9 +34,10 @@ async function loadNewsletter(slug: string) {
  */
 export async function generateMetadata({ params }: Params): Promise<Metadata> {
 	const { slug } = await params;
-	const newsletter = await loadNewsletter(slug);
-	if (newsletter === null) return { title: '찾을 수 없는 뉴스레터', robots: { index: false } };
-	if (!newsletter) return {};
+	const info = await loadNewsletter(slug);
+	if (info === null) return { title: '찾을 수 없는 뉴스레터', robots: { index: false } };
+	if (!info) return {};
+	const { newsletter } = info;
 
 	const description = articleDescription(newsletter);
 	const section = categoryName(newsletter.categoryId);
@@ -76,7 +77,9 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
  */
 export default async function NewsletterDetailPage({ params }: Params) {
 	const { slug } = await params;
-	if ((await loadNewsletter(slug)) === null) notFound();
+	const info = await loadNewsletter(slug);
+	if (info === null) notFound();
 
-	return <Article />;
+	// 서버에서 이미 읽은 내용을 넘겨 첫 화면부터 본문을 그린다 (#17). 서버 오류(undefined)면 브라우저에서 다시 읽는다
+	return <Article initial={info} />;
 }

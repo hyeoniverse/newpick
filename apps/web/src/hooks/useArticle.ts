@@ -17,10 +17,11 @@ import { useQuery } from '@tanstack/react-query';
 export const getArticleContent = async (slug: string): Promise<IArticleInfo> => {
 	return await fetchArticle(slug);
 };
-export function useArticleContentQuery(slug: string) {
+export function useArticleContentQuery(slug: string, initialData?: IArticleInfo) {
 	return useQuery<IArticleInfo, Error>({
 		queryKey: ['articleContent', slug],
 		queryFn: () => getArticleContent(slug),
+		initialData,
 	});
 }
 
