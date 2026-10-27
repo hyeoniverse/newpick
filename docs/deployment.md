@@ -57,6 +57,8 @@ flowchart LR
    `API_URL`은 빌드할 때 프록시 주소로 들어갑니다. 바꾼 뒤에는 **Redeploy**해야 반영됩니다. 없으면 `http://localhost:3001`로 프록시해서 `/api/*`가 `404 DNS_HOSTNAME_RESOLVED_PRIVATE`가 됩니다.
 4. **Settings → Domains**에 `newpick.hyeoniverse.com`을 추가하고, Vercel이 알려 주는 CNAME 값을 Cloudflare DNS에 **DNS only(회색 구름)**로 넣습니다. 값은 프로젝트마다 다릅니다(`….vercel-dns-0xx.com`).
 
+**배포하는 브랜치는 main 하나입니다.** [`apps/web/vercel.json`](../apps/web/vercel.json)의 `git.deploymentEnabled`가 모든 브랜치(`**`)를 끄고 `main`만 켭니다. 두 규칙에 모두 맞는 main은 켜는 쪽이 이겨 배포되고, PR 브랜치는 배포가 아예 만들어지지 않습니다. PR마다 미리보기 배포를 만들면 Hobby 요금제의 하루 배포 횟수 제한(`Deployment rate limited — retry in 24 hours`)에 걸려서입니다. PR 확인은 GitHub CI(web 빌드 · e2e)와 로컬 미리보기로 합니다.
+
 홈은 빌드할 때 api에서 데이터를 읽어 정적으로 만들고, 10분마다 다시 만듭니다(`revalidate = 600`). api가 떠 있어야 빌드할 때 데이터가 들어갑니다. DB가 비어 있으면 빌드 로그에 `ApiError: Not Found`(404)가 찍히지만 빌드는 성공합니다.
 
 ## 2. Google OAuth 클라이언트
