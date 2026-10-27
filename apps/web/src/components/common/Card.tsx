@@ -398,8 +398,8 @@ const mainCardStyles = css`
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
 			grid-template-columns: 1fr;
 			grid-template-rows: none;
-			/* 휴대폰은 설명을 빼므로 그 줄도 없앤다 (빈 줄의 간격이 남지 않게) */
-			grid-template-areas: 'img' 'category' 'title' 'points' 'tags' 'footer';
+			/* 휴대폰은 설명 · 소식을 빼므로 그 줄도 없앤다 (빈 줄의 간격이 남지 않게) */
+			grid-template-areas: 'img' 'category' 'title' 'tags' 'footer';
 		}
 	}
 
@@ -444,7 +444,7 @@ const mainCardStyles = css`
 		grid-area: footer;
 	}
 
-	/* 휴대폰은 짧게: 설명은 빼고(소식 목록이 대신 말해 줌), 글자 · 간격을 줄인다 */
+	/* 휴대폰은 짧게: 설명 · 이 뉴스레터의 소식은 빼고 사진 · 분야 · 제목 · 태그 · 날짜만, 글자 · 간격도 줄인다 */
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
 		a {
 			row-gap: 0.375rem;
@@ -452,7 +452,7 @@ const mainCardStyles = css`
 
 		/* 아래 .card-main 규칙보다 앞서도록 한 단계 더 구체적으로 */
 		.card-body .card-main .description,
-		.card-body .card-main .points-title {
+		.card-body .card-main .points {
 			display: none;
 		}
 
@@ -463,15 +463,6 @@ const mainCardStyles = css`
 		/* 사진도 낮게 (16:9 → 2:1) */
 		.image-placeholder {
 			aspect-ratio: 2 / 1;
-		}
-
-		.card-body .card-main .points {
-			margin-top: 0;
-
-			li {
-				padding: 0.25rem 0;
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			}
 		}
 
 		.card-body .card-main .card-footer {
