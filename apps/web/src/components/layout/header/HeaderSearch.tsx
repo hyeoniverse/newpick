@@ -16,7 +16,10 @@ export default function HeaderSearch() {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
 	const onList = pathname === '/articles';
-	const current = onList ? (searchParams.get('q') ?? '') : '';
+	// 태그로 거르는 중이면 칸에 '#태그'를 보여 준다
+	const current = onList
+		? (searchParams.get('q') ?? (searchParams.get('keyword') ? `#${searchParams.get('keyword')}` : ''))
+		: '';
 
 	const [q, setQ] = useState(current);
 	const [error, setError] = useState('');
@@ -30,12 +33,21 @@ export default function HeaderSearch() {
 	const submit = (event: React.FormEvent) => {
 		event.preventDefault();
 		const value = q.trim();
-		if (value && [...value.replace(/\s/g, '')].length < 2) {
+		if (value && !value.startsWith('#') && [...value.replace(/\s/g, '')].length < 2) {
 			setError('2글자 이상 입력해 주세요');
 			return;
 		}
 		setError('');
 		const base = onList ? readFilters(searchParams) : readFilters(new URLSearchParams());
+		// '#코스피'처럼 #로 시작하면 태그(키워드)로 거른다
+		if (value.startsWith('#')) {
+			const keyword = value.replace(/^#+/, '').trim();
+			if (keyword) {
+				router.push(toPageHref({ ...base, q: '', keyword }));
+				inputRef.current?.blur();
+				return;
+			}
+		}
 		router.push(toPageHref({ ...base, q: value }));
 		inputRef.current?.blur();
 	};
@@ -70,7 +82,7 @@ export default function HeaderSearch() {
 						setQ(event.target.value);
 						setError('');
 					}}
-					placeholder={error || '뉴스레터 검색'}
+					placeholder={error || '검색어 또는 #태그'}
 					aria-label="뉴스레터 검색어"
 					aria-invalid={Boolean(error) || undefined}
 					maxLength={50}

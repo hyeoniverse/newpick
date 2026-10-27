@@ -50,3 +50,11 @@ export const fetchSearchNewsletters = async (query: string) => {
 	);
 	return data;
 };
+
+/** 최근 30일 자주 나온 키워드(태그) (#20) */
+export const fetchPopularKeywords = async (categoryId?: number) => {
+	const { data } = await apiFetch<{ data: { keyword: string; count: number }[] }>(
+		API_ENDPOINTS.NEWSLETTER.KEYWORDS(categoryId),
+	);
+	return data;
+};

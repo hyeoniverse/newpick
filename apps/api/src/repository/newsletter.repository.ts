@@ -126,6 +126,28 @@ export class NewsletterRepo {
     return { items, total: Number(counts[0]?.total ?? 0) };
   }
 
+  /**
+   * 최근 자주 나온 키워드(태그) (#20). JSON 배열을 행으로 펴서(JSON_TABLE) 센다. 많이 나온 순, 같으면 가나다순
+   */
+  async getPopularKeywords(since: Date, limit: number, categoryId?: number) {
+    const category = categoryId
+      ? Prisma.sql`AND n.categoryId = ${categoryId}`
+      : Prisma.empty;
+    const rows = await this.prisma.$queryRaw<
+      Array<{ keyword: string; count: bigint }>
+    >`SELECT k.keyword AS keyword, COUNT(*) AS count
+      FROM newsletters n,
+           JSON_TABLE(n.keywords, '$[*]' COLUMNS (keyword VARCHAR(100) PATH '$')) AS k
+      WHERE n.createdAt >= ${since} AND n.keywords IS NOT NULL ${category}
+      GROUP BY k.keyword
+      ORDER BY count DESC, keyword ASC
+      LIMIT ${limit}`;
+    return rows.map((row) => ({
+      keyword: row.keyword,
+      count: Number(row.count),
+    }));
+  }
+
   async getNewsletterById(id: number) {
     return this.prisma.newsletter.findUnique({
       where: { id },

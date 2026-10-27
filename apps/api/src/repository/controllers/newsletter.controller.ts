@@ -17,9 +17,10 @@ import {
   NewsletterCategoryDto,
   NewsletterRandomDto,
   NewsletterSearchDto,
+  NewsletterKeywordsDto,
 } from './newsletter.dto';
 import { toBooleanQuery } from '../search/search-terms';
-import { kstDayRange } from '../../common/kst';
+import { kstDayRange, kstDaysAgo } from '../../common/kst';
 import dayjs from 'dayjs';
 import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
 import { AppException } from '../../common/errors/app.exception';
@@ -129,6 +130,22 @@ export class BasicRepositoryController {
     return {
       message: '뉴스레터 검색 성공',
       data: { items, total, limit, offset },
+    };
+  }
+
+  /** 최근 자주 나온 키워드(태그) (#20). 목록의 태그 필터에 쓴다. 기본 30일 · 15개 */
+  @Public()
+  @Get('keywords')
+  async getPopularKeywords(@Query() query: NewsletterKeywordsDto) {
+    const days = query.days ?? 30;
+    const { start } = kstDayRange(kstDaysAgo(days - 1), kstDaysAgo(days - 1));
+    return {
+      message: '자주 나온 키워드 조회 성공',
+      data: await this.newsletterRepo.getPopularKeywords(
+        start,
+        query.limit ?? 15,
+        query.categoryId,
+      ),
     };
   }
 

@@ -1,6 +1,8 @@
 'use client';
 
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useQuery } from '@tanstack/react-query';
+import { fetchPopularKeywords } from '@/api/article';
 import { LuX } from 'react-icons/lu';
 import styled from 'styled-components';
 import { PERIOD_OPTIONS, SearchPeriod, readFilters, toPageHref } from '@/utils/newsletterSearch';
@@ -21,6 +23,13 @@ export default function SearchFilters() {
 		if (push) router.push(href, { scroll: false });
 		else router.replace(href, { scroll: false });
 	};
+
+	// 지금 보는 관심사에서 최근 30일 자주 나온 태그
+	const { data: keywords = [] } = useQuery({
+		queryKey: ['popularKeywords', filters.categoryId],
+		queryFn: () => fetchPopularKeywords(filters.categoryId || undefined),
+		staleTime: 1000 * 60 * 10,
+	});
 
 	const setPeriod = (period: SearchPeriod) =>
 		go(period === 'custom' ? { period, from: filters.from || kstDate(29), to: filters.to || kstDate(0) } : { period });
@@ -56,13 +65,34 @@ export default function SearchFilters() {
 						<LuX aria-label="검색어 지우기" />
 					</button>
 				)}
-				{filters.keyword && (
+				{/* 고른 태그가 아래 태그 줄에 있으면 거기서 켜짐으로 보이므로 칩은 그 밖의 태그일 때만 */}
+				{filters.keyword && !keywords.some(({ keyword }) => keyword === filters.keyword) && (
 					<button type="button" className="keyword" onClick={() => go({ keyword: '' })}>
 						#{filters.keyword}
 						<LuX aria-label="키워드 조건 지우기" />
 					</button>
 				)}
 			</div>
+			{keywords.length > 0 && (
+				<div className="tags" role="group" aria-label="자주 나온 태그 (최근 30일)">
+					<span className="tags-label">태그</span>
+					{keywords.map(({ keyword, count }) => {
+						const active = filters.keyword === keyword;
+						return (
+							<button
+								key={keyword}
+								type="button"
+								aria-pressed={active}
+								title={`최근 30일 ${count}편`}
+								onClick={() => go({ keyword: active ? '' : keyword })}
+							>
+								<span className="hash">#</span>
+								{keyword}
+							</button>
+						);
+					})}
+				</div>
+			)}
 		</StyledSearchFilters>
 	);
 }
@@ -105,6 +135,57 @@ const StyledSearchFilters = styled.div`
 				background: ${({ theme }) => theme.color.tertiary};
 				color: ${({ theme }) => theme.color.primary};
 				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			}
+		}
+	}
+
+	/* 자주 나온 태그: 카드 태그와 같은 모양(얇은 테두리 · 진한 회색 · #만 강조색), 고르면 강조색 */
+	.tags {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		max-width: 100%;
+		overflow-x: auto;
+		scrollbar-width: none;
+
+		.tags-label {
+			flex-shrink: 0;
+			margin-right: 0.25rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.subText};
+		}
+
+		button {
+			flex-shrink: 0;
+			padding: 0.0625rem 0.5rem;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.chip};
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.medium};
+			line-height: 1.6;
+			color: ${({ theme }) => theme.color.mediumGrey};
+			white-space: nowrap;
+			cursor: pointer;
+
+			.hash {
+				margin-right: 0.0625rem;
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			&:hover {
+				border-color: ${({ theme }) => theme.color.primary};
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			&[aria-pressed='true'] {
+				border-color: ${({ theme }) => theme.color.primary};
+				background: ${({ theme }) => theme.color.primary};
+				color: #ffffff;
+
+				.hash {
+					color: inherit;
+				}
 			}
 		}
 	}

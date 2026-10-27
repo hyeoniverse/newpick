@@ -21,13 +21,25 @@ interface Props {
 }
 
 /** 새 탭이면 사이트 밖 링크(관련 뉴스의 언론사 기사)라 ExternalLink, 아니면 사이트 안 이동 */
-function CardLink({ href, newTab, children }: { href: string; newTab: boolean; children: React.ReactNode }) {
+function CardLink({
+	href,
+	newTab,
+	children,
+	className,
+}: {
+	href: string;
+	newTab: boolean;
+	children: React.ReactNode;
+	className?: string;
+}) {
 	return newTab ? (
-		<ExternalLink href={href} showIcon={false}>
+		<ExternalLink href={href} showIcon={false} className={className}>
 			{children}
 		</ExternalLink>
 	) : (
-		<Link href={href}>{children}</Link>
+		<Link href={href} className={className}>
+			{children}
+		</Link>
 	);
 }
 
@@ -118,7 +130,8 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 
 				{type === 'list' && (
 					<>
-						<CardLink href={url || '/not-found'} newTab={newTab}>
+						{/* 제목 링크를 카드 전체로 늘려(::after) 어디를 눌러도 상세로. 태그 · 북마크는 그 위에 따로 눌린다 (#20) */}
+						<div className="card-stretch">
 							<div className="card-main">
 								<div className="card-header">
 									{header && (
@@ -130,21 +143,19 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 								<div className="content">
 									<div className="left">
 										{main.title && (
-											<Text className="title" size="medium" weight="semiBold">
-												<Highlight text={main.title} query={highlight} />
-											</Text>
+											<CardLink href={url || '/not-found'} newTab={newTab} className="stretched-link">
+												<Text className="title" size="medium" weight="semiBold">
+													<Highlight text={main.title} query={highlight} />
+												</Text>
+											</CardLink>
 										)}
 										{main.description && (
 											<Text className="description" size="small">
 												<Highlight text={main.description} query={highlight} />
 											</Text>
 										)}
-										<Tags tags={main.tags} max={4} className="tags" />
-										{footer && (
-											<div className="card-footer" onClick={(e) => e.preventDefault()}>
-												{footer}
-											</div>
-										)}
+										<Tags tags={main.tags} max={4} className="tags" linkable />
+										{footer && <div className="card-footer">{footer}</div>}
 									</div>
 
 									<div className="image-placeholder">
@@ -152,7 +163,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 									</div>
 								</div>
 							</div>
-						</CardLink>
+						</div>
 					</>
 				)}
 			</div>
@@ -167,6 +178,42 @@ interface StyledProps {
 }
 
 const StyledCard = styled.div<StyledProps>`
+	/* 목록 카드: 제목 링크가 카드 전체를 덮고, 태그 · 아래 줄(북마크)은 그 위에서 따로 눌린다 */
+	.card-stretch {
+		position: relative;
+		width: 100%;
+
+		/* 카드 안 링크 공통 모양(가로 정렬 · 폭)이 태그 링크에는 걸리지 않게 */
+		.tags a {
+			display: inline;
+			width: auto;
+		}
+
+		.stretched-link::after {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			content: '';
+		}
+
+		/* 키보드로 오면 카드 전체에 포커스 테두리 */
+		.stretched-link:focus-visible {
+			outline: none;
+
+			&::after {
+				outline: 2px solid ${({ theme }) => theme.color.primary};
+				outline-offset: 4px;
+				border-radius: ${({ theme }) => theme.radius.surface};
+			}
+		}
+
+		.tags,
+		.card-footer {
+			position: relative;
+			z-index: 1;
+		}
+	}
+
 	/* 검색어 강조 (#20): 강조색 옅은 배경, 글자는 그대로 */
 	mark {
 		padding: 0 0.125rem;
@@ -208,7 +255,7 @@ const StyledCard = styled.div<StyledProps>`
 			}
 		}
 
-		&:hover:not(:has(.card-footer:hover)) {
+		&:hover:not(:has(.card-footer:hover, .tags a:hover)) {
 			img {
 				transform: scale(1.05);
 			}

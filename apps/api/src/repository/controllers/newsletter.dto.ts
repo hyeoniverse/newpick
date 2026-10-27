@@ -144,3 +144,26 @@ export class NewsletterSearchDto {
   @Min(0, { message: 'offset는 0 이상이어야 합니다' })
   offset?: number;
 }
+
+/** 자주 나온 키워드 (#20): 최근 며칠 · 몇 개 · 관심사 */
+export class NewsletterKeywordsDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'days는 정수여야 합니다' })
+  @Min(1, { message: 'days는 1 이상이어야 합니다' })
+  @Max(365, { message: 'days는 365 이하여야 합니다' })
+  days?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'limit는 정수여야 합니다' })
+  @Min(1, { message: 'limit는 1 이상이어야 합니다' })
+  @Max(50, { message: 'limit는 50 이하여야 합니다' })
+  limit?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'categoryId는 정수여야 합니다' })
+  @Min(1, { message: 'categoryId는 1 이상이어야 합니다' })
+  categoryId?: number;
+}
