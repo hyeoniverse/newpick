@@ -92,15 +92,17 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 						)}
 						{/* 요약 줄은 전체·분야 모두 같은 자리에 한 줄 (분야를 바꿔도 높이가 같게) */}
 						<p className="stats">
-							{isAll ? (
-								<>
-									오늘 <strong>{initiallData.length}개 분야</strong> 발행
-								</>
-							) : (
-								<>
-									최근 7일 <strong>{stats?.weekCount ?? 0}편</strong>
-								</>
-							)}
+							<span className="count">
+								{isAll ? (
+									<>
+										오늘 <strong>{initiallData.length}개 분야</strong> 발행
+									</>
+								) : (
+									<>
+										최근 7일 <strong>{stats?.weekCount ?? 0}편</strong>
+									</>
+								)}
+							</span>
 							{summaryKeywords.length > 0 && (
 								// 태블릿 이하에서는 키워드만 아래 줄로 내려 옆으로 넘긴다 (…로 잘리지 않게)
 								<span className="keywords">
@@ -377,8 +379,16 @@ const StyledHotSection = styled.section<StyledProps>`
 			}
 		}
 
-		/* 휴대폰은 더 짧게: 설명 줄은 빼고 제목 · 요약 · 키워드만 */
+		/* 휴대폰은 더 짧게: 설명 · 요약(발행 수) 줄은 빼고 제목 · 키워드만 */
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			.count {
+				display: none;
+			}
+
+			.keywords {
+				margin-top: 0.125rem;
+			}
+
 			h1,
 			h2 {
 				font-size: 1.5rem;
