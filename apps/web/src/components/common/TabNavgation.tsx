@@ -18,13 +18,15 @@ export default function TabNavigation({ tabs }: Props) {
 		setActiveTab(tabs.some((tab) => tab.link === fromUrl) ? fromUrl! : tabs[0].link);
 	}, [setActiveTab, tabs]);
 
-	// 고른 탭을 주소에도 남겨, 새로 고침 · 뒤로 와도 같은 탭 (기록은 쌓지 않음)
+	// 고른 탭을 주소에도 남겨, 새로 고침 · 뒤로 와도 같은 탭 (기록은 쌓지 않음). 첫 탭이면 주소를 깨끗하게(?tab= 없이)
 	useEffect(() => {
 		const url = new URL(window.location.href);
-		if (url.searchParams.get('tab') === activeTab) return;
-		url.searchParams.set('tab', activeTab);
+		const wanted = activeTab === tabs[0].link ? null : activeTab;
+		if (url.searchParams.get('tab') === wanted) return;
+		if (wanted) url.searchParams.set('tab', wanted);
+		else url.searchParams.delete('tab');
 		window.history.replaceState(window.history.state, '', url);
-	}, [activeTab]);
+	}, [activeTab, tabs]);
 
 	return (
 		<TabNavigationStyled role="tablist">
