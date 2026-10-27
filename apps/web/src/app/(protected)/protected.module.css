@@ -1,0 +1,11 @@
+/* 로그인이 필요한 화면(마이페이지 · 관리자) 공통 틀: 헤더와 띄우고, 아래는 넉넉히 */
+.page {
+	margin-top: 3rem;
+	margin-bottom: 10vh;
+}
+
+@media (max-width: 425px) {
+	.page {
+		margin-top: 2rem;
+	}
+}
