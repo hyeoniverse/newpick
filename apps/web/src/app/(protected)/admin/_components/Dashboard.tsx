@@ -34,6 +34,7 @@ interface DashboardData {
 	};
 	crawling: { today: number; latestAt: string | null };
 	newsletters: { id: number; title: string; categoryId: number; createdAt: string }[];
+	aiCost: { today: number; week: number };
 	summaryLogs: {
 		id: number;
 		processType: string;
@@ -43,11 +44,21 @@ interface DashboardData {
 		createdAt: string;
 		result: string | null;
 		error: string | null;
+		model: string | null;
+		inputTokens: number;
+		outputTokens: number;
+		costUsd: number | null;
 	}[];
 	mail: { activeSubscribers: number; byDay: { day: string; recipients: number }[] };
 }
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
+
+/** 달러: 1센트 미만은 소수 넷째 자리까지 */
+const usd = (value: number | null) =>
+	value === null ? '-' : `$${value < 0.01 && value > 0 ? value.toFixed(4) : value.toFixed(2)}`;
+
+const PROCESS_LABEL: Record<string, string> = { summarization: '요약', category: '분류', edition: '편집' };
 
 /** 작업마다: API 이름 · 언제 도는지 · 지금 실행 전 확인 문구 */
 const JOBS: Record<JobKey, { label: string; api: 'crawling' | 'ai-summary' | 'mail-send'; warning: string }> = {
@@ -171,7 +182,7 @@ export default function Dashboard() {
 		);
 	}
 
-	const { scheduler, crawling, newsletters, summaryLogs, mail, today } = data;
+	const { scheduler, crawling, newsletters, summaryLogs, mail, today, aiCost } = data;
 	const sentToday = mail.byDay.find((row) => row.day === today)?.recipients ?? 0;
 
 	return (
@@ -190,6 +201,11 @@ export default function Dashboard() {
 						<dt>발행한 뉴스레터</dt>
 						<dd>{newsletters.length}편</dd>
 						<span className="sub">관심사 6개 중 {new Set(newsletters.map((n) => n.categoryId)).size}개</span>
+					</div>
+					<div>
+						<dt>AI 비용</dt>
+						<dd>{usd(aiCost.today)}</dd>
+						<span className="sub">최근 7일 {usd(aiCost.week)}</span>
 					</div>
 					<div>
 						<dt>메일 받은 사람</dt>
@@ -320,7 +336,8 @@ export default function Dashboard() {
 									<th scope="col">종류</th>
 									<th scope="col">결과</th>
 									<th scope="col">걸린 시간</th>
-									<th scope="col">토큰</th>
+									<th scope="col">토큰 (입력 / 출력)</th>
+									<th scope="col">비용</th>
 									<th scope="col">내용</th>
 								</tr>
 							</thead>
@@ -328,14 +345,21 @@ export default function Dashboard() {
 								{summaryLogs.map((log) => (
 									<tr key={log.id}>
 										<td className="nowrap">{when(log.createdAt, today)}</td>
-										<td className="nowrap">{log.processType === 'summarization' ? '요약' : '분류'}</td>
+										<td className="nowrap" title={log.model ?? undefined}>
+											{PROCESS_LABEL[log.processType] ?? log.processType}
+										</td>
 										<td className="nowrap">
 											<span className={`badge ${log.status === 'success' ? 'success' : 'failed'}`}>
 												{log.status === 'success' ? '성공' : '실패'}
 											</span>
 										</td>
 										<td className="nowrap num">{log.duration.toFixed(1)}초</td>
-										<td className="nowrap num">{log.token.toLocaleString()}</td>
+										<td className="nowrap num">
+											{log.inputTokens || log.outputTokens
+												? `${log.inputTokens.toLocaleString()} / ${log.outputTokens.toLocaleString()}`
+												: log.token.toLocaleString()}
+										</td>
+										<td className="nowrap num">{usd(log.costUsd)}</td>
 										<td className="content">{log.error ?? log.result}</td>
 									</tr>
 								))}
@@ -368,8 +392,20 @@ const StyledDashboard = styled.div`
 	/* 오늘 숫자 세 칸 */
 	.numbers {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(4, 1fr);
 		margin: 0;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			grid-template-columns: repeat(2, 1fr);
+
+			> div:nth-child(3) {
+				border-left: none;
+			}
+
+			> div:nth-child(n + 3) {
+				border-top: 1px solid ${({ theme }) => theme.color.border};
+			}
+		}
 		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.surface};
 
@@ -607,7 +643,7 @@ const StyledDashboard = styled.div`
 
 	table {
 		width: 100%;
-		min-width: 44rem;
+		min-width: 50rem;
 		border-collapse: collapse;
 		font-size: ${({ theme }) => theme.fontSize.small};
 	}

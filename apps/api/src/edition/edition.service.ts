@@ -1,3 +1,4 @@
+import { usageLog } from 'src/ai-summary/pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
@@ -82,6 +83,7 @@ export class EditionService {
         s.stories.map((_, i) => [storyRef(s.newsletterId, i), s.categoryId]),
       ),
     );
+    const startTime = Date.now();
     const response = await this.claude.generate({
       system: EDITOR_SYSTEM,
       prompt: editorPrompt(sources),
@@ -95,6 +97,21 @@ export class EditionService {
     this.logger.log(
       `편집 완료: 소식 ${categoryOf.size}개, 흐름 ${editorial.threads.length}개, 토큰 ${response.tokens}`,
     );
+    // 하루 한 번 편집 호출도 AI 기록에 남겨 비용이 빠지지 않게 (#21). 기록 실패는 편집을 막지 않는다
+    await this.prisma.aiProcessLog
+      .create({
+        data: {
+          newsId: sources.map((s) => s.newsletterId).join(','),
+          processType: 'edition',
+          result: `소식 ${categoryOf.size}개, 흐름 ${editorial.threads.length}개`,
+          duration: (Date.now() - startTime) / 1000,
+          status: 'success',
+          token: response.tokens,
+          error: null,
+          ...usageLog([response.usage]),
+        },
+      })
+      .catch((error) => this.logger.warn(`편집 기록 실패: ${error.message}`));
     return { editorial, tokens: response.tokens };
   }
 

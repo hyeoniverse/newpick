@@ -40,6 +40,8 @@ export class DashboardService {
       logs,
       mailByDay,
       activeSubscribers,
+      costToday,
+      costWeek,
     ] = await Promise.all([
       this.prisma.scheduleConfig.findUnique({ where: { id: 1 } }),
       this.crawlingRepository.countSince(todayStart),
@@ -61,6 +63,10 @@ export class DashboardService {
           createdAt: true,
           result: true,
           error: true,
+          model: true,
+          inputTokens: true,
+          outputTokens: true,
+          costUsd: true,
         },
       }),
       // KST 날짜별 받은 사람 수 (한 사람에게 관심사 여러 개를 한 통으로 보내므로 email로 센다)
@@ -71,6 +77,15 @@ export class DashboardService {
         GROUP BY day
         ORDER BY day DESC`,
       this.prisma.subscriber.count({ where: { status: 'active' } }),
+      // Claude 비용 합계: 오늘 · 최근 7일 (비용을 모르는 이전 기록은 빠진다)
+      this.prisma.aiProcessLog.aggregate({
+        where: { createdAt: { gte: todayStart } },
+        _sum: { costUsd: true },
+      }),
+      this.prisma.aiProcessLog.aggregate({
+        where: { createdAt: { gte: mailFrom } },
+        _sum: { costUsd: true },
+      }),
     ]);
 
     const status = this.scheduler.getSchedulerStatus();
@@ -91,6 +106,10 @@ export class DashboardService {
         latestAt: latestCrawled?.createdAt ?? null,
       },
       newsletters: newslettersToday,
+      aiCost: {
+        today: costToday._sum.costUsd ?? 0,
+        week: costWeek._sum.costUsd ?? 0,
+      },
       summaryLogs: logs.map((log) => ({
         ...log,
         result: clip(log.result, 160),
