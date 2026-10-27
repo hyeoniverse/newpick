@@ -130,7 +130,7 @@ const PrevNextArticleStyled = styled.section`
 					min-width: 0;
 
 					.title {
-						color: ${({ theme }) => theme.color.mediumGrey};
+						color: ${({ theme }) => theme.color.text};
 						font-size: ${({ theme }) => theme.fontSize.medium};
 						font-weight: ${({ theme }) => theme.fontWeight.medium};
 						margin-bottom: 0.5rem;
