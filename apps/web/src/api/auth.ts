@@ -4,9 +4,14 @@ import { fetchSubscription } from '@/api/subscription';
 import { fetchInterests } from '@/api/interests';
 import { mapTitleToId } from '@/utils/mapInterests';
 import { apiFetch } from '@/api/client';
+import { isEmbedded, LoginPopupResult, openLoginPopup } from '@/utils/loginPopup';
 
-// 로그인: /api/auth/google로 이동하면 백엔드가 Google OAuth로 리다이렉트합니다.
-export const loginUser = async (): Promise<void> => {
+/**
+ * 로그인: /api/auth/google로 이동하면 백엔드가 Google OAuth로 리다이렉트합니다.
+ * 다른 사이트 안(iframe)이면 구글 화면이 뜨지 않으므로 팝업으로 열고 결과를 돌려줍니다 (utils/loginPopup.ts)
+ */
+export const loginUser = async (): Promise<LoginPopupResult | void> => {
+	if (isEmbedded()) return openLoginPopup();
 	window.location.href = API_ENDPOINTS.AUTH.LOGIN();
 };
 
