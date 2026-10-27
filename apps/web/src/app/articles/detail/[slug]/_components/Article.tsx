@@ -23,6 +23,7 @@ import Tags from '@/components/common/Tags';
 import { useArticleContentQuery } from '@/hooks/useArticle';
 import { useViewCount } from '@/hooks/useViewCount';
 import { useHeader } from '@/hooks/useHeader';
+import { ArticleInfo as IArticleInfo } from '@/models/article.model';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { parseUrls } from '@/utils/parseArticles';
@@ -31,11 +32,16 @@ import ErrorState from '@/components/common/ErrorState';
 import { DELETED_NEWSLETTER, errorStateFor, statusOf } from '@/constants/errors';
 
 
-function Article() {
+interface Props {
+  /** 서버에서 읽어 둔 뉴스레터. 있으면 불러오는 동안의 빈 화면 없이 바로 그린다 */
+  initial?: IArticleInfo;
+}
+
+function Article({ initial }: Props) {
   const router = useRouter();
   const { slug } = useParams() as { slug: string };
 
-  const { data: articleContent, error, refetch } = useArticleContentQuery(slug);
+  const { data: articleContent, error, refetch } = useArticleContentQuery(slug, initial);
   const increasedViewCount = useViewCount(Number(slug));
   const { isHeaderOpen } = useHeader();
   // 제목이 화면 위로 지나가면 '목록으로' 옆에 제목을 한 줄로 띄운다
