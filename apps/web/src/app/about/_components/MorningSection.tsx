@@ -118,14 +118,10 @@ const StyledMorning = styled.section`
 		flex-direction: column;
 		gap: 1.5rem;
 		padding: 2.5rem;
-		border-radius: 1.5rem;
-		color: #f1f1f1;
-		background: ${({ theme }) => theme.color.primary};
-		overflow: hidden;
-
-		:root[data-theme='dark'] & {
-			color: #121212;
-		}
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		color: ${({ theme }) => theme.color.primary};
+		background: ${({ theme }) => theme.color.surface};
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			display: none;
@@ -150,7 +146,7 @@ const StyledMorning = styled.section`
 			font-size: ${({ theme }) => theme.fontSize.small};
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
 			font-variant-numeric: tabular-nums;
-			opacity: 0.8;
+			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 
@@ -162,12 +158,11 @@ const StyledMorning = styled.section`
 			flex: 1;
 			height: 0.25rem;
 			border-radius: 0.125rem;
-			background: currentColor;
-			opacity: 0.25;
-			transition: opacity 0.3s ease;
+			background: ${({ theme }) => theme.color.border};
+			transition: background 0.3s ease;
 
 			&.on {
-				opacity: 1;
+				background: currentColor;
 			}
 		}
 	}

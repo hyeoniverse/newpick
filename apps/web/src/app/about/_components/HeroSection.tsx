@@ -27,8 +27,6 @@ export default function HeroSection() {
 
 	return (
 		<StyledHero>
-			<div className="glow" aria-hidden />
-
 			<div className="copy">
 				<p className="eyebrow">AI 뉴스 큐레이션 · NEWPICK</p>
 				<h1 className="headline">
@@ -93,16 +91,6 @@ const sweep = keyframes`
 	to { background-size: 100% 40%; }
 `;
 
-const float = keyframes`
-	0%, 100% { transform: translateY(0) rotate(-2deg); }
-	50% { transform: translateY(-0.75rem) rotate(-2deg); }
-`;
-
-const drift = keyframes`
-	0%, 100% { transform: translate(0, 0) scale(1); }
-	50% { transform: translate(-4%, 6%) scale(1.08); }
-`;
-
 const bounce = keyframes`
 	0%, 100% { transform: translateY(0); }
 	50% { transform: translateY(0.375rem); }
@@ -116,30 +104,12 @@ const StyledHero = styled.section`
 	gap: 3rem;
 	min-height: calc(100svh - 10rem);
 	padding: 2rem 0 5rem;
-	overflow: clip;
 
 	@media ${({ theme }) => theme.mediaQuery.tablet} {
 		grid-template-columns: 1fr;
 		min-height: auto;
 		gap: 2.5rem;
 		padding: 0 0 4rem;
-	}
-
-	/* 뒤에서 천천히 움직이는 빛 */
-	.glow {
-		position: absolute;
-		inset: 10% -10% auto auto;
-		width: 60%;
-		aspect-ratio: 1;
-		border-radius: 50%;
-		background: radial-gradient(
-			circle,
-			color-mix(in srgb, ${({ theme }) => theme.color.primary} 22%, transparent),
-			transparent 65%
-		);
-		filter: blur(1rem);
-		z-index: -1;
-		animation: ${drift} 14s ease-in-out infinite;
 	}
 
 	.eyebrow {
@@ -214,7 +184,7 @@ const StyledHero = styled.section`
 		}
 	}
 
-	/* 메일 미리보기: 카드가 기울어진 채 떠 있고, 소식이 한 줄씩 들어온다 */
+	/* 메일 미리보기: 틀이 먼저 나오고, 소식이 한 줄씩 들어온다 */
 	.visual {
 		display: flex;
 		justify-content: center;
@@ -225,11 +195,8 @@ const StyledHero = styled.section`
 		width: min(100%, 24rem);
 		padding: 1.5rem;
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: 1.25rem;
+		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.background};
-		box-shadow: 0 1.5rem 3rem color-mix(in srgb, ${({ theme }) => theme.color.primary} 14%, transparent);
-		animation: ${float} 6s ease-in-out 1.4s infinite;
-		transform: rotate(-2deg);
 	}
 
 	.mail-head {
@@ -322,8 +289,6 @@ const StyledHero = styled.section`
 
 	@media (prefers-reduced-motion: reduce) {
 		*,
-		.glow,
-		.mail,
 		.cue,
 		.headline .line > span {
 			animation: none !important;

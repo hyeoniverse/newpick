@@ -244,7 +244,7 @@ const StyledHowToUse = styled.section`
 			place-items: center;
 			width: 3rem;
 			height: 3rem;
-			border-radius: 0.75rem;
+			border-radius: ${({ theme }) => theme.radius.surface};
 			font-weight: 800;
 			color: #ffffff;
 			background: ${({ theme }) => theme.color.primary};
@@ -262,7 +262,6 @@ const StyledHowToUse = styled.section`
 			gap: 0.5rem;
 			padding: 0.75rem 1.5rem;
 			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: 0.5rem;
 			font-size: ${({ theme }) => theme.fontSize.small};
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		}
@@ -277,8 +276,8 @@ const StyledHowToUse = styled.section`
 	.shot.mock .login-mock {
 		width: 70%;
 		padding: 2.5rem 1.5rem;
-		border-radius: 1rem;
-		box-shadow: 0 0.75rem 2rem rgba(0, 0, 0, 0.08);
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.floating};
 	}
 
 	/* 넓은 화면: 스크롤하는 동안 붙어 있는 브라우저 모양 틀 */
@@ -294,9 +293,8 @@ const StyledHowToUse = styled.section`
 	.frame {
 		overflow: hidden;
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: 1rem;
+		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.surface};
-		box-shadow: 0 1.5rem 3rem rgba(0, 0, 0, 0.08);
 	}
 
 	.frame-bar {
