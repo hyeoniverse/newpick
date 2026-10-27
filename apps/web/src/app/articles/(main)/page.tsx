@@ -4,6 +4,7 @@ import { mapIdToTitle } from '@/utils/mapInterests';
 import type { Metadata } from 'next';
 import { fetchArticleByCategory, fetchTrendList } from '@/api/article';
 import { CATEGORIES } from '@/constants/categories';
+import { pageMetadata } from '@/constants/site';
 
 import styles from '@/app/articles/(main)/category.module.css';
 import HotSection, { CategoryStats } from '@/app/articles/(main)/_components/HotSection';
@@ -39,11 +40,12 @@ export async function generateMetadata({
 	const categoryId = Number((await searchParams).categoryId) || 0;
 	const category = CATEGORIES.find((c) => c.id === categoryId && c.id !== 0);
 	return category
-		? {
-				title: `${category.name} 뉴스레터`,
-				description: `${category.name}: ${category.description}. AI가 고르고 요약한 뉴픽 뉴스레터.`,
-			}
-		: { title: '뉴스레터', description: '관심사별로 AI가 고르고 요약한 뉴픽 뉴스레터를 모아 봅니다.' };
+		? pageMetadata(
+				`${category.name} 뉴스레터`,
+				`${category.name}: ${category.description}. AI가 고르고 요약한 뉴픽 뉴스레터.`,
+				`/articles?categoryId=${category.id}`,
+			)
+		: pageMetadata('뉴스레터', '관심사별로 AI가 고르고 요약한 뉴픽 뉴스레터를 모아 봅니다.', '/articles');
 }
 
 export default async function CategoryPage({ searchParams }: { searchParams: Promise<{ categoryId?: string }> }) {

@@ -13,3 +13,30 @@ export const DEFAULT_OG_IMAGE = {
 	height: 630,
 	alt: '뉴픽 — 내 관심사만 골라, 매일 아침 한 통으로.',
 };
+
+/**
+ * 화면별 메타데이터. Next는 화면이 openGraph를 주면 사이트 공통 openGraph를 통째로 바꾸므로
+ * 공유 제목 · 설명 · 주소와 함께 사이트 이름 · 기본 이미지도 다시 넣는다
+ */
+export function pageMetadata(title: string, description: string, path: string) {
+	return {
+		title,
+		description,
+		alternates: { canonical: path },
+		openGraph: {
+			type: 'website' as const,
+			siteName: SITE_NAME,
+			locale: 'ko_KR',
+			url: path,
+			title: `${title} | ${SITE_NAME}`,
+			description,
+			images: [DEFAULT_OG_IMAGE],
+		},
+		twitter: {
+			card: 'summary_large_image' as const,
+			title: `${title} | ${SITE_NAME}`,
+			description,
+			images: [DEFAULT_OG_IMAGE.url],
+		},
+	};
+}

@@ -1,9 +1,14 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/constants/site';
 import { fetchContactEmail } from '@/api/contact';
 import { LEGAL_EFFECTIVE_DATE, privacySections, privacySummary } from '@/constants/legal';
 import LegalDocument from '@/components/common/legal/LegalDocument';
 
-export const metadata: Metadata = { title: '개인정보 처리방침' };
+export const metadata: Metadata = pageMetadata(
+	'개인정보 처리방침',
+	'뉴픽이 어떤 개인정보를 왜, 얼마나 보관하는지 안내합니다.',
+	'/privacy',
+);
 
 export default async function Page() {
 	const email = await fetchContactEmail();

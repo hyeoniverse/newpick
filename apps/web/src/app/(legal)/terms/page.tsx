@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
+import { pageMetadata } from '@/constants/site';
 import { fetchContactEmail } from '@/api/contact';
 import { LEGAL_EFFECTIVE_DATE, termsSections, termsSummary } from '@/constants/legal';
 import LegalDocument from '@/components/common/legal/LegalDocument';
 
-export const metadata: Metadata = { title: '이용약관' };
+export const metadata: Metadata = pageMetadata('이용약관', '뉴픽 서비스 이용약관입니다.', '/terms');
 
 export default async function Page() {
 	const email = await fetchContactEmail();
