@@ -3,7 +3,8 @@ import { test, expect } from './support/fixtures';
 // #33: 목록을 더 불러오다 실패하면 화면 끝에 닿을 때마다 다시 요청해, 6초에 253번 요청했다
 test('목록 불러오기가 실패하면 한 번 알리고 다시 요청하지 않는다', async ({ page }) => {
 	let requests = 0;
-	await page.route(/\/api\/newsletters(\?|$)/, (route) => {
+	// 목록은 검색 API로 불러온다 (#20)
+	await page.route(/\/api\/newsletters\/search(\?|$)/, (route) => {
 		requests += 1;
 		return route.fulfill({ status: 500, contentType: 'application/json', body: '{"message":"e2e"}' });
 	});

@@ -102,7 +102,7 @@ function Article({ initial }: Props) {
               {newsletterContent.subtitle}
             </Text>
           )}
-          <Tags tags={newsletterContent.keywords} className="keywords" />
+          <Tags tags={newsletterContent.keywords} className="keywords" linkable />
           <div className="info">
             <Text size="small" color="subText">
               {dateFormatter(newsletterContent.createdAt)}

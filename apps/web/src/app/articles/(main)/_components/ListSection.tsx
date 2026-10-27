@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { ITEMS_PER_PAGE } from '@/constants/numbers';
 
 import { styled } from 'styled-components';
@@ -11,11 +11,20 @@ import Button from '@/components/common/Button';
 import Card from '@/components/common/Card';
 import Spinner from '@/components/common/loader/Spinner';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { LuSearchX } from 'react-icons/lu';
+import EmptyState from '@/components/common/EmptyState';
 import { mapIdToTitle } from '@/utils/mapInterests';
-import { filterByCategories, sortNewsletters } from '@/utils/queryNewsletters';
 import { parseArticles } from '@/utils/parseArticles';
-import { getArticleList, getCategoryList } from '@/hooks/useArticle';
+import { fetchSearchNewsletters } from '@/api/article';
+import {
+	SearchSort,
+	filtersKey,
+	isSearching,
+	readFilters,
+	toApiQuery,
+	toPageHref,
+} from '@/utils/newsletterSearch';
 import { useToast } from '@/hooks/useToast';
 
 interface Props {
@@ -25,56 +34,48 @@ interface Props {
 
 export default function ListSection({ excludeId }: Props) {
 	const searchParams = useSearchParams();
+	const router = useRouter();
 	const { showToast } = useToast();
-	const categoryId = searchParams.get('categoryId'); // Query Parameter 가져오기
-	const categoryName = mapIdToTitle([Number(categoryId)])[0]; // Query Parameter를 카테고리 이름으로 변환
+	// 검색 · 필터 상태는 모두 주소에 있다 (#20). 같은 상태면 같은 key
+	const filters = readFilters(searchParams);
+	const key = filtersKey(filters);
+	const searching = isSearching(filters);
+	const categoryName = mapIdToTitle([filters.categoryId])[0];
 
 	const [articles, setArticles] = useState<IArticleSummary[]>([]);
-	const [currentPage, setCurrentPage] = useState(1); // 현재 페이지 (0부터 시작하는 offset 계산을 위해)
+	const [total, setTotal] = useState<number | null>(null);
 	const [isLoading, setIsLoading] = useState(false); // 데이터 로딩 상태
 	const [hasMore, setHasMore] = useState(true); // 더 불러올 데이터가 있는지 여부
-	const [selectedSort, setSelectedSort] = useState<'latest' | 'bookmarks' | 'views'>('latest');
-	const [shouldLoad, setShouldLoad] = useState(false); // 데이터 로딩 트리거 상태 추가
 	const observerRef = useRef<HTMLDivElement | null>(null);
 	// 처음 불러오기와 화면 끝 감지가 같은 순간에 부르면, isLoading(state)은 다음 렌더링에야 바뀌어
 	// 둘 다 요청을 보낸다 (요청 2번·실패 알림 2번). ref로 바로 막는다
 	const loadingRef = useRef(false);
+	// 필터가 바뀐 뒤 늦게 도착한 이전 필터의 응답은 버린다
+	const keyRef = useRef(key);
+	const offsetRef = useRef(0);
 
 	// API를 통해 다음 페이지 데이터를 불러오는 함수
 	const loadMoreArticles = useCallback(async () => {
 		if (loadingRef.current) return;
 		loadingRef.current = true;
 		setIsLoading(true);
+		const requestKey = keyRef.current;
 
 		try {
-			// 여분의 1개를 포함하여 요청
-			const fetchLimit = ITEMS_PER_PAGE + 1;
-			const offset = currentPage * ITEMS_PER_PAGE;
-			let fetchedArticles: IArticleDetail[] = [];
+			// 여분의 1개를 포함하여 요청: ITEMS_PER_PAGE+1개가 오면 다음 페이지가 있다
+			const { items, total } = await fetchSearchNewsletters(
+				toApiQuery(readFilters(searchParams), ITEMS_PER_PAGE + 1, offsetRef.current),
+			);
+			if (requestKey !== keyRef.current) return;
 
-			if (categoryName === '전체') {
-				fetchedArticles = await getArticleList(fetchLimit, offset);
-			} else {
-				fetchedArticles = await getCategoryList(Number(categoryId), fetchLimit, offset);
-			}
-
-			const parsedArticles = parseArticles(fetchedArticles);
-			let newArticles = filterByCategories(parsedArticles, [categoryName]);
-
-			// 여분의 아이템 패턴 적용: 만약 가져온 데이터가 ITEMS_PER_PAGE+1개라면, 화면에는 ITEMS_PER_PAGE개만 표시
-			if (newArticles.length > ITEMS_PER_PAGE) {
-				newArticles = newArticles.slice(0, ITEMS_PER_PAGE);
-			} else {
-				setHasMore(false);
-			}
-
+			const newArticles = parseArticles(items).slice(0, ITEMS_PER_PAGE);
+			setHasMore(items.length > ITEMS_PER_PAGE);
+			setTotal(total);
+			offsetRef.current += ITEMS_PER_PAGE;
 			setArticles((prev) => {
 				const existingIds = new Set(prev.map((article) => article.id));
-				const uniqueNewArticles = newArticles.filter((article) => !existingIds.has(article.id));
-				return [...prev, ...uniqueNewArticles];
+				return [...prev, ...newArticles.filter((article) => !existingIds.has(article.id))];
 			});
-
-			setCurrentPage((prev) => prev + 1);
 		} catch {
 			// 실패한 채로 두면 화면 끝에 닿을 때마다 다시 요청하므로, 더 불러오지 않고 알립니다.
 			setHasMore(false);
@@ -83,34 +84,26 @@ export default function ListSection({ excludeId }: Props) {
 			loadingRef.current = false;
 			setIsLoading(false);
 		}
-	}, [currentPage, categoryName, categoryId, showToast]);
+	}, [searchParams, showToast]);
 
+	// 필터가 바뀌면 처음부터 다시
 	useEffect(() => {
-		// 카테고리가 바뀌면 기존 데이터를 초기화하고 정렬 방식도 'latest'로 재설정합니다.
-		setArticles([]); // 기존 데이터 초기화
-		setCurrentPage(0);
+		keyRef.current = key;
+		offsetRef.current = 0;
+		loadingRef.current = false;
+		setArticles([]);
+		setTotal(null);
 		setHasMore(true);
-		setShouldLoad(true); // 새로운 데이터 로드를 위한 상태 업데이트
-	}, [categoryId, selectedSort]); // categoryId가 변경될 때만 실행
-
-	useEffect(() => {
-		setSelectedSort('latest'); // 카테고리 변경 시 정렬 방식을 초기화
-	}, [categoryId]); // categoryId가 변경될 때만 실행
-
-	// shouldLoad이 true일 때만 새로운 데이터 불러오기
-	useEffect(() => {
-		if (shouldLoad) {
-			loadMoreArticles();
-			setShouldLoad(false); // 데이터 로딩 후 다시 false로 변경하여 무한 호출 방지
-		}
-	}, [shouldLoad, loadMoreArticles]); // shouldLoad이 true일 때만 loadMoreArticles 실행
+		loadMoreArticles();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [key]);
 
 	// 무한 스크롤을 처리하는 Intersection Observer
 	useEffect(() => {
 		const observer = new IntersectionObserver(
 			(entries) => {
 				// 첫 번째 요소가 100% 노출되고, 로딩 중이 아니며 더 불러올 데이터가 있으면 로드
-				if (entries[0].isIntersecting && !isLoading && hasMore) {
+				if (entries[0].isIntersecting && !isLoading && hasMore && articles.length > 0) {
 					loadMoreArticles();
 				}
 			},
@@ -126,60 +119,76 @@ export default function ListSection({ excludeId }: Props) {
 				observer.unobserve(currentObserver);
 			}
 		};
-	}, [isLoading, hasMore, loadMoreArticles]);
+	}, [isLoading, hasMore, articles.length, loadMoreArticles]);
 
-	// 선택된 정렬 방식에 따라 데이터 정렬
-	const sortedArticles = sortNewsletters(
-		articles.filter((article) => article.id !== excludeId),
-		selectedSort,
-	);
+	const setSort = (sort: SearchSort) => router.replace(toPageHref({ ...filters, sort }), { scroll: false });
+
+	// 배너에 띄운 글은 관심사 첫 화면에서만 빼고(검색 · 필터 중엔 그대로)
+	const plain = !searching && filters.period === 'all';
+	const shown = plain ? articles.filter((article) => article.id !== excludeId) : articles;
+	const heading = filters.q ? `‘${filters.q}’ 검색 결과` : filters.keyword ? `#${filters.keyword}` : categoryName;
 
 	return (
 		<StyledListSection>
 			<div className="header">
 				<div className="title">
 					<Title as="h2" size="extraSmall" weight="semiBold" color="primary" className="tag">
-						전체
+						{heading}
 					</Title>
+					{total !== null && (
+						<Text size="small" color="subText" className="count" aria-live="polite">
+							{total.toLocaleString()}건
+						</Text>
+					)}
 				</div>
 				<div className="right-section">
-					<Button data-active={selectedSort === 'latest'} onClick={() => setSelectedSort('latest')}>
+					<Button data-active={filters.sort === 'latest'} onClick={() => setSort('latest')}>
 						최신순
 					</Button>
-					<Button data-active={selectedSort === 'views'} onClick={() => setSelectedSort('views')}>
+					<Button data-active={filters.sort === 'popular'} onClick={() => setSort('popular')}>
 						인기순
 					</Button>
 				</div>
 			</div>
-			<div className="newsletter-cards">
-				{sortedArticles.map((article, index) => (
-					<Card
-						type="list"
-						key={`${article.id}-${index}`}
-						data={{
-							id: article.id,
-							url: `/articles/detail/${article.id}`,
-							image: article.image,
-							header: article.categoryName,
-							main: {
-								title: article.title,
-								// 부제목이 있으면 본문 앞부분 대신 (#42)
-								description: article.subtitle || article.summary,
-								tags: article.keywords,
-							},
-							footer: (
-								<>
-									<Text color="subText">{article.date}</Text>
-									<Text color="subText">|&nbsp;&nbsp;조회수 {article.views}</Text>
-									<div className="right">
-										<BookmarkIcon newsId={article.id} newsletterId={article.id} />
-									</div>
-								</>
-							),
-						}}
-					/>
-				))}
-			</div>
+			{total === 0 && !isLoading ? (
+				<EmptyState
+					icon={LuSearchX}
+					title="찾는 뉴스레터가 없어요"
+					description={'검색어를 바꾸거나 기간 · 관심사를 넓혀 보세요.'}
+					action={{ label: '조건 지우기', href: '/articles' }}
+				/>
+			) : (
+				<div className="newsletter-cards">
+					{shown.map((article, index) => (
+						<Card
+							type="list"
+							key={`${article.id}-${index}`}
+							highlight={filters.q}
+							data={{
+								id: article.id,
+								url: `/articles/detail/${article.id}`,
+								image: article.image,
+								header: article.categoryName,
+								main: {
+									title: article.title,
+									// 부제목이 있으면 본문 앞부분 대신 (#42)
+									description: article.subtitle || article.summary,
+									tags: article.keywords,
+								},
+								footer: (
+									<>
+										<Text color="subText">{article.date}</Text>
+										<Text color="subText">|&nbsp;&nbsp;조회수 {article.views}</Text>
+										<div className="right">
+											<BookmarkIcon newsId={article.id} newsletterId={article.id} />
+										</div>
+									</>
+								),
+							}}
+						/>
+					))}
+				</div>
+			)}
 			<div ref={observerRef} className="observer">
 				{isLoading && <Spinner />}
 			</div>
@@ -231,7 +240,15 @@ const StyledListSection = styled.section`
 				white-space: nowrap;
 			}
 
+			.count {
+				font-variant-numeric: tabular-nums;
+				white-space: nowrap;
+			}
+
 			.tag {
+				max-width: 22rem;
+				overflow: hidden;
+				text-overflow: ellipsis;
 				white-space: nowrap;
 				border-radius: ${({ theme }) => theme.radius.chip};
 				background: ${({ theme }) => theme.color.tertiary};

@@ -38,6 +38,26 @@ test.describe('비로그인 탐색', () => {
 		await expect(page.getByText(first.title).first()).toBeVisible();
 	});
 
+	// #20: 검색어 + 관심사로 찾고, 주소에 남아 새로 고침해도 같은 결과
+	test('뉴스레터 검색: 검색어와 관심사로 걸러 보고, 결과가 없으면 안내', async ({ page }) => {
+		const third = SEEDED_NEWSLETTERS[2];
+		await page.goto(`/articles?categoryId=${third.categoryId}`);
+		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('카테고리');
+		await page.keyboard.press('Enter');
+
+		await expect(page).toHaveURL(/q=/);
+		await expect(page.getByRole('heading', { name: '‘카테고리’ 검색 결과' })).toBeVisible();
+		await expect(page.getByText(third.title).first()).toBeVisible();
+		await expect(page.getByText(first.title)).toHaveCount(0);
+
+		await page.reload();
+		await expect(page.getByText(third.title).first()).toBeVisible();
+
+		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('없는검색어입니다');
+		await page.keyboard.press('Enter');
+		await expect(page.getByText('찾는 뉴스레터가 없어요')).toBeVisible();
+	});
+
 	// #32: 서버 렌더링 중에 조회수를 올리면 봇·서버 요청에도 늘고, 실패하면 페이지가 500이었다
 	test('기사 상세: 서버 요청으로는 조회수가 오르지 않고, 브라우저에서 열면 1 오른다', async ({ page, request }) => {
 		const id = await newsletterIdByTitle(first.title);
