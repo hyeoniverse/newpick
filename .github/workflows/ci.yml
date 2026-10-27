@@ -7,14 +7,50 @@ on:
   # 손으로 실행하면 api 변경이 없어도 이미지를 만들어 배포한다 (서버에서 직접 빌드한 이미지를 GHCR 이미지로 바꿀 때 등)
   workflow_dispatch:
 
+# 같은 PR에 새로 푸시하면 앞선 실행은 취소한다 (마지막 커밋만 의미가 있다).
+# main은 배포가 걸려 있어 취소하지 않고 차례로 돈다
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
+  # PR에서 무엇이 바뀌었는지. 바뀐 쪽만 검사한다 (문서 · 스크린샷만 바뀐 PR은 검사 없음).
+  # main push · 손으로 실행은 언제나 전부 (api 이미지 · 배포가 check · e2e 통과를 전제로 한다)
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.diff.outputs.apps }}
+      web: ${{ steps.diff.outputs.web }}
+      api: ${{ steps.diff.outputs.api }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: diff
+        run: |
+          if [ "$GITHUB_EVENT_NAME" != pull_request ]; then
+            web=true; api=true
+          else
+            files=$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD")
+            echo "$files"
+            # 워크플로를 바꿨으면 전부 돌려 확인한다
+            ci=false; echo "$files" | grep -q '^\.github/workflows/' && ci=true
+            web=$ci; echo "$files" | grep -q '^apps/web/' && web=true
+            api=$ci; echo "$files" | grep -q '^apps/api/' && api=true
+          fi
+          apps=$(jq -cn --argjson w "$web" --argjson a "$api" '[if $w then "web" else empty end, if $a then "api" else empty end]')
+          echo "web=$web api=$api apps=$apps"
+          { echo "web=$web"; echo "api=$api"; echo "apps=$apps"; } >> "$GITHUB_OUTPUT"
+
   check:
     name: ${{ matrix.app }}
+    needs: changes
+    if: needs.changes.outputs.apps != '[]'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        app: [web, api]
+        app: ${{ fromJSON(needs.changes.outputs.apps) }}
     defaults:
       run:
         working-directory: apps/${{ matrix.app }}
@@ -39,7 +75,8 @@ jobs:
   # PR: 이미지가 빌드되는지만 본다 (main에서는 api-image가 빌드해서 올린다)
   api-docker:
     name: api docker image
-    if: github.event_name == 'pull_request'
+    needs: changes
+    if: github.event_name == 'pull_request' && needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -114,8 +151,11 @@ jobs:
       tag: ${{ needs.api-changes.outputs.tag }}
     secrets: inherit
 
+  # 웹과 api를 함께 띄워 보는 테스트라 둘 중 하나라도 바뀌면 돈다 (문서만 바뀐 PR은 건너뜀)
   e2e:
     name: e2e
+    needs: changes
+    if: needs.changes.outputs.web == 'true' || needs.changes.outputs.api == 'true'
     runs-on: ubuntu-latest
     # 정상이면 10분 안팎. 브라우저 의존성 설치(apt)가 멈추면 6시간까지 붙잡혀 있었다
     timeout-minutes: 30
