@@ -1,3 +1,4 @@
+import { ApiError } from '@/api/client';
 import { NewsInfo as INewsInfo } from '@/models/article.model';
 import {
 	fetchArticle,
@@ -78,9 +79,10 @@ export const getCategoryList = async (
  */
 export const getRelatedNews = async (links: string[]): Promise<INewsInfo[]> => {
 	const results = await Promise.allSettled(links.map((link) => fetchRelatedNews(link)));
-	// 하나도 못 받았으면(요청 제한 · 서버 오류 등) 빈 목록을 캐시하지 않게 실패로 돌려 React Query가 다시 시도한다
-	if (links.length > 0 && results.every((result) => result.status === 'rejected')) {
-		throw (results[0] as PromiseRejectedResult).reason;
-	}
+	// 하나도 못 받았는데 그 이유가 '없음(404)'이 아니면(요청 제한 · 서버 오류 등) 빈 목록을 캐시하지 않게
+	// 실패로 돌려 React Query가 다시 시도한다. 모두 404면 정말 없는 것이라 빈 목록
+	const failures = results.filter((result): result is PromiseRejectedResult => result.status === 'rejected');
+	const retryable = failures.find((failure) => !(failure.reason instanceof ApiError && failure.reason.status === 404));
+	if (links.length > 0 && failures.length === results.length && retryable) throw retryable.reason;
 	return results.flatMap((result) => (result.status === 'fulfilled' ? [result.value] : []));
 };
