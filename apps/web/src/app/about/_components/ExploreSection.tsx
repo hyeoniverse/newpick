@@ -36,7 +36,7 @@ function WhyNewpickSection({ className }: Props) {
 					content={`내일부터 새로운 뉴스레터를 보내드려요.`}
 					filledButton="확인"
 					onConfirmClick={closeModal}
-				/>
+				/>,
 			);
 			setChecked(false);
 		}
@@ -62,10 +62,7 @@ function WhyNewpickSection({ className }: Props) {
 					type="submit"
 					size="medium"
 					scheme="primary"
-					style={{
-						margin: '1rem',
-						borderRadius: '0.5rem',
-					}}
+					className="submit"
 					onClick={handleSubscribe}
 					disabled={isChangingSubscription}
 				>
@@ -116,6 +113,12 @@ const StyledExploreSection = styled.div`
 
 		.agreement {
 			justify-content: center;
+		}
+
+		/* 다른 구독하기 버튼(구독 시트·홈)과 같은 기본 버튼: 각진 모서리, 위 간격만 */
+		.submit {
+			min-width: 10rem;
+			margin-top: 1rem;
 		}
 
 		.categories {
