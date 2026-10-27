@@ -8,6 +8,7 @@ import { SESSION_HINT_COOKIE } from '@/constants/api';
 import { THEME_LOCALSTORAGE_KEY } from '@/stores/useThemeStore';
 import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/constants/site';
 
+import '@/styles/pretendard.css';
 import '@/styles/global';
 import StyledComponentsRegistry from '@/lib/registry';
 import Providers from '@/components/providers/Providers';
