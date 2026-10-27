@@ -33,7 +33,7 @@ const FEATURES = [
 export default function CoreFeature() {
 	return (
 		<StyledCore>
-			<SectionHeading eyebrow="CORE FEATURE" title="읽을 것만, 읽기 좋게." />
+			<SectionHeading label="CORE FEATURE" title="읽을 것만, 읽기 좋게." />
 			<ul className="tiles">
 				{FEATURES.map(({ icon: Icon, title, text, image, alt }) => (
 					<li key={title} className="tile">

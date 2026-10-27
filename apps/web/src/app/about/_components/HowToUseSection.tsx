@@ -4,7 +4,7 @@ import styled from 'styled-components';
 import Img from 'next/image';
 import { FcGoogle } from 'react-icons/fc';
 import SectionHeading from '@/app/about/_components/SectionHeading';
-import { useScrollSequence } from '@/hooks/useScrollSequence';
+import { useScrollProgress } from '@/hooks/useScrollProgress';
 
 interface Step {
 	title: string;
@@ -53,177 +53,184 @@ function LoginMock() {
 	);
 }
 
+/** 한 단계: 그림은 화면 끝까지 닿고, 스크롤하면 자기 쪽 끝에서 밀려 들어온다 (--progress 0 → 1) */
+function StepRow({ step, index }: { step: Step; index: number }) {
+	const ref = useScrollProgress<HTMLLIElement>('enter');
+
+	return (
+		<li ref={ref} className={index % 2 === 0 ? 'row' : 'row reverse'}>
+			<div className="copy">
+				<span className="no">{String(index + 1).padStart(2, '0')}</span>
+				<h3>{step.title}</h3>
+				<p>{step.text}</p>
+			</div>
+			<div className="shot">
+				{step.image ? (
+					<Img src={step.image} alt={step.alt ?? ''} width={0} height={0} sizes="(max-width: 768px) 100vw, 60vw" />
+				) : (
+					<LoginMock />
+				)}
+			</div>
+		</li>
+	);
+}
+
 /**
- * 스크롤 시퀀스: 왼쪽 단계를 내려가는 동안 오른쪽 화면이 붙어 있고, 단계가 바뀌면 그림이 바뀐다.
- * 좁은 화면은 붙는 화면 없이 단계마다 그림을 바로 아래에 둔다
- * (예전에는 그림을 화면 폭 기준으로 밀어 두어 페이지가 가로로 스크롤됐다)
+ * HOW TO USE: 화면 폭을 꽉 채우는 지그재그. 단계마다 그림이 왼쪽 끝 → 오른쪽 끝을 번갈아 차지한다.
+ * 줄을 화면 폭(100vw)으로 넓히고, 스크롤바 폭만큼 넘치는 부분은 시작하기 페이지의 body overflow-x: clip이 자른다
+ * (예전에는 그림을 페이지 밖까지 밀어 두어 가로 스크롤이 생겼다)
  */
 export default function HowToUseSection() {
-	const { containerRef, stepRef, active } = useScrollSequence<HTMLOListElement, HTMLLIElement>(STEPS.length);
-
 	return (
 		<StyledHowToUse>
 			<SectionHeading
-				eyebrow="HOW TO USE"
+				label="HOW TO USE"
 				title="시작은 세 번의 클릭."
 				sub="로그인하고 관심사만 고르면, 매일 아침 뉴스레터가 옵니다."
 			/>
-
-			<div className="layout">
-				<ol ref={containerRef} className="steps">
-					{STEPS.map((step, i) => (
-						<li key={step.title} ref={stepRef(i)} className="step" data-active={i === active}>
-							<span className="no">{String(i + 1).padStart(2, '0')}</span>
-							<h3 className="step-title">{step.title}</h3>
-							<p className="step-text">{step.text}</p>
-							<div className="inline-shot">
-								{step.image ? (
-									<Img src={step.image} alt={step.alt ?? ''} width={0} height={0} sizes="100vw" />
-								) : (
-									<LoginMock />
-								)}
-							</div>
-						</li>
-					))}
-				</ol>
-
-				<div className="stage" aria-hidden>
-					<div className="frame">
-						<div className="frame-bar">
-							<span />
-							<span />
-							<span />
-						</div>
-						<div className="shots">
-							{STEPS.map((step, i) =>
-								step.image ? (
-									<Img
-										key={step.title}
-										src={step.image}
-										alt=""
-										fill
-										sizes="(max-width: 768px) 0px, 50vw"
-										className={i === active ? 'shot on' : 'shot'}
-									/>
-								) : (
-									<div key={step.title} className={i === active ? 'shot mock on' : 'shot mock'}>
-										<LoginMock />
-									</div>
-								),
-							)}
-						</div>
-					</div>
-					<div className="progress">
-						{STEPS.map((step, i) => (
-							<span key={step.title} className={i === active ? 'on' : undefined}>
-								{step.title}
-							</span>
-						))}
-					</div>
-				</div>
-			</div>
+			<ol className="rows">
+				{STEPS.map((step, i) => (
+					<StepRow key={step.title} step={step} index={i} />
+				))}
+			</ol>
 		</StyledHowToUse>
 	);
 }
 
 const StyledHowToUse = styled.section`
-	.layout {
-		display: grid;
-		grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-		gap: 4rem;
-		align-items: start;
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.steps {
+	.rows {
+		display: flex;
+		flex-direction: column;
+		gap: 6rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			gap: 4rem;
+		}
 	}
 
-	.step {
-		min-height: 55vh;
-		padding-top: 10vh;
-		opacity: 0.35;
-		transition: opacity 0.35s ease;
+	/* 화면 끝까지 넓힌 줄: 그림 60%는 화면 끝에 붙고, 글 40%는 다른 섹션과 같은 본문 폭 안쪽에 맞춘다.
+	   짝수 줄은 그림 왼쪽 · 글 오른쪽, 홀수 줄(reverse)은 반대 */
+	.row {
+		--progress: 0;
+		--from: -1;
+		/* 본문(1024px) 바깥 여백. 글을 이만큼 안쪽에 두어 다른 섹션의 왼쪽·오른쪽 끝과 맞춘다 */
+		--gutter: max(1rem, calc((100vw - ${({ theme }) => theme.layout.width.large}) / 2));
+		display: grid;
+		grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+		align-items: center;
+		gap: 4rem;
+		width: 100vw;
+		margin-left: calc(50% - 50vw);
 
-		&:first-child {
-			padding-top: 0;
+		.shot {
+			order: -1;
 		}
 
-		&[data-active='true'] {
-			opacity: 1;
+		.copy {
+			padding-right: var(--gutter);
+		}
 
-			.no {
-				color: ${({ theme }) => theme.color.primary};
+		&.reverse {
+			--from: 1;
+			grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+
+			.shot {
+				order: 0;
+				border-right: none;
+				border-left: 1px solid ${({ theme }) => theme.color.border};
+				border-radius: ${({ theme }) => theme.radius.surface} 0 0 ${({ theme }) => theme.radius.surface};
+			}
+
+			.copy {
+				padding-right: 0;
+				padding-left: var(--gutter);
 			}
 		}
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			min-height: auto;
-			padding: 0 0 3rem;
-			opacity: 1;
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+			width: auto;
+			margin-left: 0;
 
-			.no {
-				color: ${({ theme }) => theme.color.primary};
+			.shot {
+				order: 0;
+			}
+
+			.copy {
+				padding: 0;
+			}
+
+			&.reverse {
+				grid-template-columns: 1fr;
+
+				.copy {
+					padding: 0;
+				}
+
+				.shot {
+					border: 1px solid ${({ theme }) => theme.color.border};
+					border-radius: ${({ theme }) => theme.radius.surface};
+				}
 			}
 		}
 	}
 
-	.no {
-		display: block;
-		margin-bottom: 0.5rem;
-		font-size: 2.5rem;
-		font-weight: 800;
-		line-height: 1;
-		font-variant-numeric: tabular-nums;
-		color: ${({ theme }) => theme.color.neutral};
-		transition: color 0.35s ease;
-	}
-
-	.step-title {
-		margin: 0 0 0.75rem;
-		font-size: ${({ theme }) => theme.fontSize.large};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	.step-text {
-		margin: 0;
-		line-height: 1.8;
-		color: ${({ theme }) => theme.color.subText};
+	.copy {
 		word-break: keep-all;
+
+		.no {
+			display: block;
+			margin-bottom: 0.5rem;
+			font-size: 2.5rem;
+			font-weight: 800;
+			line-height: 1;
+			font-variant-numeric: tabular-nums;
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		h3 {
+			margin: 0 0 0.75rem;
+			font-size: clamp(1.375rem, 2.4vw, 1.75rem);
+			font-weight: 800;
+			color: ${({ theme }) => theme.color.text};
+		}
+
+		p {
+			margin: 0;
+			line-height: 1.8;
+			color: ${({ theme }) => theme.color.subText};
+		}
 	}
 
-	/* 좁은 화면: 단계마다 그림을 바로 아래에 */
-	.inline-shot {
-		display: none;
-		margin-top: 1.25rem;
+	/* 그림: 화면 끝 쪽은 테두리·모서리 없이 붙이고, 스크롤하면 그쪽에서 6rem 밀려 들어온다 */
+	.shot {
 		overflow: hidden;
 		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
+		border-left: none;
+		border-radius: 0 ${({ theme }) => theme.radius.surface} ${({ theme }) => theme.radius.surface} 0;
+		background: ${({ theme }) => theme.color.surface};
+		opacity: calc(0.2 + var(--progress) * 0.8);
+		transform: translateX(calc((1 - var(--progress)) * var(--from) * 6rem));
 
 		img {
 			display: block;
 			width: 100%;
 			height: auto;
-		}
-
-		.login-mock {
-			padding: 2rem 1rem;
+			max-height: 32rem;
+			object-fit: cover;
+			object-position: top;
 		}
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			display: block;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.surface};
+			opacity: 1;
+			transform: none;
 		}
-	}
-
-	.shot.mock {
-		display: grid;
-		place-items: center;
 	}
 
 	.login-mock {
@@ -231,9 +238,9 @@ const StyledHowToUse = styled.section`
 		flex-direction: column;
 		align-items: center;
 		gap: 0.875rem;
+		padding: 4rem 1.5rem;
 		text-align: center;
 		color: ${({ theme }) => theme.color.text};
-		background: ${({ theme }) => theme.color.background};
 
 		.mock-logo {
 			display: grid;
@@ -260,6 +267,7 @@ const StyledHowToUse = styled.section`
 			border: 1px solid ${({ theme }) => theme.color.border};
 			font-size: ${({ theme }) => theme.fontSize.small};
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			background: ${({ theme }) => theme.color.background};
 		}
 
 		.mock-terms {
@@ -269,106 +277,10 @@ const StyledHowToUse = styled.section`
 		}
 	}
 
-	.shot.mock .login-mock {
-		width: 70%;
-		padding: 2.5rem 1.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.floating};
-	}
-
-	/* 넓은 화면: 스크롤하는 동안 붙어 있는 브라우저 모양 틀 */
-	.stage {
-		position: sticky;
-		top: 7rem;
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			display: none;
-		}
-	}
-
-	.frame {
-		overflow: hidden;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.surface};
-	}
-
-	.frame-bar {
-		display: flex;
-		gap: 0.375rem;
-		padding: 0.75rem 1rem;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-		background: ${({ theme }) => theme.color.background};
-
-		span {
-			width: 0.625rem;
-			height: 0.625rem;
-			border-radius: 50%;
-			background: ${({ theme }) => theme.color.border};
-		}
-	}
-
-	.shots {
-		position: relative;
-		aspect-ratio: 4 / 3;
-
-		.shot {
-			position: absolute;
-			inset: 0;
-			object-fit: contain;
-			padding: 1.5rem;
-			opacity: 0;
-			transform: scale(0.97);
-			transition:
-				opacity 0.5s ease,
-				transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-
-			&.on {
-				opacity: 1;
-				transform: none;
-			}
-		}
-	}
-
-	.progress {
-		display: flex;
-		gap: 1rem;
-		margin-top: 1rem;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.subText};
-
-		span {
-			position: relative;
-			padding-top: 0.625rem;
-			transition: color 0.3s ease;
-
-			&::before {
-				content: '';
-				position: absolute;
-				top: 0;
-				left: 0;
-				width: 100%;
-				height: 2px;
-				background: ${({ theme }) => theme.color.border};
-			}
-
-			&.on {
-				font-weight: ${({ theme }) => theme.fontWeight.bold};
-				color: ${({ theme }) => theme.color.text};
-
-				&::before {
-					background: ${({ theme }) => theme.color.primary};
-				}
-			}
-		}
-	}
-
 	@media (prefers-reduced-motion: reduce) {
-		.step,
-		.no,
-		.shots .shot,
-		.progress span {
-			transition: none;
+		.shot {
+			opacity: 1;
+			transform: none;
 		}
 	}
 `;

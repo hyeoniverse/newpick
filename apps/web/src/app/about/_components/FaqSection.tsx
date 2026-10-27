@@ -63,7 +63,7 @@ export default function FaqSection() {
 
 	return (
 		<StyledFaq aria-label="자주 묻는 질문">
-			<SectionHeading eyebrow="FAQ" title="자주 묻는 질문" />
+			<SectionHeading label="FAQ" title="자주 묻는 질문" />
 			<ul className="list">
 				{FAQ.map(({ q, a }, i) => (
 					<li
@@ -99,8 +99,7 @@ export default function FaqSection() {
 
 const StyledFaq = styled.section`
 	.list {
-		max-width: 48rem;
-		margin: 0 auto;
+		margin: 0;
 		padding: 0;
 		list-style: none;
 		border-top: 1px solid ${({ theme }) => theme.color.text};

@@ -70,7 +70,7 @@ export default function NumbersSection() {
 
 	return (
 		<StyledNumbers id="about-numbers" aria-label="숫자로 보는 NEWPICK">
-			<SectionHeading eyebrow="숫자로 보는 NEWPICK" title="하루 한 통이면 충분합니다." />
+			<SectionHeading label="IN NUMBERS" title="하루 한 통이면 충분합니다." />
 			<ul ref={ref} className="list">
 				{NUMBERS.map((item) => (
 					<NumberItem key={item.text} {...item} start={start} />

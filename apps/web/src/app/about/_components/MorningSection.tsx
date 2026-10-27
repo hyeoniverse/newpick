@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import { LuNewspaper, LuLayers, LuPenLine, LuMailOpen } from 'react-icons/lu';
+import BorderTitle from '@/components/common/BorderTitle';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 
 /** 서버 예약 작업 순서 그대로: 08:00 수집 → 08:30 AI 편집(고르기 → 쓰기) → 08:40 발송 */
@@ -39,35 +40,43 @@ const STEPS = [
  */
 export default function MorningSection() {
 	const [active, setActive] = useState(0);
-	const ref = useScrollProgress<HTMLElement>('pinned', (progress) => {
+	const ref = useScrollProgress<HTMLDivElement>('pinned', (progress) => {
 		const next = Math.min(STEPS.length - 1, Math.floor(progress * STEPS.length));
 		setActive((prev) => (prev === next ? prev : next));
 	});
 
 	return (
-		<StyledMorning ref={ref} aria-label="뉴스레터가 만들어지는 아침" style={{ '--steps': STEPS.length } as React.CSSProperties}>
-			<div className="scene">
-				<p className="eyebrow">매일 아침 40분</p>
-				<p className="time" key={`time-${active}`} aria-hidden>
-					{STEPS[active].time}
-				</p>
+		<StyledMorning aria-label="뉴스레터가 만들어지는 아침" style={{ '--steps': STEPS.length } as React.CSSProperties}>
+			<BorderTitle text="08:00 → 08:40" />
+			<div ref={ref} className="track">
+				<div className="scene">
+					<p className="eyebrow">매일 아침 40분</p>
+					<p className="time" key={`time-${active}`} aria-hidden>
+						{STEPS[active].time}
+					</p>
 
-				<ol className="steps">
-					{STEPS.map((step, i) => (
-						<li key={step.title} className="step" data-active={i === active} aria-current={i === active ? 'step' : undefined}>
-							<step.icon className="icon" aria-hidden />
-							<h3>{step.title}</h3>
-							<p>{step.text}</p>
-						</li>
-					))}
-				</ol>
+					<ol className="steps">
+						{STEPS.map((step, i) => (
+							<li
+								key={step.title}
+								className="step"
+								data-active={i === active}
+								aria-current={i === active ? 'step' : undefined}
+							>
+								<step.icon className="icon" aria-hidden />
+								<h3>{step.title}</h3>
+								<p>{step.text}</p>
+							</li>
+						))}
+					</ol>
 
-				<div className="bar" aria-hidden>
-					{STEPS.map((step, i) => (
-						<span key={step.title} className={i <= active ? 'seg on' : 'seg'}>
-							<span className="seg-label">{step.time}</span>
-						</span>
-					))}
+					<div className="progress" aria-hidden>
+						{STEPS.map((step, i) => (
+							<span key={step.title} className={i <= active ? 'seg on' : 'seg'}>
+								<span className="seg-label">{step.time}</span>
+							</span>
+						))}
+					</div>
 				</div>
 			</div>
 		</StyledMorning>
@@ -80,9 +89,12 @@ const tick = keyframes`
 `;
 
 const StyledMorning = styled.section`
-	--progress: 0;
-	position: relative;
-	height: calc(var(--steps) * 80vh);
+	/* 장면이 붙어 있는 구간. 높이 = 단계 수 × 80vh라 단계마다 한 화면쯤 스크롤한다 */
+	.track {
+		--progress: 0;
+		position: relative;
+		height: calc(var(--steps) * 80vh);
+	}
 
 	/* 화면에 붙어 있는 장면 (헤더 높이만큼 아래) */
 	.scene {
@@ -167,8 +179,8 @@ const StyledMorning = styled.section`
 		}
 	}
 
-	/* 진행 막대: 지난 단계까지 채워짐 */
-	.bar {
+	/* 진행 막대: 지난 단계까지 채워짐 (BorderTitle의 .bar와 겹치지 않게 progress) */
+	.progress {
 		display: flex;
 		gap: 0.5rem;
 		width: 100%;
@@ -200,7 +212,7 @@ const StyledMorning = styled.section`
 		}
 
 		.step,
-		.bar .seg {
+		.progress .seg {
 			transition: none;
 		}
 	}

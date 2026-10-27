@@ -1,6 +1,7 @@
 'use client';
 
 import styled from 'styled-components';
+import BorderTitle from '@/components/common/BorderTitle';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 
 /** 강조할 낱말은 ** 로 감싼다 */
@@ -27,7 +28,7 @@ export default function WhyNewpickSection() {
 
 	return (
 		<StyledWhy aria-label="WHY NEWPICK">
-			<p className="eyebrow">WHY NEWPICK?</p>
+			<BorderTitle text="WHY NEWPICK?" className="border-title" />
 			<p ref={ref} className="statement" style={{ '--n': WORDS.length } as React.CSSProperties}>
 				{WORDS.map((word, i) => (
 					<span key={i} className={word.strong ? 'word strong' : 'word'} style={{ '--i': i } as React.CSSProperties}>
@@ -49,21 +50,15 @@ export default function WhyNewpickSection() {
 }
 
 const StyledWhy = styled.section`
-	max-width: 56rem;
-	margin: 0 auto;
-	text-align: center;
 	word-break: keep-all;
 
-	.eyebrow {
-		margin: 0 0 2rem;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		letter-spacing: 0.08em;
-		color: ${({ theme }) => theme.color.primary};
+	.border-title {
+		margin-bottom: 2.5rem;
 	}
 
 	.statement {
 		--progress: 0;
+		max-width: 56rem;
 		margin: 0;
 		font-size: clamp(1.75rem, 4.2vw, 3.25rem);
 		font-weight: 800;

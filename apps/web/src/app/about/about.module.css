@@ -5,6 +5,12 @@
     margin-top: 2rem;
 }
 
+/* 화면 끝까지 넓힌 줄(100vw)이 스크롤바 폭만큼 넘치는 것을 화면 전체(body)에서 자른다.
+   시작하기 페이지에서만 적용하고, clip이라 스크롤 영역이 생기지 않아 sticky는 그대로 동작한다 */
+:global(body):has(.about) {
+    overflow-x: clip;
+}
+
 
 @media (max-width: 768px) {
     .about {
