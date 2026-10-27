@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPopularKeywords } from '@/api/article';
@@ -111,6 +112,10 @@ export default function SearchFilters() {
 							);
 						})}
 					</div>
+					{/* 태그 줄은 최근 자주 나온 것만. 나머지는 태그 전체 화면에서 */}
+					<Link href="/tags" className="tags-all">
+						전체 보기
+					</Link>
 				</div>
 			)}
 		</StyledSearchFilters>
@@ -263,6 +268,19 @@ const StyledSearchFilters = styled.div`
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			color: ${({ theme }) => theme.color.subText};
+		}
+
+		.tags-all {
+			flex-shrink: 0;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+			white-space: nowrap;
+
+			&:hover {
+				text-decoration: underline;
+				text-underline-offset: 0.2em;
+			}
 		}
 
 		/* 옆으로 넘기는 칸. 넘기는 칸은 위아래도 잘라 내므로, 테두리 · 초점 표시가 잘리지 않게 위아래 여유를 둔다 */

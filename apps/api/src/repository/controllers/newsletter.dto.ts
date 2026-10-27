@@ -146,6 +146,20 @@ export class NewsletterSearchDto {
 }
 
 /** 자주 나온 키워드 (#20): 최근 며칠 · 몇 개 · 관심사 */
+/** 태그 전체 (/tags): 관심사 · 이름 일부로 찾기 */
+export class NewsletterAllKeywordsDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'categoryId는 정수여야 합니다' })
+  @Min(1, { message: 'categoryId는 1 이상이어야 합니다' })
+  categoryId?: number;
+
+  @IsOptional()
+  @IsString({ message: 'q는 문자열이어야 합니다' })
+  @Length(1, 30, { message: 'q는 1~30자여야 합니다' })
+  q?: string;
+}
+
 export class NewsletterKeywordsDto {
   @IsOptional()
   @Type(() => Number)

@@ -61,6 +61,9 @@ export const API_ENDPOINTS = {
 		/** 최근 자주 나온 키워드(태그) (#20) */
 		KEYWORDS: (categoryId?: number) =>
 			`${API_URL}/newsletters/keywords?days=30&limit=12` + (categoryId ? `&categoryId=${categoryId}` : ''),
+		/** 태그 전체 (태그 화면 /tags) */
+		ALL_KEYWORDS: (categoryId?: number) =>
+			`${API_URL}/newsletters/keywords/all` + (categoryId ? `?categoryId=${categoryId}` : ''),
 		SEARCH: (query: string) => `${API_URL}/newsletters/search${query ? `?${query}` : ''}`,
 		TRENDS: (category?: number) => `${API_URL}/newsletters/trends` + (category ? `?categoryId=${category}` : ''),
 		POPULAR: (limit: number, offset: number, trend: boolean) =>

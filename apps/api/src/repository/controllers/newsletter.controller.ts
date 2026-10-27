@@ -18,6 +18,7 @@ import {
   NewsletterRandomDto,
   NewsletterSearchDto,
   NewsletterKeywordsDto,
+  NewsletterAllKeywordsDto,
 } from './newsletter.dto';
 import { toBooleanQuery } from '../search/search-terms';
 import { kstDayRange, kstDaysAgo } from '../../common/kst';
@@ -133,7 +134,20 @@ export class BasicRepositoryController {
     };
   }
 
-  /** 최근 자주 나온 키워드(태그) (#20). 목록의 태그 필터에 쓴다. 기본 30일 · 15개 */
+  /** 태그 전체 (#20, 태그 화면 /tags). 많이 쓴 순, 쓰인 횟수 · 마지막 날 · 관심사 */
+  @Public()
+  @Get('keywords/all')
+  async getAllKeywords(@Query() query: NewsletterAllKeywordsDto) {
+    return {
+      message: '태그 전체 조회 성공',
+      data: await this.newsletterRepo.getAllKeywords({
+        categoryId: query.categoryId,
+        q: query.q?.trim() || undefined,
+      }),
+    };
+  }
+
+  /** 최근 자주 나온 키워드(태그) (#20). 목록의 태그 줄에 쓴다. 기본 30일 · 15개 */
   @Public()
   @Get('keywords')
   async getPopularKeywords(@Query() query: NewsletterKeywordsDto) {
