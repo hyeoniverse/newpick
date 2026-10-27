@@ -376,6 +376,23 @@ const StyledHotSection = styled.section<StyledProps>`
 				}
 			}
 		}
+
+		/* 휴대폰은 더 짧게: 설명 줄은 빼고 제목 · 요약 · 키워드만 */
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			h1,
+			h2 {
+				font-size: 1.5rem;
+			}
+
+			.description {
+				display: none;
+			}
+
+			.watermark svg {
+				width: 2.5rem;
+				height: 2.5rem;
+			}
+		}
 	}
 
 	.stage-head {
