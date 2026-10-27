@@ -11,8 +11,8 @@ import HowToUseSection from '@/app/about/_components/HowToUseSection';
 import Logos from '@/app/about/_components/Logos';
 import ScrollReveal from '@/components/common/ScrollReveal';
 
-/** 섹션 안에서 하나씩 나타날 것: 숫자, 가치, 기능 타일, 질문, 팀원·한 일 */
-const REVEAL_ITEMS = '#about-numbers .item, [aria-label="WHY NEWPICK"] .value, .tile, [aria-label="자주 묻는 질문"] .item, .member, .work';
+/** 섹션 안에서 하나씩 나타날 것: 숫자, 가치, 질문, 팀원·한 일 */
+const REVEAL_ITEMS = '#about-numbers .item, [aria-label="WHY NEWPICK"] .value, [aria-label="자주 묻는 질문"] .item, .member, .work';
 
 async function AboutPage() {
 	return (
