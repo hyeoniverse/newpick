@@ -15,6 +15,66 @@ function reply(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/** 정해 둔 응답을 스트리밍(SSE) 이벤트로 펼친다: 시작 → 글자 조각 → 끝 (generate는 스트리밍으로 받는다) */
+function toSse(message: any) {
+  const events: [string, unknown][] = [
+    [
+      'message_start',
+      {
+        type: 'message_start',
+        message: {
+          ...message,
+          content: [],
+          stop_reason: null,
+          stop_details: null,
+          usage: { input_tokens: message.usage.input_tokens, output_tokens: 0 },
+        },
+      },
+    ],
+  ];
+  message.content.forEach((block: { text: string }, index: number) => {
+    events.push(
+      [
+        'content_block_start',
+        {
+          type: 'content_block_start',
+          index,
+          content_block: { type: 'text', text: '' },
+        },
+      ],
+      [
+        'content_block_delta',
+        {
+          type: 'content_block_delta',
+          index,
+          delta: { type: 'text_delta', text: block.text },
+        },
+      ],
+      ['content_block_stop', { type: 'content_block_stop', index }],
+    );
+  });
+  events.push(
+    [
+      'message_delta',
+      {
+        type: 'message_delta',
+        delta: {
+          stop_reason: message.stop_reason,
+          stop_sequence: null,
+          stop_details: message.stop_details,
+        },
+        usage: { output_tokens: message.usage.output_tokens },
+      },
+    ],
+    ['message_stop', { type: 'message_stop' }],
+  );
+  return events
+    .map(
+      ([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`,
+    )
+    .join('');
+}
+
 /** 실제 HTTP 대신 요청을 기록하고 정해 둔 응답을 돌려주는 클라이언트 */
 function setup(body: Record<string, unknown>) {
   const requests: { headers: Headers; body: any }[] = [];
@@ -23,9 +83,9 @@ function setup(body: Record<string, unknown>) {
       headers: new Headers(init.headers),
       body: JSON.parse(init.body as string),
     });
-    return new Response(JSON.stringify(body), {
+    return new Response(toSse(body), {
       status: 200,
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'text/event-stream' },
     });
   });
   const client = new Anthropic({ apiKey: 'test', fetch, maxRetries: 0 });
@@ -53,6 +113,8 @@ describe('ClaudeService.generate', () => {
       system: 'sys',
       messages: [{ role: 'user', content: '본문' }],
       output_config: { effort: 'low' },
+      // 긴 응답이 시간 초과로 끊기지 않게 스트리밍으로 받는다
+      stream: true,
     });
     expect(body).not.toHaveProperty('temperature');
   });

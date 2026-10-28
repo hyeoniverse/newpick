@@ -67,10 +67,18 @@ export class CrawlingService {
             link: news.href || null,
           }))
           .filter((news) => news.link);
+        // 하루 여러 번 모으므로 이미 모은 기사는 건너뛴다 (상세 요청 · 분야 분류 호출을 아낀다)
+        const existing = await this.crawlingRepository.findExistingLinks(
+          crawlingNews.map((news) => news.link),
+        );
+        const fresh = crawlingNews.filter((news) => !existing.has(news.link));
+        this.logger.log(
+          `${link}: 헤드라인 ${crawlingNews.length}건 중 새 기사 ${fresh.length}건`,
+        );
         await this.crawlerService.setDelay();
         // 상세 페이지 크롤링
         const crawlingNewsDetail = await this.crawlerService.setQueue(
-          crawlingNews.map((news) => async () => this.crawlingNewsDetail(news)),
+          fresh.map((news) => async () => this.crawlingNewsDetail(news)),
         );
         // 크롤링 최종 결과 배열에 저장
         crawlingResultData.push(

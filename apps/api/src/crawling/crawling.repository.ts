@@ -37,6 +37,27 @@ export class CrawlingRepository {
       throw error;
     }
   }
+  /** 이미 모은 링크 (하루 여러 번 수집하므로, 상세 페이지를 열기 전에 겹친 기사를 건너뛴다) */
+  async findExistingLinks(links: string[]): Promise<Set<string>> {
+    if (!links.length) return new Set();
+    const rows = await this.crawledNews
+      .find({ link: { $in: links } }, { link: 1 })
+      .lean();
+    return new Set(rows.map((row) => row.link));
+  }
+
+  /**
+   * 요약할 기사: [start, end] 사이에 처음 모은 이 분야 기사 (AI 요약은 '그날의 뉴스'만, 최신부터)
+   */
+  async getCrawledNewsBetween(start: Date, end: Date, categoryId: number) {
+    const category = await this.categoryRepository.findById(categoryId);
+    return this.crawledNews
+      .find({ createdAt: { $gte: start, $lte: end }, category: category.name })
+      .sort({ createdAt: -1 })
+      .lean<CrawledNews[]>()
+      .exec();
+  }
+
   // 가장 최근 크롤링 데이터 조회
   async getLatestCrawledNews(): Promise<CrawledNews> {
     return await this.crawledNews.findOne().sort({ createdAt: -1 });

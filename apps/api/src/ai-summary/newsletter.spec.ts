@@ -9,6 +9,11 @@ import {
   numberArticles,
   pickArticles,
   selectPrompt,
+  rankClusters,
+  describeScores,
+  totalScore,
+  MIN_TOTAL,
+  ClusterScore,
   writerPrompt,
   Story,
   WrittenNewsletter,
@@ -109,12 +114,16 @@ describe('1단계: 고르기', () => {
     ]),
   );
 
-  it('제목·첫 부분과 보도 수만 보내고, 주요 소식 기준을 준다', () => {
+  it('제목·첫 부분과 보도 수만 보내고, 모든 소식에 점수표를 매기게 한다', () => {
     const prompt = selectPrompt(clusters, '경제');
     expect(prompt).toContain('[1] 보도 1건 (연합뉴스)');
     expect(prompt).toContain('첫 부분: 코스피가 내렸다.');
     expect(prompt).toContain('시상식·행사·후보 발표');
-    expect(prompt).toContain('경제 분야가 아닌 소식은 고르지 않습니다');
+    expect(prompt).toContain('경제 분야가 아닌 소식은 관심사 1점');
+    expect(prompt).toContain(
+      '보도 수(한 곳만 보도했는지)는 점수에 넣지 않습니다',
+    );
+    expect(prompt).toContain('모든 소식(1~2번)');
     expect(prompt).toContain(`최대 ${LIMITS.stories}개`);
   });
 
@@ -122,6 +131,93 @@ describe('1단계: 고르기', () => {
     expect(pickArticles(clusters, [2, 2, 9, 0]).map((a) => a.title)).toEqual([
       '게임대상 후보 발표',
     ]);
+  });
+
+  const score = (n: number, each: number, more: Partial<ClusterScore> = {}) =>
+    ({
+      n,
+      impact: each,
+      novelty: each,
+      relevance: each,
+      followup: each,
+      excluded: false,
+      repeat: false,
+      reason: '',
+      ...more,
+    }) as ClusterScore;
+
+  describe('점수 → 고르기', () => {
+    // 1: 보도 3건, 2·3·4·5: 보도 1건
+    const many = clusterArticles(
+      prepare([
+        { title: '코스피 7개월 만에 최저', content: 'a' },
+        { title: '코스피 7개월 만에 최저 마감', content: 'b' },
+        { title: '코스피 7개월만에 최저치', content: 'c' },
+        { title: '앤트로픽 나스닥 상장 신청', content: 'd' },
+        { title: '게임대상 후보 발표', content: 'e' },
+        { title: '수협은행 행장 선정 불발', content: 'f' },
+        { title: '가상자산 과세 유예', content: 'g' },
+      ]),
+    );
+
+    it('보도 수보다 점수 합계가 먼저, 같으면 보도 많은 쪽', () => {
+      expect(many[0].articles).toHaveLength(3);
+      const picks = rankClusters(many, [
+        score(1, 4), // 16
+        score(2, 5), // 20, 한 곳 보도
+        score(5, 4), // 16, 보도 1건 → 1번 다음
+      ]);
+      expect(picks).toEqual([2, 1, 5]);
+    });
+
+    it('빼는 소식 · 기준 미달 · 없는 번호 · 중복은 싣지 않는다', () => {
+      const picks = rankClusters(many, [
+        score(3, 5, { excluded: true }),
+        score(4, 3), // 12 < MIN_TOTAL
+        score(2, 4),
+        score(2, 5),
+        score(99, 5),
+      ]);
+      expect(MIN_TOTAL).toBeGreaterThan(12);
+      expect(picks).toEqual([2]);
+    });
+
+    it('최근에 다룬 사건이고 새 진전이 없으면(repeat) 싣지 않는다', () => {
+      expect(
+        rankClusters(many, [score(2, 5, { repeat: true }), score(1, 4)]),
+      ).toEqual([1]);
+    });
+
+    it('최근 다룬 소식을 주면 겹치지 않게 고르라고 한다', () => {
+      const prompt = selectPrompt(many, '경제', [
+        '10. 27. 코스피 7개월 만에 최저',
+      ]);
+      expect(prompt).toContain('최근 이 분야 뉴스레터에서 이미 다룬 소식');
+      expect(prompt).toContain('- 10. 27. 코스피 7개월 만에 최저');
+      expect(prompt).toContain('새 진전');
+      expect(selectPrompt(many, '경제')).toContain('repeat는 모두 false');
+    });
+
+    it('기준을 넘는 소식이 없으면 가장 높은 하나만', () => {
+      expect(rankClusters(many, [score(4, 2), score(5, 3)])).toEqual([5]);
+    });
+
+    it('점수는 1~5로 맞춰 더한다', () => {
+      expect(totalScore(score(1, 9))).toBe(20);
+      expect(totalScore(score(1, 0))).toBe(4);
+    });
+
+    it('AI 기록용 요약: 실은 소식에 ✓, 점수 · 이유', () => {
+      const text = describeScores(
+        many,
+        [score(2, 5, { reason: '대형 IPO' }), score(3, 5, { excluded: true })],
+        [2],
+      );
+      expect(text).toContain(
+        '✓ 앤트로픽 나스닥 상장 신청 — 20점 (파급 5 · 새로움 5 · 관심사 5 · 후속 5). 대형 IPO',
+      );
+      expect(text).toContain('제외');
+    });
   });
 });
 
@@ -382,11 +478,22 @@ describe('NewsletterWriterService.write', () => {
   const oneSource = written({
     stories: [{ ...written().stories[0], sources: [1] }],
   });
+  // 고르기 응답: 고를 번호는 만점, 나머지는 기준 미달
   const claudeWith = (picks: number[]) => ({
     generate: jest
       .fn()
       .mockResolvedValueOnce({
-        text: JSON.stringify({ picks }),
+        text: JSON.stringify({
+          scores: picks.map((n) => ({
+            n,
+            impact: 5,
+            novelty: 5,
+            relevance: 5,
+            followup: 5,
+            excluded: false,
+            reason: '',
+          })),
+        }),
         usage: usage(CLAUDE_FAST_MODEL),
       })
       .mockResolvedValueOnce({
@@ -518,6 +625,17 @@ describe('파이프라인', () => {
     const prisma = {
       aiProcessLog: { create: jest.fn() },
       newsCategory: { findUnique: jest.fn().mockResolvedValue({ name: 'IT' }) },
+      // 최근 이 분야 뉴스레터: 이미 쓴 기사(l9)는 빼고, 제목은 고르기 · 쓰기에 알린다
+      newsletter: {
+        findMany: jest.fn().mockResolvedValue([
+          {
+            title: '지난 소식',
+            subtitle: null,
+            usedNews: 'l9',
+            createdAt: new Date('2026-10-27T00:00:00Z'),
+          },
+        ]),
+      },
     };
     const service = new AiSummaryService(
       prisma as never,
@@ -536,8 +654,11 @@ describe('파이프라인', () => {
 
     await service.summarizeText(news as never, 1, false);
 
-    // 최근 태그를 쓰기 단계에 넘긴다
-    expect(write).toHaveBeenCalledWith(news, 'IT', ['AI 해킹']);
+    // 최근 태그 · 최근 다룬 소식을 쓰기 단계에 넘긴다
+    expect(write).toHaveBeenCalledWith(news, 'IT', {
+      existingTags: ['AI 해킹'],
+      recentTopics: ['10. 27. 지난 소식'],
+    });
     expect(createNewsletter).toHaveBeenCalledWith(
       '제목',
       '부제목',

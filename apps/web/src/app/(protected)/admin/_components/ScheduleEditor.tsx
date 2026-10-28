@@ -76,12 +76,12 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 		<StyledEditor onSubmit={save}>
 			<h2 className="title">예약 시간 바꾸기</h2>
 			<p className="desc">
-				기사 수집 → AI 요약 → 구독 메일 순서로 돌아요. 요약은 그날 모은 기사로, 메일은 그날 요약으로 만들어서 앞
-				작업보다 늦게 잡아야 해요. 저장하면 바로 적용돼요.
+				기사 수집 → AI 요약 → 구독 메일 순서로 돌아요. 수집은 이 시각부터 3시간마다 하루 8번 하고, 요약은 그 전 24시간
+				동안 모은 기사로, 메일은 그날 요약으로 만들어서 앞 작업보다 늦게 잡아야 해요. 저장하면 바로 적용돼요.
 			</p>
 			<div className="row">
 				<span className="name">기사 수집</span>
-				<span className="when">매일</span>
+				<span className="when">3시간마다</span>
 				<TimePicker size="small" value={crawl} onChange={setCrawl} label="기사 수집 시각" />
 			</div>
 			<div className="row">

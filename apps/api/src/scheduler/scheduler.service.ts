@@ -5,7 +5,7 @@ import { AiSummaryService } from 'src/ai-summary/ai-summary.service';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
-import { KST, kstDaysAgo } from 'src/common/kst';
+import { KST } from 'src/common/kst';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { CategoryRepository } from 'src/category/category.repository';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
@@ -41,6 +41,26 @@ export const DEFAULT_SCHEDULE: Schedule = {
 };
 
 const dailyCron = ({ hour, minute }: ClockTime) => `0 ${minute} ${hour} * * *`;
+
+/** 기사 수집 간격 (시간). 섹션 헤드라인은 그 순간 것만 보여 주므로, 하루 여러 번 모아 '그날의 뉴스'를 채운다 */
+export const CRAWL_EVERY_HOURS = 3;
+
+/** 수집 시각부터 CRAWL_EVERY_HOURS마다 (예: 08:00 → 08 · 11 · 14 · 17 · 20 · 23 · 02 · 05시) */
+export const crawlCron = ({ hour, minute }: ClockTime) => {
+  const hours = Array.from(
+    { length: 24 / CRAWL_EVERY_HOURS },
+    (_, i) => (hour + i * CRAWL_EVERY_HOURS) % 24,
+  ).sort((a, b) => a - b);
+  return `0 ${minute} ${hours.join(',')} * * *`;
+};
+
+/** 요약에 실패한 관심사를 다시 시도하는 횟수 · 간격 (스트리밍으로 시간 초과는 줄었지만, 과부하 · 일시 오류 대비) */
+export const SUMMARY_RETRIES = 2;
+const SUMMARY_RETRY_DELAY_MS = 60 * 1000;
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/** AI 요약에 쓰는 기사: 요약 시각 전 이 시간 안에 처음 모은 것 (전날 수집 시각 ~ 오늘 요약 시각) */
+export const SUMMARY_WINDOW_HOURS = 24;
 const minutesOf = ({ hour, minute }: ClockTime) => hour * 60 + minute;
 
 export type JobName = 'crawling' | 'summary' | 'mail';
@@ -92,6 +112,8 @@ export class SchedulerService implements OnApplicationBootstrap {
    * 로컬 개발 서버가 운영과 따로 Claude를 부르고(비용) 로컬 구독자에게 실제 메일을 보내지 않게
    */
   private readonly autoRun = process.env.SCHEDULER_ENABLED !== 'false';
+  /** 요약 다시 시도 간격. 테스트에서 0으로 바꾼다 */
+  protected summaryRetryDelayMs = SUMMARY_RETRY_DELAY_MS;
   constructor(
     private readonly logger: Logger,
     private readonly mailService: MailService,
@@ -127,7 +149,7 @@ export class SchedulerService implements OnApplicationBootstrap {
         name,
         CronJob.from({ cronTime, timeZone: KST, onTick, start: this.autoRun }),
       );
-    add(CRAWL_JOB_NAME, dailyCron(this.schedule.crawl), () =>
+    add(CRAWL_JOB_NAME, crawlCron(this.schedule.crawl), () =>
       this.startCrawling(),
     );
     add(SUMMARY_JOB_NAME, dailyCron(this.schedule.summary), () =>
@@ -173,7 +195,7 @@ export class SchedulerService implements OnApplicationBootstrap {
       update: data,
     });
     this.schedule = structuredClone(next);
-    this.reschedule(CRAWL_JOB_NAME, dailyCron(next.crawl));
+    this.reschedule(CRAWL_JOB_NAME, crawlCron(next.crawl));
     this.reschedule(SUMMARY_JOB_NAME, dailyCron(next.summary));
     this.reschedule(
       MAIL_JOB_NAME,
@@ -232,46 +254,77 @@ export class SchedulerService implements OnApplicationBootstrap {
     try {
       const categoryList = await this.categoryRepository.findAll();
       const generatedNewsletter = [];
-      const failedCategories: string[] = [];
-      // 지난 7일(KST 날짜 기준)의 크롤링 원문을 요약합니다.
-      const startDate = kstDaysAgo(7);
-      const endDate = kstDaysAgo(0);
+      // 그날의 뉴스만: 요약 시각 전 24시간 안에 처음 모은 기사 (예전엔 지난 7일 전부라 지난 소식이 다시 실렸다)
+      const endDate = new Date();
+      const startDate = new Date(
+        endDate.getTime() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000,
+      );
+
+      // 관심사 하나 요약: 만들었으면 true, 요약할 뉴스가 없으면 null, 실패하면 오류를 던진다
+      const summarize = async (category: { id: number; name: string }) => {
+        const news = await this.crawlingRepository.getCrawledNewsBetween(
+          startDate,
+          endDate,
+          category.id,
+        );
+        if (news.length === 0) {
+          this.logger.warn(`카테고리 ${category.name}: 요약할 뉴스 없음`);
+          return null;
+        }
+        const newsletter = await this.aiSummaryService.summarizeText(
+          news,
+          category.id,
+          false,
+        );
+        if (newsletter.newsletter?.length > 0) {
+          generatedNewsletter.push(...newsletter.newsletter);
+        }
+        this.logger.log(
+          `카테고리 ${category.name}: 뉴스 ${news.length}건 요약`,
+        );
+        return true;
+      };
 
       // 카테고리 하나가 실패해도 나머지 카테고리는 계속 요약합니다.
+      let failed: { id: number; name: string }[] = [];
       for (const category of categoryList) {
         try {
-          const news = await this.crawlingRepository.getCrawledNews(
-            startDate,
-            endDate,
-            category.id,
-          );
-          if (news.news.length === 0) {
-            this.logger.warn(`카테고리 ${category.name}: 요약할 뉴스 없음`);
-            continue;
-          }
-          const newsletter = await this.aiSummaryService.summarizeText(
-            news.news,
-            category.id,
-            false,
-          );
-          if (newsletter.newsletter?.length > 0) {
-            generatedNewsletter.push(...newsletter.newsletter);
-          }
-          this.logger.log(
-            `카테고리 ${category.name}: 뉴스 ${news.news.length}건 요약`,
-          );
+          await summarize(category);
         } catch (error) {
-          failedCategories.push(category.name);
+          failed.push(category);
           this.logger.error(
             `카테고리 ${category.name} 요약 실패: ${error.message}`,
           );
         }
       }
+
+      // 실패한 관심사는 나머지를 다 만든 뒤 잠시 쉬었다가 다시 시도한다 (일시적인 시간 초과 · 과부하 대비)
+      let retried = 0;
+      for (let round = 1; round <= SUMMARY_RETRIES && failed.length; round++) {
+        await sleep(this.summaryRetryDelayMs);
+        this.logger.warn(
+          `요약 다시 시도 ${round}/${SUMMARY_RETRIES}: ${failed.map((c) => c.name).join(', ')}`,
+        );
+        const still: typeof failed = [];
+        for (const category of failed) {
+          try {
+            if (await summarize(category)) retried++;
+          } catch (error) {
+            still.push(category);
+            this.logger.error(
+              `카테고리 ${category.name} 다시 시도 실패: ${error.message}`,
+            );
+          }
+        }
+        failed = still;
+      }
+      const failedCategories = failed.map((c) => c.name);
       if (failedCategories.length) {
         this.logger.error(`요약 실패 카테고리: ${failedCategories.join(', ')}`);
       }
       const made = `뉴스레터 ${generatedNewsletter.length}편 생성`;
-      const failed = failedCategories.length
+      const again = retried ? ` · 다시 시도로 ${retried}편` : '';
+      const failedText = failedCategories.length
         ? ` · 실패: ${failedCategories.join(', ')}`
         : '';
       this.finishRun(
@@ -281,7 +334,7 @@ export class SchedulerService implements OnApplicationBootstrap {
           : generatedNewsletter.length > 0
             ? 'partial'
             : 'failed',
-        made + failed,
+        made + again + failedText,
       );
 
       // 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
