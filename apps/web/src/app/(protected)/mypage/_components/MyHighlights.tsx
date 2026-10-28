@@ -354,6 +354,23 @@ const StyledHighlights = styled.div`
 		span {
 			border-radius: 2px;
 			transition: background-color 0.4s;
+
+			/* 인용한 문장이라는 표시: 보라색 따옴표 */
+			&::before,
+			&::after {
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			&::before {
+				content: '“';
+				margin-right: 0.125rem;
+			}
+
+			&::after {
+				content: '”';
+				margin-left: 0.125rem;
+			}
 		}
 	}
 
