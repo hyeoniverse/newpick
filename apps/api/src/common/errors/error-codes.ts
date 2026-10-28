@@ -118,6 +118,10 @@ export const ERROR_CODES = {
     status: HttpStatus.NOT_FOUND,
     message: '북마크를 찾을 수 없습니다.',
   },
+  HIGHLIGHT_NOT_FOUND: {
+    status: HttpStatus.NOT_FOUND,
+    message: '스크랩을 찾을 수 없습니다.',
+  },
   BOOKMARK_ALREADY_EXISTS: {
     status: HttpStatus.CONFLICT,
     message: '이미 북마크한 뉴스레터입니다.',

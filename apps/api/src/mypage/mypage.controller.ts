@@ -3,6 +3,10 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
   Put,
   Query,
   Req,
@@ -18,11 +22,47 @@ import { MyPageService } from './mypage.service';
 import { InterestsDto } from 'src/common/dto/interests.dto';
 import { AppException } from '../common/errors/app.exception';
 import { MyMailQueryDto, MyMailsQueryDto } from './dto/my-mails-query.dto';
+import { HighlightsService } from './highlights.service';
+import {
+  CreateHighlightDto,
+  HighlightsQueryDto,
+  UpdateHighlightDto,
+} from './dto/highlight.dto';
 
 /** 로그인 필요 (전역 JwtAuthGuard). 구독 상태·기록은 /subscribers에서 조회합니다. */
 @Controller('mypage')
 export class MyPageController {
-  constructor(private readonly myPageService: MyPageService) {}
+  constructor(
+    private readonly myPageService: MyPageService,
+    private readonly highlightsService: HighlightsService,
+  ) {}
+
+  /** 내 스크랩 · 메모 (#123). newsletterId를 주면 그 뉴스레터 것만 */
+  @Get('highlights')
+  async getHighlights(@Req() req, @Query() q: HighlightsQueryDto) {
+    return this.highlightsService.list(this.userIdOf(req), q.newsletterId);
+  }
+
+  /** 문장 스크랩 (메모는 선택). 같은 문장이면 새로 만들지 않는다 */
+  @Post('highlights')
+  async createHighlight(@Req() req, @Body() body: CreateHighlightDto) {
+    return this.highlightsService.create(this.userIdOf(req), body);
+  }
+
+  /** 메모 고치기 (빈 글이면 메모 지우기) */
+  @Patch('highlights/:id')
+  async updateHighlight(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: UpdateHighlightDto,
+  ) {
+    return this.highlightsService.updateNote(this.userIdOf(req), id, body.note);
+  }
+
+  @Delete('highlights/:id')
+  async deleteHighlight(@Req() req, @Param('id', ParseIntPipe) id: number) {
+    return this.highlightsService.remove(this.userIdOf(req), id);
+  }
 
   /**
    * 사용자 프로필 조회

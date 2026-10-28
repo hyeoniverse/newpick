@@ -7,6 +7,7 @@ import Skeleton from '@/components/common/loader/Skeleton';
 // React.lazy를 활용한 동적 import
 const MySubscribe = lazy(() => import('@/app/(protected)/mypage/_components/MySubscribe'));
 const MyBookmark = lazy(() => import('@/app/(protected)/mypage/_components/MyBookmark'));
+const MyHighlights = lazy(() => import('@/app/(protected)/mypage/_components/MyHighlights'));
 const MySettings = lazy(() => import('@/app/(protected)/mypage/_components/MySettings'));
 
 function MyTabs() {
@@ -17,6 +18,7 @@ function MyTabs() {
 			<div className="tab-contents" role="tabpanel">
 				{activeTab === 'subscriptions' && <MySubscribe />}
 				{activeTab === 'bookmarks' && <MyBookmark />}
+				{activeTab === 'highlights' && <MyHighlights />}
 				{activeTab === 'settings' && <MySettings />}
 			</div>
 		</Suspense>

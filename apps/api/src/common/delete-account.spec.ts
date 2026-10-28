@@ -79,7 +79,7 @@ describe('회원 탈퇴 (#65)', () => {
   it('탈퇴 API는 지운 뒤 로그인 쿠키 3개를 지운다', async () => {
     const service = { deleteAccount: jest.fn().mockResolvedValue({}) };
     const res = { clearCookie: jest.fn() };
-    await new MyPageController(service as never).deleteAccount(
+    await new MyPageController(service as never, {} as never).deleteAccount(
       { user: { id: 7 } },
       res as never,
     );

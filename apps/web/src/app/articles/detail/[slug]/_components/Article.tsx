@@ -122,6 +122,7 @@ function Article({ initial }: Props) {
             <ArticleContent
               className="content"
               content={newsletterHTML}
+              newsId={newsletterContent.id}
               articleImage={newsletterContent.imageUrl ?? `${DEFAULT_IMAGES.MONO}`}
               related={relatedNews}
             />

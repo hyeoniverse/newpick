@@ -26,6 +26,11 @@ export const MYPAGE_NAVIGATION: INavigation[] = [
 	},
 	{
 		id: 2,
+		title: `스크랩`,
+		link: `highlights`,
+	},
+	{
+		id: 3,
 		title: `구독 설정`,
 		link: `settings`,
 	},

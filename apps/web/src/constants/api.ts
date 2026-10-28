@@ -37,7 +37,8 @@ export const API_ENDPOINTS = {
 		LIST: (kind: 'newsletters' | 'mails' | 'ai-logs' | 'job-runs' | 'articles', query: string) =>
 			`${API_URL}/scheduler/dashboard/${kind}?${query}`,
 		/** 통계 (#122): 구독자 · AI 비용 · 발송 (쿼리 from · to) */
-		STATS: (kind: 'subscribers' | 'cost' | 'delivery' | 'traffic' | 'page', query: string) => `${API_URL}/scheduler/stats/${kind}?${query}`,
+		STATS: (kind: 'subscribers' | 'cost' | 'delivery' | 'traffic' | 'page', query: string) =>
+			`${API_URL}/scheduler/stats/${kind}?${query}`,
 		/** 예약 작업 시간 (GET 보기 · PUT 바꾸기) */
 		SCHEDULE: () => `${API_URL}/scheduler/schedule`,
 		/** 그날 메일을 받은 사람 */
@@ -56,6 +57,10 @@ export const API_ENDPOINTS = {
 		MAIL: (sentAt: string) => `${API_URL}/mypage/mails/view?sentAt=${encodeURIComponent(sentAt)}`,
 		/** 회원 탈퇴 (#65) */
 		ACCOUNT: () => `${API_URL}/mypage/account`,
+		/** 스크랩 · 메모 (#123). newsletterId를 주면 그 뉴스레터 것만 */
+		HIGHLIGHTS: (newsletterId?: number) =>
+			`${API_URL}/mypage/highlights${newsletterId ? `?newsletterId=${newsletterId}` : ''}`,
+		HIGHLIGHT: (id: number) => `${API_URL}/mypage/highlights/${id}`,
 	},
 	SUBSCRIBERS: {
 		STATUS: () => `${API_URL}/subscribers/status`,
