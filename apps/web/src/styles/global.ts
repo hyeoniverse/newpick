@@ -75,7 +75,8 @@ export const GlobalStyle = createGlobalStyle`
         outline: none;
     }
 
-    /* 본문 바로가기: 평소엔 숨기고 Tab을 처음 누르면 왼쪽 위에 보인다 */
+    /* 본문 바로가기: 평소엔 숨기고 Tab을 처음 누르면 왼쪽 위에 보인다.
+       위로 밀어 두기만 하면 맥에서 맨 위를 더 끌어올릴 때(튕김) 드러나서, 투명하게 · 누를 수 없게도 둔다 */
     .skip-link {
         position: absolute;
         top: 0.5rem;
@@ -87,9 +88,13 @@ export const GlobalStyle = createGlobalStyle`
         color: #ffffff;
         font-weight: 600;
         transform: translateY(-200%);
+        opacity: 0;
+        pointer-events: none;
 
         &:focus-visible {
             transform: none;
+            opacity: 1;
+            pointer-events: auto;
         }
     }
 `;
