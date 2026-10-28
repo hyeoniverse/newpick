@@ -91,7 +91,7 @@ export default function MyHighlights() {
 			<MyTaste />
 			<div className="list-head">
 				<h3>
-					모은 문장 <span className="count">{data.length}</span>
+					스크랩한 문장 <span className="count">{data.length}</span>
 				</h3>
 				<FilterChips
 					label="보기"
@@ -229,7 +229,7 @@ const StyledHighlights = styled.div`
 	gap: 1.25rem;
 	padding: 2rem 0;
 
-	/* 목록 머리: '모은 문장 N' · 전체 / 메모만 */
+	/* 목록 머리: '스크랩한 문장 N' · 전체 / 메모만 */
 	.list-head {
 		display: flex;
 		flex-wrap: wrap;
