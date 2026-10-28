@@ -26,7 +26,7 @@ interface PageStats {
 const DEVICES = (['desktop', 'tablet', 'mobile'] as const).map((value) => ({ value, label: DEVICE_LABEL[value] }));
 
 /**
- * 한 페이지에서 머문 곳 (#131): 구역별 평균 머문 시간 · 도달률, 실제 페이지 위 히트맵(머문 곳 · 클릭).
+ * 한 페이지의 히트맵 (#131): 섹션별 체류 시간 · 도달률, 실제 페이지 위 어텐션 맵 · 클릭 맵.
  * 기기마다 화면 배치가 달라 기기를 하나씩 고른다
  */
 export default function PageStatsAdmin() {
@@ -45,7 +45,7 @@ export default function PageStatsAdmin() {
 
 	return (
 		<AdminSubPage
-			title={`머문 곳 · ${routeName(route)}`}
+			title={`히트맵 · ${routeName(route)}`}
 			back={{ text: '통계', href: '/admin/stats' }}
 			filters={
 				<FilterChips
@@ -68,11 +68,11 @@ export default function PageStatsAdmin() {
 					<>
 						<dl className="numbers">
 							<div>
-								<dt>평균 머문 시간</dt>
+								<dt>평균 체류 시간</dt>
 								<dd>{duration(data.avgMs)}</dd>
 							</div>
 							<div>
-								<dt>평균 스크롤</dt>
+								<dt>스크롤 깊이</dt>
 								<dd>{data.avgScroll}%</dd>
 							</div>
 							<div>
@@ -83,11 +83,11 @@ export default function PageStatsAdmin() {
 						{data.sections.length > 0 && (
 							<figure className="chart">
 								<figcaption>
-									구역별 평균 머문 시간
-									<small>화면에 절반 넘게 보인 시간 · 옆 %는 그 구역을 1초 넘게 본 보기 비율(도달률)</small>
+									섹션별 체류 시간
+									<small>섹션이 화면에 절반 넘게 보인 평균 시간 · 옆 %는 도달률(그 섹션을 1초 넘게 본 보기 비율)</small>
 								</figcaption>
 								<BarList
-									label="구역별 평균 머문 시간"
+									label="섹션별 체류 시간"
 									rows={data.sections.map((s) => ({
 										key: s.name,
 										label: sectionName(s.name),

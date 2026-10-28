@@ -161,11 +161,7 @@ export default function StatsAdmin() {
 										value={visits(t.totals.views)}
 										sub={`방문마다 ${t.totals.viewsPerSession}쪽`}
 									/>
-									<Stat
-										label="한 페이지 평균 머문 시간"
-										value={duration(t.totals.avgMs)}
-										sub="탭이 보이고 움직임이 있던 시간"
-									/>
+									<Stat label="평균 체류 시간" value={duration(t.totals.avgMs)} sub="탭이 보이고 움직임이 있던 시간" />
 								</dl>
 								<Chart title="날짜별 방문 · 페이지 보기">
 									<TrendChart
@@ -207,7 +203,7 @@ export default function StatsAdmin() {
 										<BarList label="기기별 방문" rows={rows(t.devices, (k) => DEVICE_LABEL[k] ?? k)} format={visits} />
 									</Chart>
 								</div>
-								<Chart title="페이지별" hint="머문 곳 보기에서 구역별 머문 시간과 히트맵을 봐요">
+								<Chart title="페이지별" hint="히트맵 보기에서 섹션별 체류 시간 · 어텐션 맵 · 클릭 맵을 봐요">
 									{t.pages.length ? (
 										<div className="table-wrap">
 											<table>
@@ -216,10 +212,10 @@ export default function StatsAdmin() {
 														<th scope="col">페이지</th>
 														<th scope="col">보기</th>
 														<th scope="col">방문</th>
-														<th scope="col">평균 머문 시간</th>
-														<th scope="col">평균 스크롤</th>
+														<th scope="col">평균 체류 시간</th>
+														<th scope="col">스크롤 깊이</th>
 														<th scope="col">
-															<span className="sr-only">머문 곳</span>
+															<span className="sr-only">히트맵</span>
 														</th>
 													</tr>
 												</thead>
@@ -238,7 +234,7 @@ export default function StatsAdmin() {
 																<Link
 																	href={`/admin/stats/page?route=${encodeURIComponent(p.route)}&from=${from}&to=${to}`}
 																>
-																	머문 곳 보기 →
+																	히트맵 보기 →
 																</Link>
 															</td>
 														</tr>
