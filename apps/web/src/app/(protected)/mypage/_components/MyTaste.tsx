@@ -6,54 +6,36 @@ import { useTaste } from '@/hooks/useHighlights';
 
 /** 보여 줄 주제 수 */
 const SHOWN = 10;
+/** 앞쪽 몇 개를 강조할지 */
+const HIGHLIGHTED = 3;
 
 /**
- * 마이페이지 '요즘 관심 있게 본 주제' (#123 2단계): 북마크 · 스크랩 · 메모로 모인 태그 점수.
- * 앞으로 맞춤 뉴스레터가 이 점수로 소식을 고른다. 태그를 누르면 그 태그의 뉴스레터 목록으로
+ * 마이페이지 '요즘 관심 있게 본 주제' (#123 2단계): 북마크 · 스크랩 · 메모로 모인 태그 점수를 태그 칩으로 짧게.
+ * 점수 순서대로, 앞 3개는 강조. 앞으로 맞춤 뉴스레터가 이 주제를 먼저 챙긴다. 칩을 누르면 그 태그의 뉴스레터 목록으로
+ * (점수 · 막대 · 출처 같은 계산 정보는 사용자 화면에 두지 않는다 — 관리자 통계에만)
  */
 export default function MyTaste() {
 	const { data } = useTaste();
 	if (!data || data.topics.length === 0) return null;
 
-	const top = data.topics.slice(0, SHOWN);
-	const max = top[0].score || 1;
-	const { signals } = data;
-
 	return (
 		<StyledTaste aria-labelledby="my-taste">
 			<div className="head">
 				<h3 id="my-taste">요즘 관심 있게 본 주제</h3>
-				<p>
-					북마크 {signals.bookmark} · 스크랩 {signals.scrap} · 메모 {signals.memo}개에서 모았어요. 앞으로 맞춤
-					뉴스레터가 이 주제를 먼저 챙겨요.
-				</p>
+				<p>앞으로 맞춤 뉴스레터가 이 주제를 먼저 챙겨요.</p>
 			</div>
 			<ol>
-				{top.map((t) => (
+				{data.topics.slice(0, SHOWN).map((t, i) => (
 					<li key={t.topic}>
-						<Link href={`/articles?keyword=${encodeURIComponent(t.topic)}`} className="topic">
+						<Link
+							href={`/articles?keyword=${encodeURIComponent(t.topic)}`}
+							className={i < HIGHLIGHTED ? 'chip top' : 'chip'}
+						>
 							#{t.topic}
 						</Link>
-						<span className="bar" aria-hidden>
-							<span style={{ width: `${Math.max(4, (t.score / max) * 100)}%` }} />
-						</span>
-						<span className="from">
-							{[t.memo && `메모 ${t.memo}`, t.scrap && `스크랩 ${t.scrap}`, t.bookmark && `북마크 ${t.bookmark}`]
-								.filter(Boolean)
-								.join(' · ')}
-						</span>
 					</li>
 				))}
 			</ol>
-			{data.categories.length > 0 && (
-				<p className="categories">
-					관심사:{' '}
-					{data.categories
-						.filter((c) => c.name)
-						.map((c) => `${c.name} ${Math.round((c.score / data.categories.reduce((s, x) => s + x.score, 0)) * 100)}%`)
-						.join(' · ')}
-				</p>
-			)}
 		</StyledTaste>
 	);
 }
@@ -61,19 +43,20 @@ export default function MyTaste() {
 const StyledTaste = styled.section`
 	display: flex;
 	flex-direction: column;
-	gap: 1rem;
-	padding: 1.25rem 1.5rem;
-	border: 1px solid ${({ theme }) => theme.color.border};
+	gap: 0.75rem;
+	padding: 1.125rem 1.25rem;
 	border-radius: ${({ theme }) => theme.radius.surface};
+	background: ${({ theme }) => theme.color.surface};
 
 	.head {
 		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.25rem 0.75rem;
 
 		h3 {
 			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.medium};
+			font-size: ${({ theme }) => theme.fontSize.small};
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
 		}
 
@@ -86,65 +69,44 @@ const StyledTaste = styled.section`
 	}
 
 	ol {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 0.625rem 2rem;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 
+		/* 모바일은 두어 줄만: 앞 6개 */
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: minmax(0, 1fr);
+			li:nth-child(n + 7) {
+				display: none;
+			}
 		}
 	}
 
-	li {
-		display: grid;
-		grid-template-columns: minmax(0, 9rem) 1fr;
-		grid-template-areas:
-			'topic bar'
-			'topic from';
+	/* 태그 칩: 앞 3개는 주 색 바탕, 나머지는 테두리만 */
+	.chip {
+		display: inline-flex;
 		align-items: center;
-		gap: 0.25rem 0.75rem;
-	}
-
-	.topic {
-		grid-area: topic;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		height: 2rem;
+		padding: 0 0.75rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.chip};
+		background: ${({ theme }) => theme.color.background};
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		color: ${({ theme }) => theme.color.text};
+		white-space: nowrap;
 
 		&:hover {
+			border-color: ${({ theme }) => theme.color.primary};
 			color: ${({ theme }) => theme.color.primary};
-			text-decoration: underline;
 		}
-	}
 
-	.bar {
-		grid-area: bar;
-		height: 0.5rem;
-
-		span {
-			display: block;
-			height: 100%;
-			border-radius: 0 4px 4px 0;
-			background: ${({ theme }) => theme.color.primary};
+		&.top {
+			border-color: transparent;
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		}
-	}
-
-	.from {
-		grid-area: from;
-		font-size: 0.75rem;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.categories {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
 	}
 `;
