@@ -18,6 +18,9 @@ export function usedArticles(news: CrawledNews[], sources: number[]) {
   return used.length ? used : news;
 }
 
+/** 최근 소재로 보는 기간 (이 안에 다룬 소식은 새 진전이 있을 때만 다시 쓴다) */
+export const RECENT_DAYS = 5;
+
 @Injectable()
 export class AiSummaryService {
   private readonly logger = new Logger(AiSummaryService.name);
@@ -30,6 +33,24 @@ export class AiSummaryService {
     private readonly tagsService: TagsService,
   ) {}
 
+  /** 최근 RECENT_DAYS일 이 분야 뉴스레터: 제목 · 부제 · 쓴 기사 링크 */
+  private async recentNewsletters(categoryId: number) {
+    const since = new Date(Date.now() - RECENT_DAYS * 24 * 60 * 60 * 1000);
+    const rows = await this.prisma.newsletter.findMany({
+      where: { categoryId, createdAt: { gte: since } },
+      orderBy: { createdAt: 'desc' },
+      select: { title: true, subtitle: true, usedNews: true, createdAt: true },
+    });
+    return rows.map((row) => ({
+      ...row,
+      date: row.createdAt.toLocaleDateString('ko-KR', {
+        timeZone: 'Asia/Seoul',
+        month: 'numeric',
+        day: 'numeric',
+      }),
+    }));
+  }
+
   async summarizeText(
     news: CrawledNews[],
     categoryId: number,
@@ -39,10 +60,17 @@ export class AiSummaryService {
     categoryId: number;
     newsletter: any;
   }> {
+    // 최근 이 분야 뉴스레터 (최근 소재와 겹치지 않게): 이미 쓴 기사는 빼고, 다룬 소식은 고르기 · 쓰기에 알려 준다
+    const recent = await this.recentNewsletters(categoryId);
+    const usedLinks = new Set(recent.flatMap((n) => n.usedNews.split(',')));
+    news = news.filter((item) => !usedLinks.has(item.link));
     if (news.length === 0) {
       this.logger.error('No news found');
       throw new Error('No news found');
     }
+    const recentTopics = recent.map(
+      (n) => `${n.date} ${n.title}${n.subtitle ? ` — ${n.subtitle}` : ''}`,
+    );
     const startTime = Date.now();
     try {
       // 분야를 알려 줘야 IT 뉴스레터가 증시 기사로 채워지지 않습니다 (#42)
@@ -56,12 +84,12 @@ export class AiSummaryService {
         newsletter: written,
         tokens,
         usage,
-      } = await this.newsletterWriterService.write(
-        news,
-        category,
+        selection,
+      } = await this.newsletterWriterService.write(news, category, {
         // 같은 주제면 이미 쓰는 태그를 다시 쓰게 (#20 태그 정돈)
-        await this.tagsService.recentTags(),
-      );
+        existingTags: await this.tagsService.recentTags(),
+        recentTopics,
+      });
       const { title, subtitle, summary, stories } = written;
       // 저장 전에 합치기 · 지우기 규칙과 기존 표기로 맞춘다 (띄어쓰기 · 대소문자만 다른 태그가 갈라지지 않게)
       const keywords = await this.tagsService.canonicalize(written.keywords);
@@ -91,7 +119,8 @@ export class AiSummaryService {
         data: {
           newsId: test ? 'test' : newslinks,
           processType: 'summarization',
-          result: `${title} | ${subtitle}\n${summary}`,
+          // 고르기 점수도 함께 남겨, 어떤 소식이 왜 빠졌는지 관리자 AI 기록에서 본다
+          result: `${title} | ${subtitle}\n${summary}${selection ? `\n\n[고르기]\n${selection}` : ''}`,
           duration: (Date.now() - startTime) / 1000,
           status: 'success',
           token: tokens,

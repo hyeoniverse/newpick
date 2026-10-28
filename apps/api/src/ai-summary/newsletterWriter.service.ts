@@ -107,16 +107,64 @@ export const LIMITS = {
   articlesPerStory: 2,
 } as const;
 
-const PICK_CRITERIA = [
-  '- 주요한 소식: 많은 사람의 생활·돈·안전에 영향을 주거나, 정책·시장·국제 정세를 바꾸거나, 여러 언론이 함께 다룬 사건.',
-  '- 빼는 소식: 시상식·행사·후보 발표, 기업 홍보, 연예·가십, 단순 인사·동정, 지역 단신.',
-  '- 개수를 채우려고 덜 중요한 소식을 넣지 않습니다.',
+/**
+ * 중요도 점수표. 예전엔 '여러 언론이 함께 다룬 사건'을 앞세워,
+ * 한 곳만 먼저 보도한 큰 소식(예: 앤트로픽 나스닥 상장 신청)이 국내 지수 기사에 밀렸다.
+ * 묶음마다 네 가지를 1~5점으로 매기고 합계로 고른다. 보도 수는 합계가 같을 때만 본다
+ */
+export const SCORE_AXES = {
+  impact: '파급',
+  novelty: '새로움',
+  relevance: '관심사',
+  followup: '후속',
+} as const;
+export type ScoreAxis = keyof typeof SCORE_AXES;
+
+export type ClusterScore = Record<ScoreAxis, number> & {
+  /** 묶음 번호 (1부터) */
+  n: number;
+  /** 빼는 소식(행사·홍보·연예 등)이면 점수와 상관없이 고르지 않는다 */
+  excluded: boolean;
+  /** 최근 뉴스레터에서 이미 다룬 사건이고 새 진전이 없음 → 고르지 않는다 (새 진전이 있으면 false, 후속으로 다룸) */
+  repeat: boolean;
+  /** 한 줄 이유 (AI 기록에 남긴다) */
+  reason: string;
+};
+
+/** 합계(4~20)가 이 아래면 '주요 소식'이 아니다. 단, 하나도 없으면 가장 높은 하나는 싣는다 */
+export const MIN_TOTAL = 13;
+
+const SCORING_RULES = [
+  '## 점수 (각 1~5점)',
+  '- 파급: 영향을 받는 사람·돈·시장의 크기. 5 = 나라 전체나 세계 시장·산업 판도(대형 IPO·M&A, 금리·환율 결정, 주요국 정책), 3 = 한 업종이나 지역, 1 = 한 기업·개인.',
+  '- 새로움: 오늘 처음 일어난 일인가. 5 = 결정·발표·사상 처음·최대·최저, 3 = 진행 중인 일의 새 국면, 1 = 예고·전망·반복 보도.',
+  '- 관심사: 이 분야 독자가 꼭 알아야 하는가. 5 = 분야의 핵심 주제(해외 기업·시장이라도 분야 핵심이면 5), 1 = 분야와 거의 무관.',
+  '- 후속: 앞으로 며칠~몇 달 다른 소식·시장·정책에 이어질 일인가. 5 = 큰 후속이 확실, 1 = 오늘로 끝.',
+  '',
+  '## 주의',
+  '- 보도 수(한 곳만 보도했는지)는 점수에 넣지 않습니다. 한 언론만 먼저 보도한 큰 소식도 크게 봅니다.',
+  '- 국내 소식이라고 더 높게, 해외 소식이라고 더 낮게 보지 않습니다. 영향의 크기로만 봅니다.',
+  '- 빼는 소식(excluded: true): 시상식·행사·후보 발표, 기업 홍보·제품 리뷰, 연예·가십, 단순 인사·동정, 지역 단신, 광고성 기사.',
+  '- reason은 점수의 근거를 40자 안의 한 줄로 씁니다.',
 ];
+
+/** 최근 이 분야 뉴스레터에서 다룬 소식 (겹치지 않게 고르는 기준) */
+const recentRules = (recentTopics: string[]) =>
+  recentTopics.length
+    ? [
+        '',
+        '## 최근 이 분야 뉴스레터에서 이미 다룬 소식',
+        ...recentTopics.map((t) => `- ${t}`),
+        '',
+        '- 위와 같은 사건이면 새 진전(결정·결과·수치 변화·새 국면)이 있을 때만 후속으로 다루고(repeat: false), 새 진전 없이 같은 내용이면 repeat: true로 답합니다.',
+        '- 위에 없는 새 사건은 repeat: false.',
+      ]
+    : ['', '- repeat는 모두 false로 답합니다.'];
 
 // ---------- 1단계: 고르기 (가벼운 모델, 제목과 첫 부분만) ----------
 
 export const SELECT_SYSTEM =
-  'You are a senior news editor. You pick only the truly major stories of the day. Reply in Korean.';
+  'You are a senior news editor. You score every story candidly on a fixed rubric so the truly major stories of the day can be picked. Reply in Korean.';
 
 /** 묶음마다 보도 수·언론사·제목·첫 부분만 보낸다 */
 export const describeClusters = (clusters: Cluster[]) =>
@@ -134,22 +182,123 @@ export const describeClusters = (clusters: Cluster[]) =>
     })
     .join('\n\n');
 
-export const selectPrompt = (clusters: Cluster[], category?: string) =>
+export const selectPrompt = (
+  clusters: Cluster[],
+  category?: string,
+  recentTopics: string[] = [],
+) =>
   [
-    `오늘 수집한 ${category ? `${category} 분야 ` : ''}소식 ${clusters.length}개입니다. 뉴스레터에 실을 정말 주요한 소식을 최대 ${LIMITS.stories}개, 중요한 순서로 골라 번호로 답해 주세요. 기준을 넘는 소식이 적으면 1~2개만 고릅니다.`,
+    `오늘 수집한 ${category ? `${category} 분야 ` : ''}소식 ${clusters.length}개입니다. 뉴스레터에는 이 가운데 정말 주요한 소식 최대 ${LIMITS.stories}개만 싣습니다. 고르는 건 점수 합계로 하므로, 모든 소식(1~${clusters.length}번)에 아래 점수표대로 점수를 매겨 주세요.`,
     '',
-    ...PICK_CRITERIA,
-    ...(category ? [`- ${category} 분야가 아닌 소식은 고르지 않습니다.`] : []),
+    ...SCORING_RULES,
+    ...(category
+      ? [`- ${category} 분야가 아닌 소식은 관심사 1점으로 매깁니다.`]
+      : []),
+    ...recentRules(recentTopics),
     '',
     describeClusters(clusters),
   ].join('\n');
 
 const SELECT_SCHEMA = {
   type: 'object',
-  properties: { picks: { type: 'array', items: { type: 'integer' } } },
-  required: ['picks'],
+  properties: {
+    scores: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          n: { type: 'integer' },
+          impact: { type: 'integer' },
+          novelty: { type: 'integer' },
+          relevance: { type: 'integer' },
+          followup: { type: 'integer' },
+          excluded: { type: 'boolean' },
+          repeat: { type: 'boolean' },
+          reason: { type: 'string' },
+        },
+        required: [
+          'n',
+          'impact',
+          'novelty',
+          'relevance',
+          'followup',
+          'excluded',
+          'repeat',
+          'reason',
+        ],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ['scores'],
   additionalProperties: false,
 };
+
+const clampScore = (v: unknown) =>
+  Math.min(5, Math.max(1, Math.round(Number(v)) || 1));
+
+export const totalScore = (s: ClusterScore) =>
+  (Object.keys(SCORE_AXES) as ScoreAxis[]).reduce(
+    (sum, axis) => sum + clampScore(s[axis]),
+    0,
+  );
+
+/**
+ * 점수 → 실을 묶음 번호 (중요한 순서). 빼는 소식 · 없는 번호 · 중복은 버리고,
+ * 합계 높은 순 → 같으면 보도 많은 순 → 앞 번호 순. MIN_TOTAL 아래는 싣지 않되, 다 모자라면 1등 하나만
+ */
+export function rankClusters(clusters: Cluster[], scores: ClusterScore[]) {
+  const seen = new Set<number>();
+  const ranked = scores
+    .filter((s) => {
+      const ok =
+        Number.isInteger(s.n) &&
+        s.n >= 1 &&
+        s.n <= clusters.length &&
+        !s.excluded &&
+        !s.repeat &&
+        !seen.has(s.n);
+      seen.add(s.n);
+      return ok;
+    })
+    .map((s) => ({ n: s.n, total: totalScore(s) }))
+    .sort(
+      (a, b) =>
+        b.total - a.total ||
+        clusters[b.n - 1].articles.length - clusters[a.n - 1].articles.length ||
+        a.n - b.n,
+    );
+  const major = ranked.filter((s) => s.total >= MIN_TOTAL);
+  return (major.length ? major : ranked.slice(0, 1))
+    .slice(0, LIMITS.stories)
+    .map((s) => s.n);
+}
+
+/** AI 기록에 남길 고르기 결과: 합계 높은 순 5개까지, 실은 소식엔 ✓ */
+export function describeScores(
+  clusters: Cluster[],
+  scores: ClusterScore[],
+  picks: number[],
+) {
+  return scores
+    .filter((s) => clusters[s.n - 1])
+    .map((s) => ({ s, total: s.excluded || s.repeat ? 0 : totalScore(s) }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5)
+    .map(({ s, total }) => {
+      const mark = picks.includes(s.n) ? '✓' : ' ';
+      const head = clusters[s.n - 1].articles[0].title;
+      const detail = s.excluded
+        ? '제외'
+        : s.repeat
+          ? '이미 다룸'
+          : `${total}점 (${(Object.keys(SCORE_AXES) as ScoreAxis[])
+              .map((axis) => `${SCORE_AXES[axis]} ${clampScore(s[axis])}`)
+              .join(' · ')})`;
+      return `${mark} ${head} — ${detail}. ${s.reason}`;
+    })
+    .join('\n');
+}
 
 // ---------- 2단계: 쓰기 (기본 모델, 고른 소식의 기사만) ----------
 
@@ -169,6 +318,7 @@ export const writerPrompt = (
   articles: PrepArticle[],
   category?: string,
   existingTags: string[] = [],
+  recentTopics: string[] = [],
 ) =>
   [
     `아래 ${category ? `${category} 분야 ` : ''}기사 ${articles.length}건은 오늘 뉴스레터에 실을 소식으로 이미 고른 것입니다. 이걸로 전문가용 뉴스 브리핑 한 편을 써 주세요. 같은 사건을 다룬 기사는 한 소식으로 합칩니다.`,
@@ -204,6 +354,11 @@ export const writerPrompt = (
     ...(existingTags.length
       ? [
           `- keywords는 같은 대상·주제면 이미 쓰고 있는 태그 표기를 그대로 다시 씁니다 (띄어쓰기·영문 표기까지 같게). 정말 새로운 대상일 때만 새 태그를 만듭니다. 이미 쓰는 태그: ${existingTags.join(', ')}`,
+        ]
+      : []),
+    ...(recentTopics.length
+      ? [
+          `- 최근 이 분야에서 다룬 소식: ${recentTopics.join(' / ')}. 이와 이어지는 소식이면 이전 내용을 되풀이하지 말고 새로 달라진 점을 중심으로 씁니다.`,
         ]
       : []),
     '- 숫자·이름·날짜는 기사에 있는 그대로 쓰고, 기사에 없는 내용은 더하지 않습니다.',
@@ -476,33 +631,39 @@ export class NewsletterWriterService {
   async write(
     articles: SourceArticle[],
     category?: string,
-    existingTags: string[] = [],
+    hints: { existingTags?: string[]; recentTopics?: string[] } = {},
   ) {
+    const { existingTags = [], recentTopics = [] } = hints;
     const clusters = clusterArticles(prepare(articles));
     const usage: Usage[] = [];
 
     let chosen = clusters.length === 1 ? clusters[0].articles : [];
+    // 고르기 점수 요약 (AI 기록에 남긴다). 묶음이 하나면 고르지 않아 비어 있다
+    let selection = '';
     if (!chosen.length) {
       const selected = await this.claude.generate({
         model: CLAUDE_FAST_MODEL,
         system: SELECT_SYSTEM,
-        prompt: selectPrompt(clusters, category),
+        prompt: selectPrompt(clusters, category, recentTopics),
         schema: SELECT_SCHEMA,
         effort: 'low',
-        maxTokens: 2048,
+        // 묶음마다 점수 한 줄씩 (30묶음이면 2천 토큰 남짓)
+        maxTokens: 6000,
       });
       usage.push(selected.usage);
-      chosen = pickArticles(
-        clusters,
-        (JSON.parse(selected.text) as { picks: number[] }).picks,
-      );
+      const { scores } = JSON.parse(selected.text) as {
+        scores: ClusterScore[];
+      };
+      const picks = rankClusters(clusters, scores);
+      selection = describeScores(clusters, scores, picks);
+      chosen = pickArticles(clusters, picks);
       if (!chosen.length) throw new Error('고른 소식이 없음');
     }
 
     // 뉴스레터 본문이 되는 호출이라 effort를 높입니다.
     const written = await this.claude.generate({
       system: WRITER_SYSTEM,
-      prompt: writerPrompt(chosen, category, existingTags),
+      prompt: writerPrompt(chosen, category, existingTags, recentTopics),
       schema: WRITER_SCHEMA,
       effort: 'medium',
       maxTokens: 12000,
@@ -514,6 +675,6 @@ export class NewsletterWriterService {
       (n) => (chosen[n - 1] ? chosen[n - 1].index + 1 : undefined),
     );
     const tokens = usage.reduce((sum, u) => sum + u.input + u.output, 0);
-    return { newsletter, tokens, usage };
+    return { newsletter, tokens, usage, selection };
   }
 }

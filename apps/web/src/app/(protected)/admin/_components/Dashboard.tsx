@@ -6,7 +6,7 @@ import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from './format';
 import styled from 'styled-components';
 import { LuArrowRight, LuChevronDown, LuClock, LuPlay, LuTriangleAlert } from 'react-icons/lu';
-import ScheduleEditor, { describe, type Schedule } from './ScheduleEditor';
+import ScheduleEditor, { clock, describe, type Schedule } from './ScheduleEditor';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useToast } from '@/hooks/useToast';
@@ -90,10 +90,10 @@ const STATUS_LABEL: Record<Exclude<RunStatus, null>, string> = {
 	skipped: '건너뜀',
 };
 
-/** 작업마다 언제 도는지: '매일 08:00' · '매주 월요일 08:40' */
+/** 작업마다 언제 도는지: '08:00부터 3시간마다' · '매일 08:30' · '매주 월요일 08:40' */
 const scheduleText = (job: JobKey, schedule: Schedule) =>
 	job === 'crawling'
-		? describe(schedule.crawl)
+		? `${clock(schedule.crawl)}부터 3시간마다`
 		: job === 'summary'
 			? describe(schedule.summary)
 			: describe(schedule.mail, schedule.mail.day);

@@ -42,21 +42,25 @@ export class ClaudeService {
     tokens: number;
     usage: { model: string; input: number; output: number };
   }> {
-    const response = await this.client.beta.messages.create({
-      model,
-      max_tokens: maxTokens,
-      // 안전 분류기가 요청을 거절하면 서버가 권장 모델로 다시 실행합니다.
-      ...(supportsFallback(model) && {
-        betas: ['server-side-fallback-2026-07-01'],
-        fallbacks: 'default' as const,
-      }),
-      output_config: {
-        effort,
-        ...(schema && { format: { type: 'json_schema', schema } }),
-      },
-      system,
-      messages: [{ role: 'user', content: prompt }],
-    });
+    // 스트리밍으로 받는다: 긴 응답(뉴스레터 한 편 1만 토큰 안팎)을 한 번에 기다리면 SDK 대기 시간(10분)을 넘겨
+    // 'Request timed out'으로 실패했다 (재시도까지 30분). 스트리밍은 조각이 계속 와서 끊기지 않고, 끝나면 finalMessage로 한 번에 받는다
+    const response = await this.client.beta.messages
+      .stream({
+        model,
+        max_tokens: maxTokens,
+        // 안전 분류기가 요청을 거절하면 서버가 권장 모델로 다시 실행합니다.
+        ...(supportsFallback(model) && {
+          betas: ['server-side-fallback-2026-07-01'],
+          fallbacks: 'default' as const,
+        }),
+        output_config: {
+          effort,
+          ...(schema && { format: { type: 'json_schema', schema } }),
+        },
+        system,
+        messages: [{ role: 'user', content: prompt }],
+      })
+      .finalMessage();
 
     if (response.stop_reason === 'refusal') {
       throw new Error(

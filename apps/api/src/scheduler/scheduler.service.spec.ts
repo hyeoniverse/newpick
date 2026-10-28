@@ -1,5 +1,9 @@
 import { Logger } from '@nestjs/common';
-import { SchedulerService } from './scheduler.service';
+import {
+  SchedulerService,
+  SUMMARY_WINDOW_HOURS,
+  crawlCron,
+} from './scheduler.service';
 import { setTimeofCycle } from 'src/common/helpers';
 
 function setup(failingCategoryId: number, edition: unknown = null) {
@@ -9,9 +13,9 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     { id: 3, name: '경제' },
   ];
   const crawlingRepository = {
-    getCrawledNews: jest.fn(async (_s, _e, categoryId: number) => {
+    getCrawledNewsBetween: jest.fn(async (_s, _e, categoryId: number) => {
       if (categoryId === failingCategoryId) throw new Error('Mongo timeout');
-      return { news: [{ title: `뉴스${categoryId}` }] };
+      return [{ title: `뉴스${categoryId}` }];
     }),
   };
   const aiSummaryService = {
@@ -64,6 +68,9 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     editionService as never,
     siteCache as never,
   );
+  // 요약 다시 시도 사이 쉬는 시간은 테스트에서 없앤다
+  (service as unknown as { summaryRetryDelayMs: number }).summaryRetryDelayMs =
+    0;
   return {
     service,
     crawlingRepository,
@@ -87,12 +94,36 @@ describe('SchedulerService.makeAiSummary', () => {
     expect(summarized).toEqual([1, 3]);
   });
 
-  it('KST 날짜(YYYY-MM-DD)로 지난 7일을 조회한다', async () => {
+  it('실패한 관심사는 나머지를 만든 뒤 다시 시도한다 (일시적인 시간 초과)', async () => {
+    const { service, aiSummaryService, prisma } = setup(0);
+    aiSummaryService.summarizeText.mockRejectedValueOnce(
+      new Error('Request timed out.'),
+    );
+    await service.makeAiSummary();
+    // 3개 관심사 + 실패한 1개 다시 = 4번
+    expect(aiSummaryService.summarizeText).toHaveBeenCalledTimes(4);
+    const finished = prisma.jobRun.update.mock.calls.at(-1)[0].data;
+    expect(finished.status).toBe('success');
+    expect(finished.message).toContain('다시 시도로 1편');
+  });
+
+  it('그날의 뉴스만: 요약 시각 전 24시간 안에 모은 기사로 (예전 지난 7일 전부가 아니라)', async () => {
     const { service, crawlingRepository } = setup(0);
     await service.makeAiSummary();
-    const [start, end] = crawlingRepository.getCrawledNews.mock.calls[0];
-    expect(start).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    expect(end).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const [start, end] = crawlingRepository.getCrawledNewsBetween.mock.calls[0];
+    expect(end.getTime() - start.getTime()).toBe(
+      SUMMARY_WINDOW_HOURS * 60 * 60 * 1000,
+    );
+    expect(Date.now() - end.getTime()).toBeLessThan(5000);
+  });
+
+  it('수집은 수집 시각부터 3시간마다 하루 8번', () => {
+    expect(crawlCron({ hour: 8, minute: 0 })).toBe(
+      '0 0 2,5,8,11,14,17,20,23 * * *',
+    );
+    expect(crawlCron({ hour: 0, minute: 30 })).toBe(
+      '0 30 0,3,6,9,12,15,18,21 * * *',
+    );
   });
 });
 
