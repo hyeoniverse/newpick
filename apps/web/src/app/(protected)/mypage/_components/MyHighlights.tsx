@@ -73,13 +73,15 @@ const FILTERS: Record<string, (h: Highlight) => boolean> = {
  * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
  * 묶지 않고 최근에 스크랩한 것부터 한 줄 목록, 문장마다 위에 출처(관심사 · 뉴스레터 · 소식) 한 줄.
  * 폴더로 정리하고(폴더 줄로 거르기), 문장 아래 원문에서 보기(?hl=번호) · 메모 · 폴더 옮기기 · 지우기, 문장 줄 끝에 중요 표시(별).
- * '선택'으로 골라서 한꺼번에 폴더로 옮기기 · 중요 표시 · 중요 빼기 · 복사 · 지우기.
+ * '선택'으로 골라서 한꺼번에 폴더로 옮기기 · 중요 표시 · 중요 해제 · 복사 · 지우기.
  * 중요 표시한 문장은 지우기 전에 한 번 더 묻는다
  */
 export default function MyHighlights() {
 	const { data, isPending, isError, error, refetch } = useHighlights();
 	const [filter, setFilter] = useState('');
 	const [folder, setFolder] = useState<FolderFilter>('all');
+	// 끌어서 폴더에 넣기 (데스크톱): 끄는 중인 스크랩 번호들
+	const [dragging, setDragging] = useState<number[] | null>(null);
 	const { data: folders = [] } = useHighlightFolders();
 	const { bulk } = useHighlightMutations();
 	const { showToast } = useToast();
@@ -156,6 +158,12 @@ export default function MyHighlights() {
 				}}
 				total={data.length}
 				unfiled={data.filter((h) => h.folderId === null).length}
+				dragging={dragging?.length ?? 0}
+				onDropTo={(folderId) => {
+					if (!dragging) return;
+					bulk.mutate({ ids: dragging, action: 'move', folderId }, { onSuccess: () => selecting && stopSelecting() });
+					setDragging(null);
+				}}
 			/>
 			<div className="list-head">
 				<h3>
@@ -207,6 +215,11 @@ export default function MyHighlights() {
 								checked={selected.has(highlight.id)}
 								onToggle={() => toggle(highlight.id)}
 								onRemove={() => confirmRemove([highlight])}
+								// 고르는 중에 고른 것 하나를 끌면 고른 것 전부, 아니면 이것 하나
+								onDragStart={() =>
+									setDragging(selecting && selected.has(highlight.id) ? [...selected] : [highlight.id])
+								}
+								onDragEnd={() => setDragging(null)}
 							/>
 						</li>
 					))}
@@ -255,7 +268,7 @@ export default function MyHighlights() {
 							disabled={selected.size === 0}
 							onClick={() => bulk.mutate({ ids: [...selected], action: 'unstar' }, { onSuccess: stopSelecting })}
 						>
-							중요 빼기
+							중요 해제
 						</button>
 						<button type="button" disabled={selected.size === 0} onClick={copy}>
 							복사
@@ -285,6 +298,8 @@ function HighlightItem({
 	checked,
 	onToggle,
 	onRemove,
+	onDragStart,
+	onDragEnd,
 }: {
 	highlight: Highlight;
 	focused: boolean;
@@ -292,6 +307,8 @@ function HighlightItem({
 	checked: boolean;
 	onToggle: () => void;
 	onRemove: () => void;
+	onDragStart: () => void;
+	onDragEnd: () => void;
 }) {
 	const { update, bulk } = useHighlightMutations();
 	const [editing, setEditing] = useState(false);
@@ -304,6 +321,14 @@ function HighlightItem({
 			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
 			// 고르는 중에는 문장 어디를 눌러도 고르기
 			onClick={selecting ? onToggle : undefined}
+			// 끌어서 폴더에 넣기 (데스크톱 마우스. 메모를 고치는 중엔 끌지 않음)
+			draggable={!editing}
+			onDragStart={(event) => {
+				event.dataTransfer.effectAllowed = 'move';
+				event.dataTransfer.setData('text/plain', highlight.text);
+				onDragStart();
+			}}
+			onDragEnd={onDragEnd}
 		>
 			{selecting ? (
 				// 상자를 누른 것이 문장 누르기(고르기)로 한 번 더 번지지 않게
@@ -331,8 +356,8 @@ function HighlightItem({
 					type="button"
 					className={`star-toggle ${highlight.starred ? 'on' : ''}`}
 					aria-pressed={highlight.starred}
-					aria-label={highlight.starred ? '중요 표시 빼기' : '중요 표시'}
-					title={highlight.starred ? '중요 표시 빼기' : '중요 표시'}
+					aria-label={highlight.starred ? '중요 해제' : '중요 표시'}
+					title={highlight.starred ? '중요 해제' : '중요 표시'}
 					onClick={() => update.mutate({ id: highlight.id, starred: !highlight.starred })}
 				>
 					<LuStar aria-hidden />
@@ -638,7 +663,7 @@ const StyledHighlights = styled.div`
 			color: ${({ theme }) => theme.color.subText};
 		}
 
-		/* 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 빼기 · 복사 · 취소 · 지우기 */
+		/* 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 해제 · 복사 · 취소 · 지우기 */
 		.bulk {
 			display: flex;
 			gap: 0.375rem;

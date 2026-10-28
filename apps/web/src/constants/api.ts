@@ -61,7 +61,7 @@ export const API_ENDPOINTS = {
 		HIGHLIGHTS: (newsletterId?: number) =>
 			`${API_URL}/mypage/highlights${newsletterId ? `?newsletterId=${newsletterId}` : ''}`,
 		HIGHLIGHT: (id: number) => `${API_URL}/mypage/highlights/${id}`,
-		/** 선택한 스크랩 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 빼기 (POST { ids, action, folderId? }) */
+		/** 선택한 스크랩 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 해제 (POST { ids, action, folderId? }) */
 		HIGHLIGHTS_BULK: () => `${API_URL}/mypage/highlights/bulk`,
 		/** 스크랩 폴더 (GET 목록 · POST 만들기) */
 		HIGHLIGHT_FOLDERS: () => `${API_URL}/mypage/highlight-folders`,

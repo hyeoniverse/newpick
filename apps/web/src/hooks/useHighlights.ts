@@ -69,7 +69,7 @@ export function useHighlightMutations() {
 			apiFetch<Highlight>(API_ENDPOINTS.MY.HIGHLIGHT(id), { method: 'PATCH', body }),
 		onSuccess: (_, body) => {
 			refresh();
-			if (body.starred !== undefined) showToast(body.starred ? '중요 표시했어요.' : '중요 표시를 뺐어요.', 'success');
+			if (body.starred !== undefined) showToast(body.starred ? '중요 표시했어요.' : '중요 표시를 해제했어요.', 'success');
 			else showToast('메모를 고쳤어요.', 'success');
 		},
 		onError: fail,
@@ -91,7 +91,7 @@ export function useHighlightMutations() {
 		},
 		onError: fail,
 	});
-	// 선택한 스크랩 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 빼기
+	// 선택한 스크랩 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 해제
 	const bulk = useMutation({
 		mutationFn: (body: { ids: number[]; action: 'move' | 'star' | 'unstar'; folderId?: number | null }) =>
 			apiFetch<{ count: number }>(API_ENDPOINTS.MY.HIGHLIGHTS_BULK(), { method: 'POST', body }),
@@ -102,7 +102,7 @@ export function useHighlightMutations() {
 					? `${count}개를 옮겼어요.`
 					: body.action === 'star'
 						? `${count}개를 중요 표시했어요.`
-						: `${count}개의 중요 표시를 뺐어요.`,
+						: `${count}개의 중요 표시를 해제했어요.`,
 				'success',
 			);
 		},

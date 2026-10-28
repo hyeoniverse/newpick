@@ -338,7 +338,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 										setPopover(null);
 									}}
 								>
-									{popover.highlight.starred ? '★ 중요 표시 빼기' : '☆ 중요 표시'}
+									{popover.highlight.starred ? '★ 중요 해제' : '☆ 중요 표시'}
 								</button>
 							</div>
 							<textarea

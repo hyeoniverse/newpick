@@ -17,19 +17,40 @@ interface Props {
 	/** 모든 스크랩 수 · 폴더 없는 스크랩 수 */
 	total: number;
 	unfiled: number;
+	/** 끄는 중인 스크랩 수 (0이면 끄는 중 아님) */
+	dragging?: number;
+	/** 끈 스크랩을 놓은 폴더 (null = 폴더 없음) */
+	onDropTo?: (folderId: number | null) => void;
 }
 
 /**
  * 스크랩 폴더 줄 (#123): 모든 스크랩 · 폴더 없음 · 내 폴더들 · 새 폴더.
  * 폴더를 고르면 옆에 이름 바꾸기 · 지우기 (지우면 안의 스크랩은 폴더 없음으로)
  */
-export default function FolderBar({ folders, value, onChange, total, unfiled }: Props) {
+export default function FolderBar({ folders, value, onChange, total, unfiled, dragging = 0, onDropTo }: Props) {
 	const { create, rename, remove } = useHighlightFolderMutations();
 	const { openModal, closeModal } = useModal();
 	const [adding, setAdding] = useState(false);
 	const [renaming, setRenaming] = useState(false);
 	const [name, setName] = useState('');
 	const current = typeof value === 'number' ? folders.find((f) => f.id === value) : undefined;
+	// 끄는 중 마우스가 올라간 폴더 (강조)
+	const [over, setOver] = useState<FolderFilter | null>(null);
+	/** 끌어 놓을 수 있는 칸 ('모든 스크랩'은 빼고) */
+	const dropProps = (key: Exclude<FolderFilter, 'all'>) => ({
+		onDragOver: (event: React.DragEvent) => {
+			if (!dragging) return;
+			event.preventDefault();
+			event.dataTransfer.dropEffect = 'move';
+			setOver(key);
+		},
+		onDragLeave: () => setOver((prev) => (prev === key ? null : prev)),
+		onDrop: (event: React.DragEvent) => {
+			event.preventDefault();
+			setOver(null);
+			onDropTo?.(key === 'none' ? null : key);
+		},
+	});
 
 	const confirmRemove = (folder: HighlightFolder) =>
 		openModal(
@@ -51,8 +72,9 @@ export default function FolderBar({ folders, value, onChange, total, unfiled }: 
 		<button
 			key={String(key)}
 			type="button"
-			className="chip"
+			className={`chip ${dragging && key !== 'all' ? 'droppable' : ''} ${over === key ? 'over' : ''}`}
 			aria-pressed={value === key}
+			{...(key !== 'all' && dropProps(key))}
 			onClick={() => {
 				setRenaming(false);
 				onChange(key);
@@ -65,6 +87,23 @@ export default function FolderBar({ folders, value, onChange, total, unfiled }: 
 
 	return (
 		<StyledFolderBar role="group" aria-label="스크랩 폴더">
+			{/* 끄는 중: 화면 위에 폴더 칸을 띄워 멀리 끌고 올라가지 않아도 놓을 수 있게 */}
+			{dragging > 0 && (
+				<div className="drop-dock" aria-hidden>
+					<p>{dragging > 1 ? `${dragging}개를` : '이 문장을'} 놓을 폴더</p>
+					<div className="targets">
+						<div className={`target ${over === 'none' ? 'over' : ''}`} {...dropProps('none')}>
+							폴더 없음
+						</div>
+						{folders.map((f) => (
+							<div key={f.id} className={`target ${over === f.id ? 'over' : ''}`} {...dropProps(f.id)}>
+								<LuFolder /> {f.name}
+							</div>
+						))}
+						{folders.length === 0 && <span className="hint">먼저 &lsquo;새 폴더&rsquo;로 폴더를 만들어 주세요</span>}
+					</div>
+				</div>
+			)}
 			<div className="chips">
 				{chip('all', '모든 스크랩', total)}
 				{chip('none', '폴더 없음', unfiled)}
@@ -226,6 +265,87 @@ const StyledFolderBar = styled.div`
 			svg {
 				color: ${({ theme }) => theme.color.primary};
 			}
+		}
+	}
+
+	/* 끄는 중: 놓을 수 있는 칩 · 마우스가 올라간 칩 */
+	.chip.droppable {
+		border-style: dashed;
+		border-color: ${({ theme }) => theme.color.primary};
+	}
+
+	.chip.over {
+		border-style: solid;
+		background: ${({ theme }) => theme.color.primary};
+		color: ${({ theme }) => theme.color.white};
+
+		svg,
+		.count {
+			color: ${({ theme }) => theme.color.white};
+		}
+	}
+
+	/* 끄는 중 화면 위에 뜨는 폴더 칸 */
+	.drop-dock {
+		position: fixed;
+		top: 5rem;
+		left: 50%;
+		z-index: 900;
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		width: min(40rem, calc(100vw - 2rem));
+		padding: 0.875rem 1rem;
+		border: 1px solid ${({ theme }) => theme.color.primary};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.background};
+		transform: translateX(-50%);
+
+		p {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		.targets {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 0.5rem;
+		}
+
+		.target {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.375rem;
+			min-height: 2.75rem;
+			padding: 0 1rem;
+			border: 1px dashed ${({ theme }) => theme.color.primary};
+			border-radius: ${({ theme }) => theme.radius.control};
+			font-size: ${({ theme }) => theme.fontSize.small};
+			color: ${({ theme }) => theme.color.text};
+
+			svg {
+				width: 1rem;
+				height: 1rem;
+				color: ${({ theme }) => theme.color.primary};
+				pointer-events: none;
+			}
+
+			&.over {
+				border-style: solid;
+				background: ${({ theme }) => theme.color.primary};
+				color: ${({ theme }) => theme.color.white};
+
+				svg {
+					color: ${({ theme }) => theme.color.white};
+				}
+			}
+		}
+
+		.hint {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 
