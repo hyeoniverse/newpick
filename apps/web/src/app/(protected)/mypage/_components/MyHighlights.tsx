@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
-import { LuHighlighter } from 'react-icons/lu';
+import { LuHighlighter, LuStar } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
@@ -261,12 +261,20 @@ function HighlightItem({
 			)}
 			<p className="quote">
 				<span>{highlight.text}</span>
-				{highlight.starred && (
-					<span className="star" role="img" aria-label="별표">
-						★
-					</span>
-				)}
 			</p>
+			{/* 별표(중요): 문장 줄 오른쪽 끝 아이콘 버튼 (켜면 노란 별) */}
+			{!selecting && (
+				<button
+					type="button"
+					className={`star-toggle ${highlight.starred ? 'on' : ''}`}
+					aria-pressed={highlight.starred}
+					aria-label={highlight.starred ? '별표 빼기' : '별표하기'}
+					title={highlight.starred ? '별표 빼기' : '별표하기'}
+					onClick={() => update.mutate({ id: highlight.id, starred: !highlight.starred })}
+				>
+					<LuStar aria-hidden />
+				</button>
+			)}
 			<div className="tools" hidden={selecting}>
 				<Link href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}>원문에서 보기</Link>
 				{!editing && (
@@ -274,9 +282,6 @@ function HighlightItem({
 						{highlight.note ? '메모 고치기' : '메모 남기기'}
 					</button>
 				)}
-				<button type="button" onClick={() => update.mutate({ id: highlight.id, starred: !highlight.starred })}>
-					{highlight.starred ? '별표 빼기' : '별표'}
-				</button>
 				<button type="button" className="danger" onClick={onRemove}>
 					지우기
 				</button>
@@ -479,11 +484,11 @@ const StyledHighlights = styled.div`
 
 	.item {
 		display: grid;
-		grid-template-columns: 1.5rem minmax(0, 1fr);
+		grid-template-columns: 1.5rem minmax(0, 1fr) auto;
 		grid-template-areas:
-			'mark quote'
-			'note note'
-			'tools tools';
+			'mark quote star'
+			'note note note'
+			'tools tools tools';
 		gap: 0.375rem 0.25rem;
 		scroll-margin-top: 6rem;
 
@@ -519,11 +524,37 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.primary};
 	}
 
-	/* 별표(중요): 문장 끝 노란 별 */
-	.star {
-		margin-left: 0.375rem;
-		color: ${({ theme }) => theme.color.warning};
-		font-size: 0.9em;
+	/* 별표 버튼: 꺼지면 회색 빈 별, 켜지면 노란 꽉 찬 별 */
+	.star-toggle {
+		grid-area: star;
+		align-self: start;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		margin: -0.25rem -0.375rem 0 0;
+		border-radius: ${({ theme }) => theme.radius.control};
+		color: ${({ theme }) => theme.color.disabled};
+		cursor: pointer;
+
+		svg {
+			width: 1.125rem;
+			height: 1.125rem;
+		}
+
+		&:hover {
+			background: ${({ theme }) => theme.color.surface};
+			color: ${({ theme }) => theme.color.warning};
+		}
+
+		&.on {
+			color: ${({ theme }) => theme.color.warning};
+
+			svg {
+				fill: currentColor;
+			}
+		}
 	}
 
 	/* 여러 개 지우기 막대: 목록 아래에 붙어 따라온다 */
