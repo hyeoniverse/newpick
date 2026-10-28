@@ -36,6 +36,8 @@ export const API_ENDPOINTS = {
 		/** 상세 목록 (기간 · 쪽 등 쿼리스트링을 붙여 부른다) */
 		LIST: (kind: 'newsletters' | 'mails' | 'ai-logs' | 'job-runs' | 'articles', query: string) =>
 			`${API_URL}/scheduler/dashboard/${kind}?${query}`,
+		/** 통계 (#122): 구독자 · AI 비용 · 발송 (쿼리 from · to) */
+		STATS: (kind: 'subscribers' | 'cost' | 'delivery', query: string) => `${API_URL}/scheduler/stats/${kind}?${query}`,
 		/** 예약 작업 시간 (GET 보기 · PUT 바꾸기) */
 		SCHEDULE: () => `${API_URL}/scheduler/schedule`,
 		/** 그날 메일을 받은 사람 */

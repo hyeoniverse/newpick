@@ -133,6 +133,9 @@ model AiProcessLog {
   outputTokens Int      @default(0)
   /// 이 처리에 든 Claude 비용 (USD). 모르는 모델이거나 이전 기록이면 null
   costUsd      Float?
+  /// 호출별 사용량 (#122): [{ stage, model, input, output, costUsd }]. stage는 select(고르기) · write(쓰기) · category · edition.
+  /// 이전 기록은 null (합계만 있음)
+  calls        Json?
 
   @@map("ai_process_logs")
 }
@@ -214,4 +217,23 @@ model TagRule {
   createdAt DateTime @default(now())
 
   @@map("tag_rules")
+}
+
+/// 구독 기록 (#122 통계). subscribers는 회원당 한 줄이라 다시 구독하면 덮어써서, 언제 들어오고 나갔는지는 여기에 쌓는다.
+/// 회원을 지워도 통계가 바뀌지 않게 users와 묶지 않는다(userId만)
+model SubscriptionEvent {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  /// subscribe · pause · resume · cancel
+  type       String   @db.VarChar(10)
+  /// 그때의 관심사 id 목록
+  interests  Json?
+  at         DateTime @default(now())
+  /// 마이그레이션에서 지금 구독 상태로 채운 줄 (기록 시작 전 추정)
+  backfilled Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([at])
+  @@index([userId])
+  @@map("subscription_events")
 }

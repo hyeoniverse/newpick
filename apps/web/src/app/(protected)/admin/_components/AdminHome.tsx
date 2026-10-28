@@ -88,11 +88,13 @@ export default function AdminHome() {
 							콘텐츠 · 회원 관리
 						</Title>
 						<Text size="small" color="subText">
-							발행한 뉴스레터를 고치거나 지우고, 사용자 권한 · 구독자 · 관심사 현황을 보고, 갈라진 태그를 합칩니다.
+							구독자 · AI 비용 · 발송 추이를 보고, 발행한 뉴스레터를 고치거나 지우고, 사용자 권한 · 구독자 · 관심사
+							현황을 보고, 갈라진 태그를 합칩니다.
 						</Text>
 					</div>
 					<nav className="manage" aria-label="콘텐츠 · 회원 관리">
 						{[
+							['/admin/stats', '통계'],
 							['/admin/newsletters', '뉴스레터'],
 							['/admin/users', '사용자'],
 							['/admin/subscribers', '구독자'],

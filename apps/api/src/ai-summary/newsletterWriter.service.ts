@@ -83,7 +83,12 @@ export type SourceArticle = {
   source?: string;
 };
 
-export type Usage = { model: string; input: number; output: number };
+export type Usage = {
+  model: string;
+  input: number;
+  output: number;
+  stage?: string;
+};
 
 export const LIMITS = {
   title: 30,
@@ -650,7 +655,7 @@ export class NewsletterWriterService {
         // 묶음마다 점수 한 줄씩 (30묶음이면 2천 토큰 남짓)
         maxTokens: 6000,
       });
-      usage.push(selected.usage);
+      usage.push({ ...selected.usage, stage: 'select' });
       const { scores } = JSON.parse(selected.text) as {
         scores: ClusterScore[];
       };
@@ -668,7 +673,7 @@ export class NewsletterWriterService {
       effort: 'medium',
       maxTokens: 12000,
     });
-    usage.push(written.usage);
+    usage.push({ ...written.usage, stage: 'write' });
 
     const newsletter = normalize(
       JSON.parse(written.text) as WrittenNewsletter,

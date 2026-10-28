@@ -108,7 +108,7 @@ export class EditionService {
           status: 'success',
           token: response.tokens,
           error: null,
-          ...usageLog([response.usage]),
+          ...usageLog([response.usage], 'edition'),
         },
       })
       .catch((error) => this.logger.warn(`편집 기록 실패: ${error.message}`));

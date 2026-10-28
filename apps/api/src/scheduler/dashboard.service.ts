@@ -43,6 +43,21 @@ function sortBy(
   ];
 }
 
+/** KST 날짜 [from, to] → 시각 범위. 거꾸로거나 너무 길면(92일 넘게) 거절. 통계(#122)와 같이 쓴다 */
+export function kstRange(from: string, to: string) {
+  const { start, end } = kstDayRange(from, to);
+  if (start > end) {
+    throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦어요.');
+  }
+  if ((end.getTime() - start.getTime()) / DAY_MS > MAX_RANGE_DAYS) {
+    throw new AppException(
+      'BAD_REQUEST',
+      `기간은 ${MAX_RANGE_DAYS}일까지 고를 수 있어요.`,
+    );
+  }
+  return { start, end, inRange: { gte: start, lte: end } };
+}
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -57,17 +72,7 @@ export class DashboardService {
    */
   /** KST 날짜 [from, to] → 시각 범위. 거꾸로거나 너무 길면 거절 */
   private range(from = kstDaysAgo(0), to = from) {
-    const { start, end } = kstDayRange(from, to);
-    if (start > end) {
-      throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦어요.');
-    }
-    if ((end.getTime() - start.getTime()) / DAY_MS > MAX_RANGE_DAYS) {
-      throw new AppException(
-        'BAD_REQUEST',
-        `기간은 ${MAX_RANGE_DAYS}일까지 고를 수 있어요.`,
-      );
-    }
-    return { start, end, inRange: { gte: start, lte: end } };
+    return kstRange(from, to);
   }
 
   /**
