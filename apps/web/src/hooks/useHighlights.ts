@@ -9,6 +9,8 @@ export interface Highlight {
 	id: number;
 	newsletterId: number;
 	section: string | null;
+	/** 소식(story-N)이면 그 소식의 제목 (목록에서만) */
+	sectionTitle?: string | null;
 	text: string;
 	note: string | null;
 	createdAt: string;

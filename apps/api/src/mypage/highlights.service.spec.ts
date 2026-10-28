@@ -1,8 +1,16 @@
-import { HighlightsService, normalizeText } from './highlights.service';
+import {
+  HighlightsService,
+  normalizeText,
+  sectionTitle,
+  sectionTitles,
+} from './highlights.service';
 
 function fakePrisma(owned = true) {
   return {
-    newsletter: { findUnique: jest.fn().mockResolvedValue({ id: 66 }) },
+    newsletter: {
+      findUnique: jest.fn().mockResolvedValue({ id: 66 }),
+      findMany: jest.fn().mockResolvedValue([]),
+    },
     highlight: {
       findMany: jest.fn().mockResolvedValue([]),
       findFirst: jest.fn().mockResolvedValue(owned ? { id: 1 } : null),
@@ -83,5 +91,18 @@ describe('스크랩 · 메모 (#123)', () => {
     expect(prisma.highlight.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: { note: null } }),
     );
+  });
+
+  it('소식 구역(story-N)은 본문에서 그 소식의 제목을 꺼낸다 (브리핑 · 모르는 구역은 없음)', () => {
+    const html =
+      '<div class="newsletter"><section class="briefing"><h3>에디터 브리핑</h3></section>' +
+      '<article class="story story-numbers"><p class="kicker">01</p><h2>코스피,  외인 매도에\n5500선 이탈</h2></article>' +
+      '<article class="story"><h2>룰라 4선</h2></article></div>';
+    const titles = sectionTitles(html);
+    expect(titles).toEqual(['코스피, 외인 매도에 5500선 이탈', '룰라 4선']);
+    expect(sectionTitle(titles, 'story-2')).toBe('룰라 4선');
+    expect(sectionTitle(titles, 'story-9')).toBeNull();
+    expect(sectionTitle(titles, 'briefing')).toBeNull();
+    expect(sectionTitles(null)).toEqual([]);
   });
 });

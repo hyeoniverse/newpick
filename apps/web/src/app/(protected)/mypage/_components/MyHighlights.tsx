@@ -15,12 +15,21 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
 
-/** 구역 이름표 → 보이는 이름 */
-const sectionLabel = (section: string | null) => {
-	if (section === 'briefing') return '에디터 브리핑';
-	const story = section?.match(/^story-(\d+)$/);
-	return story ? `소식 ${story[1]}` : '본문';
-};
+/**
+ * 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목.
+ * ('소식 2'만으로는 무엇을 가리키는지 몰라서)
+ */
+function SectionLabel({ highlight }: { highlight: Highlight }) {
+	if (highlight.section === 'briefing') return <p className="section">에디터 브리핑</p>;
+	const story = highlight.section?.match(/^story-(\d+)$/);
+	if (!story) return <p className="section">본문</p>;
+	return (
+		<p className="section">
+			<span className="index">{story[1].padStart(2, '0')}</span>
+			{highlight.sectionTitle ?? `소식 ${story[1]}`}
+		</p>
+	);
+}
 
 /** 본문 순서: 브리핑 → 소식 1 → 소식 2 … → 구역 모름 */
 const sectionOrder = (section: string | null) => {
@@ -113,9 +122,7 @@ export default function MyHighlights() {
 							{sorted.map((highlight, i) => (
 								<li key={highlight.id}>
 									{/* 구역이 바뀔 때만 이름 */}
-									{(i === 0 || sorted[i - 1].section !== highlight.section) && (
-										<p className="section">{sectionLabel(highlight.section)}</p>
-									)}
+									{(i === 0 || sorted[i - 1].section !== highlight.section) && <SectionLabel highlight={highlight} />}
 									<HighlightItem highlight={highlight} focused={highlight.id === focused} />
 								</li>
 							))}
@@ -316,11 +323,23 @@ const StyledHighlights = styled.div`
 
 	/* 구역 이름 (에디터 브리핑 · 소식 N): 바뀔 때만 */
 	.section {
-		margin: 0 0 0.375rem;
-		font-size: 0.75rem;
+		display: flex;
+		align-items: baseline;
+		gap: 0.375rem;
+		margin: 0 0 0.5rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		letter-spacing: 0.02em;
 		color: ${({ theme }) => theme.color.subText};
+		word-break: keep-all;
+
+		/* 뉴스레터 본문의 소식 번호와 같은 모양 */
+		.index {
+			flex-shrink: 0;
+			font-size: 0.75rem;
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.primary};
+			font-variant-numeric: tabular-nums;
+		}
 	}
 
 	/* 문장 한 개: 문장만 따옴표 칸만큼 들이고, 메모 · 글자 동작은 왼쪽 끝 */

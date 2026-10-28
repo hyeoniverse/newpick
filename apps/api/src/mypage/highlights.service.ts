@@ -1,10 +1,33 @@
 import { Injectable } from '@nestjs/common';
+import { JSDOM } from 'jsdom';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AppException } from '../common/errors/app.exception';
 import { CreateHighlightDto } from './dto/highlight.dto';
 
 /** 문장의 공백을 하나로 (화면에서 고른 글은 줄바꿈 · 여러 칸이 섞여 온다) */
 export const normalizeText = (text: string) => text.replace(/\s+/g, ' ').trim();
+
+/**
+ * 본문 HTML에서 소식마다 제목 (화면 수집기가 셀 때와 같은 순서: .story 차례). 브리핑 · 구역 모름은 null
+ * 마이페이지에서 '소식 2' 대신 그 소식의 제목을 보이려고. 저장하지 않고 읽을 때 꺼내, 본문을 고쳐도 지금 제목이 나온다
+ */
+export function sectionTitles(html: string | null) {
+  if (!html) return [];
+  const { document } = new JSDOM(html).window;
+  return Array.from(document.querySelectorAll('.story')).map(
+    (story) =>
+      story.querySelector('h2')?.textContent?.replace(/\s+/g, ' ').trim() ||
+      null,
+  );
+}
+
+export function sectionTitle(
+  titles: (string | null)[],
+  section: string | null,
+) {
+  const story = section?.match(/^story-(\d+)$/);
+  return story ? (titles[Number(story[1]) - 1] ?? null) : null;
+}
 
 const SELECT = {
   id: true,
@@ -26,7 +49,7 @@ export class HighlightsService {
 
   /** 내 스크랩. 뉴스레터를 주면 그 뉴스레터 것만 (상세 화면 형광펜용), 아니면 전체 (마이페이지) */
   async list(userId: number, newsletterId?: number) {
-    return this.prisma.highlight.findMany({
+    const highlights = await this.prisma.highlight.findMany({
       where: { userId, ...(newsletterId && { newsletterId }) },
       orderBy: { createdAt: 'desc' },
       select: {
@@ -40,6 +63,21 @@ export class HighlightsService {
         },
       },
     });
+    // 소식 제목: 뉴스레터마다 본문을 한 번만 읽는다
+    const ids = [...new Set(highlights.map((h) => h.newsletterId))];
+    const bodies = ids.length
+      ? await this.prisma.newsletter.findMany({
+          where: { id: { in: ids } },
+          select: { id: true, contentAsHTML: true },
+        })
+      : [];
+    const titles = new Map(
+      bodies.map((b) => [b.id, sectionTitles(b.contentAsHTML)]),
+    );
+    return highlights.map((h) => ({
+      ...h,
+      sectionTitle: sectionTitle(titles.get(h.newsletterId) ?? [], h.section),
+    }));
   }
 
   async create(userId: number, dto: CreateHighlightDto) {
