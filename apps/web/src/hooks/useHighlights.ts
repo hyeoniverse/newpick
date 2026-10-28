@@ -13,7 +13,7 @@ export interface Highlight {
 	sectionTitle?: string | null;
 	text: string;
 	note: string | null;
-	/** 별표(중요) */
+	/** 중요 표시 (별) */
 	starred: boolean;
 	createdAt: string;
 	updatedAt: string;
@@ -60,13 +60,13 @@ export function useHighlightMutations() {
 		},
 		onError: fail,
 	});
-	// 메모 고치기 · 별표 켜고 끄기 (준 것만)
+	// 메모 고치기 · 중요 표시 켜고 끄기 (준 것만)
 	const update = useMutation({
 		mutationFn: ({ id, ...body }: { id: number; note?: string; starred?: boolean }) =>
 			apiFetch<Highlight>(API_ENDPOINTS.MY.HIGHLIGHT(id), { method: 'PATCH', body }),
 		onSuccess: (_, body) => {
 			refresh();
-			if (body.starred !== undefined) showToast(body.starred ? '별표했어요.' : '별표를 뺐어요.', 'success');
+			if (body.starred !== undefined) showToast(body.starred ? '중요 표시했어요.' : '중요 표시를 뺐어요.', 'success');
 			else showToast('메모를 고쳤어요.', 'success');
 		},
 		onError: fail,

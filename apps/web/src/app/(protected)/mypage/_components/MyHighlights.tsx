@@ -7,6 +7,7 @@ import { LuHighlighter, LuStar } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
+import InputCheck from '@/components/common/InputCheck';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
 import { Highlight, useHighlightMutations, useHighlights } from '@/hooks/useHighlights';
@@ -45,13 +46,13 @@ const FILTERS: Record<string, (h: Highlight) => boolean> = {
 /**
  * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
  * 뉴스레터별(가장 최근에 스크랩한 것부터)로 묶고, 그 안은 본문 순서(브리핑 → 소식 N)로 구역마다 한 번만 이름을 단다.
- * 문장 아래 원문에서 보기(?hl=번호) · 메모 · 별표(중요) · 지우기. '여러 개 지우기'로 골라서 한 번에 지운다.
- * 별표한 문장은 지우기 전에 한 번 더 묻는다
+ * 문장 아래 원문에서 보기(?hl=번호) · 메모 · 지우기, 문장 줄 끝에 중요 표시(별). '선택'으로 골라서 한 번에 지운다.
+ * 중요 표시한 문장은 지우기 전에 한 번 더 묻는다
  */
 export default function MyHighlights() {
 	const { data, isPending, isError, error, refetch } = useHighlights();
 	const [filter, setFilter] = useState('');
-	// 여러 개 지우기: 고르는 중인지, 고른 번호
+	// 선택해서 지우기: 고르는 중인지, 고른 번호
 	const [selecting, setSelecting] = useState(false);
 	const [selected, setSelected] = useState<Set<number>>(new Set());
 	const confirmRemove = useConfirmRemoveHighlights();
@@ -115,7 +116,7 @@ export default function MyHighlights() {
 						label="보기"
 						options={[
 							{ value: '', label: '전체' },
-							{ value: 'starred', label: `별표 ${stars}` },
+							{ value: 'starred', label: `중요 ${stars}` },
 							{ value: 'memo', label: `메모만 ${memos}` },
 						]}
 						value={filter}
@@ -127,14 +128,14 @@ export default function MyHighlights() {
 						aria-pressed={selecting}
 						onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
 					>
-						{selecting ? '고르기 끝내기' : '여러 개 지우기'}
+						{selecting ? '완료' : '선택'}
 					</button>
 				</div>
 			</div>
 			{shown.length === 0 && (
 				<p className="empty">
 					{filter === 'starred'
-						? '별표한 문장이 없어요. 중요한 문장에 별표를 해 두면 여기 모여요.'
+						? '중요 표시한 문장이 없어요. 문장 옆 별을 누르면 여기 모여요.'
 						: '메모를 남긴 문장이 없어요.'}
 				</p>
 			)}
@@ -176,25 +177,25 @@ export default function MyHighlights() {
 			})}
 			{/* 고르는 중: 아래에 붙어 따라오는 막대 */}
 			{selecting && (
-				<div className="select-bar" role="region" aria-label="여러 개 지우기">
-					<label className="select-all">
-						<input
-							type="checkbox"
-							checked={allShownSelected}
-							onChange={() =>
-								setSelected((prev) => {
-									const next = new Set(prev);
-									for (const h of shown) {
-										if (allShownSelected) next.delete(h.id);
-										else next.add(h.id);
-									}
-									return next;
-								})
-							}
-						/>
-						보이는 {shown.length}개 모두
-					</label>
-					<span className="picked">{selected.size}개 고름</span>
+				<div className="select-bar" role="region" aria-label="선택한 문장 지우기">
+					<InputCheck
+						name="highlights-select-all"
+						className="select-all"
+						size="small"
+						label={allShownSelected ? '전체 해제' : `전체 선택 (${shown.length})`}
+						checked={allShownSelected}
+						onCheckedChange={() =>
+							setSelected((prev) => {
+								const next = new Set(prev);
+								for (const h of shown) {
+									if (allShownSelected) next.delete(h.id);
+									else next.add(h.id);
+								}
+								return next;
+							})
+						}
+					/>
+					<span className="picked">{selected.size}개 선택</span>
 					<button type="button" onClick={stopSelecting}>
 						취소
 					</button>
@@ -245,14 +246,16 @@ function HighlightItem({
 			onClick={selecting ? onToggle : undefined}
 		>
 			{selecting ? (
-				<input
-					type="checkbox"
-					className="pick"
-					checked={checked}
-					onChange={onToggle}
-					onClick={(e) => e.stopPropagation()}
-					aria-label={`${highlight.text.slice(0, 20)} 고르기`}
-				/>
+				// 상자를 누른 것이 문장 누르기(고르기)로 한 번 더 번지지 않게
+				<span className="pick" onClick={(e) => e.stopPropagation()}>
+					<InputCheck
+						name={`highlight-pick-${highlight.id}`}
+						size="small"
+						checked={checked}
+						onCheckedChange={onToggle}
+						aria-label={`${highlight.text.slice(0, 20)} 선택`}
+					/>
+				</span>
 			) : (
 				/* 스크랩한 문장만 따옴표 칸만큼 들여 쓴다 */
 				<span className="quote-mark" aria-hidden>
@@ -262,14 +265,14 @@ function HighlightItem({
 			<p className="quote">
 				<span>{highlight.text}</span>
 			</p>
-			{/* 별표(중요): 문장 줄 오른쪽 끝 아이콘 버튼 (켜면 기본색 별) */}
+			{/* 중요 표시: 문장 줄 오른쪽 끝 별 아이콘 버튼 (켜면 기본색 별) */}
 			{!selecting && (
 				<button
 					type="button"
 					className={`star-toggle ${highlight.starred ? 'on' : ''}`}
 					aria-pressed={highlight.starred}
-					aria-label={highlight.starred ? '별표 빼기' : '별표하기'}
-					title={highlight.starred ? '별표 빼기' : '별표하기'}
+					aria-label={highlight.starred ? '중요 표시 빼기' : '중요 표시'}
+					title={highlight.starred ? '중요 표시 빼기' : '중요 표시'}
 					onClick={() => update.mutate({ id: highlight.id, starred: !highlight.starred })}
 				>
 					<LuStar aria-hidden />
@@ -503,11 +506,8 @@ const StyledHighlights = styled.div`
 	/* 고르는 중: 따옴표 자리에 체크칸, 문장 어디를 눌러도 고르기 */
 	.pick {
 		grid-area: mark;
-		width: 1rem;
-		height: 1rem;
-		margin-top: 0.4em;
-		accent-color: ${({ theme }) => theme.color.primary};
-		cursor: pointer;
+		display: inline-flex;
+		margin-top: 0.3em;
 	}
 
 	.item.selecting {
@@ -524,7 +524,7 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.primary};
 	}
 
-	/* 별표 버튼: 꺼지면 회색 빈 별, 켜지면 기본색(보라) 꽉 찬 별 */
+	/* 중요 표시 버튼: 꺼지면 회색 빈 별, 켜지면 기본색(보라) 꽉 찬 별 */
 	.star-toggle {
 		grid-area: star;
 		align-self: start;
@@ -557,7 +557,7 @@ const StyledHighlights = styled.div`
 		}
 	}
 
-	/* 여러 개 지우기 막대: 목록 아래에 붙어 따라온다 */
+	/* 선택 막대: 목록 아래에 붙어 따라온다 */
 	.select-bar {
 		position: sticky;
 		bottom: 1rem;
@@ -572,17 +572,8 @@ const StyledHighlights = styled.div`
 		background: ${({ theme }) => theme.color.background};
 		font-size: ${({ theme }) => theme.fontSize.small};
 
-		.select-all {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.5rem;
-			cursor: pointer;
-
-			input {
-				width: 1rem;
-				height: 1rem;
-				accent-color: ${({ theme }) => theme.color.primary};
-			}
+		.select-all .text {
+			font-size: ${({ theme }) => theme.fontSize.small};
 		}
 
 		.picked {
@@ -600,6 +591,10 @@ const StyledHighlights = styled.div`
 			cursor: pointer;
 
 			&.danger {
+				/* 'N개 지우기'의 숫자가 바뀌어도 너비가 그대로 */
+				min-width: 7.5rem;
+				font-variant-numeric: tabular-nums;
+				text-align: center;
 				border-color: ${({ theme }) => theme.color.error};
 				background: ${({ theme }) => theme.color.error};
 				color: ${({ theme }) => theme.color.white};

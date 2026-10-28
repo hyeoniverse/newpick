@@ -328,7 +328,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 						>
 							<div className="saved-head">
 								<p className="label">내 스크랩</p>
-								{/* 별표(중요) 켜고 끄기 */}
+								{/* 중요 표시 켜고 끄기 */}
 								<button
 									type="button"
 									className={`star-toggle ${popover.highlight.starred ? 'on' : ''}`}
@@ -338,7 +338,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 										setPopover(null);
 									}}
 								>
-									{popover.highlight.starred ? '★ 별표 빼기' : '☆ 별표'}
+									{popover.highlight.starred ? '★ 중요 표시 빼기' : '☆ 중요 표시'}
 								</button>
 							</div>
 							<textarea
@@ -352,7 +352,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 								<button
 									type="button"
 									className="danger"
-									// 여기서는 바로 지우되, 별표한 문장이면 한 번 더 묻는다
+									// 여기서는 바로 지우되, 중요 표시한 문장이면 한 번 더 묻는다
 									onClick={() => {
 										confirmRemove([popover.highlight], { askFirst: false });
 										setPopover(null);

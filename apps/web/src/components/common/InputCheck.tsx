@@ -11,26 +11,39 @@ interface Props extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onBlu
 	name: string;
 	label?: string;
 	size?: FontSize;
+	/** 바깥에서 상태를 쥘 때 (checked와 함께). 없으면 이름(name)별 저장소로 스스로 켜고 끈다 */
+	onCheckedChange?: (checked: boolean) => void;
 }
 /**
  * 체크 상자. 이름표는 상자 오른쪽에 항상 보이고, 이름표를 눌러도 체크된다.
  * 예전에는 이름표가 마우스를 올려야 위에 나타나 무엇을 체크하는지 알 수 없었다
  */
-const InputCheck = React.forwardRef<HTMLInputElement, Props>(({ size, label, name, className, ...props }, ref) => {
-	const { isChecked, toggleChecked } = useInputCheck(name);
+const InputCheck = React.forwardRef<HTMLInputElement, Props>(
+	({ size, label, name, className, checked, onCheckedChange, ...props }, ref) => {
+		const { isChecked, toggleChecked } = useInputCheck(name);
+		// checked를 주면 바깥 상태로 (목록에서 여러 개 고르기 등)
+		const controlled = checked !== undefined;
 
-	return (
-		<StyledInputCheck $size={size} className={className}>
-			<span className="input-check">
-				<input type="checkbox" ref={ref} name={name} checked={isChecked} onChange={toggleChecked} {...props} />
-				<span className="icon" aria-hidden>
-					<BiCheck />
+		return (
+			<StyledInputCheck $size={size} className={className}>
+				<span className="input-check">
+					<input
+						type="checkbox"
+						ref={ref}
+						name={name}
+						checked={controlled ? checked : isChecked}
+						onChange={controlled ? (event) => onCheckedChange?.(event.target.checked) : toggleChecked}
+						{...props}
+					/>
+					<span className="icon" aria-hidden>
+						<BiCheck />
+					</span>
 				</span>
-			</span>
-			{label && <span className="text">{label}</span>}
-		</StyledInputCheck>
-	);
-});
+				{label && <span className="text">{label}</span>}
+			</StyledInputCheck>
+		);
+	},
+);
 
 interface StyleProps {
 	$size?: FontSize;
