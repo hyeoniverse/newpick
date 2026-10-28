@@ -6,7 +6,7 @@ import type { LegalSection, LegalSummary } from '@/components/common/legal/Legal
  * 항목 순서를 따르고, 서비스가 실제로 모으고 맡기는 정보(코드·배포 환경 기준)만 적는다.
  * 바꿀 때는 시행일을 고치고, 시행 7일 전(이용자에게 불리하면 30일 전)부터 알린다
  */
-export const LEGAL_EFFECTIVE_DATE = '2026년 10월 27일';
+export const LEGAL_EFFECTIVE_DATE = '2026년 10월 28일';
 
 /** 개인정보 보호책임자·고충처리 부서 (법 제30조 제1항 제6호: 성명 또는 부서 명칭과 연락처) */
 const OFFICER = '뉴픽 운영팀';
