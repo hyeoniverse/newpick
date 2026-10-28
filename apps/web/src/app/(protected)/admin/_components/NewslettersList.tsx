@@ -96,7 +96,8 @@ export default function NewslettersList() {
 									<td className="nowrap num">{when(n.createdAt, today)}</td>
 									<td className="nowrap category">{mapIdToTitle([n.categoryId])[0]}</td>
 									<td>
-										<Link href={`/articles/detail/${n.id}`}>{n.title}</Link>
+										{/* 누르면 고치기 (#31). 사이트에서 보기는 고치기 화면에서 */}
+										<Link href={`/admin/newsletters/${n.id}`}>{n.title}</Link>
 									</td>
 									<td className="nowrap num">{n.viewcount.toLocaleString()}</td>
 									<td className="nowrap num">{n.id}</td>

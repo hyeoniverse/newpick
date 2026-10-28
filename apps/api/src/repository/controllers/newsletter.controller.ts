@@ -6,6 +6,8 @@ import {
   Param,
   Delete,
   ParseIntPipe,
+  Patch,
+  Body,
   ValidationPipe,
   Post,
 } from '@nestjs/common';
@@ -19,7 +21,9 @@ import {
   NewsletterSearchDto,
   NewsletterKeywordsDto,
   NewsletterAllKeywordsDto,
+  UpdateNewsletterDto,
 } from './newsletter.dto';
+import { sanitizeNewsletterHtml } from 'src/common/sanitize-newsletter-html';
 import { toBooleanQuery } from '../search/search-terms';
 import { kstDayRange, kstDaysAgo } from '../../common/kst';
 import dayjs from 'dayjs';
@@ -259,6 +263,45 @@ export class BasicRepositoryController {
       message: '카테고리 조회 성공',
       data: data,
     };
+  }
+
+  /**
+   * 뉴스레터 고치기 (#31): 제목 · 부제 · 요약 · 본문 HTML · 키워드 · 관심사. 본문은 허용 목록으로 정리해 저장(XSS, #6).
+   * 이미 보낸 메일은 그대로, 상세 페이지 · 이후 메일(받은 메일 다시 보기 포함)에 반영
+   */
+  @AdminOnly()
+  @Patch(':id')
+  async updateNewsletter(
+    @Param('id', new ParseIntPipe({ errorHttpStatusCode: 400 })) id: number,
+    @Body() body: UpdateNewsletterDto,
+  ) {
+    const exists = await this.newsletterRepo.getNewsletterById(id);
+    if (!exists) throw new AppException('NEWSLETTER_NOT_FOUND');
+    const data = await this.newsletterRepo.updateNewsletter(id, {
+      ...(body.title !== undefined && { title: body.title.trim() }),
+      ...(body.subtitle !== undefined && {
+        subtitle: body.subtitle.trim() || null,
+      }),
+      ...(body.content !== undefined && { content: body.content.trim() }),
+      ...(body.contentAsHTML !== undefined && {
+        contentAsHTML: sanitizeNewsletterHtml(body.contentAsHTML),
+      }),
+      ...(body.keywords !== undefined && {
+        keywords: [
+          ...new Set(
+            body.keywords
+              .map((k) => k.trim().replace(/^#+/, ''))
+              .filter(Boolean),
+          ),
+        ],
+      }),
+      ...(body.categoryId !== undefined && {
+        category: { connect: { id: body.categoryId } },
+      }),
+    });
+    // 고친 글이 첫 화면 · 목록에 10분 동안 옛 모습으로 남지 않게 (#73)
+    await this.siteCache.refresh(`뉴스레터 ${id} 수정`);
+    return { message: '수정 성공', data };
   }
 
   @AdminOnly()

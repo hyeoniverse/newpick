@@ -8,6 +8,8 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
+  Req,
 } from '@nestjs/common';
 import { AdminService } from './admin.service';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
@@ -16,6 +18,10 @@ import { SiteCacheService } from 'src/site-cache/site-cache.service';
 import { AppException } from 'src/common/errors/app.exception';
 import { TagsService } from 'src/tags/tags.service';
 import { MergeTagsDto, RemoveTagDto } from './dto/tags.dto';
+import {
+  AdminSubscribersQueryDto,
+  AdminUsersQueryDto,
+} from './dto/admin-list.dto';
 
 @AdminOnly()
 @Controller('admin')
@@ -78,14 +84,40 @@ export class AdminController {
     };
   }
 
+  /** 사용자 목록 (#31): 이메일 · 이름 · 권한으로 찾기, 쪽 단위 */
   @Get('users')
-  async getUsers() {
-    return this.adminService.getAllUsers();
+  async getUsers(@Query() query: AdminUsersQueryDto) {
+    return {
+      message: '사용자 목록 조회 성공',
+      data: await this.adminService.getUsers(query),
+    };
   }
 
+  /** 회원 탈퇴와 같은 경로로 지운다. 내 계정은 막는다 */
   @Delete('users/:id')
-  async deleteUser(@Param('id', ParseIntPipe) id: number) {
-    return this.adminService.deleteUser(id);
+  async deleteUser(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    return {
+      message: '사용자를 지웠습니다.',
+      data: await this.adminService.deleteUser(id, Number(req.user?.id)),
+    };
+  }
+
+  /** 구독자 목록 (#31): 구독 상태 · 관심사 · 이메일로 찾기, 상태별 수 */
+  @Get('subscribers')
+  async getSubscribers(@Query() query: AdminSubscribersQueryDto) {
+    return {
+      message: '구독자 목록 조회 성공',
+      data: await this.adminService.getSubscribers(query),
+    };
+  }
+
+  /** 관심사 현황 (#31): 뉴스레터 · 고른 사용자 · 구독 중 · 최근 30일 수집 기사 */
+  @Get('categories')
+  async getCategories() {
+    return {
+      message: '관심사 현황 조회 성공',
+      data: await this.adminService.getCategories(),
+    };
   }
 
   @Get('bookmarks')
@@ -100,7 +132,15 @@ export class AdminController {
   async updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateUserDto,
+    @Req() req,
   ) {
-    return this.adminService.updateUser(id, updateDto);
+    return {
+      message: '권한을 바꿨습니다.',
+      data: await this.adminService.updateUser(
+        id,
+        updateDto,
+        Number(req.user?.id),
+      ),
+    };
   }
 }
