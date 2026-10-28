@@ -17,8 +17,7 @@ export default function MyTaste() {
 
 	const top = data.topics.slice(0, SHOWN);
 	const max = top[0].score || 1;
-	const { weights, halfLifeDays, signals } = data;
-	const total = signals.bookmark + signals.scrap + signals.memo;
+	const { signals } = data;
 
 	return (
 		<StyledTaste aria-labelledby="my-taste">
@@ -55,9 +54,6 @@ export default function MyTaste() {
 						.join(' · ')}
 				</p>
 			)}
-			<p className="how">
-				{`점수: 북마크 ${weights.bookmark} · 스크랩 ${weights.scrap} · 메모 ${weights.memo}, 문장에 그 주제가 나오면 +1. ${halfLifeDays}일마다 절반으로 줄어 요즘 관심이 앞에 와요. (신호 ${total}개)`}
-			</p>
 		</StyledTaste>
 	);
 }
@@ -145,16 +141,10 @@ const StyledTaste = styled.section`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	.categories,
-	.how {
+	.categories {
 		margin: 0;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		color: ${({ theme }) => theme.color.subText};
 		word-break: keep-all;
-	}
-
-	.how {
-		padding-top: 0.75rem;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
 	}
 `;
