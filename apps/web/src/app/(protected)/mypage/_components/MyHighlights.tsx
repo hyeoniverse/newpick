@@ -351,19 +351,25 @@ const StyledHighlights = styled.div`
 
 	/* 문장이 먼저 보이게: 메모 · 동작보다 굵고 진하게 */
 	/* 따옴표 칸 */
+	/* 문장 첫머리에 살짝 걸치게: 칸보다 크게, 오른쪽으로 밀어 글자 뒤에 옅게 깐다 */
 	.quote-mark {
 		grid-area: mark;
-		width: 1.125rem;
-		height: 1.125rem;
-		margin-top: 0.2em;
+		z-index: 0;
+		width: 2.75rem;
+		height: 2.75rem;
+		/* 위아래로 넘친 만큼 빼서 줄 높이에 영향을 주지 않게 */
+		margin: -0.625rem 0 -1.5rem;
 		fill: currentColor;
 		color: ${({ theme }) => theme.color.primary};
-		opacity: 0.5;
-		/* 닫는 따옴표 모양(”)을 돌려 여는 따옴표(“)로 */
-		transform: rotate(180deg);
+		opacity: 0.22;
+		/* 닫는 따옴표 모양(”)을 돌려 여는 따옴표(“)로. 칸(1.5rem)보다 커서 문장 첫 글자에 걸친다 */
+		transform: translateX(-0.25rem) rotate(180deg);
+		pointer-events: none;
 	}
 
 	.quote {
+		position: relative;
+		z-index: 1;
 		grid-area: quote;
 		margin: 0;
 		font-weight: ${({ theme }) => theme.fontWeight.regular};
