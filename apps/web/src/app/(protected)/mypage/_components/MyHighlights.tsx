@@ -154,6 +154,10 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 			className={`item ${focused ? 'focused' : ''}`}
 			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
 		>
+			{/* 왼쪽 칸에 따옴표, 문장 · 메모 · 동작은 그 오른쪽 한 선에 */}
+			<svg className="quote-mark" viewBox="0 0 24 24" aria-hidden>
+				<path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z" />
+			</svg>
 			<p className="quote">
 				<span>{highlight.text}</span>
 			</p>
@@ -319,7 +323,7 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	/* 문장 한 개: 문장 → 메모 → 글자 동작. 모두 같은 왼쪽 선에서 시작 */
+	/* 문장 한 개: 왼쪽 따옴표 칸 + 문장 → 메모 → 글자 동작 */
 	/* 문장 사이 가는 구분선 (구역 이름도 선 아래에) */
 	.group li {
 		padding: 0.875rem 0;
@@ -331,9 +335,12 @@ const StyledHighlights = styled.div`
 
 	.item {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr);
-		grid-template-areas: 'quote' 'note' 'tools';
-		gap: 0.375rem;
+		grid-template-columns: 1.5rem minmax(0, 1fr);
+		grid-template-areas:
+			'mark quote'
+			'. note'
+			'. tools';
+		gap: 0.375rem 0.25rem;
 		scroll-margin-top: 6rem;
 
 		/* 알림에서 바로 온 문장: 잠깐 배경으로 표시 */
@@ -343,6 +350,19 @@ const StyledHighlights = styled.div`
 	}
 
 	/* 문장이 먼저 보이게: 메모 · 동작보다 굵고 진하게 */
+	/* 따옴표 칸 */
+	.quote-mark {
+		grid-area: mark;
+		width: 1.125rem;
+		height: 1.125rem;
+		margin-top: 0.2em;
+		fill: currentColor;
+		color: ${({ theme }) => theme.color.primary};
+		opacity: 0.5;
+		/* 닫는 따옴표 모양(”)을 돌려 여는 따옴표(“)로 */
+		transform: rotate(180deg);
+	}
+
 	.quote {
 		grid-area: quote;
 		margin: 0;
@@ -354,23 +374,6 @@ const StyledHighlights = styled.div`
 		span {
 			border-radius: 2px;
 			transition: background-color 0.4s;
-
-			/* 인용한 문장이라는 표시: 보라색 따옴표 */
-			&::before,
-			&::after {
-				font-weight: ${({ theme }) => theme.fontWeight.bold};
-				color: ${({ theme }) => theme.color.primary};
-			}
-
-			&::before {
-				content: '“';
-				margin-right: 0.125rem;
-			}
-
-			&::after {
-				content: '”';
-				margin-left: 0.125rem;
-			}
 		}
 	}
 
