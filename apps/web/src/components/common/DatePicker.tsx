@@ -490,6 +490,11 @@ export function DateRangePicker({
 
 export default DatePicker;
 
+/** 고른 칸에 올렸을 때: 강조색을 조금 짙게 (흰 글자 대비 유지) */
+const hoverPrimary = css`
+	${({ theme }) => `color-mix(in srgb, ${theme.color.primary} 82%, #000)`}
+`;
+
 /** 달력 모양: 얇은 테두리 · 8px 모서리 · 그림자 없음 · 선택은 강조색, 기간은 옅은 강조색 */
 const calendar = css`
 	/* 헤더(1000) · 시트(1000)보다 위 */
@@ -625,6 +630,11 @@ const calendar = css`
 				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			}
 
+			/* 고른 칸에 올리면 회색이 아니라 조금 짙은 강조색 (흰 글자가 묻히지 않게) */
+			&.current:hover:not(:disabled) {
+				background: ${hoverPrimary};
+			}
+
 			&:disabled {
 				color: ${({ theme }) => theme.color.disabled};
 				cursor: default;
@@ -647,10 +657,15 @@ const calendar = css`
 		.react-datepicker__day--in-range {
 			border-radius: 6px;
 			color: ${({ theme }) => theme.color.text};
+		}
 
-			&:hover {
-				background: ${({ theme }) => theme.color.neutral};
-			}
+		/*
+		 * 올렸을 때 (상태마다 글자가 묻히지 않게):
+		 * 보통 날 → 옅은 회색 · 기간 안 → 조금 짙은 옅은 강조색 · 고른 날(시작 · 끝) → 조금 짙은 강조색 + 흰 글자
+		 */
+		.react-datepicker__day:hover {
+			background: ${({ theme }) => theme.color.neutral};
+			color: ${({ theme }) => theme.color.text};
 		}
 
 		/* 일요일 */
@@ -676,21 +691,42 @@ const calendar = css`
 		.react-datepicker__day--in-selecting-range {
 			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 14%, transparent);
 			color: ${({ theme }) => theme.color.text};
+
+			&:hover {
+				background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 26%, transparent);
+			}
 		}
 
 		.react-datepicker__day--selected,
 		.react-datepicker__day--range-start,
 		.react-datepicker__day--range-end,
-		.react-datepicker__day--selecting-range-start,
-		.react-datepicker__day--keyboard-selected {
+		.react-datepicker__day--selecting-range-start {
 			background: ${({ theme }) => theme.color.primary};
 			color: #ffffff;
+
+			&:hover {
+				background: ${hoverPrimary};
+				color: #ffffff;
+			}
+		}
+
+		/* 키보드로 옮겨 다니는 칸: 채우지 않고 테두리만 (고른 날과 헷갈리지 않게) */
+		.react-datepicker__day--keyboard-selected:not(.react-datepicker__day--selected):not(
+				.react-datepicker__day--range-start
+			):not(.react-datepicker__day--range-end) {
+			background: transparent;
+			box-shadow: inset 0 0 0 2px ${({ theme }) => theme.color.primary};
 		}
 		/* 앞 · 뒤 달 날짜는 흐린 글자만: 기간 · 선택 색을 칠하지 않는다 (지금 달 안의 기간만 보이게, 경계에서 색이 섞이지 않게) */
 		.react-datepicker__day.react-datepicker__day--outside-month {
 			background: transparent;
+			box-shadow: none;
 			color: ${({ theme }) => theme.color.disabled};
 			font-weight: inherit;
+
+			&:hover {
+				background: ${({ theme }) => theme.color.neutral};
+			}
 		}
 	}
 
