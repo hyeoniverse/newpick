@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
-import { LuHighlighter } from 'react-icons/lu';
+import { LuArrowUpRight, LuHighlighter, LuMessageSquarePlus, LuPencil, LuTrash2 } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
+import FilterChips from '@/components/common/FilterChips';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
 import { Highlight, useHighlightMutations, useHighlights } from '@/hooks/useHighlights';
@@ -18,15 +19,29 @@ import MyTaste from './MyTaste';
 const sectionLabel = (section: string | null) => {
 	if (section === 'briefing') return '에디터 브리핑';
 	const story = section?.match(/^story-(\d+)$/);
-	return story ? `소식 ${story[1]}` : null;
+	return story ? `소식 ${story[1]}` : '본문';
 };
 
+/** 본문 순서: 브리핑 → 소식 1 → 소식 2 … → 구역 모름 */
+const sectionOrder = (section: string | null) => {
+	if (section === 'briefing') return 0;
+	const story = section?.match(/^story-(\d+)$/);
+	return story ? Number(story[1]) : 999;
+};
+
+const FILTERS = [
+	{ value: '', label: '전체' },
+	{ value: 'memo', label: '메모만' },
+];
+
 /**
- * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 뉴스레터별로 모아 본다.
- * 메모 고치기 · 지우기, '원문에서 보기'는 상세 페이지의 그 문장으로 (?hl=번호)
+ * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
+ * 뉴스레터별(가장 최근에 스크랩한 것부터)로 묶고, 그 안은 본문 순서(브리핑 → 소식 N)로 구역마다 한 번만 이름을 단다.
+ * 문장마다 원문에서 보기(?hl=번호) · 메모 · 지우기
  */
 export default function MyHighlights() {
 	const { data, isPending, isError, error, refetch } = useHighlights();
+	const [filter, setFilter] = useState('');
 	// 스크랩 알림의 '모아 보기'로 오면(#hl-번호) 그 문장으로 스크롤하고 잠깐 강조
 	const [focused, setFocused] = useState<number | null>(null);
 	useEffect(() => {
@@ -55,31 +70,54 @@ export default function MyHighlights() {
 		);
 	}
 
-	// 뉴스레터별로 묶기 (가장 최근에 스크랩한 뉴스레터부터)
+	const memos = data.filter((h) => h.note).length;
+	const shown = filter === 'memo' ? data.filter((h) => h.note) : data;
+	// 뉴스레터별 (목록이 최근 것부터라 처음 나온 순서 = 가장 최근에 스크랩한 뉴스레터부터)
 	const groups = new Map<number, Highlight[]>();
-	for (const highlight of data)
+	for (const highlight of shown)
 		groups.set(highlight.newsletterId, [...(groups.get(highlight.newsletterId) ?? []), highlight]);
 
 	return (
 		<StyledHighlights>
 			<MyTaste />
-			<p className="count">
-				뉴스레터 {groups.size}편 · 문장 {data.length}개 · 메모 {data.filter((h) => h.note).length}개
-			</p>
+			<div className="list-head">
+				<h3>
+					모은 문장 <span className="count">{data.length}</span>
+				</h3>
+				<FilterChips
+					label="보기"
+					options={FILTERS.map((f) => (f.value === 'memo' ? { ...f, label: `메모만 ${memos}` } : f))}
+					value={filter}
+					onChange={setFilter}
+				/>
+			</div>
+			{shown.length === 0 && <p className="empty">메모를 남긴 문장이 없어요. 문장의 연필을 눌러 메모를 남겨 보세요.</p>}
 			{[...groups.entries()].map(([newsletterId, items]) => {
 				const newsletter = items[0].newsletter;
+				// 본문 순서로, 같은 구역은 먼저 스크랩한 것부터
+				const sorted = [...items].sort(
+					(a, b) => sectionOrder(a.section) - sectionOrder(b.section) || a.createdAt.localeCompare(b.createdAt),
+				);
 				return (
 					<section key={newsletterId} className="group" aria-label={newsletter?.title}>
-						<header>
-							{newsletter && <span className="category">{newsletter.category.name}</span>}
+						<div className="group-head">
+							<div className="eyebrow">
+								{newsletter && <span className="category">{newsletter.category.name}</span>}
+								{newsletter && <span className="date">{dateFormatter(newsletter.createdAt)}</span>}
+							</div>
 							<Link href={`/articles/detail/${newsletterId}`} className="title">
 								{newsletter?.title ?? `뉴스레터 #${newsletterId}`}
 							</Link>
-							{newsletter && <span className="date">{dateFormatter(newsletter.createdAt)}</span>}
-						</header>
+						</div>
 						<ul>
-							{items.map((highlight) => (
-								<HighlightItem key={highlight.id} highlight={highlight} focused={highlight.id === focused} />
+							{sorted.map((highlight, i) => (
+								<li key={highlight.id}>
+									{/* 구역이 바뀔 때만 이름 */}
+									{(i === 0 || sorted[i - 1].section !== highlight.section) && (
+										<p className="section">{sectionLabel(highlight.section)}</p>
+									)}
+									<HighlightItem highlight={highlight} focused={highlight.id === focused} />
+								</li>
 							))}
 						</ul>
 					</section>
@@ -94,7 +132,6 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 	const { openModal, closeModal } = useModal();
 	const [editing, setEditing] = useState(false);
 	const [note, setNote] = useState(highlight.note ?? '');
-	const label = sectionLabel(highlight.section);
 
 	const confirmRemove = () =>
 		openModal(
@@ -112,8 +149,33 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 		);
 
 	return (
-		<li id={`hl-${highlight.id}`} className={focused ? 'focused' : undefined}>
+		<article
+			id={`hl-${highlight.id}`}
+			className={`item ${focused ? 'focused' : ''}`}
+			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
+		>
 			<blockquote>{highlight.text}</blockquote>
+			<div className="tools">
+				<Link
+					href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}
+					aria-label="원문에서 보기"
+					title="원문에서 보기"
+				>
+					<LuArrowUpRight aria-hidden />
+				</Link>
+				<button
+					type="button"
+					onClick={() => setEditing(true)}
+					aria-label={highlight.note ? '메모 고치기' : '메모 남기기'}
+					title={highlight.note ? '메모 고치기' : '메모 남기기'}
+					disabled={editing}
+				>
+					{highlight.note ? <LuPencil aria-hidden /> : <LuMessageSquarePlus aria-hidden />}
+				</button>
+				<button type="button" className="danger" onClick={confirmRemove} aria-label="지우기" title="지우기">
+					<LuTrash2 aria-hidden />
+				</button>
+			</div>
 			{editing ? (
 				<form
 					className="edit"
@@ -147,32 +209,52 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 					</div>
 				</form>
 			) : (
-				highlight.note && <p className="note">{highlight.note}</p>
+				highlight.note && (
+					<div className="note">
+						<span className="note-label">내 메모</span>
+						<p>{highlight.note}</p>
+					</div>
+				)
 			)}
-			<div className="meta">
-				{label && <span>{label}</span>}
-				<span>{dateFormatter(highlight.createdAt)}</span>
-				<Link href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}>원문에서 보기</Link>
-				{!editing && (
-					<button type="button" onClick={() => setEditing(true)}>
-						{highlight.note ? '메모 고치기' : '메모 남기기'}
-					</button>
-				)}
-				<button type="button" className="danger" onClick={confirmRemove}>
-					지우기
-				</button>
-			</div>
-		</li>
+		</article>
 	);
 }
 
 const StyledHighlights = styled.div`
 	display: flex;
 	flex-direction: column;
-	gap: 1.5rem;
+	gap: 1.25rem;
 	padding: 2rem 0;
 
-	.count {
+	/* 목록 머리: '모은 문장 N' · 전체 / 메모만 */
+	.list-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem 1rem;
+		margin-top: 1rem;
+
+		h3 {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.medium};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+		}
+
+		.count {
+			margin-left: 0.25rem;
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		/* 칩 두 개뿐이라 '보기' 이름표는 화면에서 빼고 묶음 이름(aria-label)으로만 */
+		.chips-label {
+			display: none;
+		}
+	}
+
+	.empty {
+		padding: 2rem 0;
+		text-align: center;
 		font-size: ${({ theme }) => theme.fontSize.small};
 		color: ${({ theme }) => theme.color.subText};
 	}
@@ -180,38 +262,50 @@ const StyledHighlights = styled.div`
 	.group {
 		display: flex;
 		flex-direction: column;
-		gap: 1rem;
-		padding: 1.25rem 1.5rem;
+		gap: 0.5rem;
+		padding: 1.25rem 1.5rem 0.75rem;
 		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.surface};
 
-		header {
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			padding: 1rem 1rem 0.5rem;
+		}
+	}
+
+	.group-head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		padding-bottom: 0.75rem;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+		.eyebrow {
 			display: flex;
-			flex-wrap: wrap;
-			align-items: baseline;
-			gap: 0.25rem 0.75rem;
+			align-items: center;
+			gap: 0.5rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		}
 
 		.category {
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			color: ${({ theme }) => theme.color.primary};
 		}
 
+		.date {
+			color: ${({ theme }) => theme.color.subText};
+		}
+
 		.title {
+			width: fit-content;
 			font-size: ${({ theme }) => theme.fontSize.medium};
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
 			color: ${({ theme }) => theme.color.text};
 			word-break: keep-all;
 
 			&:hover {
+				color: ${({ theme }) => theme.color.primary};
 				text-decoration: underline;
 			}
-		}
-
-		.date {
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 
@@ -224,16 +318,38 @@ const StyledHighlights = styled.div`
 		list-style: none;
 	}
 
-	.group li {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		padding: 1rem 0.75rem;
-		margin: 0 -0.75rem;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
+	/* 구역 이름 (에디터 브리핑 · 소식 N): 바뀔 때만 */
+	.section {
+		margin: 0.75rem 0 0.25rem;
+		font-size: 0.75rem;
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		letter-spacing: 0.02em;
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	/* 문장 한 개: 왼쪽 문장, 오른쪽 아이콘 셋 (모바일은 아래 오른쪽 끝) */
+	.item {
+		display: grid;
+		grid-template-columns: minmax(0, 1fr) auto;
+		grid-template-areas:
+			'quote tools'
+			'note note';
+		gap: 0.5rem 1rem;
+		margin: 0 -0.625rem;
+		padding: 0.625rem;
 		border-radius: ${({ theme }) => theme.radius.control};
 		scroll-margin-top: 6rem;
 		transition: background-color 0.4s;
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			grid-template-columns: minmax(0, 1fr);
+			grid-template-areas: 'quote' 'note' 'tools';
+			gap: 0.375rem;
+		}
+
+		&:hover {
+			background: ${({ theme }) => theme.color.surface};
+		}
 
 		/* 알림에서 바로 온 문장 */
 		&.focused {
@@ -242,51 +358,87 @@ const StyledHighlights = styled.div`
 	}
 
 	blockquote {
+		grid-area: quote;
 		margin: 0;
-		padding: 0.125rem 0 0.125rem 0.875rem;
+		padding-left: 0.875rem;
 		border-left: 3px solid ${({ theme }) => theme.color.primary};
 		line-height: 1.7;
 		color: ${({ theme }) => theme.color.text};
 		word-break: keep-all;
 	}
 
-	.note {
-		padding: 0.625rem 0.875rem;
-		border-radius: ${({ theme }) => theme.radius.control};
-		background: ${({ theme }) => theme.color.surface};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		line-height: 1.6;
-		white-space: pre-wrap;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	.meta {
+	.tools {
+		grid-area: tools;
 		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.25rem 1rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
+		align-items: flex-start;
+		justify-content: flex-end;
+		gap: 0.125rem;
 
 		a,
 		button {
-			color: ${({ theme }) => theme.color.primary};
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 2rem;
+			height: 2rem;
+			border-radius: ${({ theme }) => theme.radius.control};
+			color: ${({ theme }) => theme.color.subText};
 			cursor: pointer;
 
+			svg {
+				width: 1rem;
+				height: 1rem;
+			}
+
 			&:hover {
-				text-decoration: underline;
+				background: ${({ theme }) => theme.color.tertiary};
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			&.danger:hover {
+				background: color-mix(in srgb, ${({ theme }) => theme.color.error} 10%, transparent);
+				color: ${({ theme }) => theme.color.error};
+			}
+
+			&:disabled {
+				opacity: 0.4;
+				cursor: default;
 			}
 		}
+	}
 
-		.danger {
-			color: ${({ theme }) => theme.color.error};
+	/* 내 메모: 문장 글머리에 맞춰 들여 쓴 노트 */
+	.note {
+		grid-area: note;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin-left: 0.875rem;
+		padding: 0.625rem 0.875rem;
+		border-radius: ${({ theme }) => theme.radius.control};
+		background: ${({ theme }) => theme.color.tertiary};
+
+		.note-label {
+			font-size: 0.75rem;
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		p {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			line-height: 1.6;
+			white-space: pre-wrap;
+			color: ${({ theme }) => theme.color.text};
 		}
 	}
 
 	.edit {
+		grid-area: note;
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+		margin-left: 0.875rem;
 
 		textarea {
 			width: 100%;
@@ -314,6 +466,7 @@ const StyledHighlights = styled.div`
 				padding: 0.375rem 0.875rem;
 				border: 1px solid ${({ theme }) => theme.color.border};
 				border-radius: ${({ theme }) => theme.radius.control};
+				font: inherit;
 				font-size: ${({ theme }) => theme.fontSize.extraSmall};
 				color: ${({ theme }) => theme.color.text};
 				cursor: pointer;
