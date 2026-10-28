@@ -217,35 +217,36 @@ const StyledEditor = styled.div<{ $rows: number }>`
 	}`,
 	).join('')}
 
+	/* 코드 색: 사이트 주 색(보라)을 중심으로 — 태그는 주 색, 속성은 밝은 보라, 값은 청록, 기호는 차가운 회색 */
 	.tag {
-		color: #d6266f;
+		color: ${({ theme }) => theme.color.primary};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 	}
 
 	.attr {
-		color: #7b3fe4;
+		color: #8b5cf6;
 	}
 
 	.value {
-		color: #0a7d3e;
+		color: #0d8a7f;
 	}
 
 	.punct {
-		color: #8a94a6;
+		color: #9aa0b8;
 	}
 
-	/* 어두운 테마 */
+	/* 어두운 테마 (태그는 테마의 주 색을 따라감) */
 	:root[data-theme='dark'] & {
-		.tag {
-			color: #ff7ab2;
-		}
-
 		.attr {
-			color: #c4a5ff;
+			color: #c4b0ff;
 		}
 
 		.value {
-			color: #7ee2a8;
+			color: #5fd4c3;
+		}
+
+		.punct {
+			color: #7d849c;
 		}
 	}
 `;
