@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
 import { LuHighlighter } from 'react-icons/lu';
@@ -26,6 +26,16 @@ const sectionLabel = (section: string | null) => {
  */
 export default function MyHighlights() {
 	const { data, isPending, isError, error, refetch } = useHighlights();
+	// 스크랩 알림의 '모아 보기'로 오면(#hl-번호) 그 문장으로 스크롤하고 잠깐 강조
+	const [focused, setFocused] = useState<number | null>(null);
+	useEffect(() => {
+		const target = Number(window.location.hash.match(/^#hl-(\d+)$/)?.[1]);
+		if (!target || !data?.some((h) => h.id === target)) return;
+		document.getElementById(`hl-${target}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+		setFocused(target);
+		const timer = window.setTimeout(() => setFocused(null), 2400);
+		return () => window.clearTimeout(timer);
+	}, [data]);
 
 	if (isPending) return <Skeleton />;
 	if (isError) return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
@@ -63,7 +73,7 @@ export default function MyHighlights() {
 						</header>
 						<ul>
 							{items.map((highlight) => (
-								<HighlightItem key={highlight.id} highlight={highlight} />
+								<HighlightItem key={highlight.id} highlight={highlight} focused={highlight.id === focused} />
 							))}
 						</ul>
 					</section>
@@ -73,7 +83,7 @@ export default function MyHighlights() {
 	);
 }
 
-function HighlightItem({ highlight }: { highlight: Highlight }) {
+function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: boolean }) {
 	const { update, remove } = useHighlightMutations();
 	const { openModal, closeModal } = useModal();
 	const [editing, setEditing] = useState(false);
@@ -96,7 +106,7 @@ function HighlightItem({ highlight }: { highlight: Highlight }) {
 		);
 
 	return (
-		<li>
+		<li id={`hl-${highlight.id}`} className={focused ? 'focused' : undefined}>
 			<blockquote>{highlight.text}</blockquote>
 			{editing ? (
 				<form
@@ -211,8 +221,17 @@ const StyledHighlights = styled.div`
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		padding: 1rem 0;
+		padding: 1rem 0.75rem;
+		margin: 0 -0.75rem;
 		border-top: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.control};
+		scroll-margin-top: 6rem;
+		transition: background-color 0.4s;
+
+		/* 알림에서 바로 온 문장 */
+		&.focused {
+			background: ${({ theme }) => theme.color.tertiary};
+		}
 	}
 
 	blockquote {

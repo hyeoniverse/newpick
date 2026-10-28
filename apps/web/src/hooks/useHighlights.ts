@@ -37,9 +37,18 @@ export function useHighlightMutations() {
 	const create = useMutation({
 		mutationFn: (body: { newsletterId: number; section?: string; text: string; note?: string }) =>
 			apiFetch<Highlight>(API_ENDPOINTS.MY.HIGHLIGHTS(), { method: 'POST', body }),
-		onSuccess: (_, body) => {
+		onSuccess: (saved, body) => {
 			refresh();
-			showToast(body.note ? '메모를 남겼어요.' : '스크랩했어요. 마이페이지에서 모아 볼 수 있어요.', 'success');
+			// 마이페이지 스크랩 탭의 이 문장으로 바로 (#hl-번호로 스크롤 · 잠깐 강조)
+			showToast(
+				body.note ? '메모를 남겼어요.' : '스크랩했어요. 마이페이지에서 모아 볼 수 있어요.',
+				'success',
+				undefined,
+				{
+					label: '스크랩 모아 보기 →',
+					href: `/mypage?tab=highlights#hl-${saved.id}`,
+				},
+			);
 		},
 		onError: fail,
 	});
