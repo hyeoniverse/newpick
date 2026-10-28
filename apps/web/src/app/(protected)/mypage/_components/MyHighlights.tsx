@@ -154,7 +154,6 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 			className={`item ${focused ? 'focused' : ''}`}
 			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
 		>
-			{/* 상세 페이지 형광펜과 같은 모양의 띠로 문장을 구분 (세로줄 · 들여쓰기 없이) */}
 			<p className="quote">
 				<span>{highlight.text}</span>
 			</p>
@@ -333,7 +332,7 @@ const StyledHighlights = styled.div`
 		padding: 0.25rem 0;
 		scroll-margin-top: 6rem;
 
-		/* 알림에서 바로 온 문장: 띠를 잠깐 진하게 */
+		/* 알림에서 바로 온 문장: 잠깐 배경으로 표시 */
 		&.focused .quote span {
 			background-color: color-mix(in srgb, ${({ theme }) => theme.color.primary} 14%, transparent);
 		}
@@ -347,12 +346,7 @@ const StyledHighlights = styled.div`
 		word-break: keep-all;
 
 		span {
-			background-image: linear-gradient(
-				transparent 58%,
-				color-mix(in srgb, ${({ theme }) => theme.color.primary} 20%, transparent) 58%
-			);
-			box-decoration-break: clone;
-			-webkit-box-decoration-break: clone;
+			border-radius: 2px;
 			transition: background-color 0.4s;
 		}
 	}
