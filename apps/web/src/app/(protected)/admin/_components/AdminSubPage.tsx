@@ -270,7 +270,8 @@ const StyledSubPage = styled.div`
 	}
 
 	/* 뉴스레터 주기 묶음 (수집한 기사): 주기 사이에 굵은 구분선, 맨 위에 어느 날 뉴스레터 재료인지 · 수집 기간 */
-	tbody.run + tbody.run .run-head th {
+	/* 모든 주기 머리에 같은 굵은 윗선 (표 머리 바로 아래 첫 주기도: 겹치는 선은 굵은 쪽 하나로 그려진다) */
+	tbody.run .run-head th {
 		border-top: 2px solid ${({ theme }) => theme.color.text};
 	}
 
