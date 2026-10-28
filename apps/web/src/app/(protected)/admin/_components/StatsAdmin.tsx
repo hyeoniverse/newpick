@@ -51,6 +51,15 @@ interface TrafficStats {
 	pages: { route: string; views: number; sessions: number; avgMs: number; avgScroll: number }[];
 }
 
+interface TasteStats {
+	weights: { bookmark: number; scrap: number; memo: number };
+	halfLifeDays: number;
+	users: number;
+	signals: { bookmark: number; scrap: number; memo: number };
+	topics: { topic: string; score: number; users: number }[];
+	categories: { categoryId: number; name: string | null; score: number }[];
+}
+
 interface DeliveryStats {
 	days: { date: string; recipients: number; mails: number; runs: Runs }[];
 	totals: { recipients: number; mails: number; runs: Runs };
@@ -122,6 +131,11 @@ export default function StatsAdmin() {
 		queryFn: () => apiFetch<{ data: TrafficStats }>(API_ENDPOINTS.ADMIN.STATS('traffic', query)).then((r) => r.data),
 		enabled,
 		placeholderData: (previous) => previous,
+	});
+	// 취향 신호는 기간과 상관없이 지금 점수 (반감기로 오래된 신호는 저절로 줄어듦)
+	const taste = useQuery({
+		queryKey: ['adminStats', 'taste'],
+		queryFn: () => apiFetch<{ data: TasteStats }>(API_ENDPOINTS.ADMIN.STATS('taste', '')).then((r) => r.data),
 	});
 	const delivery = useQuery({
 		queryKey: ['adminStats', 'delivery', query],
@@ -487,6 +501,61 @@ export default function StatsAdmin() {
 									x.runs.skipped,
 								])}
 							/>
+						</>
+					)}
+				</Section>
+
+				<Section id="stats-taste" title="취향 신호" state={taste}>
+					{(t) => (
+						<>
+							<dl className="numbers">
+								<Stat label="신호를 남긴 사람" value={people(t.users)} sub="맞춤 뉴스레터를 받을 수 있는 사람" />
+								<Stat
+									label="스크랩"
+									value={`${t.signals.scrap.toLocaleString()}개`}
+									sub={`메모 ${t.signals.memo.toLocaleString()}개 따로`}
+								/>
+								<Stat label="북마크" value={`${t.signals.bookmark.toLocaleString()}개`} />
+							</dl>
+							<p className="note" role="note">
+								기간과 상관없이 지금 점수예요. 북마크 {t.weights.bookmark} · 스크랩 {t.weights.scrap} · 메모{' '}
+								{t.weights.memo}
+								점, 문장에 그 주제가 나오면 +1, {t.halfLifeDays}일마다 절반으로 줄어요. 사람마다 계산해 더해서, 한
+								사람이 많이 남겨도 그 사람 몫만큼만 올라가요.
+							</p>
+							<div className="charts">
+								<Chart title="많이 모인 주제" hint="옆 숫자는 그 주제를 가진 사람 수">
+									{t.topics.length ? (
+										<BarList
+											label="주제별 취향 점수"
+											rows={t.topics.map((x) => ({
+												key: x.topic,
+												label: `#${x.topic}`,
+												value: x.score,
+												note: `${x.users}명`,
+											}))}
+											format={(v) => v.toFixed(1)}
+										/>
+									) : (
+										<p className="empty">아직 없어요.</p>
+									)}
+								</Chart>
+								<Chart title="관심사별">
+									{t.categories.length ? (
+										<BarList
+											label="관심사별 취향 점수"
+											rows={t.categories.map((c) => ({
+												key: String(c.categoryId),
+												label: c.name ?? String(c.categoryId),
+												value: c.score,
+											}))}
+											format={(v) => v.toFixed(1)}
+										/>
+									) : (
+										<p className="empty">아직 없어요.</p>
+									)}
+								</Chart>
+							</div>
 						</>
 					)}
 				</Section>

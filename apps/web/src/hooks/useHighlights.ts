@@ -30,7 +30,11 @@ export function useHighlights(newsletterId?: number) {
 export function useHighlightMutations() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
-	const refresh = () => queryClient.invalidateQueries({ queryKey: ['highlights'] });
+	// 스크랩이 바뀌면 취향 점수도 다시
+	const refresh = () => {
+		queryClient.invalidateQueries({ queryKey: ['highlights'] });
+		queryClient.invalidateQueries({ queryKey: ['taste'] });
+	};
 	const fail = (error: Error) =>
 		showToast(error instanceof ApiError ? error.message : '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.', 'error');
 
@@ -70,4 +74,22 @@ export function useHighlightMutations() {
 		onError: fail,
 	});
 	return { create, update, remove };
+}
+
+/** 내 취향 점수 (#123 2단계) */
+export interface Taste {
+	weights: { bookmark: number; scrap: number; memo: number };
+	halfLifeDays: number;
+	signals: { bookmark: number; scrap: number; memo: number };
+	topics: { topic: string; score: number; bookmark: number; scrap: number; memo: number }[];
+	categories: { categoryId: number; name: string | null; score: number }[];
+}
+
+export function useTaste() {
+	const { user } = useAuth();
+	return useQuery({
+		queryKey: ['taste', user?.id],
+		queryFn: () => apiFetch<Taste>(API_ENDPOINTS.MY.TASTE()),
+		enabled: !!user,
+	});
 }

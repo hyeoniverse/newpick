@@ -37,7 +37,7 @@ export const API_ENDPOINTS = {
 		LIST: (kind: 'newsletters' | 'mails' | 'ai-logs' | 'job-runs' | 'articles', query: string) =>
 			`${API_URL}/scheduler/dashboard/${kind}?${query}`,
 		/** 통계 (#122): 구독자 · AI 비용 · 발송 (쿼리 from · to) */
-		STATS: (kind: 'subscribers' | 'cost' | 'delivery' | 'traffic' | 'page', query: string) =>
+		STATS: (kind: 'subscribers' | 'cost' | 'delivery' | 'traffic' | 'page' | 'taste', query: string) =>
 			`${API_URL}/scheduler/stats/${kind}?${query}`,
 		/** 예약 작업 시간 (GET 보기 · PUT 바꾸기) */
 		SCHEDULE: () => `${API_URL}/scheduler/schedule`,
@@ -61,6 +61,8 @@ export const API_ENDPOINTS = {
 		HIGHLIGHTS: (newsletterId?: number) =>
 			`${API_URL}/mypage/highlights${newsletterId ? `?newsletterId=${newsletterId}` : ''}`,
 		HIGHLIGHT: (id: number) => `${API_URL}/mypage/highlights/${id}`,
+		/** 내 취향 점수 (#123 2단계): 북마크 · 스크랩 · 메모로 모은 태그 · 관심사 */
+		TASTE: () => `${API_URL}/mypage/taste`,
 	},
 	SUBSCRIBERS: {
 		STATUS: () => `${API_URL}/subscribers/status`,

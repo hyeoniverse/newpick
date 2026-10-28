@@ -70,6 +70,7 @@ const EXPECTED: Record<string, Policy> = {
   'DELETE feedback/bookmark': 'auth',
 
   'GET mypage/highlights': 'auth',
+  'GET mypage/taste': 'auth',
   'POST mypage/highlights': 'auth',
   'PATCH mypage/highlights/:id': 'auth',
   'DELETE mypage/highlights/:id': 'auth',
@@ -120,6 +121,7 @@ const EXPECTED: Record<string, Policy> = {
   'GET scheduler/stats/cost': 'admin',
   'GET scheduler/stats/delivery': 'admin',
   'GET scheduler/stats/traffic': 'admin',
+  'GET scheduler/stats/taste': 'admin',
   'GET scheduler/stats/page': 'admin',
   'GET scheduler/schedule': 'admin',
   'PUT scheduler/schedule': 'admin',

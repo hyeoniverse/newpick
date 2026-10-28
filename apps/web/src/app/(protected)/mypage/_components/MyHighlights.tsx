@@ -12,6 +12,7 @@ import { Highlight, useHighlightMutations, useHighlights } from '@/hooks/useHigh
 import { useModal } from '@/hooks/useModal';
 import ModalContents from '@/components/common/modal/ModalContent';
 import { dateFormatter } from '@/utils/formatter';
+import MyTaste from './MyTaste';
 
 /** 구역 이름표 → 보이는 이름 */
 const sectionLabel = (section: string | null) => {
@@ -40,13 +41,17 @@ export default function MyHighlights() {
 	if (isPending) return <Skeleton />;
 	if (isError) return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
 	if (data.length === 0) {
+		// 스크랩이 없어도 북마크로 모인 주제는 보인다
 		return (
-			<EmptyState
-				icon={LuHighlighter}
-				title="스크랩한 문장이 없어요"
-				description="뉴스레터를 읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남기면 여기에 모여요."
-				action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
-			/>
+			<StyledHighlights>
+				<MyTaste />
+				<EmptyState
+					icon={LuHighlighter}
+					title="스크랩한 문장이 없어요"
+					description="뉴스레터를 읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남기면 여기에 모여요."
+					action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+				/>
+			</StyledHighlights>
 		);
 	}
 
@@ -57,6 +62,7 @@ export default function MyHighlights() {
 
 	return (
 		<StyledHighlights>
+			<MyTaste />
 			<p className="count">
 				뉴스레터 {groups.size}편 · 문장 {data.length}개 · 메모 {data.filter((h) => h.note).length}개
 			</p>
@@ -209,7 +215,8 @@ const StyledHighlights = styled.div`
 		}
 	}
 
-	ul {
+	/* 스크랩 목록만 (위의 '자주 모은 주제' 카드에는 붙지 않게) */
+	.group ul {
 		display: flex;
 		flex-direction: column;
 		margin: 0;
@@ -217,7 +224,7 @@ const StyledHighlights = styled.div`
 		list-style: none;
 	}
 
-	li {
+	.group li {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;

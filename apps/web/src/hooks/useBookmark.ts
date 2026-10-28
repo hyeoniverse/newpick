@@ -33,6 +33,7 @@ export const useAddBookmarkMutation = () => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+			queryClient.invalidateQueries({ queryKey: ['taste'] });
 			showToast('북마크가 추가되었습니다.', 'success');
 		},
 	});
@@ -49,6 +50,7 @@ export const useRemoveBookmarkMutation = () => {
 		},
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
+			queryClient.invalidateQueries({ queryKey: ['taste'] });
 			showToast('북마크가 삭제되었습니다.', 'success');
 		},
 	});

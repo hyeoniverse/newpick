@@ -23,6 +23,7 @@ import { InterestsDto } from 'src/common/dto/interests.dto';
 import { AppException } from '../common/errors/app.exception';
 import { MyMailQueryDto, MyMailsQueryDto } from './dto/my-mails-query.dto';
 import { HighlightsService } from './highlights.service';
+import { TasteService } from '../taste/taste.service';
 import {
   CreateHighlightDto,
   HighlightsQueryDto,
@@ -35,7 +36,14 @@ export class MyPageController {
   constructor(
     private readonly myPageService: MyPageService,
     private readonly highlightsService: HighlightsService,
+    private readonly tasteService: TasteService,
   ) {}
+
+  /** 내 취향 점수 (#123 2단계): 북마크 · 스크랩 · 메모로 모은 태그 · 관심사 */
+  @Get('taste')
+  async getTaste(@Req() req) {
+    return this.tasteService.forUser(this.userIdOf(req));
+  }
 
   /** 내 스크랩 · 메모 (#123). newsletterId를 주면 그 뉴스레터 것만 */
   @Get('highlights')
