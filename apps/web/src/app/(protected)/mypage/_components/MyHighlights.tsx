@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
-import { LuArrowUpRight, LuHighlighter, LuMessageSquarePlus, LuPencil, LuTrash2 } from 'react-icons/lu';
+import { LuHighlighter } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
@@ -37,7 +37,7 @@ const FILTERS = [
 /**
  * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
  * 뉴스레터별(가장 최근에 스크랩한 것부터)로 묶고, 그 안은 본문 순서(브리핑 → 소식 N)로 구역마다 한 번만 이름을 단다.
- * 문장마다 원문에서 보기(?hl=번호) · 메모 · 지우기
+ * 문장 아래 원문에서 보기(?hl=번호) · 메모 · 지우기
  */
 export default function MyHighlights() {
 	const { data, isPending, isError, error, refetch } = useHighlights();
@@ -156,24 +156,14 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 		>
 			<blockquote>{highlight.text}</blockquote>
 			<div className="tools">
-				<Link
-					href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}
-					aria-label="원문에서 보기"
-					title="원문에서 보기"
-				>
-					<LuArrowUpRight aria-hidden />
-				</Link>
-				<button
-					type="button"
-					onClick={() => setEditing(true)}
-					aria-label={highlight.note ? '메모 고치기' : '메모 남기기'}
-					title={highlight.note ? '메모 고치기' : '메모 남기기'}
-					disabled={editing}
-				>
-					{highlight.note ? <LuPencil aria-hidden /> : <LuMessageSquarePlus aria-hidden />}
-				</button>
-				<button type="button" className="danger" onClick={confirmRemove} aria-label="지우기" title="지우기">
-					<LuTrash2 aria-hidden />
+				<Link href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}>원문에서 보기</Link>
+				{!editing && (
+					<button type="button" onClick={() => setEditing(true)}>
+						{highlight.note ? '메모 고치기' : '메모 남기기'}
+					</button>
+				)}
+				<button type="button" className="danger" onClick={confirmRemove}>
+					지우기
 				</button>
 			</div>
 			{editing ? (
@@ -327,25 +317,17 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	/* 문장 한 개: 왼쪽 문장, 오른쪽 아이콘 셋 (모바일은 아래 오른쪽 끝) */
+	/* 문장 한 개: 문장 → 내 메모 → 글자 동작 */
 	.item {
 		display: grid;
-		grid-template-columns: minmax(0, 1fr) auto;
-		grid-template-areas:
-			'quote tools'
-			'note note';
-		gap: 0.5rem 1rem;
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-areas: 'quote' 'note' 'tools';
+		gap: 0.5rem;
 		margin: 0 -0.625rem;
 		padding: 0.625rem;
 		border-radius: ${({ theme }) => theme.radius.control};
 		scroll-margin-top: 6rem;
 		transition: background-color 0.4s;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: minmax(0, 1fr);
-			grid-template-areas: 'quote' 'note' 'tools';
-			gap: 0.375rem;
-		}
 
 		&:hover {
 			background: ${({ theme }) => theme.color.surface};
@@ -367,43 +349,31 @@ const StyledHighlights = styled.div`
 		word-break: keep-all;
 	}
 
+	/* 문장 아래 글자 동작: 문장 글머리에 맞춰 */
 	.tools {
 		grid-area: tools;
 		display: flex;
-		align-items: flex-start;
-		justify-content: flex-end;
-		gap: 0.125rem;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 1rem;
+		margin-left: 0.875rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 
 		a,
 		button {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			width: 2rem;
-			height: 2rem;
-			border-radius: ${({ theme }) => theme.radius.control};
+			padding: 0;
+			font: inherit;
 			color: ${({ theme }) => theme.color.subText};
 			cursor: pointer;
 
-			svg {
-				width: 1rem;
-				height: 1rem;
-			}
-
 			&:hover {
-				background: ${({ theme }) => theme.color.tertiary};
 				color: ${({ theme }) => theme.color.primary};
+				text-decoration: underline;
 			}
+		}
 
-			&.danger:hover {
-				background: color-mix(in srgb, ${({ theme }) => theme.color.error} 10%, transparent);
-				color: ${({ theme }) => theme.color.error};
-			}
-
-			&:disabled {
-				opacity: 0.4;
-				cursor: default;
-			}
+		.danger:hover {
+			color: ${({ theme }) => theme.color.error};
 		}
 	}
 
