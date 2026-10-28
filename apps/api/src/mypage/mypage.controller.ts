@@ -1,4 +1,13 @@
-import { Body, Controller, Delete, Get, Put, Req, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Put,
+  Query,
+  Req,
+  Res,
+} from '@nestjs/common';
 import { Response } from 'express';
 import {
   SESSION_HINT_COOKIE,
@@ -8,6 +17,7 @@ import {
 import { MyPageService } from './mypage.service';
 import { InterestsDto } from 'src/common/dto/interests.dto';
 import { AppException } from '../common/errors/app.exception';
+import { MyMailQueryDto, MyMailsQueryDto } from './dto/my-mails-query.dto';
 
 /** 로그인 필요 (전역 JwtAuthGuard). 구독 상태·기록은 /subscribers에서 조회합니다. */
 @Controller('mypage')
@@ -28,6 +38,22 @@ export class MyPageController {
   @Get('bookmarks')
   async getBookmarks(@Req() req) {
     return this.myPageService.getBookmarks(this.userIdOf(req));
+  }
+
+  /**
+   * 내가 받은 메일 (보낸 시각별로 한 통씩, 쪽 단위)
+   */
+  @Get('mails')
+  async getMails(@Req() req, @Query() q: MyMailsQueryDto) {
+    return this.myPageService.getMails(this.userIdOf(req), q.offset, q.limit);
+  }
+
+  /**
+   * 받은 메일 한 통을 받은 그대로 (HTML)
+   */
+  @Get('mails/view')
+  async getMail(@Req() req, @Query() q: MyMailQueryDto) {
+    return this.myPageService.getMail(this.userIdOf(req), new Date(q.sentAt));
   }
 
   /**

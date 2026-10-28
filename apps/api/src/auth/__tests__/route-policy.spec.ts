@@ -60,6 +60,8 @@ const EXPECTED: Record<string, Policy> = {
 
   'GET mypage/profile': 'auth',
   'GET mypage/bookmarks': 'auth',
+  'GET mypage/mails': 'auth',
+  'GET mypage/mails/view': 'auth',
   'GET mypage/interests': 'auth',
   'PUT mypage/interests': 'auth',
   'DELETE mypage/account': 'auth',
