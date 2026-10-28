@@ -504,7 +504,7 @@ const StyledPopover = styled.div`
 		}
 
 		&.on {
-			color: ${({ theme }) => theme.color.warning};
+			color: ${({ theme }) => theme.color.primary};
 		}
 	}
 

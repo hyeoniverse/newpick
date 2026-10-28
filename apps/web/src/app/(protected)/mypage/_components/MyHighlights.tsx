@@ -262,7 +262,7 @@ function HighlightItem({
 			<p className="quote">
 				<span>{highlight.text}</span>
 			</p>
-			{/* 별표(중요): 문장 줄 오른쪽 끝 아이콘 버튼 (켜면 노란 별) */}
+			{/* 별표(중요): 문장 줄 오른쪽 끝 아이콘 버튼 (켜면 기본색 별) */}
 			{!selecting && (
 				<button
 					type="button"
@@ -524,7 +524,7 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.primary};
 	}
 
-	/* 별표 버튼: 꺼지면 회색 빈 별, 켜지면 노란 꽉 찬 별 */
+	/* 별표 버튼: 꺼지면 회색 빈 별, 켜지면 기본색(보라) 꽉 찬 별 */
 	.star-toggle {
 		grid-area: star;
 		align-self: start;
@@ -545,11 +545,11 @@ const StyledHighlights = styled.div`
 
 		&:hover {
 			background: ${({ theme }) => theme.color.surface};
-			color: ${({ theme }) => theme.color.warning};
+			color: ${({ theme }) => theme.color.primary};
 		}
 
 		&.on {
-			color: ${({ theme }) => theme.color.warning};
+			color: ${({ theme }) => theme.color.primary};
 
 			svg {
 				fill: currentColor;
