@@ -16,7 +16,11 @@ const contact = (email: string | null) => (email ? `이메일 ${email}` : '사�
 // ---------- 이용약관 ----------
 
 export const termsSummary: LegalSummary[] = [
-	{ icon: 'free', title: '무료 서비스', text: '뉴스레터 열람·구독·북마크 모두 무료입니다.' },
+	{
+		icon: 'free',
+		title: '비상업 개인 프로젝트',
+		text: '개인이 공부용으로 만든 프로젝트라 수익을 얻지 않습니다. 열람·구독·북마크 모두 무료입니다.',
+	},
 	{ icon: 'ai', title: 'AI가 쓴 글', text: '기사를 AI가 요약·재구성합니다. 중요한 판단 전에는 원문을 확인하세요.' },
 	{ icon: 'mail', title: '언제든 구독 해지', text: '마이페이지나 메일의 "수신 거부"로 바로 멈출 수 있습니다.' },
 ];
@@ -26,6 +30,7 @@ export const termsSections = (email: string | null): LegalSection[] => [
 		title: '목적',
 		blocks: [
 			'이 약관은 뉴픽(NewPick, 이하 "서비스")이 제공하는 뉴스 요약 뉴스레터와 관련 웹 서비스를 이용하는 조건과 절차, 서비스와 이용자의 권리·의무 및 책임을 정합니다.',
+			'서비스는 개인이 공부를 위해 만든 비상업적 프로젝트입니다. 회사나 사업자가 운영하는 실제 사업 서비스가 아니며, 이용료·광고·후원 등 어떤 방식으로도 수익을 얻지 않습니다.',
 		],
 	},
 	{
