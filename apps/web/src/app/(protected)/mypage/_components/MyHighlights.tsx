@@ -155,9 +155,9 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
 		>
 			{/* 스크랩한 문장만 따옴표 칸만큼 들여 쓴다 */}
-			<svg className="quote-mark" viewBox="0 0 24 24" aria-hidden>
-				<path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z" />
-			</svg>
+			<span className="quote-mark" aria-hidden>
+				“
+			</span>
 			<p className="quote">
 				<span>{highlight.text}</span>
 			</p>
@@ -351,19 +351,21 @@ const StyledHighlights = styled.div`
 
 	/* 문장이 먼저 보이게: 메모 · 동작보다 굵고 진하게 */
 	/* 따옴표 칸 */
-	/* 문장 첫머리에 살짝 걸치게: 칸보다 크게, 오른쪽으로 밀어 글자 뒤에 옅게 깐다 */
+	/* 문장 첫머리에 살짝 걸치는 장식 따옴표: 세리프 글꼴의 가는 곡선 모양, 옅게 글자 뒤에 */
 	.quote-mark {
 		grid-area: mark;
 		z-index: 0;
-		width: 2.75rem;
-		height: 2.75rem;
 		/* 위아래로 넘친 만큼 빼서 줄 높이에 영향을 주지 않게 */
-		margin: -0.625rem 0 -1.5rem;
-		fill: currentColor;
+		height: 0;
+		margin-top: -0.375rem;
+		font-family: Georgia, 'Times New Roman', serif;
+		font-size: 3.25rem;
+		line-height: 1;
 		color: ${({ theme }) => theme.color.primary};
-		opacity: 0.22;
-		/* 닫는 따옴표 모양(”)을 돌려 여는 따옴표(“)로. 칸(1.5rem)보다 커서 문장 첫 글자에 걸친다 */
-		transform: translateX(-0.25rem) rotate(180deg);
+		opacity: 0.28;
+		/* 칸에서 문장 쪽으로 밀어 첫 글자에 살짝 걸치게 */
+		transform: translateX(0.5rem);
+		user-select: none;
 		pointer-events: none;
 	}
 
