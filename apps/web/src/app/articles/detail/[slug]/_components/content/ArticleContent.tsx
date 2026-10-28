@@ -74,6 +74,8 @@ const OpenGraphCardContainer = styled.div`
 
 const NewsletterContentStyled = styled.article`
 	position: relative;
+	/* 스크랩 형광펜 띠(z-index -1)가 본문 글자 뒤 · 이 틀 안에 깔리도록 따로 쌓는다 */
+	isolation: isolate;
 	gap: 0.5rem;
 
 	.content-bottom-margin {

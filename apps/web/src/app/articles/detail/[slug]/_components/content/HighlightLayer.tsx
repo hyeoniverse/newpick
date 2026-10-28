@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
-import styled, { createGlobalStyle } from 'styled-components';
+import styled from 'styled-components';
 import { LuHighlighter, LuMessageSquarePlus, LuTrash2 } from 'react-icons/lu';
 import { useAuth } from '@/hooks/useAuth';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
@@ -23,6 +23,12 @@ type Popover =
 	| { kind: 'saved'; highlight: Scrap; rect: DOMRect };
 
 const MAX_TEXT = 500;
+
+/** 칠할 띠 하나 (본문 기준 위치) */
+type Band = { id: number; note: boolean; left: number; top: number; width: number; height: number };
+/** 줄 상자(글꼴 높이의 약 1.2배)에서 글자가 실제로 차지하는 부분: 위 12%를 비우고 78%만 */
+const BAND_TOP = 0.12;
+const BAND_HEIGHT = 0.78;
 
 /** 본문 안 위치의 구역: 브리핑 · 소식 N (방문 통계 구역 이름과 같게) */
 function sectionOf(root: HTMLElement, node: Node | null) {
@@ -61,12 +67,10 @@ function caretAt(x: number, y: number): { node: Node; offset: number } | null {
 	return range ? { node: range.startContainer, offset: range.startOffset } : null;
 }
 
-const supportsHighlights = () => typeof CSS !== 'undefined' && 'highlights' in CSS && typeof Highlight !== 'undefined';
-
 /**
  * 스크랩 · 메모 (#123 1단계): 본문에서 문장을 고르면 작은 도구 막대(스크랩 · 메모),
  * 저장한 문장은 형광펜(메모가 있으면 밑줄도)으로 다시 칠하고, 누르면 메모 보기 · 고치기 · 지우기.
- * 형광펜은 CSS Custom Highlight API로 칠해 본문 HTML(React가 그린 것)을 건드리지 않는다.
+ * 형광펜은 본문 뒤에 띠를 따로 그려 본문 HTML(React가 그린 것)을 건드리지 않는다.
  * 마이페이지에서 '원문에서 보기'로 오면(?hl=번호) 그 문장으로 스크롤한다
  */
 export default function HighlightLayer({ newsletterId, rootRef }: Props) {
@@ -80,23 +84,38 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	const ranges = useRef(new Map<number, Range>());
 	const scrolledTo = useRef<number | null>(null);
 	const openedAt = useRef(0);
+	const bandsRef = useRef<HTMLDivElement>(null);
+	const [bands, setBands] = useState<Band[]>([]);
+	const [focusId, setFocusId] = useState<number | null>(null);
 
-	// 형광펜 칠하기: 스크랩 / 메모 있는 스크랩을 따로 (모양이 다름)
+	// 형광펜 칠하기 (#123): 문장의 줄마다 띠를 본문 뒤에 그린다.
+	// 브라우저 기본 칠하기(::highlight · 배경)는 글꼴의 줄 상자 높이를 따라가서, 글꼴 · 크기 · 굵기가 다른 곳(제목 · 굵은 글 · 강조)마다
+	// 띠가 글자보다 위아래로 남거나 잘린다. 줄 상자에서 글자가 실제로 차지하는 가운데 부분만 칠해 어디서나 같은 모양으로 맞춘다
 	useEffect(() => {
 		const root = rootRef.current;
-		if (!root || !supportsHighlights()) return;
+		const layer = bandsRef.current;
+		if (!root || !layer) return;
 		const paint = () => {
 			ranges.current.clear();
-			const scrap: Range[] = [];
-			const withNote: Range[] = [];
+			const base = layer.getBoundingClientRect();
+			const next: Band[] = [];
 			for (const highlight of highlights) {
 				const range = rangeOf(root, highlight);
 				if (!range) continue;
 				ranges.current.set(highlight.id, range);
-				(highlight.note ? withNote : scrap).push(range);
+				for (const rect of Array.from(range.getClientRects())) {
+					if (rect.width < 1 || rect.height < 1) continue;
+					next.push({
+						id: highlight.id,
+						note: Boolean(highlight.note),
+						left: rect.left - base.left,
+						top: rect.top - base.top + rect.height * BAND_TOP,
+						width: rect.width,
+						height: rect.height * BAND_HEIGHT,
+					});
+				}
 			}
-			CSS.highlights.set('np-scrap', new Highlight(...scrap));
-			CSS.highlights.set('np-memo', new Highlight(...withNote));
+			setBands(next);
 
 			// 마이페이지에서 고른 문장으로
 			const target = Number(searchParams.get('hl'));
@@ -105,18 +124,20 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 				scrolledTo.current = target;
 				const rect = range.getBoundingClientRect();
 				window.scrollTo({ top: window.scrollY + rect.top - window.innerHeight / 3, behavior: 'smooth' });
-				CSS.highlights.set('np-focus', new Highlight(range));
-				window.setTimeout(() => CSS.highlights.delete('np-focus'), 2400);
+				setFocusId(target);
+				window.setTimeout(() => setFocusId(null), 2400);
 			}
 		};
 		paint();
-		// 본문 HTML이 늦게 들어오거나 바뀌면 다시
-		const observer = new MutationObserver(paint);
-		observer.observe(root, { childList: true, subtree: true, characterData: true });
+		// 본문 HTML이 늦게 들어오거나 바뀌면, 사진이 늦게 떠 줄 위치가 바뀌면, 글꼴을 받으면 다시
+		const mutations = new MutationObserver(paint);
+		mutations.observe(root, { childList: true, subtree: true, characterData: true });
+		const resize = new ResizeObserver(paint);
+		resize.observe(root);
+		document.fonts?.ready.then(paint).catch(() => {});
 		return () => {
-			observer.disconnect();
-			CSS.highlights.delete('np-scrap');
-			CSS.highlights.delete('np-memo');
+			mutations.disconnect();
+			resize.disconnect();
 		};
 	}, [highlights, rootRef, searchParams]);
 
@@ -206,7 +227,19 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 		setMemo('');
 	};
 
-	if (!popover) return <HighlightStyles />;
+	const bandLayer = (
+		<StyledBands ref={bandsRef} aria-hidden>
+			{bands.map((band, i) => (
+				<span
+					key={`${band.id}-${i}`}
+					className={`${band.note ? 'note' : ''} ${band.id === focusId ? 'focus' : ''}`}
+					style={{ left: band.left, top: band.top, width: band.width, height: band.height }}
+				/>
+			))}
+		</StyledBands>
+	);
+
+	if (!popover) return bandLayer;
 
 	const rect = popover.kind === 'saved' ? popover.rect : popover.picked.rect;
 	// 터치 화면은 글 아래에 (휴대폰의 기본 복사 메뉴가 위에 뜨므로)
@@ -220,7 +253,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 
 	return (
 		<>
-			<HighlightStyles />
+			{bandLayer}
 			{/* 본문 스타일(문단 · 블록 여백)이 붙지 않게 body에 띄운다 */}
 			{createPortal(
 				<StyledPopover style={style} data-highlight-popover role="dialog" aria-label="스크랩 · 메모">
@@ -307,20 +340,29 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	);
 }
 
-/** 형광펜 모양: 스크랩은 옅은 주 색, 메모가 있으면 밑줄, 마이페이지에서 온 문장은 잠깐 진하게 */
-const HighlightStyles = createGlobalStyle`
-	::highlight(np-scrap) {
-		background-color: color-mix(in srgb, ${({ theme }) => theme.color.primary} 18%, transparent);
-	}
+/**
+ * 형광펜 띠: 본문 글자 뒤(z-index -1, 본문 틀이 isolation으로 따로 쌓임)에 깐다. 누르기는 본문이 받는다.
+ * 스크랩은 옅은 주 색, 메모가 있으면 아래에 주 색 줄, 마이페이지에서 온 문장은 잠깐 진하게
+ */
+const StyledBands = styled.div`
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
 
-	::highlight(np-memo) {
-		background-color: color-mix(in srgb, ${({ theme }) => theme.color.primary} 18%, transparent);
-		text-decoration: underline 2px ${({ theme }) => theme.color.primary};
-		text-underline-offset: 4px;
-	}
+	span {
+		position: absolute;
+		border-radius: 2px;
+		background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 18%, transparent);
+		transition: background-color 0.3s;
 
-	::highlight(np-focus) {
-		background-color: color-mix(in srgb, ${({ theme }) => theme.color.primary} 40%, transparent);
+		&.note {
+			box-shadow: inset 0 -2px 0 ${({ theme }) => theme.color.primary};
+		}
+
+		&.focus {
+			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 40%, transparent);
+		}
 	}
 `;
 
