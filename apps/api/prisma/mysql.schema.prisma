@@ -237,3 +237,43 @@ model SubscriptionEvent {
   @@index([userId])
   @@map("subscription_events")
 }
+
+/// 방문 통계 (#131): 페이지 한 번 보기 = 한 줄. 쿠키 · IP · 계정과 연결하지 않고, 탭마다 임시 번호만.
+/// 브라우저가 누적 값을 여러 번 보내 덮어쓴다. 180일 지나면 지운다
+model PageView {
+  /// 브라우저가 만든 이 보기의 번호
+  id           String   @id @db.VarChar(32)
+  /// 탭마다 임시 번호 (sessionStorage, 탭을 닫으면 사라짐)
+  sessionId    String   @db.VarChar(32)
+  path         String   @db.VarChar(255)
+  /// 같은 화면끼리 묶은 경로 (/articles/detail/:id)
+  route        String   @db.VarChar(120)
+  /// 이 탭의 첫 페이지
+  entry        Boolean  @default(false)
+  /// direct · search · social · email · referral · internal
+  channel      String   @db.VarChar(20)
+  /// 이전 사이트의 호스트만 (전체 주소는 남기지 않음)
+  referrerHost String?  @db.VarChar(120)
+  utmSource    String?  @db.VarChar(100)
+  utmMedium    String?  @db.VarChar(100)
+  utmCampaign  String?  @db.VarChar(100)
+  /// mobile · tablet · desktop
+  device       String   @db.VarChar(10)
+  viewportW    Int
+  /// 탭이 보이고 움직임이 있던 시간
+  durationMs   Int      @default(0)
+  /// 본 가장 아래 (문서 높이 대비 %)
+  scrollDepth  Int      @default(0)
+  /// 구역마다 화면에 보인 시간 { 이름: ms }
+  sections     Json?
+  /// 문서를 20칸으로 나눠 칸마다 화면에 보인 시간 (ms)
+  attention    Json?
+  /// 클릭 [가로 비율, 세로 비율, 구역] (100개까지)
+  clicks       Json?
+  startedAt    DateTime
+  updatedAt    DateTime @updatedAt
+
+  @@index([startedAt])
+  @@index([route, startedAt])
+  @@map("page_views")
+}

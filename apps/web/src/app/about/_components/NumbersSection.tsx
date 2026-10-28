@@ -69,7 +69,7 @@ export default function NumbersSection() {
 	}, []);
 
 	return (
-		<StyledNumbers id="about-numbers" aria-label="숫자로 보는 NEWPICK">
+		<StyledNumbers data-track-section="about-numbers" id="about-numbers" aria-label="숫자로 보는 NEWPICK">
 			<SectionHeading label="IN NUMBERS" title="하루 한 통이면 충분합니다." />
 			<ul ref={ref} className="list">
 				{NUMBERS.map((item) => (

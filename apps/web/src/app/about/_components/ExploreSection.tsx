@@ -43,7 +43,7 @@ function WhyNewpickSection({ className }: Props) {
 	};
 
 	return (
-		<StyledExploreSection className={className}>
+		<StyledExploreSection data-track-section="about-explore" className={className}>
 			<BorderTitle text="EXPLORE" />
 			<div>
 				<Text size="medium" color="mediumGrey" className="sub-text">

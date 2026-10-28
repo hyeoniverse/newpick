@@ -60,7 +60,7 @@ function MemberCard({
  */
 export default function WhoSection() {
 	return (
-		<StyledWhoSection>
+		<StyledWhoSection data-track-section="about-who">
 			<FullWidthPanel background="mono" className="panel">
 				<div className="content">
 					<BorderTitle text="WHO WE ARE" color="white" className="title" />

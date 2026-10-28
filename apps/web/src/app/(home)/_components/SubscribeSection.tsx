@@ -57,7 +57,7 @@ const SubscribeSection = () => {
 	if (!trends) return null;
 
 	return (
-		<StyledSubscribe>
+		<StyledSubscribe data-track-section="home-subscribe">
 			<FullWidthPanel>
 				<Title as="h2" size="extraLarge" weight="bold" color="background">
 					📩 지금 뉴스레터를 시작해보세요

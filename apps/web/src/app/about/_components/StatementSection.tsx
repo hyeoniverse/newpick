@@ -20,7 +20,7 @@ export default function StatementSection() {
 	const ref = useScrollProgress<HTMLParagraphElement>('through');
 
 	return (
-		<StyledStatement aria-label="NEWPICK 소개">
+		<StyledStatement data-track-section="about-statement" aria-label="NEWPICK 소개">
 			<p ref={ref} className="statement" style={{ '--n': WORDS.length } as React.CSSProperties}>
 				{WORDS.map((word, i) => (
 					<span key={i} className={word.strong ? 'word strong' : 'word'} style={{ '--i': i } as React.CSSProperties}>

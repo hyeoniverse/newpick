@@ -14,7 +14,7 @@ function SubscribeInduce({ className }: Props) {
 	const openSubscribe = useOpenSubscribe();
 
 	return (
-		<SubscribeInduceStyled className={className}>
+		<SubscribeInduceStyled className={className} data-track-section="subscribe-cta">
 			<p>뉴픽이 보내드리는 뉴스레터를 구독해보세요!</p>
 			<Button scheme="primary" size="medium" onClick={() => openSubscribe()}>
 				구독하기

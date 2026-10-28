@@ -331,7 +331,9 @@ describe('메일 HTML (#55)', () => {
     expect(mail).toMatch(/<span style="background:[^"]+">핵심 구절<\/span>/);
     expect(mail).toContain('시사점 문단');
     expect(mail).toContain('href="https://news.kbs.co.kr/1"');
-    expect(mail).toContain('href="https://newpick.app/articles/detail/10"');
+    expect(mail).toContain(
+      'href="https://newpick.app/articles/detail/10?utm_source=newsletter&amp;utm_medium=email&amp;utm_campaign=daily"',
+    );
     expect(mail).toContain('href="https://newpick.app/mypage?tab=settings"');
   });
 

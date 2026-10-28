@@ -16,6 +16,8 @@ interface Props {
 	filters?: React.ReactNode;
 	/** false면 기간 고르기를 빼고 제목만 (태그 관리처럼 기간이 없는 화면) */
 	period?: boolean;
+	/** 뒤로 막대 (기본: 관리자 대시보드). 기간은 그대로 들고 간다 */
+	back?: { text: string; href: string };
 	children: React.ReactNode;
 }
 
@@ -23,7 +25,7 @@ interface Props {
  * 관리자 상세 화면 틀 (#21): ← 대시보드 · 제목 · 기간(주소에 남음) · 거르기 · 본문.
  * 대시보드는 요약만, 전체는 여기서 쪽 단위로
  */
-export default function AdminSubPage({ title, summary, filters, period = true, children }: Props) {
+export default function AdminSubPage({ title, summary, filters, period = true, back, children }: Props) {
 	const router = useRouter();
 	const { periodQuery } = useAdminQuery();
 	return (
@@ -33,7 +35,10 @@ export default function AdminSubPage({ title, summary, filters, period = true, c
 					{/* 세 묶음: 머리(뒤로 막대) / 조건(제목 · 기간 한 줄, 거르기) / 결과(건수 · 표 · 쪽) */}
 					{/* 기사 상세의 '목록으로'와 같은 막대: 스크롤하면 위에 붙고, 내릴 땐 화살표만.
 					    화면 끝까지 따라오도록 묶음 밖(맨 바깥 틀의 바로 아래)에 둔다 */}
-					<BackBar text="관리자 대시보드" onClick={() => router.push(`/admin${periodQuery}`)} />
+					<BackBar
+						text={back?.text ?? '관리자 대시보드'}
+						onClick={() => router.push(`${back?.href ?? '/admin'}${periodQuery}`)}
+					/>
 					<div className="conditions">
 						{/* 제목 · 기간을 한 줄에: 왼쪽 '수집한 기사 | 기간 ( 날짜 )', 오른쪽 끝 오늘 · 어제 · … */}
 						<div className="head">

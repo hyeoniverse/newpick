@@ -15,6 +15,7 @@ import Providers from '@/components/providers/Providers';
 import Layout from '@/components/layout/MainLayout';
 import ToastContainer from '@/components/common/toast/ToastContainer';
 import ModalContainer from '@/components/common/modal/ModalContainer';
+import Tracker from '@/components/common/analytics/Tracker';
 
 /**
  * 사이트 공통 메타데이터 (#15). 화면마다 title만 주면 '제목 | 뉴픽: NewPick'이 되고,
@@ -82,6 +83,8 @@ export default async function RootLayout({
 						<ToastContainer />
 						<ModalContainer />
 						<SpeedInsights />
+						{/* 방문 통계 (#131): 쿠키 없이 */}
+						<Tracker />
 					</Providers>
 				</StyledComponentsRegistry>
 			</body>

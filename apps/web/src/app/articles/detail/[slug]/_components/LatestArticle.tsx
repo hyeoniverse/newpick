@@ -27,7 +27,7 @@ function LatestArticle({ className }: Props) {
 	if (isError || articleList?.length === 0) return null;
 
 	return (
-		<LatestArticleStyled className={className} aria-busy={isPending || undefined}>
+		<LatestArticleStyled className={className} aria-busy={isPending || undefined} data-track-section="detail-latest">
 			<div className="section-title">
 				<h3>최신 뉴스레터</h3>
 				<div className="arrow">

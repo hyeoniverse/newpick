@@ -27,6 +27,7 @@ import { CoopMiddleware } from './middleware/coop.middleware';
 
 import { EditionModule } from './edition/edition.module';
 import { SiteCacheModule } from './site-cache/site-cache.module';
+import { AnalyticsModule } from './analytics/analytics.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -43,6 +44,7 @@ import { SiteCacheModule } from './site-cache/site-cache.module';
     AuthModule, // 인증 모듈
     AiSummaryModule, // AI 요약 모듈
     FeedbackModule, // 피드백 모듈
+    AnalyticsModule, // 방문 통계 (#131)
     PrismaModule, // Prisma 모듈
     MyPageModule, // 마이페이지 모듈
     AdminModule, // 관리자 페이지 모듈

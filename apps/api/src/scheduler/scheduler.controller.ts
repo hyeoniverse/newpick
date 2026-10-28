@@ -18,6 +18,7 @@ import {
   DashboardNewslettersQueryDto,
   DashboardQueryDto,
   MailRecipientsQueryDto,
+  PageStatsQueryDto,
 } from './dto/dashboard-query.dto';
 
 @AdminOnly()
@@ -76,6 +77,24 @@ export class SchedulerController {
     return {
       message: '발송 통계 조회 성공',
       data: await this.statsService.delivery(from, to),
+    };
+  }
+
+  /** 통계: 방문 · 유입 경로 · 페이지별 머문 시간 (#131) */
+  @Get('stats/traffic')
+  async trafficStats(@Query() { from, to }: DashboardQueryDto) {
+    return {
+      message: '방문 통계 조회 성공',
+      data: await this.statsService.traffic(from, to),
+    };
+  }
+
+  /** 통계: 한 페이지의 구역별 머문 시간 · 20칸 머문 시간 · 클릭 위치 (#131) */
+  @Get('stats/page')
+  async pageStats(@Query() { route, device, from, to }: PageStatsQueryDto) {
+    return {
+      message: '페이지 통계 조회 성공',
+      data: await this.statsService.page(route, device, from, to),
     };
   }
 

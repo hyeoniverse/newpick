@@ -75,7 +75,7 @@ function PrevNextArticle({ className, prev, next }: Props) {
 	};
 
 	return (
-		<PrevNextArticleStyled className={className}>
+		<PrevNextArticleStyled className={className} data-track-section="detail-prev-next">
 			<ul>
 				{renderArticle(prev, 'prev')} {/* 이전글 */}
 				{renderArticle(next, 'next')} {/* 다음글 */}

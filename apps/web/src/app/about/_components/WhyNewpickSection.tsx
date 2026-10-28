@@ -41,7 +41,7 @@ export default function WhyNewpickSection() {
 	const valuesRef = useScrollProgress<HTMLDivElement>('through');
 
 	return (
-		<StyledWhy aria-label="WHY NEWPICK">
+		<StyledWhy data-track-section="about-why-newpick" aria-label="WHY NEWPICK">
 			<BorderTitle text="WHY NEWPICK?" />
 			<p className="sub-text">
 				매일 새로운 소식, 중요한 소식이 쏟아지지만 모두 챙기기 힘드셨다면?

@@ -16,7 +16,7 @@ function PopularArticle({ flex, className }: Props) {
 	const { data: popularArticles, isPending, isError, refetch } = usePopularArticlesQuery();
 
 	return (
-		<PopularNewsletterStyled flex={flex} className={className}>
+		<PopularNewsletterStyled flex={flex} className={className} data-track-section="detail-popular">
 			<h3 className="section-title">지금 인기 뉴스레터 TOP 5</h3>
 			{/* 불러오는 중 · 실패 · 비어 있음 (#17). 옆 칸이라 작게 */}
 			{isPending && (
