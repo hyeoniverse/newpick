@@ -153,11 +153,18 @@ model Bookmark {
 
 // ScheduleConfig 모델
 model ScheduleConfig {
-  id        Int      @id @default(autoincrement())
-  hour      Int      @default(8)
-  day       Int      @default(7) // 0: 일요일 ~ 6: 토요일, 7: 매일 (#55)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            Int      @id @default(autoincrement())
+  /// 구독 메일: hour시 mailMinute분, day 0(일)~6(토) · 7(매일) (#55)
+  hour          Int      @default(8)
+  day           Int      @default(7)
+  mailMinute    Int      @default(40)
+  /// 기사 수집 · AI 요약 시각 (#21, 관리자 화면에서 바꾼다)
+  crawlHour     Int      @default(8)
+  crawlMinute   Int      @default(0)
+  summaryHour   Int      @default(8)
+  summaryMinute Int      @default(30)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   @@map("schedule_configs")
 }
@@ -175,4 +182,36 @@ model DailyEdition {
   createdAt     DateTime @default(now())
 
   @@map("daily_editions")
+}
+
+/// 예약 작업 실행 기록 (#21). 수집 · AI 요약 · 구독 메일이 언제 어떻게 돌았는지
+model JobRun {
+  id         Int       @id @default(autoincrement())
+  /// crawling · summary · mail
+  job        String    @db.VarChar(20)
+  /// schedule(예약) · manual(관리자가 지금 실행)
+  trigger    String    @default("schedule") @db.VarChar(20)
+  /// running · success · partial · failed · skipped
+  status     String    @db.VarChar(20)
+  message    String?   @db.Text
+  startedAt  DateTime
+  finishedAt DateTime?
+  durationMs Int?
+
+  @@index([startedAt])
+  @@index([job, startedAt])
+  @@map("job_runs")
+}
+
+/// 태그 규칙 (#20 태그 정돈). alias: 이 태그를 target으로 바꿔 쓴다 (합치기), block: 이 태그는 쓰지 않는다 (지우기).
+/// 관리자가 합치기 · 지우기를 하면 생기고, 새 뉴스레터를 저장할 때 적용된다
+model TagRule {
+  id        Int      @id @default(autoincrement())
+  /// 규칙이 걸리는 태그 (표기 그대로)
+  keyword   String   @unique @db.VarChar(100)
+  action    String   @db.VarChar(10)
+  target    String?  @db.VarChar(100)
+  createdAt DateTime @default(now())
+
+  @@map("tag_rules")
 }

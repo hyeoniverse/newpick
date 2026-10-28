@@ -165,7 +165,11 @@ export const numberArticles = (articles: PrepArticle[]) =>
     )
     .join('\n\n');
 
-export const writerPrompt = (articles: PrepArticle[], category?: string) =>
+export const writerPrompt = (
+  articles: PrepArticle[],
+  category?: string,
+  existingTags: string[] = [],
+) =>
   [
     `아래 ${category ? `${category} 분야 ` : ''}기사 ${articles.length}건은 오늘 뉴스레터에 실을 소식으로 이미 고른 것입니다. 이걸로 전문가용 뉴스 브리핑 한 편을 써 주세요. 같은 사건을 다룬 기사는 한 소식으로 합칩니다.`,
     '',
@@ -197,6 +201,11 @@ export const writerPrompt = (articles: PrepArticle[], category?: string) =>
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     `- watch: 관전 포인트. 앞으로 지켜볼 일정·변수 1~${LIMITS.watch.max}개, 하나에 ${LIMITS.watch.length}자 이내. 기사에 나온 것만.`,
     `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개, 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
+    ...(existingTags.length
+      ? [
+          `- keywords는 같은 대상·주제면 이미 쓰고 있는 태그 표기를 그대로 다시 씁니다 (띄어쓰기·영문 표기까지 같게). 정말 새로운 대상일 때만 새 태그를 만듭니다. 이미 쓰는 태그: ${existingTags.join(', ')}`,
+        ]
+      : []),
     '- 숫자·이름·날짜는 기사에 있는 그대로 쓰고, 기사에 없는 내용은 더하지 않습니다.',
     '- 마크다운, HTML, 글머리 기호 문자(-, •)는 쓰지 않습니다. 따옴표로 제목을 감싸지 않습니다.',
     '',
@@ -464,7 +473,11 @@ export class NewsletterWriterService {
    * 2. 고르기: 가벼운 모델에 묶음의 제목·첫 부분만 → 주요 소식 번호 (묶음이 하나면 건너뜀)
    * 3. 쓰기: 기본 모델에 고른 소식의 대표 기사만 → 제목·요약·본문 JSON
    */
-  async write(articles: SourceArticle[], category?: string) {
+  async write(
+    articles: SourceArticle[],
+    category?: string,
+    existingTags: string[] = [],
+  ) {
     const clusters = clusterArticles(prepare(articles));
     const usage: Usage[] = [];
 
@@ -489,7 +502,7 @@ export class NewsletterWriterService {
     // 뉴스레터 본문이 되는 호출이라 effort를 높입니다.
     const written = await this.claude.generate({
       system: WRITER_SYSTEM,
-      prompt: writerPrompt(chosen, category),
+      prompt: writerPrompt(chosen, category, existingTags),
       schema: WRITER_SCHEMA,
       effort: 'medium',
       maxTokens: 12000,

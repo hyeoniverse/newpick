@@ -137,6 +137,13 @@ describe('2단계: 쓰기', () => {
     );
   });
 
+  it('이미 쓰는 태그를 주면 같은 주제는 그 표기를 다시 쓰게 한다 (#20 태그 정돈)', () => {
+    expect(writerPrompt(articles, 'IT')).not.toContain('이미 쓰는 태그');
+    expect(writerPrompt(articles, 'IT', ['AI 해킹', '코스피'])).toContain(
+      '이미 쓰는 태그: AI 해킹, 코스피',
+    );
+  });
+
   it('전문가 브리핑 문체: 평서체, 수치·근거', () => {
     const prompt = writerPrompt(articles, 'IT');
     expect(prompt).toContain('애널리스트 브리핑처럼 간결한 평서체(~다)');
@@ -518,11 +525,19 @@ describe('파이프라인', () => {
       { createNewsletter } as never,
       { write } as never,
       { attach: jest.fn(async (stories) => stories) } as never,
+      // 태그 정돈: 최근 태그를 쓰기 단계에 넘기고, 저장 전에 'AI해킹' → 'AI 해킹'처럼 기존 표기로 맞춘다
+      {
+        recentTags: jest.fn().mockResolvedValue(['AI 해킹']),
+        canonicalize: jest.fn(async (tags: string[]) =>
+          tags.map((t) => (t === 'AI해킹' ? 'AI 해킹' : t)),
+        ),
+      } as never,
     );
 
     await service.summarizeText(news as never, 1, false);
 
-    expect(write).toHaveBeenCalledWith(news, 'IT');
+    // 최근 태그를 쓰기 단계에 넘긴다
+    expect(write).toHaveBeenCalledWith(news, 'IT', ['AI 해킹']);
     expect(createNewsletter).toHaveBeenCalledWith(
       '제목',
       '부제목',

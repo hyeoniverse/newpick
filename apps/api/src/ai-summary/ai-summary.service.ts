@@ -7,6 +7,7 @@ import { CrawledNews } from 'src/crawling/schema/crawling.schema';
 import { NewsletterWriterService } from './newsletterWriter.service';
 import { renderNewsletterHtml } from './newsletterHtml';
 import { StoryImageService } from './storyImages';
+import { TagsService } from '../tags/tags.service';
 
 /**
  * 뉴스레터에 쓴 기사만 남깁니다. 썸네일·관련 기사가 실제로 다룬 소식에서 나오게 (#43).
@@ -26,6 +27,7 @@ export class AiSummaryService {
     private readonly createNewsletterService: CreateNewsletterService,
     private readonly newsletterWriterService: NewsletterWriterService,
     private readonly storyImageService: StoryImageService,
+    private readonly tagsService: TagsService,
   ) {}
 
   async summarizeText(
@@ -54,8 +56,15 @@ export class AiSummaryService {
         newsletter: written,
         tokens,
         usage,
-      } = await this.newsletterWriterService.write(news, category);
-      const { title, subtitle, summary, stories, keywords } = written;
+      } = await this.newsletterWriterService.write(
+        news,
+        category,
+        // 같은 주제면 이미 쓰는 태그를 다시 쓰게 (#20 태그 정돈)
+        await this.tagsService.recentTags(),
+      );
+      const { title, subtitle, summary, stories } = written;
+      // 저장 전에 합치기 · 지우기 규칙과 기존 표기로 맞춘다 (띄어쓰기 · 대소문자만 다른 태그가 갈라지지 않게)
+      const keywords = await this.tagsService.canonicalize(written.keywords);
 
       const used = usedArticles(
         news,
