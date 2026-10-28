@@ -581,10 +581,12 @@ const StyledHighlights = styled.div`
 	/* 문장이 먼저 보이게: 메모 · 동작보다 굵고 진하게 */
 	/* 따옴표 칸 */
 	/* 고르는 중: 따옴표 자리에 체크칸, 문장 어디를 눌러도 고르기 */
+	/* 체크칸: 문장 첫 줄 높이(줄 높이 1.75 × 글자 1rem) 안에서 세로 가운데 */
 	.pick {
 		grid-area: mark;
-		display: inline-flex;
-		margin-top: 0.3em;
+		display: flex;
+		align-items: center;
+		height: 1.75rem;
 	}
 
 	.item.selecting {
