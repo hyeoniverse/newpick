@@ -15,28 +15,36 @@ import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
 
-/**
- * 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목.
- * ('소식 2'만으로는 무엇을 가리키는지 몰라서)
- */
-function SectionLabel({ highlight }: { highlight: Highlight }) {
-	if (highlight.section === 'briefing') return <p className="section">에디터 브리핑</p>;
+/** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
+function sectionName(highlight: Highlight) {
+	if (highlight.section === 'briefing') return { index: null, name: '에디터 브리핑' };
 	const story = highlight.section?.match(/^story-(\d+)$/);
-	if (!story) return <p className="section">본문</p>;
+	if (!story) return { index: null, name: null };
+	return { index: story[1].padStart(2, '0'), name: highlight.sectionTitle ?? `소식 ${story[1]}` };
+}
+
+/** 문장 위 출처 한 줄: 관심사 · 뉴스레터 제목(누르면 그 뉴스레터) › 소식 번호 · 제목 */
+function Source({ highlight }: { highlight: Highlight }) {
+	const newsletter = highlight.newsletter;
+	const { index, name } = sectionName(highlight);
 	return (
-		<p className="section">
-			<span className="index">{story[1].padStart(2, '0')}</span>
-			{highlight.sectionTitle ?? `소식 ${story[1]}`}
+		<p className="source">
+			{newsletter && <span className="category">{newsletter.category.name}</span>}
+			<Link href={`/articles/detail/${highlight.newsletterId}`} className="newsletter">
+				{newsletter?.title ?? `뉴스레터 #${highlight.newsletterId}`}
+			</Link>
+			{name && (
+				<span className="section">
+					<span className="sep" aria-hidden>
+						›
+					</span>
+					{index && <span className="index">{index}</span>}
+					{name}
+				</span>
+			)}
 		</p>
 	);
 }
-
-/** 본문 순서: 브리핑 → 소식 1 → 소식 2 … → 구역 모름 */
-const sectionOrder = (section: string | null) => {
-	if (section === 'briefing') return 0;
-	const story = section?.match(/^story-(\d+)$/);
-	return story ? Number(story[1]) : 999;
-};
 
 const FILTERS: Record<string, (h: Highlight) => boolean> = {
 	starred: (h) => h.starred,
@@ -45,7 +53,7 @@ const FILTERS: Record<string, (h: Highlight) => boolean> = {
 
 /**
  * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
- * 뉴스레터별(가장 최근에 스크랩한 것부터)로 묶고, 그 안은 본문 순서(브리핑 → 소식 N)로 구역마다 한 번만 이름을 단다.
+ * 묶지 않고 최근에 스크랩한 것부터 한 줄 목록, 문장마다 위에 출처(관심사 · 뉴스레터 · 소식) 한 줄.
  * 문장 아래 원문에서 보기(?hl=번호) · 메모 · 지우기, 문장 줄 끝에 중요 표시(별). '선택'으로 골라서 한 번에 지운다.
  * 중요 표시한 문장은 지우기 전에 한 번 더 묻는다
  */
@@ -99,10 +107,6 @@ export default function MyHighlights() {
 			else next.add(id);
 			return next;
 		});
-	// 뉴스레터별 (목록이 최근 것부터라 처음 나온 순서 = 가장 최근에 스크랩한 뉴스레터부터)
-	const groups = new Map<number, Highlight[]>();
-	for (const highlight of shown)
-		groups.set(highlight.newsletterId, [...(groups.get(highlight.newsletterId) ?? []), highlight]);
 
 	return (
 		<StyledHighlights>
@@ -139,42 +143,24 @@ export default function MyHighlights() {
 						: '메모를 남긴 문장이 없어요.'}
 				</p>
 			)}
-			{[...groups.entries()].map(([newsletterId, items]) => {
-				const newsletter = items[0].newsletter;
-				// 본문 순서로, 같은 구역은 먼저 스크랩한 것부터
-				const sorted = [...items].sort(
-					(a, b) => sectionOrder(a.section) - sectionOrder(b.section) || a.createdAt.localeCompare(b.createdAt),
-				);
-				return (
-					<section key={newsletterId} className="group" aria-label={newsletter?.title}>
-						<div className="group-head">
-							<div className="eyebrow">
-								{newsletter && <span className="category">{newsletter.category.name}</span>}
-								{newsletter && <span className="date">{dateFormatter(newsletter.createdAt)}</span>}
-							</div>
-							<Link href={`/articles/detail/${newsletterId}`} className="title">
-								{newsletter?.title ?? `뉴스레터 #${newsletterId}`}
-							</Link>
-						</div>
-						<ul>
-							{sorted.map((highlight, i) => (
-								<li key={highlight.id}>
-									{/* 구역이 바뀔 때만 이름 */}
-									{(i === 0 || sorted[i - 1].section !== highlight.section) && <SectionLabel highlight={highlight} />}
-									<HighlightItem
-										highlight={highlight}
-										focused={highlight.id === focused}
-										selecting={selecting}
-										checked={selected.has(highlight.id)}
-										onToggle={() => toggle(highlight.id)}
-										onRemove={() => confirmRemove([highlight])}
-									/>
-								</li>
-							))}
-						</ul>
-					</section>
-				);
-			})}
+			{/* 최근에 스크랩한 것부터 (목록이 그 순서로 온다), 카드 한 장 안에 구분선으로 */}
+			{shown.length > 0 && (
+				<ul className="list">
+					{shown.map((highlight) => (
+						<li key={highlight.id}>
+							<Source highlight={highlight} />
+							<HighlightItem
+								highlight={highlight}
+								focused={highlight.id === focused}
+								selecting={selecting}
+								checked={selected.has(highlight.id)}
+								onToggle={() => toggle(highlight.id)}
+								onRemove={() => confirmRemove([highlight])}
+							/>
+						</li>
+					))}
+				</ul>
+			)}
 			{/* 고르는 중: 아래에 붙어 따라오는 막대 */}
 			{selecting && (
 				<div className="select-bar" role="region" aria-label="선택한 문장 지우기">
@@ -395,94 +381,71 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	.group {
+	/* 스크랩 목록: 카드 한 장 안에 문장마다 구분선 */
+	.list {
 		display: flex;
 		flex-direction: column;
-		gap: 0.5rem;
-		padding: 1.25rem 1.5rem 0.75rem;
+		margin: 0;
+		padding: 0 1.5rem;
+		list-style: none;
 		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.surface};
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			padding: 1rem 1rem 0.5rem;
+			padding: 0 1rem;
+		}
+
+		> li {
+			padding: 1rem 0;
+		}
+
+		> li + li {
+			border-top: 1px solid ${({ theme }) => theme.color.border};
 		}
 	}
 
-	.group-head {
+	/* 문장 위 출처 한 줄: 관심사 · 뉴스레터 제목 › 01 소식 제목 */
+	.source {
 		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		padding-bottom: 0.75rem;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-
-		.eyebrow {
-			display: flex;
-			align-items: center;
-			gap: 0.5rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		}
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.125rem 0.375rem;
+		margin: 0 0 0.5rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+		word-break: keep-all;
 
 		.category {
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			color: ${({ theme }) => theme.color.primary};
 		}
 
-		.date {
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		.title {
-			width: fit-content;
-			font-size: ${({ theme }) => theme.fontSize.medium};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
+		.newsletter {
 			color: ${({ theme }) => theme.color.text};
-			word-break: keep-all;
 
 			&:hover {
 				color: ${({ theme }) => theme.color.primary};
 				text-decoration: underline;
 			}
 		}
-	}
 
-	/* 스크랩 목록만 (위의 '요즘 관심 있게 본 주제' 카드에는 붙지 않게) */
-	.group ul {
-		display: flex;
-		flex-direction: column;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
+		.section {
+			display: inline-flex;
+			align-items: baseline;
+			gap: 0.375rem;
+		}
 
-	/* 구역 이름 (에디터 브리핑 · 소식 N): 바뀔 때만 */
-	.section {
-		display: flex;
-		align-items: baseline;
-		gap: 0.375rem;
-		margin: 0 0 0.5rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
+		.sep {
+			color: ${({ theme }) => theme.color.disabled};
+		}
 
 		/* 뉴스레터 본문의 소식 번호와 같은 모양 */
 		.index {
-			flex-shrink: 0;
 			font-size: 0.75rem;
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
 			color: ${({ theme }) => theme.color.primary};
 			font-variant-numeric: tabular-nums;
 		}
-	}
-
-	/* 문장 한 개: 문장만 따옴표 칸만큼 들이고, 메모 · 글자 동작은 왼쪽 끝 */
-	/* 문장 사이 가는 구분선 (구역 이름도 선 아래에) */
-	.group li {
-		padding: 0.875rem 0;
-	}
-
-	.group li + li {
-		border-top: 1px solid ${({ theme }) => theme.color.border};
 	}
 
 	.item {
