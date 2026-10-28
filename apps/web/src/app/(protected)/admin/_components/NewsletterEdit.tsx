@@ -18,7 +18,10 @@ import Title from '@/components/common/Title';
 import Button from '@/components/common/Button';
 import ModalContents from '@/components/common/modal/ModalContent';
 import ArticleContent from '@/app/articles/detail/[slug]/_components/content/ArticleContent';
+import InputSelect from '@/components/common/InputSelect';
 import { fieldControl, fieldLabel } from '@/components/common/field';
+import HtmlCodeEditor from './HtmlCodeEditor';
+import { compactHtml, formatHtml } from './htmlFormat';
 
 interface Newsletter {
 	id: string;
@@ -40,8 +43,11 @@ const toForm = (n: Newsletter): Form => ({
 	content: n.content,
 	keywords: (n.keywords ?? []).join(', '),
 	categoryId: String(n.categoryId),
-	html: n.contentAsHTML ?? '',
+	// 저장된 본문은 한 줄로 붙어 있어, 고치기 쉽게 줄 · 들여쓰기로 펼쳐 보여 준다 (저장할 때 다시 붙임)
+	html: formatHtml(n.contentAsHTML ?? ''),
 });
+
+const CATEGORY_OPTIONS = CATEGORIES.filter((c) => c.id).map((c) => ({ value: String(c.id), label: c.name }));
 
 /**
  * 관리자 CMS (#31): 뉴스레터 한 편 고치기. AI 요약이 잘못 나왔을 때 지우지 않고 고친다.
@@ -66,6 +72,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 		if (data) setForm(toForm(data));
 	}, [data]);
 
+	const set = (key: keyof Form) => (value: string) => setForm((prev) => (prev ? { ...prev, [key]: value } : prev));
 	const change =
 		(key: keyof Form) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
 			setForm((prev) => (prev ? { ...prev, [key]: event.target.value } : prev));
@@ -88,7 +95,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 						.map((k) => k.trim())
 						.filter(Boolean),
 					categoryId: Number(form.categoryId),
-					...(form.html !== (data.contentAsHTML ?? '') && { contentAsHTML: form.html }),
+					...(form.html !== toForm(data).html && { contentAsHTML: compactHtml(form.html) }),
 				},
 			});
 			showToast('고쳤어요. 상세 페이지와 이후 메일에 반영돼요.', 'success');
@@ -171,16 +178,15 @@ export default function NewsletterEdit({ id }: { id: number }) {
 					) : (
 						<div className="layout">
 							<form onSubmit={save} className="form">
-								<label className="field">
-									<span>관심사</span>
-									<select value={form.categoryId} onChange={change('categoryId')}>
-										{CATEGORIES.filter((c) => c.id).map((c) => (
-											<option key={c.id} value={c.id}>
-												{c.name}
-											</option>
-										))}
-									</select>
-								</label>
+								<div className="field">
+									<InputSelect
+										name="categoryId"
+										label="관심사"
+										value={form.categoryId}
+										options={CATEGORY_OPTIONS}
+										onChange={set('categoryId')}
+									/>
+								</div>
 								<label className="field">
 									<span>제목</span>
 									<input value={form.title} onChange={change('title')} maxLength={100} />
@@ -197,11 +203,16 @@ export default function NewsletterEdit({ id }: { id: number }) {
 									<span>키워드 (쉼표로 구분, 10개까지)</span>
 									<input value={form.keywords} onChange={change('keywords')} />
 								</label>
-								<label className="field">
-									<span>본문 HTML</span>
-									<textarea value={form.html} onChange={change('html')} rows={18} className="code" spellCheck={false} />
+								<div className="field">
+									<div className="code-head">
+										<label htmlFor="newsletter-html">본문 HTML</label>
+										<button type="button" onClick={() => set('html')(formatHtml(form.html))}>
+											줄 정리
+										</button>
+									</div>
+									<HtmlCodeEditor id="newsletter-html" value={form.html} onChange={set('html')} rows={22} />
 									<small>저장할 때 뉴스레터 템플릿이 쓰는 태그 · class만 남기고 script · 이벤트 속성은 지워요.</small>
-								</label>
+								</div>
 								{error && <p className="error">{error}</p>}
 								<div className="actions">
 									<Button type="button" scheme="outline" size="medium" onClick={() => data && setForm(toForm(data))}>
@@ -300,22 +311,36 @@ const StyledEdit = styled.div`
 			${fieldLabel}
 		}
 
-		input,
-		select,
-		textarea {
+		> input,
+		> textarea {
 			${fieldControl}
 		}
 
-		textarea {
+		> textarea {
 			height: auto;
 			padding: 0.625rem 0.75rem;
 			line-height: 1.6;
 			resize: vertical;
 		}
 
-		.code {
-			font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		.code-head {
+			display: flex;
+			align-items: baseline;
+			justify-content: space-between;
+
+			label {
+				${fieldLabel}
+			}
+
+			button {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.primary};
+				cursor: pointer;
+
+				&:hover {
+					text-decoration: underline;
+				}
+			}
 		}
 
 		small {
