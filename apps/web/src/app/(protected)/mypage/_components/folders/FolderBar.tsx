@@ -5,30 +5,44 @@ import styled from 'styled-components';
 import { LuFolder, LuFolderPlus, LuTriangleAlert } from 'react-icons/lu';
 import ModalContents from '@/components/common/modal/ModalContent';
 import { useModal } from '@/hooks/useModal';
-import { HighlightFolder, useHighlightFolderMutations } from '@/hooks/useHighlights';
+import { Folder, useFolderMutations } from '@/hooks/useFolders';
 
-/** 폴더 거르기 값: 'all' 모든 스크랩 · 'none' 폴더 없음 · 폴더 번호 */
+/** 폴더 거르기 값: 'all' 모두 · 'none' 폴더 없음 · 폴더 번호 */
 export type FolderFilter = 'all' | 'none' | number;
 
 interface Props {
-	folders: HighlightFolder[];
+	folders: Folder[];
+	/** 이 탭에서 폴더마다 개수 (스크랩 · 북마크 · 받은 메일) */
+	countOf: (folder: Folder) => number;
+	/** 이 탭에서 '모두'를 부르는 이름 (예: '모든 스크랩', '모든 북마크') */
+	allLabel: string;
 	value: FolderFilter;
 	onChange: (value: FolderFilter) => void;
-	/** 모든 스크랩 수 · 폴더 없는 스크랩 수 */
+	/** 이 탭의 전체 수 · 폴더 없는 수 */
 	total: number;
 	unfiled: number;
-	/** 끄는 중인 스크랩 수 (0이면 끄는 중 아님) */
+	/** 끄는 중인 것의 수 (0이면 끄는 중 아님) */
 	dragging?: number;
-	/** 끈 스크랩을 놓은 폴더 (null = 폴더 없음) */
+	/** 끈 것을 놓은 폴더 (null = 폴더 없음) */
 	onDropTo?: (folderId: number | null) => void;
 }
 
 /**
- * 스크랩 폴더 줄 (#123): 모든 스크랩 · 폴더 없음 · 내 폴더들 · 새 폴더.
- * 폴더를 고르면 옆에 이름 바꾸기 · 지우기 (지우면 안의 스크랩은 폴더 없음으로)
+ * 폴더 줄 (#123, 스크랩 · 북마크 · 받은 메일 공통): 모두 · 폴더 없음 · 내 폴더들 · 새 폴더. 개수는 그 탭 기준.
+ * 폴더를 고르면 옆에 이름 바꾸기 · 지우기 (지우면 안의 것들은 폴더 없음으로)
  */
-export default function FolderBar({ folders, value, onChange, total, unfiled, dragging = 0, onDropTo }: Props) {
-	const { create, rename, remove } = useHighlightFolderMutations();
+export default function FolderBar({
+	folders,
+	countOf,
+	allLabel,
+	value,
+	onChange,
+	total,
+	unfiled,
+	dragging = 0,
+	onDropTo,
+}: Props) {
+	const { create, rename, remove } = useFolderMutations();
 	const { openModal, closeModal } = useModal();
 	const [adding, setAdding] = useState(false);
 	const [renaming, setRenaming] = useState(false);
@@ -36,7 +50,7 @@ export default function FolderBar({ folders, value, onChange, total, unfiled, dr
 	const current = typeof value === 'number' ? folders.find((f) => f.id === value) : undefined;
 	// 끄는 중 마우스가 올라간 폴더 (강조)
 	const [over, setOver] = useState<FolderFilter | null>(null);
-	/** 끌어 놓을 수 있는 칸 ('모든 스크랩'은 빼고) */
+	/** 끌어 놓을 수 있는 칸 ('모두'는 빼고) */
 	const dropProps = (key: Exclude<FolderFilter, 'all'>) => ({
 		onDragOver: (event: React.DragEvent) => {
 			if (!dragging) return;
@@ -52,12 +66,19 @@ export default function FolderBar({ folders, value, onChange, total, unfiled, dr
 		},
 	});
 
-	const confirmRemove = (folder: HighlightFolder) =>
+	const confirmRemove = (folder: Folder) => {
+		// 세 탭 공통 폴더라 안의 것을 모두 알려 준다
+		const { highlights, bookmarks, mails } = folder.counts;
+		const inside = [
+			highlights && `스크랩 ${highlights}개`,
+			bookmarks && `북마크 ${bookmarks}개`,
+			mails && `메일 ${mails}통`,
+		].filter(Boolean);
 		openModal(
 			<ModalContents
 				icon={<LuTriangleAlert />}
 				title={`'${folder.name}' 폴더를 지울까요?`}
-				content={folder.count ? `안의 스크랩 ${folder.count}개는 지우지 않고 폴더 없음으로 옮겨요.` : '빈 폴더예요.'}
+				content={inside.length ? `안의 ${inside.join(' · ')}는 지우지 않고 폴더 없음으로 옮겨요.` : '빈 폴더예요.'}
 				outlineButton="취소"
 				filledButton="폴더 지우기"
 				onCancelClick={closeModal}
@@ -67,6 +88,7 @@ export default function FolderBar({ folders, value, onChange, total, unfiled, dr
 				}}
 			/>,
 		);
+	};
 
 	const chip = (key: FolderFilter, label: React.ReactNode, count: number) => (
 		<button
@@ -86,11 +108,11 @@ export default function FolderBar({ folders, value, onChange, total, unfiled, dr
 	);
 
 	return (
-		<StyledFolderBar role="group" aria-label="스크랩 폴더">
+		<StyledFolderBar role="group" aria-label="폴더">
 			{/* 끄는 중: 화면 위에 폴더 칸을 띄워 멀리 끌고 올라가지 않아도 놓을 수 있게 */}
 			{dragging > 0 && (
 				<div className="drop-dock" aria-hidden>
-					<p>{dragging > 1 ? `${dragging}개를` : '이 문장을'} 놓을 폴더</p>
+					<p>{dragging > 1 ? `${dragging}개를` : '여기에'} 놓을 폴더</p>
 					<div className="targets">
 						<div className={`target ${over === 'none' ? 'over' : ''}`} {...dropProps('none')}>
 							폴더 없음
@@ -105,7 +127,7 @@ export default function FolderBar({ folders, value, onChange, total, unfiled, dr
 				</div>
 			)}
 			<div className="chips">
-				{chip('all', '모든 스크랩', total)}
+				{chip('all', allLabel, total)}
 				{chip('none', '폴더 없음', unfiled)}
 				{folders.map((f) =>
 					chip(
@@ -113,7 +135,7 @@ export default function FolderBar({ folders, value, onChange, total, unfiled, dr
 						<>
 							<LuFolder aria-hidden /> {f.name}
 						</>,
-						f.count,
+						countOf(f),
 					),
 				)}
 				{adding ? (

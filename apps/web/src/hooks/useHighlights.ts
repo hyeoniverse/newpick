@@ -39,7 +39,7 @@ export function useHighlightMutations() {
 	// 스크랩이 바뀌면 취향 점수도 다시
 	const refresh = () => {
 		queryClient.invalidateQueries({ queryKey: ['highlights'] });
-		queryClient.invalidateQueries({ queryKey: ['highlightFolders'] });
+		queryClient.invalidateQueries({ queryKey: ['folders'] });
 		queryClient.invalidateQueries({ queryKey: ['taste'] });
 	};
 	const fail = (error: Error) =>
@@ -69,7 +69,8 @@ export function useHighlightMutations() {
 			apiFetch<Highlight>(API_ENDPOINTS.MY.HIGHLIGHT(id), { method: 'PATCH', body }),
 		onSuccess: (_, body) => {
 			refresh();
-			if (body.starred !== undefined) showToast(body.starred ? '중요 표시했어요.' : '중요 표시를 해제했어요.', 'success');
+			if (body.starred !== undefined)
+				showToast(body.starred ? '중요 표시했어요.' : '중요 표시를 해제했어요.', 'success');
 			else showToast('메모를 고쳤어요.', 'success');
 		},
 		onError: fail,
@@ -127,57 +128,4 @@ export function useTaste() {
 		queryFn: () => apiFetch<Taste>(API_ENDPOINTS.MY.TASTE()),
 		enabled: !!user,
 	});
-}
-
-/** 스크랩 폴더 (#123) */
-export interface HighlightFolder {
-	id: number;
-	name: string;
-	count: number;
-}
-
-export function useHighlightFolders() {
-	const { user } = useAuth();
-	return useQuery({
-		queryKey: ['highlightFolders', user?.id],
-		queryFn: () => apiFetch<HighlightFolder[]>(API_ENDPOINTS.MY.HIGHLIGHT_FOLDERS()),
-		enabled: !!user,
-	});
-}
-
-/** 폴더 만들기 · 이름 바꾸기 · 지우기 */
-export function useHighlightFolderMutations() {
-	const queryClient = useQueryClient();
-	const { showToast } = useToast();
-	const refresh = () => {
-		queryClient.invalidateQueries({ queryKey: ['highlightFolders'] });
-		queryClient.invalidateQueries({ queryKey: ['highlights'] });
-	};
-	const fail = (error: Error) =>
-		showToast(error instanceof ApiError ? error.message : '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.', 'error');
-
-	const create = useMutation({
-		mutationFn: (name: string) =>
-			apiFetch<{ id: number; name: string }>(API_ENDPOINTS.MY.HIGHLIGHT_FOLDERS(), { method: 'POST', body: { name } }),
-		onSuccess: () => refresh(),
-		onError: fail,
-	});
-	const rename = useMutation({
-		mutationFn: ({ id, name }: { id: number; name: string }) =>
-			apiFetch(API_ENDPOINTS.MY.HIGHLIGHT_FOLDER(id), { method: 'PATCH', body: { name } }),
-		onSuccess: () => {
-			refresh();
-			showToast('폴더 이름을 바꿨어요.', 'success');
-		},
-		onError: fail,
-	});
-	const remove = useMutation({
-		mutationFn: (id: number) => apiFetch(API_ENDPOINTS.MY.HIGHLIGHT_FOLDER(id), { method: 'DELETE' }),
-		onSuccess: () => {
-			refresh();
-			showToast('폴더를 지웠어요. 안의 스크랩은 폴더 없음으로 옮겼어요.', 'success');
-		},
-		onError: fail,
-	});
-	return { create, rename, remove };
 }

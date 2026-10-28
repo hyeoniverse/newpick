@@ -88,7 +88,7 @@ export class BulkHighlightsDto {
 }
 
 /** 폴더 만들기 · 이름 바꾸기 */
-export class HighlightFolderDto {
+export class FolderDto {
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @MinLength(1, { message: '폴더 이름을 적어 주세요.' })

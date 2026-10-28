@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import styled from 'styled-components';
-import { LuMailPlus, LuMail } from 'react-icons/lu';
+import { LuMailPlus, LuMail, LuStar } from 'react-icons/lu';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useTab } from '@/hooks/useTab';
@@ -16,7 +16,13 @@ import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import Pagination from '@/components/common/Pagination';
 import BrandAvatar from '@/components/common/BrandAvatar';
+import FilterChips from '@/components/common/FilterChips';
+import { CATEGORIES } from '@/constants/categories';
 import { errorStateFor, statusOf } from '@/constants/errors';
+import { useFolders } from '@/hooks/useFolders';
+import { useToast } from '@/hooks/useToast';
+import FolderBar, { FolderFilter } from './folders/FolderBar';
+import FolderMenu from './folders/FolderMenu';
 
 /** 한 쪽에 메일 몇 통 */
 const PAGE_SIZE = 5;
@@ -36,7 +42,31 @@ interface Mail {
 	/** 메일 제목 (발송 때와 같은 방식으로 다시 만든 것) */
 	subject: string | null;
 	newsletters: MailNewsletter[];
+	starred: boolean;
+	folderId: number | null;
 }
+
+interface MailsPage {
+	items: Mail[];
+	total: number;
+	/** 거르기와 상관없는 개수: 전체 · 중요 · 폴더 없음 */
+	counts: { all: number; starred: number; unfiled: number };
+}
+
+/** 받은 메일 한 통 표시 (중요 · 폴더). 목록 · 폴더 개수를 다시 받는다 */
+const useMarkMail = () => {
+	const queryClient = useQueryClient();
+	const { showToast } = useToast();
+	return useMutation({
+		mutationFn: (body: { sentAt: string; starred?: boolean; folderId?: number | null }) =>
+			apiFetch(API_ENDPOINTS.MY.MAIL_MARK(), { method: 'PATCH', body }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: ['myMails'] });
+			queryClient.invalidateQueries({ queryKey: ['folders'] });
+		},
+		onError: () => showToast('바꾸지 못했어요. 잠시 뒤 다시 해 주세요.', 'error'),
+	});
+};
 
 /** '10월 27일 (월) 오전 8:40' (한국 시각) */
 const sentText = (iso: string) =>
@@ -59,14 +89,32 @@ export default function MySubscribe() {
 	const { status: isSubscribed = user?.isSubscribed } = useSubscribe();
 	const { openModal } = useModal();
 	const [page, setPage] = useState(1);
+	const [folder, setFolder] = useState<FolderFilter>('all');
+	const [starred, setStarred] = useState(false);
+	const [categoryId, setCategoryId] = useState('');
+	const [order, setOrder] = useState<'desc' | 'asc'>('desc');
+	const { data: folders = [] } = useFolders();
+	const mark = useMarkMail();
 
+	const filters = new URLSearchParams({
+		...(starred && { starred: 'true' }),
+		...(folder !== 'all' && { folder: String(folder) }),
+		...(categoryId && { categoryId }),
+		...(order === 'asc' && { order }),
+	}).toString();
 	const { data, isPending, isError, error, refetch } = useQuery({
-		queryKey: ['myMails', user?.id, page],
-		queryFn: () =>
-			apiFetch<{ items: Mail[]; total: number }>(API_ENDPOINTS.MY.MAILS((page - 1) * PAGE_SIZE, PAGE_SIZE)),
+		queryKey: ['myMails', user?.id, page, filters],
+		queryFn: () => apiFetch<MailsPage>(API_ENDPOINTS.MY.MAILS((page - 1) * PAGE_SIZE, PAGE_SIZE, filters)),
 		enabled: !!user,
 		placeholderData: (previous) => previous,
 	});
+	// 거르기를 바꾸면 첫 쪽부터
+	const refilter =
+		<T,>(set: (value: T) => void) =>
+		(value: T) => {
+			set(value);
+			setPage(1);
+		};
 
 	if (!user || isPending) {
 		return (
@@ -80,7 +128,7 @@ export default function MySubscribe() {
 
 	if (isError) return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
 
-	if (data.total === 0) {
+	if (data.counts.all === 0) {
 		// 받은 메일이 없으면: 구독 중이면 기다리라고, 아니면 구독하라고
 		return isSubscribed === null ? (
 			<EmptyState
@@ -99,31 +147,98 @@ export default function MySubscribe() {
 		);
 	}
 
+	const folderName = new Map(folders.map((f) => [f.id, f.name]));
+
 	return (
 		<MySubscribeStyled>
-			{/* 받은편지함: 한 줄이 메일 한 통. 누르면 받은 그대로의 메일을 시트로 */}
-			<ul className="inbox">
-				{data.items.map((mail) => (
-					<li key={mail.sentAt}>
-						<button
-							type="button"
-							className="mail-row"
-							onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
-						>
-							<BrandAvatar />
-							<span className="body">
-								<span className="subject">{mail.subject ?? mail.newsletters[0]?.title}</span>
-								<span className="meta">
-									{mail.newsletters.map((n) => n.category.name).join(' · ')} · 뉴스레터 {mail.newsletters.length}편
+			<FolderBar
+				folders={folders}
+				countOf={(f) => f.counts.mails}
+				allLabel="모든 메일"
+				value={folder}
+				onChange={refilter(setFolder)}
+				total={data.counts.all}
+				unfiled={data.counts.unfiled}
+			/>
+			<div className="list-tools">
+				<FilterChips
+					label="보기"
+					options={[
+						{ value: '', label: '전체' },
+						{ value: 'starred', label: `중요 ${data.counts.starred}` },
+					]}
+					value={starred ? 'starred' : ''}
+					onChange={refilter((value: string) => setStarred(value === 'starred'))}
+				/>
+				<FilterChips
+					label="관심사"
+					options={[
+						{ value: '', label: '전체' },
+						...CATEGORIES.filter((c) => c.id !== 0).map((c) => ({ value: String(c.id), label: c.name })),
+					]}
+					value={categoryId}
+					onChange={refilter(setCategoryId)}
+				/>
+				<FilterChips
+					label="정렬"
+					options={[
+						{ value: 'desc', label: '최신순' },
+						{ value: 'asc', label: '오래된순' },
+					]}
+					value={order}
+					onChange={refilter((value: string) => setOrder(value === 'asc' ? 'asc' : 'desc'))}
+				/>
+			</div>
+			{data.total === 0 ? (
+				<p className="empty">이 조건의 메일이 없어요.</p>
+			) : (
+				/* 받은편지함: 한 줄이 메일 한 통. 누르면 받은 그대로의 메일을 시트로 */
+				<ul className="inbox">
+					{data.items.map((mail) => (
+						<li key={mail.sentAt}>
+							<button
+								type="button"
+								className="mail-row"
+								onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
+							>
+								<BrandAvatar />
+								<span className="body">
+									<span className="subject">{mail.subject ?? mail.newsletters[0]?.title}</span>
+									<span className="meta">
+										{mail.newsletters.map((n) => n.category.name).join(' · ')} · 뉴스레터 {mail.newsletters.length}편
+									</span>
 								</span>
-							</span>
-							<time className="sent" dateTime={mail.sentAt}>
-								{sentText(mail.sentAt)}
-							</time>
-						</button>
-					</li>
-				))}
-			</ul>
+								<time className="sent" dateTime={mail.sentAt}>
+									{sentText(mail.sentAt)}
+									{/* '모든 메일'에서 어느 폴더인지 */}
+									{folder === 'all' && mail.folderId && (
+										<span className="folder-tag">{folderName.get(mail.folderId)}</span>
+									)}
+								</time>
+							</button>
+							{/* 줄 단추 안에 단추를 넣지 않게 옆에 따로 */}
+							<div className="actions">
+								<FolderMenu
+									className="mail-folder"
+									label="폴더"
+									current={mail.folderId}
+									onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
+								/>
+								<button
+									type="button"
+									className={`star-toggle ${mail.starred ? 'on' : ''}`}
+									aria-pressed={mail.starred}
+									aria-label={mail.starred ? '중요 해제' : '중요 표시'}
+									title={mail.starred ? '중요 해제' : '중요 표시'}
+									onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
+								>
+									<LuStar aria-hidden />
+								</button>
+							</div>
+						</li>
+					))}
+				</ul>
+			)}
 			<Pagination
 				className="pagination"
 				page={page}
@@ -141,8 +256,27 @@ export default function MySubscribe() {
 const MySubscribeStyled = styled.div`
 	display: flex;
 	flex-direction: column;
-	gap: 2rem;
+	gap: 1.25rem;
 	padding: 2rem 0;
+
+	.list-tools {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 1.25rem;
+		margin-top: 0.5rem;
+	}
+
+	.empty {
+		padding: 2rem 0;
+		text-align: center;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	.pagination {
+		margin-top: 0.75rem;
+	}
 
 	.inbox {
 		margin: 0;
@@ -152,7 +286,71 @@ const MySubscribeStyled = styled.div`
 	}
 
 	li {
+		display: flex;
+		align-items: center;
 		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+		&:hover {
+			background: ${({ theme }) => theme.color.surface};
+		}
+	}
+
+	.actions {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding-right: 0.5rem;
+	}
+
+	/* '폴더' 글자 단추 */
+	.mail-folder .trigger {
+		padding: 0.25rem;
+		font: inherit;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+		cursor: pointer;
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+			text-decoration: underline;
+		}
+	}
+
+	/* 중요 표시: 꺼지면 회색 빈 별, 켜지면 기본색 꽉 찬 별 (스크랩과 같게) */
+	.star-toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: ${({ theme }) => theme.radius.control};
+		color: ${({ theme }) => theme.color.disabled};
+		cursor: pointer;
+
+		svg {
+			width: 1.125rem;
+			height: 1.125rem;
+		}
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		&.on {
+			color: ${({ theme }) => theme.color.primary};
+
+			svg {
+				fill: currentColor;
+			}
+		}
+	}
+
+	.folder-tag {
+		margin-left: 0.5rem;
+		padding: 0 0.5rem;
+		border-radius: ${({ theme }) => theme.radius.chip};
+		background: ${({ theme }) => theme.color.border};
 	}
 
 	/* 받은편지함 한 줄: 보낸 사람 · 제목 · 담긴 관심사 · 받은 시각 */
@@ -160,14 +358,14 @@ const MySubscribeStyled = styled.div`
 		display: flex;
 		align-items: center;
 		gap: 1rem;
-		width: 100%;
+		flex: 1;
+		/* 긴 제목이 옆 단추(폴더 · 별)를 밀어내지 않게 */
+		min-width: 0;
 		padding: 1.125rem 0.5rem;
 		text-align: left;
 		cursor: pointer;
 
 		&:hover {
-			background: ${({ theme }) => theme.color.surface};
-
 			.subject {
 				color: ${({ theme }) => theme.color.primary};
 			}
@@ -204,9 +402,18 @@ const MySubscribeStyled = styled.div`
 	}
 
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		li {
+			align-items: flex-start;
+		}
+
 		.mail-row {
 			flex-wrap: wrap;
 			padding: 1rem 0.25rem;
+		}
+
+		.actions {
+			padding-top: 0.75rem;
+			padding-right: 0;
 		}
 
 		.sent {

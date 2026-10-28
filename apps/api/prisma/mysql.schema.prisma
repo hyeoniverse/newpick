@@ -20,12 +20,13 @@ model User {
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 
-  bookmarks        Bookmark[]
-  highlights       Highlight[]
-  highlightFolders HighlightFolder[]
-  interests        UserInterest[]
-  oAuthTokens      OAuthToken[]
-  subscribers      Subscriber[]
+  bookmarks   Bookmark[]
+  highlights  Highlight[]
+  folders     Folder[]
+  mailMarks   MailMark[]
+  interests   UserInterest[]
+  oAuthTokens OAuthToken[]
+  subscribers Subscriber[]
 
   @@map("users")
 }
@@ -149,11 +150,15 @@ model Bookmark {
   userId       Int
   newsletterId Int
   createdAt    DateTime @default(now())
+  /// 폴더 (#123, 스크랩 · 받은 메일과 같은 폴더). 폴더를 지우면 null
+  folderId     Int?
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
   newsletter Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  folder     Folder?    @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   @@unique([userId, newsletterId])
+  @@index([folderId])
   @@map("bookmarks")
 }
 
@@ -299,9 +304,9 @@ model Highlight {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  newsletter Newsletter       @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
-  folder     HighlightFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsletter Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  folder     Folder?    @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   @@unique([userId, newsletterId, text])
   @@index([folderId])
@@ -309,8 +314,9 @@ model Highlight {
   @@map("highlights")
 }
 
-/// 스크랩 폴더 (#123): 사람마다 이름이 겹치지 않게. 지우면 안의 스크랩은 '폴더 없음'으로
-model HighlightFolder {
+/// 폴더 (#123): 스크랩 · 북마크 · 받은 메일이 같이 쓰는 주제 폴더. 사람마다 이름이 겹치지 않게.
+/// 지우면 안의 것은 지우지 않고 '폴더 없음'으로
+model Folder {
   id        Int      @id @default(autoincrement())
   userId    Int
   name      String   @db.VarChar(30)
@@ -318,7 +324,28 @@ model HighlightFolder {
 
   user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   highlights Highlight[]
+  bookmarks  Bookmark[]
+  mailMarks  MailMark[]
 
   @@unique([userId, name])
-  @@map("highlight_folders")
+  @@map("folders")
+}
+
+/// 받은 메일 표시 (#123): 받은 메일 한 통(보낸 시각)마다 중요 표시 · 폴더. 표시한 메일만 줄이 생긴다
+model MailMark {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  /// 받은 메일의 보낸 시각 (email_archives.sentAt과 같은 값)
+  sentAt    DateTime
+  starred   Boolean  @default(false)
+  folderId  Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  folder Folder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
+
+  @@unique([userId, sentAt])
+  @@index([folderId])
+  @@map("mail_marks")
 }

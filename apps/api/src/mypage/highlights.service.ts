@@ -2,10 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { JSDOM } from 'jsdom';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AppException } from '../common/errors/app.exception';
+import { assertOwnFolder } from './folders.service';
 import { BulkHighlightsDto, CreateHighlightDto } from './dto/highlight.dto';
-
-/** 한 사람이 만들 수 있는 폴더 수 */
-export const MAX_FOLDERS = 20;
 
 /** 문장의 공백을 하나로 (화면에서 고른 글은 줄바꿈 · 여러 칸이 섞여 온다) */
 export const normalizeText = (text: string) => text.replace(/\s+/g, ' ').trim();
@@ -156,7 +154,7 @@ export class HighlightsService {
    */
   async bulk(userId: number, dto: BulkHighlightsDto) {
     if (dto.action === 'move' && dto.folderId) {
-      await this.ownFolder(userId, dto.folderId);
+      await assertOwnFolder(this.prisma, userId, dto.folderId);
     }
     const data =
       dto.action === 'move'
@@ -167,73 +165,6 @@ export class HighlightsService {
       data,
     });
     return { count };
-  }
-
-  /** 내 폴더 (만든 순서), 폴더마다 스크랩 수 */
-  async folders(userId: number) {
-    const folders = await this.prisma.highlightFolder.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'asc' },
-      select: {
-        id: true,
-        name: true,
-        _count: { select: { highlights: true } },
-      },
-    });
-    return folders.map(({ _count, ...f }) => ({
-      ...f,
-      count: _count.highlights,
-    }));
-  }
-
-  async createFolder(userId: number, name: string) {
-    const count = await this.prisma.highlightFolder.count({
-      where: { userId },
-    });
-    if (count >= MAX_FOLDERS) {
-      throw new AppException(
-        'BAD_REQUEST',
-        `폴더는 ${MAX_FOLDERS}개까지 만들 수 있어요.`,
-      );
-    }
-    await this.uniqueName(userId, name);
-    return this.prisma.highlightFolder.create({
-      data: { userId, name },
-      select: { id: true, name: true },
-    });
-  }
-
-  async renameFolder(userId: number, id: number, name: string) {
-    await this.ownFolder(userId, id);
-    await this.uniqueName(userId, name, id);
-    return this.prisma.highlightFolder.update({
-      where: { id },
-      data: { name },
-      select: { id: true, name: true },
-    });
-  }
-
-  /** 폴더를 지우면 안의 스크랩은 지우지 않고 '폴더 없음'으로 (FK SetNull) */
-  async deleteFolder(userId: number, id: number) {
-    await this.ownFolder(userId, id);
-    await this.prisma.highlightFolder.delete({ where: { id } });
-    return { id };
-  }
-
-  private async ownFolder(userId: number, id: number) {
-    const found = await this.prisma.highlightFolder.findFirst({
-      where: { id, userId },
-      select: { id: true },
-    });
-    if (!found) throw new AppException('NOT_FOUND', '폴더를 찾을 수 없어요.');
-  }
-
-  private async uniqueName(userId: number, name: string, exceptId?: number) {
-    const same = await this.prisma.highlightFolder.findFirst({
-      where: { userId, name, ...(exceptId && { NOT: { id: exceptId } }) },
-      select: { id: true },
-    });
-    if (same) throw new AppException('CONFLICT', '같은 이름의 폴더가 있어요.');
   }
 
   /** 남의 스크랩은 없는 것처럼 (있는지도 알려 주지 않게 404) */

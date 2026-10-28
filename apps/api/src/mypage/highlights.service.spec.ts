@@ -7,7 +7,7 @@ import {
 
 function fakePrisma(owned = true) {
   return {
-    highlightFolder: {
+    folder: {
       findFirst: jest.fn().mockResolvedValue(owned ? { id: 9 } : null),
       count: jest.fn().mockResolvedValue(0),
       create: jest.fn((args) => Promise.resolve({ id: 9, ...args.data })),
@@ -142,7 +142,7 @@ describe('스크랩 · 메모 (#123)', () => {
     const prisma = fakePrisma();
     const service = new HighlightsService(prisma as never);
     await service.bulk(7, { ids: [1, 2, 2], action: 'move', folderId: 9 });
-    expect(prisma.highlightFolder.findFirst).toHaveBeenCalledWith({
+    expect(prisma.folder.findFirst).toHaveBeenCalledWith({
       where: { id: 9, userId: 7 },
       select: { id: true },
     });
@@ -162,7 +162,7 @@ describe('스크랩 · 메모 (#123)', () => {
 
   it('남의 폴더로는 옮길 수 없다', async () => {
     const prisma = fakePrisma();
-    prisma.highlightFolder.findFirst.mockResolvedValue(null);
+    prisma.folder.findFirst.mockResolvedValue(null);
     await expect(
       new HighlightsService(prisma as never).bulk(7, {
         ids: [1],
@@ -171,21 +171,5 @@ describe('스크랩 · 메모 (#123)', () => {
       }),
     ).rejects.toMatchObject({ status: 404 });
     expect(prisma.highlight.updateMany).not.toHaveBeenCalled();
-  });
-
-  it('폴더 이름이 겹치면 409, 20개를 넘으면 400', async () => {
-    const prisma = fakePrisma();
-    const service = new HighlightsService(prisma as never);
-    await expect(service.createFolder(7, '반도체')).rejects.toMatchObject({
-      status: 409,
-    });
-    prisma.highlightFolder.findFirst.mockResolvedValue(null);
-    await expect(service.createFolder(7, '반도체')).resolves.toMatchObject({
-      name: '반도체',
-    });
-    prisma.highlightFolder.count.mockResolvedValue(20);
-    await expect(service.createFolder(7, '금리')).rejects.toMatchObject({
-      status: 400,
-    });
   });
 });

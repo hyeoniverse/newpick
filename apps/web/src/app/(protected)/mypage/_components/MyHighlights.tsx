@@ -10,13 +10,14 @@ import FilterChips from '@/components/common/FilterChips';
 import InputCheck from '@/components/common/InputCheck';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
-import { Highlight, useHighlightFolders, useHighlightMutations, useHighlights } from '@/hooks/useHighlights';
+import { Highlight, useHighlightMutations, useHighlights } from '@/hooks/useHighlights';
+import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/useToast';
 import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
-import FolderBar, { FolderFilter } from './FolderBar';
-import FolderMenu from './FolderMenu';
+import FolderBar, { FolderFilter } from './folders/FolderBar';
+import FolderMenu from './folders/FolderMenu';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -82,7 +83,7 @@ export default function MyHighlights() {
 	const [folder, setFolder] = useState<FolderFilter>('all');
 	// 끌어서 폴더에 넣기 (데스크톱): 끄는 중인 스크랩 번호들
 	const [dragging, setDragging] = useState<number[] | null>(null);
-	const { data: folders = [] } = useHighlightFolders();
+	const { data: folders = [] } = useFolders();
 	const { bulk } = useHighlightMutations();
 	const { showToast } = useToast();
 	// 선택해서 지우기: 고르는 중인지, 고른 번호
@@ -151,6 +152,8 @@ export default function MyHighlights() {
 			<MyTaste />
 			<FolderBar
 				folders={folders}
+				countOf={(f) => f.counts.highlights}
+				allLabel="모든 스크랩"
 				value={folder}
 				onChange={(next) => {
 					setFolder(next);
