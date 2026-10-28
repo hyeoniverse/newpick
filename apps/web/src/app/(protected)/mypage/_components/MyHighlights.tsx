@@ -154,7 +154,10 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 			className={`item ${focused ? 'focused' : ''}`}
 			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
 		>
-			<blockquote>{highlight.text}</blockquote>
+			{/* 상세 페이지 형광펜과 같은 모양의 띠로 문장을 구분 (세로줄 · 들여쓰기 없이) */}
+			<p className="quote">
+				<span>{highlight.text}</span>
+			</p>
 			<div className="tools">
 				<Link href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}>원문에서 보기</Link>
 				{!editing && (
@@ -200,10 +203,10 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 				</form>
 			) : (
 				highlight.note && (
-					<div className="note">
-						<span className="note-label">내 메모</span>
-						<p>{highlight.note}</p>
-					</div>
+					<p className="note">
+						<span className="note-label">메모</span>
+						{highlight.note}
+					</p>
 				)
 			)}
 		</article>
@@ -317,46 +320,67 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	/* 문장 한 개: 문장 → 내 메모 → 글자 동작 */
+	/* 문장 한 개: 문장 → 메모 → 글자 동작. 모두 같은 왼쪽 선에서 시작 */
+	.group li + li {
+		margin-top: 0.75rem;
+	}
+
 	.item {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-areas: 'quote' 'note' 'tools';
-		gap: 0.5rem;
-		margin: 0 -0.625rem;
-		padding: 0.625rem;
-		border-radius: ${({ theme }) => theme.radius.control};
+		gap: 0.375rem;
+		padding: 0.25rem 0;
 		scroll-margin-top: 6rem;
-		transition: background-color 0.4s;
 
-		&:hover {
-			background: ${({ theme }) => theme.color.surface};
-		}
-
-		/* 알림에서 바로 온 문장 */
-		&.focused {
-			background: ${({ theme }) => theme.color.tertiary};
+		/* 알림에서 바로 온 문장: 띠를 잠깐 진하게 */
+		&.focused .quote span {
+			background-color: color-mix(in srgb, ${({ theme }) => theme.color.primary} 14%, transparent);
 		}
 	}
 
-	blockquote {
+	.quote {
 		grid-area: quote;
 		margin: 0;
-		padding-left: 0.875rem;
-		border-left: 3px solid ${({ theme }) => theme.color.primary};
-		line-height: 1.7;
+		line-height: 1.75;
 		color: ${({ theme }) => theme.color.text};
 		word-break: keep-all;
+
+		span {
+			background-image: linear-gradient(
+				transparent 58%,
+				color-mix(in srgb, ${({ theme }) => theme.color.primary} 20%, transparent) 58%
+			);
+			box-decoration-break: clone;
+			-webkit-box-decoration-break: clone;
+			transition: background-color 0.4s;
+		}
 	}
 
-	/* 문장 아래 글자 동작: 문장 글머리에 맞춰 */
+	/* 메모: 상자 없이 '메모' 이름표 + 글 */
+	.note {
+		grid-area: note;
+		margin: 0;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		line-height: 1.6;
+		white-space: pre-wrap;
+		color: ${({ theme }) => theme.color.mediumGrey};
+
+		.note-label {
+			margin-right: 0.5rem;
+			font-size: 0.75rem;
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+		}
+	}
+
+	/* 글자 동작 */
 	.tools {
 		grid-area: tools;
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.25rem 1rem;
-		margin-left: 0.875rem;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 
 		a,
@@ -377,38 +401,11 @@ const StyledHighlights = styled.div`
 		}
 	}
 
-	/* 내 메모: 문장 글머리에 맞춰 들여 쓴 노트 */
-	.note {
-		grid-area: note;
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		margin-left: 0.875rem;
-		padding: 0.625rem 0.875rem;
-		border-radius: ${({ theme }) => theme.radius.control};
-		background: ${({ theme }) => theme.color.tertiary};
-
-		.note-label {
-			font-size: 0.75rem;
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		p {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			line-height: 1.6;
-			white-space: pre-wrap;
-			color: ${({ theme }) => theme.color.text};
-		}
-	}
-
 	.edit {
 		grid-area: note;
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		margin-left: 0.875rem;
 
 		textarea {
 			width: 100%;
