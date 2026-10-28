@@ -35,11 +35,11 @@ function paintLine(line: string, key: number) {
 		last = m.index + m[0].length;
 	}
 	if (last < rest.length) parts.push(<span key={`t${n++}`}>{rest.slice(last)}</span>);
+	// 줄마다 블록 하나: 왼쪽에 줄 번호(CSS counter), 빈 줄도 높이를 갖도록 공백 하나
 	return (
-		<Fragment key={key}>
-			{parts}
-			{'\n'}
-		</Fragment>
+		<div key={key} className="line">
+			{parts.length ? parts : ' '}
+		</div>
 	);
 }
 
@@ -85,12 +85,13 @@ function paintTag(tag: string) {
 /**
  * HTML 편집 칸 (관리자 뉴스레터 고치기 #31): VS Code의 indent-rainbow처럼 들여쓰기 깊이마다 옅은 색 띠,
  * 태그 · 속성 · 값을 색으로 나눈다. 실제 입력은 투명 글자의 textarea, 그 뒤에 같은 글을 색칠한 사본을 겹쳐 그린다
- * (패키지 없이). 두 겹은 글 높이만큼 같이 늘어나고 바깥 칸 하나만 스크롤해 어긋나지 않는다
+ * (패키지 없이). 두 겹은 글 높이만큼 같이 늘어나고 바깥 칸 하나만 스크롤해 어긋나지 않는다. 왼쪽에 줄 번호
  */
 export default function HtmlCodeEditor({ value, onChange, id, rows = 20 }: Props) {
 	return (
 		<StyledEditor $rows={rows}>
 			<div className="stack">
+				<div className="gutter" aria-hidden />
 				<pre className="paint" aria-hidden>
 					{value.split('\n').map(paintLine)}
 				</pre>
@@ -116,8 +117,11 @@ export default function HtmlCodeEditor({ value, onChange, id, rows = 20 }: Props
 	);
 }
 
-/* indent-rainbow 기본 색 (노랑 · 초록 · 분홍 · 하늘 · 주황 · 보라)을 옅게 */
-const RAINBOW = ['255, 255, 64', '127, 255, 127', '255, 127, 255', '79, 236, 236', '255, 170, 80', '170, 140, 255'];
+/* indent-rainbow 색 (노랑 · 초록 · 분홍 · 하늘 · 주황 · 보라). 흰 바탕에서 칙칙하지 않게 채도 높게 */
+const RAINBOW = ['255, 204, 0', '52, 199, 89', '255, 45, 146', '0, 174, 255', '255, 132, 0', '138, 92, 255'];
+
+/** 줄 번호 칸 너비 (textarea도 같은 만큼 비운다) */
+const GUTTER = '3rem';
 
 const StyledEditor = styled.div<{ $rows: number }>`
 	max-height: ${({ $rows }) => `calc(${$rows} * 1.6em + 1.25rem)`};
@@ -126,7 +130,6 @@ const StyledEditor = styled.div<{ $rows: number }>`
 	border: 1px solid ${({ theme }) => theme.color.border};
 	border-radius: ${({ theme }) => theme.radius.control};
 	background: ${({ theme }) => theme.color.background};
-	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 	font-size: ${({ theme }) => theme.fontSize.extraSmall};
 	line-height: 1.6;
 
@@ -136,25 +139,56 @@ const StyledEditor = styled.div<{ $rows: number }>`
 
 	.stack {
 		position: relative;
+		counter-reset: line;
+	}
+
+	/* 전역 '* { font-family }'가 색칠한 글자에 붙지 않게: 두 겹 모두 같은 고정폭 글꼴 */
+	.stack,
+	.stack * {
+		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+		font-size: inherit;
+		line-height: inherit;
+	}
+
+	.gutter {
+		position: absolute;
+		inset: 0 auto 0 0;
+		width: ${GUTTER};
+		border-right: 1px solid ${({ theme }) => theme.color.border};
+		background: ${({ theme }) => theme.color.surface};
 	}
 
 	/* 두 겹이 글자 하나까지 같은 자리에 오도록 모양을 똑같이 */
 	.paint,
 	textarea {
 		margin: 0;
-		padding: 0.625rem 0.75rem;
+		padding: 0.625rem 0.75rem 0.625rem calc(${GUTTER} + 0.75rem);
 		border: 0;
-		font: inherit;
-		line-height: inherit;
 		letter-spacing: 0;
 		white-space: pre-wrap;
 		overflow-wrap: anywhere;
 	}
 
 	.paint {
+		position: relative;
 		min-height: ${({ $rows }) => `calc(${$rows} * 1.6em + 1.25rem)`};
 		pointer-events: none;
 		color: ${({ theme }) => theme.color.text};
+	}
+
+	.line {
+		position: relative;
+		counter-increment: line;
+
+		&::before {
+			content: counter(line);
+			position: absolute;
+			left: calc(-${GUTTER} - 0.75rem);
+			width: calc(${GUTTER} - 0.5rem);
+			text-align: right;
+			color: ${({ theme }) => theme.color.lightGrey};
+			font-size: 0.75rem;
+		}
 	}
 
 	textarea {
@@ -178,35 +212,40 @@ const StyledEditor = styled.div<{ $rows: number }>`
 	${RAINBOW.map(
 		(rgb, i) => `
 	.level-${i} {
-		background: rgba(${rgb}, 0.18);
+		background: rgba(${rgb}, 0.22);
+		box-shadow: inset 2px 0 rgba(${rgb}, 0.75);
 	}`,
 	).join('')}
 
 	.tag {
-		color: ${({ theme }) => theme.color.primary};
+		color: #d6266f;
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 	}
 
 	.attr {
-		color: #b5541b;
+		color: #7b3fe4;
 	}
 
 	.value {
-		color: #1f7a3a;
+		color: #0a7d3e;
 	}
 
 	.punct {
-		color: ${({ theme }) => theme.color.subText};
+		color: #8a94a6;
 	}
 
-	/* 어두운 테마: 속성 · 값을 밝게 */
+	/* 어두운 테마 */
 	:root[data-theme='dark'] & {
+		.tag {
+			color: #ff7ab2;
+		}
+
 		.attr {
-			color: #f0a36b;
+			color: #c4a5ff;
 		}
 
 		.value {
-			color: #7fd99a;
+			color: #7ee2a8;
 		}
 	}
 `;
