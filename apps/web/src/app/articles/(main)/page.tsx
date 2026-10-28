@@ -1,6 +1,5 @@
 import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { parseArticles } from '@/utils/parseArticles';
-import { mapIdToTitle } from '@/utils/mapInterests';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { fetchArticleByCategory, fetchTrendList } from '@/api/article';
@@ -78,14 +77,11 @@ async function CategoryContent({ categoryId }: { categoryId: number }) {
 		console.error(error);
 	}
 
-	// 분야 페이지에서 배너에 띄운 글(그 분야 최신 발행본)은 아래 목록에서 다시 보여 주지 않는다
-	const categoryName = mapIdToTitle([categoryId])[0];
-	const bannerId = categoryId ? parsedTrends.find((t) => t.categoryName === categoryName)?.id : undefined;
-
 	return (
 		<div className={styles.categoryPage}>
 			<HotSection trends={parsedTrends} stats={stats} />
-			<ListSection excludeId={bannerId} />
+			{/* 목록은 배너(TODAY)에 띄운 글도 빼지 않고 다 보여 준다 (건수와 보이는 수가 같게) */}
+			<ListSection />
 		</div>
 	);
 }
