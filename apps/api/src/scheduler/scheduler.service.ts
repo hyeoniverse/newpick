@@ -87,6 +87,11 @@ export class SchedulerService implements OnApplicationBootstrap {
   private readonly runRecord: Partial<Record<JobName, Promise<number | null>>> =
     {};
   private schedule: Schedule = DEFAULT_SCHEDULE;
+  /**
+   * 예약 시각에 저절로 돌릴지. SCHEDULER_ENABLED=false면 등록만 하고 시작하지 않는다 ('지금 실행'은 된다).
+   * 로컬 개발 서버가 운영과 따로 Claude를 부르고(비용) 로컬 구독자에게 실제 메일을 보내지 않게
+   */
+  private readonly autoRun = process.env.SCHEDULER_ENABLED !== 'false';
   constructor(
     private readonly logger: Logger,
     private readonly mailService: MailService,
@@ -120,7 +125,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     const add = (name: string, cronTime: string, onTick: () => Promise<void>) =>
       this.schedulerRegistry.addCronJob(
         name,
-        CronJob.from({ cronTime, timeZone: KST, onTick, start: true }),
+        CronJob.from({ cronTime, timeZone: KST, onTick, start: this.autoRun }),
       );
     add(CRAWL_JOB_NAME, dailyCron(this.schedule.crawl), () =>
       this.startCrawling(),
@@ -181,7 +186,7 @@ export class SchedulerService implements OnApplicationBootstrap {
   private reschedule(name: string, cronTime: string) {
     const job = this.schedulerRegistry.getCronJob(name);
     job.setTime(new CronTime(cronTime, KST));
-    job.start();
+    if (this.autoRun) job.start();
   }
 
   async startCrawling() {
@@ -417,6 +422,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 
   getSchedulerStatus() {
     return {
+      autoRun: this.autoRun,
       crawling: this.isCrawlingEnabled,
       aiSummary: this.isAiSummaryEnabled,
       mailing: this.isMailSendEnabled,

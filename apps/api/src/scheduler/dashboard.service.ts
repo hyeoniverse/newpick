@@ -417,6 +417,8 @@ export class DashboardService {
     return {
       range: { from, to },
       scheduler: {
+        // false면 이 서버는 예약 시각에 저절로 돌지 않는다 (SCHEDULER_ENABLED=false, 보통 로컬)
+        autoRun: status.autoRun,
         enabled: {
           crawling: status.crawling,
           summary: status.aiSummary,

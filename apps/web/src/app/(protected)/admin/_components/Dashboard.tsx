@@ -35,6 +35,8 @@ interface JobRun {
 interface DashboardData {
 	range: { from: string; to: string };
 	scheduler: {
+		/** false면 이 서버는 예약 시각에 저절로 돌지 않는다 ('지금 실행'만) */
+		autoRun?: boolean;
 		enabled: Record<JobKey, boolean>;
 		schedule: Schedule;
 		runs: Record<JobKey, JobRun>;
@@ -289,6 +291,12 @@ export default function Dashboard() {
 						실행 기록 보기 <LuArrowRight aria-hidden />
 					</MoreLink>
 				</div>
+				{scheduler.autoRun === false && (
+					<p className="auto-off" role="note">
+						이 서버는 예약 시각에 저절로 돌지 않아요(SCHEDULER_ENABLED=false). 필요할 때 &lsquo;지금 실행&rsquo;으로 돌려
+						주세요.
+					</p>
+				)}
 				<ul className="jobs">
 					{(Object.keys(JOBS) as JobKey[]).map((job) => {
 						const run = scheduler.runs[job];
@@ -618,6 +626,17 @@ const StyledDashboard = styled.div`
 	.job-run .job-badge {
 		min-width: 4.75rem;
 		text-align: center;
+	}
+
+	/* 예약 실행이 꺼진 서버 (보통 로컬) 안내 */
+	.auto-off {
+		margin: 0.75rem 0 0;
+		padding: 0.625rem 0.875rem;
+		border: 1px solid color-mix(in srgb, ${({ theme }) => theme.color.warning} 60%, transparent);
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: color-mix(in srgb, ${({ theme }) => theme.color.warning} 12%, transparent);
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.text};
 	}
 
 	.job-message {
