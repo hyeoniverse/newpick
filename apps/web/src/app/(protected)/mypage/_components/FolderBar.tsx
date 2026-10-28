@@ -1,0 +1,299 @@
+'use client';
+
+import { useState } from 'react';
+import styled from 'styled-components';
+import { LuFolder, LuFolderPlus, LuTriangleAlert } from 'react-icons/lu';
+import ModalContents from '@/components/common/modal/ModalContent';
+import { useModal } from '@/hooks/useModal';
+import { HighlightFolder, useHighlightFolderMutations } from '@/hooks/useHighlights';
+
+/** 폴더 거르기 값: 'all' 모든 스크랩 · 'none' 폴더 없음 · 폴더 번호 */
+export type FolderFilter = 'all' | 'none' | number;
+
+interface Props {
+	folders: HighlightFolder[];
+	value: FolderFilter;
+	onChange: (value: FolderFilter) => void;
+	/** 모든 스크랩 수 · 폴더 없는 스크랩 수 */
+	total: number;
+	unfiled: number;
+}
+
+/**
+ * 스크랩 폴더 줄 (#123): 모든 스크랩 · 폴더 없음 · 내 폴더들 · 새 폴더.
+ * 폴더를 고르면 옆에 이름 바꾸기 · 지우기 (지우면 안의 스크랩은 폴더 없음으로)
+ */
+export default function FolderBar({ folders, value, onChange, total, unfiled }: Props) {
+	const { create, rename, remove } = useHighlightFolderMutations();
+	const { openModal, closeModal } = useModal();
+	const [adding, setAdding] = useState(false);
+	const [renaming, setRenaming] = useState(false);
+	const [name, setName] = useState('');
+	const current = typeof value === 'number' ? folders.find((f) => f.id === value) : undefined;
+
+	const confirmRemove = (folder: HighlightFolder) =>
+		openModal(
+			<ModalContents
+				icon={<LuTriangleAlert />}
+				title={`'${folder.name}' 폴더를 지울까요?`}
+				content={folder.count ? `안의 스크랩 ${folder.count}개는 지우지 않고 폴더 없음으로 옮겨요.` : '빈 폴더예요.'}
+				outlineButton="취소"
+				filledButton="폴더 지우기"
+				onCancelClick={closeModal}
+				onConfirmClick={() => {
+					closeModal();
+					remove.mutate(folder.id, { onSuccess: () => onChange('all') });
+				}}
+			/>,
+		);
+
+	const chip = (key: FolderFilter, label: React.ReactNode, count: number) => (
+		<button
+			key={String(key)}
+			type="button"
+			className="chip"
+			aria-pressed={value === key}
+			onClick={() => {
+				setRenaming(false);
+				onChange(key);
+			}}
+		>
+			{label}
+			<span className="count">{count}</span>
+		</button>
+	);
+
+	return (
+		<StyledFolderBar role="group" aria-label="스크랩 폴더">
+			<div className="chips">
+				{chip('all', '모든 스크랩', total)}
+				{chip('none', '폴더 없음', unfiled)}
+				{folders.map((f) =>
+					chip(
+						f.id,
+						<>
+							<LuFolder aria-hidden /> {f.name}
+						</>,
+						f.count,
+					),
+				)}
+				{adding ? (
+					<form
+						className="inline-form"
+						onSubmit={(event) => {
+							event.preventDefault();
+							const trimmed = name.trim();
+							if (!trimmed) return;
+							create.mutate(trimmed, {
+								onSuccess: (folder) => {
+									setAdding(false);
+									setName('');
+									onChange(folder.id);
+								},
+							});
+						}}
+					>
+						<input
+							value={name}
+							onChange={(e) => setName(e.target.value)}
+							onKeyDown={(e) => e.key === 'Escape' && setAdding(false)}
+							maxLength={30}
+							placeholder="새 폴더 이름"
+							aria-label="새 폴더 이름"
+							autoFocus
+						/>
+						<button type="submit" className="save" disabled={!name.trim() || create.isPending}>
+							만들기
+						</button>
+						<button type="button" className="cancel" onClick={() => setAdding(false)}>
+							취소
+						</button>
+					</form>
+				) : (
+					<button type="button" className="chip add" onClick={() => setAdding(true)}>
+						<LuFolderPlus aria-hidden /> 새 폴더
+					</button>
+				)}
+			</div>
+			{/* 고른 폴더 관리 */}
+			{current && (
+				<div className="manage">
+					{renaming ? (
+						<form
+							className="inline-form"
+							onSubmit={(event) => {
+								event.preventDefault();
+								const trimmed = name.trim();
+								if (!trimmed || trimmed === current.name) return setRenaming(false);
+								rename.mutate({ id: current.id, name: trimmed }, { onSuccess: () => setRenaming(false) });
+							}}
+						>
+							<input
+								value={name}
+								onChange={(e) => setName(e.target.value)}
+								onKeyDown={(e) => e.key === 'Escape' && setRenaming(false)}
+								maxLength={30}
+								aria-label="폴더 이름"
+								autoFocus
+							/>
+							<button type="submit" className="save" disabled={!name.trim() || rename.isPending}>
+								저장
+							</button>
+							<button type="button" className="cancel" onClick={() => setRenaming(false)}>
+								취소
+							</button>
+						</form>
+					) : (
+						<>
+							<button
+								type="button"
+								onClick={() => {
+									setName(current.name);
+									setRenaming(true);
+								}}
+							>
+								이름 바꾸기
+							</button>
+							<button type="button" className="danger" onClick={() => confirmRemove(current)}>
+								폴더 지우기
+							</button>
+						</>
+					)}
+				</div>
+			)}
+		</StyledFolderBar>
+	);
+}
+
+const StyledFolderBar = styled.div`
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+
+	.chips {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		height: 2rem;
+		padding: 0 0.75rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.chip};
+		background: ${({ theme }) => theme.color.background};
+		font: inherit;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.text};
+		white-space: nowrap;
+		cursor: pointer;
+
+		svg {
+			width: 0.875rem;
+			height: 0.875rem;
+			color: ${({ theme }) => theme.color.subText};
+		}
+
+		.count {
+			color: ${({ theme }) => theme.color.subText};
+			font-variant-numeric: tabular-nums;
+		}
+
+		&:hover {
+			border-color: ${({ theme }) => theme.color.primary};
+		}
+
+		&[aria-pressed='true'] {
+			border-color: ${({ theme }) => theme.color.primary};
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+
+			svg,
+			.count {
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+
+		&.add {
+			border-style: dashed;
+			color: ${({ theme }) => theme.color.primary};
+
+			svg {
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+	}
+
+	.inline-form {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+
+		input {
+			width: 10rem;
+			height: 2rem;
+			padding: 0 0.625rem;
+			border: 1px solid ${({ theme }) => theme.color.primary};
+			border-radius: ${({ theme }) => theme.radius.chip};
+			background: ${({ theme }) => theme.color.background};
+			color: ${({ theme }) => theme.color.text};
+			font: inherit;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+
+			&:focus {
+				outline: none;
+			}
+		}
+
+		button {
+			height: 2rem;
+			padding: 0 0.75rem;
+			border-radius: ${({ theme }) => theme.radius.chip};
+			font: inherit;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			cursor: pointer;
+		}
+
+		.save {
+			background: ${({ theme }) => theme.color.primary};
+			color: ${({ theme }) => theme.color.white};
+
+			&:disabled {
+				opacity: 0.4;
+				cursor: default;
+			}
+		}
+
+		.cancel {
+			color: ${({ theme }) => theme.color.subText};
+		}
+	}
+
+	.manage {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+
+		> button {
+			padding: 0;
+			font: inherit;
+			color: ${({ theme }) => theme.color.subText};
+			cursor: pointer;
+
+			&:hover {
+				color: ${({ theme }) => theme.color.primary};
+				text-decoration: underline;
+			}
+
+			&.danger:hover {
+				color: ${({ theme }) => theme.color.error};
+			}
+		}
+	}
+`;

@@ -20,11 +20,12 @@ model User {
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 
-  bookmarks   Bookmark[]
-  highlights  Highlight[]
-  interests   UserInterest[]
-  oAuthTokens OAuthToken[]
-  subscribers Subscriber[]
+  bookmarks        Bookmark[]
+  highlights       Highlight[]
+  highlightFolders HighlightFolder[]
+  interests        UserInterest[]
+  oAuthTokens      OAuthToken[]
+  subscribers      Subscriber[]
 
   @@map("users")
 }
@@ -293,13 +294,31 @@ model Highlight {
   note         String?  @db.Text
   /// 별표(중요). 지울 때 한 번 더 확인하고, 취향 점수에 더 얹는다
   starred      Boolean  @default(false)
+  /// 폴더. 폴더를 지우면 '폴더 없음'(null)으로
+  folderId     Int?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  newsletter Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsletter Newsletter       @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  folder     HighlightFolder? @relation(fields: [folderId], references: [id], onDelete: SetNull)
 
   @@unique([userId, newsletterId, text])
+  @@index([folderId])
   @@index([userId, createdAt])
   @@map("highlights")
+}
+
+/// 스크랩 폴더 (#123): 사람마다 이름이 겹치지 않게. 지우면 안의 스크랩은 '폴더 없음'으로
+model HighlightFolder {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  name      String   @db.VarChar(30)
+  createdAt DateTime @default(now())
+
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  highlights Highlight[]
+
+  @@unique([userId, name])
+  @@map("highlight_folders")
 }

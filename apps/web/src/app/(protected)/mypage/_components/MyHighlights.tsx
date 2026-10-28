@@ -10,10 +10,13 @@ import FilterChips from '@/components/common/FilterChips';
 import InputCheck from '@/components/common/InputCheck';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
-import { Highlight, useHighlightMutations, useHighlights } from '@/hooks/useHighlights';
+import { Highlight, useHighlightFolders, useHighlightMutations, useHighlights } from '@/hooks/useHighlights';
+import { useToast } from '@/hooks/useToast';
 import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
+import FolderBar, { FolderFilter } from './FolderBar';
+import FolderMenu from './FolderMenu';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -24,7 +27,7 @@ function sectionName(highlight: Highlight) {
 }
 
 /** 문장 위 출처 한 줄: 관심사 · 뉴스레터 제목(누르면 그 뉴스레터) › 소식 번호 · 제목 */
-function Source({ highlight }: { highlight: Highlight }) {
+function Source({ highlight, folder }: { highlight: Highlight; folder?: string }) {
 	const newsletter = highlight.newsletter;
 	const { index, name } = sectionName(highlight);
 	return (
@@ -42,8 +45,23 @@ function Source({ highlight }: { highlight: Highlight }) {
 					{name}
 				</span>
 			)}
+			{/* '모든 스크랩'에서 볼 때 어느 폴더인지 */}
+			{folder && <span className="folder">{folder}</span>}
 		</p>
 	);
+}
+
+/** 고른 스크랩을 글로 복사: 문장 · 출처 · 메모 */
+function asText(items: Highlight[]) {
+	return items
+		.map((h) => {
+			const { index, name } = sectionName(h);
+			const source = [h.newsletter?.category.name, h.newsletter?.title, [index, name].filter(Boolean).join(' ')]
+				.filter(Boolean)
+				.join(' · ');
+			return [`“${h.text}”`, `— ${source}`, h.note && `메모: ${h.note}`].filter(Boolean).join('\n');
+		})
+		.join('\n\n');
 }
 
 const FILTERS: Record<string, (h: Highlight) => boolean> = {
@@ -54,12 +72,17 @@ const FILTERS: Record<string, (h: Highlight) => boolean> = {
 /**
  * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
  * 묶지 않고 최근에 스크랩한 것부터 한 줄 목록, 문장마다 위에 출처(관심사 · 뉴스레터 · 소식) 한 줄.
- * 문장 아래 원문에서 보기(?hl=번호) · 메모 · 지우기, 문장 줄 끝에 중요 표시(별). '선택'으로 골라서 한 번에 지운다.
+ * 폴더로 정리하고(폴더 줄로 거르기), 문장 아래 원문에서 보기(?hl=번호) · 메모 · 폴더 옮기기 · 지우기, 문장 줄 끝에 중요 표시(별).
+ * '선택'으로 골라서 한꺼번에 폴더로 옮기기 · 중요 표시 · 중요 빼기 · 복사 · 지우기.
  * 중요 표시한 문장은 지우기 전에 한 번 더 묻는다
  */
 export default function MyHighlights() {
 	const { data, isPending, isError, error, refetch } = useHighlights();
 	const [filter, setFilter] = useState('');
+	const [folder, setFolder] = useState<FolderFilter>('all');
+	const { data: folders = [] } = useHighlightFolders();
+	const { bulk } = useHighlightMutations();
+	const { showToast } = useToast();
 	// 선택해서 지우기: 고르는 중인지, 고른 번호
 	const [selecting, setSelecting] = useState(false);
 	const [selected, setSelected] = useState<Set<number>>(new Set());
@@ -96,9 +119,22 @@ export default function MyHighlights() {
 		);
 	}
 
-	const memos = data.filter(FILTERS.memo).length;
-	const stars = data.filter(FILTERS.starred).length;
-	const shown = FILTERS[filter] ? data.filter(FILTERS[filter]) : data;
+	const inFolder =
+		folder === 'all' ? data : data.filter((h) => (folder === 'none' ? h.folderId === null : h.folderId === folder));
+	// 고른 폴더 안에서 세기
+	const memos = inFolder.filter(FILTERS.memo).length;
+	const stars = inFolder.filter(FILTERS.starred).length;
+	const shown = FILTERS[filter] ? inFolder.filter(FILTERS[filter]) : inFolder;
+	const folderName = new Map(folders.map((f) => [f.id, f.name]));
+	const picked = data.filter((h) => selected.has(h.id));
+	const copy = async () => {
+		try {
+			await navigator.clipboard.writeText(asText(picked));
+			showToast(`${picked.length}개를 복사했어요.`, 'success');
+		} catch {
+			showToast('복사하지 못했어요.', 'error');
+		}
+	};
 	const allShownSelected = shown.length > 0 && shown.every((h) => selected.has(h.id));
 	const toggle = (id: number) =>
 		setSelected((prev) => {
@@ -111,9 +147,19 @@ export default function MyHighlights() {
 	return (
 		<StyledHighlights>
 			<MyTaste />
+			<FolderBar
+				folders={folders}
+				value={folder}
+				onChange={(next) => {
+					setFolder(next);
+					setSelected(new Set());
+				}}
+				total={data.length}
+				unfiled={data.filter((h) => h.folderId === null).length}
+			/>
 			<div className="list-head">
 				<h3>
-					스크랩한 문장 <span className="count">{data.length}</span>
+					스크랩한 문장 <span className="count">{inFolder.length}</span>
 				</h3>
 				<div className="list-tools">
 					<FilterChips
@@ -121,7 +167,7 @@ export default function MyHighlights() {
 						options={[
 							{ value: '', label: '전체' },
 							{ value: 'starred', label: `중요 ${stars}` },
-							{ value: 'memo', label: `메모만 ${memos}` },
+							{ value: 'memo', label: `메모 ${memos}` },
 						]}
 						value={filter}
 						onChange={setFilter}
@@ -140,7 +186,9 @@ export default function MyHighlights() {
 				<p className="empty">
 					{filter === 'starred'
 						? '중요 표시한 문장이 없어요. 문장 옆 별을 누르면 여기 모여요.'
-						: '메모를 남긴 문장이 없어요.'}
+						: filter === 'memo'
+							? '메모를 남긴 문장이 없어요.'
+							: "이 폴더에 스크랩이 없어요. 문장 아래 '폴더 옮기기'나 '선택'으로 옮겨 보세요."}
 				</p>
 			)}
 			{/* 최근에 스크랩한 것부터 (목록이 그 순서로 온다), 카드 한 장 안에 구분선으로 */}
@@ -148,7 +196,10 @@ export default function MyHighlights() {
 				<ul className="list">
 					{shown.map((highlight) => (
 						<li key={highlight.id}>
-							<Source highlight={highlight} />
+							<Source
+								highlight={highlight}
+								folder={folder === 'all' && highlight.folderId ? folderName.get(highlight.folderId) : undefined}
+							/>
 							<HighlightItem
 								highlight={highlight}
 								focused={highlight.id === focused}
@@ -163,7 +214,7 @@ export default function MyHighlights() {
 			)}
 			{/* 고르는 중: 아래에 붙어 따라오는 막대 */}
 			{selecting && (
-				<div className="select-bar" role="region" aria-label="선택한 문장 지우기">
+				<div className="select-bar" role="region" aria-label="선택한 문장 한꺼번에">
 					<InputCheck
 						name="highlights-select-all"
 						className="select-all"
@@ -182,22 +233,45 @@ export default function MyHighlights() {
 						}
 					/>
 					<span className="picked">{selected.size}개 선택</span>
-					<button type="button" onClick={stopSelecting}>
-						취소
-					</button>
-					<button
-						type="button"
-						className="danger"
-						disabled={selected.size === 0}
-						onClick={() =>
-							confirmRemove(
-								data.filter((h) => selected.has(h.id)),
-								{ onDone: stopSelecting },
-							)
-						}
-					>
-						{selected.size}개 지우기
-					</button>
+					{/* 한꺼번에 할 일 · 취소 · 지우기 (모바일은 한 줄로 옆으로 밀어 본다) */}
+					<div className="bulk">
+						<FolderMenu
+							label="폴더로 옮기기"
+							up
+							disabled={selected.size === 0}
+							onPick={(folderId) =>
+								bulk.mutate({ ids: [...selected], action: 'move', folderId }, { onSuccess: stopSelecting })
+							}
+						/>
+						<button
+							type="button"
+							disabled={selected.size === 0}
+							onClick={() => bulk.mutate({ ids: [...selected], action: 'star' }, { onSuccess: stopSelecting })}
+						>
+							중요 표시
+						</button>
+						<button
+							type="button"
+							disabled={selected.size === 0}
+							onClick={() => bulk.mutate({ ids: [...selected], action: 'unstar' }, { onSuccess: stopSelecting })}
+						>
+							중요 빼기
+						</button>
+						<button type="button" disabled={selected.size === 0} onClick={copy}>
+							복사
+						</button>
+						<button type="button" onClick={stopSelecting}>
+							취소
+						</button>
+						<button
+							type="button"
+							className="danger"
+							disabled={selected.size === 0}
+							onClick={() => confirmRemove(picked, { onDone: stopSelecting })}
+						>
+							{selected.size}개 지우기
+						</button>
+					</div>
 				</div>
 			)}
 		</StyledHighlights>
@@ -219,7 +293,7 @@ function HighlightItem({
 	onToggle: () => void;
 	onRemove: () => void;
 }) {
-	const { update } = useHighlightMutations();
+	const { update, bulk } = useHighlightMutations();
 	const [editing, setEditing] = useState(false);
 	const [note, setNote] = useState(highlight.note ?? '');
 
@@ -271,6 +345,11 @@ function HighlightItem({
 						{highlight.note ? '메모 고치기' : '메모 남기기'}
 					</button>
 				)}
+				<FolderMenu
+					label="폴더 옮기기"
+					current={highlight.folderId}
+					onPick={(folderId) => bulk.mutate({ ids: [highlight.id], action: 'move', folderId })}
+				/>
 				<button type="button" className="danger" onClick={onRemove}>
 					지우기
 				</button>
@@ -325,7 +404,7 @@ const StyledHighlights = styled.div`
 	gap: 1.25rem;
 	padding: 2rem 0;
 
-	/* 목록 머리: '스크랩한 문장 N' · 전체 / 메모만 */
+	/* 목록 머리: '스크랩한 문장 N' · 전체 / 중요 / 메모 · 선택 */
 	.list-head {
 		display: flex;
 		flex-wrap: wrap;
@@ -439,6 +518,16 @@ const StyledHighlights = styled.div`
 			color: ${({ theme }) => theme.color.disabled};
 		}
 
+		/* '모든 스크랩'에서 어느 폴더인지 */
+		.folder {
+			margin-left: 0.25rem;
+			padding: 0 0.5rem;
+			border-radius: ${({ theme }) => theme.radius.chip};
+			background: ${({ theme }) => theme.color.surface};
+			font-size: 0.75rem;
+			color: ${({ theme }) => theme.color.subText};
+		}
+
 		/* 뉴스레터 본문의 소식 번호와 같은 모양 */
 		.index {
 			font-size: 0.75rem;
@@ -529,7 +618,12 @@ const StyledHighlights = styled.div`
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem 1rem;
-		padding: 0.75rem 1rem;
+		/* 목록 카드와 같은 안쪽 여백: 체크칸 시작 위치를 문장 체크칸과 맞춘다 */
+		padding: 0.75rem 1.5rem;
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			padding: 0.75rem 1rem;
+		}
 		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.background};
@@ -544,7 +638,32 @@ const StyledHighlights = styled.div`
 			color: ${({ theme }) => theme.color.subText};
 		}
 
-		button {
+		/* 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 빼기 · 복사 · 취소 · 지우기 */
+		.bulk {
+			display: flex;
+			gap: 0.375rem;
+
+			/* 모바일: 막대가 높아지지 않게 한 줄로 두고 옆으로 밀어 본다 (폴더 메뉴는 위로 펼쳐져 잘리지 않게 visible) */
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				width: 100%;
+				overflow-x: auto;
+				scrollbar-width: none;
+
+				&::-webkit-scrollbar {
+					display: none;
+				}
+
+				> button,
+				.trigger {
+					flex-shrink: 0;
+					white-space: nowrap;
+				}
+			}
+		}
+
+		/* 폴더 메뉴 안의 버튼에는 붙지 않게 */
+		.bulk > button,
+		.bulk .trigger {
 			padding: 0.5rem 0.875rem;
 			border: 1px solid ${({ theme }) => theme.color.border};
 			border-radius: ${({ theme }) => theme.radius.control};
@@ -630,8 +749,10 @@ const StyledHighlights = styled.div`
 		gap: 0.25rem 1rem;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 
-		a,
-		button {
+		/* 폴더 메뉴 안의 버튼에는 붙지 않게: 바로 아래 것 · 메뉴 단추만 */
+		> a,
+		> button,
+		.trigger {
 			padding: 0;
 			font: inherit;
 			color: ${({ theme }) => theme.color.subText};

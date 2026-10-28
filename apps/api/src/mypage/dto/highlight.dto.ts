@@ -1,9 +1,10 @@
-import { Type } from 'class-transformer';
+import { Transform, Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   ArrayNotEmpty,
   IsArray,
   IsBoolean,
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -11,6 +12,7 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateIf,
 } from 'class-validator';
 
 /** 스크랩 저장 (#123): 뉴스레터 본문에서 고른 문장, 메모는 선택 */
@@ -64,4 +66,32 @@ export class HighlightsQueryDto {
   @IsInt()
   @Min(1)
   newsletterId?: number;
+}
+
+/** 선택한 스크랩 한꺼번에 바꾸기 (#123): 폴더로 옮기기 · 중요 표시 · 중요 빼기 */
+export class BulkHighlightsDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayMaxSize(500)
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  ids: number[];
+
+  @IsIn(['move', 'star', 'unstar'])
+  action: 'move' | 'star' | 'unstar';
+
+  /** move일 때 옮길 폴더. null이면 '폴더 없음' */
+  @ValidateIf((o) => o.action === 'move' && o.folderId !== null)
+  @IsInt()
+  @Min(1)
+  folderId?: number | null;
+}
+
+/** 폴더 만들기 · 이름 바꾸기 */
+export class HighlightFolderDto {
+  @IsString()
+  @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
+  @MinLength(1, { message: '폴더 이름을 적어 주세요.' })
+  @MaxLength(30, { message: '폴더 이름은 30자까지예요.' })
+  name: string;
 }

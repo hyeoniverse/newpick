@@ -25,8 +25,10 @@ import { MyMailQueryDto, MyMailsQueryDto } from './dto/my-mails-query.dto';
 import { HighlightsService } from './highlights.service';
 import { TasteService } from '../taste/taste.service';
 import {
+  BulkHighlightsDto,
   CreateHighlightDto,
   DeleteHighlightsDto,
+  HighlightFolderDto,
   HighlightsQueryDto,
   UpdateHighlightDto,
 } from './dto/highlight.dto';
@@ -56,6 +58,45 @@ export class MyPageController {
   @Post('highlights')
   async createHighlight(@Req() req, @Body() body: CreateHighlightDto) {
     return this.highlightsService.create(this.userIdOf(req), body);
+  }
+
+  /** 선택한 스크랩 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 빼기 (내 것만, 바꾼 수) */
+  @Post('highlights/bulk')
+  async bulkHighlights(@Req() req, @Body() body: BulkHighlightsDto) {
+    return this.highlightsService.bulk(this.userIdOf(req), body);
+  }
+
+  /** 스크랩 폴더 (만든 순서, 폴더마다 스크랩 수) */
+  @Get('highlight-folders')
+  async getHighlightFolders(@Req() req) {
+    return this.highlightsService.folders(this.userIdOf(req));
+  }
+
+  @Post('highlight-folders')
+  async createHighlightFolder(@Req() req, @Body() body: HighlightFolderDto) {
+    return this.highlightsService.createFolder(this.userIdOf(req), body.name);
+  }
+
+  @Patch('highlight-folders/:id')
+  async renameHighlightFolder(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: HighlightFolderDto,
+  ) {
+    return this.highlightsService.renameFolder(
+      this.userIdOf(req),
+      id,
+      body.name,
+    );
+  }
+
+  /** 폴더 지우기: 안의 스크랩은 '폴더 없음'으로 */
+  @Delete('highlight-folders/:id')
+  async deleteHighlightFolder(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    return this.highlightsService.deleteFolder(this.userIdOf(req), id);
   }
 
   /** 여러 개 지우기 (내 것만, 지운 수) */
