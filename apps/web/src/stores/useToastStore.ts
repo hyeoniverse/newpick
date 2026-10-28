@@ -1,11 +1,11 @@
 import { create } from 'zustand';
 import { TOAST } from '@/constants/numbers';
-import { ToastItem, ToastType, ToastPosition } from '@/models/toast.model';
+import { ToastAction, ToastItem, ToastType, ToastPosition } from '@/models/toast.model';
 
 interface ToastState {
 	toasts: ToastItem[];
 	position: ToastPosition;
-	addToast: (message: string, type?: ToastType, duration?: number) => string;
+	addToast: (message: string, type?: ToastType, duration?: number, action?: ToastAction) => string;
 	removeToast: (id: string) => void;
 	setPosition: (position: ToastPosition) => void;
 }
@@ -15,12 +15,13 @@ const useToastStore = create<ToastState>((set) => ({
 	// 모달이 모두 아래에서 올라오는 시트라 위쪽에 (#52). 헤더·펼친 메뉴 아래로 비켜 선다 (ToastContainer)
 	position: 'top-right',
 
-	addToast: (message, type = 'info', duration = TOAST.DURATION): string => {
+	addToast: (message, type = 'info', duration = TOAST.DURATION, action): string => {
 		const newToast: ToastItem = {
 			id: crypto.randomUUID(),
 			message,
 			type,
 			duration,
+			action,
 		};
 
 		set((state) => {

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { TOAST } from '@/constants/numbers';
 import { ToastItem, ToastPosition, ToastType } from '@/models/toast.model';
 import { useToast } from '@/hooks/useToast';
@@ -23,7 +24,7 @@ const typeColor = (theme: DefaultTheme, type: ToastType) =>
 		error: theme.color.error,
 	})[type];
 
-const Toast = React.memo(({ id, message, type, duration = TOAST.DURATION }: ToastItem & { index: number }) => {
+const Toast = React.memo(({ id, message, type, duration = TOAST.DURATION, action }: ToastItem & { index: number }) => {
 	const { removeToast, position } = useToast();
 	const [isFadingOut, setIsFadingOut] = useState(false);
 	const [progress, setProgress] = useState(100); // ⏳ 프로그레스 바 (100% → 0%)
@@ -73,7 +74,14 @@ const Toast = React.memo(({ id, message, type, duration = TOAST.DURATION }: Toas
 			onAnimationEnd={handleAnimationEnd}
 		>
 			<span className="icon">{ICONS[type]}</span>
-			<p>{message}</p>
+			<div className="body">
+				<p>{message}</p>
+				{action && (
+					<Link href={action.href} className="action" onClick={startFadeOut}>
+						{action.label}
+					</Link>
+				)}
+			</div>
 			<button type="button" className="close" onClick={startFadeOut} aria-label="알림 닫기">
 				<LuX />
 			</button>
@@ -156,8 +164,26 @@ const StyledToast = styled.div<StyledProps>`
 		}
 	}
 
-	p {
+	.body {
 		flex: 1;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.125rem;
+		min-width: 0;
+	}
+
+	.action {
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
+
+		&:hover {
+			text-decoration: underline;
+		}
+	}
+
+	p {
 		margin: 0;
 		font-size: ${({ theme }) => theme.fontSize.small};
 		font-weight: ${({ theme }) => theme.fontWeight.medium};

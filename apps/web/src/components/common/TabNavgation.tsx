@@ -2,21 +2,33 @@
 
 import { NavigationItem as INavigationItem } from '@/models/navigation.model';
 import useTabStore from '@/stores/useTabStore';
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import styled from 'styled-components';
 
 interface Props {
 	tabs: INavigationItem[];
 }
 
-export default function TabNavigation({ tabs }: Props) {
-	const { activeTab, setActiveTab } = useTabStore();
+/** 주소의 ?tab=을 읽으므로 Suspense 안에서 (정적 페이지에서도 쓰이게) */
+export default function TabNavigation(props: Props) {
+	return (
+		<Suspense fallback={null}>
+			<Tabs {...props} />
+		</Suspense>
+	);
+}
 
-	// 처음엔 주소의 ?tab=(예: 수신 거부 화면의 '마이페이지에서 해지' → ?tab=settings)을 따르고, 없으면 첫 탭 (#17)
+function Tabs({ tabs }: Props) {
+	const { activeTab, setActiveTab } = useTabStore();
+	const fromUrl = useSearchParams().get('tab');
+
+	// 주소의 ?tab=(예: 수신 거부 화면의 '마이페이지에서 해지' → ?tab=settings, 스크랩 알림의 '모아 보기' → ?tab=highlights)을 따르고,
+	// 없으면 첫 탭 (#17). window.location이 아니라 라우터 값으로 읽는다: 다른 화면에서 링크로 올 때는
+	// 이 효과가 도는 순간 주소창이 아직 바뀌지 않아 첫 탭으로 떨어졌다
 	useEffect(() => {
-		const fromUrl = new URLSearchParams(window.location.search).get('tab');
 		setActiveTab(tabs.some((tab) => tab.link === fromUrl) ? fromUrl! : tabs[0].link);
-	}, [setActiveTab, tabs]);
+	}, [fromUrl, setActiveTab, tabs]);
 
 	// 고른 탭을 주소에도 남겨, 새로 고침 · 뒤로 와도 같은 탭 (기록은 쌓지 않음). 첫 탭이면 주소를 깨끗하게(?tab= 없이)
 	useEffect(() => {
@@ -64,7 +76,9 @@ const TabNavigationStyled = styled.div`
 		font-size: ${({ theme }) => theme.fontSize.small};
 		margin-bottom: -1px;
 		border-bottom: 1px solid transparent;
-		transition: border-bottom 0.2s ease, color 0.2s ease;
+		transition:
+			border-bottom 0.2s ease,
+			color 0.2s ease;
 
 		span {
 			height: 100%;

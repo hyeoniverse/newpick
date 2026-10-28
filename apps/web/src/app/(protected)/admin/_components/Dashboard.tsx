@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from './format';
 import styled from 'styled-components';
-import { LuArrowRight, LuChevronDown, LuClock, LuPlay, LuTriangleAlert } from 'react-icons/lu';
+import { LuArrowRight, LuChevronDown, LuClock, LuInfo, LuPlay, LuTriangleAlert } from 'react-icons/lu';
 import ScheduleEditor, { clock, describe, type Schedule } from './ScheduleEditor';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
@@ -286,6 +286,8 @@ export default function Dashboard() {
 						>
 							시간 설정
 						</Button>
+						{/* 예약 실행이 꺼진 서버(보통 로컬): 제목 옆 배지로 짧게, 풀어 쓴 설명은 아래 한 줄 */}
+						{scheduler.autoRun === false && <StatusBadge tone="neutral">자동 실행 꺼짐</StatusBadge>}
 					</div>
 					<MoreLink href={`/admin/job-runs${periodQuery}`}>
 						실행 기록 보기 <LuArrowRight aria-hidden />
@@ -293,8 +295,11 @@ export default function Dashboard() {
 				</div>
 				{scheduler.autoRun === false && (
 					<p className="auto-off" role="note">
-						이 서버는 예약 시각에 저절로 돌지 않아요(SCHEDULER_ENABLED=false). 필요할 때 &lsquo;지금 실행&rsquo;으로 돌려
-						주세요.
+						<LuInfo aria-hidden />
+						<span>
+							이 서버는 예약 시각에 저절로 돌지 않아요. 필요할 때 &lsquo;지금 실행&rsquo;으로 돌려 주세요.
+							<code>SCHEDULER_ENABLED=false</code>
+						</span>
 					</p>
 				)}
 				<ul className="jobs">
@@ -630,13 +635,30 @@ const StyledDashboard = styled.div`
 
 	/* 예약 실행이 꺼진 서버 (보통 로컬) 안내 */
 	.auto-off {
-		margin: 0.75rem 0 0;
-		padding: 0.625rem 0.875rem;
-		border: 1px solid color-mix(in srgb, ${({ theme }) => theme.color.warning} 60%, transparent);
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: color-mix(in srgb, ${({ theme }) => theme.color.warning} 12%, transparent);
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.text};
+		display: flex;
+		align-items: flex-start;
+		gap: 0.375rem;
+		margin: 0.5rem 0 0.75rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		line-height: 1.5;
+		color: ${({ theme }) => theme.color.subText};
+
+		svg {
+			flex-shrink: 0;
+			width: 0.875rem;
+			height: 0.875rem;
+			margin-top: 0.15em;
+		}
+
+		code {
+			margin-left: 0.375rem;
+			padding: 0.0625rem 0.375rem;
+			border-radius: ${({ theme }) => theme.radius.chip};
+			background: ${({ theme }) => theme.color.surface};
+			font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+			font-size: 0.75rem;
+			white-space: nowrap;
+		}
 	}
 
 	.job-message {

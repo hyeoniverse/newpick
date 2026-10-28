@@ -1,10 +1,12 @@
 'use client';
 
+import { useRef } from 'react';
 import styled from 'styled-components';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import OpenGraphCard from '@/components/common/article/OpenGraphCard';
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import HighlightLayer from './HighlightLayer';
 
 interface NewsletterContentProps {
 	content: string;
@@ -15,7 +17,8 @@ interface NewsletterContentProps {
 	related?: string[];
 }
 
-function ArticleContent({ content, flex, className, articleImage, related = [] }: NewsletterContentProps) {
+function ArticleContent({ content, flex, className, articleImage, newsId, related = [] }: NewsletterContentProps) {
+	const bodyRef = useRef<HTMLDivElement>(null);
 	return (
 		<ContainerStyled flex={flex} className={className}>
 			{articleImage && (
@@ -25,7 +28,9 @@ function ArticleContent({ content, flex, className, articleImage, related = [] }
 			)}
 			<NewsletterContentStyled>
 				{/* 방문 통계 (#131): 본문의 브리핑 · 소식을 구역으로 센다 */}
-				<div data-track-content dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
+				<div ref={bodyRef} data-track-content dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
+				{/* 스크랩 · 메모 (#123): 뉴스레터 상세에서만 (관리자 미리보기 등은 newsId 없음) */}
+				{newsId && <HighlightLayer newsletterId={newsId} rootRef={bodyRef} />}
 				<div className="content-bottom-margin" />
 			</NewsletterContentStyled>
 			{/* 본문을 다 읽은 자리에서 바로 구독 권유, 그 아래 출처(관련 뉴스) */}
@@ -69,6 +74,8 @@ const OpenGraphCardContainer = styled.div`
 
 const NewsletterContentStyled = styled.article`
 	position: relative;
+	/* 스크랩 형광펜 띠(z-index -1)가 본문 글자 뒤 · 이 틀 안에 깔리도록 따로 쌓는다 */
+	isolation: isolate;
 	gap: 0.5rem;
 
 	.content-bottom-margin {

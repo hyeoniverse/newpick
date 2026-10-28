@@ -47,6 +47,8 @@ const ToastContainer = React.memo(() => {
 					id={toast.id}
 					message={toast.message}
 					type={toast.type}
+					duration={toast.duration}
+					action={toast.action}
 					index={toasts.findIndex((t) => t.id === toast.id)}
 				/>
 			))}
