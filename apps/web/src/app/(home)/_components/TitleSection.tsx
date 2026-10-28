@@ -30,7 +30,7 @@ const fillForLoop = (articles: IArticleDetail[]) =>
 
 function TitleSection({ className, firstArticles, secondArticles }: Props) {
 	return (
-		<TitleSectionStyled className={className}>
+		<TitleSectionStyled data-track-section="home-title" className={className}>
 			<PCLogo className="logo" />
 			<Title size="extraLarge" weight="medium" className="title-text">
 				AI 뉴스레터 서비스 뉴픽

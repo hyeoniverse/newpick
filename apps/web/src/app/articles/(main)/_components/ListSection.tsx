@@ -119,7 +119,7 @@ export default function ListSection() {
 	const heading = filters.q ? `‘${filters.q}’ 검색 결과` : filters.keyword ? `#${filters.keyword}` : categoryName;
 
 	return (
-		<StyledListSection>
+		<StyledListSection data-track-section="articles-list">
 			<div className="header">
 				<div className="title">
 					<Title as="h2" size="extraSmall" weight="semiBold" color="primary" className="tag">

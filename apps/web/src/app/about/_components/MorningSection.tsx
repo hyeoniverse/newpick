@@ -81,7 +81,7 @@ export default function MorningSection() {
 	const { active, minute } = state;
 
 	return (
-		<StyledMorning aria-label="뉴스레터가 만들어지는 아침" style={{ '--steps': STEPS.length } as React.CSSProperties}>
+		<StyledMorning data-track-section="about-morning" aria-label="뉴스레터가 만들어지는 아침" style={{ '--steps': STEPS.length } as React.CSSProperties}>
 			<SectionHeading
 				label="08:00 → 08:40"
 				title="뉴스레터가 만들어지는 아침 40분."

@@ -26,7 +26,7 @@ export default function HeroSection() {
 	const stageRef = useScrollProgress<HTMLDivElement>('enter');
 
 	return (
-		<StyledHero>
+		<StyledHero data-track-section="about-hero">
 			<p className="eyebrow">AI 뉴스 큐레이션 · NEWPICK</p>
 			<h1 className="headline">
 				{HEADLINE.map((line, i) => (

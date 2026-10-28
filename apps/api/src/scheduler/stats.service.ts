@@ -386,4 +386,183 @@ export class StatsService {
       },
     };
   }
+
+  /**
+   * 방문 · 유입 (#131): 날짜별 방문(탭) · 페이지 보기, 유입 경로 · 이전 사이트 · 캠페인 · 첫 페이지 · 기기,
+   * 페이지별 보기 · 방문 · 평균 머문 시간 · 평균 스크롤. 유입은 탭의 첫 페이지 기준
+   */
+  async traffic(from?: string, to?: string) {
+    const { days, inRange, ...range } = this.period(from, to);
+    const views = await this.prisma.pageView.findMany({
+      where: { startedAt: inRange },
+      select: {
+        sessionId: true,
+        route: true,
+        entry: true,
+        channel: true,
+        referrerHost: true,
+        utmSource: true,
+        utmMedium: true,
+        utmCampaign: true,
+        device: true,
+        durationMs: true,
+        scrollDepth: true,
+        startedAt: true,
+      },
+    });
+
+    const byDay = new Map(
+      days.map((date) => [
+        date,
+        { date, sessions: new Set<string>(), views: 0 },
+      ]),
+    );
+    const count = (map: Map<string, number>, key: string) =>
+      map.set(key, (map.get(key) ?? 0) + 1);
+    const channels = new Map<string, number>();
+    const referrers = new Map<string, number>();
+    const campaigns = new Map<string, number>();
+    const entries = new Map<string, number>();
+    const devices = new Map<string, number>();
+    const pages = new Map<
+      string,
+      { views: number; sessions: Set<string>; ms: number; scroll: number }
+    >();
+
+    for (const v of views) {
+      const day = byDay.get(toKstDate(v.startedAt));
+      if (day) {
+        day.views += 1;
+        day.sessions.add(v.sessionId);
+      }
+      const page = pages.get(v.route) ?? {
+        views: 0,
+        sessions: new Set<string>(),
+        ms: 0,
+        scroll: 0,
+      };
+      page.views += 1;
+      page.sessions.add(v.sessionId);
+      page.ms += v.durationMs;
+      page.scroll += v.scrollDepth;
+      pages.set(v.route, page);
+      // 유입은 탭마다 한 번: 첫 페이지 기록으로
+      if (!v.entry) continue;
+      count(channels, v.channel);
+      count(devices, v.device);
+      count(entries, v.route);
+      if (v.referrerHost) count(referrers, v.referrerHost);
+      if (v.utmSource || v.utmCampaign)
+        count(
+          campaigns,
+          [v.utmSource ?? '-', v.utmMedium ?? '-', v.utmCampaign ?? '-'].join(
+            ' / ',
+          ),
+        );
+    }
+
+    const top = (map: Map<string, number>, n = 10) =>
+      [...map.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, n)
+        .map(([key, sessions]) => ({ key, sessions }));
+    const sessions = new Set(views.map((v) => v.sessionId)).size;
+    return {
+      range: { from: range.from, to: range.to },
+      totals: {
+        sessions,
+        views: views.length,
+        avgMs: views.length
+          ? Math.round(
+              views.reduce((n, v) => n + v.durationMs, 0) / views.length,
+            )
+          : 0,
+        viewsPerSession: sessions
+          ? Math.round((views.length / sessions) * 10) / 10
+          : 0,
+      },
+      days: [...byDay.values()].map((d) => ({
+        date: d.date,
+        sessions: d.sessions.size,
+        views: d.views,
+      })),
+      channels: top(channels),
+      referrers: top(referrers),
+      campaigns: top(campaigns),
+      entryPages: top(entries),
+      devices: top(devices),
+      pages: [...pages.entries()]
+        .map(([route, p]) => ({
+          route,
+          views: p.views,
+          sessions: p.sessions.size,
+          avgMs: Math.round(p.ms / p.views),
+          avgScroll: Math.round(p.scroll / p.views),
+        }))
+        .sort((a, b) => b.views - a.views)
+        .slice(0, 30),
+    };
+  }
+
+  /**
+   * 한 페이지에서 머문 곳 (#131): 구역별 평균 · 합계 머문 시간 · 도달률(그 구역을 1초 넘게 본 보기 비율),
+   * 문서 20칸 평균 머문 시간, 클릭 위치(2,000개까지). 기기마다 화면 배치가 달라 기기 하나씩 본다
+   */
+  async page(route: string, device = 'desktop', from?: string, to?: string) {
+    const { inRange, ...range } = this.period(from, to);
+    const views = await this.prisma.pageView.findMany({
+      where: { route, device, startedAt: inRange },
+      orderBy: { startedAt: 'desc' },
+      select: {
+        path: true,
+        durationMs: true,
+        scrollDepth: true,
+        sections: true,
+        attention: true,
+        clicks: true,
+      },
+    });
+
+    const sections = new Map<string, { total: number; reached: number }>();
+    const attention = Array.from({ length: 20 }, () => 0);
+    const clicks: unknown[] = [];
+    for (const v of views) {
+      for (const [name, value] of Object.entries(
+        (v.sections as Record<string, number> | null) ?? {},
+      )) {
+        const s = sections.get(name) ?? { total: 0, reached: 0 };
+        s.total += value;
+        if (value >= 1000) s.reached += 1;
+        sections.set(name, s);
+      }
+      ((v.attention as number[] | null) ?? []).forEach((value, i) => {
+        if (i < attention.length) attention[i] += value;
+      });
+      if (clicks.length < 2000)
+        clicks.push(
+          ...((v.clicks as unknown[]) ?? []).slice(0, 2000 - clicks.length),
+        );
+    }
+    const n = views.length || 1;
+    return {
+      range: { from: range.from, to: range.to },
+      route,
+      device,
+      views: views.length,
+      // iframe으로 띄울 실제 주소: 가장 최근에 본 것
+      samplePath: views[0]?.path ?? (route.includes(':id') ? null : route),
+      avgMs: Math.round(views.reduce((s, v) => s + v.durationMs, 0) / n),
+      avgScroll: Math.round(views.reduce((s, v) => s + v.scrollDepth, 0) / n),
+      sections: [...sections.entries()]
+        .map(([name, s]) => ({
+          name,
+          avgMs: Math.round(s.total / n),
+          totalMs: s.total,
+          reach: Math.round((s.reached / n) * 100),
+        }))
+        .sort((a, b) => b.avgMs - a.avgMs),
+      attention: attention.map((value) => Math.round(value / n)),
+      clicks,
+    };
+  }
 }

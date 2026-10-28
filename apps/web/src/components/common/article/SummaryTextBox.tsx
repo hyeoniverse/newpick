@@ -10,7 +10,7 @@ interface Props {
 
 function SummaryTextBox({ children, className, flex, headingAs = 'h2' }: Props) {
 	return (
-		<SummaryContainerStyled $flex={flex} className={className}>
+		<SummaryContainerStyled $flex={flex} className={className} data-track-section="summary">
 			<SummaryTitleStyled as={headingAs}>AI 요약</SummaryTitleStyled>
 			<SummaryTextBoxStyled>{children}</SummaryTextBoxStyled>
 		</SummaryContainerStyled>

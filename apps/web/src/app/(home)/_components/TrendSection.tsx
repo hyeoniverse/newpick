@@ -15,7 +15,7 @@ const TrendSection = () => {
 	const isLoading = trends.length === 0;
 
 	return (
-		<StyledTrendSection>
+		<StyledTrendSection data-track-section="home-trend">
 			<div className="trend-header">
 				<BorderTitle text="오늘의 트렌드"></BorderTitle>
 			</div>

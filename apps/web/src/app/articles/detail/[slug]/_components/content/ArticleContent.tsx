@@ -19,18 +19,19 @@ function ArticleContent({ content, flex, className, articleImage, related = [] }
 	return (
 		<ContainerStyled flex={flex} className={className}>
 			{articleImage && (
-				<div className="image-wrapper">
+				<div className="image-wrapper" data-track-section="detail-image">
 					<HeightAutoImg src={articleImage} height={'auto'} />
 				</div>
 			)}
 			<NewsletterContentStyled>
-				<div dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
+				{/* 방문 통계 (#131): 본문의 브리핑 · 소식을 구역으로 센다 */}
+				<div data-track-content dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
 				<div className="content-bottom-margin" />
 			</NewsletterContentStyled>
 			{/* 본문을 다 읽은 자리에서 바로 구독 권유, 그 아래 출처(관련 뉴스) */}
 			<SubscribeInduce className="subscribe" />
 			<hr />
-			<OpenGraphCardContainer>
+			<OpenGraphCardContainer data-track-section="detail-sources">
 				<OpenGraphCard urls={related} />
 			</OpenGraphCardContainer>
 		</ContainerStyled>

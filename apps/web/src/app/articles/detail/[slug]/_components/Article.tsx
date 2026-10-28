@@ -81,7 +81,7 @@ function Article({ initial }: Props) {
         title={newsletterContent.title}
         showTitle={titlePassed}
       />
-      <TitleSectionStyled>
+      <TitleSectionStyled data-track-section="detail-title">
         <div className="title-section">
           <Link href={`/articles?categoryId=${newsletterContent.categoryId}`} className="category">
             {mapIdToTitle([newsletterContent.categoryId])[0] || `#${newsletterContent.categoryId}`}

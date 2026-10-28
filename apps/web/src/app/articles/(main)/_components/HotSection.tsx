@@ -58,7 +58,7 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 	const summaryKeywords = isAll ? topKeywords(initiallData) : (stats?.keywords ?? []);
 
 	return (
-		<StyledHotSection $isAll={isAll}>
+		<StyledHotSection data-track-section="articles-hot" $isAll={isAll}>
 			{/* 분야 사이를 바로 옮기는 칩 (헤더 하위 메뉴를 열지 않아도) */}
 			<nav className="category-chips" aria-label="관심사">
 				{CATEGORIES.map((c) => (

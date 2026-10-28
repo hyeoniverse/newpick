@@ -130,6 +130,8 @@ export function renderEditionMail(
   unsubscribeUrl?: string,
 ): string {
   const base = frontendUrl.replace(/\/$/, '');
+  // 메일에서 사이트로 온 방문을 방문 통계(#131)에서 '메일'로 세도록 utm을 붙인다
+  const utm = 'utm_source=newsletter&utm_medium=email&utm_campaign=daily';
 
   const header = card(
     [
@@ -169,7 +171,7 @@ export function renderEditionMail(
                 : '') +
               `<p style="${P}">${esc(section.fallback.summary)}</p>`
             : section.stories.map((s, i) => story(s, i === 0)).join(''),
-          `<p style="margin:22px 0 0;"><a href="${esc(`${base}/articles/detail/${section.newsletterId}`)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:${C.primary};text-decoration:none;">${esc(section.category)} 뉴스레터 전문 보기 →</a></p>`,
+          `<p style="margin:22px 0 0;"><a href="${esc(`${base}/articles/detail/${section.newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:${C.primary};text-decoration:none;">${esc(section.category)} 뉴스레터 전문 보기 →</a></p>`,
         ].join(''),
       ),
     )
@@ -193,7 +195,7 @@ export function renderEditionMail(
   const footer = `<tr><td style="padding:8px 24px 0;font-size:12px;line-height:1.8;color:${C.muted};text-align:center;">뉴픽은 AI가 여러 언론사 기사를 모아 정리한 뉴스레터입니다. 수치·발언은 출처 기사를 함께 확인하세요.<br>${[
     footerLink('관심 분야 바꾸기', `${base}/mypage?tab=settings`),
     footerLink('수신 거부', unsubscribeUrl ?? `${base}/mypage?tab=settings`),
-    footerLink('뉴픽 홈', `${base}/`),
+    footerLink('뉴픽 홈', `${base}/?${utm}`),
     footerLink('이용약관', `${base}/terms`),
     footerLink('개인정보 처리방침', `${base}/privacy`),
   ].join(' · ')}${

@@ -62,7 +62,7 @@ export default function FaqSection() {
 	const toggle = (index: number) => setOpen((prev) => prev.map((v, i) => (i === index ? !v : v)));
 
 	return (
-		<StyledFaq aria-label="자주 묻는 질문">
+		<StyledFaq data-track-section="about-faq" aria-label="자주 묻는 질문">
 			<SectionHeading label="FAQ" title="자주 묻는 질문" />
 			<ul className="list">
 				{FAQ.map(({ q, a }, i) => (

@@ -142,7 +142,7 @@ export default function CoreFeature() {
 	});
 
 	return (
-		<StyledCore style={{ '--n': FEATURES.length } as React.CSSProperties}>
+		<StyledCore data-track-section="about-core-feature" style={{ '--n': FEATURES.length } as React.CSSProperties}>
 			<div className="inner">
 				<SectionHeading label="CORE FEATURE" />
 			</div>

@@ -82,7 +82,7 @@ function StepRow({ step, index }: { step: Step; index: number }) {
  */
 export default function HowToUseSection() {
 	return (
-		<StyledHowToUse>
+		<StyledHowToUse data-track-section="about-how-to-use">
 			<SectionHeading
 				label="HOW TO USE"
 				title="시작은 세 번의 클릭."

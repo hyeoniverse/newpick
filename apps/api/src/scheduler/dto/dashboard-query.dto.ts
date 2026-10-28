@@ -131,3 +131,15 @@ export class DashboardArticlesQueryDto extends DashboardListQueryDto {
   @Length(1, 100, { message: 'title은 1~100자여야 합니다' })
   title?: string;
 }
+
+/** 통계: 한 페이지의 머문 곳 (#131) */
+export class PageStatsQueryDto extends DashboardQueryDto {
+  @IsString()
+  @Length(1, 120)
+  @Matches(/^\//, { message: 'route는 /로 시작해야 합니다' })
+  route: string;
+
+  @IsOptional()
+  @IsIn(['mobile', 'tablet', 'desktop'])
+  device?: 'mobile' | 'tablet' | 'desktop';
+}

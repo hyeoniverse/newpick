@@ -220,3 +220,120 @@ describe('StatsService.cost (#122)', () => {
     ]);
   });
 });
+
+describe('StatsService.traffic · page (#131)', () => {
+  const view = (over: Record<string, unknown>) => ({
+    sessionId: 's1',
+    route: '/articles/detail/:id',
+    entry: false,
+    channel: 'internal',
+    referrerHost: null,
+    utmSource: null,
+    utmMedium: null,
+    utmCampaign: null,
+    device: 'desktop',
+    durationMs: 1000,
+    scrollDepth: 50,
+    startedAt: kst('2026-10-02 09:00'),
+    ...over,
+  });
+
+  it('유입은 탭의 첫 페이지로만 세고, 페이지별 보기 · 방문 · 평균을 낸다', async () => {
+    const prisma = {
+      pageView: {
+        findMany: jest.fn().mockResolvedValue([
+          view({
+            entry: true,
+            channel: 'search',
+            referrerHost: 'www.google.com',
+            route: '/',
+          }),
+          view({ durationMs: 3000, scrollDepth: 100 }),
+          view({
+            sessionId: 's2',
+            entry: true,
+            channel: 'email',
+            utmSource: 'newsletter',
+            utmMedium: 'email',
+            utmCampaign: 'daily',
+            device: 'mobile',
+          }),
+        ]),
+      },
+    };
+    const result = await new StatsService(prisma as never).traffic(
+      '2026-10-02',
+      '2026-10-02',
+    );
+    expect(result.totals).toEqual({
+      sessions: 2,
+      views: 3,
+      avgMs: 1667,
+      viewsPerSession: 1.5,
+    });
+    expect(result.days).toEqual([
+      { date: '2026-10-02', sessions: 2, views: 3 },
+    ]);
+    expect(result.channels).toEqual([
+      { key: 'search', sessions: 1 },
+      { key: 'email', sessions: 1 },
+    ]);
+    expect(result.referrers).toEqual([{ key: 'www.google.com', sessions: 1 }]);
+    expect(result.campaigns).toEqual([
+      { key: 'newsletter / email / daily', sessions: 1 },
+    ]);
+    expect(result.pages[0]).toEqual({
+      route: '/articles/detail/:id',
+      views: 2,
+      sessions: 2,
+      avgMs: 2000,
+      // 스크롤 100% · 50%의 평균
+      avgScroll: 75,
+    });
+  });
+
+  it('한 페이지: 구역 평균 · 도달률(1초 넘게 본 비율), 20칸 평균, 클릭을 모은다', async () => {
+    const row = (
+      sections: Record<string, number>,
+      attention: number[],
+      clicks: unknown[],
+    ) => ({
+      path: '/articles/detail/66',
+      durationMs: 4000,
+      scrollDepth: 80,
+      sections,
+      attention,
+      clicks,
+    });
+    const prisma = {
+      pageView: {
+        findMany: jest
+          .fn()
+          .mockResolvedValue([
+            row(
+              { briefing: 3000, 'story-1': 500 },
+              [2000, 1000],
+              [[0.5, 0.1, 'briefing']],
+            ),
+            row({ briefing: 1000 }, [0, 3000], [[0.2, 0.4]]),
+          ]),
+      },
+    };
+    const result = await new StatsService(prisma as never).page(
+      '/articles/detail/:id',
+      'desktop',
+      '2026-10-02',
+      '2026-10-02',
+    );
+    expect(result.samplePath).toBe('/articles/detail/66');
+    expect(result.sections).toEqual([
+      { name: 'briefing', avgMs: 2000, totalMs: 4000, reach: 100 },
+      { name: 'story-1', avgMs: 250, totalMs: 500, reach: 0 },
+    ]);
+    expect(result.attention.slice(0, 3)).toEqual([1000, 2000, 0]);
+    expect(result.clicks).toEqual([
+      [0.5, 0.1, 'briefing'],
+      [0.2, 0.4],
+    ]);
+  });
+});

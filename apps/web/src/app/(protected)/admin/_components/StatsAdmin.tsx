@@ -12,6 +12,8 @@ import BarList from '@/components/common/charts/BarList';
 import AdminSubPage from './AdminSubPage';
 import { PRESETS, useAdminQuery } from './period';
 import { usd } from './format';
+import { CHANNEL_LABEL, DEVICE_LABEL, duration, routeName } from './trafficLabels';
+import Link from 'next/link';
 
 type Runs = { success: number; partial: number; failed: number; skipped: number };
 
@@ -36,6 +38,17 @@ interface CostStats {
 	byStage: { key: string; cost: number }[];
 	byCategory: { id: number | null; name: string | null; cost: number }[];
 	month: { month: string; toDate: number; projected: number; elapsedDays: number; daysInMonth: number };
+}
+
+interface TrafficStats {
+	totals: { sessions: number; views: number; avgMs: number; viewsPerSession: number };
+	days: { date: string; sessions: number; views: number }[];
+	channels: { key: string; sessions: number }[];
+	referrers: { key: string; sessions: number }[];
+	campaigns: { key: string; sessions: number }[];
+	entryPages: { key: string; sessions: number }[];
+	devices: { key: string; sessions: number }[];
+	pages: { route: string; views: number; sessions: number; avgMs: number; avgScroll: number }[];
 }
 
 interface DeliveryStats {
@@ -104,6 +117,12 @@ export default function StatsAdmin() {
 		enabled,
 		placeholderData: (previous) => previous,
 	});
+	const traffic = useQuery({
+		queryKey: ['adminStats', 'traffic', query],
+		queryFn: () => apiFetch<{ data: TrafficStats }>(API_ENDPOINTS.ADMIN.STATS('traffic', query)).then((r) => r.data),
+		enabled,
+		placeholderData: (previous) => previous,
+	});
 	const delivery = useQuery({
 		queryKey: ['adminStats', 'delivery', query],
 		queryFn: () => apiFetch<{ data: DeliveryStats }>(API_ENDPOINTS.ADMIN.STATS('delivery', query)).then((r) => r.data),
@@ -114,6 +133,119 @@ export default function StatsAdmin() {
 	return (
 		<AdminSubPage title="통계">
 			<StyledStats>
+				<Section id="stats-traffic" title="방문 · 유입" state={traffic}>
+					{(t) => {
+						const visits = (n: number) => `${n.toLocaleString()}번`;
+						const rows = (list: { key: string; sessions: number }[], label = (k: string) => k) =>
+							list.map((r) => ({ key: r.key, label: label(r.key), value: r.sessions }));
+						return (
+							<>
+								<dl className="numbers">
+									<Stat label="방문 (탭)" value={visits(t.totals.sessions)} sub="쿠키 없이 탭마다 한 번" />
+									<Stat
+										label="페이지 보기"
+										value={visits(t.totals.views)}
+										sub={`방문마다 ${t.totals.viewsPerSession}쪽`}
+									/>
+									<Stat
+										label="한 페이지 평균 머문 시간"
+										value={duration(t.totals.avgMs)}
+										sub="탭이 보이고 움직임이 있던 시간"
+									/>
+								</dl>
+								<Chart title="날짜별 방문 · 페이지 보기">
+									<TrendChart
+										kind="line"
+										label="날짜별 방문과 페이지 보기"
+										dates={t.days.map((d) => d.date)}
+										series={[
+											{ key: 'views', label: '페이지 보기', values: t.days.map((d) => d.views) },
+											{ key: 'sessions', label: '방문', tone: 'b', values: t.days.map((d) => d.sessions) },
+										]}
+									/>
+								</Chart>
+								<div className="charts">
+									<Chart title="유입 경로" hint="탭의 첫 페이지 기준">
+										<BarList
+											label="유입 경로별 방문"
+											rows={rows(t.channels, (k) => CHANNEL_LABEL[k] ?? k)}
+											format={visits}
+										/>
+									</Chart>
+									<Chart title="이전 사이트" hint="주소 전체가 아니라 사이트 이름만 남겨요">
+										{t.referrers.length ? (
+											<BarList label="이전 사이트별 방문" rows={rows(t.referrers)} format={visits} />
+										) : (
+											<p className="empty">아직 없어요.</p>
+										)}
+									</Chart>
+									<Chart title="처음 들어온 페이지">
+										<BarList label="첫 페이지별 방문" rows={rows(t.entryPages, routeName)} format={visits} />
+									</Chart>
+									<Chart title="캠페인 (utm 출처 / 매체 / 이름)" hint="구독 메일 링크는 newsletter / email">
+										{t.campaigns.length ? (
+											<BarList label="캠페인별 방문" rows={rows(t.campaigns)} format={visits} />
+										) : (
+											<p className="empty">아직 없어요.</p>
+										)}
+									</Chart>
+									<Chart title="기기">
+										<BarList label="기기별 방문" rows={rows(t.devices, (k) => DEVICE_LABEL[k] ?? k)} format={visits} />
+									</Chart>
+								</div>
+								<Chart title="페이지별" hint="머문 곳 보기에서 구역별 머문 시간과 히트맵을 봐요">
+									{t.pages.length ? (
+										<div className="table-wrap">
+											<table>
+												<thead>
+													<tr>
+														<th scope="col">페이지</th>
+														<th scope="col">보기</th>
+														<th scope="col">방문</th>
+														<th scope="col">평균 머문 시간</th>
+														<th scope="col">평균 스크롤</th>
+														<th scope="col">
+															<span className="sr-only">머문 곳</span>
+														</th>
+													</tr>
+												</thead>
+												<tbody>
+													{t.pages.map((p) => (
+														<tr key={p.route}>
+															<td>
+																{routeName(p.route)}
+																{routeName(p.route) !== p.route && <small className="route">{p.route}</small>}
+															</td>
+															<td className="num">{p.views.toLocaleString()}</td>
+															<td className="num">{p.sessions.toLocaleString()}</td>
+															<td className="num">{duration(p.avgMs)}</td>
+															<td className="num">{p.avgScroll}%</td>
+															<td className="row-link">
+																<Link
+																	href={`/admin/stats/page?route=${encodeURIComponent(p.route)}&from=${from}&to=${to}`}
+																>
+																	머문 곳 보기 →
+																</Link>
+															</td>
+														</tr>
+													))}
+												</tbody>
+											</table>
+										</div>
+									) : (
+										<p className="empty">아직 기록이 없어요.</p>
+									)}
+								</Chart>
+								<DayTable
+									caption="날짜별 방문"
+									head={['날짜', '방문', '페이지 보기']}
+									rows={t.days.map((d) => [d.date, d.sessions, d.views])}
+								/>
+							</>
+						);
+					}}
+				</Section>
+
 				<Section id="stats-subscribers" title="구독자" state={subscribers}>
 					{(s) => {
 						const dates = s.days.map((d) => d.date);
@@ -583,6 +715,41 @@ const StyledStats = styled.div`
 			margin-top: 0.125rem;
 			color: ${({ theme }) => theme.color.subText};
 		}
+	}
+
+	.empty {
+		padding: 0.5rem 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	.route {
+		display: block;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	.row-link {
+		white-space: nowrap;
+		text-align: right;
+
+		a {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.primary};
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
 	}
 
 	.day-table summary {

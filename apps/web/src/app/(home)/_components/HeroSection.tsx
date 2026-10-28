@@ -14,7 +14,7 @@ export default function HeroSection() {
 	};
 
 	return (
-		<StyledHeroSection>
+		<StyledHeroSection data-track-section="home-hero">
 			<div className="content">
 				<div className="left-section">
 					<div className="description">

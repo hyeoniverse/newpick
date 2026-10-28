@@ -131,7 +131,11 @@ export const termsSections = (email: string | null): LegalSection[] => [
 // ---------- 개인정보 처리방침 ----------
 
 export const privacySummary: LegalSummary[] = [
-	{ icon: 'collect', title: '모으는 정보', text: '구글 로그인 정보(이메일·이름·프로필 사진), 관심 분야, 구독·북마크 기록' },
+	{
+		icon: 'collect',
+		title: '모으는 정보',
+		text: '구글 로그인 정보(이메일·이름·프로필 사진), 관심 분야, 구독·북마크 기록, 쿠키 없는 방문 통계',
+	},
 	{ icon: 'purpose', title: '쓰는 곳', text: '로그인, 고른 분야 뉴스레터 메일 발송, 북마크' },
 	{ icon: 'period', title: '보관 기간', text: '회원 탈퇴 시까지, 탈퇴하면 바로 파기' },
 	{ icon: 'share', title: '제3자 제공', text: '하지 않습니다' },
@@ -161,6 +165,12 @@ export const privacySections = (email: string | null): LegalSection[] => [
 							'회원 탈퇴 시까지',
 						],
 						['북마크', '북마크한 뉴스레터', '계약 이행 (제15조 제1항 제4호)', '회원 탈퇴 시까지'],
+						[
+							'방문 통계 (화면 · 콘텐츠 개선)',
+							'본 페이지, 머문 시간, 스크롤 깊이, 클릭 위치(페이지 대비 비율), 들어온 사이트 이름(주소 전체가 아님)·캠페인 표시(utm), 화면 너비, 브라우저 탭마다 만드는 임시 번호. 쿠키·IP 주소·계정과 연결하지 않음',
+							'정당한 이익 (제15조 제1항 제6호)',
+							'180일 뒤 파기',
+						],
 						[
 							'로그인 유지, 부정 이용 방지',
 							'로그인 쿠키, 접속 기록(IP 주소·접속 일시·브라우저 정보)',
@@ -253,6 +263,7 @@ export const privacySections = (email: string | null): LegalSection[] => [
 		title: '개인정보 자동 수집 장치(쿠키)',
 		blocks: [
 			'서비스는 로그인을 유지하기 위해 쿠키를 씁니다. 광고·추적·맞춤형 광고 목적의 쿠키는 쓰지 않습니다.',
+			'방문 통계는 쿠키를 쓰지 않고, 브라우저 탭을 닫으면 지워지는 임시 번호(세션 저장소)만 씁니다. 브라우저에서 추적 거부(Do Not Track 또는 Global Privacy Control)를 켜면 방문 통계를 모으지 않습니다.',
 			{
 				table: {
 					head: ['쿠키', '용도', '보관'],
