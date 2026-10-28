@@ -61,6 +61,8 @@ export const API_ENDPOINTS = {
 		HIGHLIGHTS: (newsletterId?: number) =>
 			`${API_URL}/mypage/highlights${newsletterId ? `?newsletterId=${newsletterId}` : ''}`,
 		HIGHLIGHT: (id: number) => `${API_URL}/mypage/highlights/${id}`,
+		/** 여러 개 지우기 (POST { ids }) */
+		HIGHLIGHTS_DELETE: () => `${API_URL}/mypage/highlights/delete`,
 		/** 내 취향 점수 (#123 2단계): 북마크 · 스크랩 · 메모로 모은 태그 · 관심사 */
 		TASTE: () => `${API_URL}/mypage/taste`,
 	},

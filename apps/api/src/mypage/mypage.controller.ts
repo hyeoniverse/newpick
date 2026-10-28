@@ -26,6 +26,7 @@ import { HighlightsService } from './highlights.service';
 import { TasteService } from '../taste/taste.service';
 import {
   CreateHighlightDto,
+  DeleteHighlightsDto,
   HighlightsQueryDto,
   UpdateHighlightDto,
 } from './dto/highlight.dto';
@@ -57,14 +58,20 @@ export class MyPageController {
     return this.highlightsService.create(this.userIdOf(req), body);
   }
 
-  /** 메모 고치기 (빈 글이면 메모 지우기) */
+  /** 여러 개 지우기 (내 것만, 지운 수) */
+  @Post('highlights/delete')
+  async deleteHighlights(@Req() req, @Body() body: DeleteHighlightsDto) {
+    return this.highlightsService.removeMany(this.userIdOf(req), body.ids);
+  }
+
+  /** 메모 고치기 (빈 글이면 메모 지우기) · 별표 켜고 끄기 */
   @Patch('highlights/:id')
   async updateHighlight(
     @Req() req,
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateHighlightDto,
   ) {
-    return this.highlightsService.updateNote(this.userIdOf(req), id, body.note);
+    return this.highlightsService.update(this.userIdOf(req), id, body);
   }
 
   @Delete('highlights/:id')

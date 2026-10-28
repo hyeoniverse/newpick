@@ -72,6 +72,7 @@ const EXPECTED: Record<string, Policy> = {
   'GET mypage/highlights': 'auth',
   'GET mypage/taste': 'auth',
   'POST mypage/highlights': 'auth',
+  'POST mypage/highlights/delete': 'auth',
   'PATCH mypage/highlights/:id': 'auth',
   'DELETE mypage/highlights/:id': 'auth',
   'GET mypage/profile': 'auth',

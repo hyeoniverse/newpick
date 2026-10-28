@@ -81,4 +81,23 @@ describe('취향 점수 (#123 2단계)', () => {
     ];
     expect(scoreTaste(signals, noRules, now).topics[0].topic).toBe('요즘 관심');
   });
+
+  it('별표한 스크랩은 2점을 더 얹는다', () => {
+    const signals: Signal[] = [
+      {
+        kind: 'scrap',
+        at: now,
+        categoryId: 1,
+        keywords: ['별표'],
+        starred: true,
+      },
+      { kind: 'scrap', at: now, categoryId: 1, keywords: ['보통'] },
+    ];
+    expect(
+      scoreTaste(signals, noRules, now).topics.map((t) => [t.topic, t.score]),
+    ).toEqual([
+      ['별표', 4],
+      ['보통', 2],
+    ]);
+  });
 });

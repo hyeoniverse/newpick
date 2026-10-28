@@ -13,6 +13,8 @@ export interface Highlight {
 	sectionTitle?: string | null;
 	text: string;
 	note: string | null;
+	/** 별표(중요) */
+	starred: boolean;
 	createdAt: string;
 	updatedAt: string;
 	newsletter?: { title: string; createdAt: string; category: { id: number; name: string } };
@@ -58,12 +60,14 @@ export function useHighlightMutations() {
 		},
 		onError: fail,
 	});
+	// 메모 고치기 · 별표 켜고 끄기 (준 것만)
 	const update = useMutation({
-		mutationFn: ({ id, note }: { id: number; note: string }) =>
-			apiFetch<Highlight>(API_ENDPOINTS.MY.HIGHLIGHT(id), { method: 'PATCH', body: { note } }),
-		onSuccess: () => {
+		mutationFn: ({ id, ...body }: { id: number; note?: string; starred?: boolean }) =>
+			apiFetch<Highlight>(API_ENDPOINTS.MY.HIGHLIGHT(id), { method: 'PATCH', body }),
+		onSuccess: (_, body) => {
 			refresh();
-			showToast('메모를 고쳤어요.', 'success');
+			if (body.starred !== undefined) showToast(body.starred ? '별표했어요.' : '별표를 뺐어요.', 'success');
+			else showToast('메모를 고쳤어요.', 'success');
 		},
 		onError: fail,
 	});
@@ -75,7 +79,16 @@ export function useHighlightMutations() {
 		},
 		onError: fail,
 	});
-	return { create, update, remove };
+	const removeMany = useMutation({
+		mutationFn: (ids: number[]) =>
+			apiFetch<{ count: number }>(API_ENDPOINTS.MY.HIGHLIGHTS_DELETE(), { method: 'POST', body: { ids } }),
+		onSuccess: ({ count }) => {
+			refresh();
+			showToast(`스크랩 ${count}개를 지웠어요.`, 'success');
+		},
+		onError: fail,
+	});
+	return { create, update, remove, removeMany };
 }
 
 /** 내 취향 점수 (#123 2단계) */

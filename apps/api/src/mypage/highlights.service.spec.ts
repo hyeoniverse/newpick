@@ -17,6 +17,7 @@ function fakePrisma(owned = true) {
       upsert: jest.fn((args) => Promise.resolve(args)),
       update: jest.fn((args) => Promise.resolve(args)),
       delete: jest.fn().mockResolvedValue({}),
+      deleteMany: jest.fn().mockResolvedValue({ count: 2 }),
     },
   };
 }
@@ -71,7 +72,7 @@ describe('스크랩 · 메모 (#123)', () => {
   it('남의 스크랩은 고치거나 지울 수 없다 (404)', async () => {
     const prisma = fakePrisma(false);
     const service = new HighlightsService(prisma as never);
-    await expect(service.updateNote(7, 1, '메모')).rejects.toMatchObject({
+    await expect(service.update(7, 1, { note: '메모' })).rejects.toMatchObject({
       code: 'HIGHLIGHT_NOT_FOUND',
     });
     await expect(service.remove(7, 1)).rejects.toMatchObject({
@@ -87,7 +88,7 @@ describe('스크랩 · 메모 (#123)', () => {
 
   it('메모를 비우면 지운다', async () => {
     const prisma = fakePrisma();
-    await new HighlightsService(prisma as never).updateNote(7, 1, '   ');
+    await new HighlightsService(prisma as never).update(7, 1, { note: '   ' });
     expect(prisma.highlight.update).toHaveBeenCalledWith(
       expect.objectContaining({ data: { note: null } }),
     );
@@ -104,5 +105,27 @@ describe('스크랩 · 메모 (#123)', () => {
     expect(sectionTitle(titles, 'story-9')).toBeNull();
     expect(sectionTitle(titles, 'briefing')).toBeNull();
     expect(sectionTitles(null)).toEqual([]);
+  });
+
+  it('별표만 주면 별표만 바꾸고 메모는 건드리지 않는다', async () => {
+    const prisma = fakePrisma();
+    await new HighlightsService(prisma as never).update(7, 1, {
+      starred: true,
+    });
+    expect(prisma.highlight.update).toHaveBeenCalledWith(
+      expect.objectContaining({ data: { starred: true } }),
+    );
+  });
+
+  it('여러 개 지우기는 내 것만, 겹친 번호는 한 번만', async () => {
+    const prisma = fakePrisma();
+    const result = await new HighlightsService(prisma as never).removeMany(
+      7,
+      [3, 4, 3],
+    );
+    expect(prisma.highlight.deleteMany).toHaveBeenCalledWith({
+      where: { userId: 7, id: { in: [3, 4] } },
+    });
+    expect(result).toEqual({ count: 2 });
   });
 });

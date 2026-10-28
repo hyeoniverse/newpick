@@ -7,6 +7,8 @@ import { TagRules, tagKey } from 'src/tags/tags';
 
 /** 신호마다 점수 (시작값, 맞춤 결과를 보며 조정) */
 export const WEIGHTS = { bookmark: 1, scrap: 2, memo: 3 } as const;
+/** 별표(중요)한 스크랩 · 메모에 더 얹는 점수 */
+export const STAR_BONUS = 2;
 /** 스크랩한 문장 · 메모에 태그가 직접 나오면 더 얹는 점수 */
 export const MENTION_BONUS = 1;
 /** 이만큼 지나면 신호가 절반으로 */
@@ -22,6 +24,8 @@ export interface Signal {
   keywords: string[];
   /** 스크랩한 문장 + 메모 (태그가 직접 나오는지 본다) */
   text?: string;
+  /** 별표(중요)한 스크랩 */
+  starred?: boolean;
 }
 
 export interface TopicScore {
@@ -51,7 +55,9 @@ export function scoreTaste(
   const categories = new Map<number, number>();
 
   for (const signal of signals) {
-    const weight = WEIGHTS[signal.kind] * decay(signal.at, now);
+    const weight =
+      (WEIGHTS[signal.kind] + (signal.starred ? STAR_BONUS : 0)) *
+      decay(signal.at, now);
     categories.set(
       signal.categoryId,
       (categories.get(signal.categoryId) ?? 0) + weight,

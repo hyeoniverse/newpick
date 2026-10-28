@@ -1,5 +1,9 @@
 import { Type } from 'class-transformer';
 import {
+  ArrayMaxSize,
+  ArrayNotEmpty,
+  IsArray,
+  IsBoolean,
   IsInt,
   IsOptional,
   IsString,
@@ -32,11 +36,26 @@ export class CreateHighlightDto {
   note?: string;
 }
 
-/** 메모 고치기. 빈 문자열이면 메모를 지운다 */
+/** 메모 고치기 · 별표 켜고 끄기 (둘 중 준 것만 바꾼다). 메모가 빈 문자열이면 메모를 지운다 */
 export class UpdateHighlightDto {
+  @IsOptional()
   @IsString()
   @MaxLength(2000, { message: '메모는 2,000자까지 쓸 수 있어요.' })
-  note: string;
+  note?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  starred?: boolean;
+}
+
+/** 여러 개 지우기 (한 번에 500개까지) */
+export class DeleteHighlightsDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @ArrayMaxSize(500)
+  @IsInt({ each: true })
+  @Min(1, { each: true })
+  ids: number[];
 }
 
 export class HighlightsQueryDto {

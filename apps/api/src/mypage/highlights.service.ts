@@ -35,6 +35,7 @@ const SELECT = {
   section: true,
   text: true,
   note: true,
+  starred: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -112,11 +113,21 @@ export class HighlightsService {
     });
   }
 
-  async updateNote(userId: number, id: number, note: string) {
+  /** 메모 · 별표 중 준 것만 바꾼다 (빈 메모는 지우기) */
+  async update(
+    userId: number,
+    id: number,
+    changes: { note?: string; starred?: boolean },
+  ) {
     await this.own(userId, id);
     return this.prisma.highlight.update({
       where: { id },
-      data: { note: note.trim() || null },
+      data: {
+        ...(changes.note !== undefined && {
+          note: changes.note.trim() || null,
+        }),
+        ...(changes.starred !== undefined && { starred: changes.starred }),
+      },
       select: SELECT,
     });
   }
@@ -125,6 +136,14 @@ export class HighlightsService {
     await this.own(userId, id);
     await this.prisma.highlight.delete({ where: { id } });
     return { id };
+  }
+
+  /** 여러 개 지우기: 내 것만 지우고(남의 번호는 조용히 건너뜀) 지운 수를 돌려준다 */
+  async removeMany(userId: number, ids: number[]) {
+    const { count } = await this.prisma.highlight.deleteMany({
+      where: { userId, id: { in: [...new Set(ids)] } },
+    });
+    return { count };
   }
 
   /** 남의 스크랩은 없는 것처럼 (있는지도 알려 주지 않게 404) */

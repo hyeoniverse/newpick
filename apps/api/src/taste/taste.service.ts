@@ -1,7 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { toRules } from 'src/tags/tags';
-import { HALF_LIFE_DAYS, Signal, WEIGHTS, scoreTaste } from './taste';
+import {
+  HALF_LIFE_DAYS,
+  STAR_BONUS,
+  Signal,
+  WEIGHTS,
+  scoreTaste,
+} from './taste';
 
 const asKeywords = (value: unknown) =>
   Array.isArray(value)
@@ -33,6 +39,7 @@ export class TasteService {
           createdAt: true,
           text: true,
           note: true,
+          starred: true,
           newsletter: NEWSLETTER,
         },
       }),
@@ -57,6 +64,7 @@ export class TasteService {
         categoryId: h.newsletter.categoryId,
         keywords: asKeywords(h.newsletter.keywords),
         text: [h.text, h.note].filter(Boolean).join(' '),
+        starred: h.starred,
       });
     }
     return {
@@ -114,6 +122,7 @@ export class TasteService {
     }
     return {
       weights: WEIGHTS,
+      starBonus: STAR_BONUS,
       halfLifeDays: HALF_LIFE_DAYS,
       users: byUser.size,
       signals: totals,

@@ -291,6 +291,8 @@ model Highlight {
   /// 고른 문장 (500자까지)
   text         String   @db.VarChar(500)
   note         String?  @db.Text
+  /// 별표(중요). 지울 때 한 번 더 확인하고, 취향 점수에 더 얹는다
+  starred      Boolean  @default(false)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

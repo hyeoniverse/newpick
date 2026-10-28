@@ -10,8 +10,7 @@ import FilterChips from '@/components/common/FilterChips';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
 import { Highlight, useHighlightMutations, useHighlights } from '@/hooks/useHighlights';
-import { useModal } from '@/hooks/useModal';
-import ModalContents from '@/components/common/modal/ModalContent';
+import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
 
@@ -38,19 +37,28 @@ const sectionOrder = (section: string | null) => {
 	return story ? Number(story[1]) : 999;
 };
 
-const FILTERS = [
-	{ value: '', label: '전체' },
-	{ value: 'memo', label: '메모만' },
-];
+const FILTERS: Record<string, (h: Highlight) => boolean> = {
+	starred: (h) => h.starred,
+	memo: (h) => Boolean(h.note),
+};
 
 /**
  * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
  * 뉴스레터별(가장 최근에 스크랩한 것부터)로 묶고, 그 안은 본문 순서(브리핑 → 소식 N)로 구역마다 한 번만 이름을 단다.
- * 문장 아래 원문에서 보기(?hl=번호) · 메모 · 지우기
+ * 문장 아래 원문에서 보기(?hl=번호) · 메모 · 별표(중요) · 지우기. '여러 개 지우기'로 골라서 한 번에 지운다.
+ * 별표한 문장은 지우기 전에 한 번 더 묻는다
  */
 export default function MyHighlights() {
 	const { data, isPending, isError, error, refetch } = useHighlights();
 	const [filter, setFilter] = useState('');
+	// 여러 개 지우기: 고르는 중인지, 고른 번호
+	const [selecting, setSelecting] = useState(false);
+	const [selected, setSelected] = useState<Set<number>>(new Set());
+	const confirmRemove = useConfirmRemoveHighlights();
+	const stopSelecting = () => {
+		setSelecting(false);
+		setSelected(new Set());
+	};
 	// 스크랩 알림의 '모아 보기'로 오면(#hl-번호) 그 문장으로 스크롤하고 잠깐 강조
 	const [focused, setFocused] = useState<number | null>(null);
 	useEffect(() => {
@@ -79,8 +87,17 @@ export default function MyHighlights() {
 		);
 	}
 
-	const memos = data.filter((h) => h.note).length;
-	const shown = filter === 'memo' ? data.filter((h) => h.note) : data;
+	const memos = data.filter(FILTERS.memo).length;
+	const stars = data.filter(FILTERS.starred).length;
+	const shown = FILTERS[filter] ? data.filter(FILTERS[filter]) : data;
+	const allShownSelected = shown.length > 0 && shown.every((h) => selected.has(h.id));
+	const toggle = (id: number) =>
+		setSelected((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+			return next;
+		});
 	// 뉴스레터별 (목록이 최근 것부터라 처음 나온 순서 = 가장 최근에 스크랩한 뉴스레터부터)
 	const groups = new Map<number, Highlight[]>();
 	for (const highlight of shown)
@@ -93,14 +110,34 @@ export default function MyHighlights() {
 				<h3>
 					스크랩한 문장 <span className="count">{data.length}</span>
 				</h3>
-				<FilterChips
-					label="보기"
-					options={FILTERS.map((f) => (f.value === 'memo' ? { ...f, label: `메모만 ${memos}` } : f))}
-					value={filter}
-					onChange={setFilter}
-				/>
+				<div className="list-tools">
+					<FilterChips
+						label="보기"
+						options={[
+							{ value: '', label: '전체' },
+							{ value: 'starred', label: `별표 ${stars}` },
+							{ value: 'memo', label: `메모만 ${memos}` },
+						]}
+						value={filter}
+						onChange={setFilter}
+					/>
+					<button
+						type="button"
+						className="select-toggle"
+						aria-pressed={selecting}
+						onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
+					>
+						{selecting ? '고르기 끝내기' : '여러 개 지우기'}
+					</button>
+				</div>
 			</div>
-			{shown.length === 0 && <p className="empty">메모를 남긴 문장이 없어요. 문장의 연필을 눌러 메모를 남겨 보세요.</p>}
+			{shown.length === 0 && (
+				<p className="empty">
+					{filter === 'starred'
+						? '별표한 문장이 없어요. 중요한 문장에 별표를 해 두면 여기 모여요.'
+						: '메모를 남긴 문장이 없어요.'}
+				</p>
+			)}
 			{[...groups.entries()].map(([newsletterId, items]) => {
 				const newsletter = items[0].newsletter;
 				// 본문 순서로, 같은 구역은 먼저 스크랩한 것부터
@@ -123,59 +160,124 @@ export default function MyHighlights() {
 								<li key={highlight.id}>
 									{/* 구역이 바뀔 때만 이름 */}
 									{(i === 0 || sorted[i - 1].section !== highlight.section) && <SectionLabel highlight={highlight} />}
-									<HighlightItem highlight={highlight} focused={highlight.id === focused} />
+									<HighlightItem
+										highlight={highlight}
+										focused={highlight.id === focused}
+										selecting={selecting}
+										checked={selected.has(highlight.id)}
+										onToggle={() => toggle(highlight.id)}
+										onRemove={() => confirmRemove([highlight])}
+									/>
 								</li>
 							))}
 						</ul>
 					</section>
 				);
 			})}
+			{/* 고르는 중: 아래에 붙어 따라오는 막대 */}
+			{selecting && (
+				<div className="select-bar" role="region" aria-label="여러 개 지우기">
+					<label className="select-all">
+						<input
+							type="checkbox"
+							checked={allShownSelected}
+							onChange={() =>
+								setSelected((prev) => {
+									const next = new Set(prev);
+									for (const h of shown) {
+										if (allShownSelected) next.delete(h.id);
+										else next.add(h.id);
+									}
+									return next;
+								})
+							}
+						/>
+						보이는 {shown.length}개 모두
+					</label>
+					<span className="picked">{selected.size}개 고름</span>
+					<button type="button" onClick={stopSelecting}>
+						취소
+					</button>
+					<button
+						type="button"
+						className="danger"
+						disabled={selected.size === 0}
+						onClick={() =>
+							confirmRemove(
+								data.filter((h) => selected.has(h.id)),
+								{ onDone: stopSelecting },
+							)
+						}
+					>
+						{selected.size}개 지우기
+					</button>
+				</div>
+			)}
 		</StyledHighlights>
 	);
 }
 
-function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: boolean }) {
-	const { update, remove } = useHighlightMutations();
-	const { openModal, closeModal } = useModal();
+function HighlightItem({
+	highlight,
+	focused,
+	selecting,
+	checked,
+	onToggle,
+	onRemove,
+}: {
+	highlight: Highlight;
+	focused: boolean;
+	selecting: boolean;
+	checked: boolean;
+	onToggle: () => void;
+	onRemove: () => void;
+}) {
+	const { update } = useHighlightMutations();
 	const [editing, setEditing] = useState(false);
 	const [note, setNote] = useState(highlight.note ?? '');
-
-	const confirmRemove = () =>
-		openModal(
-			<ModalContents
-				title="이 스크랩을 지울까요?"
-				content={highlight.note ? '메모도 함께 지워져요.' : '문장만 지워지고 뉴스레터는 그대로예요.'}
-				outlineButton="취소"
-				filledButton="지우기"
-				onCancelClick={closeModal}
-				onConfirmClick={() => {
-					closeModal();
-					remove.mutate(highlight.id);
-				}}
-			/>,
-		);
 
 	return (
 		<article
 			id={`hl-${highlight.id}`}
-			className={`item ${focused ? 'focused' : ''}`}
+			className={`item ${focused ? 'focused' : ''} ${selecting ? 'selecting' : ''} ${checked ? 'checked' : ''}`}
 			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
+			// 고르는 중에는 문장 어디를 눌러도 고르기
+			onClick={selecting ? onToggle : undefined}
 		>
-			{/* 스크랩한 문장만 따옴표 칸만큼 들여 쓴다 */}
-			<span className="quote-mark" aria-hidden>
-				“
-			</span>
+			{selecting ? (
+				<input
+					type="checkbox"
+					className="pick"
+					checked={checked}
+					onChange={onToggle}
+					onClick={(e) => e.stopPropagation()}
+					aria-label={`${highlight.text.slice(0, 20)} 고르기`}
+				/>
+			) : (
+				/* 스크랩한 문장만 따옴표 칸만큼 들여 쓴다 */
+				<span className="quote-mark" aria-hidden>
+					“
+				</span>
+			)}
 			<p className="quote">
 				<span>{highlight.text}</span>
+				{highlight.starred && (
+					<span className="star" role="img" aria-label="별표">
+						★
+					</span>
+				)}
 			</p>
-			<div className="tools">
+			<div className="tools" hidden={selecting}>
 				<Link href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}>원문에서 보기</Link>
 				{!editing && (
 					<button type="button" onClick={() => setEditing(true)}>
 						{highlight.note ? '메모 고치기' : '메모 남기기'}
 					</button>
 				)}
-				<button type="button" className="danger" onClick={confirmRemove}>
+				<button type="button" onClick={() => update.mutate({ id: highlight.id, starred: !highlight.starred })}>
+					{highlight.starred ? '별표 빼기' : '별표'}
+				</button>
+				<button type="button" className="danger" onClick={onRemove}>
 					지우기
 				</button>
 			</div>
@@ -249,7 +351,30 @@ const StyledHighlights = styled.div`
 			color: ${({ theme }) => theme.color.primary};
 		}
 
-		/* 칩 두 개뿐이라 '보기' 이름표는 화면에서 빼고 묶음 이름(aria-label)으로만 */
+		.list-tools {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 0.5rem 0.75rem;
+		}
+
+		.select-toggle {
+			padding: 0.375rem 0.75rem;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.chip};
+			font: inherit;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.text};
+			cursor: pointer;
+
+			&:hover,
+			&[aria-pressed='true'] {
+				border-color: ${({ theme }) => theme.color.primary};
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+
+		/* 칩 몇 개뿐이라 '보기' 이름표는 화면에서 빼고 묶음 이름(aria-label)으로만 */
 		.chips-label {
 			display: none;
 		}
@@ -370,6 +495,92 @@ const StyledHighlights = styled.div`
 
 	/* 문장이 먼저 보이게: 메모 · 동작보다 굵고 진하게 */
 	/* 따옴표 칸 */
+	/* 고르는 중: 따옴표 자리에 체크칸, 문장 어디를 눌러도 고르기 */
+	.pick {
+		grid-area: mark;
+		width: 1rem;
+		height: 1rem;
+		margin-top: 0.4em;
+		accent-color: ${({ theme }) => theme.color.primary};
+		cursor: pointer;
+	}
+
+	.item.selecting {
+		cursor: pointer;
+		border-radius: ${({ theme }) => theme.radius.control};
+
+		/* 고르는 중에는 문장 아래 동작을 숨긴다 (hidden 속성을 display가 덮어써서 따로) */
+		.tools {
+			display: none;
+		}
+	}
+
+	.item.checked .quote {
+		color: ${({ theme }) => theme.color.primary};
+	}
+
+	/* 별표(중요): 문장 끝 노란 별 */
+	.star {
+		margin-left: 0.375rem;
+		color: ${({ theme }) => theme.color.warning};
+		font-size: 0.9em;
+	}
+
+	/* 여러 개 지우기 막대: 목록 아래에 붙어 따라온다 */
+	.select-bar {
+		position: sticky;
+		bottom: 1rem;
+		z-index: 5;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 1rem;
+		padding: 0.75rem 1rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.background};
+		font-size: ${({ theme }) => theme.fontSize.small};
+
+		.select-all {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.5rem;
+			cursor: pointer;
+
+			input {
+				width: 1rem;
+				height: 1rem;
+				accent-color: ${({ theme }) => theme.color.primary};
+			}
+		}
+
+		.picked {
+			margin-right: auto;
+			color: ${({ theme }) => theme.color.subText};
+		}
+
+		button {
+			padding: 0.5rem 0.875rem;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.control};
+			font: inherit;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.text};
+			cursor: pointer;
+
+			&.danger {
+				border-color: ${({ theme }) => theme.color.error};
+				background: ${({ theme }) => theme.color.error};
+				color: ${({ theme }) => theme.color.white};
+			}
+
+			&:disabled {
+				opacity: 0.4;
+				cursor: default;
+			}
+		}
+	}
+
 	/* 문장 첫머리에 살짝 걸치는 장식 따옴표: 세리프 글꼴의 가는 곡선 모양, 옅게 글자 뒤에 */
 	.quote-mark {
 		grid-area: mark;
