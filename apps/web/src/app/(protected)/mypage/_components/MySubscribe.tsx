@@ -1,121 +1,217 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useTab } from '@/hooks/useTab';
-import useSubscribe from '@/hooks/useSubscribe';
-
+import { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import styled from 'styled-components';
-import { LuMailPlus } from 'react-icons/lu';
-import EmptyState from '@/components/common/EmptyState';
-import MySubscribeNav from '@/app/(protected)/mypage/_components/subscribe/MySubscribeNav';
-import MySummaryCategory from '@/app/(protected)/mypage/_components/subscribe/MySubscribeSummaryCategory';
+import { LuMailPlus, LuMail } from 'react-icons/lu';
+import { apiFetch } from '@/api/client';
+import API_ENDPOINTS from '@/constants/api';
+import { useTab } from '@/hooks/useTab';
 import { useAuth } from '@/hooks/useAuth';
-import { useTrends } from '@/hooks/useTrends';
+import useSubscribe from '@/hooks/useSubscribe';
+import { useModal } from '@/hooks/useModal';
+import MyMailSheet from '@/app/(protected)/mypage/_components/subscribe/MyMailSheet';
+import EmptyState from '@/components/common/EmptyState';
+import ErrorState from '@/components/common/ErrorState';
+import Skeleton from '@/components/common/loader/Skeleton';
+import Pagination from '@/components/common/Pagination';
+import BrandAvatar from '@/components/common/BrandAvatar';
+import { errorStateFor, statusOf } from '@/constants/errors';
 
+/** 한 쪽에 메일 몇 통 */
+const PAGE_SIZE = 5;
+
+interface MailNewsletter {
+	id: number;
+	title: string;
+	subtitle: string | null;
+	image: string | null;
+	summary: string | null;
+	createdAt: string;
+	category: { id: number; name: string };
+}
+
+interface Mail {
+	sentAt: string;
+	/** 메일 제목 (발송 때와 같은 방식으로 다시 만든 것) */
+	subject: string | null;
+	newsletters: MailNewsletter[];
+}
+
+/** '10월 27일 (월) 오전 8:40' (한국 시각) */
+const sentText = (iso: string) =>
+	new Intl.DateTimeFormat('ko-KR', {
+		timeZone: 'Asia/Seoul',
+		month: 'long',
+		day: 'numeric',
+		weekday: 'short',
+		hour: 'numeric',
+		minute: '2-digit',
+	}).format(new Date(iso));
+
+/**
+ * 내 뉴스레터: 내가 실제로 받은 메일함 (보낸 시각별 한 통씩, 최신부터). 누르면 받은 그대로의 메일.
+ * 예전엔 오늘 내 관심사 뉴스레터를 보여 줘, 관심사를 바꾼 뒤엔 받은 적 없는 것이 섞였다
+ */
 export default function MySubscribe() {
 	const { user } = useAuth();
-	const { trends } = useTrends();
 	const { setActiveTab } = useTab();
 	const { status: isSubscribed = user?.isSubscribed } = useSubscribe();
-	const [activeCategory, setActiveCategory] = useState<string>('');
-	const [isAtBottom, setIsAtBottom] = useState<boolean>(false); // ⬅️ 스크롤이 맨 아래에 있는지 체크하는 상태
+	const { openModal } = useModal();
+	const [page, setPage] = useState(1);
 
-	const handleConfirm = () => {
-		setActiveTab('settings');
-	};
+	const { data, isPending, isError, error, refetch } = useQuery({
+		queryKey: ['myMails', user?.id, page],
+		queryFn: () =>
+			apiFetch<{ items: Mail[]; total: number }>(API_ENDPOINTS.MY.MAILS((page - 1) * PAGE_SIZE, PAGE_SIZE)),
+		enabled: !!user,
+		placeholderData: (previous) => previous,
+	});
 
-	// 스크롤이 끝까지 내려갔을 때 마지막 카테고리 설정
-	const handleScroll = () => {
-		const sections = document.querySelectorAll<HTMLElement>('.my-subs-content');
-		const lastSection = sections[sections.length - 1];
-
-		if (window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 10) {
-			if (lastSection) {
-				const lastCategoryId = lastSection.dataset.categoryid || '';
-
-				//  스크롤이 맨 아래에 도달한 경우 activeCategory 고정
-				setIsAtBottom(true);
-				setActiveCategory(lastCategoryId);
-			}
-		} else {
-			// 스크롤이 맨 아래가 아닐 경우 IntersectionObserver가 다시 동작하도록 설정
-			setIsAtBottom(false);
-		}
-	};
-
-	// IntersectionObserver로 현재 화면에 나타난 섹션 감지 + 스크롤 이벤트 추가
-	useEffect(() => {
-		if (!isSubscribed) return;
-
-		const sections = document.querySelectorAll<HTMLElement>('.my-subs-content');
-		const visibleSet = new Set<HTMLElement>();
-
-		const observer = new IntersectionObserver(
-			(entries) => {
-				if (isAtBottom) return; //  스크롤이 맨 아래일 때는 IntersectionObserver가 실행되지 않도록 차단
-
-				entries.forEach((entry) => {
-					if (entry.isIntersecting) {
-						visibleSet.add(entry.target as HTMLElement);
-					} else {
-						visibleSet.delete(entry.target as HTMLElement);
-					}
-				});
-
-				// 현재 보이는 섹션 중 가장 위에 있는 섹션의 categoryId를 activeCategory로 설정
-				if (visibleSet.size > 0) {
-					const sorted = Array.from(visibleSet).sort((a, b) => {
-						const rectA = a.getBoundingClientRect();
-						const rectB = b.getBoundingClientRect();
-						return rectA.top - rectB.top;
-					});
-
-					const newActiveCategory = sorted[0].dataset.categoryid || '';
-
-					if (activeCategory !== newActiveCategory) {
-						setActiveCategory(newActiveCategory);
-					}
-				}
-			},
-			{
-				threshold: 0.3,
-				rootMargin: '0px 0px -10% 0px',
-			}
+	if (!user || isPending) {
+		return (
+			<MySubscribeStyled aria-busy>
+				<div className="cards">
+					<Skeleton />
+				</div>
+			</MySubscribeStyled>
 		);
+	}
 
-		sections.forEach((section) => observer.observe(section));
-		window.addEventListener('scroll', handleScroll);
+	if (isError) return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
 
-		return () => {
-			sections.forEach((section) => observer.unobserve(section));
-			window.removeEventListener('scroll', handleScroll);
-		};
-	}, [isSubscribed, trends, activeCategory, isAtBottom]); // ⬅️ isAtBottom 상태가 변경될 때도 useEffect 실행
+	if (data.total === 0) {
+		// 받은 메일이 없으면: 구독 중이면 기다리라고, 아니면 구독하라고
+		return isSubscribed === null ? (
+			<EmptyState
+				icon={LuMailPlus}
+				title="아직 구독하지 않았어요"
+				description={'관심사를 고르면 매일 아침 8시 40분에\n그 관심사만 엮은 뉴스레터를 보내 드려요.'}
+				action={{ label: '구독 시작하기', onClick: () => setActiveTab('settings') }}
+			/>
+		) : (
+			<EmptyState
+				icon={LuMail}
+				title="아직 받은 메일이 없어요"
+				description={'매일 아침 8시 40분에 첫 메일이 가요.\n보낸 메일은 여기에 날짜별로 모여요.'}
+				action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+			/>
+		);
+	}
 
-	// 구독중이면 네비 + 컨텐츠 표시, 아니면 구독 안내
 	return (
-		<>
-			{isSubscribed === null ? (
-				<EmptyState
-					icon={LuMailPlus}
-					title="아직 구독하지 않았어요"
-					description={'관심사를 고르면 매일 아침 8시 40분에\n그 관심사만 엮은 뉴스레터를 보내 드려요.'}
-					action={{ label: '구독 시작하기', onClick: handleConfirm }}
-				/>
-			) : (
-				<>
-					<MySubscribeNav activeCategory={activeCategory} />
-					<MySubscribeStyled>
-						<MySummaryCategory />
-					</MySubscribeStyled>
-				</>
-			)}
-		</>
+		<MySubscribeStyled>
+			{/* 받은편지함: 한 줄이 메일 한 통. 누르면 받은 그대로의 메일을 시트로 */}
+			<ul className="inbox">
+				{data.items.map((mail) => (
+					<li key={mail.sentAt}>
+						<button
+							type="button"
+							className="mail-row"
+							onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
+						>
+							<BrandAvatar />
+							<span className="body">
+								<span className="subject">{mail.subject ?? mail.newsletters[0]?.title}</span>
+								<span className="meta">
+									{mail.newsletters.map((n) => n.category.name).join(' · ')} · 뉴스레터 {mail.newsletters.length}편
+								</span>
+							</span>
+							<time className="sent" dateTime={mail.sentAt}>
+								{sentText(mail.sentAt)}
+							</time>
+						</button>
+					</li>
+				))}
+			</ul>
+			<Pagination
+				className="pagination"
+				page={page}
+				total={data.total}
+				pageSize={PAGE_SIZE}
+				onChange={(next) => {
+					setPage(next);
+					window.scrollTo({ top: 0, behavior: 'smooth' });
+				}}
+			/>
+		</MySubscribeStyled>
 	);
 }
 
 const MySubscribeStyled = styled.div`
-	position: relative;
-	max-width: 1024px;
-	margin: 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+	padding: 2rem 0;
+
+	.inbox {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
+	}
+
+	li {
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+	}
+
+	/* 받은편지함 한 줄: 보낸 사람 · 제목 · 담긴 관심사 · 받은 시각 */
+	.mail-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		width: 100%;
+		padding: 1.125rem 0.5rem;
+		text-align: left;
+		cursor: pointer;
+
+		&:hover {
+			background: ${({ theme }) => theme.color.surface};
+
+			.subject {
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+	}
+
+	.body {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.subject {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.text};
+	}
+
+	.meta {
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	.sent {
+		flex-shrink: 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+		font-variant-numeric: tabular-nums;
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.mail-row {
+			flex-wrap: wrap;
+			padding: 1rem 0.25rem;
+		}
+
+		.sent {
+			flex-basis: 100%;
+			padding-left: 3.5rem;
+		}
+	}
 `;

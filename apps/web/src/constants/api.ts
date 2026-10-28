@@ -29,6 +29,10 @@ export const API_ENDPOINTS = {
 	MY: {
 		PROFILE: () => `${API_URL}/mypage/profile`,
 		BOOKMARKS: () => `${API_URL}/mypage/bookmarks`,
+		/** 내가 실제로 받은 메일 (보낸 시각별 한 통씩) */
+		MAILS: (offset: number, limit: number) => `${API_URL}/mypage/mails?offset=${offset}&limit=${limit}`,
+		/** 받은 메일 한 통을 받은 그대로 (sentAt: 목록의 값 그대로) */
+		MAIL: (sentAt: string) => `${API_URL}/mypage/mails/view?sentAt=${encodeURIComponent(sentAt)}`,
 		/** 회원 탈퇴 (#65) */
 		ACCOUNT: () => `${API_URL}/mypage/account`,
 	},

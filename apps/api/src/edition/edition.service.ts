@@ -139,6 +139,26 @@ export class EditionService {
     };
   }
 
+  /**
+   * 이미 보낸 메일 다시 만들기 (마이페이지 '내 뉴스레터'). 보낸 날의 편집본 + 그 메일에 엮은 뉴스레터로
+   * 발송 때와 같은 HTML을 만든다 (AI 호출 없음). 수신 거부 링크는 붙이지 않는다
+   */
+  async rebuildMail(sentAt: Date, newsletterIds: number[]) {
+    const date = dayjs(sentAt).tz(KST).format('YYYY-MM-DD');
+    const [saved, sources] = await Promise.all([
+      this.prisma.dailyEdition.findUnique({ where: { date } }),
+      this.loadSources({ ids: newsletterIds }),
+    ]);
+    return this.composeMail(
+      {
+        date,
+        sources,
+        editorial: (saved?.editorial as Editorial | null) ?? null,
+      },
+      sources.map((s) => s.categoryId),
+    );
+  }
+
   /** 구독자 한 명의 메일. 고른 분야 소식이 그날 하나도 없으면 null */
   /**
    * 구독자 한 명의 메일. userId를 주면(실제 발송) 그 사람의 원클릭 해지를 붙인다 (#18)

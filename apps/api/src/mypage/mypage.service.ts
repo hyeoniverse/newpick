@@ -7,10 +7,14 @@ import {
 } from 'src/common/user-interests';
 import { deleteAccount } from 'src/common/delete-account';
 import { AppException } from '../common/errors/app.exception';
+import { EditionService } from '../edition/edition.service';
 
 @Injectable()
 export class MyPageService {
-  constructor(private readonly prisma: MysqlPrismaService) {}
+  constructor(
+    private readonly prisma: MysqlPrismaService,
+    private readonly editionService: EditionService,
+  ) {}
 
   /** 회원 탈퇴: 회원 정보와 관심 분야·구독·북마크·발송 기록을 함께 지운다 (#65) */
   async deleteAccount(userId: number) {
@@ -82,6 +86,107 @@ export class MyPageService {
         : null,
       category: newsletter.category,
     }));
+  }
+
+  /**
+   * 내가 실제로 받은 메일 (내 뉴스레터 탭). 발송 기록(email_archives)을 보낸 시각별로 묶어 한 통씩.
+   * 메일 본문은 저장하지 않으므로, 그 메일에 엮어 보낸 뉴스레터들로 보여 준다. 최신 메일부터
+   */
+  async getMails(userId: number, offset = 0, limit = 5) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (!user) throw new AppException('USER_NOT_FOUND');
+
+    const where = { email: user.email };
+    const [sends, all] = await Promise.all([
+      this.prisma.emailArchive.groupBy({
+        by: ['sentAt'],
+        where,
+        orderBy: { sentAt: 'desc' },
+        skip: offset,
+        take: limit,
+      }),
+      this.prisma.emailArchive.groupBy({ by: ['sentAt'], where }),
+    ]);
+    if (!sends.length) return { items: [], total: all.length };
+
+    const archives = await this.prisma.emailArchive.findMany({
+      where: { ...where, sentAt: { in: sends.map((s) => s.sentAt) } },
+      orderBy: { newsletter: { categoryId: 'asc' } },
+      select: {
+        sentAt: true,
+        newsletter: {
+          select: {
+            id: true,
+            title: true,
+            subtitle: true,
+            imageUrl: true,
+            content: true,
+            createdAt: true,
+            category: { select: { id: true, name: true } },
+          },
+        },
+      },
+    });
+
+    // 받은편지함처럼 메일 제목도 (발송 때와 같은 방식으로 다시 만든다, AI 호출 없음)
+    const subjects = await Promise.all(
+      sends.map(({ sentAt }) =>
+        this.editionService
+          .rebuildMail(
+            sentAt,
+            archives
+              .filter((a) => a.sentAt.getTime() === sentAt.getTime())
+              .map((a) => a.newsletter.id),
+          )
+          .then((mail) => mail?.subject ?? null),
+      ),
+    );
+
+    return {
+      total: all.length,
+      items: sends.map(({ sentAt }, i) => ({
+        sentAt,
+        subject: subjects[i],
+        newsletters: archives
+          .filter((a) => a.sentAt.getTime() === sentAt.getTime())
+          .map(({ newsletter: n }) => ({
+            id: n.id,
+            title: n.title,
+            subtitle: n.subtitle,
+            image: n.imageUrl?.split(',').find(Boolean) ?? null,
+            summary: n.content ? n.content.substring(0, 100) + '...' : null,
+            createdAt: n.createdAt,
+            category: n.category,
+          })),
+      })),
+    };
+  }
+
+  /**
+   * 받은 메일 한 통을 받은 그대로 (보낸 시각으로 찾는다). 내 발송 기록에 없으면 404
+   */
+  async getMail(userId: number, sentAt: Date) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (!user) throw new AppException('USER_NOT_FOUND');
+    const archives = await this.prisma.emailArchive.findMany({
+      where: { email: user.email, sentAt },
+      select: { newsletterId: true },
+    });
+    const mail =
+      archives.length &&
+      (await this.editionService.rebuildMail(
+        sentAt,
+        archives.map((a) => a.newsletterId),
+      ));
+    if (!mail)
+      throw new AppException('NOT_FOUND', '받은 메일을 찾지 못했어요.');
+    return { sentAt, subject: mail.subject, html: mail.html };
   }
 
   /**
