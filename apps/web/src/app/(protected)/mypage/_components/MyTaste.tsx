@@ -8,7 +8,7 @@ import { useTaste } from '@/hooks/useHighlights';
 const SHOWN = 10;
 
 /**
- * 마이페이지 '자주 모은 주제' (#123 2단계): 북마크 · 스크랩 · 메모로 모인 태그 점수.
+ * 마이페이지 '요즘 관심 있게 본 주제' (#123 2단계): 북마크 · 스크랩 · 메모로 모인 태그 점수.
  * 앞으로 맞춤 뉴스레터가 이 점수로 소식을 고른다. 태그를 누르면 그 태그의 뉴스레터 목록으로
  */
 export default function MyTaste() {
@@ -23,7 +23,7 @@ export default function MyTaste() {
 	return (
 		<StyledTaste aria-labelledby="my-taste">
 			<div className="head">
-				<h3 id="my-taste">자주 모은 주제</h3>
+				<h3 id="my-taste">요즘 관심 있게 본 주제</h3>
 				<p>
 					북마크 {signals.bookmark} · 스크랩 {signals.scrap} · 메모 {signals.memo}개에서 모았어요. 앞으로 맞춤
 					뉴스레터가 이 주제를 먼저 챙겨요.

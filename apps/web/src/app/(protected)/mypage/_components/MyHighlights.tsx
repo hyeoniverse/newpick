@@ -215,7 +215,7 @@ const StyledHighlights = styled.div`
 		}
 	}
 
-	/* 스크랩 목록만 (위의 '자주 모은 주제' 카드에는 붙지 않게) */
+	/* 스크랩 목록만 (위의 '요즘 관심 있게 본 주제' 카드에는 붙지 않게) */
 	.group ul {
 		display: flex;
 		flex-direction: column;
