@@ -50,7 +50,7 @@ export class FindCategoryService {
           status: 'success',
           error: null,
           token: tokens,
-          ...usageLog([usage]),
+          ...usageLog([usage], 'category'),
         },
       });
 

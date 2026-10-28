@@ -9,6 +9,7 @@ import { SubscriberService } from 'src/subscriber/subscriber.service';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 import { DashboardService } from './dashboard.service';
+import { StatsService } from './stats.service';
 import {
   DashboardAiLogsQueryDto,
   DashboardArticlesQueryDto,
@@ -29,6 +30,7 @@ export class SchedulerController {
     private readonly mailService: MailService,
     private readonly newsletterRepository: NewsletterRepo,
     private readonly dashboardService: DashboardService,
+    private readonly statsService: StatsService,
   ) {}
 
   /** 관리자 대시보드: 스케줄러 · 오늘 수집 · 발행 · AI 요약 기록 · 발송을 한 번에 (#21) */
@@ -47,6 +49,33 @@ export class SchedulerController {
     return {
       message: '예약 시간을 바꿨습니다.',
       data: await this.schedulerService.setSchedule(body),
+    };
+  }
+
+  /** 통계: 날짜별 구독 · 일시정지 · 해지와 구독 중 수, 관심사별 구독 중 (#122). 기간을 안 주면 최근 30일 */
+  @Get('stats/subscribers')
+  async subscriberStats(@Query() { from, to }: DashboardQueryDto) {
+    return {
+      message: '구독자 통계 조회 성공',
+      data: await this.statsService.subscribers(from, to),
+    };
+  }
+
+  /** 통계: 날짜별 · 종류 · 관심사 · 모델 · 단계별 AI 비용, 이번 달 예상 (#122) */
+  @Get('stats/cost')
+  async costStats(@Query() { from, to }: DashboardQueryDto) {
+    return {
+      message: 'AI 비용 통계 조회 성공',
+      data: await this.statsService.cost(from, to),
+    };
+  }
+
+  /** 통계: 날짜별 발송 · 작업 결과, 관심사별 조회수 (#122) */
+  @Get('stats/delivery')
+  async deliveryStats(@Query() { from, to }: DashboardQueryDto) {
+    return {
+      message: '발송 통계 조회 성공',
+      data: await this.statsService.delivery(from, to),
     };
   }
 

@@ -1,6 +1,7 @@
 import {} from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AppException } from './errors/app.exception';
+import { subscriptionEvent } from './subscription-event';
 
 /**
  * 회원과 그 회원의 개인정보를 한 번에 지운다 (#65, 개인정보 처리방침 "탈퇴하면 함께 파기").
@@ -14,13 +15,20 @@ export async function deleteAccount(
 ) {
   const user = await prisma.user.findUnique({
     where: { id: userId },
-    select: { id: true, email: true },
+    select: {
+      id: true,
+      email: true,
+      subscribers: { select: { status: true } },
+    },
   });
   if (!user) throw new AppException('USER_NOT_FOUND');
 
+  // 구독 중(일시정지 포함)에 탈퇴하면 통계에는 해지로 남긴다 (#122). 구독 기록은 회원과 묶지 않아 남는다
+  const subscribed = user.subscribers.some((s) => s.status !== 'cancelled');
   const [archives] = await prisma.$transaction([
     prisma.emailArchive.deleteMany({ where: { email: user.email } }),
     prisma.user.delete({ where: { id: user.id } }),
+    ...(subscribed ? [subscriptionEvent(prisma, user.id, 'cancel')] : []),
   ]);
   return { id: user.id, deletedEmailArchives: archives.count };
 }

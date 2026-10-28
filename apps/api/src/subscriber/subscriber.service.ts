@@ -5,6 +5,7 @@ import {
   validateCategoryIds,
 } from 'src/common/user-interests';
 import { AppException } from '../common/errors/app.exception';
+import { subscriptionEvent } from '../common/subscription-event';
 @Injectable()
 export class SubscriberService {
   constructor(
@@ -22,7 +23,11 @@ export class SubscriberService {
   async startSubscription(userId: number, interests?: number[]) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, subscribers: true },
+      select: {
+        id: true,
+        subscribers: true,
+        interests: { select: { categoryId: true } },
+      },
     });
     if (!user) {
       throw new AppException('USER_NOT_FOUND');
@@ -46,13 +51,22 @@ export class SubscriberService {
           data: { userId, startedAt: new Date(), status: 'active' },
         });
 
-    if (!categoryIds) return subscribe;
+    // 구독 기록 (#122): 일시정지였으면 다시 시작, 아니면 새 구독. 그때의 관심사도 남긴다
+    const event = subscriptionEvent(
+      this.prisma,
+      userId,
+      existing?.status === 'paused' ? 'resume' : 'subscribe',
+      categoryIds ?? user.interests.map((i) => i.categoryId),
+    );
 
     const results = await this.prisma.$transaction([
-      ...replaceInterestsOps(this.prisma, userId, categoryIds),
+      ...(categoryIds
+        ? replaceInterestsOps(this.prisma, userId, categoryIds)
+        : []),
       subscribe,
+      event,
     ]);
-    return results[results.length - 1];
+    return results[results.length - 2];
   }
 
   /**
@@ -71,10 +85,14 @@ export class SubscriberService {
       );
     }
 
-    return this.prisma.subscriber.update({
-      where: { id: subscription.id },
-      data: { status: 'paused' },
-    });
+    const [paused] = await this.prisma.$transaction([
+      this.prisma.subscriber.update({
+        where: { id: subscription.id },
+        data: { status: 'paused' },
+      }),
+      subscriptionEvent(this.prisma, userId, 'pause'),
+    ]);
+    return paused;
   }
 
   /**
@@ -92,12 +110,16 @@ export class SubscriberService {
 
     // 구독 취소: 관심사를 비우고 구독 상태를 바꿉니다. 둘 중 하나만 반영되지 않도록 한 트랜잭션으로 처리합니다.
     // 북마크는 구독과 별개인 사용자 데이터이므로 지우지 않습니다.
+    // 이미 해지한 구독을 다시 해지하면 기록은 남기지 않는다 (통계에 두 번 세지 않게)
     const [, cancelled] = await this.prisma.$transaction([
       this.prisma.userInterest.deleteMany({ where: { userId } }),
       this.prisma.subscriber.update({
         where: { id: subscription.id },
         data: { status: 'cancelled', endAt: new Date() },
       }),
+      ...(subscription.status === 'cancelled'
+        ? []
+        : [subscriptionEvent(this.prisma, userId, 'cancel')]),
     ]);
     return cancelled;
   }

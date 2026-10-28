@@ -1,8 +1,9 @@
-/** Claude 호출 한 번의 사용량 */
+/** Claude 호출 한 번의 사용량. stage는 그 호출이 한 일 (뉴스레터 쓰기의 select · write 등, #122) */
 export interface ClaudeUsage {
   model: string;
   input: number;
   output: number;
+  stage?: string;
 }
 
 /**
@@ -46,9 +47,19 @@ export function costUsd(usage: ClaudeUsage[]): number | null {
   return Math.round(total * 1_000_000) / 1_000_000;
 }
 
-/** 로그에 남길 사용량 요약: 모델(여럿이면 이어 붙임) · 입력 · 출력 · 비용 */
-export function usageLog(usage: ClaudeUsage[]) {
+/**
+ * 로그에 남길 사용량 요약: 모델(여럿이면 이어 붙임) · 입력 · 출력 · 비용,
+ * 그리고 호출별 사용량(calls, #122 통계에서 모델 · 단계별로 나눠 본다)
+ */
+export function usageLog(usage: ClaudeUsage[], stage?: string) {
   return {
+    calls: usage.map((u) => ({
+      stage: u.stage ?? stage ?? null,
+      model: u.model,
+      input: u.input,
+      output: u.output,
+      costUsd: costUsd([u]),
+    })),
     model: [...new Set(usage.map((u) => u.model))].join(', ') || null,
     inputTokens: usage.reduce((sum, u) => sum + u.input, 0),
     outputTokens: usage.reduce((sum, u) => sum + u.output, 0),

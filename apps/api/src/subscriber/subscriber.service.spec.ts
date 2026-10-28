@@ -26,6 +26,7 @@ function fakePrisma(user: unknown, categoryIds: number[] = [1, 2, 3]) {
       createMany: op('userInterest.createMany'),
     },
     bookmark: { deleteMany: op('bookmark.deleteMany') },
+    subscriptionEvent: { create: op('subscriptionEvent.create') },
     $transaction: jest.fn((ops: unknown[]) => Promise.resolve(ops)),
   };
 }
@@ -66,7 +67,12 @@ describe('SubscriberService.startSubscription', () => {
       'userInterest.deleteMany',
       'userInterest.createMany',
       'subscriber.create',
+      'subscriptionEvent.create',
     ]);
+    // 구독 기록 (#122): 새 구독, 그때의 관심사
+    expect(prisma.subscriptionEvent.create).toHaveBeenCalledWith({
+      data: { userId: 1, type: 'subscribe', interests: [2, 3] },
+    });
     expect(prisma.userInterest.createMany).toHaveBeenCalledWith({
       data: [
         { userId: 1, categoryId: 2 },
@@ -89,6 +95,37 @@ describe('SubscriberService.startSubscription', () => {
     );
     expect(prisma.subscriber.create).not.toHaveBeenCalled();
   });
+
+  it('일시정지였다가 다시 시작하면 resume으로 남기고, 관심사를 안 주면 지금 관심사를 남긴다 (#122)', async () => {
+    const prisma = fakePrisma({
+      id: 1,
+      subscribers: [{ id: 10, status: 'paused' }],
+      interests: [{ categoryId: 4 }, { categoryId: 5 }],
+    });
+    await serviceWith(prisma).startSubscription(1);
+    const ops = prisma.$transaction.mock.calls[0][0].map(
+      (o: { op: string }) => o.op,
+    );
+    expect(ops).toEqual(['subscriber.update', 'subscriptionEvent.create']);
+    expect(prisma.subscriptionEvent.create).toHaveBeenCalledWith({
+      data: { userId: 1, type: 'resume', interests: [4, 5] },
+    });
+  });
+});
+
+describe('SubscriberService.pauseSubscription', () => {
+  it('상태 변경과 일시정지 기록을 한 트랜잭션으로 남긴다 (#122)', async () => {
+    const prisma = fakePrisma({ id: 1 });
+    prisma.subscriber.findFirst.mockResolvedValue({ id: 10, status: 'active' });
+    await serviceWith(prisma).pauseSubscription(1);
+    const ops = prisma.$transaction.mock.calls[0][0].map(
+      (o: { op: string }) => o.op,
+    );
+    expect(ops).toEqual(['subscriber.update', 'subscriptionEvent.create']);
+    expect(prisma.subscriptionEvent.create).toHaveBeenCalledWith({
+      data: { userId: 1, type: 'pause' },
+    });
+  });
 });
 
 describe('SubscriberService.cancelSubscription', () => {
@@ -101,8 +138,22 @@ describe('SubscriberService.cancelSubscription', () => {
     const ops = prisma.$transaction.mock.calls[0][0].map(
       (o: { op: string }) => o.op,
     );
-    expect(ops).toEqual(['userInterest.deleteMany', 'subscriber.update']);
+    expect(ops).toEqual([
+      'userInterest.deleteMany',
+      'subscriber.update',
+      'subscriptionEvent.create',
+    ]);
     expect(prisma.bookmark.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it('이미 해지한 구독을 다시 해지하면 기록을 또 남기지 않는다 (통계에 두 번 세지 않게)', async () => {
+    const prisma = fakePrisma({ id: 1 });
+    prisma.subscriber.findFirst.mockResolvedValue({
+      id: 10,
+      status: 'cancelled',
+    });
+    await serviceWith(prisma).cancelSubscription(1);
+    expect(prisma.subscriptionEvent.create).not.toHaveBeenCalled();
   });
 });
 
@@ -118,7 +169,11 @@ describe('원클릭 해지 (#18)', () => {
         args: { data?: unknown };
       }[]
     ).map((o) => o.op);
-    expect(ops).toEqual(['userInterest.deleteMany', 'subscriber.update']);
+    expect(ops).toEqual([
+      'userInterest.deleteMany',
+      'subscriber.update',
+      'subscriptionEvent.create',
+    ]);
   });
 
   it('이미 해지했거나 구독한 적이 없으면 그대로 두고 오류도 내지 않는다 (여러 번 눌러도 같음)', async () => {

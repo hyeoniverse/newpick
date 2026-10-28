@@ -28,3 +28,27 @@ export function kstDayRange(dateStart: string | Date, dateEnd: string | Date) {
 export function kstDaysAgo(days: number, now: Date = new Date()): string {
   return dayjs(now).tz(KST).subtract(days, 'day').format('YYYY-MM-DD');
 }
+
+/** KST 날짜 from부터 to까지 하루씩 'YYYY-MM-DD' (둘 다 포함) */
+export function kstDays(from: string, to: string): string[] {
+  const days: string[] = [];
+  for (
+    let day = dayjs.tz(from, KST);
+    !day.isAfter(dayjs.tz(to, KST), 'day');
+    day = day.add(1, 'day')
+  ) {
+    days.push(day.format('YYYY-MM-DD'));
+  }
+  return days;
+}
+
+/** 이번 달(KST) 1일 00:00 · 오늘이 며칠째인지 · 이 달이 며칠인지 */
+export function kstMonth(now: Date = new Date()) {
+  const today = dayjs(now).tz(KST);
+  return {
+    month: today.format('YYYY-MM'),
+    start: today.startOf('month').toDate(),
+    elapsedDays: today.date(),
+    daysInMonth: today.daysInMonth(),
+  };
+}
