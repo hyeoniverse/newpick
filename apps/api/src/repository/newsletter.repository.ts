@@ -126,6 +126,68 @@ export class NewsletterRepo {
     return { items, total: Number(counts[0]?.total ?? 0) };
   }
 
+  /**
+   * 최근 자주 나온 키워드(태그) (#20). JSON 배열을 행으로 펴서(JSON_TABLE) 센다.
+   * 태그 대부분이 한 번만 나와 '많이 나온 순'이 의미 없어지므로: 두 번 이상 나온 태그를 먼저,
+   * 그 안에서는 최근일수록 무겁게 센 점수(1주 지날 때마다 반으로 · 1/(1+일수/7)) 순. 모자라면 한 번 나온 최근 태그로 채운다
+   */
+  async getPopularKeywords(since: Date, limit: number, categoryId?: number) {
+    const category = categoryId
+      ? Prisma.sql`AND n.categoryId = ${categoryId}`
+      : Prisma.empty;
+    const rows = await this.prisma.$queryRaw<
+      Array<{ keyword: string; count: bigint }>
+    >`SELECT k.keyword AS keyword, COUNT(*) AS count
+      FROM newsletters n,
+           JSON_TABLE(n.keywords, '$[*]' COLUMNS (keyword VARCHAR(100) PATH '$')) AS k
+      WHERE n.createdAt >= ${since} AND n.keywords IS NOT NULL ${category}
+      GROUP BY k.keyword
+      ORDER BY (COUNT(*) >= 2) DESC,
+               SUM(1 / (1 + TIMESTAMPDIFF(DAY, n.createdAt, NOW()) / 7)) DESC,
+               keyword ASC
+      LIMIT ${limit}`;
+    return rows.map((row) => ({
+      keyword: row.keyword,
+      count: Number(row.count),
+    }));
+  }
+
+  /**
+   * 태그 전체 (태그 화면 /tags). 태그마다 쓰인 횟수 · 마지막으로 쓰인 날 · 관심사.
+   * q가 있으면 이름 일부로 찾기. 많이 쓴 순, 같으면 최근 순 (최대 1000개)
+   */
+  async getAllKeywords(params: { categoryId?: number; q?: string }) {
+    const category = params.categoryId
+      ? Prisma.sql`AND n.categoryId = ${params.categoryId}`
+      : Prisma.empty;
+    const q = params.q
+      ? Prisma.sql`AND k.keyword LIKE ${`%${params.q.replace(/[%_\\]/g, '\\$&')}%`}`
+      : Prisma.empty;
+    const rows = await this.prisma.$queryRaw<
+      Array<{
+        keyword: string;
+        count: bigint;
+        lastUsedAt: Date;
+        categoryIds: string | null;
+      }>
+    >`SELECT k.keyword AS keyword, COUNT(*) AS count, MAX(n.createdAt) AS lastUsedAt,
+             GROUP_CONCAT(DISTINCT n.categoryId ORDER BY n.categoryId) AS categoryIds
+      FROM newsletters n,
+           JSON_TABLE(n.keywords, '$[*]' COLUMNS (keyword VARCHAR(100) PATH '$')) AS k
+      WHERE n.keywords IS NOT NULL ${category} ${q}
+      GROUP BY k.keyword
+      ORDER BY count DESC, lastUsedAt DESC
+      LIMIT 1000`;
+    return rows.map((row) => ({
+      keyword: row.keyword,
+      count: Number(row.count),
+      lastUsedAt: row.lastUsedAt,
+      categoryIds: row.categoryIds
+        ? String(row.categoryIds).split(',').map(Number)
+        : [],
+    }));
+  }
+
   async getNewsletterById(id: number) {
     return this.prisma.newsletter.findUnique({
       where: { id },

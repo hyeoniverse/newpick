@@ -32,6 +32,8 @@ const EXPECTED: Record<string, Policy> = {
   'GET newsletters': 'public',
   'GET newsletters/trends': 'public',
   'GET newsletters/search': 'public',
+  'GET newsletters/keywords': 'public',
+  'GET newsletters/keywords/all': 'public',
   'GET newsletters/:id': 'public',
   'GET newsletters/category/:categoryId': 'public',
   'GET newsletters/random/:num/:from': 'public',

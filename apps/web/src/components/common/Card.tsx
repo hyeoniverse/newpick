@@ -21,13 +21,25 @@ interface Props {
 }
 
 /** 새 탭이면 사이트 밖 링크(관련 뉴스의 언론사 기사)라 ExternalLink, 아니면 사이트 안 이동 */
-function CardLink({ href, newTab, children }: { href: string; newTab: boolean; children: React.ReactNode }) {
+function CardLink({
+	href,
+	newTab,
+	children,
+	className,
+}: {
+	href: string;
+	newTab: boolean;
+	children: React.ReactNode;
+	className?: string;
+}) {
 	return newTab ? (
-		<ExternalLink href={href} showIcon={false}>
+		<ExternalLink href={href} showIcon={false} className={className}>
 			{children}
 		</ExternalLink>
 	) : (
-		<Link href={href}>{children}</Link>
+		<Link href={href} className={className}>
+			{children}
+		</Link>
 	);
 }
 
@@ -39,7 +51,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 			<div className="card-body">
 				{type === 'main' && (
 					<>
-						{/* 톱 기사 형식: 사진 | 분야 · 제목 · 부제 · 키워드 · 날짜 (모바일은 사진이 위) */}
+						{/* 톱 기사 형식: 위는 사진 | 분야 · 제목 · 부제, 아래는 카드 전체 폭으로 이 뉴스레터의 소식 · 태그 · 날짜 (모바일은 모두 한 줄씩) */}
 						<CardLink href={url || ''} newTab={newTab}>
 							<div className="image-placeholder">
 								<Image src={image || '/img/newpick_default_img.jpg'} alt={main.title || 'card'} />
@@ -118,7 +130,8 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 
 				{type === 'list' && (
 					<>
-						<CardLink href={url || '/not-found'} newTab={newTab}>
+						{/* 제목 링크를 카드 전체로 늘려(::after) 어디를 눌러도 상세로. 태그 · 북마크는 그 위에 따로 눌린다 (#20) */}
+						<div className="card-stretch">
 							<div className="card-main">
 								<div className="card-header">
 									{header && (
@@ -130,21 +143,19 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 								<div className="content">
 									<div className="left">
 										{main.title && (
-											<Text className="title" size="medium" weight="semiBold">
-												<Highlight text={main.title} query={highlight} />
-											</Text>
+											<CardLink href={url || '/not-found'} newTab={newTab} className="stretched-link">
+												<Text className="title" size="medium" weight="semiBold">
+													<Highlight text={main.title} query={highlight} />
+												</Text>
+											</CardLink>
 										)}
 										{main.description && (
 											<Text className="description" size="small">
 												<Highlight text={main.description} query={highlight} />
 											</Text>
 										)}
-										<Tags tags={main.tags} max={4} className="tags" />
-										{footer && (
-											<div className="card-footer" onClick={(e) => e.preventDefault()}>
-												{footer}
-											</div>
-										)}
+										<Tags tags={main.tags} max={4} className="tags" linkable />
+										{footer && <div className="card-footer">{footer}</div>}
 									</div>
 
 									<div className="image-placeholder">
@@ -152,7 +163,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 									</div>
 								</div>
 							</div>
-						</CardLink>
+						</div>
 					</>
 				)}
 			</div>
@@ -167,6 +178,42 @@ interface StyledProps {
 }
 
 const StyledCard = styled.div<StyledProps>`
+	/* 목록 카드: 제목 링크가 카드 전체를 덮고, 태그 · 아래 줄(북마크)은 그 위에서 따로 눌린다 */
+	.card-stretch {
+		position: relative;
+		width: 100%;
+
+		/* 카드 안 링크 공통 모양(가로 정렬 · 폭)이 태그 링크에는 걸리지 않게 */
+		.tags a {
+			display: inline;
+			width: auto;
+		}
+
+		.stretched-link::after {
+			position: absolute;
+			inset: 0;
+			z-index: 0;
+			content: '';
+		}
+
+		/* 키보드로 오면 카드 전체에 포커스 테두리 */
+		.stretched-link:focus-visible {
+			outline: none;
+
+			&::after {
+				outline: 2px solid ${({ theme }) => theme.color.primary};
+				outline-offset: 4px;
+				border-radius: ${({ theme }) => theme.radius.surface};
+			}
+		}
+
+		.tags,
+		.card-footer {
+			position: relative;
+			z-index: 1;
+		}
+	}
+
 	/* 검색어 강조 (#20): 강조색 옅은 배경, 글자는 그대로 */
 	mark {
 		padding: 0 0.125rem;
@@ -208,7 +255,7 @@ const StyledCard = styled.div<StyledProps>`
 			}
 		}
 
-		&:hover:not(:has(.card-footer:hover)) {
+		&:hover:not(:has(.card-footer:hover, .tags a:hover)) {
 			img {
 				transform: scale(1.05);
 			}
@@ -314,22 +361,114 @@ const mainCardStyles = css`
 		width: 100%;
 	}
 
+	/*
+	 * PC · 노트북: 사진 | 분야 · 제목 · 설명 · 소식, 아래 카드 전체 폭으로 태그 · 날짜
+	 * 태블릿: 위는 사진 | 분야 · 제목 · 설명, 아래 카드 전체 폭으로 소식 · 태그 · 날짜
+	 * 휴대폰: 모두 한 줄씩
+	 */
 	a {
 		display: grid;
 		grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
-		align-items: center;
-		gap: 2rem;
+		/* 사진이 글보다 길면 남는 높이는 소식 칸 아래로 */
+		grid-template-rows: auto auto auto 1fr auto auto;
+		grid-template-areas:
+			'img category'
+			'img title'
+			'img desc'
+			'img points'
+			'tags tags'
+			'footer footer';
+		column-gap: 2rem;
+		row-gap: 0.5rem;
 		width: 100%;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			grid-template-rows: 1fr auto auto auto 1fr auto auto auto;
+			grid-template-areas:
+				'img .'
+				'img category'
+				'img title'
+				'img desc'
+				'img .'
+				'points points'
+				'tags tags'
+				'footer footer';
+		}
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
 			grid-template-columns: 1fr;
-			gap: 1rem;
+			grid-template-rows: none;
+			/* 휴대폰은 설명 · 소식을 빼므로 그 줄도 없앤다 (빈 줄의 간격이 남지 않게) */
+			grid-template-areas: 'img' 'category' 'title' 'tags' 'footer';
 		}
 	}
 
+	/* 사진은 칸 위쪽에 붙인다 (오른쪽 글이 사진보다 길어도 사진이 가운데로 내려가지 않게) */
 	.image-placeholder {
+		grid-area: img;
+		align-self: start;
 		margin: 0;
 		aspect-ratio: 16 / 9;
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			margin-bottom: 0.5rem;
+		}
+	}
+
+	/* 안쪽 칸들이 바로 위 격자의 칸이 되게 (공통 .card-body .card-main의 flex보다 앞서도록 같은 깊이로) */
+	.card-body .card-main {
+		display: contents;
+	}
+
+	.category {
+		grid-area: category;
+	}
+
+	.title {
+		grid-area: title;
+	}
+
+	.description {
+		grid-area: desc;
+	}
+
+	.points {
+		grid-area: points;
+	}
+
+	.tags {
+		grid-area: tags;
+	}
+
+	.card-footer {
+		grid-area: footer;
+	}
+
+	/* 휴대폰은 짧게: 설명 · 이 뉴스레터의 소식은 빼고 사진 · 분야 · 제목 · 태그 · 날짜만, 글자 · 간격도 줄인다 */
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		a {
+			row-gap: 0.375rem;
+		}
+
+		/* 아래 .card-main 규칙보다 앞서도록 한 단계 더 구체적으로 */
+		.card-body .card-main .description,
+		.card-body .card-main .points {
+			display: none;
+		}
+
+		.card-body .card-main .title {
+			font-size: ${({ theme }) => theme.fontSize.medium};
+		}
+
+		/* 사진도 낮게 (16:9 → 2:1) */
+		.image-placeholder {
+			aspect-ratio: 2 / 1;
+		}
+
+		.card-body .card-main .card-footer {
+			margin-top: 0.25rem;
+			padding-top: 0.5rem;
+		}
 	}
 
 	.card-main {
@@ -361,10 +500,14 @@ const mainCardStyles = css`
 			}
 		}
 
-		/* 분야 페이지 배너: 이 뉴스레터에 담긴 소식 */
+		/* 분야 페이지 배너: 이 뉴스레터에 담긴 소식 (태블릿 이하는 사진 아래, 카드 전체 폭) */
 		.points {
 			width: 100%;
 			margin-top: 0.25rem;
+
+			@media ${({ theme }) => theme.mediaQuery.tablet} {
+				margin-top: 1rem;
+			}
 
 			.points-title {
 				margin: 0 0 0.375rem;
@@ -417,8 +560,11 @@ const mainCardStyles = css`
 			}
 		}
 
+		/* 카드 전체 폭의 날짜 줄 위에 얇은 구분선 */
 		.card-footer {
-			margin-top: 0.75rem;
+			margin-top: 0.5rem;
+			padding-top: 0.75rem;
+			border-top: 1px solid ${({ theme }) => theme.color.border};
 			white-space: nowrap;
 		}
 	}

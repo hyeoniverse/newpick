@@ -20,26 +20,19 @@ import { fetchSearchNewsletters } from '@/api/article';
 import {
 	SearchSort,
 	filtersKey,
-	isSearching,
 	readFilters,
 	toApiQuery,
 	toPageHref,
 } from '@/utils/newsletterSearch';
 import { useToast } from '@/hooks/useToast';
 
-interface Props {
-	/** 배너에 띄운 글. 목록에서 다시 보여 주지 않는다 */
-	excludeId?: number;
-}
-
-export default function ListSection({ excludeId }: Props) {
+export default function ListSection() {
 	const searchParams = useSearchParams();
 	const router = useRouter();
 	const { showToast } = useToast();
 	// 검색 · 필터 상태는 모두 주소에 있다 (#20). 같은 상태면 같은 key
 	const filters = readFilters(searchParams);
 	const key = filtersKey(filters);
-	const searching = isSearching(filters);
 	const categoryName = mapIdToTitle([filters.categoryId])[0];
 
 	const [articles, setArticles] = useState<IArticleSummary[]>([]);
@@ -123,9 +116,6 @@ export default function ListSection({ excludeId }: Props) {
 
 	const setSort = (sort: SearchSort) => router.replace(toPageHref({ ...filters, sort }), { scroll: false });
 
-	// 배너에 띄운 글은 관심사 첫 화면에서만 빼고(검색 · 필터 중엔 그대로)
-	const plain = !searching && filters.period === 'all';
-	const shown = plain ? articles.filter((article) => article.id !== excludeId) : articles;
 	const heading = filters.q ? `‘${filters.q}’ 검색 결과` : filters.keyword ? `#${filters.keyword}` : categoryName;
 
 	return (
@@ -159,7 +149,7 @@ export default function ListSection({ excludeId }: Props) {
 				/>
 			) : (
 				<div className="newsletter-cards">
-					{shown.map((article, index) => (
+					{articles.map((article, index) => (
 						<Card
 							type="list"
 							key={`${article.id}-${index}`}

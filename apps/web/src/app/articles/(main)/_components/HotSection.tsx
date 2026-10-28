@@ -64,8 +64,8 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 				{CATEGORIES.map((c) => (
 					<Link
 						key={c.id}
-						// 관심사를 바꿔도 검색어 · 기간 · 정렬은 그대로
-						href={toPageHref({ ...filters, categoryId: c.id })}
+						// 관심사를 바꿔도 검색어 · 기간 · 정렬은 그대로. 고른 관심사를 다시 누르면 전체로
+						href={toPageHref({ ...filters, categoryId: c.name === categoryName ? 0 : c.id })}
 						className="chip"
 						aria-current={c.name === categoryName ? 'page' : undefined}
 					>
@@ -92,24 +92,27 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 						)}
 						{/* 요약 줄은 전체·분야 모두 같은 자리에 한 줄 (분야를 바꿔도 높이가 같게) */}
 						<p className="stats">
-							{isAll ? (
-								<>
-									오늘 <strong>{initiallData.length}개 분야</strong> 발행
-								</>
-							) : (
-								<>
-									최근 7일 <strong>{stats?.weekCount ?? 0}편</strong>
-								</>
-							)}
+							<span className="count">
+								{isAll ? (
+									<>
+										오늘 <strong>{initiallData.length}개 분야</strong> 발행
+									</>
+								) : (
+									<>
+										최근 7일 <strong>{stats?.weekCount ?? 0}편</strong>
+									</>
+								)}
+							</span>
 							{summaryKeywords.length > 0 && (
-								<>
-									{' · 자주 나온 키워드 '}
+								// 태블릿 이하에서는 키워드만 아래 줄로 내려 옆으로 넘긴다 (…로 잘리지 않게)
+								<span className="keywords">
+									<span className="keywords-label">{' · 자주 나온 키워드 '}</span>
 									{summaryKeywords.map((k) => (
 										<Link key={k} href={toPageHref({ ...filters, keyword: k })} className="keyword">
 											#{k}
 										</Link>
 									))}
-								</>
+								</span>
 							)}
 						</p>
 					</div>
@@ -308,6 +311,96 @@ const StyledHotSection = styled.section<StyledProps>`
 					width: 5.5rem;
 					height: 5.5rem;
 				}
+			}
+		}
+
+		/* 태블릿 이하 배너: 아이콘은 제목 오른쪽 위로 작게(글자와 겹치지 않게), 설명은 두 줄까지, 키워드는 아래 줄에서 옆으로 넘김 */
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			gap: 0.25rem;
+			padding-right: 3.25rem;
+
+			h1,
+			h2 {
+				font-size: 1.75rem;
+			}
+
+			.description {
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				-webkit-line-clamp: 2;
+				/* 분야마다 줄 수가 달라도 높이가 같게 두 줄 자리 */
+				min-height: 3em;
+				white-space: normal;
+				word-break: keep-all;
+				font-size: ${({ theme }) => theme.fontSize.small};
+				line-height: 1.5;
+			}
+
+			.stats {
+				overflow: visible;
+				white-space: normal;
+				margin-right: -3.25rem;
+			}
+
+			.keywords {
+				display: flex;
+				gap: 0.375rem;
+				margin-top: 0.375rem;
+				overflow-x: auto;
+				scrollbar-width: none;
+
+				&::-webkit-scrollbar {
+					display: none;
+				}
+			}
+
+			.keywords-label {
+				display: none;
+			}
+
+			.keyword {
+				flex-shrink: 0;
+				margin-left: 0;
+				padding: 0.125rem 0.5rem;
+				border: 1px solid ${({ theme }) => theme.color.border};
+				border-radius: ${({ theme }) => theme.radius.chip};
+				background: ${({ theme }) => theme.color.background};
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+
+			.watermark {
+				top: 0.25rem;
+				transform: none;
+
+				svg {
+					width: 3rem;
+					height: 3rem;
+				}
+			}
+		}
+
+		/* 휴대폰은 더 짧게: 설명 · 요약(발행 수) 줄은 빼고 제목 · 키워드만 */
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			.count {
+				display: none;
+			}
+
+			.keywords {
+				margin-top: 0.125rem;
+			}
+
+			h1,
+			h2 {
+				font-size: 1.5rem;
+			}
+
+			.description {
+				display: none;
+			}
+
+			.watermark svg {
+				width: 2.5rem;
+				height: 2.5rem;
 			}
 		}
 	}

@@ -28,8 +28,7 @@ import Text from '@/components/common/Text';
 import InputText from '@/components/common/InputText';
 import InputCheck from '@/components/common/InputCheck';
 import InputSelect from '@/components/common/InputSelect';
-import InputDate from '@/components/common/InputDate';
-import { DatePicker } from '@/components/common/DatePicker';
+import { DatePicker, DateRangePicker } from '@/components/common/DatePicker';
 import TimePicker from '@/components/common/TimePicker';
 import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
@@ -138,13 +137,14 @@ function DesignSystemBody() {
 	const { openModal, closeModal } = useModal();
 	const { isChecked } = useInputCheck('ds-check');
 	const [selectValue, setSelectValue] = useState('');
+	const [date, setDate] = useState('');
+	const [range, setRange] = useState({ start: '', end: '' });
 	const [pickedDate, setPickedDate] = useState('');
 	const [time, setTime] = useState('08:30');
 	const [page, setPage] = useState(6);
 	const [chip, setChip] = useState('');
 	const [headerPick, setHeaderPick] = useState('');
 	const [sortOrder, setSortOrder] = useState<SortOrder>('');
-	const [date, setDate] = useState<Date | null>(null);
 	const [cycle, setCycle] = useState<'daily' | 'weekly'>('daily');
 	const [errorKey, setErrorKey] = useState('deleted');
 	const [bookmarked, setBookmarked] = useState(false);
@@ -296,7 +296,7 @@ function DesignSystemBody() {
 				</div>
 			</Section>
 
-			<Section id="input" title="입력" note="InputText · InputCheck · InputRadio · InputSelect · InputDate">
+			<Section id="input" title="입력" note="InputText · InputCheck · InputRadio · InputSelect · DatePicker · DateRangePicker">
 				<div className="grid">
 					<InputText label="이메일" placeholder="name@example.com" inputType="email" />
 					<InputSelect
@@ -311,7 +311,8 @@ function DesignSystemBody() {
 							{ label: '세계', value: '세계' },
 						]}
 					/>
-					<InputDate label="날짜" onChange={setDate} />
+					<DatePicker label="날짜" value={date} onChange={setDate} />
+					<DateRangePicker label="기간" start={range.start} end={range.end} onChange={setRange} />
 					<InputRadio
 						name="ds-cycle"
 						label="발송 주기"
@@ -327,7 +328,7 @@ function DesignSystemBody() {
 					</div>
 				</div>
 				<Text size="extraSmall" color="subText">
-					값: 분야 {selectValue || '없음'} · 날짜 {date?.toLocaleDateString('ko-KR') ?? '없음'} · 체크{' '}
+					값: 분야 {selectValue || '없음'} · 날짜 {date || '없음'} · 기간 {range.start ? `${range.start} ~ ${range.end}` : '없음'} · 체크{' '}
 					{isChecked ? '됨' : '안 됨'} · 주기 {cycle === 'daily' ? '매일' : '매주'}
 				</Text>
 			</Section>

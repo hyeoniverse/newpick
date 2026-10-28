@@ -20,10 +20,11 @@ interface Props {
 }
 
 /**
- * 거르기 칩 한 줄 (공통, 관리자 목록에서 시작): '관심사 [전체] [IT] [정치] …'. 하나만 고른다.
+ * 거르기 칩 한 줄 (공통, 관리자 목록에서 시작): '관심사 [전체] [IT] [정치] …'. 하나만 고르고, 고른 칩을 다시 누르면 '전체'로.
  * 이름표 폭을 맞춰 여러 줄을 쌓아도 칩이 같은 자리에서 시작하고, 좁은 화면에서는 이름표가 위 한 줄로 간다
  */
 export default function FilterChips({ label, ariaLabel, options, value, onChange, className }: Props) {
+	const hasAll = options.some((option) => option.value === '');
 	return (
 		<StyledFilterChips role="group" aria-label={ariaLabel ?? label} className={className}>
 			<span className="chips-label">{label}</span>
@@ -32,7 +33,8 @@ export default function FilterChips({ label, ariaLabel, options, value, onChange
 					key={option.value}
 					type="button"
 					aria-pressed={value === option.value}
-					onClick={() => onChange(option.value)}
+					// 고른 칩을 다시 누르면 해제하고 '전체'('')로
+					onClick={() => onChange(value === option.value && hasAll ? '' : option.value)}
 				>
 					{option.label}
 				</button>

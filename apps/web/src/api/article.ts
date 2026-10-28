@@ -50,3 +50,24 @@ export const fetchSearchNewsletters = async (query: string) => {
 	);
 	return data;
 };
+
+export interface KeywordStat {
+	keyword: string;
+	count: number;
+	lastUsedAt: string;
+	categoryIds: number[];
+}
+
+/** 태그 전체: 쓰인 횟수 · 마지막 날 · 관심사 (태그 화면 /tags) */
+export const fetchAllKeywords = async (categoryId?: number) => {
+	const { data } = await apiFetch<{ data: KeywordStat[] }>(API_ENDPOINTS.NEWSLETTER.ALL_KEYWORDS(categoryId));
+	return data;
+};
+
+/** 최근 30일 자주 나온 키워드(태그) (#20) */
+export const fetchPopularKeywords = async (categoryId?: number) => {
+	const { data } = await apiFetch<{ data: { keyword: string; count: number }[] }>(
+		API_ENDPOINTS.NEWSLETTER.KEYWORDS(categoryId),
+	);
+	return data;
+};

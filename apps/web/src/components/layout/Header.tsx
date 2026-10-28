@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef } from 'react';
+import { Suspense, useCallback, useEffect, useRef } from 'react';
 
 import { SCROLL } from '@/constants/numbers';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +20,7 @@ import Navigation from '@/components/layout/header/Navigation';
 import Drawer from '@/components/layout/header/Drawer';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
+import HeaderSearch, { HeaderSearchFallback } from '@/components/layout/header/HeaderSearch';
 
 export default function Header() {
 	const { user, session, handleLogout } = useAuth();
@@ -74,6 +75,10 @@ export default function Header() {
 					<Navigation />
 				</div>
 				<div className="right-section">
+					{/* 지난 뉴스레터 검색 (#20). 주소(?q=)를 읽으므로 Suspense 안에 */}
+					<Suspense fallback={<HeaderSearchFallback />}>
+						<HeaderSearch />
+					</Suspense>
 					{/* unknown: 표시 쿠키를 읽기 전에는 둘 다 그려 두고 <html data-auth>에 맞춰 CSS로 하나만 보여 줍니다. */}
 					{session !== 'out' &&
 						(user ? (
