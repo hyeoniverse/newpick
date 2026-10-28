@@ -654,17 +654,16 @@ const calendar = css`
 		}
 
 		/* 일요일 */
-		.react-datepicker__week > .react-datepicker__day:first-child:not(.react-datepicker__day--selected) {
+		.react-datepicker__week
+			> .react-datepicker__day:first-child:not(.react-datepicker__day--selected):not(
+				.react-datepicker__day--outside-month
+			) {
 			color: ${({ theme }) => theme.color.error};
 		}
 
 		.react-datepicker__day--today {
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
 			box-shadow: inset 0 0 0 1px ${({ theme }) => theme.color.border};
-		}
-
-		.react-datepicker__day--outside-month {
-			opacity: 0.4;
 		}
 
 		.react-datepicker__day--disabled {
@@ -686,6 +685,12 @@ const calendar = css`
 		.react-datepicker__day--keyboard-selected {
 			background: ${({ theme }) => theme.color.primary};
 			color: #ffffff;
+		}
+		/* 앞 · 뒤 달 날짜는 흐린 글자만: 기간 · 선택 색을 칠하지 않는다 (지금 달 안의 기간만 보이게, 경계에서 색이 섞이지 않게) */
+		.react-datepicker__day.react-datepicker__day--outside-month {
+			background: transparent;
+			color: ${({ theme }) => theme.color.disabled};
+			font-weight: inherit;
 		}
 	}
 
