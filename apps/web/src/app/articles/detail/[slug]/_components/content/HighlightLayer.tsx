@@ -24,11 +24,26 @@ type Popover =
 
 const MAX_TEXT = 500;
 
+/** 스크랩이 없을 때(비로그인 · 불러오는 중) 쓰는 빈 목록. 렌더마다 새 []를 만들면 칠하기 효과가 끝없이 돈다 */
+const NO_HIGHLIGHTS: Scrap[] = [];
+
 /** 칠할 띠 하나 (본문 기준 위치) */
 type Band = { id: number; note: boolean; left: number; top: number; width: number; height: number };
 /** 줄 상자(글꼴 높이의 약 1.2배)에서 글자가 실제로 차지하는 부분: 위 12%를 비우고 78%만 */
 const BAND_TOP = 0.12;
 const BAND_HEIGHT = 0.78;
+
+const sameBands = (a: Band[], b: Band[]) =>
+	a.length === b.length &&
+	a.every(
+		(x, i) =>
+			x.id === b[i].id &&
+			x.note === b[i].note &&
+			Math.abs(x.left - b[i].left) < 0.5 &&
+			Math.abs(x.top - b[i].top) < 0.5 &&
+			Math.abs(x.width - b[i].width) < 0.5 &&
+			Math.abs(x.height - b[i].height) < 0.5,
+	);
 
 /** 본문 안 위치의 구역: 브리핑 · 소식 N (방문 통계 구역 이름과 같게) */
 function sectionOf(root: HTMLElement, node: Node | null) {
@@ -77,7 +92,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	const { user } = useAuth();
 	const openLogin = useOpenLogin();
 	const searchParams = useSearchParams();
-	const { data: highlights = [] } = useHighlights(newsletterId);
+	const { data: highlights = NO_HIGHLIGHTS } = useHighlights(newsletterId);
 	const { create, update, remove } = useHighlightMutations();
 	const [popover, setPopover] = useState<Popover | null>(null);
 	const [memo, setMemo] = useState('');
@@ -115,7 +130,8 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 					});
 				}
 			}
-			setBands(next);
+			// 띠가 그대로면 상태를 바꾸지 않는다 (크기 · 글꼴 감지로 자주 불려도 다시 그리지 않게)
+			setBands((prev) => (sameBands(prev, next) ? prev : next));
 
 			// 마이페이지에서 고른 문장으로
 			const target = Number(searchParams.get('hl'));
