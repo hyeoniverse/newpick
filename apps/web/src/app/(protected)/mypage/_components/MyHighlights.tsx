@@ -154,7 +154,7 @@ function HighlightItem({ highlight, focused }: { highlight: Highlight; focused: 
 			className={`item ${focused ? 'focused' : ''}`}
 			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
 		>
-			{/* 왼쪽 칸에 따옴표, 문장 · 메모 · 동작은 그 오른쪽 한 선에 */}
+			{/* 스크랩한 문장만 따옴표 칸만큼 들여 쓴다 */}
 			<svg className="quote-mark" viewBox="0 0 24 24" aria-hidden>
 				<path d="M6 17h3l2-4V7H5v6h3zm8 0h3l2-4V7h-6v6h3z" />
 			</svg>
@@ -323,7 +323,7 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	/* 문장 한 개: 왼쪽 따옴표 칸 + 문장 → 메모 → 글자 동작 */
+	/* 문장 한 개: 문장만 따옴표 칸만큼 들이고, 메모 · 글자 동작은 왼쪽 끝 */
 	/* 문장 사이 가는 구분선 (구역 이름도 선 아래에) */
 	.group li {
 		padding: 0.875rem 0;
@@ -338,8 +338,8 @@ const StyledHighlights = styled.div`
 		grid-template-columns: 1.5rem minmax(0, 1fr);
 		grid-template-areas:
 			'mark quote'
-			'. note'
-			'. tools';
+			'note note'
+			'tools tools';
 		gap: 0.375rem 0.25rem;
 		scroll-margin-top: 6rem;
 
