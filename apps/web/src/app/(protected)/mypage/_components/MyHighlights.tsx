@@ -312,7 +312,7 @@ const StyledHighlights = styled.div`
 
 	/* 구역 이름 (에디터 브리핑 · 소식 N): 바뀔 때만 */
 	.section {
-		margin: 0.75rem 0 0.25rem;
+		margin: 0 0 0.375rem;
 		font-size: 0.75rem;
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		letter-spacing: 0.02em;
@@ -320,8 +320,13 @@ const StyledHighlights = styled.div`
 	}
 
 	/* 문장 한 개: 문장 → 메모 → 글자 동작. 모두 같은 왼쪽 선에서 시작 */
+	/* 문장 사이 가는 구분선 (구역 이름도 선 아래에) */
+	.group li {
+		padding: 0.875rem 0;
+	}
+
 	.group li + li {
-		margin-top: 0.75rem;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
 	}
 
 	.item {
@@ -329,7 +334,6 @@ const StyledHighlights = styled.div`
 		grid-template-columns: minmax(0, 1fr);
 		grid-template-areas: 'quote' 'note' 'tools';
 		gap: 0.375rem;
-		padding: 0.25rem 0;
 		scroll-margin-top: 6rem;
 
 		/* 알림에서 바로 온 문장: 잠깐 배경으로 표시 */
@@ -338,9 +342,11 @@ const StyledHighlights = styled.div`
 		}
 	}
 
+	/* 문장이 먼저 보이게: 메모 · 동작보다 굵고 진하게 */
 	.quote {
 		grid-area: quote;
 		margin: 0;
+		font-weight: ${({ theme }) => theme.fontWeight.regular};
 		line-height: 1.75;
 		color: ${({ theme }) => theme.color.text};
 		word-break: keep-all;
