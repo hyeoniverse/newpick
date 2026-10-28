@@ -9,8 +9,9 @@ import { CreateNewsletterService } from './createNewsletter.service';
 import { NewsletterWriterService } from './newsletterWriter.service';
 import { StoryImageService } from './storyImages';
 import { Logger } from '@nestjs/common';
+import { TagsModule } from '../tags/tags.module';
 @Module({
-  imports: [CrawledNewsModule],
+  imports: [CrawledNewsModule, TagsModule],
   controllers: [AiSummaryController],
   providers: [
     {

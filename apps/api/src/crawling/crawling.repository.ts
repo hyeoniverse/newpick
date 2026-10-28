@@ -41,9 +41,73 @@ export class CrawlingRepository {
   async getLatestCrawledNews(): Promise<CrawledNews> {
     return await this.crawledNews.findOne().sort({ createdAt: -1 });
   }
-  /** 이 시각 이후 수집한 기사 수 (#21 관리자 대시보드) */
-  async countSince(since: Date): Promise<number> {
-    return this.crawledNews.countDocuments({ createdAt: { $gte: since } });
+  /**
+   * 관리자 목록 (#31): 기간 안 수집 기사를 최신순으로, 관심사 · 언론사 · 제목으로 거르고 쪽 단위로.
+   * 본문은 무거워 빼고, 사진은 첫 장만
+   */
+  async listForAdmin(q: {
+    start: Date;
+    end: Date;
+    category?: string;
+    source?: string;
+    title?: string;
+    limit: number;
+    offset: number;
+    /** 제목 가나다순 (없으면 최신 수집부터) */
+    sortByTitle?: 'asc' | 'desc';
+  }) {
+    const escape = (text: string) =>
+      text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const period = { createdAt: { $gte: q.start, $lte: q.end } };
+    // 언론사 고르기 칸: 거르기와 상관없이 이 기간에 수집된 언론사 전부
+    const sources = (
+      (await this.crawledNews.distinct('source', period)) as string[]
+    )
+      .filter(Boolean)
+      .sort((a, b) => a.localeCompare(b, 'ko'));
+    // 목록에서 고른 이름이면 그 언론사만 ('연합뉴스'가 '연합뉴스TV'까지 잡지 않게), 아니면 이름 일부로
+    const sourceFilter =
+      q.source &&
+      (sources.includes(q.source)
+        ? q.source
+        : { $regex: escape(q.source), $options: 'i' });
+    const filter: Record<string, unknown> = {
+      ...period,
+      ...(q.category && { category: q.category }),
+      ...(sourceFilter && { source: sourceFilter }),
+      ...(q.title && { title: { $regex: escape(q.title), $options: 'i' } }),
+    };
+    const [items, total] = await Promise.all([
+      this.crawledNews
+        .find(filter, {
+          title: 1,
+          link: 1,
+          source: 1,
+          category: 1,
+          publishedAt: 1,
+          createdAt: 1,
+          images: { $slice: 1 },
+        })
+        .sort(
+          q.sortByTitle
+            ? { title: q.sortByTitle === 'asc' ? 1 : -1, _id: -1 }
+            : { createdAt: -1, _id: -1 },
+        )
+        // 한국어 가나다순
+        .collation({ locale: 'ko' })
+        .skip(q.offset)
+        .limit(q.limit)
+        .lean(),
+      this.crawledNews.countDocuments(filter),
+    ]);
+    return { items, total, sources };
+  }
+
+  /** 기간 [start, end] 동안 수집한 기사 수 (#21 관리자 대시보드) */
+  async countBetween(start: Date, end: Date): Promise<number> {
+    return this.crawledNews.countDocuments({
+      createdAt: { $gte: start, $lte: end },
+    });
   }
   // 가장 오래된 데이터 조회
   async getOldestCrawledNews(): Promise<CrawledNews> {

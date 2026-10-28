@@ -1,8 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
+import { PROCESS_LABEL, usd, when } from './format';
 import styled from 'styled-components';
-import { LuPlay, LuTriangleAlert } from 'react-icons/lu';
+import { LuArrowRight, LuChevronDown, LuClock, LuPlay, LuTriangleAlert } from 'react-icons/lu';
+import ScheduleEditor, { describe, type Schedule } from './ScheduleEditor';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useToast } from '@/hooks/useToast';
@@ -13,12 +17,15 @@ import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
 import ModalContents from '@/components/common/modal/ModalContent';
 import { SkeletonBlock } from '@/components/common/loader/Skeleton';
+import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
+import MoreLink from '@/components/common/MoreLink';
 
 type JobKey = 'crawling' | 'summary' | 'mail';
 type RunStatus = 'success' | 'partial' | 'failed' | 'skipped' | null;
 
 interface JobRun {
 	running: boolean;
+	trigger: 'schedule' | 'manual' | null;
 	startedAt: string | null;
 	finishedAt: string | null;
 	status: RunStatus;
@@ -26,39 +33,36 @@ interface JobRun {
 }
 
 interface DashboardData {
-	today: string;
+	range: { from: string; to: string };
 	scheduler: {
+		/** false면 이 서버는 예약 시각에 저절로 돌지 않는다 ('지금 실행'만) */
+		autoRun?: boolean;
 		enabled: Record<JobKey, boolean>;
-		mailSchedule: { hour: number; day: number };
+		schedule: Schedule;
 		runs: Record<JobKey, JobRun>;
 	};
-	crawling: { today: number; latestAt: string | null };
-	newsletters: { id: number; title: string; categoryId: number; createdAt: string }[];
-	aiCost: { today: number; week: number };
+	crawling: { count: number; latestAt: string | null };
+	newsletters: { total: number; items: { id: number; title: string; categoryId: number; createdAt: string }[] };
+	aiCost: { total: number; unknown: number };
 	summaryLogs: {
-		id: number;
-		processType: string;
-		status: string;
-		duration: number;
-		token: number;
-		createdAt: string;
-		result: string | null;
-		error: string | null;
-		model: string | null;
-		inputTokens: number;
-		outputTokens: number;
-		costUsd: number | null;
-	}[];
+		total: number;
+		items: {
+			id: number;
+			processType: string;
+			status: string;
+			duration: number;
+			token: number;
+			createdAt: string;
+			result: string | null;
+			error: string | null;
+			model: string | null;
+			inputTokens: number;
+			outputTokens: number;
+			costUsd: number | null;
+		}[];
+	};
 	mail: { activeSubscribers: number; byDay: { day: string; recipients: number }[] };
 }
-
-const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
-
-/** 달러: 1센트 미만은 소수 넷째 자리까지 */
-const usd = (value: number | null) =>
-	value === null ? '-' : `$${value < 0.01 && value > 0 ? value.toFixed(4) : value.toFixed(2)}`;
-
-const PROCESS_LABEL: Record<string, string> = { summarization: '요약', category: '분류', edition: '편집' };
 
 /** 작업마다: API 이름 · 언제 도는지 · 지금 실행 전 확인 문구 */
 const JOBS: Record<JobKey, { label: string; api: 'crawling' | 'ai-summary' | 'mail-send'; warning: string }> = {
@@ -86,21 +90,38 @@ const STATUS_LABEL: Record<Exclude<RunStatus, null>, string> = {
 	skipped: '건너뜀',
 };
 
-/** 'YYYY-MM-DD'면 오늘은 시각만, 아니면 날짜와 시각 (KST) */
-function when(iso: string | null, today: string) {
-	if (!iso) return '-';
-	const date = new Date(iso);
-	const day = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
-	const time = date.toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit' });
-	return day === today ? time : `${day.slice(5)} ${time}`;
-}
+/** 작업마다 언제 도는지: '매일 08:00' · '매주 월요일 08:40' */
+const scheduleText = (job: JobKey, schedule: Schedule) =>
+	job === 'crawling'
+		? describe(schedule.crawl)
+		: job === 'summary'
+			? describe(schedule.summary)
+			: describe(schedule.mail, schedule.mail.day);
 
-const schedule = (job: JobKey, mail: { hour: number; day: number }) => {
-	if (job === 'crawling') return '매일 08:00';
-	if (job === 'summary') return '매일 08:30';
-	const at = `${String(mail.hour).padStart(2, '0')}:40`;
-	return mail.day === 7 ? `매일 ${at}` : `매주 ${DAYS[mail.day]}요일 ${at}`;
-};
+/** 그날 받은 사람: 펼칠 때만 불러온다 */
+function MailRecipients({ date, today }: { date: string; today: string }) {
+	const { data, isPending, isError } = useQuery({
+		queryKey: ['adminMailRecipients', date],
+		queryFn: () =>
+			apiFetch<{ data: { email: string; sentAt: string; categoryIds: number[] }[] }>(
+				API_ENDPOINTS.ADMIN.MAIL_RECIPIENTS(date),
+			).then((r) => r.data),
+	});
+	if (isPending) return <p className="recipients-state">불러오는 중…</p>;
+	if (isError) return <p className="recipients-state">받은 사람을 불러오지 못했어요.</p>;
+	if (data.length === 0) return <p className="recipients-state">기록이 없어요.</p>;
+	return (
+		<ul className="recipients">
+			{data.map((row) => (
+				<li key={row.email}>
+					<span className="email">{row.email}</span>
+					<span className="cats">{mapIdToTitle(row.categoryIds).join(' · ')}</span>
+					<span className="time">{when(row.sentAt, today)}</span>
+				</li>
+			))}
+		</ul>
+	);
+}
 
 /**
  * 관리자 대시보드 (#21): 오늘 아침 작업이 제대로 돌았는지 서버에 접속하지 않고 본다.
@@ -110,15 +131,34 @@ export default function Dashboard() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
 	const { openModal, closeModal } = useModal();
+	// 고른 기간은 주소(?from=&to=)에. 상세 화면으로 같은 기간을 들고 간다
+	const { today, from, to, periodQuery } = useAdminQuery();
+	const [openDay, setOpenDay] = useState<string | null>(null);
 
 	const { data, isPending, isError, refetch } = useQuery({
-		queryKey: ['adminDashboard'],
-		queryFn: () => apiFetch<{ data: DashboardData }>(API_ENDPOINTS.ADMIN.DASHBOARD()).then((r) => r.data),
+		queryKey: ['adminDashboard', from, to],
+		queryFn: () =>
+			apiFetch<{ data: DashboardData }>(`${API_ENDPOINTS.ADMIN.DASHBOARD()}?from=${from}&to=${to}`).then((r) => r.data),
+		placeholderData: (previous) => previous,
 		refetchInterval: (query) =>
 			Object.values(query.state.data?.scheduler.runs ?? {}).some((run) => run.running) ? 5000 : 60000,
 	});
 
 	const refresh = () => queryClient.invalidateQueries({ queryKey: ['adminDashboard'] });
+
+	const editSchedule = () =>
+		data &&
+		openModal(
+			<ScheduleEditor
+				initial={data.scheduler.schedule}
+				onCancel={closeModal}
+				onSaved={() => {
+					closeModal();
+					showToast('예약 시간을 바꿨습니다. 다음 실행부터 적용돼요.', 'success');
+					refresh();
+				}}
+			/>,
+		);
 
 	const toggle = async (job: JobKey, enable: boolean) => {
 		try {
@@ -182,43 +222,81 @@ export default function Dashboard() {
 		);
 	}
 
-	const { scheduler, crawling, newsletters, summaryLogs, mail, today, aiCost } = data;
-	const sentToday = mail.byDay.find((row) => row.day === today)?.recipients ?? 0;
+	const { scheduler, crawling, newsletters, summaryLogs, mail, aiCost } = data;
+	const recipients = mail.byDay.reduce((sum, row) => sum + row.recipients, 0);
+	const singleDay = from === to;
+	const days = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) + 1;
 
 	return (
 		<StyledDashboard>
 			<section aria-labelledby="dash-today">
-				<Title as="h2" size="extraSmall" weight="bold" className="section-title">
-					<span id="dash-today">오늘 ({today})</span>
-				</Title>
+				<div className="section-head period-head">
+					<Title as="h2" size="extraSmall" weight="bold" className="section-title">
+						<PeriodTitle id="dash-today" />
+					</Title>
+					<PeriodPicker />
+				</div>
 				<dl className="numbers">
 					<div>
 						<dt>수집한 기사</dt>
-						<dd>{crawling.today.toLocaleString()}건</dd>
+						<dd>{crawling.count.toLocaleString()}건</dd>
 						<span className="sub">마지막 {when(crawling.latestAt, today)}</span>
+						<MoreLink href={`/admin/articles${periodQuery}`}>기사 보기 →</MoreLink>
 					</div>
 					<div>
 						<dt>발행한 뉴스레터</dt>
-						<dd>{newsletters.length}편</dd>
-						<span className="sub">관심사 6개 중 {new Set(newsletters.map((n) => n.categoryId)).size}개</span>
+						<dd>{newsletters.total.toLocaleString()}편</dd>
+						<span className="sub">
+							{singleDay
+								? `관심사 6개 중 ${new Set(newsletters.items.map((n) => n.categoryId)).size}개`
+								: `${days}일 · 하루 평균 ${(newsletters.total / days).toFixed(1)}편`}
+						</span>
+						<MoreLink href={`/admin/newsletters${periodQuery}`}>발행 목록 보기 →</MoreLink>
 					</div>
 					<div>
 						<dt>AI 비용</dt>
-						<dd>{usd(aiCost.today)}</dd>
-						<span className="sub">최근 7일 {usd(aiCost.week)}</span>
+						<dd>{usd(aiCost.total)}</dd>
+						<span className="sub">
+							{aiCost.unknown > 0 ? `비용 모르는 이전 기록 ${aiCost.unknown}건 제외` : `AI 호출 ${summaryLogs.total}건`}
+						</span>
+						<MoreLink href={`/admin/ai-logs${periodQuery}`}>AI 기록 보기 →</MoreLink>
 					</div>
 					<div>
 						<dt>메일 받은 사람</dt>
-						<dd>{sentToday.toLocaleString()}명</dd>
+						<dd>{recipients.toLocaleString()}명</dd>
 						<span className="sub">구독 중 {mail.activeSubscribers.toLocaleString()}명</span>
+						<MoreLink href={`/admin/mail${periodQuery}`}>발송 기록 보기 →</MoreLink>
 					</div>
 				</dl>
 			</section>
 
 			<section aria-labelledby="dash-jobs">
-				<Title as="h2" size="extraSmall" weight="bold" className="section-title">
-					<span id="dash-jobs">예약 작업</span>
-				</Title>
+				<div className="section-head">
+					{/* 시간 설정은 제목 바로 오른쪽, 기록 보기는 오른쪽 끝 */}
+					<div className="head-title">
+						<Title as="h2" size="extraSmall" weight="bold" className="section-title">
+							<span id="dash-jobs">예약 작업</span>
+						</Title>
+						<Button
+							scheme="monoOutline"
+							size="small"
+							icon={<LuClock aria-hidden />}
+							iconPosition="left"
+							onClick={editSchedule}
+						>
+							시간 설정
+						</Button>
+					</div>
+					<MoreLink href={`/admin/job-runs${periodQuery}`}>
+						실행 기록 보기 <LuArrowRight aria-hidden />
+					</MoreLink>
+				</div>
+				{scheduler.autoRun === false && (
+					<p className="auto-off" role="note">
+						이 서버는 예약 시각에 저절로 돌지 않아요(SCHEDULER_ENABLED=false). 필요할 때 &lsquo;지금 실행&rsquo;으로 돌려
+						주세요.
+					</p>
+				)}
 				<ul className="jobs">
 					{(Object.keys(JOBS) as JobKey[]).map((job) => {
 						const run = scheduler.runs[job];
@@ -226,34 +304,34 @@ export default function Dashboard() {
 						const state = run.running ? 'running' : (run.status ?? 'none');
 						return (
 							<li key={job} className="job">
+								{/* 켜기 · 끄기: 줄 맨 앞, 글자 없이 스위치만 (상태는 화면 읽기 프로그램에 aria-checked로) */}
+								<button
+									type="button"
+									role="switch"
+									aria-checked={enabled}
+									aria-label={`${JOBS[job].label} 예약 실행`}
+									className="switch"
+									onClick={() => toggle(job, !enabled)}
+								>
+									<span className="knob" aria-hidden />
+								</button>
 								<div className="job-main">
 									<span className="job-name">{JOBS[job].label}</span>
-									<span className="job-when">{schedule(job, scheduler.mailSchedule)}</span>
+									<span className="job-when">{scheduleText(job, scheduler.schedule)}</span>
 								</div>
 								<div className="job-run">
-									<span className={`badge ${state}`}>
+									<StatusBadge tone={toneOf(state)} className="job-badge">
 										{run.running ? '진행 중' : run.status ? STATUS_LABEL[run.status] : '기록 없음'}
-									</span>
+									</StatusBadge>
 									<span className="job-message">
 										{run.running
 											? `${when(run.startedAt, today)} 시작`
 											: run.finishedAt
-												? `${when(run.finishedAt, today)} · ${run.message}`
-												: '서버가 시작된 뒤 아직 돌지 않았어요'}
+												? `${when(run.finishedAt, today)}${run.trigger === 'manual' ? ' · 지금 실행' : ''} · ${run.message}`
+												: '아직 실행 기록이 없어요'}
 									</span>
 								</div>
 								<div className="job-actions">
-									<button
-										type="button"
-										role="switch"
-										aria-checked={enabled}
-										aria-label={`${JOBS[job].label} 예약 실행`}
-										className="switch"
-										onClick={() => toggle(job, !enabled)}
-									>
-										<span className="knob" aria-hidden />
-										<span className="switch-text">{enabled ? '켜짐' : '꺼짐'}</span>
-									</button>
 									<Button
 										scheme="monoOutline"
 										size="small"
@@ -270,22 +348,27 @@ export default function Dashboard() {
 					})}
 				</ul>
 				<Text size="extraSmall" color="subText" className="note">
-					켜기 · 끄기와 실행 기록은 서버 메모리에만 있어, 서버를 다시 시작하면 모두 켜짐 · 기록 없음으로 돌아갑니다.
+					켜기 · 끄기는 서버 메모리에만 있어 서버를 다시 시작하면 켜짐으로 돌아갑니다. 시간과 실행 기록은 남아요.
 				</Text>
 			</section>
 
 			<div className="two">
 				<section aria-labelledby="dash-newsletters">
-					<Title as="h2" size="extraSmall" weight="bold" className="section-title">
-						<span id="dash-newsletters">오늘 발행</span>
-					</Title>
-					{newsletters.length === 0 ? (
+					<div className="section-head">
+						<Title as="h2" size="extraSmall" weight="bold" className="section-title">
+							<span id="dash-newsletters">발행</span>
+						</Title>
+						<MoreLink href={`/admin/newsletters${periodQuery}`}>
+							전체 {newsletters.total.toLocaleString()}편 보기 <LuArrowRight aria-hidden />
+						</MoreLink>
+					</div>
+					{newsletters.items.length === 0 ? (
 						<Text size="small" color="subText">
-							오늘 발행한 뉴스레터가 아직 없어요.
+							이 기간에 발행한 뉴스레터가 없어요.
 						</Text>
 					) : (
 						<ul className="list">
-							{newsletters.map((n) => (
+							{newsletters.items.map((n) => (
 								<li key={n.id}>
 									<span className="category">{mapIdToTitle([n.categoryId])[0]}</span>
 									<a href={`/articles/detail/${n.id}`} className="title">
@@ -299,33 +382,56 @@ export default function Dashboard() {
 				</section>
 
 				<section aria-labelledby="dash-mail">
-					<Title as="h2" size="extraSmall" weight="bold" className="section-title">
-						<span id="dash-mail">최근 7일 발송</span>
-					</Title>
+					<div className="section-head">
+						<Title as="h2" size="extraSmall" weight="bold" className="section-title">
+							<span id="dash-mail">날짜별 발송</span>
+						</Title>
+						<MoreLink href={`/admin/mail${periodQuery}`}>
+							발송 기록 보기 <LuArrowRight aria-hidden />
+						</MoreLink>
+					</div>
 					{mail.byDay.length === 0 ? (
 						<Text size="small" color="subText">
-							최근 7일 동안 보낸 메일이 없어요.
+							이 기간에 보낸 메일이 없어요.
 						</Text>
 					) : (
 						<ul className="list">
-							{mail.byDay.map((row) => (
-								<li key={row.day}>
-									<span className="title">{row.day}</span>
-									<span className="time">{row.recipients.toLocaleString()}명</span>
-								</li>
-							))}
+							{mail.byDay.slice(0, 5).map((row) => {
+								const open = openDay === row.day;
+								return (
+									<li key={row.day} className="mail-day">
+										{/* 누르면 그날 받은 사람(이메일 · 받은 관심사 · 보낸 시각) */}
+										<button
+											type="button"
+											className="day-toggle"
+											aria-expanded={open}
+											onClick={() => setOpenDay(open ? null : row.day)}
+										>
+											<span className="title">{row.day}</span>
+											<span className="time">{row.recipients.toLocaleString()}명</span>
+											<LuChevronDown aria-hidden className={open ? 'chevron open' : 'chevron'} />
+										</button>
+										{open && <MailRecipients date={row.day} today={today} />}
+									</li>
+								);
+							})}
 						</ul>
 					)}
 				</section>
 			</div>
 
 			<section aria-labelledby="dash-logs">
-				<Title as="h2" size="extraSmall" weight="bold" className="section-title">
-					<span id="dash-logs">최근 AI 기록</span>
-				</Title>
-				{summaryLogs.length === 0 ? (
+				<div className="section-head">
+					<Title as="h2" size="extraSmall" weight="bold" className="section-title">
+						<span id="dash-logs">AI 기록</span>
+					</Title>
+					<MoreLink href={`/admin/ai-logs${periodQuery}`}>
+						전체 {summaryLogs.total.toLocaleString()}건 보기 <LuArrowRight aria-hidden />
+					</MoreLink>
+				</div>
+				{summaryLogs.items.length === 0 ? (
 					<Text size="small" color="subText">
-						아직 기록이 없어요.
+						이 기간에 기록이 없어요.
 					</Text>
 				) : (
 					<div className="table-wrap">
@@ -342,16 +448,14 @@ export default function Dashboard() {
 								</tr>
 							</thead>
 							<tbody>
-								{summaryLogs.map((log) => (
+								{summaryLogs.items.map((log) => (
 									<tr key={log.id}>
 										<td className="nowrap">{when(log.createdAt, today)}</td>
 										<td className="nowrap" title={log.model ?? undefined}>
 											{PROCESS_LABEL[log.processType] ?? log.processType}
 										</td>
 										<td className="nowrap">
-											<span className={`badge ${log.status === 'success' ? 'success' : 'failed'}`}>
-												{log.status === 'success' ? '성공' : '실패'}
-											</span>
+											<StatusBadge tone={toneOf(log.status)}>{log.status === 'success' ? '성공' : '실패'}</StatusBadge>
 										</td>
 										<td className="nowrap num">{log.duration.toFixed(1)}초</td>
 										<td className="nowrap num">
@@ -360,7 +464,9 @@ export default function Dashboard() {
 												: log.token.toLocaleString()}
 										</td>
 										<td className="nowrap num">{usd(log.costUsd)}</td>
-										<td className="content">{log.error ?? log.result}</td>
+										<td className="content" title={log.error ?? log.result ?? undefined}>
+											{log.error ?? log.result}
+										</td>
 									</tr>
 								))}
 							</tbody>
@@ -389,6 +495,32 @@ const StyledDashboard = styled.div`
 		margin-bottom: 1rem;
 	}
 
+	/* 첫 칸 머리: 기간 이름 + 기간 고르기 */
+	.section-head {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+
+		/* 첫 칸(기간): 제목(괄호 속 날짜로 고르기) 왼쪽, 오늘 · 어제 · … 버튼은 오른쪽 끝 */
+		&.period-head {
+			gap: 0.5rem 1.25rem;
+		}
+		gap: 0.5rem 1rem;
+		margin-bottom: 1rem;
+
+		.section-title {
+			margin-bottom: 0;
+		}
+	}
+
+	.head-title {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	/* 섹션 머리 오른쪽: 상세 화면으로 */
 	/* 오늘 숫자 세 칸 */
 	.numbers {
 		display: grid;
@@ -456,7 +588,7 @@ const StyledDashboard = styled.div`
 
 	.job {
 		display: grid;
-		grid-template-columns: 10rem 1fr auto;
+		grid-template-columns: auto 10rem 1fr auto;
 		align-items: center;
 		gap: 1rem;
 		padding: 1rem 0;
@@ -490,6 +622,23 @@ const StyledDashboard = styled.div`
 		min-width: 0;
 	}
 
+	/* 배지 글자(성공 · 건너뜀 · 기록 없음 · 일부 실패…) 길이와 상관없이 설명이 같은 자리에서 시작하게 */
+	.job-run .job-badge {
+		min-width: 4.75rem;
+		text-align: center;
+	}
+
+	/* 예약 실행이 꺼진 서버 (보통 로컬) 안내 */
+	.auto-off {
+		margin: 0.75rem 0 0;
+		padding: 0.625rem 0.875rem;
+		border: 1px solid color-mix(in srgb, ${({ theme }) => theme.color.warning} 60%, transparent);
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: color-mix(in srgb, ${({ theme }) => theme.color.warning} 12%, transparent);
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.text};
+	}
+
 	.job-message {
 		min-width: 0;
 		font-size: ${({ theme }) => theme.fontSize.small};
@@ -501,33 +650,6 @@ const StyledDashboard = styled.div`
 		display: flex;
 		align-items: center;
 		gap: 1rem;
-	}
-
-	.badge {
-		flex-shrink: 0;
-		padding: 0.125rem 0.5rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		white-space: nowrap;
-		background: ${({ theme }) => theme.color.neutral};
-		color: ${({ theme }) => theme.color.subText};
-
-		&.success {
-			background: ${({ theme }) => theme.color.tertiary};
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		&.partial,
-		&.running {
-			background: color-mix(in srgb, ${({ theme }) => theme.color.warning} 20%, transparent);
-			color: ${({ theme }) => theme.color.text};
-		}
-
-		&.failed {
-			background: color-mix(in srgb, ${({ theme }) => theme.color.error} 14%, transparent);
-			color: ${({ theme }) => theme.color.error};
-		}
 	}
 
 	/* 켜짐 · 꺼짐 스위치 */
@@ -567,10 +689,6 @@ const StyledDashboard = styled.div`
 			&::after {
 				transform: translateX(1rem);
 			}
-		}
-
-		.switch-text {
-			min-width: 2rem;
 		}
 	}
 
@@ -635,10 +753,84 @@ const StyledDashboard = styled.div`
 		}
 	}
 
+	/* 날짜별 발송: 줄을 누르면 받은 사람이 펼쳐진다 */
+	.list .mail-day {
+		display: block;
+		padding: 0;
+	}
+
+	.day-toggle {
+		display: flex;
+		align-items: baseline;
+		gap: 0.75rem;
+		width: 100%;
+		padding: 0.75rem 0;
+		font-size: inherit;
+		text-align: left;
+		cursor: pointer;
+
+		.chevron {
+			align-self: center;
+			flex-shrink: 0;
+			width: 1rem;
+			height: 1rem;
+			color: ${({ theme }) => theme.color.subText};
+			transition: transform 0.2s ease;
+
+			&.open {
+				transform: rotate(180deg);
+			}
+		}
+
+		&:hover .title {
+			text-decoration: underline;
+		}
+	}
+
+	.recipients,
+	.recipients-state {
+		margin: 0 0 0.75rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.surface};
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	.recipients li {
+		display: flex;
+		align-items: baseline;
+		gap: 0.75rem;
+		padding: 0.375rem 0;
+		border-bottom: none;
+
+		& + li {
+			border-top: 1px solid ${({ theme }) => theme.color.border};
+		}
+
+		.email {
+			flex: 1;
+			min-width: 0;
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+			color: ${({ theme }) => theme.color.text};
+		}
+
+		.cats {
+			flex-shrink: 0;
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		.time {
+			flex-shrink: 0;
+			font-variant-numeric: tabular-nums;
+		}
+	}
+
 	/* AI 기록 표: 좁은 화면은 표만 옆으로 넘긴다 */
 	.table-wrap {
 		overflow-x: auto;
-		border-top: 1px solid ${({ theme }) => theme.color.text};
 	}
 
 	table {
@@ -656,10 +848,11 @@ const StyledDashboard = styled.div`
 		vertical-align: top;
 	}
 
+	/* 표 머리: 선 · 배경 없이 글자만 본문색으로 굵게 */
 	th {
 		white-space: nowrap;
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.subText};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		color: ${({ theme }) => theme.color.text};
 	}
 
 	.nowrap {
@@ -670,8 +863,14 @@ const StyledDashboard = styled.div`
 		font-variant-numeric: tabular-nums;
 	}
 
+	/* 대시보드는 요약이라 내용은 한 줄만 (전체는 AI 기록 상세에서) */
 	.content {
-		min-width: 22rem;
+		width: 100%;
+		max-width: 0;
+		min-width: 16rem;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
 		color: ${({ theme }) => theme.color.subText};
 		word-break: keep-all;
 	}

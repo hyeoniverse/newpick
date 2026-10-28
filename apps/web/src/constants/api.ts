@@ -19,8 +19,20 @@ export const API_ENDPOINTS = {
 	ADMIN: {
 		/** 사이트 캐시 비우기 (#73) */
 		SITE_CACHE_REFRESH: () => `${API_URL}/admin/site-cache/refresh`,
+		/** 태그 정돈 (#20): 규칙 목록 · 합치기 · 지우기 · 규칙 지우기 */
+		TAG_RULES: () => `${API_URL}/admin/tags/rules`,
+		TAG_RULE: (id: number) => `${API_URL}/admin/tags/rules/${id}`,
+		TAG_MERGE: () => `${API_URL}/admin/tags/merge`,
+		TAG_REMOVE: () => `${API_URL}/admin/tags/remove`,
 		/** 관리자 대시보드: 스케줄러 · 수집 · 발행 · AI 요약 기록 · 발송 (#21) */
 		DASHBOARD: () => `${API_URL}/scheduler/dashboard`,
+		/** 상세 목록 (기간 · 쪽 등 쿼리스트링을 붙여 부른다) */
+		LIST: (kind: 'newsletters' | 'mails' | 'ai-logs' | 'job-runs' | 'articles', query: string) =>
+			`${API_URL}/scheduler/dashboard/${kind}?${query}`,
+		/** 예약 작업 시간 (GET 보기 · PUT 바꾸기) */
+		SCHEDULE: () => `${API_URL}/scheduler/schedule`,
+		/** 그날 메일을 받은 사람 */
+		MAIL_RECIPIENTS: (date: string) => `${API_URL}/scheduler/dashboard/mail?date=${date}`,
 		/** 스케줄러 켜기 · 끄기 (본문 { enable }) */
 		TOGGLE: (job: 'crawling' | 'ai-summary' | 'mail-send') => `${API_URL}/scheduler/toggle/${job}`,
 		/** 지금 실행 (응답은 바로 오고 작업은 서버에서 계속) */

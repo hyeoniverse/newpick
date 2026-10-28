@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
 import { apiFetch, ApiError } from '@/api/client';
@@ -59,13 +59,12 @@ function SiteCacheTool() {
 	);
 }
 
-/** 관리자 첫 화면: 대시보드(#21) + 운영 도구 목록. 마이페이지와 같은 틀(제목 한 줄 · 구분선으로 나눈 줄 · 작은 버튼) */
+/** 관리자 첫 화면: 운영 도구 목록 + 대시보드(#21). 마이페이지와 같은 틀(제목 한 줄 · 구분선으로 나눈 줄 · 작은 버튼) */
 export default function AdminHome() {
 	return (
 		<AdminGate>
 			<div className={styles.page}>
 				<Title size="extraSmall">관리자</Title>
-				<Dashboard />
 				<SiteCacheTool />
 				<StyledTool>
 					<div>
@@ -82,6 +81,28 @@ export default function AdminHome() {
 						</Button>
 					</Link>
 				</StyledTool>
+				<StyledTool>
+					<div>
+						<Title as="h2" size="extraSmall" weight="bold">
+							태그 정돈
+						</Title>
+						<Text size="small" color="subText">
+							같은 대상인데 표기가 갈라진 태그를 합치거나 이름을 바꾸고, 쓰지 않을 태그를 지웁니다. 규칙은 앞으로 새
+							뉴스레터에도 적용됩니다.
+						</Text>
+					</div>
+					<Link href="/admin/tags">
+						<Button scheme="monoOutline" size="small">
+							열기
+						</Button>
+					</Link>
+				</StyledTool>
+				{/* 운영 도구 아래에 기록(대시보드). 기간을 주소(?from=&to=)에서 읽으므로 Suspense 안에 */}
+				<StyledRecords>
+					<Suspense fallback={null}>
+						<Dashboard />
+					</Suspense>
+				</StyledRecords>
 			</div>
 		</AdminGate>
 	);
@@ -117,4 +138,11 @@ const StyledTool = styled.section`
 		flex-direction: column;
 		align-items: flex-start;
 	}
+`;
+
+/** 도구 줄과 같은 구분선으로 기록(대시보드)을 나눈다 */
+const StyledRecords = styled.div`
+	margin-top: 2.5rem;
+	padding-top: 2rem;
+	border-top: 1px solid ${({ theme }) => theme.color.border};
 `;

@@ -41,6 +41,15 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     ]),
   };
   const siteCache = { refresh: jest.fn().mockResolvedValue({ ok: true }) };
+  const cronJob = { setTime: jest.fn(), start: jest.fn() };
+  const registry = { getCronJob: jest.fn().mockReturnValue(cronJob) };
+  const prisma = {
+    scheduleConfig: { upsert: jest.fn().mockResolvedValue({}) },
+    jobRun: {
+      create: jest.fn().mockResolvedValue({ id: 41 }),
+      update: jest.fn().mockResolvedValue({}),
+    },
+  };
   const service = new SchedulerService(
     new Logger(),
     mailService as never,
@@ -50,8 +59,8 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     crawlingRepository as never,
     { findAll: jest.fn().mockResolvedValue(categories) } as never,
     {} as never,
-    {} as never,
-    {} as never,
+    registry as never,
+    prisma as never,
     editionService as never,
     siteCache as never,
   );
@@ -62,6 +71,9 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     editionService,
     mailService,
     siteCache,
+    prisma,
+    registry,
+    cronJob,
   };
 }
 
@@ -204,5 +216,100 @@ describe('작업 실행 기록 (#21)', () => {
     finish!();
     await run;
     expect(service.getRuns().summary.running).toBe(false);
+  });
+});
+
+describe('실행 기록 DB (#21)', () => {
+  const flush = () => new Promise((r) => setImmediate(r));
+
+  it('예약 실행: 시작할 때 running으로 남기고, 끝나면 같은 줄을 결과로 고친다', async () => {
+    const { service, prisma } = setup(2);
+    await service.makeAiSummary();
+    await flush();
+    expect(prisma.jobRun.create).toHaveBeenCalledWith({
+      data: expect.objectContaining({
+        job: 'summary',
+        trigger: 'schedule',
+        status: 'running',
+      }),
+      select: { id: true },
+    });
+    expect(prisma.jobRun.update).toHaveBeenCalledWith({
+      where: { id: 41 },
+      data: expect.objectContaining({
+        status: 'partial',
+        message: '뉴스레터 2편 생성 · 실패: 정치',
+      }),
+    });
+  });
+
+  it("관리자의 '지금 실행'은 manual로 남는다", async () => {
+    const edition = { date: '2026-10-27', sources: [], editorial: null };
+    const { service, prisma } = setup(0, edition);
+    await service.manualStartMailSend();
+    await flush();
+    expect(prisma.jobRun.create.mock.calls[0][0].data).toMatchObject({
+      job: 'mail',
+      trigger: 'manual',
+    });
+    expect(service.getRuns().mail.trigger).toBe('manual');
+  });
+
+  it('꺼져 있어 건너뛰면 skipped 한 줄만', async () => {
+    const { service, prisma } = setup(0);
+    service.toggleCrawlingScheduler(false);
+    await service.startCrawling();
+    await flush();
+    expect(prisma.jobRun.create).toHaveBeenCalledTimes(1);
+    expect(prisma.jobRun.create.mock.calls[0][0].data).toMatchObject({
+      job: 'crawling',
+      status: 'skipped',
+    });
+  });
+});
+
+describe('예약 시간 바꾸기 (#21)', () => {
+  const at = (hour: number, minute: number) => ({ hour, minute });
+
+  it('수집 → 요약 → 메일 순서면 저장하고 세 작업을 다시 건다', async () => {
+    const { service, prisma, registry, cronJob } = setup(0);
+    const next = {
+      crawl: at(7, 0),
+      summary: at(7, 20),
+      mail: { ...at(7, 45), day: 1 },
+    };
+    await expect(service.setSchedule(next)).resolves.toEqual(next);
+    expect(prisma.scheduleConfig.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        update: {
+          crawlHour: 7,
+          crawlMinute: 0,
+          summaryHour: 7,
+          summaryMinute: 20,
+          hour: 7,
+          mailMinute: 45,
+          day: 1,
+        },
+      }),
+    );
+    expect(registry.getCronJob.mock.calls.map((c) => c[0])).toEqual([
+      'startCrawling',
+      'makeAiSummary',
+      'sendNewsletter',
+    ]);
+    expect(cronJob.setTime).toHaveBeenCalledTimes(3);
+    expect(service.getSchedule()).toEqual(next);
+  });
+
+  it('순서가 어긋나면 거절하고 아무것도 바꾸지 않는다', async () => {
+    const { service, prisma } = setup(0);
+    await expect(
+      service.setSchedule({
+        crawl: at(8, 30),
+        summary: at(8, 0),
+        mail: { ...at(8, 40), day: 7 },
+      }),
+    ).rejects.toThrow('순서');
+    expect(prisma.scheduleConfig.upsert).not.toHaveBeenCalled();
   });
 });
