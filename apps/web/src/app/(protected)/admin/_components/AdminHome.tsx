@@ -43,8 +43,8 @@ function SiteCacheTool() {
 					사이트 캐시 비우기
 				</Title>
 				<Text size="small" color="subText">
-					첫 화면 · 목록은 빠르게 보여 주기 위해 최대 10분 동안 저장해 둔 내용을 씁니다. 뉴스레터를 만들거나 지우면 저절로
-					비워지고, DB를 손으로 고쳤을 때는 여기서 바로 비웁니다.
+					첫 화면 · 목록은 빠르게 보여 주기 위해 최대 10분 동안 저장해 둔 내용을 씁니다. 뉴스레터를 만들거나 지우면
+					저절로 비워지고, DB를 손으로 고쳤을 때는 여기서 바로 비웁니다.
 				</Text>
 				{lastAt && (
 					<Text size="small" color="primary" className="last">
@@ -81,21 +81,31 @@ export default function AdminHome() {
 						</Button>
 					</Link>
 				</StyledTool>
+				{/* 콘텐츠 · 회원 관리 (#31): 뉴스레터 고치기 · 사용자 · 구독자 · 관심사 · 태그 */}
 				<StyledTool>
 					<div>
 						<Title as="h2" size="extraSmall" weight="bold">
-							태그 정돈
+							콘텐츠 · 회원 관리
 						</Title>
 						<Text size="small" color="subText">
-							같은 대상인데 표기가 갈라진 태그를 합치거나 이름을 바꾸고, 쓰지 않을 태그를 지웁니다. 규칙은 앞으로 새
-							뉴스레터에도 적용됩니다.
+							발행한 뉴스레터를 고치거나 지우고, 사용자 권한 · 구독자 · 관심사 현황을 보고, 갈라진 태그를 합칩니다.
 						</Text>
 					</div>
-					<Link href="/admin/tags">
-						<Button scheme="monoOutline" size="small">
-							열기
-						</Button>
-					</Link>
+					<nav className="manage" aria-label="콘텐츠 · 회원 관리">
+						{[
+							['/admin/newsletters', '뉴스레터'],
+							['/admin/users', '사용자'],
+							['/admin/subscribers', '구독자'],
+							['/admin/categories', '관심사'],
+							['/admin/tags', '태그'],
+						].map(([href, label]) => (
+							<Link key={href} href={href}>
+								<Button scheme="monoOutline" size="small">
+									{label}
+								</Button>
+							</Link>
+						))}
+					</nav>
 				</StyledTool>
 				{/* 운영 도구 아래에 기록(대시보드). 기간을 주소(?from=&to=)에서 읽으므로 Suspense 안에 */}
 				<StyledRecords>
@@ -128,6 +138,19 @@ const StyledTool = styled.section`
 
 	.last {
 		font-variant-numeric: tabular-nums;
+	}
+
+	.manage {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: flex-end;
+		gap: 0.375rem;
+		flex-shrink: 0;
+		max-width: 28rem;
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			justify-content: flex-start;
+		}
 	}
 
 	button {

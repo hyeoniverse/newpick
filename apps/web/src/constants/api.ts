@@ -19,6 +19,13 @@ export const API_ENDPOINTS = {
 	ADMIN: {
 		/** 사이트 캐시 비우기 (#73) */
 		SITE_CACHE_REFRESH: () => `${API_URL}/admin/site-cache/refresh`,
+		/** CMS (#31): 사용자 · 구독자 · 관심사 현황 · 뉴스레터 고치기 */
+		USERS: (query: string) => `${API_URL}/admin/users${query ? `?${query}` : ''}`,
+		USER: (id: number) => `${API_URL}/admin/users/${id}`,
+		SUBSCRIBERS: (query: string) => `${API_URL}/admin/subscribers${query ? `?${query}` : ''}`,
+		CATEGORIES: () => `${API_URL}/admin/categories`,
+		NEWSLETTER: (id: number) => `${API_URL}/newsletters/${id}`,
+		NEWSLETTER_RESET_VIEWS: (id: number) => `${API_URL}/newsletters/reset-viewcount/${id}`,
 		/** 태그 정돈 (#20): 규칙 목록 · 합치기 · 지우기 · 규칙 지우기 */
 		TAG_RULES: () => `${API_URL}/admin/tags/rules`,
 		TAG_RULE: (id: number) => `${API_URL}/admin/tags/rules/${id}`,

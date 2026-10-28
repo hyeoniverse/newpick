@@ -11,6 +11,8 @@ import {
   Length,
   Matches,
   Max,
+  IsArray,
+  ArrayMaxSize,
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
@@ -54,6 +56,44 @@ export class NewsletterBodyDto {
   @IsOptional()
   @IsString({ message: 'endDate는 문자열이어야 합니다' })
   endDate?: string;
+}
+
+/** 관리자 뉴스레터 고치기 (#31). 보낸 항목만 바꾼다 */
+export class UpdateNewsletterDto {
+  @IsOptional()
+  @IsString({ message: 'title은 문자열이어야 합니다' })
+  @Length(1, 100, { message: '제목은 1~100자여야 합니다' })
+  title?: string;
+
+  @IsOptional()
+  @IsString({ message: 'subtitle은 문자열이어야 합니다' })
+  @Length(0, 200, { message: '부제는 200자까지예요' })
+  subtitle?: string;
+
+  /** 요약 (목록 · 카드 설명) */
+  @IsOptional()
+  @IsString({ message: 'content는 문자열이어야 합니다' })
+  @Length(1, 2000, { message: '요약은 1~2000자여야 합니다' })
+  content?: string;
+
+  /** 본문 HTML. 저장 전에 허용 목록으로 정리한다 */
+  @IsOptional()
+  @IsString({ message: 'contentAsHTML은 문자열이어야 합니다' })
+  @Length(1, 200000, { message: '본문이 너무 길어요' })
+  contentAsHTML?: string;
+
+  @IsOptional()
+  @IsArray({ message: 'keywords는 배열이어야 합니다' })
+  @ArrayMaxSize(10, { message: '키워드는 10개까지예요' })
+  @IsString({ each: true, message: '키워드는 문자열이어야 합니다' })
+  @Length(1, 30, { each: true, message: '키워드는 1~30자여야 합니다' })
+  keywords?: string[];
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt({ message: 'categoryId는 정수여야 합니다' })
+  @Min(1, { message: 'categoryId는 1 이상이어야 합니다' })
+  categoryId?: number;
 }
 
 export class NewsletterTrendDto {

@@ -124,6 +124,14 @@ export class CrawlingRepository {
     return { items, total, sources };
   }
 
+  /** 이 관심사로 since 이후 모은 기사 수 (관리자 관심사 현황 #31) */
+  async countByCategorySince(category: string, since: Date): Promise<number> {
+    return this.crawledNews.countDocuments({
+      category,
+      createdAt: { $gte: since },
+    });
+  }
+
   /** 기간 [start, end] 동안 수집한 기사 수 (#21 관리자 대시보드) */
   async countBetween(start: Date, end: Date): Promise<number> {
     return this.crawledNews.countDocuments({
