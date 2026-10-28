@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
 import styled, { createGlobalStyle } from 'styled-components';
 import { LuHighlighter, LuMessageSquarePlus, LuTrash2 } from 'react-icons/lu';
@@ -220,83 +221,88 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	return (
 		<>
 			<HighlightStyles />
-			<StyledPopover style={style} data-highlight-popover role="dialog" aria-label="스크랩 · 메모">
-				{popover.kind === 'toolbar' && (
-					<div className="toolbar">
-						<button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => save(popover.picked)}>
-							<LuHighlighter aria-hidden /> 스크랩
-						</button>
-						<button
-							type="button"
-							onMouseDown={(e) => e.preventDefault()}
-							onClick={() => (user ? setPopover({ kind: 'memo', picked: popover.picked }) : needLogin())}
-						>
-							<LuMessageSquarePlus aria-hidden /> 메모
-						</button>
-					</div>
-				)}
-				{popover.kind === 'memo' && (
-					<form
-						className="memo"
-						onSubmit={(event) => {
-							event.preventDefault();
-							save(popover.picked, memo);
-						}}
-					>
-						<blockquote>{popover.picked.text}</blockquote>
-						<textarea
-							value={memo}
-							onChange={(e) => setMemo(e.target.value)}
-							placeholder="이 문장에 대한 내 생각"
-							rows={3}
-							maxLength={2000}
-							autoFocus
-						/>
-						<div className="actions">
-							<button type="button" onClick={() => setPopover(null)}>
-								취소
+			{/* 본문 스타일(문단 · 블록 여백)이 붙지 않게 body에 띄운다 */}
+			{createPortal(
+				<StyledPopover style={style} data-highlight-popover role="dialog" aria-label="스크랩 · 메모">
+					{popover.kind === 'toolbar' && (
+						<div className="toolbar">
+							<button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => save(popover.picked)}>
+								<LuHighlighter aria-hidden /> 스크랩
 							</button>
-							<button type="submit" className="primary" disabled={!memo.trim()}>
-								메모 저장
-							</button>
-						</div>
-					</form>
-				)}
-				{popover.kind === 'saved' && (
-					<form
-						className="memo"
-						onSubmit={(event) => {
-							event.preventDefault();
-							update.mutate({ id: popover.highlight.id, note: memo });
-							setPopover(null);
-						}}
-					>
-						<p className="label">내 스크랩</p>
-						<textarea
-							value={memo}
-							onChange={(e) => setMemo(e.target.value)}
-							placeholder="메모 남기기 (선택)"
-							rows={3}
-							maxLength={2000}
-						/>
-						<div className="actions">
+							<span className="divider" aria-hidden />
 							<button
 								type="button"
-								className="danger"
-								onClick={() => {
-									remove.mutate(popover.highlight.id);
-									setPopover(null);
-								}}
+								onMouseDown={(e) => e.preventDefault()}
+								onClick={() => (user ? setPopover({ kind: 'memo', picked: popover.picked }) : needLogin())}
 							>
-								<LuTrash2 aria-hidden /> 스크랩 지우기
-							</button>
-							<button type="submit" className="primary" disabled={memo === (popover.highlight.note ?? '')}>
-								메모 저장
+								<LuMessageSquarePlus aria-hidden /> 메모
 							</button>
 						</div>
-					</form>
-				)}
-			</StyledPopover>
+					)}
+					{popover.kind === 'memo' && (
+						<form
+							className="memo"
+							onSubmit={(event) => {
+								event.preventDefault();
+								save(popover.picked, memo);
+							}}
+						>
+							<blockquote>{popover.picked.text}</blockquote>
+							<textarea
+								value={memo}
+								onChange={(e) => setMemo(e.target.value)}
+								placeholder="이 문장에 대한 내 생각"
+								rows={3}
+								maxLength={2000}
+								autoFocus
+							/>
+							<div className="actions">
+								<button type="button" onClick={() => setPopover(null)}>
+									취소
+								</button>
+								<button type="submit" className="primary" disabled={!memo.trim()}>
+									메모 저장
+								</button>
+							</div>
+						</form>
+					)}
+					{popover.kind === 'saved' && (
+						<form
+							className="memo"
+							onSubmit={(event) => {
+								event.preventDefault();
+								update.mutate({ id: popover.highlight.id, note: memo });
+								setPopover(null);
+							}}
+						>
+							<p className="label">내 스크랩</p>
+							<textarea
+								value={memo}
+								onChange={(e) => setMemo(e.target.value)}
+								placeholder="메모 남기기 (선택)"
+								rows={3}
+								maxLength={2000}
+							/>
+							<div className="actions">
+								<button
+									type="button"
+									className="danger"
+									onClick={() => {
+										remove.mutate(popover.highlight.id);
+										setPopover(null);
+									}}
+								>
+									<LuTrash2 aria-hidden /> 스크랩 지우기
+								</button>
+								<button type="submit" className="primary" disabled={memo === (popover.highlight.note ?? '')}>
+									메모 저장
+								</button>
+							</div>
+						</form>
+					)}
+				</StyledPopover>,
+				document.body,
+			)}
 		</>
 	);
 }
@@ -321,33 +327,62 @@ const HighlightStyles = createGlobalStyle`
 const StyledPopover = styled.div`
 	position: fixed;
 	z-index: 1000;
+	display: flex;
+	flex-direction: column;
 	max-width: min(22rem, calc(100vw - 2rem));
+	line-height: 1.5;
 	border: 1px solid ${({ theme }) => theme.color.border};
 	border-radius: ${({ theme }) => theme.radius.surface};
 	background: ${({ theme }) => theme.color.background};
 	font-size: ${({ theme }) => theme.fontSize.extraSmall};
 
+	/* 단추는 브라우저 기본 글꼴(13.3px)을 쓰므로 글꼴을 물려받게 */
+	button,
+	textarea {
+		font: inherit;
+	}
+
+	button {
+		line-height: 1;
+	}
+
+	/* 도구 막대: 32px 단추 둘 + 가는 세로줄, 막대 높이는 단추에 맞춘다 */
 	.toolbar {
 		display: flex;
+		align-items: center;
+		gap: 0.125rem;
 		padding: 0.25rem;
 
 		button {
 			display: inline-flex;
 			align-items: center;
+			justify-content: center;
 			gap: 0.375rem;
-			padding: 0.5rem 0.75rem;
+			height: 2rem;
+			padding: 0 0.75rem;
 			border-radius: ${({ theme }) => theme.radius.control};
 			color: ${({ theme }) => theme.color.text};
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			white-space: nowrap;
 			cursor: pointer;
 
 			svg {
+				flex-shrink: 0;
+				width: 1rem;
+				height: 1rem;
 				color: ${({ theme }) => theme.color.primary};
 			}
 
 			&:hover {
 				background: ${({ theme }) => theme.color.tertiary};
+				color: ${({ theme }) => theme.color.primary};
 			}
+		}
+
+		.divider {
+			width: 1px;
+			height: 1rem;
+			background: ${({ theme }) => theme.color.border};
 		}
 	}
 
@@ -361,6 +396,7 @@ const StyledPopover = styled.div`
 	}
 
 	blockquote {
+		margin: 0;
 		max-height: 4.5rem;
 		overflow: hidden;
 		padding-left: 0.625rem;
