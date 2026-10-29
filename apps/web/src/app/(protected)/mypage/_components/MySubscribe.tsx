@@ -3,7 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import styled from 'styled-components';
-import { LuChevronDown, LuChevronLeft, LuChevronRight, LuMailPlus, LuMail, LuNewspaper } from 'react-icons/lu';
+import {
+	LuChevronDown,
+	LuChevronLeft,
+	LuChevronRight,
+	LuChevronUp,
+	LuMailPlus,
+	LuMail,
+	LuNewspaper,
+} from 'react-icons/lu';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useTab } from '@/hooks/useTab';
@@ -529,6 +537,7 @@ export default function MySubscribe() {
 					disabled={isFetchingPreviousPage}
 					onClick={() => fetchPreviousPage()}
 				>
+					<LuChevronUp aria-hidden />
 					{isFetchingPreviousPage ? '불러오는 중…' : '더 최근 메일 보기'}
 				</button>
 			)}
@@ -539,109 +548,117 @@ export default function MySubscribe() {
 				/* 원래 마이페이지(/legacy/mypage)의 '오늘의 뉴스레터' 모양: 받은 메일마다 날짜 막대(날짜 · 관심사 바로가기)와
 				   그 메일의 뉴스레터들(관심사 › · 제목 · 그림 + AI 요약 상자). 중요 · 폴더 · 메일 보기는 날짜 막대 오른쪽 */
 				/* 받은 달로 묶고, 달 막대(원래 디자인의 날짜 막대 모양)는 위에 붙어 따라온다 — 헤더가 보이면 그 아래에 */
-				byMonth(data.items).map(({ month, items }) => (
-					<section key={month} id={`month-${month}`} className="month" aria-label={monthLabel(month)}>
-						<MonthBar month={month} mails={items} top={headerHeight} months={data.months ?? []} onJump={jumpToMonth} />
-						<ol className="issues">
-							{items.map((mail) => (
-								<li key={mail.sentAt} className="issue" id={`mail-${mail.sentAt}`}>
-									<div
-										className="issue-head"
-										draggable
-										onDragStart={(event) => {
-											event.dataTransfer.effectAllowed = 'move';
-											event.dataTransfer.setData('text/plain', mail.subject ?? '');
-											setDragging(mail.sentAt);
-										}}
-										onDragEnd={() => setDragging(null)}
-									>
-										<time className="issue-date" dateTime={mail.sentAt} title={sentText(mail.sentAt)}>
-											{issueDate(mail.sentAt)}
-										</time>
-										<div className="issue-actions">
-											{folder === 'all' && mail.folderId && (
-												<span className="folder-tag">{folderName.get(mail.folderId)}</span>
-											)}
-											<FolderMenu
-												className="mail-folder"
-												label="폴더"
-												current={mail.folderId}
-												onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
-											/>
+				<div className="months">
+					{byMonth(data.items).map(({ month, items }) => (
+						<section key={month} id={`month-${month}`} className="month" aria-label={monthLabel(month)}>
+							<MonthBar
+								month={month}
+								mails={items}
+								top={headerHeight}
+								months={data.months ?? []}
+								onJump={jumpToMonth}
+							/>
+							<ol className="issues">
+								{items.map((mail) => (
+									<li key={mail.sentAt} className="issue" id={`mail-${mail.sentAt}`}>
+										<div
+											className="issue-head"
+											draggable
+											onDragStart={(event) => {
+												event.dataTransfer.effectAllowed = 'move';
+												event.dataTransfer.setData('text/plain', mail.subject ?? '');
+												setDragging(mail.sentAt);
+											}}
+											onDragEnd={() => setDragging(null)}
+										>
+											<time className="issue-date" dateTime={mail.sentAt} title={sentText(mail.sentAt)}>
+												{issueDate(mail.sentAt)}
+											</time>
+											<div className="issue-actions">
+												{folder === 'all' && mail.folderId && (
+													<span className="folder-tag">{folderName.get(mail.folderId)}</span>
+												)}
+												<FolderMenu
+													className="mail-folder"
+													label="폴더"
+													current={mail.folderId}
+													onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
+												/>
+											</div>
 										</div>
-									</div>
-									{/* 원래 디자인의 뉴스레터 블록 하나에 메일 한 통: 메일 제목 · 그림 | 오늘 한눈에 상자 (메일은 분야를 합쳐 한 통이라 관심사 줄은 없음) */}
-									{(() => {
-										const first = mail.newsletters.find((n) => n.image) ?? mail.newsletters[0];
-										const openMail = () => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' });
-										return (
-											<article className="news">
-												<button type="button" className="news-title" onClick={openMail}>
-													<h3>{mail.subject ?? first?.title}</h3>
-												</button>
-												<div className="news-body">
-													<div className="news-media">
-														<button type="button" className="news-image" tabIndex={-1} aria-hidden onClick={openMail}>
-															{first?.image ? (
-																<Image src={first.image} alt="" ratio="wide" borderRadius="medium" priority={false} />
-															) : (
-																<LuNewspaper />
-															)}
-														</button>
-														{first && (
-															/* 받은 메일은 사이트 기사가 아니라 북마크 대신 중요 표시만 (북마크는 기사 화면에서) */
-															<div className="news-icons">
-																<StarToggle
-																	pressed={mail.starred}
-																	onToggle={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
-																/>
-															</div>
-														)}
-													</div>
-													<div className="news-summary">
-														{mail.digest?.top.length ? (
-															<>
-																<strong>오늘 한눈에</strong>
-																<ol className="glance">
-																	{mail.digest.top.map((t, i) => (
-																		<li key={t.heading}>
-																			<span className="glance-no">{String(i + 1).padStart(2, '0')}</span>
-																			<div>
-																				<p className="glance-head">
-																					<span className="glance-cat">{t.category}</span>
-																					{t.heading}
-																				</p>
-																				<p className="glance-line">{t.line}</p>
-																			</div>
-																		</li>
-																	))}
-																</ol>
-															</>
-														) : (
-															<>
-																<strong>요약</strong>
-																<p>{first?.summary ?? first?.subtitle ?? ''}</p>
-															</>
-														)}
-														<p className="summary-more">
-															{!!mail.digest?.threads.length && (
-																<span>분야를 넘는 흐름 {mail.digest.threads.length}</span>
-															)}
-															{!!mail.digest?.watch.length && <span>관전 포인트 {mail.digest.watch.length}</span>}
-															<button type="button" onClick={openMail}>
-																메일로 보기 <LuChevronRight aria-hidden />
+										{/* 원래 디자인의 뉴스레터 블록 하나에 메일 한 통: 메일 제목 · 그림 | 오늘 한눈에 상자 (메일은 분야를 합쳐 한 통이라 관심사 줄은 없음) */}
+										{(() => {
+											const first = mail.newsletters.find((n) => n.image) ?? mail.newsletters[0];
+											const openMail = () => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' });
+											return (
+												<article className="news">
+													<button type="button" className="news-title" onClick={openMail}>
+														<h3>{mail.subject ?? first?.title}</h3>
+													</button>
+													<div className="news-body">
+														<div className="news-media">
+															<button type="button" className="news-image" tabIndex={-1} aria-hidden onClick={openMail}>
+																{first?.image ? (
+																	<Image src={first.image} alt="" ratio="wide" borderRadius="medium" priority={false} />
+																) : (
+																	<LuNewspaper />
+																)}
 															</button>
-														</p>
+															{first && (
+																/* 받은 메일은 사이트 기사가 아니라 북마크 대신 중요 표시만 (북마크는 기사 화면에서) */
+																<div className="news-icons">
+																	<StarToggle
+																		pressed={mail.starred}
+																		onToggle={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
+																	/>
+																</div>
+															)}
+														</div>
+														<div className="news-summary">
+															{mail.digest?.top.length ? (
+																<>
+																	<strong>오늘 한눈에</strong>
+																	<ol className="glance">
+																		{mail.digest.top.map((t, i) => (
+																			<li key={t.heading}>
+																				<span className="glance-no">{String(i + 1).padStart(2, '0')}</span>
+																				<div>
+																					<p className="glance-head">
+																						<span className="glance-cat">{t.category}</span>
+																						{t.heading}
+																					</p>
+																					<p className="glance-line">{t.line}</p>
+																				</div>
+																			</li>
+																		))}
+																	</ol>
+																</>
+															) : (
+																<>
+																	<strong>요약</strong>
+																	<p>{first?.summary ?? first?.subtitle ?? ''}</p>
+																</>
+															)}
+															<p className="summary-more">
+																{!!mail.digest?.threads.length && (
+																	<span>분야를 넘는 흐름 {mail.digest.threads.length}</span>
+																)}
+																{!!mail.digest?.watch.length && <span>관전 포인트 {mail.digest.watch.length}</span>}
+																<button type="button" onClick={openMail}>
+																	메일로 보기 <LuChevronRight aria-hidden />
+																</button>
+															</p>
+														</div>
 													</div>
-												</div>
-											</article>
-										);
-									})()}
-								</li>
-							))}
-						</ol>
-					</section>
-				))
+												</article>
+											);
+										})()}
+									</li>
+								))}
+							</ol>
+						</section>
+					))}
+				</div>
 			)}
 			{/* 무한 스크롤: 이 표시가 보이면 다음 묶음 */}
 			<div ref={endRef} className="list-end" aria-hidden />
@@ -677,26 +694,54 @@ const MySubscribeStyled = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
+	/* 달 · 연도로 건너뛴 뒤 위로 더 최근 메일: 폭 가득, 위가 연한 보라에서 아래로 흐려지는 띠 */
 	.load-newer {
-		align-self: center;
-		padding: 0.5rem 1rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.375rem;
+		width: 100%;
+		padding: 1rem;
+		border: none;
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: linear-gradient(
+			to bottom,
+			${({ theme }) => theme.color.tertiary} 0%,
+			color-mix(in srgb, ${({ theme }) => theme.color.tertiary} 40%, transparent) 60%,
+			transparent 100%
+		);
 		font: inherit;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.text};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
 		cursor: pointer;
+		transition: background-color 0.2s ease;
+
+		svg {
+			width: 1rem;
+			height: 1rem;
+			transition: transform 0.2s ease;
+		}
 
 		&:hover:not(:disabled) {
-			border-color: ${({ theme }) => theme.color.primary};
-			color: ${({ theme }) => theme.color.primary};
+			background-color: ${({ theme }) => theme.color.tertiary};
+
+			svg {
+				transform: translateY(-2px);
+			}
+		}
+
+		&:disabled {
+			cursor: progress;
 		}
 	}
 
 	/* 받은 메일 한 통 = 원래 마이페이지의 '오늘의 뉴스레터' 한 묶음 */
 	/* 달 묶음: 원래 디자인의 날짜 막대 모양(연한 바탕 · 위아래 줄 · 가운데 굵은 글자)으로 위에 붙어 따라온다 */
-	.month + .month {
-		margin-top: 2.5rem;
+	/* 달 묶음끼리는 틈 없이 붙인다(바깥 목록의 칸 사이 간격도 받지 않게 한 상자로): 다음 달 막대가 올라와 닿는 순간 이전 달 막대를 밀어 올린다 */
+	.months {
+		display: flex;
+		flex-direction: column;
 	}
 
 	.month-bar {
@@ -850,9 +895,9 @@ const MySubscribeStyled = styled.div`
 		justify-content: center;
 		width: 1.75rem;
 		height: 1.75rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
+		border: none;
 		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		background: ${({ theme }) => theme.color.background};
+		background: transparent;
 		color: ${({ theme }) => theme.color.mediumGrey};
 		transform: translateY(-60%);
 		cursor: pointer;
@@ -871,7 +916,6 @@ const MySubscribeStyled = styled.div`
 		}
 
 		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
 			color: ${({ theme }) => theme.color.primary};
 		}
 	}
