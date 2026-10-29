@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import styled from 'styled-components';
-import { LuMailPlus, LuMail, LuNewspaper, LuStar } from 'react-icons/lu';
+import Link from 'next/link';
+import { LuChevronRight, LuMailPlus, LuMail, LuNewspaper, LuStar } from 'react-icons/lu';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useTab } from '@/hooks/useTab';
@@ -13,6 +14,8 @@ import { useModal } from '@/hooks/useModal';
 import MyMailSheet from '@/app/(protected)/mypage/_components/subscribe/MyMailSheet';
 import EmptyState from '@/components/common/EmptyState';
 import Image from '@/components/common/Image';
+import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
+import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import Pagination from '@/components/common/Pagination';
@@ -228,17 +231,13 @@ export default function MySubscribe() {
 				<p className="empty">이 조건의 메일이 없어요.</p>
 			) : (
 				/* 받은편지함: 한 줄이 메일 한 통. 누르면 받은 그대로의 메일을 시트로 */
-				/* 받은 메일 한 통 = 카드 한 장: 위 날짜 · 메일로 보기 · 폴더 · 별, 왼쪽 첫 소식 그림,
-				   오른쪽 '오늘 한눈에' 앞 3개(메일의 짜임새), 아래 관심사 · 흐름 · 관전 포인트 수. 전체는 '메일로 보기'로 */
-				<ul className="mail-cards">
-					{data.items.map((mail) => {
-						const openMail = () => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' });
-						const glance = mail.digest?.top.slice(0, 3) ?? [];
-						const image = mail.newsletters.find((n) => n.image)?.image;
-						return (
-							<li
-								key={mail.sentAt}
-								className="mail-card"
+				/* 원래 마이페이지(/legacy/mypage)의 '오늘의 뉴스레터' 모양: 받은 메일마다 날짜 막대(날짜 · 관심사 바로가기)와
+				   그 메일의 뉴스레터들(관심사 › · 제목 · 그림 + AI 요약 상자). 중요 · 폴더 · 메일 보기는 날짜 막대 오른쪽 */
+				<ol className="issues">
+					{data.items.map((mail) => (
+						<li key={mail.sentAt} className="issue">
+							<div
+								className="issue-head"
 								draggable
 								onDragStart={(event) => {
 									event.dataTransfer.effectAllowed = 'move';
@@ -247,73 +246,113 @@ export default function MySubscribe() {
 								}}
 								onDragEnd={() => setDragging(null)}
 							>
-								<div className="mail-top">
-									<time className="mail-date" dateTime={mail.sentAt} title={sentText(mail.sentAt)}>
-										{issueDate(mail.sentAt)}
-									</time>
+								<time className="issue-date" dateTime={mail.sentAt} title={sentText(mail.sentAt)}>
+									{issueDate(mail.sentAt)}
+								</time>
+								<div className="issue-actions">
 									{folder === 'all' && mail.folderId && (
 										<span className="folder-tag">{folderName.get(mail.folderId)}</span>
 									)}
-									<div className="mail-actions">
-										<button type="button" className="text-btn" onClick={openMail}>
-											메일로 보기
-										</button>
-										<FolderMenu
-											className="mail-folder"
-											label="폴더"
-											current={mail.folderId}
-											onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
-										/>
-										<button
-											type="button"
-											className={`star-toggle ${mail.starred ? 'on' : ''}`}
-											aria-pressed={mail.starred}
-											aria-label={mail.starred ? '중요 해제' : '중요 표시'}
-											title={mail.starred ? '중요 해제' : '중요 표시'}
-											onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
-										>
-											<LuStar aria-hidden />
-										</button>
-									</div>
+									<button
+										type="button"
+										className="text-btn"
+										onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
+									>
+										메일로 보기
+									</button>
+									<FolderMenu
+										className="mail-folder"
+										label="폴더"
+										current={mail.folderId}
+										onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
+									/>
+									<button
+										type="button"
+										className={`star-toggle ${mail.starred ? 'on' : ''}`}
+										aria-pressed={mail.starred}
+										aria-label={mail.starred ? '중요 해제' : '중요 표시'}
+										title={mail.starred ? '중요 해제' : '중요 표시'}
+										onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
+									>
+										<LuStar aria-hidden />
+									</button>
 								</div>
-								<button type="button" className="mail-main" onClick={openMail}>
-									<span className="mail-thumb" aria-hidden>
-										{image ? (
-											<Image src={image} alt="" ratio="wide" borderRadius="medium" priority={false} />
-										) : (
-											<LuNewspaper />
-										)}
-									</span>
-									<span className="mail-body">
-										<span className="mail-subject">{mail.subject ?? mail.newsletters[0]?.title}</span>
-										{glance.length > 0 ? (
-											<ol className="glance" aria-label="오늘 한눈에">
-												{glance.map((t, i) => (
-													<li key={t.heading}>
-														<span className="glance-no">{String(i + 1).padStart(2, '0')}</span>
-														<span className="glance-cat">{t.category}</span>
-														<span className="glance-head">{t.heading}</span>
-													</li>
-												))}
-											</ol>
-										) : (
-											<span className="mail-summary">{mail.newsletters[0]?.summary}</span>
-										)}
-									</span>
-								</button>
-								<div className="mail-meta">
-									{[...new Set(mail.newsletters.map((n) => n.category.name))].map((c) => (
-										<span key={c} className="meta-cat">
-											{c}
-										</span>
-									))}
-									{!!mail.digest?.threads.length && <span>분야를 넘는 흐름 {mail.digest.threads.length}</span>}
-									{!!mail.digest?.watch.length && <span>관전 포인트 {mail.digest.watch.length}</span>}
-								</div>
-							</li>
-						);
-					})}
-				</ul>
+							</div>
+							{/* 원래 디자인의 뉴스레터 블록 하나에 메일 한 통: 관심사 › · 메일 제목 · 그림 | 오늘 한눈에 상자 */}
+							{(() => {
+								const first = mail.newsletters.find((n) => n.image) ?? mail.newsletters[0];
+								const openMail = () => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' });
+								const categories = [...new Map(mail.newsletters.map((n) => [n.category.id, n.category])).values()];
+								return (
+									<article className="news">
+										<p className="news-category">
+											{categories.map((c, i) => (
+												<Link key={c.id} href={`/articles?categoryId=${c.id}`}>
+													{i > 0 && <span className="dot">·</span>}
+													{c.name}
+												</Link>
+											))}
+											<LuChevronRight aria-hidden />
+										</p>
+										<button type="button" className="news-title" onClick={openMail}>
+											<h3>{mail.subject ?? first?.title}</h3>
+										</button>
+										<div className="news-body">
+											<div className="news-media">
+												<button type="button" className="news-image" tabIndex={-1} aria-hidden onClick={openMail}>
+													{first?.image ? (
+														<Image src={first.image} alt="" ratio="wide" borderRadius="medium" priority={false} />
+													) : (
+														<LuNewspaper />
+													)}
+												</button>
+												{first && (
+													<div className="news-icons">
+														<BookmarkIcon newsId={first.id} newsletterId={first.id} />
+														<LinkCopyIcon id={first.id} />
+													</div>
+												)}
+											</div>
+											<div className="news-summary">
+												{mail.digest?.top.length ? (
+													<>
+														<strong>오늘 한눈에</strong>
+														<ol className="glance">
+															{mail.digest.top.map((t, i) => (
+																<li key={t.heading}>
+																	<span className="glance-no">{String(i + 1).padStart(2, '0')}</span>
+																	<div>
+																		<p className="glance-head">
+																			<span className="glance-cat">{t.category}</span>
+																			{t.heading}
+																		</p>
+																		<p className="glance-line">{t.line}</p>
+																	</div>
+																</li>
+															))}
+														</ol>
+													</>
+												) : (
+													<>
+														<strong>요약</strong>
+														<p>{first?.summary ?? first?.subtitle ?? ''}</p>
+													</>
+												)}
+												<p className="summary-more">
+													{!!mail.digest?.threads.length && <span>분야를 넘는 흐름 {mail.digest.threads.length}</span>}
+													{!!mail.digest?.watch.length && <span>관전 포인트 {mail.digest.watch.length}</span>}
+													<button type="button" onClick={openMail}>
+														메일로 보기 <LuChevronRight aria-hidden />
+													</button>
+												</p>
+											</div>
+										</div>
+									</article>
+								);
+							})()}
+						</li>
+					))}
+				</ol>
 			)}
 			<Pagination
 				className="pagination"
@@ -347,47 +386,42 @@ const MySubscribeStyled = styled.div`
 		margin-top: 0.75rem;
 	}
 
-	/* 받은 메일 카드 목록 */
-	.mail-cards {
+	/* 받은 메일 한 통 = 원래 마이페이지의 '오늘의 뉴스레터' 한 묶음 */
+	.issues {
 		display: flex;
 		flex-direction: column;
-		gap: 0.75rem;
+		gap: 3rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
-	.mail-card {
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.background};
-		transition: border-color 0.15s ease;
-
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
+	/* 날짜 막대: 연한 바탕 · 위아래 줄, 가운데 날짜 · 관심사 바로가기, 오른쪽 위 메일로 보기 · 폴더 · 별 */
+	.issue-head {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 1.25rem 1rem 1rem;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		background: ${({ theme }) => theme.color.surface};
 	}
 
-	/* 카드 위: 날짜 · (폴더 이름표) · 오른쪽 메일로 보기 · 폴더 · 별 */
-	.mail-top {
+	.issue-date {
+		font-size: ${({ theme }) => theme.fontSize.medium};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		color: ${({ theme }) => theme.color.text};
+	}
+
+	.issue-actions {
+		position: absolute;
+		top: 0.75rem;
+		right: 0.75rem;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.625rem 0.75rem 0 1rem;
-	}
-
-	.mail-date {
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		color: ${({ theme }) => theme.color.text};
-		font-variant-numeric: tabular-nums;
-	}
-
-	.mail-actions {
-		display: flex;
-		align-items: center;
-		gap: 0.25rem;
-		margin-left: auto;
 	}
 
 	.text-btn,
@@ -404,27 +438,159 @@ const MySubscribeStyled = styled.div`
 		}
 	}
 
-	/* 카드 가운데: 왼쪽 그림 · 오른쪽 제목 + 오늘 한눈에 앞 3개 */
-	.mail-main {
+	.glance {
 		display: flex;
-		align-items: flex-start;
+		flex-direction: column;
 		gap: 1rem;
-		width: 100%;
-		padding: 0.5rem 1rem 0.75rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		li {
+			display: flex;
+			gap: 0.875rem;
+		}
+
+		p {
+			margin: 0;
+			word-break: keep-all;
+		}
+	}
+
+	/* 소식 번호: 원래 뉴스레터 본문의 번호와 같은 보라 굵은 숫자 */
+	.glance-no {
+		flex-shrink: 0;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		color: ${({ theme }) => theme.color.primary};
+		font-variant-numeric: tabular-nums;
+	}
+
+	.glance-head {
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+	}
+
+	.glance-cat {
+		margin-right: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
+	}
+
+	.glance-line {
+		margin-top: 0.25rem !important;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		line-height: 1.6;
+		color: ${({ theme }) => theme.color.mediumGrey};
+	}
+
+	/* 상자 아래: 흐름 · 관전 포인트 수 · 메일로 보기 */
+	.summary-more {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 0.875rem;
+		margin: 1rem 0 0 !important;
+		padding-top: 0.75rem;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
+		font-size: 0.75rem !important;
+		color: ${({ theme }) => theme.color.subText} !important;
+
+		button {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.125rem;
+			margin-left: auto;
+			padding: 0;
+			font: inherit;
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+			cursor: pointer;
+
+			svg {
+				width: 0.875rem;
+				height: 0.875rem;
+			}
+
+			&:hover {
+				text-decoration: underline;
+			}
+		}
+	}
+
+	/* 뉴스레터 하나: 관심사 › · 큰 제목 · 그림(+ 북마크 · 링크 복사) | AI 요약 상자, 사이는 가는 줄 */
+	.news {
+		padding: 2.5rem 0;
+		scroll-margin-top: 6rem;
+	}
+
+	.news-category {
+		display: flex;
+		align-items: center;
+		gap: 0.125rem;
+		margin-bottom: 0.75rem;
+		font-size: ${({ theme }) => theme.fontSize.medium};
+		font-weight: ${({ theme }) => theme.fontWeight.medium};
+		color: ${({ theme }) => theme.color.primary};
+
+		svg {
+			width: 1rem;
+			height: 1rem;
+			transition: transform 0.2s ease;
+		}
+
+		&:hover svg {
+			transform: translateX(0.25rem);
+		}
+
+		a {
+			color: inherit;
+		}
+
+		.dot {
+			margin: 0 0.375rem;
+		}
+	}
+
+	.news-title {
+		display: block;
+		margin-bottom: 1.5rem;
+		padding: 0;
 		text-align: left;
+		color: inherit;
 		cursor: pointer;
 
-		&:hover .mail-subject {
+		h3 {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.large};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			line-height: 1.4;
+			word-break: keep-all;
+		}
+
+		&:hover h3 {
 			color: ${({ theme }) => theme.color.primary};
 		}
 	}
 
-	.mail-thumb {
-		flex-shrink: 0;
+	.news-body {
 		display: flex;
+		gap: 1.25rem;
+	}
+
+	.news-media {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.news-image {
+		display: flex;
+		width: 100%;
+		padding: 0;
+		cursor: pointer;
 		align-items: center;
 		justify-content: center;
-		width: 9rem;
 		aspect-ratio: 16 / 9;
 		overflow: hidden;
 		border-radius: ${({ theme }) => theme.radius.surface};
@@ -436,86 +602,39 @@ const MySubscribeStyled = styled.div`
 		}
 
 		> svg {
-			width: 1.5rem;
-			height: 1.5rem;
+			width: 1.75rem;
+			height: 1.75rem;
 		}
 	}
 
-	.mail-body {
-		flex: 1;
+	.news-icons {
+		display: flex;
+		justify-content: center;
+		gap: 1rem;
+		margin-top: 0.75rem;
+	}
+
+	.news-summary {
+		flex: 3;
 		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-	}
+		padding: 1.25rem 1.5rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.surface};
 
-	.mail-subject {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		color: ${({ theme }) => theme.color.text};
-		transition: color 0.15s ease;
-	}
-
-	.mail-summary {
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.mediumGrey};
-	}
-
-	/* 오늘 한눈에: 번호 · 관심사 · 제목 한 줄씩 */
-	.glance {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-
-		li {
-			display: flex;
-			align-items: baseline;
-			gap: 0.5rem;
-			min-width: 0;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		strong {
+			display: block;
+			margin-bottom: 0.625rem;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
 		}
-	}
 
-	.glance-no {
-		flex-shrink: 0;
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		color: ${({ theme }) => theme.color.primary};
-		font-variant-numeric: tabular-nums;
-	}
-
-	.glance-cat {
-		flex-shrink: 0;
-		font-size: 0.75rem;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.glance-head {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		color: ${({ theme }) => theme.color.mediumGrey};
-	}
-
-	/* 카드 아래: 관심사 · 흐름 · 관전 포인트 수 */
-	.mail-meta {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.25rem 0.75rem;
-		padding: 0.5rem 1rem 0.625rem;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
-		font-size: 0.75rem;
-		color: ${({ theme }) => theme.color.subText};
-
-		.meta-cat {
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			color: ${({ theme }) => theme.color.primary};
+		p {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			line-height: 1.75;
+			color: ${({ theme }) => theme.color.mediumGrey};
+			word-break: keep-all;
 		}
 	}
 
@@ -556,18 +675,18 @@ const MySubscribeStyled = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	/* 휴대폰: 그림을 작게 */
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		.mail-thumb {
-			width: 5.5rem;
+	/* 좁은 화면: 날짜 막대의 단추들은 날짜 아래로, 그림 위 · 요약 아래로 */
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
+		.issue-actions {
+			position: static;
 		}
 
-		.mail-main {
-			gap: 0.75rem;
+		.news-body {
+			flex-direction: column;
 		}
 
-		.glance-cat {
-			display: none;
+		.news-title h3 {
+			font-size: ${({ theme }) => theme.fontSize.medium};
 		}
 	}
 `;
