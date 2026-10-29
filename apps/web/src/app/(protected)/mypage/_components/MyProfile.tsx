@@ -10,11 +10,15 @@ import Imgae from '@/components/common/Image';
 import Text from '@/components/common/Text';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
+import { LuBookmark, LuChevronRight, LuHighlighter, LuMail } from 'react-icons/lu';
 
-/** 프로필 아래 한눈에: 받은 메일 · 북마크 · 스크랩 수. 누르면 그 탭으로 */
+/**
+ * 프로필 아래 한눈에: 받은 메일 · 북마크 · 스크랩을 타일 세 칸으로 (아이콘 · 이름 · 수 · ›). 누르면 그 탭으로,
+ * 지금 보는 탭의 타일은 보라 테두리
+ */
 function Summary() {
 	const { user } = useAuth();
-	const { setActiveTab } = useTab();
+	const { activeTab, setActiveTab } = useTab();
 	const { data: mails } = useQuery({
 		queryKey: ['myMails', user?.id, 'count'],
 		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.MAILS(0, 1)),
@@ -32,17 +36,31 @@ function Summary() {
 		enabled: !!user,
 	});
 	const items = [
-		{ tab: 'subscriptions', label: '받은 메일', count: mails?.counts.all },
-		{ tab: 'bookmarks', label: '북마크', count: bookmarks?.counts.all },
-		{ tab: 'highlights', label: '스크랩', count: highlights?.counts.all },
+		{ tab: 'subscriptions', label: '받은 메일', unit: '통', icon: LuMail, count: mails?.counts.all },
+		{ tab: 'bookmarks', label: '북마크', unit: '개', icon: LuBookmark, count: bookmarks?.counts.all },
+		{ tab: 'highlights', label: '스크랩', unit: '개', icon: LuHighlighter, count: highlights?.counts.all },
 	];
 	return (
 		<ul className="summary" aria-label="내 기록">
-			{items.map(({ tab, label, count }) => (
+			{items.map(({ tab, label, unit, icon: Icon, count }) => (
 				<li key={tab}>
-					<button type="button" onClick={() => setActiveTab(tab)}>
-						<strong>{count ?? '–'}</strong>
-						<span>{label}</span>
+					<button
+						type="button"
+						className={activeTab === tab ? 'current' : undefined}
+						aria-current={activeTab === tab || undefined}
+						onClick={() => setActiveTab(tab)}
+					>
+						<span className="icon" aria-hidden>
+							<Icon />
+						</span>
+						<span className="text">
+							<span className="label">{label}</span>
+							<span className="count">
+								<strong>{count === undefined ? '–' : count.toLocaleString()}</strong>
+								{unit}
+							</span>
+						</span>
+						<LuChevronRight className="go" aria-hidden />
 					</button>
 				</li>
 			))}
@@ -82,12 +100,12 @@ function Profile() {
 							<Text as="p" color="subText">
 								{user.email}
 							</Text>
-							<Summary />
 						</div>
 					</div>
 					<div className="subscribe">
 						<SubscribeToggle />
 					</div>
+					<Summary />
 				</>
 			)}
 		</ProfileStyled>
@@ -160,43 +178,110 @@ const ProfileStyled = styled.div`
 	}
 
 	/* 받은 메일 · 북마크 · 스크랩 수: 숫자 위, 이름 아래. 사이는 얇은 세로줄 */
+	/* 기록 타일 세 칸: 프로필 아래 한 줄 전체. 얇은 테두리 · 8px, 고르면(지금 탭) 보라 테두리 */
 	.summary {
-		display: flex;
-		margin: 0.875rem 0 0;
+		flex-basis: 100%;
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.75rem;
+		margin: 0;
 		padding: 0;
 		list-style: none;
 
-		li + li {
-			border-left: 1px solid ${({ theme }) => theme.color.border};
-		}
-
-		li:first-child button {
-			padding-left: 0;
-		}
-
 		button {
 			display: flex;
-			flex-direction: column;
-			align-items: flex-start;
-			gap: 0.125rem;
-			padding: 0 1.25rem;
+			align-items: center;
+			gap: 0.875rem;
+			width: 100%;
+			padding: 1rem 1.125rem;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.surface};
+			background: ${({ theme }) => theme.color.background};
+			text-align: left;
 			cursor: pointer;
+			transition: border-color 0.15s ease;
+
+			&:hover,
+			&.current {
+				border-color: ${({ theme }) => theme.color.primary};
+			}
+
+			&:hover .go,
+			&.current .go {
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+
+		.icon {
+			flex-shrink: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 2.5rem;
+			height: 2.5rem;
+			border-radius: ${({ theme }) => theme.borderRadius.circle};
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
+
+			svg {
+				width: 1.125rem;
+				height: 1.125rem;
+			}
+		}
+
+		.text {
+			flex: 1;
+			min-width: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 0.125rem;
+		}
+
+		.label {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.subText};
+		}
+
+		.count {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.subText};
 
 			strong {
+				margin-right: 0.125rem;
 				font-size: ${({ theme }) => theme.fontSize.medium};
 				font-weight: ${({ theme }) => theme.fontWeight.bold};
 				color: ${({ theme }) => theme.color.text};
 				font-variant-numeric: tabular-nums;
 			}
+		}
 
-			span {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-				color: ${({ theme }) => theme.color.subText};
+		.go {
+			flex-shrink: 0;
+			width: 1rem;
+			height: 1rem;
+			color: ${({ theme }) => theme.color.disabled};
+			transition: color 0.15s ease;
+		}
+	}
+
+	/* 휴대폰: 세 칸을 좁게 — 아이콘 위, 이름 · 수 아래 가운데, 화살표는 뺀다 */
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.summary {
+			gap: 0.5rem;
+
+			button {
+				flex-direction: column;
+				gap: 0.5rem;
+				padding: 0.875rem 0.5rem;
+				text-align: center;
 			}
 
-			&:hover strong,
-			&:hover span {
-				color: ${({ theme }) => theme.color.primary};
+			.text {
+				align-items: center;
+			}
+
+			.go {
+				display: none;
 			}
 		}
 	}

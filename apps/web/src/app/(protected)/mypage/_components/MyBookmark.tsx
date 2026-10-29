@@ -184,11 +184,11 @@ const MyBookmarkStyled = styled.div`
 		gap: 2rem;
 	}
 
-	/* 북마크 카드 격자: 카드가 12.5rem(200px)보다 좁아지면 한 줄 칸 수를 줄인다 (넓으면 4장까지).
-	   min을 '한 줄 4장일 때 너비'와 12.5rem 중 큰 값으로 두어, 넓은 화면에서도 5장 이상으로 늘지 않게 */
+	/* 북마크 카드 격자: 화면 너비에 맞춰 한 줄 칸 수를 정한다 (테마의 화면 구간 그대로)
+	   PC 4열 · 노트북(1024px 이하) 3열 · 태블릿(768px 이하) 2열 · 휴대폰(425px 이하) 1열 */
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(max(12.5rem, calc((100% - 3rem) / 4)), 1fr));
+		grid-template-columns: repeat(4, minmax(0, 1fr));
 		gap: 1rem;
 		margin: 0;
 		padding: 0;
@@ -294,23 +294,21 @@ const MyBookmarkStyled = styled.div`
 		gap: 0.75rem;
 	}
 
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		/* 휴대폰은 작은 카드 두 장 (한 장이면 그림만 너무 크다) */
+	@media ${({ theme }) => theme.mediaQuery.desktop} {
+		.grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
 		.grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
-			gap: 0.625rem;
 		}
+	}
 
-		.body {
-			padding: 0.625rem 0.75rem 0.375rem;
-		}
-
-		.foot {
-			padding: 0.125rem 0.5rem 0.5rem 0.75rem;
-		}
-
-		.folder-tag {
-			display: none;
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.grid {
+			grid-template-columns: minmax(0, 1fr);
 		}
 	}
 `;
