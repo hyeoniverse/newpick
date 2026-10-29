@@ -11,6 +11,15 @@ export interface Folder {
 	counts: { highlights: number; bookmarks: number; mails: number };
 }
 
+/** 폴더를 지울 때 안의 것들: 폴더 없음으로 남기기 · 같이 지우기 · 다른 폴더로 옮기기 */
+export type FolderContents = 'keep' | 'delete' | 'move';
+
+const REMOVED: Record<FolderContents, string> = {
+	keep: '폴더를 지웠어요. 안의 것들은 폴더 없음으로 남겼어요.',
+	delete: '폴더와 안의 것들을 지웠어요.',
+	move: '폴더를 지우고 안의 것들을 옮겼어요.',
+};
+
 /** 폴더 안의 것들이 바뀌면 다시 불러올 목록들 */
 export const FOLDER_CONTENT_KEYS = [['folders'], ['highlights'], ['bookmarks'], ['myMails']];
 
@@ -47,10 +56,16 @@ export function useFolderMutations() {
 		onError: fail,
 	});
 	const remove = useMutation({
-		mutationFn: (id: number) => apiFetch(API_ENDPOINTS.MY.FOLDER(id), { method: 'DELETE' }),
-		onSuccess: () => {
+		mutationFn: ({ id, contents, to }: { id: number; contents: FolderContents; to?: number }) =>
+			apiFetch(
+				API_ENDPOINTS.MY.FOLDER(id, new URLSearchParams({ contents, ...(to && { to: String(to) }) }).toString()),
+				{ method: 'DELETE' },
+			),
+		onSuccess: (_, { contents }) => {
 			refresh();
-			showToast('폴더를 지웠어요. 안의 것들은 폴더 없음으로 옮겼어요.', 'success');
+			// 북마크를 지웠으면 취향 점수도 바뀐다
+			if (contents === 'delete') queryClient.invalidateQueries({ queryKey: ['taste'] });
+			showToast(REMOVED[contents], 'success');
 		},
 		onError: fail,
 	});

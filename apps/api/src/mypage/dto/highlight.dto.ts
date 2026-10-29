@@ -95,3 +95,17 @@ export class FolderDto {
   @MaxLength(30, { message: '폴더 이름은 30자까지예요.' })
   name: string;
 }
+
+/** 폴더 지우기: 안의 것들을 어떻게 할지 (keep: 폴더 없음으로 · delete: 같이 지우기 · move: 다른 폴더로) */
+export class DeleteFolderQueryDto {
+  @IsOptional()
+  @IsIn(['keep', 'delete', 'move'])
+  contents?: 'keep' | 'delete' | 'move';
+
+  /** move일 때 옮길 폴더 */
+  @ValidateIf((o: DeleteFolderQueryDto) => o.contents === 'move')
+  @Type(() => Number)
+  @IsInt({ message: '옮길 폴더를 골라 주세요.' })
+  @Min(1)
+  to?: number;
+}

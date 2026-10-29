@@ -74,9 +74,41 @@ export class FoldersService {
     });
   }
 
-  async remove(userId: number, id: number) {
+  /**
+   * 폴더 지우기. 안의 것들은 고른 대로:
+   * keep(기본) 폴더 없음으로 (FK SetNull) · move 다른 내 폴더로 · delete 스크랩 · 북마크도 지움.
+   * 받은 메일은 지울 수 없어 delete여도 폴더 없음으로 남는다 (중요 표시는 그대로)
+   */
+  async remove(
+    userId: number,
+    id: number,
+    {
+      contents = 'keep',
+      to,
+    }: { contents?: 'keep' | 'delete' | 'move'; to?: number } = {},
+  ) {
     await assertOwnFolder(this.prisma, userId, id);
-    await this.prisma.folder.delete({ where: { id } });
+    const inFolder = { userId, folderId: id };
+    if (contents === 'move') {
+      if (!to || to === id)
+        throw new AppException('BAD_REQUEST', '옮길 다른 폴더를 골라 주세요.');
+      await assertOwnFolder(this.prisma, userId, to);
+      const data = { folderId: to };
+      await this.prisma.$transaction([
+        this.prisma.highlight.updateMany({ where: inFolder, data }),
+        this.prisma.bookmark.updateMany({ where: inFolder, data }),
+        this.prisma.mailMark.updateMany({ where: inFolder, data }),
+        this.prisma.folder.delete({ where: { id } }),
+      ]);
+    } else if (contents === 'delete') {
+      await this.prisma.$transaction([
+        this.prisma.highlight.deleteMany({ where: inFolder }),
+        this.prisma.bookmark.deleteMany({ where: inFolder }),
+        this.prisma.folder.delete({ where: { id } }),
+      ]);
+    } else {
+      await this.prisma.folder.delete({ where: { id } });
+    }
     return { id };
   }
 

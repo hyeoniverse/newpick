@@ -33,6 +33,7 @@ import { TasteService } from '../taste/taste.service';
 import {
   BulkHighlightsDto,
   CreateHighlightDto,
+  DeleteFolderQueryDto,
   DeleteHighlightsDto,
   FolderDto,
   HighlightsQueryDto,
@@ -95,8 +96,12 @@ export class MyPageController {
 
   /** 폴더 지우기: 안의 스크랩 · 북마크 · 메일은 '폴더 없음'으로 */
   @Delete('folders/:id')
-  async deleteFolder(@Req() req, @Param('id', ParseIntPipe) id: number) {
-    return this.foldersService.remove(this.userIdOf(req), id);
+  async deleteFolder(
+    @Req() req,
+    @Param('id', ParseIntPipe) id: number,
+    @Query() q: DeleteFolderQueryDto,
+  ) {
+    return this.foldersService.remove(this.userIdOf(req), id, q);
   }
 
   /** 여러 개 지우기 (내 것만, 지운 수) */

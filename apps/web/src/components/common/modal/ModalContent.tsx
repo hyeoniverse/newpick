@@ -11,6 +11,8 @@ interface ModalProps {
 	filledButton?: string;
 	onCancelClick?: () => void; // 취소 버튼 클릭 핸들러
 	onConfirmClick?: () => void; // 확인 버튼 클릭 핸들러
+	/** 설명 아래 단추 위에 넣을 것 (예: 고르기 칸) */
+	children?: React.ReactNode;
 }
 
 function ModalContents({
@@ -21,6 +23,7 @@ function ModalContents({
 	filledButton,
 	onCancelClick,
 	onConfirmClick,
+	children,
 }: ModalProps) {
 	return (
 		<ModalContentsStyled>
@@ -31,6 +34,7 @@ function ModalContents({
 				</Title>
 				{content && <Text size="small">{content}</Text>}
 			</div>
+			{children}
 			<div className="btn-section">
 				{outlineButton && (
 					<Button scheme="outline" size="medium" onClick={onCancelClick}>

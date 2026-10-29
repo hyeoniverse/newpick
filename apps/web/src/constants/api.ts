@@ -67,7 +67,7 @@ export const API_ENDPOINTS = {
 		/** 폴더: 스크랩 · 북마크 · 받은 메일 공통 (GET 목록 · POST 만들기) */
 		FOLDERS: () => `${API_URL}/mypage/folders`,
 		/** 폴더 하나 (PATCH 이름 바꾸기 · DELETE 지우기) */
-		FOLDER: (id: number) => `${API_URL}/mypage/folders/${id}`,
+		FOLDER: (id: number, query = '') => `${API_URL}/mypage/folders/${id}${query ? `?${query}` : ''}`,
 		/** 받은 메일 한 통 표시: 중요 · 폴더 (PATCH { sentAt, starred?, folderId? }) */
 		MAIL_MARK: () => `${API_URL}/mypage/mails/mark`,
 		/** 북마크 폴더 옮기기 (POST { newsletterIds, folderId }) */

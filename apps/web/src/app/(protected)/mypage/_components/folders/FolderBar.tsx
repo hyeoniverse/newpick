@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import styled from 'styled-components';
-import { LuFolder, LuFolderPlus, LuTriangleAlert } from 'react-icons/lu';
-import ModalContents from '@/components/common/modal/ModalContent';
+import { LuFolder, LuFolderPlus } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
 import { Folder, useFolderMutations } from '@/hooks/useFolders';
+import FolderDeleteModal from './FolderDeleteModal';
 
 /** 폴더 거르기 값: 'all' 모두 · 'none' 폴더 없음 · 폴더 번호 */
 export type FolderFilter = 'all' | 'none' | number;
@@ -29,7 +29,7 @@ interface Props {
 
 /**
  * 폴더 줄 (#123, 스크랩 · 북마크 · 받은 메일 공통): 모두 · 폴더 없음 · 내 폴더들 · 새 폴더. 개수는 그 탭 기준.
- * 폴더를 고르면 옆에 이름 바꾸기 · 지우기 (지우면 안의 것들은 폴더 없음으로)
+ * 폴더를 고르면 옆에 이름 바꾸기 · 지우기 (지울 때 안의 것들을 남길지 · 옮길지 · 같이 지울지 고름)
  */
 export default function FolderBar({
 	folders,
@@ -67,24 +67,14 @@ export default function FolderBar({
 	});
 
 	const confirmRemove = (folder: Folder) => {
-		// 세 탭 공통 폴더라 안의 것을 모두 알려 준다
-		const { highlights, bookmarks, mails } = folder.counts;
-		const inside = [
-			highlights && `스크랩 ${highlights}개`,
-			bookmarks && `북마크 ${bookmarks}개`,
-			mails && `메일 ${mails}통`,
-		].filter(Boolean);
 		openModal(
-			<ModalContents
-				icon={<LuTriangleAlert />}
-				title={`'${folder.name}' 폴더를 지울까요?`}
-				content={inside.length ? `안의 ${inside.join(' · ')}는 지우지 않고 폴더 없음으로 옮겨요.` : '빈 폴더예요.'}
-				outlineButton="취소"
-				filledButton="폴더 지우기"
-				onCancelClick={closeModal}
-				onConfirmClick={() => {
+			<FolderDeleteModal
+				folder={folder}
+				others={folders.filter((f) => f.id !== folder.id)}
+				onCancel={closeModal}
+				onConfirm={(contents, to) => {
 					closeModal();
-					remove.mutate(folder.id, { onSuccess: () => onChange('all') });
+					remove.mutate({ id: folder.id, contents, to }, { onSuccess: () => onChange('all') });
 				}}
 			/>,
 		);
