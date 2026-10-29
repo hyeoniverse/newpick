@@ -1,11 +1,47 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { useTab } from '@/hooks/useTab';
+import { useBookmarksList } from '@/hooks/useBookmark';
+import { useHighlights } from '@/hooks/useHighlights';
+import { apiFetch } from '@/api/client';
+import API_ENDPOINTS from '@/constants/api';
 import styled from 'styled-components';
 import Imgae from '@/components/common/Image';
 import Text from '@/components/common/Text';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
+
+/** 프로필 아래 한눈에: 받은 메일 · 북마크 · 스크랩 수. 누르면 그 탭으로 */
+function Summary() {
+	const { user } = useAuth();
+	const { setActiveTab } = useTab();
+	const { data: mails } = useQuery({
+		queryKey: ['myMails', user?.id, 'count'],
+		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.MAILS(0, 1)),
+		enabled: !!user,
+	});
+	const { data: bookmarks } = useBookmarksList();
+	const { data: highlights } = useHighlights();
+	const items = [
+		{ tab: 'subscriptions', label: '받은 메일', count: mails?.counts.all },
+		{ tab: 'bookmarks', label: '북마크', count: bookmarks?.length },
+		{ tab: 'highlights', label: '스크랩', count: highlights?.length },
+	];
+	return (
+		<ul className="summary" aria-label="내 기록">
+			{items.map(({ tab, label, count }) => (
+				<li key={tab}>
+					<button type="button" onClick={() => setActiveTab(tab)}>
+						<strong>{count ?? '–'}</strong>
+						<span>{label}</span>
+					</button>
+				</li>
+			))}
+		</ul>
+	);
+}
 
 function Profile() {
 	const { user } = useAuth();
@@ -39,6 +75,7 @@ function Profile() {
 							<Text as="p" color="subText">
 								{user.email}
 							</Text>
+							<Summary />
 						</div>
 					</div>
 					<div className="subscribe">
@@ -112,15 +149,65 @@ const ProfileStyled = styled.div`
 				padding: 0.25rem 0;
 				overflow-wrap: anywhere;
 			}
+		}
+	}
 
-			ul {
-				display: flex;
-				flex-wrap: wrap;
-				flex-direction: row;
-				gap: 0.125rem 0.875rem;
-				color: ${({ theme }) => theme.color.subText};
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+	/* 받은 메일 · 북마크 · 스크랩 수: 숫자 위, 이름 아래. 사이는 얇은 세로줄 */
+	.summary {
+		display: flex;
+		margin: 0.875rem 0 0;
+		padding: 0;
+		list-style: none;
+
+		li + li {
+			border-left: 1px solid ${({ theme }) => theme.color.border};
+		}
+
+		li:first-child button {
+			padding-left: 0;
+		}
+
+		button {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.125rem;
+			padding: 0 1.25rem;
+			cursor: pointer;
+
+			strong {
+				font-size: ${({ theme }) => theme.fontSize.medium};
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				color: ${({ theme }) => theme.color.text};
+				font-variant-numeric: tabular-nums;
 			}
+
+			span {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.subText};
+			}
+
+			&:hover strong,
+			&:hover span {
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		gap: 1.5rem;
+
+		.profile {
+			gap: 1.25rem;
+
+			.avatar {
+				width: 72px;
+				height: 72px;
+			}
+		}
+
+		.subscribe {
+			width: 100%;
 		}
 	}
 `;

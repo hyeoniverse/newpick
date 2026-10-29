@@ -430,7 +430,8 @@ const StyledHighlights = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 1.25rem;
-	padding: 2rem 0;
+	/* 위 여백은 탭 줄이 둔다 */
+	padding: 0 0 2rem;
 
 	/* 목록 머리: '스크랩한 문장 N' · 전체 / 중요 / 메모 · 선택 */
 	.list-head {

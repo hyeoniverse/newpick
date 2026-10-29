@@ -57,13 +57,14 @@ export default function StartSubscription() {
 		<StyeldStartSubscription>
 			<div className="description">
 				<div className="title">
-					<Title size="extraSmall" weight="semiBold">
+					<Title size="extraSmall" weight="bold">
 						뉴스레터 설정
 					</Title>
 					{isSubscribed !== null && (
 						<Button
 							type="submit"
-							scheme="danger"
+							// 탈퇴하기와 같은 무게로: 빨간 꽉 찬 단추가 화면에서 가장 눈에 띄지 않게
+							scheme="monoOutline"
 							size="small"
 							onClick={() =>
 								openModal(
@@ -132,7 +133,7 @@ export default function StartSubscription() {
 					onClick={handleSubscribe}
 					disabled={isChangingSubscription}
 				>
-					{isSubscribed === false ? '재시작' : '완료'}
+					{isSubscribed === false ? '구독 다시 시작' : '완료'}
 				</Button>
 			</div>
 		</StyeldStartSubscription>
@@ -158,18 +159,20 @@ const StyeldStartSubscription = styled.div`
 		}
 	}
 
+	/* 관심사 고르기: 얇은 테두리 상자 안에 칩 (목록 탭의 거르기 칩과 같은 모양) */
 	.category-section {
 		display: flex;
 		flex-direction: row;
-		gap: 0.875rem;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1.25rem 1.5rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
 		background-color: ${({ theme }) => theme.color.surface};
-		padding: 2rem;
-		border-top: 1px solid ${({ theme }) => theme.color.text};
-		border-bottom: 1px solid ${({ theme }) => theme.color.text};
 
 		.bar {
-			border-left: 1px solid ${({ theme }) => theme.color.lightGrey};
-			height: auto;
+			align-self: stretch;
+			border-left: 1px solid ${({ theme }) => theme.color.border};
 		}
 
 		.categories {
@@ -177,19 +180,42 @@ const StyeldStartSubscription = styled.div`
 			flex-direction: row;
 			flex-wrap: wrap;
 			gap: 0.5rem;
+			margin: 0;
+			padding: 0;
+			list-style: none;
 		}
 
 		.category-btn {
 			width: max-content;
-			color: ${({ theme }) => theme.color.primary};
+			height: 2.25rem;
+			padding: 0 1rem;
+			border: 1px solid ${({ theme }) => theme.color.border};
 			border-radius: ${({ theme }) => theme.radius.chip};
-			border: 1px solid ${({ theme }) => theme.color.primary};
+			background-color: ${({ theme }) => theme.color.background};
+			color: ${({ theme }) => theme.color.text};
+			font-size: ${({ theme }) => theme.fontSize.small};
+
+			&:hover {
+				border-color: ${({ theme }) => theme.color.primary};
+				color: ${({ theme }) => theme.color.primary};
+			}
 		}
 
-		.active {
-			color: ${({ theme }) => theme.color.background};
+		.active,
+		.active:hover {
+			border-color: ${({ theme }) => theme.color.primary};
 			background-color: ${({ theme }) => theme.color.primary};
-			border-radius: ${({ theme }) => theme.radius.chip};
+			color: #ffffff;
+		}
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			flex-direction: column;
+			align-items: flex-start;
+			padding: 1rem;
+
+			.bar {
+				display: none;
+			}
 		}
 	}
 

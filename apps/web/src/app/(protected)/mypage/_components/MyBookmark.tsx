@@ -179,7 +179,8 @@ const MyBookmarkStyled = styled.div`
 	display: flex;
 	flex-direction: column;
 	gap: 1.25rem;
-	padding: 2rem 0;
+	/* 위 여백은 탭 줄이 둔다 */
+	padding: 0 0 2rem;
 
 	.list-head {
 		display: flex;
@@ -253,6 +254,31 @@ const MyBookmarkStyled = styled.div`
 		border-radius: ${({ theme }) => theme.radius.chip};
 		background: ${({ theme }) => theme.color.surface};
 		font-size: 0.75rem;
+	}
+
+	/* 휴대폰: 거르기 줄마다 이름표 옆에 칩을 한 줄로 두고 옆으로 밀어 본다 (세 줄씩 쌓이지 않게) */
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.list-tools {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0.5rem;
+			width: 100%;
+		}
+
+		.list-tools [role='group'] {
+			flex-wrap: nowrap;
+			overflow-x: auto;
+			scrollbar-width: none;
+
+			.chips-label {
+				flex-basis: auto;
+				width: 3rem;
+			}
+
+			button {
+				flex-shrink: 0;
+			}
+		}
 	}
 `;
 
