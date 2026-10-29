@@ -24,7 +24,6 @@ import { useToast } from '@/hooks/useToast';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
-import { folderTag, listBox, sourceLine, starToggle, textTools } from './list/styles';
 
 /** 한 쪽에 메일 몇 통 (서버는 20통까지) */
 const PAGE_SIZE = 10;
@@ -209,8 +208,7 @@ export default function MySubscribe() {
 			{data.total === 0 ? (
 				<p className="empty">이 조건의 메일이 없어요.</p>
 			) : (
-				/* 받은편지함: 스크랩과 같은 상자 · 줄. 썸네일 | 위 작은 줄(관심사 · 편수 · 시각) · 제목 / 아래 글자 단추, 오른쪽 별.
-				   제목(썸네일 포함)을 누르면 받은 그대로의 메일을 시트로 */
+				/* 받은편지함: 한 줄이 메일 한 통. 누르면 받은 그대로의 메일을 시트로 */
 				<ul className="inbox">
 					{data.items.map((mail) => (
 						<li
@@ -228,7 +226,7 @@ export default function MySubscribe() {
 								className="mail-row"
 								onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
 							>
-								{/* 메일마다 다른 썸네일: 그 메일 첫 소식의 그림 */}
+								{/* 메일마다 다른 썸네일: 그 메일 첫 소식의 그림 (예전 'NP' 동그라미는 줄마다 같았다) */}
 								<span className="thumb" aria-hidden>
 									{mail.newsletters[0]?.image ? (
 										<Image src={mail.newsletters[0].image} alt="" ratio="wide" borderRadius="medium" priority={false} />
@@ -237,46 +235,38 @@ export default function MySubscribe() {
 									)}
 								</span>
 								<span className="body">
-									<span className="source">
-										<span className="category">
-											{[...new Set(mail.newsletters.map((n) => n.category.name))].join(' · ')}
-										</span>
-										<span>뉴스레터 {mail.newsletters.length}편</span>
-										<time dateTime={mail.sentAt}>
-											<span className="sr-only">{sentText(mail.sentAt)}</span>
-											<span aria-hidden>{sentTime(mail.sentAt)}</span>
-										</time>
-										{/* '모든 메일'에서 어느 폴더인지 */}
-										{folder === 'all' && mail.folderId && (
-											<span className="folder-tag">{folderName.get(mail.folderId)}</span>
-										)}
-									</span>
 									<span className="subject">{mail.subject ?? mail.newsletters[0]?.title}</span>
+									<span className="meta">
+										{mail.newsletters.map((n) => n.category.name).join(' · ')} · 뉴스레터 {mail.newsletters.length}편
+									</span>
 								</span>
+								<time className="sent" dateTime={mail.sentAt}>
+									<span className="sr-only">{sentText(mail.sentAt)}</span>
+									<span aria-hidden>{sentTime(mail.sentAt)}</span>
+									{/* '모든 메일'에서 어느 폴더인지 */}
+									{folder === 'all' && mail.folderId && (
+										<span className="folder-tag">{folderName.get(mail.folderId)}</span>
+									)}
+								</time>
 							</button>
-							{/* 줄 단추 안에 단추를 넣지 않게 따로: 별은 오른쪽 위, 글자 단추는 아래 */}
-							<button
-								type="button"
-								className={`star-toggle ${mail.starred ? 'on' : ''}`}
-								aria-pressed={mail.starred}
-								aria-label={mail.starred ? '중요 해제' : '중요 표시'}
-								title={mail.starred ? '중요 해제' : '중요 표시'}
-								onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
-							>
-								<LuStar aria-hidden />
-							</button>
-							<div className="tools">
-								<button
-									type="button"
-									onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
-								>
-									메일 보기
-								</button>
+							{/* 줄 단추 안에 단추를 넣지 않게 옆에 따로 */}
+							<div className="actions">
 								<FolderMenu
-									label="폴더 옮기기"
+									className="mail-folder"
+									label="폴더"
 									current={mail.folderId}
 									onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
 								/>
+								<button
+									type="button"
+									className={`star-toggle ${mail.starred ? 'on' : ''}`}
+									aria-pressed={mail.starred}
+									aria-label={mail.starred ? '중요 해제' : '중요 표시'}
+									title={mail.starred ? '중요 해제' : '중요 표시'}
+									onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
+								>
+									<LuStar aria-hidden />
+								</button>
 							</div>
 						</li>
 					))}
@@ -314,34 +304,121 @@ const MySubscribeStyled = styled.div`
 		margin-top: 0.75rem;
 	}
 
-	/* 받은편지함: 스크랩 목록과 같은 상자 · 구분선 · 위 작은 줄 · 아래 글자 단추 · 오른쪽 위 별 */
 	.inbox {
-		${listBox}
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
+	}
 
-		> li {
-			display: grid;
-			grid-template-columns: minmax(0, 1fr) auto;
-			grid-template-areas:
-				'main star'
-				'tools tools';
-			column-gap: 0.5rem;
-			row-gap: 0.625rem;
+	/* 메일 줄만 (그냥 li로 쓰면 정렬 칸 펼친 목록의 항목에도 밑줄이 그어졌다) */
+	.inbox > li {
+		display: flex;
+		align-items: center;
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+		&:hover {
+			background: ${({ theme }) => theme.color.surface};
 		}
 	}
 
+	.actions {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding-right: 0.5rem;
+	}
+
+	/* '폴더' 글자 단추 */
+	.mail-folder .trigger {
+		padding: 0.25rem;
+		font: inherit;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+		cursor: pointer;
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+			text-decoration: underline;
+		}
+	}
+
+	/* 중요 표시: 꺼지면 회색 빈 별, 켜지면 기본색 꽉 찬 별 (스크랩과 같게) */
+	.star-toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: ${({ theme }) => theme.radius.control};
+		color: ${({ theme }) => theme.color.disabled};
+		cursor: pointer;
+
+		svg {
+			width: 1.125rem;
+			height: 1.125rem;
+		}
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		&.on {
+			color: ${({ theme }) => theme.color.primary};
+
+			svg {
+				fill: currentColor;
+			}
+		}
+	}
+
+	.folder-tag {
+		margin-left: 0.5rem;
+		padding: 0 0.5rem;
+		border-radius: ${({ theme }) => theme.radius.chip};
+		background: ${({ theme }) => theme.color.border};
+	}
+
+	/* 받은편지함 한 줄: 보낸 사람 · 제목 · 담긴 관심사 · 받은 시각 */
 	.mail-row {
-		grid-area: main;
 		display: flex;
 		align-items: center;
 		gap: 1rem;
+		flex: 1;
+		/* 긴 제목이 옆 단추(폴더 · 별)를 밀어내지 않게 */
 		min-width: 0;
-		padding: 0;
+		padding: 1.125rem 0.5rem;
 		text-align: left;
 		cursor: pointer;
 
-		&:hover .subject {
-			color: ${({ theme }) => theme.color.primary};
+		&:hover {
+			.subject {
+				color: ${({ theme }) => theme.color.primary};
+			}
 		}
+	}
+
+	.body {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.subject {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.text};
+	}
+
+	.meta {
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
 	}
 
 	/* 썸네일: 첫 소식 그림 (16:9). 그림이 없으면 연한 보라 바탕에 신문 아이콘 */
@@ -363,46 +440,6 @@ const MySubscribeStyled = styled.div`
 		}
 	}
 
-	.body {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-	}
-
-	.source {
-		${sourceLine}
-	}
-
-	.subject {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.text};
-		transition: color 0.15s ease;
-	}
-
-	.star-toggle {
-		${starToggle}
-		grid-area: star;
-		align-self: start;
-		margin: -0.25rem -0.375rem 0 0;
-	}
-
-	/* 글자 단추 줄: 썸네일 옆 제목과 같은 자리에서 시작 */
-	.tools {
-		${textTools}
-		grid-area: tools;
-		padding-left: 6rem;
-	}
-
-	.folder-tag {
-		${folderTag}
-	}
-
 	.sr-only {
 		position: absolute;
 		width: 1px;
@@ -412,27 +449,36 @@ const MySubscribeStyled = styled.div`
 		white-space: nowrap;
 	}
 
+	.sent {
+		flex-shrink: 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+		font-variant-numeric: tabular-nums;
+	}
+
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.inbox > li {
+			align-items: flex-start;
+		}
+
+		.mail-row {
+			flex-wrap: wrap;
+			padding: 1rem 0.25rem;
+		}
+
+		.actions {
+			padding-top: 0.75rem;
+			padding-right: 0;
+		}
+
 		.thumb {
 			width: 4rem;
 		}
 
-		.mail-row {
-			align-items: flex-start;
-			gap: 0.75rem;
-		}
-
-		.subject {
-			display: -webkit-box;
-			white-space: normal;
-			-webkit-line-clamp: 2;
-			-webkit-box-orient: vertical;
-			line-height: 1.4;
-			word-break: keep-all;
-		}
-
-		.tools {
-			padding-left: 4.75rem;
+		/* 시각은 썸네일 옆 제목 줄과 맞춰 아래로 */
+		.sent {
+			flex-basis: 100%;
+			padding-left: 5rem;
 		}
 	}
 `;
