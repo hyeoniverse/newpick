@@ -128,32 +128,43 @@ function MyBookmark() {
 							}}
 							onDragEnd={() => setDragging(null)}
 						>
-							<Link href={`/articles/detail/${bookmark.id}`} className="main" draggable={false}>
+							{/* 썸네일: 카드 왼쪽 위아래를 다 채운다. 같은 글로 가는 링크라 키보드 · 화면 읽기에서는 뺀다 */}
+							<Link
+								href={`/articles/detail/${bookmark.id}`}
+								className="thumb-link"
+								tabIndex={-1}
+								aria-hidden
+								draggable={false}
+							>
 								<Thumb src={getFirstImage(bookmark.newsImg)} className="thumb" />
-								<span className="body">
-									<span className="kicker">
-										<span className="cat">{bookmark.category.name}</span>
-										<span>{dateFormatter(bookmark.newsCreatedAt)}</span>
-									</span>
-									<span className="title">{bookmark.newsTitle}</span>
-								</span>
 							</Link>
-							<div className="foot">
-								<span className="meta">
-									<LuEye aria-hidden /> {bookmark.viewcount.toLocaleString()}
-									{/* '모든 북마크'에서 어느 폴더인지 */}
-									{folder === 'all' && bookmark.folderId && (
-										<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
-									)}
-								</span>
-								<span className="actions">
-									<FolderMenu
-										label="폴더 옮기기"
-										current={bookmark.folderId}
-										onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
-									/>
-									<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
-								</span>
+							<div className="content">
+								<Link href={`/articles/detail/${bookmark.id}`} className="main" draggable={false}>
+									<span className="body">
+										<span className="kicker">
+											<span className="cat">{bookmark.category.name}</span>
+											<span>{dateFormatter(bookmark.newsCreatedAt)}</span>
+										</span>
+										<span className="title">{bookmark.newsTitle}</span>
+									</span>
+								</Link>
+								<div className="foot">
+									<span className="meta">
+										<LuEye aria-hidden /> {bookmark.viewcount.toLocaleString()}
+										{/* '모든 북마크'에서 어느 폴더인지 */}
+										{folder === 'all' && bookmark.folderId && (
+											<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
+										)}
+									</span>
+									<span className="actions">
+										<FolderMenu
+											label="폴더 옮기기"
+											current={bookmark.folderId}
+											onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
+										/>
+										<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
+									</span>
+								</div>
 							</div>
 						</li>
 					))}
@@ -197,7 +208,6 @@ const MyBookmarkStyled = styled.div`
 
 		> li {
 			display: flex;
-			flex-direction: column;
 			overflow: hidden;
 			border: 1px solid ${({ theme }) => theme.color.border};
 			border-radius: ${({ theme }) => theme.radius.surface};
@@ -214,31 +224,43 @@ const MyBookmarkStyled = styled.div`
 		}
 	}
 
-	/* 컴팩트 가로형 카드: 왼쪽 작은 썸네일(4:3) · 오른쪽 관심사 · 날짜 · 제목, 아래 줄(조회수 · 폴더 옮기기 · 북마크)은 글과 같은 자리에서 */
-	.main {
-		flex: 1;
-		display: flex;
-		gap: 0.75rem;
-		padding: 0.75rem 0.75rem 0;
-		color: inherit;
-		text-decoration: none;
+	/* 컴팩트 가로형 카드: 왼쪽 썸네일이 카드 위아래를 다 채우고, 오른쪽에 관심사 · 날짜 · 제목 / 아래 줄(조회수 · 폴더 옮기기 · 북마크) */
+	.thumb-link {
+		flex-shrink: 0;
+		display: block;
+		width: 7.5rem;
+		border-right: 1px solid ${({ theme }) => theme.color.border};
 	}
 
 	.thumb {
-		flex-shrink: 0;
-		width: 6.5rem;
-		border-radius: ${({ theme }) => theme.radius.control};
+		height: 100%;
 
-		/* 공통 그림(16:9) 칸 · 그림 없을 때 칸을 4:3으로 */
+		/* 공통 그림 칸(16:9 고정)을 카드 높이에 맞춰 채운다 */
 		> div,
 		.thumb-empty {
-			aspect-ratio: 4 / 3;
+			height: 100%;
+			aspect-ratio: auto;
 		}
 
 		img {
 			height: 100%;
 			object-fit: cover;
 		}
+	}
+
+	.content {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.main {
+		flex: 1;
+		display: block;
+		padding: 0.75rem 0.875rem 0;
+		color: inherit;
+		text-decoration: none;
 	}
 
 	.body {
@@ -278,7 +300,7 @@ const MyBookmarkStyled = styled.div`
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.5rem;
-		padding: 0.25rem 0.75rem 0.625rem calc(0.75rem + 6.5rem + 0.75rem);
+		padding: 0.375rem 0.75rem 0.625rem 0.875rem;
 	}
 
 	.meta {
