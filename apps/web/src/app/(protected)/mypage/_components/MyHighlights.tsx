@@ -68,6 +68,39 @@ function asText(items: Highlight[]) {
 		.join('\n\n');
 }
 
+/** 스크랩한 날 (한국 시각 'YYYY-MM-DD') */
+const dayOf = (iso: string) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date(iso));
+
+/** 날짜 머리: 오늘 · 어제 · 올해는 '10월 27일 (화)', 지난해부터는 '2025년 10월 27일 (월)' */
+function dayLabel(day: string) {
+	const today = dayOf(new Date().toISOString());
+	const yesterday = dayOf(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+	if (day === today) return '오늘';
+	if (day === yesterday) return '어제';
+	const date = new Date(`${day}T12:00:00+09:00`);
+	return new Intl.DateTimeFormat('ko-KR', {
+		timeZone: 'Asia/Seoul',
+		...(day.slice(0, 4) !== today.slice(0, 4) && { year: 'numeric' }),
+		month: 'long',
+		day: 'numeric',
+		weekday: 'short',
+	})
+		.format(date)
+		.replace(/\s*\((.)\)$/, ' ($1)');
+}
+
+/** 최근 것부터 온 목록을 스크랩한 날짜별로 (순서 그대로) */
+function byDay(items: Highlight[]) {
+	const groups: { day: string; items: Highlight[] }[] = [];
+	for (const item of items) {
+		const day = dayOf(item.createdAt);
+		const last = groups[groups.length - 1];
+		if (last?.day === day) last.items.push(item);
+		else groups.push({ day, items: [item] });
+	}
+	return groups;
+}
+
 /**
  * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
  * 묶지 않고 최근에 스크랩한 것부터 한 줄 목록, 문장마다 위에 출처(관심사 · 뉴스레터 · 소식) 한 줄.
@@ -202,31 +235,37 @@ export default function MyHighlights() {
 				</p>
 			)}
 			{/* 최근에 스크랩한 것부터 (목록이 그 순서로 온다), 카드 한 장 안에 구분선으로 */}
-			{shown.length > 0 && (
-				<ul className="list">
-					{shown.map((highlight) => (
-						<li key={highlight.id}>
-							<Source
-								highlight={highlight}
-								folder={folder === 'all' && highlight.folderId ? folderName.get(highlight.folderId) : undefined}
-							/>
-							<HighlightItem
-								highlight={highlight}
-								focused={highlight.id === focused}
-								selecting={selecting}
-								checked={selected.has(highlight.id)}
-								onToggle={() => toggle(highlight.id)}
-								onRemove={() => confirmRemove([highlight])}
-								// 고르는 중에 고른 것 하나를 끌면 고른 것 전부, 아니면 이것 하나
-								onDragStart={() =>
-									setDragging(selecting && selected.has(highlight.id) ? [...selected] : [highlight.id])
-								}
-								onDragEnd={() => setDragging(null)}
-							/>
-						</li>
-					))}
-				</ul>
-			)}
+			{/* 스크랩한 날짜별로 묶어서 (최근 날짜부터): 날짜 머리 + 그날 문장들 상자 한 장 */}
+			{byDay(shown).map(({ day, items }) => (
+				<section key={day} className="day" aria-label={dayLabel(day)}>
+					<h4 className="day-head">
+						{dayLabel(day)} <span className="day-count">{items.length}</span>
+					</h4>
+					<ul className="list">
+						{items.map((highlight) => (
+							<li key={highlight.id}>
+								<Source
+									highlight={highlight}
+									folder={folder === 'all' && highlight.folderId ? folderName.get(highlight.folderId) : undefined}
+								/>
+								<HighlightItem
+									highlight={highlight}
+									focused={highlight.id === focused}
+									selecting={selecting}
+									checked={selected.has(highlight.id)}
+									onToggle={() => toggle(highlight.id)}
+									onRemove={() => confirmRemove([highlight])}
+									// 고르는 중에 고른 것 하나를 끌면 고른 것 전부, 아니면 이것 하나
+									onDragStart={() =>
+										setDragging(selecting && selected.has(highlight.id) ? [...selected] : [highlight.id])
+									}
+									onDragEnd={() => setDragging(null)}
+								/>
+							</li>
+						))}
+					</ul>
+				</section>
+			))}
 			<LoadMore remaining={total - shown.length} loading={isFetchingNextPage} onClick={() => fetchNextPage()} />
 			{/* 고르는 중: 아래에 붙어 따라오는 막대 */}
 			{selecting && (
@@ -461,6 +500,26 @@ const StyledHighlights = styled.div`
 	}
 
 	/* 스크랩 목록: 카드 한 장 안에 문장마다 구분선 */
+	/* 날짜별 묶음: 날짜 머리(작게) 아래 그날 문장 상자 */
+	.day {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.day-head {
+		margin: 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.text};
+
+		.day-count {
+			margin-left: 0.25rem;
+			font-weight: ${({ theme }) => theme.fontWeight.regular};
+			color: ${({ theme }) => theme.color.subText};
+		}
+	}
+
 	.list {
 		${listBox}
 	}

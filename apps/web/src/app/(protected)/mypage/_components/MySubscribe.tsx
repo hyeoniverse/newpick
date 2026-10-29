@@ -314,7 +314,8 @@ const MySubscribeStyled = styled.div`
 	/* 메일 줄만 (그냥 li로 쓰면 정렬 칸 펼친 목록의 항목에도 밑줄이 그어졌다) */
 	.inbox > li {
 		display: flex;
-		align-items: center;
+		/* 썸네일이 줄 위아래를 다 채우게 줄 높이에 맞춰 늘린다 */
+		align-items: stretch;
 		border-bottom: 1px solid ${({ theme }) => theme.color.border};
 
 		&:hover {
@@ -324,6 +325,7 @@ const MySubscribeStyled = styled.div`
 
 	.actions {
 		flex-shrink: 0;
+		align-self: center;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
@@ -388,7 +390,9 @@ const MySubscribeStyled = styled.div`
 		flex: 1;
 		/* 긴 제목이 옆 단추(폴더 · 별)를 밀어내지 않게 */
 		min-width: 0;
-		padding: 1.125rem 0.5rem;
+		/* 위아래 여백은 글(.body · .sent)에만: 썸네일은 줄 위아래 끝까지 */
+		align-self: stretch;
+		padding: 0 0.5rem 0 0;
 		text-align: left;
 		cursor: pointer;
 
@@ -402,6 +406,7 @@ const MySubscribeStyled = styled.div`
 	.body {
 		flex: 1;
 		min-width: 0;
+		padding: 1.125rem 0;
 		display: flex;
 		flex-direction: column;
 		gap: 0.25rem;
@@ -422,15 +427,26 @@ const MySubscribeStyled = styled.div`
 	}
 
 	/* 썸네일: 첫 소식 그림 (16:9). 그림이 없으면 연한 보라 바탕에 신문 아이콘 */
+	/* 썸네일: 줄 위아래를 다 채운다 (공통 그림 칸의 16:9를 풀고 줄 높이에 맞춤) */
 	.thumb {
 		flex-shrink: 0;
+		align-self: stretch;
 		display: flex;
 		align-items: center;
 		justify-content: center;
-		width: 5rem;
-		aspect-ratio: 16 / 9;
+		width: 6rem;
 		overflow: hidden;
-		border-radius: ${({ theme }) => theme.radius.surface};
+
+		> div {
+			height: 100%;
+			aspect-ratio: auto;
+			border-radius: 0;
+		}
+
+		img {
+			height: 100%;
+			object-fit: cover;
+		}
 		background: ${({ theme }) => theme.color.tertiary};
 		color: ${({ theme }) => theme.color.primary};
 
@@ -461,24 +477,32 @@ const MySubscribeStyled = styled.div`
 			align-items: flex-start;
 		}
 
-		.mail-row {
-			flex-wrap: wrap;
-			padding: 1rem 0.25rem;
+		.body {
+			padding: 1rem 0 0.25rem;
 		}
 
 		.actions {
+			align-self: flex-start;
 			padding-top: 0.75rem;
 			padding-right: 0;
 		}
 
-		.thumb {
-			width: 4rem;
+		/* 휴대폰: 썸네일은 왼쪽 위아래를 다 채우고, 제목 · 시각은 그 오른쪽에 위아래로 */
+		.mail-row {
+			display: grid;
+			grid-template-columns: 4.5rem minmax(0, 1fr);
+			grid-template-rows: auto auto;
+			column-gap: 0.75rem;
+			padding-right: 0.25rem;
 		}
 
-		/* 시각은 썸네일 옆 제목 줄과 맞춰 아래로 */
+		.thumb {
+			grid-row: 1 / span 2;
+			width: 4.5rem;
+		}
+
 		.sent {
-			flex-basis: 100%;
-			padding-left: 5rem;
+			padding: 0 0 1rem;
 		}
 	}
 `;
