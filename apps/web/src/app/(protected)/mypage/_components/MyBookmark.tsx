@@ -19,6 +19,7 @@ import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
+import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 
 /** 정렬: 북마크한 순 · 발행일순 · 조회수순 */
 const SORTS: Record<string, { label: string; compare: (a: IBookmarkItem, b: IBookmarkItem) => number }> = {
@@ -95,11 +96,16 @@ function MyBookmark() {
 					setDragging(null);
 				}}
 			/>
-			<div className="list-head">
-				<h3>
-					북마크 <span className="count">{inFolder.length}</span>
-				</h3>
-				<div className="list-tools">
+			<ListHead title="북마크" count={inFolder.length}>
+				<SortSelect
+					value={sort}
+					options={Object.entries(SORTS).map(([value, s]) => ({ value, label: s.label }))}
+					onChange={setSort}
+				/>
+			</ListHead>
+			{/* 관심사가 둘 이상일 때만 거르기 줄 */}
+			{categories.length > 1 && (
+				<FilterRow>
 					<FilterChips
 						label="관심사"
 						options={[
@@ -109,16 +115,8 @@ function MyBookmark() {
 						value={category}
 						onChange={setCategory}
 					/>
-					<FilterChips
-						label="정렬"
-						className="sort"
-						options={Object.entries(SORTS).map(([value, s]) => ({ value, label: s.label }))}
-						value={sort}
-						// 정렬은 늘 하나가 골라져 있게 (다시 눌러도 풀리지 않게)
-						onChange={(value) => setSort(value || 'bookmarked')}
-					/>
-				</div>
-			</div>
+				</FilterRow>
+			)}
 			{shown.length === 0 ? (
 				<p className="empty">이 조건의 북마크가 없어요.</p>
 			) : (
@@ -182,33 +180,6 @@ const MyBookmarkStyled = styled.div`
 	/* 위 여백은 탭 줄이 둔다 */
 	padding: 0 0 2rem;
 
-	.list-head {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem 1rem;
-		margin-top: 0.5rem;
-
-		h3 {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.medium};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-		}
-
-		.count {
-			margin-left: 0.25rem;
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.list-tools {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem 1.25rem;
-	}
-
 	.empty {
 		padding: 2rem 0;
 		text-align: center;
@@ -254,31 +225,6 @@ const MyBookmarkStyled = styled.div`
 		border-radius: ${({ theme }) => theme.radius.chip};
 		background: ${({ theme }) => theme.color.surface};
 		font-size: 0.75rem;
-	}
-
-	/* 휴대폰: 거르기 줄마다 이름표 옆에 칩을 한 줄로 두고 옆으로 밀어 본다 (세 줄씩 쌓이지 않게) */
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		.list-tools {
-			flex-direction: column;
-			align-items: stretch;
-			gap: 0.5rem;
-			width: 100%;
-		}
-
-		.list-tools [role='group'] {
-			flex-wrap: nowrap;
-			overflow-x: auto;
-			scrollbar-width: none;
-
-			.chips-label {
-				flex-basis: auto;
-				width: 3rem;
-			}
-
-			button {
-				flex-shrink: 0;
-			}
-		}
 	}
 `;
 

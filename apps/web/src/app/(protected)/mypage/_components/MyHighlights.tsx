@@ -18,6 +18,7 @@ import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
+import ListHead from './list/ListHead';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -168,31 +169,26 @@ export default function MyHighlights() {
 					setDragging(null);
 				}}
 			/>
-			<div className="list-head">
-				<h3>
-					스크랩한 문장 <span className="count">{inFolder.length}</span>
-				</h3>
-				<div className="list-tools">
-					<FilterChips
-						label="보기"
-						options={[
-							{ value: '', label: '전체' },
-							{ value: 'starred', label: `중요 ${stars}` },
-							{ value: 'memo', label: `메모 ${memos}` },
-						]}
-						value={filter}
-						onChange={setFilter}
-					/>
-					<button
-						type="button"
-						className="select-toggle"
-						aria-pressed={selecting}
-						onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
-					>
-						{selecting ? '완료' : '선택'}
-					</button>
-				</div>
-			</div>
+			<ListHead title="스크랩한 문장" count={inFolder.length}>
+				<FilterChips
+					label="보기"
+					options={[
+						{ value: '', label: '전체' },
+						{ value: 'starred', label: `중요 ${stars}` },
+						{ value: 'memo', label: `메모 ${memos}` },
+					]}
+					value={filter}
+					onChange={setFilter}
+				/>
+				<button
+					type="button"
+					className="select-toggle"
+					aria-pressed={selecting}
+					onClick={() => (selecting ? stopSelecting() : setSelecting(true))}
+				>
+					{selecting ? '완료' : '선택'}
+				</button>
+			</ListHead>
 			{shown.length === 0 && (
 				<p className="empty">
 					{filter === 'starred'
@@ -433,52 +429,23 @@ const StyledHighlights = styled.div`
 	/* 위 여백은 탭 줄이 둔다 */
 	padding: 0 0 2rem;
 
-	/* 목록 머리: '스크랩한 문장 N' · 전체 / 중요 / 메모 · 선택 */
-	.list-head {
-		display: flex;
-		flex-wrap: wrap;
+	/* '선택' 단추 (목록 머리 오른쪽) */
+	.select-toggle {
+		display: inline-flex;
 		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem 1rem;
-		margin-top: 1rem;
+		height: 2rem;
+		padding: 0 0.875rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.chip};
+		font: inherit;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.text};
+		cursor: pointer;
 
-		h3 {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.medium};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-		}
-
-		.count {
-			margin-left: 0.25rem;
+		&:hover,
+		&[aria-pressed='true'] {
+			border-color: ${({ theme }) => theme.color.primary};
 			color: ${({ theme }) => theme.color.primary};
-		}
-
-		.list-tools {
-			display: flex;
-			flex-wrap: wrap;
-			align-items: center;
-			gap: 0.5rem 0.75rem;
-		}
-
-		.select-toggle {
-			padding: 0.375rem 0.75rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.chip};
-			font: inherit;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.text};
-			cursor: pointer;
-
-			&:hover,
-			&[aria-pressed='true'] {
-				border-color: ${({ theme }) => theme.color.primary};
-				color: ${({ theme }) => theme.color.primary};
-			}
-		}
-
-		/* 칩 몇 개뿐이라 '보기' 이름표는 화면에서 빼고 묶음 이름(aria-label)으로만 */
-		.chips-label {
-			display: none;
 		}
 	}
 

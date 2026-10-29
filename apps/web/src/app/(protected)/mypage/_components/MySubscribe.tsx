@@ -23,6 +23,7 @@ import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/useToast';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
+import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 
 /** 한 쪽에 메일 몇 통 */
 const PAGE_SIZE = 5;
@@ -167,7 +168,7 @@ export default function MySubscribe() {
 					setDragging(null);
 				}}
 			/>
-			<div className="list-tools">
+			<ListHead title="받은 메일" count={data.total}>
 				<FilterChips
 					label="보기"
 					options={[
@@ -177,6 +178,16 @@ export default function MySubscribe() {
 					value={starred ? 'starred' : ''}
 					onChange={refilter((value: string) => setStarred(value === 'starred'))}
 				/>
+				<SortSelect
+					value={order}
+					options={[
+						{ value: 'desc', label: '최신순' },
+						{ value: 'asc', label: '오래된순' },
+					]}
+					onChange={refilter(setOrder)}
+				/>
+			</ListHead>
+			<FilterRow>
 				<FilterChips
 					label="관심사"
 					options={[
@@ -186,16 +197,7 @@ export default function MySubscribe() {
 					value={categoryId}
 					onChange={refilter(setCategoryId)}
 				/>
-				<FilterChips
-					label="정렬"
-					options={[
-						{ value: 'desc', label: '최신순' },
-						{ value: 'asc', label: '오래된순' },
-					]}
-					value={order}
-					onChange={refilter((value: string) => setOrder(value === 'asc' ? 'asc' : 'desc'))}
-				/>
-			</div>
+			</FilterRow>
 			{data.total === 0 ? (
 				<p className="empty">이 조건의 메일이 없어요.</p>
 			) : (
@@ -276,14 +278,6 @@ const MySubscribeStyled = styled.div`
 	/* 위 여백은 탭 줄이 둔다 */
 	padding: 0 0 2rem;
 
-	.list-tools {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem 1.25rem;
-		margin-top: 0.5rem;
-	}
-
 	.empty {
 		padding: 2rem 0;
 		text-align: center;
@@ -295,17 +289,24 @@ const MySubscribeStyled = styled.div`
 		margin-top: 0.75rem;
 	}
 
+	/* 받은편지함: 스크랩 목록처럼 얇은 테두리 상자 한 장, 메일 사이 구분선 */
 	.inbox {
 		margin: 0;
 		padding: 0;
 		list-style: none;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		overflow: hidden;
 	}
 
 	li {
 		display: flex;
 		align-items: center;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		padding: 0 0.75rem;
+
+		& + li {
+			border-top: 1px solid ${({ theme }) => theme.color.border};
+		}
 
 		&:hover {
 			background: ${({ theme }) => theme.color.surface};
@@ -436,31 +437,6 @@ const MySubscribeStyled = styled.div`
 		.sent {
 			flex-basis: 100%;
 			padding-left: 3.5rem;
-		}
-	}
-
-	/* 휴대폰: 거르기 줄마다 이름표 옆에 칩을 한 줄로 두고 옆으로 밀어 본다 (세 줄씩 쌓이지 않게) */
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		.list-tools {
-			flex-direction: column;
-			align-items: stretch;
-			gap: 0.5rem;
-			width: 100%;
-		}
-
-		.list-tools [role='group'] {
-			flex-wrap: nowrap;
-			overflow-x: auto;
-			scrollbar-width: none;
-
-			.chips-label {
-				flex-basis: auto;
-				width: 3rem;
-			}
-
-			button {
-				flex-shrink: 0;
-			}
 		}
 	}
 `;
