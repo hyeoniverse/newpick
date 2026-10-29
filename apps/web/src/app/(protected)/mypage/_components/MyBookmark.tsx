@@ -191,7 +191,7 @@ const MyBookmarkStyled = styled.div`
 	.grid {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
-		gap: 1rem;
+		gap: 0.75rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -215,23 +215,39 @@ const MyBookmarkStyled = styled.div`
 		}
 	}
 
+	/* 컴팩트 카드. 한 줄 1장(좁은 목록)일 때는 가로형: 왼쪽 작은 썸네일 · 오른쪽 글, 아래 줄은 글과 같은 자리에서 */
 	.main {
 		flex: 1;
 		display: flex;
-		flex-direction: column;
+		gap: 0.75rem;
+		padding: 0.75rem 0.75rem 0;
 		color: inherit;
 		text-decoration: none;
 	}
 
 	.thumb {
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		flex-shrink: 0;
+		width: 6.5rem;
+		border-radius: ${({ theme }) => theme.radius.control};
+
+		/* 공통 그림(16:9) 칸 · 그림 없을 때 칸을 4:3으로 */
+		> div,
+		.thumb-empty {
+			aspect-ratio: 4 / 3;
+		}
+
+		img {
+			height: 100%;
+			object-fit: cover;
+		}
 	}
 
 	.body {
+		flex: 1;
+		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.375rem;
-		padding: 0.875rem 1rem 0.5rem;
+		gap: 0.25rem;
 	}
 
 	/* 제목 위 작은 줄: 메일 · 스크랩과 같은 모양 (관심사 보라 · 굵게, 날짜 회색) */
@@ -250,7 +266,7 @@ const MyBookmarkStyled = styled.div`
 		-webkit-box-orient: vertical;
 		font-size: ${({ theme }) => theme.fontSize.small};
 		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		line-height: 1.45;
+		line-height: 1.4;
 		/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
 		word-break: keep-all;
 		color: ${({ theme }) => theme.color.text};
@@ -263,7 +279,7 @@ const MyBookmarkStyled = styled.div`
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.5rem;
-		padding: 0.25rem 0.75rem 0.75rem 1rem;
+		padding: 0.25rem 0.75rem 0.625rem calc(0.75rem + 6.5rem + 0.75rem);
 	}
 
 	.meta {
@@ -296,9 +312,35 @@ const MyBookmarkStyled = styled.div`
 		gap: 0.75rem;
 	}
 
+	/* 두 장 이상: 위 그림(2:1, 예전 16:9보다 낮게) · 아래 글. 여백 · 줄 사이를 줄여 컴팩트하게 */
 	@container (min-width: 520px) {
 		.grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		.main {
+			flex-direction: column;
+			gap: 0;
+			padding: 0;
+		}
+
+		.thumb {
+			width: 100%;
+			border-radius: 0;
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+			> div,
+			.thumb-empty {
+				aspect-ratio: 2 / 1;
+			}
+		}
+
+		.body {
+			padding: 0.625rem 0.75rem 0;
+		}
+
+		.foot {
+			padding: 0.375rem 0.75rem 0.625rem;
 		}
 	}
 
