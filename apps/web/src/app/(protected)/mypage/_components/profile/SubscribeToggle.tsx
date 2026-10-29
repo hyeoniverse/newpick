@@ -96,6 +96,11 @@ const SubscribeToggleStyled = styled.div`
 			height: 2rem;
 			width: 3.25rem;
 		}
+
+		/* 휴대폰: 프로필 아래 한 줄을 다 채운다 */
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			width: 100%;
+		}
 	}
 
 	.subscribe-on {
