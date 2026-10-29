@@ -206,10 +206,10 @@ const MyBookmarkStyled = styled.div`
 		padding: 0;
 		list-style: none;
 
-		/* 카드 비율 고정(3:1, 납작하고 길쭉하게): 화면 너비가 바뀌어도 옆으로만 늘어나지 않고 같은 모양으로 커지고 작아진다 */
+		/* 카드 비율 고정(4:1, 납작하고 작게): 화면 너비가 바뀌어도 옆으로만 늘어나지 않고 같은 모양으로 커지고 작아진다 */
 		> li {
 			display: flex;
-			aspect-ratio: 3 / 1;
+			aspect-ratio: 4 / 1;
 			/* overflow를 두지 않아야 글이 넘칠 때(글자 크기를 키운 경우 등) 잘리지 않고 카드가 늘어난다. 둥근 모서리는 썸네일 쪽에서 */
 			border: 1px solid ${({ theme }) => theme.color.border};
 			border-radius: ${({ theme }) => theme.radius.surface};
@@ -230,8 +230,8 @@ const MyBookmarkStyled = styled.div`
 	.thumb-link {
 		flex-shrink: 0;
 		display: block;
-		/* 카드 3:1에서 폭의 1/3이면 썸네일이 정사각형 */
-		width: calc(100% / 3);
+		/* 카드 4:1에서 폭의 1/4이면 썸네일이 정사각형 */
+		width: 25%;
 		overflow: hidden;
 		border-radius: ${({ theme }) => theme.radius.surface} 0 0 ${({ theme }) => theme.radius.surface};
 		border-right: 1px solid ${({ theme }) => theme.color.border};
@@ -263,7 +263,7 @@ const MyBookmarkStyled = styled.div`
 	.main {
 		flex: 1;
 		display: block;
-		padding: 0.625rem 0.875rem 0;
+		padding: 0.5rem 0.75rem 0;
 		color: inherit;
 		text-decoration: none;
 	}
@@ -273,12 +273,15 @@ const MyBookmarkStyled = styled.div`
 		min-width: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.25rem;
+		gap: 0.125rem;
 	}
 
 	/* 제목 위 작은 줄: 메일 · 스크랩과 같은 모양 (관심사 보라 · 굵게, 날짜 회색) */
 	.kicker {
 		${sourceLine}
+		/* 납작한 카드라 머리줄은 조금 작게 */
+		font-size: 0.75rem;
+		line-height: 1.4;
 		.cat {
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			color: ${({ theme }) => theme.color.primary};
@@ -288,10 +291,10 @@ const MyBookmarkStyled = styled.div`
 	.title {
 		display: -webkit-box;
 		overflow: hidden;
-		-webkit-line-clamp: 2;
+		/* 납작한 카드라 제목은 한 줄 (넘치면 …) */
+		-webkit-line-clamp: 1;
 		-webkit-box-orient: vertical;
-		/* 납작한 카드에 두 줄이 들어가게 본문보다 조금 작게 */
-		font-size: 0.9375rem;
+		font-size: 0.875rem;
 		font-weight: ${({ theme }) => theme.fontWeight.bold};
 		line-height: 1.35;
 		/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
@@ -306,7 +309,7 @@ const MyBookmarkStyled = styled.div`
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.5rem;
-		padding: 0.25rem 0.75rem 0.5rem 0.875rem;
+		padding: 0.125rem 0.625rem 0.375rem 0.75rem;
 	}
 
 	.meta {
@@ -338,13 +341,19 @@ const MyBookmarkStyled = styled.div`
 		flex-wrap: nowrap;
 		gap: 0.75rem;
 		/* 북마크 단추(누르는 칸 40px)가 줄 높이를 키우지 않게: 줄은 1.5rem, 단추는 위아래로 넘쳐 누르는 칸은 그대로 */
-		height: 1.5rem;
+		height: 1.25rem;
 	}
 
-	/* 한 줄 칸 수: 카드가 길쭉해 목록 너비 760px 이상 2장, 그 아래 1장 */
-	@container (min-width: 760px) {
+	/* 한 줄 칸 수 (목록 너비 기준): 1000px 이상 3장 · 680px 이상 2장 · 그 아래 1장 */
+	@container (min-width: 680px) {
 		.grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	@container (min-width: 1000px) {
+		.grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}
 `;
