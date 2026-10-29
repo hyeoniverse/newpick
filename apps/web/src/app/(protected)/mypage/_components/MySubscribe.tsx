@@ -13,8 +13,6 @@ import { useModal } from '@/hooks/useModal';
 import MyMailSheet from '@/app/(protected)/mypage/_components/subscribe/MyMailSheet';
 import EmptyState from '@/components/common/EmptyState';
 import Image from '@/components/common/Image';
-import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
-import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import Pagination from '@/components/common/Pagination';
@@ -252,29 +250,12 @@ export default function MySubscribe() {
 									{folder === 'all' && mail.folderId && (
 										<span className="folder-tag">{folderName.get(mail.folderId)}</span>
 									)}
-									<button
-										type="button"
-										className="text-btn"
-										onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
-									>
-										메일로 보기
-									</button>
 									<FolderMenu
 										className="mail-folder"
 										label="폴더"
 										current={mail.folderId}
 										onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
 									/>
-									<button
-										type="button"
-										className={`star-toggle ${mail.starred ? 'on' : ''}`}
-										aria-pressed={mail.starred}
-										aria-label={mail.starred ? '중요 해제' : '중요 표시'}
-										title={mail.starred ? '중요 해제' : '중요 표시'}
-										onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
-									>
-										<LuStar aria-hidden />
-									</button>
 								</div>
 							</div>
 							{/* 원래 디자인의 뉴스레터 블록 하나에 메일 한 통: 메일 제목 · 그림 | 오늘 한눈에 상자 (메일은 분야를 합쳐 한 통이라 관심사 줄은 없음) */}
@@ -296,9 +277,18 @@ export default function MySubscribe() {
 													)}
 												</button>
 												{first && (
+													/* 받은 메일은 사이트 기사가 아니라 북마크 대신 중요 표시만 (북마크는 기사 화면에서) */
 													<div className="news-icons">
-														<BookmarkIcon newsId={first.id} newsletterId={first.id} />
-														<LinkCopyIcon id={first.id} />
+														<button
+															type="button"
+															className={`star-toggle ${mail.starred ? 'on' : ''}`}
+															aria-pressed={mail.starred}
+															aria-label={mail.starred ? '중요 해제' : '중요 표시'}
+															title={mail.starred ? '중요 해제' : '중요 표시'}
+															onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
+														>
+															<LuStar aria-hidden />
+														</button>
 													</div>
 												)}
 											</div>
@@ -599,30 +589,36 @@ const MySubscribeStyled = styled.div`
 		}
 	}
 
-	/* 중요 표시: 꺼지면 회색 빈 별, 켜지면 기본색 꽉 찬 별 (스크랩과 같게) */
+	/* 중요 표시: 북마크 단추와 같은 동그란 아이콘 단추. 켜면 별에 보라가 차오르고, 끄면 빠진다 */
 	.star-toggle {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		color: ${({ theme }) => theme.color.disabled};
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: ${({ theme }) => theme.borderRadius.circle};
+		color: ${({ theme }) => theme.color.primary};
 		cursor: pointer;
+		transition: background-color 0.2s ease;
 
 		svg {
-			width: 1.125rem;
-			height: 1.125rem;
+			width: 1.5rem;
+			height: 1.5rem;
+			fill: transparent;
+			transition: fill 0.4s ease-in-out;
 		}
 
 		&:hover {
-			color: ${({ theme }) => theme.color.primary};
+			background: ${({ theme }) => theme.color.tertiary};
 		}
 
-		&.on {
-			color: ${({ theme }) => theme.color.primary};
+		&.on svg {
+			fill: currentColor;
+		}
 
+		@media (prefers-reduced-motion: reduce) {
 			svg {
-				fill: currentColor;
+				transition: none;
 			}
 		}
 	}

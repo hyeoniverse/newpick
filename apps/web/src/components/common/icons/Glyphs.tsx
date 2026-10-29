@@ -94,21 +94,16 @@ export function ExternalGlyph({ className }: { className?: string }) {
 	);
 }
 
-// ---------- 북마크: 살짝 들리고, 켜면 위에서부터 색이 찬다 ----------
+// ---------- 북마크: 떠오르지 않고, 켜면 위에서부터 색이 차고 끄면 아래에서부터 빠진다 ----------
 
 const BookmarkSvg = styled(Svg)<{ $filled: boolean }>`
 	.fill {
 		fill: currentColor;
 		stroke: none;
+		/* 켤 때: 위에서 아래로 차오름 · 끌 때: 같은 길로 비워짐 */
 		clip-path: inset(${({ $filled }) => ($filled ? '0 0 0 0' : '0 0 100% 0')});
-		transition: clip-path 0.35s ease;
+		transition: clip-path 0.4s ease-in-out;
 	}
-
-	${whenActive(css`
-		.ribbon {
-			transform: translateY(-1.5px);
-		}
-	`)}
 
 	@media (prefers-reduced-motion: reduce) {
 		.fill {
