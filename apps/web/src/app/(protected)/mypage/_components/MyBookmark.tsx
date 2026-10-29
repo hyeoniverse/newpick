@@ -39,6 +39,8 @@ function MyBookmark() {
 	const [folder, setFolder] = useState<FolderFilter>('all');
 	const [category, setCategory] = useState('');
 	const [sort, setSort] = useState('bookmarked');
+	// 끄는 중인 북마크. 끄는 동안 폴더 줄 · 화면 위 폴더 칸에 놓으면 옮긴다
+	const [dragging, setDragging] = useState<number | null>(null);
 
 	// 마이페이지는 로그인해야 들어오므로(가드) 사용자 정보를 받는 중이거나 목록을 받는 중이면 자리만 채운다 (#17)
 	if (!user || isPending) {
@@ -87,6 +89,11 @@ function MyBookmark() {
 				onChange={setFolder}
 				total={bookmarks.length}
 				unfiled={bookmarks.filter((b) => b.folderId === null).length}
+				dragging={dragging ? 1 : 0}
+				onDropTo={(folderId) => {
+					if (dragging) move.mutate({ newsletterIds: [dragging], folderId });
+					setDragging(null);
+				}}
 			/>
 			<div className="list-head">
 				<h3>
@@ -117,39 +124,50 @@ function MyBookmark() {
 			) : (
 				<div className="trend-cards">
 					{shown.map((bookmark) => (
-						<Card
+						// 카드 속 링크 · 그림을 끌어도 이 칸으로 올라와 폴더로 옮길 수 있게
+						<div
 							key={bookmark.id}
-							data={{
-								id: bookmark.id,
-								url: `/articles/detail/${bookmark.id}`,
-								image: `${getFirstImage(bookmark.newsImg)}`,
-								header: bookmark.category.name,
-								main: {
-									title: bookmark.newsTitle,
-									description: bookmark.newsSummary,
-								},
-								footer: (
-									<>
-										<Text color="subText">
-											{dateFormatter(bookmark.newsCreatedAt)}
-											{/* '모든 북마크'에서 어느 폴더인지 */}
-											{folder === 'all' && bookmark.folderId && (
-												<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
-											)}
-										</Text>
-										<div className="right">
-											<FolderMenu
-												className="card-folder"
-												label="폴더"
-												current={bookmark.folderId}
-												onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
-											/>
-											<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
-										</div>
-									</>
-								),
+							className="card-drag"
+							draggable
+							onDragStart={(event) => {
+								event.dataTransfer.effectAllowed = 'move';
+								setDragging(bookmark.id);
 							}}
-						/>
+							onDragEnd={() => setDragging(null)}
+						>
+							<Card
+								data={{
+									id: bookmark.id,
+									url: `/articles/detail/${bookmark.id}`,
+									image: `${getFirstImage(bookmark.newsImg)}`,
+									header: bookmark.category.name,
+									main: {
+										title: bookmark.newsTitle,
+										description: bookmark.newsSummary,
+									},
+									footer: (
+										<>
+											<Text color="subText">
+												{dateFormatter(bookmark.newsCreatedAt)}
+												{/* '모든 북마크'에서 어느 폴더인지 */}
+												{folder === 'all' && bookmark.folderId && (
+													<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
+												)}
+											</Text>
+											<div className="right">
+												<FolderMenu
+													className="card-folder"
+													label="폴더"
+													current={bookmark.folderId}
+													onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
+												/>
+												<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
+											</div>
+										</>
+									),
+								}}
+							/>
+						</div>
 					))}
 				</div>
 			)}
@@ -203,6 +221,10 @@ const MyBookmarkStyled = styled.div`
 		gap: 2rem;
 		width: 100%;
 		height: fit-content;
+	}
+
+	.card-drag {
+		min-width: 0;
 	}
 
 	.right {

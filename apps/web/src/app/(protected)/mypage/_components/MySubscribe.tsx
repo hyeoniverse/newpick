@@ -95,6 +95,8 @@ export default function MySubscribe() {
 	const [order, setOrder] = useState<'desc' | 'asc'>('desc');
 	const { data: folders = [] } = useFolders();
 	const mark = useMarkMail();
+	// 끄는 중인 메일 (보낸 시각). 끄는 동안 폴더 줄 · 화면 위 폴더 칸에 놓으면 옮긴다
+	const [dragging, setDragging] = useState<string | null>(null);
 
 	const filters = new URLSearchParams({
 		...(starred && { starred: 'true' }),
@@ -159,6 +161,11 @@ export default function MySubscribe() {
 				onChange={refilter(setFolder)}
 				total={data.counts.all}
 				unfiled={data.counts.unfiled}
+				dragging={dragging ? 1 : 0}
+				onDropTo={(folderId) => {
+					if (dragging) mark.mutate({ sentAt: dragging, folderId });
+					setDragging(null);
+				}}
 			/>
 			<div className="list-tools">
 				<FilterChips
@@ -195,7 +202,16 @@ export default function MySubscribe() {
 				/* 받은편지함: 한 줄이 메일 한 통. 누르면 받은 그대로의 메일을 시트로 */
 				<ul className="inbox">
 					{data.items.map((mail) => (
-						<li key={mail.sentAt}>
+						<li
+							key={mail.sentAt}
+							draggable
+							onDragStart={(event) => {
+								event.dataTransfer.effectAllowed = 'move';
+								event.dataTransfer.setData('text/plain', mail.subject ?? '');
+								setDragging(mail.sentAt);
+							}}
+							onDragEnd={() => setDragging(null)}
+						>
 							<button
 								type="button"
 								className="mail-row"
