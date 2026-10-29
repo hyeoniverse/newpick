@@ -104,7 +104,7 @@ export function ExternalGlyph({ className }: { className?: string }) {
 	);
 }
 
-// ---------- 북마크: 켜면 위에서부터 색이 차고 끄면 빠진다. 가리키면 누를 때 일을 미리 (빈 것은 위가 조금 차고, 찬 것은 위가 조금 빠진다) ----------
+// ---------- 북마크: 켜면 위에서부터 색이 차고, 끄면 아래에서부터 빠진다. 가리키면 누를 때 일을 같은 방향으로 미리 (빈 것은 위가 조금 차고, 찬 것은 아래가 조금 빠진다) ----------
 
 const BookmarkSvg = styled(Svg)<{ $filled: boolean }>`
 	.fill {
@@ -117,7 +117,7 @@ const BookmarkSvg = styled(Svg)<{ $filled: boolean }>`
 	${({ $filled }) =>
 		whenPreview(css`
 			.fill {
-				clip-path: inset(${$filled ? '35% 0 0 0' : '0 0 65% 0'});
+				clip-path: inset(${$filled ? '0 0 35% 0' : '0 0 65% 0'});
 				opacity: ${$filled ? 1 : 0.45};
 			}
 		`)}
@@ -142,7 +142,7 @@ export function BookmarkGlyph({ filled, className }: { filled: boolean; classNam
 	);
 }
 
-// ---------- 별(중요 표시): 북마크처럼 켜면 색이 차고 끄면 빠진다. 가리키면 살짝 기울며 커지고, 누를 때 일을 미리 보인다 ----------
+// ---------- 별(중요 표시): 켜면 아래에서부터 차고, 끄면 위에서부터 빠진다. 가리키면 살짝 기울며 커지고, 누를 때 일을 같은 방향으로 미리 (빈 것은 아래가 조금 차고, 찬 것은 위가 조금 빠진다) ----------
 
 const StarSvg = styled(Svg)<{ $filled: boolean }>`
 	.fill {
@@ -163,7 +163,7 @@ const StarSvg = styled(Svg)<{ $filled: boolean }>`
 	${({ $filled }) =>
 		whenPreview(css`
 			.fill {
-				clip-path: inset(${$filled ? '0 0 35% 0' : '65% 0 0 0'});
+				clip-path: inset(${$filled ? '35% 0 0 0' : '65% 0 0 0'});
 				opacity: ${$filled ? 1 : 0.45};
 			}
 		`)}
