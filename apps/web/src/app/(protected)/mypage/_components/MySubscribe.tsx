@@ -311,7 +311,8 @@ const MySubscribeStyled = styled.div`
 		border-top: 1px solid ${({ theme }) => theme.color.border};
 	}
 
-	li {
+	/* 메일 줄만 (그냥 li로 쓰면 정렬 칸 펼친 목록의 항목에도 밑줄이 그어졌다) */
+	.inbox > li {
 		display: flex;
 		align-items: center;
 		border-bottom: 1px solid ${({ theme }) => theme.color.border};
@@ -456,7 +457,7 @@ const MySubscribeStyled = styled.div`
 	}
 
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		li {
+		.inbox > li {
 			align-items: flex-start;
 		}
 
