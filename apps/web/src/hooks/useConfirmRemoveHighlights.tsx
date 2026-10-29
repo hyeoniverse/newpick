@@ -60,7 +60,7 @@ export function useConfirmRemoveHighlights() {
 							? one.note
 								? '메모도 함께 지워져요.'
 								: '문장만 지워지고 뉴스레터는 그대로예요.'
-							: '고른 문장과 그 메모가 함께 지워져요. 뉴스레터는 그대로예요.'
+							: '스크랩한 문장과 그 메모가 함께 지워져요. 뉴스레터는 그대로예요.'
 					}
 					outlineButton="취소"
 					filledButton="지우기"
