@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef, useState } from 'react';
+import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import styled from 'styled-components';
-import { LuChevronRight, LuMailPlus, LuMail, LuNewspaper } from 'react-icons/lu';
+import { LuChevronDown, LuChevronRight, LuMailPlus, LuMail, LuNewspaper } from 'react-icons/lu';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useTab } from '@/hooks/useTab';
@@ -17,7 +17,6 @@ import Image from '@/components/common/Image';
 import StarToggle from '@/components/common/icons/StarToggle';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
-import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
 import { errorStateFor, statusOf } from '@/constants/errors';
 import { useFolders } from '@/hooks/useFolders';
@@ -26,8 +25,8 @@ import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 
-/** 한 쪽에 메일 몇 통 (서버는 20통까지) */
-const PAGE_SIZE = 5;
+/** 한 번에 받아 오는 메일 수 (무한 스크롤 한 묶음, 서버는 20통까지) */
+const PAGE_SIZE = 10;
 
 interface MailNewsletter {
 	id: number;
@@ -67,9 +66,17 @@ interface MailDigest {
 	watch: string[];
 }
 
+interface MonthIndex {
+	month: string;
+	count: number;
+	firstIndex: number;
+}
+
 interface MailsPage {
 	items: Mail[];
 	total: number;
+	/** 달 이동용: 거르기 · 정렬을 적용한 순서로 달마다 통수와 그 달 첫 메일의 순번 */
+	months?: MonthIndex[];
 	/** 거르기와 상관없는 개수: 전체 · 중요 · 폴더 없음 */
 	counts: { all: number; starred: number; unfiled: number };
 }
@@ -108,6 +115,10 @@ const issueDate = (iso: string) => {
 	return `${part({ day: 'numeric' })} (${part({ weekday: 'short' })})`;
 };
 
+/** 달 막대 바로가기: '27일' */
+const dayLabel = (iso: string) =>
+	new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', day: 'numeric' }).format(new Date(iso));
+
 /** 받은 달 (한국 시각 'YYYY-MM') */
 const monthOf = (iso: string) =>
 	new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date(iso)).slice(0, 7);
@@ -128,6 +139,144 @@ function byMonth(items: Mail[]) {
 }
 
 /**
+ * 달 막대 (원래 마이페이지의 날짜 막대처럼): 큰 '2026년 10월 ▾' + 이 쪽에서 그 달에 받은 날짜 바로가기('27일 · 24일 …').
+ * 위에 붙어 따라오고, 붙는 순간 바탕 · 위아래 줄이 화면 양끝까지 천천히 펼쳐진다 (원래 디자인의 full-width).
+ * 달 이름을 누르면 받은 달 목록이 펼쳐져 다른 달로 바로 간다
+ */
+function MonthBar({
+	month,
+	mails,
+	top,
+	months,
+	onJump,
+}: {
+	month: string;
+	mails: Mail[];
+	top: string;
+	months: MonthIndex[];
+	onJump: (month: MonthIndex) => void;
+}) {
+	const ref = useRef<HTMLDivElement>(null);
+	const [stuck, setStuck] = useState(false);
+	const [open, setOpen] = useState(false);
+	// 달 목록에서 보는 연도 (처음엔 이 막대의 연도)
+	const years = [...new Set(months.map((m) => m.month.slice(0, 4)))];
+	const [year, setYear] = useState(month.slice(0, 4));
+	// 펼친 바탕의 폭 = 스크롤바를 뺀 화면 폭 (100vw는 스크롤바만큼 넘쳐 가로 스크롤이 생긴다)
+	const [pageWidth, setPageWidth] = useState(0);
+
+	useEffect(() => {
+		let timer = 0;
+		const check = () => {
+			const el = ref.current;
+			if (!el) return;
+			setPageWidth(document.documentElement.clientWidth);
+			// 붙어 있으면 막대가 자기 달 묶음의 시작보다 아래에 와 있다. 헤더가 나타나고 숨으며 막대가 움직이는 동안에도
+			// 이 관계는 그대로라 너비가 줄었다 늘었다 하지 않는다 (예전엔 붙는 높이와 비교해 움직이는 0.3초 동안 풀렸다)
+			const section = el.parentElement;
+			setStuck(!!section && el.getBoundingClientRect().top - section.getBoundingClientRect().top > 0.5);
+		};
+		// 헤더가 나타나고 숨을 때 막대도 0.3초 움직이므로, 움직임이 끝난 뒤 한 번 더 본다
+		const checkSoon = () => {
+			check();
+			window.clearTimeout(timer);
+			timer = window.setTimeout(check, 350);
+		};
+		checkSoon();
+		window.addEventListener('scroll', checkSoon, { passive: true });
+		window.addEventListener('resize', checkSoon);
+		return () => {
+			window.clearTimeout(timer);
+			window.removeEventListener('scroll', checkSoon);
+			window.removeEventListener('resize', checkSoon);
+		};
+	}, [top]);
+
+	// 펼친 달 목록: 바깥을 누르거나 Esc면 닫는다
+	useEffect(() => {
+		if (!open) return;
+		const close = (event: MouseEvent | KeyboardEvent) => {
+			if (event instanceof KeyboardEvent ? event.key === 'Escape' : !ref.current?.contains(event.target as Node))
+				setOpen(false);
+		};
+		document.addEventListener('mousedown', close);
+		document.addEventListener('keydown', close);
+		return () => {
+			document.removeEventListener('mousedown', close);
+			document.removeEventListener('keydown', close);
+		};
+	}, [open]);
+
+	return (
+		<div
+			ref={ref}
+			className={`month-bar ${stuck ? 'stuck' : ''}`}
+			style={{ top, ['--page-w' as string]: `${pageWidth}px` }}
+		>
+			<button
+				type="button"
+				className="month-title"
+				aria-haspopup="listbox"
+				aria-expanded={open}
+				onClick={() => {
+					setYear(month.slice(0, 4));
+					setOpen((v) => !v);
+				}}
+			>
+				{monthLabel(month)}
+				<LuChevronDown aria-hidden />
+			</button>
+			{open && (
+				<div className="month-menu">
+					{/* 연도 고르기: 받은 메일이 있는 해만 */}
+					{years.length > 1 && (
+						<div className="year-tabs" role="group" aria-label="연도">
+							{years.map((y) => (
+								<button key={y} type="button" aria-pressed={y === year} onClick={() => setYear(y)}>
+									{y}년
+								</button>
+							))}
+						</div>
+					)}
+					<ul role="listbox" aria-label={`${year}년 받은 달로 이동`}>
+						{months
+							.filter((m) => m.month.startsWith(year))
+							.map((m) => (
+								<li key={m.month} role="option" aria-selected={m.month === month}>
+									<button
+										type="button"
+										onClick={() => {
+											setOpen(false);
+											onJump(m);
+										}}
+									>
+										{years.length > 1 ? `${Number(m.month.slice(5))}월` : monthLabel(m.month)}
+										<span className="month-count">{m.count}통</span>
+									</button>
+								</li>
+							))}
+					</ul>
+				</div>
+			)}
+			<ul className="month-days" aria-label={`${monthLabel(month)}에 받은 메일`}>
+				{mails.map((mail) => (
+					<li key={mail.sentAt}>
+						<button
+							type="button"
+							onClick={() =>
+								document.getElementById(`mail-${mail.sentAt}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+							}
+						>
+							{dayLabel(mail.sentAt)}
+						</button>
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+}
+
+/**
  * 내 뉴스레터: 내가 실제로 받은 메일함 (보낸 시각별 한 통씩, 최신부터). 누르면 받은 그대로의 메일.
  * 예전엔 오늘 내 관심사 뉴스레터를 보여 줘, 관심사를 바꾼 뒤엔 받은 적 없는 것이 섞였다
  */
@@ -138,7 +287,10 @@ export default function MySubscribe() {
 	const { openModal } = useModal();
 	// 달 막대가 붙는 높이: 헤더가 보이면(위로 스크롤) 그 아래, 숨으면 맨 위
 	const { headerHeight } = useHeader();
-	const [page, setPage] = useState(1);
+	// 달 막대에서 고른 달: 그 달 첫 메일이 있는 쪽으로 넘기고, 받아 오면 그 달 묶음으로 스크롤
+	const [pendingMonth, setPendingMonth] = useState<string | null>(null);
+	// 목록이 시작하는 순번: 보통 0(맨 위), 달 · 연도로 건너뛰면 그 달 첫 메일 순번부터 (위로는 '더 최근 메일 보기')
+	const [startOffset, setStartOffset] = useState(0);
 	const [folder, setFolder] = useState<FolderFilter>('all');
 	const [starred, setStarred] = useState(false);
 	const [order, setOrder] = useState<'desc' | 'asc'>('desc');
@@ -152,21 +304,78 @@ export default function MySubscribe() {
 		...(folder !== 'all' && { folder: String(folder) }),
 		...(order === 'asc' && { order }),
 	}).toString();
-	const { data, isPending, isError, error, refetch } = useQuery({
-		queryKey: ['myMails', user?.id, page, filters],
-		queryFn: () => apiFetch<MailsPage>(API_ENDPOINTS.MY.MAILS((page - 1) * PAGE_SIZE, PAGE_SIZE, filters)),
+	// 무한 스크롤: 아래 끝에 닿으면 다음 묶음, 맨 위 '더 최근 메일 보기'로 앞 묶음 (달 · 연도로 건너뛴 뒤)
+	const {
+		data: pages,
+		isPending,
+		isError,
+		error,
+		refetch,
+		fetchNextPage,
+		fetchPreviousPage,
+		hasNextPage,
+		hasPreviousPage,
+		isFetchingNextPage,
+		isFetchingPreviousPage,
+	} = useInfiniteQuery({
+		queryKey: ['myMails', user?.id, filters, startOffset],
+		queryFn: async ({ pageParam }) => ({
+			...(await apiFetch<MailsPage>(API_ENDPOINTS.MY.MAILS(pageParam, PAGE_SIZE, filters))),
+			offset: pageParam,
+		}),
+		initialPageParam: startOffset,
+		getNextPageParam: (last) => (last.offset + last.items.length < last.total ? last.offset + PAGE_SIZE : undefined),
+		getPreviousPageParam: (first) => (first.offset > 0 ? Math.max(0, first.offset - PAGE_SIZE) : undefined),
 		enabled: !!user,
 		placeholderData: (previous) => previous,
 	});
-	// 거르기를 바꾸면 첫 쪽부터
+	// 앞 묶음이 겹치지 않게 (건너뛴 자리가 PAGE_SIZE의 배수가 아니면 앞 묶음 끝이 겹칠 수 있다)
+	const seen = new Set<string>();
+	const allItems = (pages?.pages ?? [])
+		.flatMap((p) => p.items)
+		.filter((m) => !seen.has(m.sentAt) && seen.add(m.sentAt));
+	const latest = pages?.pages[pages.pages.length - 1];
+	const data = latest && { ...latest, items: allItems };
+
+	// 아래 끝 표시: 화면에 들어오면 다음 묶음
+	const endRef = useRef<HTMLDivElement>(null);
+	useEffect(() => {
+		const el = endRef.current;
+		if (!el || !hasNextPage) return;
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && !isFetchingNextPage) fetchNextPage();
+			},
+			{ rootMargin: '400px 0px' },
+		);
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage, allItems.length]);
+
+	// 거르기를 바꾸면 맨 위부터
 	const refilter =
 		<T,>(set: (value: T) => void) =>
 		(value: T) => {
 			set(value);
-			setPage(1);
+			setStartOffset(0);
 		};
 
-	if (!user || isPending) {
+	// 달 · 연도로 가기: 이미 받아 온 달이면 그 자리로, 아니면 그 달 첫 메일부터 새로 받아 와서
+	const jumpToMonth = (target: MonthIndex) => {
+		setPendingMonth(target.month);
+		if (!document.getElementById(`month-${target.month}`)) setStartOffset(target.firstIndex);
+	};
+	useEffect(() => {
+		if (!pendingMonth || !pages) return;
+		const section = document.getElementById(`month-${pendingMonth}`);
+		if (!section) return;
+		section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+		setPendingMonth(null);
+	}, [pages, pendingMonth]);
+
+	if (isError) return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
+
+	if (!user || isPending || !data) {
 		return (
 			<MySubscribeStyled aria-busy>
 				<div className="cards">
@@ -176,7 +385,6 @@ export default function MySubscribe() {
 		);
 	}
 
-	if (isError) return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
 
 	if (data.counts.all === 0) {
 		// 받은 메일이 없으면: 구독 중이면 기다리라고, 아니면 구독하라고
@@ -234,6 +442,17 @@ export default function MySubscribe() {
 					onChange={refilter(setOrder)}
 				/>
 			</ListHead>
+			{/* 달 · 연도로 건너뛰었으면 위로 더 최근 메일 */}
+			{hasPreviousPage && (
+				<button
+					type="button"
+					className="load-newer"
+					disabled={isFetchingPreviousPage}
+					onClick={() => fetchPreviousPage()}
+				>
+					{isFetchingPreviousPage ? '불러오는 중…' : '더 최근 메일 보기'}
+				</button>
+			)}
 			{data.total === 0 ? (
 				<p className="empty">이 조건의 메일이 없어요.</p>
 			) : (
@@ -242,13 +461,11 @@ export default function MySubscribe() {
 				   그 메일의 뉴스레터들(관심사 › · 제목 · 그림 + AI 요약 상자). 중요 · 폴더 · 메일 보기는 날짜 막대 오른쪽 */
 				/* 받은 달로 묶고, 달 막대(원래 디자인의 날짜 막대 모양)는 위에 붙어 따라온다 — 헤더가 보이면 그 아래에 */
 				byMonth(data.items).map(({ month, items }) => (
-					<section key={month} className="month" aria-label={monthLabel(month)}>
-						<h3 className="month-bar" style={{ top: headerHeight }}>
-							{monthLabel(month)}
-						</h3>
+					<section key={month} id={`month-${month}`} className="month" aria-label={monthLabel(month)}>
+						<MonthBar month={month} mails={items} top={headerHeight} months={data.months ?? []} onJump={jumpToMonth} />
 						<ol className="issues">
 							{items.map((mail) => (
-								<li key={mail.sentAt} className="issue">
+								<li key={mail.sentAt} className="issue" id={`mail-${mail.sentAt}`}>
 									<div
 										className="issue-head"
 										draggable
@@ -347,16 +564,10 @@ export default function MySubscribe() {
 					</section>
 				))
 			)}
-			<Pagination
-				className="pagination"
-				page={page}
-				total={data.total}
-				pageSize={PAGE_SIZE}
-				onChange={(next) => {
-					setPage(next);
-					window.scrollTo({ top: 0, behavior: 'smooth' });
-				}}
-			/>
+			{/* 무한 스크롤: 이 표시가 보이면 다음 묶음 */}
+			<div ref={endRef} className="list-end" aria-hidden />
+			{isFetchingNextPage && <p className="list-status">메일을 더 불러오는 중…</p>}
+			{!hasNextPage && data.total > PAGE_SIZE && <p className="list-status">받은 메일을 모두 봤어요.</p>}
 		</MySubscribeStyled>
 	);
 }
@@ -375,8 +586,32 @@ const MySubscribeStyled = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	.pagination {
-		margin-top: 0.75rem;
+	.list-end {
+		height: 1px;
+	}
+
+	.list-status {
+		margin: 0;
+		padding: 1rem 0;
+		text-align: center;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	.load-newer {
+		align-self: center;
+		padding: 0.5rem 1rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.chip};
+		font: inherit;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.text};
+		cursor: pointer;
+
+		&:hover:not(:disabled) {
+			border-color: ${({ theme }) => theme.color.primary};
+			color: ${({ theme }) => theme.color.primary};
+		}
 	}
 
 	/* 받은 메일 한 통 = 원래 마이페이지의 '오늘의 뉴스레터' 한 묶음 */
@@ -388,17 +623,155 @@ const MySubscribeStyled = styled.div`
 	.month-bar {
 		position: sticky;
 		z-index: 5;
-		margin: 0;
-		padding: 0.875rem 1rem;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-		background: ${({ theme }) => theme.color.surface};
+		padding: 1.25rem 1rem 1.125rem;
 		text-align: center;
-		font-size: ${({ theme }) => theme.fontSize.medium};
+		transition: top 0.3s ease;
+
+		/* 바탕 · 위아래 줄은 뒤 층에: 붙으면 화면 폭(--page-w)만큼 천천히 펼쳐진다. 달 목록이 잘리지 않게 막대 자체는 자르지 않는다 */
+		&::before {
+			content: '';
+			position: absolute;
+			z-index: -1;
+			top: 0;
+			bottom: 0;
+			left: 50%;
+			width: 100%;
+			transform: translateX(-50%);
+			border-top: 1px solid ${({ theme }) => theme.color.border};
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+			background: ${({ theme }) => theme.color.surface};
+			transition: width 0.6s ease;
+		}
+
+		&.stuck::before {
+			width: var(--page-w, 100%);
+		}
+	}
+
+	/* 달 이름: 누르면 받은 달 목록 */
+	.month-title {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		margin: 0 0 0.875rem;
+		padding: 0.125rem 0.375rem;
+		border-radius: ${({ theme }) => theme.radius.control};
+		font: inherit;
+		font-size: ${({ theme }) => theme.fontSize.large};
 		font-weight: ${({ theme }) => theme.fontWeight.bold};
 		color: ${({ theme }) => theme.color.text};
-		/* 헤더가 나타나고 숨을 때 같이 움직인다 */
-		transition: top 0.3s ease;
+		cursor: pointer;
+
+		svg {
+			width: 1.125rem;
+			height: 1.125rem;
+			color: ${({ theme }) => theme.color.subText};
+			transition: transform 0.2s ease;
+		}
+
+		&[aria-expanded='true'] svg {
+			transform: rotate(180deg);
+		}
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+		}
+	}
+
+	.month-menu {
+		ul {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+
+		.year-tabs {
+			display: flex;
+			gap: 0.25rem;
+			margin-bottom: 0.375rem;
+			padding-bottom: 0.375rem;
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+
+			button {
+				flex: 1;
+				justify-content: center;
+			}
+
+			[aria-pressed='true'] {
+				background: ${({ theme }) => theme.color.primary};
+				color: #ffffff;
+				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			}
+		}
+
+		position: absolute;
+		top: calc(100% - 0.5rem);
+		left: 50%;
+		z-index: 10;
+		min-width: 12rem;
+		max-height: 18rem;
+		margin: 0;
+		padding: 0.375rem;
+		overflow-y: auto;
+		list-style: none;
+		transform: translateX(-50%);
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.background};
+		text-align: left;
+
+		button {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 1rem;
+			width: 100%;
+			padding: 0.5rem 0.625rem;
+			border-radius: ${({ theme }) => theme.radius.control};
+			font: inherit;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.text};
+			cursor: pointer;
+
+			&:hover {
+				background: ${({ theme }) => theme.color.surface};
+			}
+		}
+
+		[aria-selected='true'] button {
+			background: ${({ theme }) => theme.color.tertiary};
+			color: ${({ theme }) => theme.color.primary};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		}
+
+		.month-count {
+			font-size: 0.75rem;
+			color: ${({ theme }) => theme.color.subText};
+		}
+	}
+
+	/* 그 달에 받은 날짜 바로가기 (원래 디자인의 관심사 바로가기 자리) */
+	.month-days {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.25rem 1.25rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		button {
+			padding: 0;
+			font: inherit;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			color: ${({ theme }) => theme.color.mediumGrey};
+			cursor: pointer;
+			transition: color 0.2s ease;
+
+			&:hover {
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
 	}
 
 	.issues {
@@ -407,6 +780,11 @@ const MySubscribeStyled = styled.div`
 		margin: 0;
 		padding: 0;
 		list-style: none;
+	}
+
+	/* 날짜 바로가기로 왔을 때 헤더 · 달 막대에 가리지 않게 */
+	.issue {
+		scroll-margin-top: 10rem;
 	}
 
 	.issue + .issue {
