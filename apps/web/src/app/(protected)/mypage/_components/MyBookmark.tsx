@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
-import { LuBookmark } from 'react-icons/lu';
+import { LuBookmark, LuEye } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
@@ -19,7 +19,7 @@ import { getFirstImage } from '@/utils/getFirstImage';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
-import { RichList, Thumb } from './list/RichList';
+import Thumb from './list/Thumb';
 
 /** 정렬: 북마크한 순 · 발행일순 · 조회수순 */
 const SORTS: Record<string, { label: string; compare: (a: IBookmarkItem, b: IBookmarkItem) => number }> = {
@@ -120,8 +120,8 @@ function MyBookmark() {
 			{shown.length === 0 ? (
 				<p className="empty">이 조건의 북마크가 없어요.</p>
 			) : (
-				/* 북마크 하나가 카드 한 장 (내 뉴스레터와 같은 모양). 카드를 끌면 폴더로 */
-				<RichList>
+				/* 북마크: 그림이 위에 오는 작은 카드 격자 (글 위주인 메일함과 다르게 모아 둔 기사 모음처럼). 카드를 끌면 폴더로 */
+				<ul className="grid">
 					{shown.map((bookmark) => (
 						<li
 							key={bookmark.id}
@@ -133,36 +133,36 @@ function MyBookmark() {
 							onDragEnd={() => setDragging(null)}
 						>
 							<Link href={`/articles/detail/${bookmark.id}`} className="main" draggable={false}>
-								<Thumb src={getFirstImage(bookmark.newsImg)} alt="" />
+								<Thumb src={getFirstImage(bookmark.newsImg)} className="thumb" />
 								<span className="body">
 									<span className="kicker">
 										<span className="cat">{bookmark.category.name}</span>
-										<span>{dateFormatter(bookmark.newsCreatedAt)} 발행</span>
+										<span>{dateFormatter(bookmark.newsCreatedAt)}</span>
 									</span>
 									<span className="title">{bookmark.newsTitle}</span>
-									{bookmark.newsSummary && <span className="summary">{bookmark.newsSummary}</span>}
-									<span className="foot">
-										<span>조회 {bookmark.viewcount.toLocaleString()}</span>
-										<span>{dateFormatter(bookmark.bookmarkedAt)} 북마크</span>
-										{/* '모든 북마크'에서 어느 폴더인지 */}
-										{folder === 'all' && bookmark.folderId && (
-											<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
-										)}
-									</span>
 								</span>
 							</Link>
-							<div className="actions">
-								<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
-								<FolderMenu
-									className="folder-menu-trigger"
-									label="폴더"
-									current={bookmark.folderId}
-									onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
-								/>
+							<div className="foot">
+								<span className="meta">
+									<LuEye aria-hidden /> {bookmark.viewcount.toLocaleString()}
+									{/* '모든 북마크'에서 어느 폴더인지 */}
+									{folder === 'all' && bookmark.folderId && (
+										<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
+									)}
+								</span>
+								<span className="actions">
+									<FolderMenu
+										className="folder-trigger"
+										label="폴더"
+										current={bookmark.folderId}
+										onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
+									/>
+									<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
+								</span>
 							</div>
 						</li>
 					))}
-				</RichList>
+				</ul>
 			)}
 		</MyBookmarkStyled>
 	);
@@ -186,8 +186,154 @@ const MyBookmarkStyled = styled.div`
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 		gap: 2rem;
-		width: 100%;
-		height: fit-content;
+	}
+
+	/* 북마크 카드 격자: 데스크톱 세 줄, 좁으면 두 줄 */
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+		gap: 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		> li {
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.surface};
+			background: ${({ theme }) => theme.color.background};
+			transition: border-color 0.15s ease;
+
+			&:hover {
+				border-color: ${({ theme }) => theme.color.primary};
+
+				.title {
+					color: ${({ theme }) => theme.color.primary};
+				}
+			}
+		}
+	}
+
+	.main {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.thumb {
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+	}
+
+	.body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		padding: 0.875rem 1rem 0.5rem;
+	}
+
+	.kicker {
+		display: flex;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+		color: ${({ theme }) => theme.color.subText};
+		font-variant-numeric: tabular-nums;
+
+		.cat {
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+		}
+	}
+
+	.title {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		line-height: 1.45;
+		/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
+		word-break: keep-all;
+		color: ${({ theme }) => theme.color.text};
+		transition: color 0.15s ease;
+	}
+
+	/* 카드 아래: 조회수 · 폴더 이름표 / 폴더 · 북마크 */
+	.foot {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.25rem 0.75rem 0.75rem 1rem;
+	}
+
+	.meta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		min-width: 0;
+		font-size: 0.75rem;
+		color: ${({ theme }) => theme.color.subText};
+		font-variant-numeric: tabular-nums;
+
+		svg {
+			width: 0.875rem;
+			height: 0.875rem;
+		}
+	}
+
+	.folder-tag {
+		margin-left: 0.375rem;
+		padding: 0 0.5rem;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.chip};
+		font-size: 0.6875rem;
+	}
+
+	.actions {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.folder-trigger .trigger {
+		padding: 0.25rem;
+		font: inherit;
+		font-size: 0.75rem;
+		color: ${({ theme }) => theme.color.subText};
+		cursor: pointer;
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+			text-decoration: underline;
+		}
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.625rem;
+		}
+
+		.body {
+			padding: 0.625rem 0.75rem 0.375rem;
+		}
+
+		.foot {
+			padding: 0.125rem 0.5rem 0.5rem 0.75rem;
+		}
+
+		.folder-tag {
+			display: none;
+		}
 	}
 `;
 
