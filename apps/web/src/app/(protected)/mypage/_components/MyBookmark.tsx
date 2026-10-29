@@ -206,10 +206,10 @@ const MyBookmarkStyled = styled.div`
 		padding: 0;
 		list-style: none;
 
-		/* 카드 비율 고정(9:4): 화면 너비가 바뀌어도 옆으로만 늘어나지 않고 같은 모양으로 커지고 작아진다 */
+		/* 카드 비율 고정(16:9): 화면 너비가 바뀌어도 옆으로만 늘어나지 않고 같은 모양으로 커지고 작아진다 */
 		> li {
 			display: flex;
-			aspect-ratio: 9 / 4;
+			aspect-ratio: 16 / 9;
 			/* overflow를 두지 않아야 글이 넘칠 때(글자 크기를 키운 경우 등) 잘리지 않고 카드가 늘어난다. 둥근 모서리는 썸네일 쪽에서 */
 			border: 1px solid ${({ theme }) => theme.color.border};
 			border-radius: ${({ theme }) => theme.radius.surface};
@@ -230,7 +230,7 @@ const MyBookmarkStyled = styled.div`
 	.thumb-link {
 		flex-shrink: 0;
 		display: block;
-		width: 36%;
+		width: 40%;
 		overflow: hidden;
 		border-radius: ${({ theme }) => theme.radius.surface} 0 0 ${({ theme }) => theme.radius.surface};
 		border-right: 1px solid ${({ theme }) => theme.color.border};
