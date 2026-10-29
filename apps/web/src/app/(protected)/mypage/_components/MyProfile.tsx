@@ -11,7 +11,7 @@ import Text from '@/components/common/Text';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
 
-/** 기록 셋 (인스타그램의 게시물 · 팔로워 · 팔로잉처럼): 굵은 숫자 + 이름. 누르면 그 탭으로 */
+/** 프로필 아래 한눈에: 받은 메일 · 북마크 · 스크랩 수. 누르면 그 탭으로 */
 function Summary() {
 	const { user } = useAuth();
 	const { setActiveTab } = useTab();
@@ -41,7 +41,7 @@ function Summary() {
 			{items.map(({ tab, label, count }) => (
 				<li key={tab}>
 					<button type="button" onClick={() => setActiveTab(tab)}>
-						<strong>{count === undefined ? '–' : count.toLocaleString()}</strong>
+						<strong>{count ?? '–'}</strong>
 						<span>{label}</span>
 					</button>
 				</li>
@@ -50,41 +50,45 @@ function Summary() {
 	);
 }
 
-/**
- * 마이페이지 프로필 (인스타그램 프로필처럼): 왼쪽 큰 동그란 사진, 오른쪽에 이름 / 기록 셋 / 이메일, 구독 단추는 원래대로 오른쪽 위.
- * 휴대폰은 사진 옆에 기록 셋, 그 아래 이름 · 이메일 · 구독 단추(한 줄 꽉)
- */
 function Profile() {
 	const { user } = useAuth();
 
 	return (
-		<ProfileStyled aria-busy={!user || undefined}>
-			<span className="avatar">
-				{user?.profileImg ? (
-					<Imgae src={user.profileImg} alt={`${user.username ?? ''} 프로필 사진`} ratio="square" />
-				) : (
-					<AvatarPlaceholder loading={!user} />
-				)}
-			</span>
+		<ProfileStyled>
 			{/* 불러오는 동안에도 자리를 잡아 둔다 (예전엔 비어 있다가 갑자기 나타났다) */}
 			{!user && (
-				<div className="loading" aria-hidden>
-					<span className="line name" />
-					<span className="line email" />
+				<div className="profile">
+					<span className="avatar">
+						<AvatarPlaceholder loading />
+					</span>
+					<div className="profile-text loading" aria-hidden>
+						<span className="line name" />
+						<span className="line email" />
+					</div>
 				</div>
 			)}
 			{user && (
 				<>
-					<Text weight="semiBold" className="name">
-						{user.username}
-					</Text>
+					<div className="profile">
+						<span className="avatar">
+							{user.profileImg ? (
+								<Imgae src={user.profileImg} alt={`${user.username ?? ''} 프로필 사진`} ratio="square" />
+							) : (
+								<AvatarPlaceholder />
+							)}
+						</span>
+						<div className="profile-text">
+							<Text weight="semiBold">{user.username}</Text>
+							{/* 이름 바로 아래, 흐린 회색 대신 본문 색으로 */}
+							<Text as="p" className="email">
+								{user.email}
+							</Text>
+							<Summary />
+						</div>
+					</div>
 					<div className="subscribe">
 						<SubscribeToggle />
 					</div>
-					<Summary />
-					<Text as="p" color="subText" className="email">
-						{user.email}
-					</Text>
 				</>
 			)}
 		</ProfileStyled>
@@ -92,153 +96,126 @@ function Profile() {
 }
 
 const ProfileStyled = styled.div`
-	display: grid;
-	grid-template-columns: 9.5rem minmax(0, 1fr) auto;
-	grid-template-areas:
-		'avatar name subscribe'
-		'avatar stats subscribe'
-		'avatar email subscribe';
-	align-items: center;
-	column-gap: 1.25rem;
-	row-gap: 1rem;
+	display: flex;
+	flex-wrap: wrap;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: flex-start;
 	width: 100%;
-	padding-left: 1rem;
+	gap: 2rem;
 
-	.avatar {
-		grid-area: avatar;
-		align-self: start;
-		display: block;
-		width: 7.5rem;
-		height: 7.5rem;
-		overflow: hidden;
-		border: 1px solid ${({ theme }) => theme.color.neutral};
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-
-		img {
-			width: 100%;
-			height: 100%;
-		}
-	}
-
-	.name {
-		grid-area: name;
-		font-size: ${({ theme }) => theme.fontSize.large};
-	}
-
-	/* 구독 단추: 원래 크기 그대로 오른쪽 위 */
-	.subscribe {
-		grid-area: subscribe;
-		align-self: start;
-	}
-
-	.email {
-		grid-area: email;
-		/* 긴 메일 주소가 좁은 화면(360px) 밖으로 나가 페이지가 옆으로 밀리지 않게 (#17) */
-		min-width: 0;
-		overflow-wrap: anywhere;
-	}
-
-	/* 불러오는 중: 이름 · 이메일 자리 */
-	.loading {
-		grid-area: name / name / email / subscribe;
+	.profile {
 		display: flex;
-		flex-direction: column;
-		gap: 0.625rem;
+		flex-direction: row;
+		gap: 2rem;
+		justify-content: space-between;
+		align-items: flex-start;
 
-		.line {
+		.avatar {
+			flex-shrink: 0;
 			display: block;
-			height: 1rem;
-			border-radius: ${({ theme }) => theme.borderRadius.soft};
-			background: color-mix(in srgb, ${({ theme }) => theme.color.text} 7%, ${({ theme }) => theme.color.background});
+			width: 100px;
+			height: 100px;
+			overflow: hidden;
+			border: 1px solid ${({ theme }) => theme.color.neutral};
+			border-radius: ${({ theme }) => theme.borderRadius.circle};
+
+			img {
+				width: 100%;
+				height: 100%;
+			}
 		}
 
-		.name {
-			width: 5rem;
+		/* 불러오는 중: 이름·이메일 자리 */
+		.profile-text.loading {
+			display: flex;
+			flex-direction: column;
+			gap: 0.625rem;
+			padding-top: 0.25rem;
+
+			.line {
+				display: block;
+				height: 1rem;
+				border-radius: ${({ theme }) => theme.borderRadius.soft};
+				background: color-mix(in srgb, ${({ theme }) => theme.color.text} 7%, ${({ theme }) => theme.color.background});
+			}
+
+			.name {
+				width: 5rem;
+			}
+
+			.email {
+				width: 11rem;
+			}
 		}
 
-		.email {
-			width: 11rem;
+		.profile-text {
+			/* 긴 메일 주소가 좁은 화면(360px) 밖으로 나가 페이지가 옆으로 밀리지 않게 (#17) */
+			min-width: 0;
+
+			p {
+				padding: 0.25rem 0;
+				overflow-wrap: anywhere;
+			}
 		}
 	}
 
-	/* 기록 셋: '1 받은 메일   8 북마크   5 스크랩' — 숫자 굵게, 이름 보통. 누르면 그 탭 (hover 때 보라) */
+	/* 받은 메일 · 북마크 · 스크랩 수: 숫자 위, 이름 아래. 사이는 얇은 세로줄 */
 	.summary {
-		grid-area: stats;
 		display: flex;
-		gap: 2.5rem;
-		margin: 0;
+		margin: 0.875rem 0 0;
 		padding: 0;
 		list-style: none;
 
+		li + li {
+			border-left: 1px solid ${({ theme }) => theme.color.border};
+		}
+
+		li:first-child button {
+			padding-left: 0;
+		}
+
 		button {
-			display: inline-flex;
-			align-items: baseline;
-			gap: 0.375rem;
-			padding: 0;
-			font: inherit;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: ${({ theme }) => theme.color.text};
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			gap: 0.125rem;
+			padding: 0 1.25rem;
 			cursor: pointer;
 
 			strong {
+				font-size: ${({ theme }) => theme.fontSize.medium};
 				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				color: ${({ theme }) => theme.color.text};
 				font-variant-numeric: tabular-nums;
 			}
 
-			&:hover,
-			&:hover strong {
+			span {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.subText};
+			}
+
+			&:hover strong,
+			&:hover span {
 				color: ${({ theme }) => theme.color.primary};
 			}
 		}
 	}
 
-	/* 휴대폰: 사진 옆에 기록 셋(숫자 위 · 이름 아래, 가운데), 그 아래 이름 · 이메일 · 구독 단추 한 줄 꽉 */
-	@media ${({ theme }) => theme.mediaQuery.tablet} {
-		grid-template-columns: 5.5rem minmax(0, 1fr);
-		grid-template-areas:
-			'avatar stats'
-			'name name'
-			'email email'
-			'subscribe subscribe';
-		row-gap: 0.25rem;
-		padding-left: 0;
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		gap: 1.5rem;
 
-		.avatar {
-			align-self: center;
-			width: 5.5rem;
-			height: 5.5rem;
-		}
+		.profile {
+			gap: 1.25rem;
 
-		.name {
-			margin-top: 0.75rem;
-			font-size: ${({ theme }) => theme.fontSize.small};
-		}
-
-		.email {
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		}
-
-		.summary {
-			display: grid;
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-			gap: 0;
-
-			button {
-				flex-direction: column;
-				align-items: center;
-				gap: 0.125rem;
-				width: 100%;
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-
-				strong {
-					font-size: ${({ theme }) => theme.fontSize.medium};
-				}
+			.avatar {
+				width: 72px;
+				height: 72px;
 			}
 		}
 
-		/* 휴대폰: 구독 단추는 원래처럼 한 줄 꽉 (SubscribeToggle이 휴대폰에서 폭 100%) */
 		.subscribe {
-			margin-top: 0.75rem;
+			width: 100%;
 		}
 	}
 `;
