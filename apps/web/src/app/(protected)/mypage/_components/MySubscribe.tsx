@@ -163,6 +163,14 @@ function MonthBar({
 	// 막대에 보이는 달: 지금 보는 메일의 달 (붙기 전에는 목록 첫 달)
 	const month = active ? monthOf(active) : groups[0].month;
 	const mails = groups.find((g) => g.month === month)?.items ?? [];
+	// 바뀐 방향: 목록에서 뒤에 있는 달로 가면 아래에서 올라오고, 앞 달로 가면 위에서 내려온다 (처음엔 움직이지 않음)
+	const [shown, setShown] = useState(month);
+	const [enter, setEnter] = useState('');
+	if (shown !== month) {
+		const order = (m: string) => groups.findIndex((g) => g.month === m);
+		setShown(month);
+		setEnter(order(month) > order(shown) ? 'from-below' : 'from-above');
+	}
 	const daysRef = useRef<HTMLUListElement>(null);
 	// 날짜 줄을 더 밀어 볼 수 있는 쪽 (그쪽에 화살표 · 흐림)
 	const [edges, setEdges] = useState({ left: false, right: false });
@@ -263,106 +271,116 @@ function MonthBar({
 			className={`month-bar ${stuck ? 'stuck' : ''}`}
 			style={{ top, ['--page-w' as string]: `${pageWidth}px` }}
 		>
-			{/* 연도 · 월을 따로 고른다: '2026년 ▾' · '10월 ▾' */}
-			<div className="month-title">
-				<div className="picker">
+			{/* 달이 바뀌면 내용이 새 달 쪽에서 밀려 들어온다 (아래로 보면 아래에서, 위로 보면 위에서) */}
+			<div key={month} className={`bar-content ${enter}`}>
+				{/* 연도 · 월을 따로 고른다: '2026년 ▾' · '10월 ▾' */}
+				<div className="month-title">
+					<div className="picker">
+						<button
+							type="button"
+							aria-haspopup="listbox"
+							aria-expanded={open === 'year'}
+							onClick={() => setOpen((v) => (v === 'year' ? null : 'year'))}
+						>
+							{year}년
+							<LuChevronDown aria-hidden />
+						</button>
+						{open === 'year' && (
+							<ul className="month-menu" role="listbox" aria-label="받은 해로 이동">
+								{years.map((y) => {
+									const yearMonths = months.filter((m) => m.month.startsWith(y));
+									return (
+										<li key={y} role="option" aria-selected={y === year}>
+											<button
+												type="button"
+												onClick={() => {
+													setOpen(null);
+													// 그해에서 지금 정렬 순서로 가장 먼저 나오는 달로
+													onJump(yearMonths[0]);
+												}}
+											>
+												{y}년<span className="month-count">{yearMonths.reduce((n, m) => n + m.count, 0)}통</span>
+											</button>
+										</li>
+									);
+								})}
+							</ul>
+						)}
+					</div>
+					<div className="picker">
+						<button
+							type="button"
+							aria-haspopup="listbox"
+							aria-expanded={open === 'month'}
+							onClick={() => setOpen((v) => (v === 'month' ? null : 'month'))}
+						>
+							{Number(month.slice(5))}월
+							<LuChevronDown aria-hidden />
+						</button>
+						{open === 'month' && (
+							<ul className="month-menu" role="listbox" aria-label={`${year}년 받은 달로 이동`}>
+								{months
+									.filter((m) => m.month.startsWith(year))
+									.map((m) => (
+										<li key={m.month} role="option" aria-selected={m.month === month}>
+											<button
+												type="button"
+												onClick={() => {
+													setOpen(null);
+													onJump(m);
+												}}
+											>
+												{Number(m.month.slice(5))}월<span className="month-count">{m.count}통</span>
+											</button>
+										</li>
+									))}
+							</ul>
+						)}
+					</div>
+				</div>
+				<div className={`days-wrap ${edges.left ? 'more-left' : ''} ${edges.right ? 'more-right' : ''}`}>
+					{/* 화살표는 날짜 줄 양옆 제자리에 (줄 위에 겹치지 않게). 밀 곳이 없으면 자리만 남기고 숨긴다 */}
 					<button
 						type="button"
-						aria-haspopup="listbox"
-						aria-expanded={open === 'year'}
-						onClick={() => setOpen((v) => (v === 'year' ? null : 'year'))}
+						className={`days-arrow ${edges.left ? 'show' : ''}`}
+						aria-label="앞 날짜 보기"
+						onClick={() => slide(-1)}
 					>
-						{year}년
-						<LuChevronDown aria-hidden />
+						<LuChevronLeft aria-hidden />
 					</button>
-					{open === 'year' && (
-						<ul className="month-menu" role="listbox" aria-label="받은 해로 이동">
-							{years.map((y) => {
-								const yearMonths = months.filter((m) => m.month.startsWith(y));
-								return (
-									<li key={y} role="option" aria-selected={y === year}>
-										<button
-											type="button"
-											onClick={() => {
-												setOpen(null);
-												// 그해에서 지금 정렬 순서로 가장 먼저 나오는 달로
-												onJump(yearMonths[0]);
-											}}
-										>
-											{y}년<span className="month-count">{yearMonths.reduce((n, m) => n + m.count, 0)}통</span>
-										</button>
-									</li>
-								);
-							})}
-						</ul>
-					)}
-				</div>
-				<div className="picker">
+					<ul
+						ref={daysRef}
+						className="month-days"
+						aria-label={`${monthLabel(month)}에 받은 메일`}
+						onScroll={updateEdges}
+					>
+						{mails.map((mail) => (
+							<li key={mail.sentAt}>
+								<button
+									type="button"
+									data-sent={mail.sentAt}
+									className={mail.sentAt === active ? 'active' : undefined}
+									aria-current={mail.sentAt === active ? 'true' : undefined}
+									onClick={() =>
+										document
+											.getElementById(`mail-${mail.sentAt}`)
+											?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+									}
+								>
+									{dayLabel(mail.sentAt)}
+								</button>
+							</li>
+						))}
+					</ul>
 					<button
 						type="button"
-						aria-haspopup="listbox"
-						aria-expanded={open === 'month'}
-						onClick={() => setOpen((v) => (v === 'month' ? null : 'month'))}
+						className={`days-arrow ${edges.right ? 'show' : ''}`}
+						aria-label="뒤 날짜 보기"
+						onClick={() => slide(1)}
 					>
-						{Number(month.slice(5))}월
-						<LuChevronDown aria-hidden />
+						<LuChevronRight aria-hidden />
 					</button>
-					{open === 'month' && (
-						<ul className="month-menu" role="listbox" aria-label={`${year}년 받은 달로 이동`}>
-							{months
-								.filter((m) => m.month.startsWith(year))
-								.map((m) => (
-									<li key={m.month} role="option" aria-selected={m.month === month}>
-										<button
-											type="button"
-											onClick={() => {
-												setOpen(null);
-												onJump(m);
-											}}
-										>
-											{Number(m.month.slice(5))}월<span className="month-count">{m.count}통</span>
-										</button>
-									</li>
-								))}
-						</ul>
-					)}
 				</div>
-			</div>
-			<div className={`days-wrap ${edges.left ? 'more-left' : ''} ${edges.right ? 'more-right' : ''}`}>
-				{/* 화살표는 날짜 줄 양옆 제자리에 (줄 위에 겹치지 않게). 밀 곳이 없으면 자리만 남기고 숨긴다 */}
-				<button
-					type="button"
-					className={`days-arrow ${edges.left ? 'show' : ''}`}
-					aria-label="앞 날짜 보기"
-					onClick={() => slide(-1)}
-				>
-					<LuChevronLeft aria-hidden />
-				</button>
-				<ul ref={daysRef} className="month-days" aria-label={`${monthLabel(month)}에 받은 메일`} onScroll={updateEdges}>
-					{mails.map((mail) => (
-						<li key={mail.sentAt}>
-							<button
-								type="button"
-								data-sent={mail.sentAt}
-								className={mail.sentAt === active ? 'active' : undefined}
-								aria-current={mail.sentAt === active ? 'true' : undefined}
-								onClick={() =>
-									document.getElementById(`mail-${mail.sentAt}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-								}
-							>
-								{dayLabel(mail.sentAt)}
-							</button>
-						</li>
-					))}
-				</ul>
-				<button
-					type="button"
-					className={`days-arrow ${edges.right ? 'show' : ''}`}
-					aria-label="뒤 날짜 보기"
-					onClick={() => slide(1)}
-				>
-					<LuChevronRight aria-hidden />
-				</button>
 			</div>
 		</div>
 	);
@@ -788,6 +806,35 @@ const MySubscribeStyled = styled.div`
 
 		&.stuck::before {
 			width: var(--page-w, 100%);
+		}
+	}
+
+	/* 달이 바뀔 때 막대 내용(연도 · 월 · 날짜 줄)이 새 달 쪽에서 밀려 들어온다. 바탕 · 줄은 그대로 */
+	.bar-content {
+		&.from-below {
+			animation: month-from-below 0.4s ease;
+		}
+
+		&.from-above {
+			animation: month-from-above 0.4s ease;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none !important;
+		}
+	}
+
+	@keyframes month-from-below {
+		from {
+			opacity: 0;
+			transform: translateY(0.75rem);
+		}
+	}
+
+	@keyframes month-from-above {
+		from {
+			opacity: 0;
+			transform: translateY(-0.75rem);
 		}
 	}
 
