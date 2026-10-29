@@ -52,6 +52,7 @@ import AgreementCheck from '@/components/common/article/AgreementCheck';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import CustomIcon from '@/components/common/icons/CustomIcon';
 import BookmarkToggle from '@/components/common/icons/BookmarkToggle';
+import StarToggle from '@/components/common/icons/StarToggle';
 import { ShareGlyph } from '@/components/common/icons/Glyphs';
 import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
@@ -148,6 +149,7 @@ function DesignSystemBody() {
 	const [cycle, setCycle] = useState<'daily' | 'weekly'>('daily');
 	const [errorKey, setErrorKey] = useState('deleted');
 	const [bookmarked, setBookmarked] = useState(false);
+	const [starred, setStarred] = useState(false);
 
 	return (
 		<StyledPage>
@@ -296,7 +298,11 @@ function DesignSystemBody() {
 				</div>
 			</Section>
 
-			<Section id="input" title="입력" note="InputText · InputCheck · InputRadio · InputSelect · DatePicker · DateRangePicker">
+			<Section
+				id="input"
+				title="입력"
+				note="InputText · InputCheck · InputRadio · InputSelect · DatePicker · DateRangePicker"
+			>
 				<div className="grid">
 					<InputText label="이메일" placeholder="name@example.com" inputType="email" />
 					<InputSelect
@@ -328,8 +334,9 @@ function DesignSystemBody() {
 					</div>
 				</div>
 				<Text size="extraSmall" color="subText">
-					값: 분야 {selectValue || '없음'} · 날짜 {date || '없음'} · 기간 {range.start ? `${range.start} ~ ${range.end}` : '없음'} · 체크{' '}
-					{isChecked ? '됨' : '안 됨'} · 주기 {cycle === 'daily' ? '매일' : '매주'}
+					값: 분야 {selectValue || '없음'} · 날짜 {date || '없음'} · 기간{' '}
+					{range.start ? `${range.start} ~ ${range.end}` : '없음'} · 체크 {isChecked ? '됨' : '안 됨'} · 주기{' '}
+					{cycle === 'daily' ? '매일' : '매주'}
 				</Text>
 			</Section>
 
@@ -443,7 +450,7 @@ function DesignSystemBody() {
 			<Section
 				id="link"
 				title="링크 · 아이콘"
-				note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon · BookmarkToggle"
+				note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon · BookmarkToggle · StarToggle"
 			>
 				<Text size="small">
 					<ExternalLink href="https://kopico.go.kr">kopico.go.kr</ExternalLink> — 마우스를 올리면 화살표가 움직입니다
@@ -460,6 +467,12 @@ function DesignSystemBody() {
 					<Text size="extraSmall" color="subText">
 						BookmarkToggle — BookmarkIcon의 모양만. 여기서는 눌러도 저장하지 않습니다 (BookmarkIcon은 뉴스레터 id로
 						API를 부름)
+					</Text>
+				</div>
+				<div className="wrap">
+					<StarToggle pressed={starred} onToggle={() => setStarred((v) => !v)} />
+					<Text size="extraSmall" color="subText">
+						StarToggle — 중요 표시(받은 메일 · 스크랩). 가리키면 살짝 기울며 커지고, 켜면 아래에서부터 보라가 차오릅니다
 					</Text>
 				</div>
 			</Section>

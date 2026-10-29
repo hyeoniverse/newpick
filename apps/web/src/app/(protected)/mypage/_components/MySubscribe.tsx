@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import styled from 'styled-components';
-import { LuChevronRight, LuMailPlus, LuMail, LuNewspaper, LuStar } from 'react-icons/lu';
+import { LuChevronRight, LuMailPlus, LuMail, LuNewspaper } from 'react-icons/lu';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useTab } from '@/hooks/useTab';
@@ -13,6 +13,7 @@ import { useModal } from '@/hooks/useModal';
 import MyMailSheet from '@/app/(protected)/mypage/_components/subscribe/MyMailSheet';
 import EmptyState from '@/components/common/EmptyState';
 import Image from '@/components/common/Image';
+import StarToggle from '@/components/common/icons/StarToggle';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import Pagination from '@/components/common/Pagination';
@@ -279,16 +280,10 @@ export default function MySubscribe() {
 												{first && (
 													/* 받은 메일은 사이트 기사가 아니라 북마크 대신 중요 표시만 (북마크는 기사 화면에서) */
 													<div className="news-icons">
-														<button
-															type="button"
-															className={`star-toggle ${mail.starred ? 'on' : ''}`}
-															aria-pressed={mail.starred}
-															aria-label={mail.starred ? '중요 해제' : '중요 표시'}
-															title={mail.starred ? '중요 해제' : '중요 표시'}
-															onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
-														>
-															<LuStar aria-hidden />
-														</button>
+														<StarToggle
+															pressed={mail.starred}
+															onToggle={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
+														/>
 													</div>
 												)}
 											</div>
@@ -586,40 +581,6 @@ const MySubscribeStyled = styled.div`
 			line-height: 1.75;
 			color: ${({ theme }) => theme.color.mediumGrey};
 			word-break: keep-all;
-		}
-	}
-
-	/* 중요 표시: 북마크 단추와 같은 동그란 아이콘 단추. 켜면 별에 보라가 차오르고, 끄면 빠진다 */
-	.star-toggle {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 2.5rem;
-		height: 2.5rem;
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		color: ${({ theme }) => theme.color.primary};
-		cursor: pointer;
-		transition: background-color 0.2s ease;
-
-		svg {
-			width: 1.5rem;
-			height: 1.5rem;
-			fill: transparent;
-			transition: fill 0.4s ease-in-out;
-		}
-
-		&:hover {
-			background: ${({ theme }) => theme.color.tertiary};
-		}
-
-		&.on svg {
-			fill: currentColor;
-		}
-
-		@media (prefers-reduced-motion: reduce) {
-			svg {
-				transition: none;
-			}
 		}
 	}
 

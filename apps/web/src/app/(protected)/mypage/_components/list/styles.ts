@@ -5,7 +5,6 @@ import { css } from 'styled-components';
  * - listBox: 얇은 테두리 상자 한 장, 항목 사이 구분선 (메일 · 스크랩)
  * - sourceLine: 제목 위 작은 한 줄. 관심사(.category)는 보라 · 굵게, 나머지는 회색
  * - textTools: 항목 아래 글자 단추 줄 (원문에서 보기 · 폴더 옮기기 · 지우기 …)
- * - starToggle: 중요 표시 별 (꺼지면 회색 빈 별, 켜지면 보라 꽉 찬 별)
  * - folderTag: '모든 …'에서 보이는 폴더 이름표
  */
 export const listBox = css`
@@ -65,35 +64,6 @@ export const textTools = css`
 		&:hover {
 			color: ${({ theme }) => theme.color.primary};
 			text-decoration: underline;
-		}
-	}
-`;
-
-export const starToggle = css`
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	width: 2rem;
-	height: 2rem;
-	border-radius: ${({ theme }) => theme.radius.control};
-	color: ${({ theme }) => theme.color.disabled};
-	cursor: pointer;
-
-	svg {
-		width: 1.125rem;
-		height: 1.125rem;
-	}
-
-	&:hover {
-		background: ${({ theme }) => theme.color.surface};
-		color: ${({ theme }) => theme.color.primary};
-	}
-
-	&.on {
-		color: ${({ theme }) => theme.color.primary};
-
-		svg {
-			fill: currentColor;
 		}
 	}
 `;

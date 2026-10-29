@@ -15,6 +15,16 @@ const whenActive = (rules: ReturnType<typeof css>) => css`
 	}
 `;
 
+/**
+ * 누르면 바뀌는 단추(북마크 · 별)의 '누를 때 일 미리 보기'. 방금 눌러 바뀐 단추(data-settled)에서는
+ * 마우스가 나갔다 다시 들어오기 전까지 미리 보기를 하지 않아, 바뀐 상태가 그대로 보인다
+ */
+const whenPreview = (rules: ReturnType<typeof css>) => css`
+	:is(a, button):is(:hover, :focus-visible):not([data-settled]) & {
+		${rules}
+	}
+`;
+
 const Svg = styled.svg`
 	width: 1em;
 	height: 1em;
@@ -94,16 +104,23 @@ export function ExternalGlyph({ className }: { className?: string }) {
 	);
 }
 
-// ---------- 북마크: 떠오르지 않고, 켜면 위에서부터 색이 차고 끄면 아래에서부터 빠진다 ----------
+// ---------- 북마크: 켜면 위에서부터 색이 차고 끄면 빠진다. 가리키면 누를 때 일을 미리 (빈 것은 위가 조금 차고, 찬 것은 위가 조금 빠진다) ----------
 
 const BookmarkSvg = styled(Svg)<{ $filled: boolean }>`
 	.fill {
 		fill: currentColor;
 		stroke: none;
-		/* 켤 때: 위에서 아래로 차오름 · 끌 때: 같은 길로 비워짐 */
 		clip-path: inset(${({ $filled }) => ($filled ? '0 0 0 0' : '0 0 100% 0')});
 		transition: clip-path 0.4s ease-in-out;
 	}
+
+	${({ $filled }) =>
+		whenPreview(css`
+			.fill {
+				clip-path: inset(${$filled ? '35% 0 0 0' : '0 0 65% 0'});
+				opacity: ${$filled ? 1 : 0.45};
+			}
+		`)}
 
 	@media (prefers-reduced-motion: reduce) {
 		.fill {
@@ -122,6 +139,54 @@ export function BookmarkGlyph({ filled, className }: { filled: boolean; classNam
 				<path d={BOOKMARK} />
 			</g>
 		</BookmarkSvg>
+	);
+}
+
+// ---------- 별(중요 표시): 북마크처럼 켜면 색이 차고 끄면 빠진다. 가리키면 살짝 기울며 커지고, 누를 때 일을 미리 보인다 ----------
+
+const StarSvg = styled(Svg)<{ $filled: boolean }>`
+	.fill {
+		fill: currentColor;
+		stroke: none;
+		clip-path: inset(${({ $filled }) => ($filled ? '0 0 0 0' : '100% 0 0 0')});
+		transition:
+			clip-path 0.4s ease-in-out,
+			opacity 0.2s ease;
+	}
+
+	${whenActive(css`
+		.star {
+			transform: rotate(-12deg) scale(1.12);
+		}
+	`)}
+
+	${({ $filled }) =>
+		whenPreview(css`
+			.fill {
+				clip-path: inset(${$filled ? '0 0 35% 0' : '65% 0 0 0'});
+				opacity: ${$filled ? 1 : 0.45};
+			}
+		`)}
+
+	@media (prefers-reduced-motion: reduce) {
+		.fill {
+			transition: none;
+		}
+	}
+`;
+
+const STAR =
+	'M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z';
+
+/** 중요 표시 별 (켜면 아래에서부터 보라가 차오른다) */
+export function StarGlyph({ filled, className }: { filled: boolean; className?: string }) {
+	return (
+		<StarSvg {...base} className={className} $filled={filled}>
+			<g className="star">
+				<path className="fill" d={STAR} />
+				<path d={STAR} />
+			</g>
+		</StarSvg>
 	);
 }
 

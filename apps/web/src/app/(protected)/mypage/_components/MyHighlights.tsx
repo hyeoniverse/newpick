@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import StarToggle from '@/components/common/icons/StarToggle';
 import styled from 'styled-components';
-import { LuHighlighter, LuStar } from 'react-icons/lu';
+import { LuHighlighter } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
@@ -20,7 +21,7 @@ import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 import LoadMore from './list/LoadMore';
-import { folderTag, listBox, sourceLine, starToggle, textTools } from './list/styles';
+import { folderTag, listBox, sourceLine, textTools } from './list/styles';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -405,16 +406,11 @@ function HighlightItem({
 			</p>
 			{/* 중요 표시: 문장 줄 오른쪽 끝 별 아이콘 버튼 (켜면 기본색 별) */}
 			{!selecting && (
-				<button
-					type="button"
-					className={`star-toggle ${highlight.starred ? 'on' : ''}`}
-					aria-pressed={highlight.starred}
-					aria-label={highlight.starred ? '중요 해제' : '중요 표시'}
-					title={highlight.starred ? '중요 해제' : '중요 표시'}
-					onClick={() => update.mutate({ id: highlight.id, starred: !highlight.starred })}
-				>
-					<LuStar aria-hidden />
-				</button>
+				<StarToggle
+					className="star-toggle"
+					pressed={highlight.starred}
+					onToggle={() => update.mutate({ id: highlight.id, starred: !highlight.starred })}
+				/>
 			)}
 			<div className="tools" hidden={selecting}>
 				<Link href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}>원문에서 보기</Link>
@@ -615,12 +611,18 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.primary};
 	}
 
-	/* 중요 표시 버튼: 꺼지면 회색 빈 별, 켜지면 기본색(보라) 꽉 찬 별 */
+	/* 중요 표시 별 (공통 StarToggle): 문장 줄 끝, 줄 높이에 맞춰 조금 작게 */
 	.star-toggle {
-		${starToggle}
 		grid-area: star;
 		align-self: start;
-		margin: -0.25rem -0.375rem 0 0;
+		width: 2.25rem;
+		height: 2.25rem;
+		margin: -0.375rem -0.5rem 0 0;
+
+		svg {
+			width: 1.25rem;
+			height: 1.25rem;
+		}
 	}
 
 	/* 선택 막대: 목록 아래에 붙어 따라온다 */
