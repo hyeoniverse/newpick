@@ -51,7 +51,7 @@ function Summary() {
 }
 
 /**
- * 마이페이지 프로필 (인스타그램 프로필처럼): 왼쪽 큰 동그란 사진, 오른쪽에 이름 · 구독 단추 / 기록 셋 / 이메일.
+ * 마이페이지 프로필 (인스타그램 프로필처럼): 왼쪽 큰 동그란 사진, 오른쪽에 이름 / 기록 셋 / 이메일, 구독 단추는 원래대로 오른쪽 위.
  * 휴대폰은 사진 옆에 기록 셋, 그 아래 이름 · 이메일 · 구독 단추(한 줄 꽉)
  */
 function Profile() {
@@ -93,11 +93,11 @@ function Profile() {
 
 const ProfileStyled = styled.div`
 	display: grid;
-	grid-template-columns: 9.5rem auto minmax(0, 1fr);
+	grid-template-columns: 9.5rem minmax(0, 1fr) auto;
 	grid-template-areas:
 		'avatar name subscribe'
-		'avatar stats stats'
-		'avatar email email';
+		'avatar stats subscribe'
+		'avatar email subscribe';
 	align-items: center;
 	column-gap: 1.25rem;
 	row-gap: 1rem;
@@ -125,25 +125,10 @@ const ProfileStyled = styled.div`
 		font-size: ${({ theme }) => theme.fontSize.large};
 	}
 
-	/* 구독 단추: 인스타그램의 '프로필 편집'처럼 이름 옆 작은 단추로 */
+	/* 구독 단추: 원래 크기 그대로 오른쪽 위 */
 	.subscribe {
 		grid-area: subscribe;
-		justify-self: start;
-
-		.subscribe-on,
-		.subscribe-off,
-		.not-subscribe {
-			width: auto;
-			height: 2.25rem;
-			padding: 0 0.875rem;
-			gap: 0.5rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-
-			.svg {
-				width: 2rem;
-				height: 1.25rem;
-			}
-		}
+		align-self: start;
 	}
 
 	.email {
@@ -251,16 +236,9 @@ const ProfileStyled = styled.div`
 			}
 		}
 
+		/* 휴대폰: 구독 단추는 원래처럼 한 줄 꽉 (SubscribeToggle이 휴대폰에서 폭 100%) */
 		.subscribe {
-			justify-self: stretch;
 			margin-top: 0.75rem;
-
-			.subscribe-on,
-			.subscribe-off,
-			.not-subscribe {
-				width: 100%;
-				justify-content: center;
-			}
 		}
 	}
 `;

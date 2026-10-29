@@ -38,8 +38,8 @@ export default function DeleteAccount() {
 					회원 탈퇴
 				</Title>
 				<Text size="small" color="subText">
-					탈퇴하면 계정과 구독·북마크 기록이 모두 지워지고 되돌릴 수 없습니다. 메일만 그만 받으려면 위에서 구독을
-					해지하세요.
+					탈퇴 시 계정 정보와 구독·북마크 기록이 모두 삭제되며 복구할 수 없습니다. 메일 수신만 중단하려면 상단에서
+					구독을 해지하세요.
 				</Text>
 			</div>
 			<Button scheme="monoOutline" size="small" onClick={() => openModal(<DeleteAccountSheet />)}>
