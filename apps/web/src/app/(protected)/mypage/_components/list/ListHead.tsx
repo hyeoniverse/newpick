@@ -1,7 +1,7 @@
 'use client';
 
 import styled from 'styled-components';
-import { LuChevronDown } from 'react-icons/lu';
+import InputSelect from '@/components/common/InputSelect';
 
 interface Props {
 	/** 목록 이름 (예: '받은 메일', '북마크', '스크랩한 문장') */
@@ -32,19 +32,17 @@ interface SortProps<T extends string> {
 	onChange: (value: T) => void;
 }
 
-/** 정렬 고르기: 거르기 칩과 구분되게 '최신순 ▾' 한 칸 (진짜 <select>라 키보드 · 휴대폰 고르기 창 그대로) */
+/** 정렬 고르기: 공통 선택 목록(InputSelect)의 작은 칸 */
 export function SortSelect<T extends string>({ value, options, onChange }: SortProps<T>) {
 	return (
-		<StyledSort>
-			<select aria-label="정렬" value={value} onChange={(event) => onChange(event.target.value as T)}>
-				{options.map((option) => (
-					<option key={option.value} value={option.value}>
-						{option.label}
-					</option>
-				))}
-			</select>
-			<LuChevronDown aria-hidden />
-		</StyledSort>
+		<InputSelect
+			name="sort"
+			size="small"
+			ariaLabel="정렬"
+			value={value}
+			options={options}
+			onChange={(next) => onChange(next as T)}
+		/>
 	);
 }
 
@@ -76,43 +74,6 @@ const StyledListHead = styled.div`
 
 	.list-tools [role='group'] .chips-label {
 		display: none;
-	}
-`;
-
-const StyledSort = styled.span`
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-
-	select {
-		height: 2rem;
-		padding: 0 2rem 0 0.875rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.background};
-		font: inherit;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.text};
-		appearance: none;
-		cursor: pointer;
-
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-
-		&:focus-visible {
-			outline: 2px solid ${({ theme }) => theme.color.primary};
-			outline-offset: 2px;
-		}
-	}
-
-	svg {
-		position: absolute;
-		right: 0.75rem;
-		width: 0.875rem;
-		height: 0.875rem;
-		color: ${({ theme }) => theme.color.subText};
-		pointer-events: none;
 	}
 `;
 

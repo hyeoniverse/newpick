@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import styled from 'styled-components';
-import { LuMailPlus, LuMail, LuStar } from 'react-icons/lu';
+import { LuMailPlus, LuMail, LuNewspaper, LuStar } from 'react-icons/lu';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useTab } from '@/hooks/useTab';
@@ -12,6 +12,7 @@ import useSubscribe from '@/hooks/useSubscribe';
 import { useModal } from '@/hooks/useModal';
 import MyMailSheet from '@/app/(protected)/mypage/_components/subscribe/MyMailSheet';
 import EmptyState from '@/components/common/EmptyState';
+import Image from '@/components/common/Image';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import Pagination from '@/components/common/Pagination';
@@ -79,15 +80,11 @@ const sentText = (iso: string) =>
 		minute: '2-digit',
 	}).format(new Date(iso));
 
-/** 한국 시각으로 날짜 칸 · 시각에 쓸 조각: { month: '10월', day: '27', time: '(화) 오전 8:40' } */
-const sentParts = (iso: string) => {
+/** 오른쪽에 쓸 요일 · 시각 '(화) 오전 8:40' (한국 시각). 제목에 날짜가 있어 날짜는 뺀다 */
+const sentTime = (iso: string) => {
 	const part = (options: Intl.DateTimeFormatOptions) =>
 		new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', ...options }).format(new Date(iso));
-	return {
-		month: part({ month: 'long' }),
-		day: part({ day: 'numeric' }).replace('일', ''),
-		time: `(${part({ weekday: 'short' })}) ${part({ hour: 'numeric', minute: '2-digit' })}`,
-	};
+	return `(${part({ weekday: 'short' })}) ${part({ hour: 'numeric', minute: '2-digit' })}`;
 };
 
 /**
@@ -229,10 +226,13 @@ export default function MySubscribe() {
 								className="mail-row"
 								onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
 							>
-								{/* 메일마다 다른 날짜 칸 (예전 'NP' 동그라미는 줄마다 같아 구별이 안 됐다) */}
-								<span className="date" aria-hidden>
-									<span className="month">{sentParts(mail.sentAt).month}</span>
-									<span className="day">{sentParts(mail.sentAt).day}</span>
+								{/* 메일마다 다른 썸네일: 그 메일 첫 소식의 그림 (예전 'NP' 동그라미는 줄마다 같았다) */}
+								<span className="thumb" aria-hidden>
+									{mail.newsletters[0]?.image ? (
+										<Image src={mail.newsletters[0].image} alt="" ratio="wide" borderRadius="medium" priority={false} />
+									) : (
+										<LuNewspaper />
+									)}
 								</span>
 								<span className="body">
 									<span className="subject">{mail.subject ?? mail.newsletters[0]?.title}</span>
@@ -242,7 +242,7 @@ export default function MySubscribe() {
 								</span>
 								<time className="sent" dateTime={mail.sentAt}>
 									<span className="sr-only">{sentText(mail.sentAt)}</span>
-									<span aria-hidden>{sentParts(mail.sentAt).time}</span>
+									<span aria-hidden>{sentTime(mail.sentAt)}</span>
 									{/* '모든 메일'에서 어느 폴더인지 */}
 									{folder === 'all' && mail.folderId && (
 										<span className="folder-tag">{folderName.get(mail.folderId)}</span>
@@ -420,29 +420,22 @@ const MySubscribeStyled = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	/* 날짜 칸: 위 달 · 아래 큰 날짜. 줄마다 달라 메일을 날짜로 알아본다 */
-	.date {
+	/* 썸네일: 첫 소식 그림 (16:9). 그림이 없으면 연한 보라 바탕에 신문 아이콘 */
+	.thumb {
 		flex-shrink: 0;
 		display: flex;
-		flex-direction: column;
 		align-items: center;
 		justify-content: center;
-		width: 2.75rem;
-		height: 2.75rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
+		width: 5rem;
+		aspect-ratio: 16 / 9;
+		overflow: hidden;
 		border-radius: ${({ theme }) => theme.radius.surface};
-		line-height: 1.1;
+		background: ${({ theme }) => theme.color.tertiary};
+		color: ${({ theme }) => theme.color.primary};
 
-		.month {
-			font-size: 0.625rem;
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		.day {
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.primary};
-			font-variant-numeric: tabular-nums;
+		> svg {
+			width: 1.25rem;
+			height: 1.25rem;
 		}
 	}
 
@@ -477,9 +470,14 @@ const MySubscribeStyled = styled.div`
 			padding-right: 0;
 		}
 
+		.thumb {
+			width: 4rem;
+		}
+
+		/* 시각은 썸네일 옆 제목 줄과 맞춰 아래로 */
 		.sent {
 			flex-basis: 100%;
-			padding-left: 3.5rem;
+			padding-left: 5rem;
 		}
 	}
 `;
