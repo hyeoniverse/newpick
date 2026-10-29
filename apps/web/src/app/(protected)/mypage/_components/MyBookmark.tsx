@@ -184,8 +184,7 @@ const MyBookmarkStyled = styled.div`
 		gap: 2rem;
 	}
 
-	/* 북마크 카드 격자: 카드 한 장이 약 240px 이상 되게 '목록이 실제로 차지하는 너비'로 열 수를 정한다 (컨테이너 쿼리).
-	   목록 너비 1000px 이상 4열 · 760px 이상 3열 · 520px 이상 2열 · 그보다 좁으면 1열 */
+	/* 북마크 카드 격자: 칸 수는 화면이 아니라 '목록이 실제로 차지하는 너비'로 정한다 (컨테이너 쿼리, 아래) */
 	container-type: inline-size;
 
 	.grid {
@@ -215,7 +214,7 @@ const MyBookmarkStyled = styled.div`
 		}
 	}
 
-	/* 컴팩트 카드. 한 줄 1장(좁은 목록)일 때는 가로형: 왼쪽 작은 썸네일 · 오른쪽 글, 아래 줄은 글과 같은 자리에서 */
+	/* 컴팩트 가로형 카드: 왼쪽 작은 썸네일(4:3) · 오른쪽 관심사 · 날짜 · 제목, 아래 줄(조회수 · 폴더 옮기기 · 북마크)은 글과 같은 자리에서 */
 	.main {
 		flex: 1;
 		display: flex;
@@ -312,47 +311,16 @@ const MyBookmarkStyled = styled.div`
 		gap: 0.75rem;
 	}
 
-	/* 두 장 이상: 위 그림(2:1, 예전 16:9보다 낮게) · 아래 글. 여백 · 줄 사이를 줄여 컴팩트하게 */
-	@container (min-width: 520px) {
+	/* 한 줄 칸 수 (카드는 늘 가로형): 목록 너비 640px 이상 2장 · 1000px 이상 3장 */
+	@container (min-width: 640px) {
 		.grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-
-		.main {
-			flex-direction: column;
-			gap: 0;
-			padding: 0;
-		}
-
-		.thumb {
-			width: 100%;
-			border-radius: 0;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-
-			> div,
-			.thumb-empty {
-				aspect-ratio: 2 / 1;
-			}
-		}
-
-		.body {
-			padding: 0.625rem 0.75rem 0;
-		}
-
-		.foot {
-			padding: 0.375rem 0.75rem 0.625rem;
-		}
-	}
-
-	@container (min-width: 760px) {
-		.grid {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}
 
 	@container (min-width: 1000px) {
 		.grid {
-			grid-template-columns: repeat(4, minmax(0, 1fr));
+			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}
 `;
