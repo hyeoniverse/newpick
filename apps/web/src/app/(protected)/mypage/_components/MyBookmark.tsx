@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import styled from 'styled-components';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { LuBookmark } from 'react-icons/lu';
@@ -9,8 +10,6 @@ import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
-import Card from '@/components/common/Card';
-import Text from '@/components/common/Text';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useBookmarksList, useMoveBookmarksMutation } from '@/hooks/useBookmark';
 import { useFolders } from '@/hooks/useFolders';
@@ -20,6 +19,7 @@ import { getFirstImage } from '@/utils/getFirstImage';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
+import { RichList, Thumb } from './list/RichList';
 
 /** 정렬: 북마크한 순 · 발행일순 · 조회수순 */
 const SORTS: Record<string, { label: string; compare: (a: IBookmarkItem, b: IBookmarkItem) => number }> = {
@@ -120,12 +120,11 @@ function MyBookmark() {
 			{shown.length === 0 ? (
 				<p className="empty">이 조건의 북마크가 없어요.</p>
 			) : (
-				<div className="trend-cards">
+				/* 북마크 하나가 카드 한 장 (내 뉴스레터와 같은 모양). 카드를 끌면 폴더로 */
+				<RichList>
 					{shown.map((bookmark) => (
-						// 카드 속 링크 · 그림을 끌어도 이 칸으로 올라와 폴더로 옮길 수 있게
-						<div
+						<li
 							key={bookmark.id}
-							className="card-drag"
 							draggable
 							onDragStart={(event) => {
 								event.dataTransfer.effectAllowed = 'move';
@@ -133,41 +132,37 @@ function MyBookmark() {
 							}}
 							onDragEnd={() => setDragging(null)}
 						>
-							<Card
-								data={{
-									id: bookmark.id,
-									url: `/articles/detail/${bookmark.id}`,
-									image: `${getFirstImage(bookmark.newsImg)}`,
-									header: bookmark.category.name,
-									main: {
-										title: bookmark.newsTitle,
-										description: bookmark.newsSummary,
-									},
-									footer: (
-										<>
-											<Text color="subText">
-												{dateFormatter(bookmark.newsCreatedAt)}
-												{/* '모든 북마크'에서 어느 폴더인지 */}
-												{folder === 'all' && bookmark.folderId && (
-													<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
-												)}
-											</Text>
-											<div className="right">
-												<FolderMenu
-													className="card-folder"
-													label="폴더"
-													current={bookmark.folderId}
-													onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
-												/>
-												<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
-											</div>
-										</>
-									),
-								}}
-							/>
-						</div>
+							<Link href={`/articles/detail/${bookmark.id}`} className="main" draggable={false}>
+								<Thumb src={getFirstImage(bookmark.newsImg)} alt="" />
+								<span className="body">
+									<span className="kicker">
+										<span className="cat">{bookmark.category.name}</span>
+										<span>{dateFormatter(bookmark.newsCreatedAt)} 발행</span>
+									</span>
+									<span className="title">{bookmark.newsTitle}</span>
+									{bookmark.newsSummary && <span className="summary">{bookmark.newsSummary}</span>}
+									<span className="foot">
+										<span>조회 {bookmark.viewcount.toLocaleString()}</span>
+										<span>{dateFormatter(bookmark.bookmarkedAt)} 북마크</span>
+										{/* '모든 북마크'에서 어느 폴더인지 */}
+										{folder === 'all' && bookmark.folderId && (
+											<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
+										)}
+									</span>
+								</span>
+							</Link>
+							<div className="actions">
+								<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
+								<FolderMenu
+									className="folder-menu-trigger"
+									label="폴더"
+									current={bookmark.folderId}
+									onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
+								/>
+							</div>
+						</li>
 					))}
-				</div>
+				</RichList>
 			)}
 		</MyBookmarkStyled>
 	);
@@ -193,38 +188,6 @@ const MyBookmarkStyled = styled.div`
 		gap: 2rem;
 		width: 100%;
 		height: fit-content;
-	}
-
-	.card-drag {
-		min-width: 0;
-	}
-
-	.right {
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-	}
-
-	/* 카드 아래 '폴더' 글자 단추 */
-	.card-folder .trigger {
-		padding: 0;
-		font: inherit;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-		cursor: pointer;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-			text-decoration: underline;
-		}
-	}
-
-	.folder-tag {
-		margin-left: 0.5rem;
-		padding: 0 0.5rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.surface};
-		font-size: 0.75rem;
 	}
 `;
 
