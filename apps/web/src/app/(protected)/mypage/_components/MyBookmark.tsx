@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
-import { LuBookmark, LuEye } from 'react-icons/lu';
+import { LuBookmark, LuEye, LuScissors } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
@@ -120,7 +120,7 @@ function MyBookmark() {
 			{shown.length === 0 ? (
 				<p className="empty">이 조건의 북마크가 없어요.</p>
 			) : (
-				/* 북마크: 그림이 위에 오는 작은 카드 격자 (글 위주인 메일함과 다르게 모아 둔 기사 모음처럼). 카드를 끌면 폴더로 */
+				/* 북마크: 신문에서 오려 둔 기사처럼 (점선 · 가위, 흑백 사진, 세리프 제목). 카드를 끌면 폴더로 */
 				<ul className="grid">
 					{shown.map((bookmark) => (
 						<li
@@ -132,11 +132,13 @@ function MyBookmark() {
 							}}
 							onDragEnd={() => setDragging(null)}
 						>
+							<LuScissors className="scissors" aria-hidden />
 							<Link href={`/articles/detail/${bookmark.id}`} className="main" draggable={false}>
 								<Thumb src={getFirstImage(bookmark.newsImg)} className="thumb" />
 								<span className="body">
 									<span className="kicker">
 										<span className="cat">{bookmark.category.name}</span>
+										<span className="rule" />
 										<span>{dateFormatter(bookmark.newsCreatedAt)}</span>
 									</span>
 									<span className="title">{bookmark.newsTitle}</span>
@@ -188,32 +190,50 @@ const MyBookmarkStyled = styled.div`
 		gap: 2rem;
 	}
 
-	/* 북마크 카드 격자: 데스크톱 세 줄, 좁으면 두 줄 */
+	/* 오려 둔 기사 격자: 데스크톱 한 줄에 3~4장, 휴대폰 2장 */
 	.grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
-		gap: 1rem;
-		margin: 0;
+		gap: 1.75rem 1.25rem;
+		margin: 0.75rem 0 0;
 		padding: 0;
 		list-style: none;
 
+		/* 오린 종이: 점선 테두리 · 연한 종이 바탕, 왼쪽 위에 가위 */
 		> li {
+			position: relative;
 			display: flex;
 			flex-direction: column;
-			overflow: hidden;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.surface};
-			background: ${({ theme }) => theme.color.background};
+			padding: 0.75rem;
+			border: 1px dashed ${({ theme }) => theme.color.mediumGrey};
+			background: ${({ theme }) => theme.color.surface};
 			transition: border-color 0.15s ease;
 
 			&:hover {
 				border-color: ${({ theme }) => theme.color.primary};
 
-				.title {
+				.scissors {
 					color: ${({ theme }) => theme.color.primary};
+				}
+
+				.thumb img {
+					filter: none;
 				}
 			}
 		}
+	}
+
+	.scissors {
+		position: absolute;
+		top: -0.6875rem;
+		left: 1rem;
+		width: 1.25rem;
+		height: 1.25rem;
+		padding: 0 0.125rem;
+		background: ${({ theme }) => theme.color.background};
+		color: ${({ theme }) => theme.color.mediumGrey};
+		transform: rotate(-90deg);
+		transition: color 0.15s ease;
 	}
 
 	.main {
@@ -222,53 +242,71 @@ const MyBookmarkStyled = styled.div`
 		flex-direction: column;
 		color: inherit;
 		text-decoration: none;
+
+		&:hover .title {
+			text-decoration: underline;
+			text-decoration-thickness: 1px;
+			text-underline-offset: 0.2em;
+		}
 	}
 
-	.thumb {
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+	/* 신문 사진처럼 흑백, 올리면 색이 돌아온다 */
+	.thumb img {
+		filter: grayscale(1) contrast(1.05);
+		transition: filter 0.25s ease;
 	}
 
 	.body {
 		display: flex;
 		flex-direction: column;
-		gap: 0.375rem;
-		padding: 0.875rem 1rem 0.5rem;
+		gap: 0.5rem;
+		padding: 0.75rem 0.125rem 0.5rem;
 	}
 
+	/* 면 이름 ── 날짜 */
 	.kicker {
 		display: flex;
+		align-items: center;
 		gap: 0.5rem;
 		font-size: 0.75rem;
 		color: ${({ theme }) => theme.color.subText};
 		font-variant-numeric: tabular-nums;
 
 		.cat {
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
 			color: ${({ theme }) => theme.color.primary};
+		}
+
+		.rule {
+			flex: 1;
+			height: 1px;
+			background: ${({ theme }) => theme.color.text};
 		}
 	}
 
 	.title {
 		display: -webkit-box;
 		overflow: hidden;
-		-webkit-line-clamp: 2;
+		-webkit-line-clamp: 3;
 		-webkit-box-orient: vertical;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		font-family: var(--font-serif), serif;
+		font-size: 1.0625rem;
+		font-weight: 900;
 		line-height: 1.45;
+		letter-spacing: -0.02em;
 		/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
 		word-break: keep-all;
 		color: ${({ theme }) => theme.color.text};
-		transition: color 0.15s ease;
 	}
 
-	/* 카드 아래: 조회수 · 폴더 이름표 / 폴더 · 북마크 */
+	/* 오린 기사 아래: 조회수 · 폴더 이름표 / 폴더 · 북마크 */
 	.foot {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.5rem;
-		padding: 0.25rem 0.75rem 0.75rem 1rem;
+		padding: 0.5rem 0 0 0.125rem;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
 	}
 
 	.meta {
@@ -323,12 +361,12 @@ const MyBookmarkStyled = styled.div`
 			gap: 0.625rem;
 		}
 
-		.body {
-			padding: 0.625rem 0.75rem 0.375rem;
+		.grid > li {
+			padding: 0.5rem;
 		}
 
-		.foot {
-			padding: 0.125rem 0.5rem 0.5rem 0.75rem;
+		.title {
+			font-size: 0.9375rem;
 		}
 
 		.folder-tag {
