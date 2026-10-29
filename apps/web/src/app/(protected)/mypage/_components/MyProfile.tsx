@@ -159,38 +159,57 @@ const ProfileStyled = styled.div`
 	}
 
 	/* 받은 메일 · 북마크 · 스크랩 수: 숫자 위, 이름 아래. 사이는 얇은 세로줄 */
-	/* 기록 한 줄: 이름은 회색, 수는 굵게, 사이는 가운뎃점. 누르면 그 탭 (hover 때 보라) */
+	/* 기록 세 칸: 연한 회색 바탕 작은 칸에 큰 숫자 + 작은 이름. 누르면 그 탭 (hover 때 보라 테두리) */
 	.summary {
 		display: flex;
 		flex-wrap: wrap;
-		align-items: center;
-		margin: 0.5rem 0 0;
+		gap: 0.5rem;
+		margin: 0.875rem 0 0;
 		padding: 0;
 		list-style: none;
-		font-size: ${({ theme }) => theme.fontSize.small};
-
-		li + li::before {
-			content: '·';
-			margin: 0 0.5rem;
-			color: ${({ theme }) => theme.color.disabled};
-		}
 
 		button {
-			padding: 0;
+			display: inline-flex;
+			align-items: baseline;
+			gap: 0.375rem;
+			padding: 0.5rem 0.875rem;
+			border: 1px solid transparent;
+			border-radius: ${({ theme }) => theme.radius.surface};
+			background: ${({ theme }) => theme.color.surface};
 			font: inherit;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			color: ${({ theme }) => theme.color.subText};
 			cursor: pointer;
+			transition: border-color 0.15s ease;
 
 			strong {
-				margin-left: 0.125rem;
+				order: -1;
+				font-size: ${({ theme }) => theme.fontSize.medium};
 				font-weight: ${({ theme }) => theme.fontWeight.bold};
 				color: ${({ theme }) => theme.color.text};
 				font-variant-numeric: tabular-nums;
 			}
 
-			&:hover,
-			&:hover strong {
+			&:hover {
+				border-color: ${({ theme }) => theme.color.primary};
 				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+	}
+
+	/* 좁은 화면: 세 칸이 한 줄에 들어가게 칸 · 글자를 조금 작게 */
+	@media (max-width: 480px) {
+		.summary {
+			gap: 0.375rem;
+
+			button {
+				gap: 0.25rem;
+				padding: 0.375rem 0.5rem;
+				font-size: 0.75rem;
+
+				strong {
+					font-size: ${({ theme }) => theme.fontSize.small};
+				}
 			}
 		}
 	}

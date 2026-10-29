@@ -206,10 +206,10 @@ const MyBookmarkStyled = styled.div`
 		padding: 0;
 		list-style: none;
 
-		/* 카드 비율 고정(16:9): 화면 너비가 바뀌어도 옆으로만 늘어나지 않고 같은 모양으로 커지고 작아진다 */
+		/* 카드 비율 고정(3:1, 납작하고 길쭉하게): 화면 너비가 바뀌어도 옆으로만 늘어나지 않고 같은 모양으로 커지고 작아진다 */
 		> li {
 			display: flex;
-			aspect-ratio: 16 / 9;
+			aspect-ratio: 3 / 1;
 			/* overflow를 두지 않아야 글이 넘칠 때(글자 크기를 키운 경우 등) 잘리지 않고 카드가 늘어난다. 둥근 모서리는 썸네일 쪽에서 */
 			border: 1px solid ${({ theme }) => theme.color.border};
 			border-radius: ${({ theme }) => theme.radius.surface};
@@ -230,7 +230,8 @@ const MyBookmarkStyled = styled.div`
 	.thumb-link {
 		flex-shrink: 0;
 		display: block;
-		width: 40%;
+		/* 카드 3:1에서 폭의 1/3이면 썸네일이 정사각형 */
+		width: calc(100% / 3);
 		overflow: hidden;
 		border-radius: ${({ theme }) => theme.radius.surface} 0 0 ${({ theme }) => theme.radius.surface};
 		border-right: 1px solid ${({ theme }) => theme.color.border};
@@ -262,7 +263,7 @@ const MyBookmarkStyled = styled.div`
 	.main {
 		flex: 1;
 		display: block;
-		padding: 0.75rem 0.875rem 0;
+		padding: 0.625rem 0.875rem 0;
 		color: inherit;
 		text-decoration: none;
 	}
@@ -289,9 +290,10 @@ const MyBookmarkStyled = styled.div`
 		overflow: hidden;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
-		font-size: ${({ theme }) => theme.fontSize.small};
+		/* 납작한 카드에 두 줄이 들어가게 본문보다 조금 작게 */
+		font-size: 0.9375rem;
 		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		line-height: 1.4;
+		line-height: 1.35;
 		/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
 		word-break: keep-all;
 		color: ${({ theme }) => theme.color.text};
@@ -304,7 +306,7 @@ const MyBookmarkStyled = styled.div`
 		align-items: center;
 		justify-content: space-between;
 		gap: 0.5rem;
-		padding: 0.375rem 0.75rem 0.625rem 0.875rem;
+		padding: 0.25rem 0.75rem 0.5rem 0.875rem;
 	}
 
 	.meta {
@@ -335,18 +337,14 @@ const MyBookmarkStyled = styled.div`
 		${textTools}
 		flex-wrap: nowrap;
 		gap: 0.75rem;
+		/* 북마크 단추(누르는 칸 40px)가 줄 높이를 키우지 않게: 줄은 1.5rem, 단추는 위아래로 넘쳐 누르는 칸은 그대로 */
+		height: 1.5rem;
 	}
 
-	/* 한 줄 칸 수 (카드는 늘 가로형): 목록 너비 640px 이상 2장 · 1000px 이상 3장 */
-	@container (min-width: 640px) {
+	/* 한 줄 칸 수: 카드가 길쭉해 목록 너비 760px 이상 2장, 그 아래 1장 */
+	@container (min-width: 760px) {
 		.grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-	}
-
-	@container (min-width: 1000px) {
-		.grid {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}
 `;
