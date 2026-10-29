@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import styled from 'styled-components';
-import Link from 'next/link';
 import { LuChevronRight, LuMailPlus, LuMail, LuNewspaper, LuStar } from 'react-icons/lu';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
@@ -278,22 +277,12 @@ export default function MySubscribe() {
 									</button>
 								</div>
 							</div>
-							{/* 원래 디자인의 뉴스레터 블록 하나에 메일 한 통: 관심사 › · 메일 제목 · 그림 | 오늘 한눈에 상자 */}
+							{/* 원래 디자인의 뉴스레터 블록 하나에 메일 한 통: 메일 제목 · 그림 | 오늘 한눈에 상자 (메일은 분야를 합쳐 한 통이라 관심사 줄은 없음) */}
 							{(() => {
 								const first = mail.newsletters.find((n) => n.image) ?? mail.newsletters[0];
 								const openMail = () => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' });
-								const categories = [...new Map(mail.newsletters.map((n) => [n.category.id, n.category])).values()];
 								return (
 									<article className="news">
-										<p className="news-category">
-											{categories.map((c, i) => (
-												<Link key={c.id} href={`/articles?categoryId=${c.id}`}>
-													{i > 0 && <span className="dot">·</span>}
-													{c.name}
-												</Link>
-											))}
-											<LuChevronRight aria-hidden />
-										</p>
 										<button type="button" className="news-title" onClick={openMail}>
 											<h3>{mail.subject ?? first?.title}</h3>
 										</button>
@@ -523,34 +512,6 @@ const MySubscribeStyled = styled.div`
 	.news {
 		padding: 2.5rem 0;
 		scroll-margin-top: 6rem;
-	}
-
-	.news-category {
-		display: flex;
-		align-items: center;
-		gap: 0.125rem;
-		margin-bottom: 0.75rem;
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		font-weight: ${({ theme }) => theme.fontWeight.medium};
-		color: ${({ theme }) => theme.color.primary};
-
-		svg {
-			width: 1rem;
-			height: 1rem;
-			transition: transform 0.2s ease;
-		}
-
-		&:hover svg {
-			transform: translateX(0.25rem);
-		}
-
-		a {
-			color: inherit;
-		}
-
-		.dot {
-			margin: 0 0.375rem;
-		}
 	}
 
 	.news-title {
