@@ -314,19 +314,19 @@ export class MyPageService {
       },
     });
 
-    // 받은편지함처럼 메일 제목도 (발송 때와 같은 방식으로 다시 만든다, AI 호출 없음)
-    const subjects = await Promise.all(
+    // 메일 제목 · 짜임새(오늘 한눈에 · 흐름 · 분야별 소식 · 관전 포인트)를 발송 때와 같은 방식으로 다시 엮는다 (AI 호출 없음).
+    // 메일은 사이트 뉴스레터를 그대로 붙인 게 아니라 고른 분야로 다시 엮은 것이라, 목록도 그 짜임새로 보여 준다
+    const digests = await Promise.all(
       sends.map(({ sentAt }) =>
-        this.editionService
-          .rebuildMail(
-            sentAt,
-            archives
-              .filter((a) => a.sentAt.getTime() === sentAt.getTime())
-              .map((a) => a.newsletter.id),
-          )
-          .then((mail) => mail?.subject ?? null),
+        this.editionService.rebuildDigest(
+          sentAt,
+          archives
+            .filter((a) => a.sentAt.getTime() === sentAt.getTime())
+            .map((a) => a.newsletter.id),
+        ),
       ),
     );
+    const subjects = digests.map((d) => d?.subject ?? null);
 
     return {
       total: all.length,
@@ -334,6 +334,24 @@ export class MyPageService {
       items: sends.map(({ sentAt }, i) => ({
         sentAt,
         subject: subjects[i],
+        digest: digests[i] && {
+          top: digests[i].top.map(({ category, heading, line }) => ({
+            category,
+            heading,
+            line,
+          })),
+          threads: digests[i].threads,
+          sections: digests[i].sections.map((s) => ({
+            category: s.category,
+            newsletterId: s.newsletterId,
+            title: s.title,
+            stories: s.stories.map((st) => ({
+              heading: st.story.heading,
+              alsoIn: st.alsoIn,
+            })),
+          })),
+          watch: digests[i].watch,
+        },
         starred: markOf.get(sentAt.getTime())?.starred ?? false,
         folderId: markOf.get(sentAt.getTime())?.folderId ?? null,
         newsletters: archives

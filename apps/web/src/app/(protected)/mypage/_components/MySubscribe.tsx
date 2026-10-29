@@ -48,6 +48,25 @@ interface Mail {
 	newsletters: MailNewsletter[];
 	starred: boolean;
 	folderId: number | null;
+	/** 메일의 짜임새 (발송 때처럼 고른 분야로 다시 엮은 것). 편집본 · 소식이 없으면 null */
+	digest: MailDigest | null;
+}
+
+/** 받은 메일은 사이트 뉴스레터를 그대로 붙인 게 아니라, 그날 편집본으로 고른 분야만 다시 엮은 것 */
+interface MailDigest {
+	/** 오늘 한눈에: 고른 분야 전체에서 중요도 순 */
+	top: { category: string; heading: string; line: string }[];
+	/** 분야를 넘는 흐름 (고른 분야끼리만) */
+	threads: { title: string; text: string; categories: string[] }[];
+	/** 분야별 소식 (같은 사건은 한 번만, 다른 분야에도 실렸으면 alsoIn) */
+	sections: {
+		category: string;
+		newsletterId: number;
+		title: string;
+		stories: { heading: string; alsoIn: string[] }[];
+	}[];
+	/** 관전 포인트 */
+	watch: string[];
 }
 
 interface MailsPage {
@@ -231,18 +250,23 @@ export default function MySubscribe() {
 									{issueDate(mail.sentAt)}
 								</time>
 								{/* 이 메일에 든 뉴스레터로 바로 가기 */}
-								<ul className="issue-nav" aria-label="이 메일의 뉴스레터">
-									{mail.newsletters.map((n) => (
-										<li key={n.id}>
+								<ul className="issue-nav" aria-label="이 메일의 차례">
+									{[
+										...(mail.digest?.top.length ? [{ key: 'top', label: '오늘 한눈에' }] : []),
+										...(mail.digest?.threads.length ? [{ key: 'threads', label: '분야를 넘는 흐름' }] : []),
+										...mail.newsletters.map((n) => ({ key: String(n.id), label: n.category.name })),
+										...(mail.digest?.watch.length ? [{ key: 'watch', label: '관전 포인트' }] : []),
+									].map(({ key, label }) => (
+										<li key={key}>
 											<button
 												type="button"
 												onClick={() =>
 													document
-														.getElementById(`mail-${mail.sentAt}-${n.id}`)
+														.getElementById(`mail-${mail.sentAt}-${key}`)
 														?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 												}
 											>
-												{n.category.name}
+												{label}
 											</button>
 										</li>
 									))}
@@ -276,36 +300,103 @@ export default function MySubscribe() {
 									</button>
 								</div>
 							</div>
-							{mail.newsletters.map((n) => (
-								<article key={n.id} className="news" id={`mail-${mail.sentAt}-${n.id}`}>
-									<Link href={`/articles?categoryId=${n.category.id}`} className="news-category">
-										{n.category.name}
-										<LuChevronRight aria-hidden />
-									</Link>
-									<Link href={`/articles/detail/${n.id}`} className="news-title">
-										<h3>{n.title}</h3>
-									</Link>
-									<div className="news-body">
-										<div className="news-media">
-											<Link href={`/articles/detail/${n.id}`} className="news-image" tabIndex={-1} aria-hidden>
-												{n.image ? (
-													<Image src={n.image} alt="" ratio="wide" borderRadius="medium" priority={false} />
+							{/* 오늘 한눈에: 고른 분야 전체에서 중요한 소식부터 한 줄씩 */}
+							{!!mail.digest?.top.length && (
+								<section className="digest" id={`mail-${mail.sentAt}-top`}>
+									<h3 className="digest-title">오늘 한눈에</h3>
+									<ol className="glance">
+										{mail.digest.top.map((t, i) => (
+											<li key={t.heading}>
+												<span className="glance-no">{String(i + 1).padStart(2, '0')}</span>
+												<div>
+													<p className="glance-head">
+														<span className="glance-cat">{t.category}</span>
+														{t.heading}
+													</p>
+													<p className="glance-line">{t.line}</p>
+												</div>
+											</li>
+										))}
+									</ol>
+								</section>
+							)}
+							{/* 분야를 넘는 흐름: 고른 분야끼리 이어지는 이야기 (있을 때만) */}
+							{!!mail.digest?.threads.length && (
+								<section className="digest" id={`mail-${mail.sentAt}-threads`}>
+									<h3 className="digest-title">분야를 넘는 흐름</h3>
+									{mail.digest.threads.map((t) => (
+										<div key={t.title} className="thread">
+											<p className="thread-title">
+												{t.title} <span className="thread-cats">{t.categories.join(' · ')}</span>
+											</p>
+											<p className="thread-text">{t.text}</p>
+										</div>
+									))}
+								</section>
+							)}
+							{mail.newsletters.map((n) => {
+								// 이 메일에 실린 그 분야 소식 (같은 사건이 다른 분야에 실려 빠졌으면 목록에서도 빠진다)
+								const section = mail.digest?.sections.find((s) => s.newsletterId === n.id);
+								return (
+									<article key={n.id} className="news" id={`mail-${mail.sentAt}-${n.id}`}>
+										<Link href={`/articles?categoryId=${n.category.id}`} className="news-category">
+											{n.category.name}
+											<LuChevronRight aria-hidden />
+										</Link>
+										<Link href={`/articles/detail/${n.id}`} className="news-title">
+											<h3>{n.title}</h3>
+										</Link>
+										<div className="news-body">
+											<div className="news-media">
+												<Link href={`/articles/detail/${n.id}`} className="news-image" tabIndex={-1} aria-hidden>
+													{n.image ? (
+														<Image src={n.image} alt="" ratio="wide" borderRadius="medium" priority={false} />
+													) : (
+														<LuNewspaper />
+													)}
+												</Link>
+												<div className="news-icons">
+													<BookmarkIcon newsId={n.id} newsletterId={n.id} />
+													<LinkCopyIcon id={n.id} />
+												</div>
+											</div>
+											<div className="news-summary">
+												{section?.stories.length ? (
+													<>
+														<strong>이 메일에 실린 소식</strong>
+														<ul className="stories">
+															{section.stories.map((st) => (
+																<li key={st.heading}>
+																	{st.heading}
+																	{st.alsoIn.length > 0 && (
+																		<span className="also-in">{st.alsoIn.join(' · ')}에도 실림</span>
+																	)}
+																</li>
+															))}
+														</ul>
+													</>
 												) : (
-													<LuNewspaper />
+													<>
+														<strong>요약</strong>
+														<p>{n.summary ?? n.subtitle ?? ''}</p>
+													</>
 												)}
-											</Link>
-											<div className="news-icons">
-												<BookmarkIcon newsId={n.id} newsletterId={n.id} />
-												<LinkCopyIcon id={n.id} />
 											</div>
 										</div>
-										<div className="news-summary">
-											<strong>AI 요약</strong>
-											<p>{n.summary ?? n.subtitle ?? ''}</p>
-										</div>
-									</div>
-								</article>
-							))}
+									</article>
+								);
+							})}
+							{/* 관전 포인트: 앞으로 볼 일 (분야 합쳐 겹치는 것 빼고) */}
+							{!!mail.digest?.watch.length && (
+								<section className="digest watch" id={`mail-${mail.sentAt}-watch`}>
+									<h3 className="digest-title">관전 포인트</h3>
+									<ul>
+										{mail.digest.watch.map((w) => (
+											<li key={w}>{w}</li>
+										))}
+									</ul>
+								</section>
+							)}
 						</li>
 					))}
 				</ol>
@@ -416,12 +507,135 @@ const MySubscribeStyled = styled.div`
 		}
 	}
 
+	/* 메일의 짜임새: 오늘 한눈에 · 분야를 넘는 흐름 · 관전 포인트 */
+	.digest {
+		padding: 2rem 0 0.5rem;
+		scroll-margin-top: 6rem;
+
+		&.watch {
+			padding: 1.5rem 0 0;
+			border-top: 1px solid ${({ theme }) => theme.color.border};
+		}
+
+		ul {
+			display: flex;
+			flex-direction: column;
+			gap: 0.375rem;
+			margin: 0;
+			padding-left: 1.25rem;
+			/* 전역 초기화로 빠진 글머리표를 되살린다 */
+			list-style: disc;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			line-height: 1.7;
+			color: ${({ theme }) => theme.color.mediumGrey};
+		}
+	}
+
+	.digest-title {
+		margin: 0 0 1rem;
+		font-size: ${({ theme }) => theme.fontSize.medium};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+	}
+
+	.glance {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		li {
+			display: flex;
+			gap: 0.875rem;
+		}
+
+		p {
+			margin: 0;
+			word-break: keep-all;
+		}
+	}
+
+	/* 소식 번호: 원래 뉴스레터 본문의 번호와 같은 보라 굵은 숫자 */
+	.glance-no {
+		flex-shrink: 0;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		color: ${({ theme }) => theme.color.primary};
+		font-variant-numeric: tabular-nums;
+	}
+
+	.glance-head {
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+	}
+
+	.glance-cat {
+		margin-right: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
+	}
+
+	.glance-line {
+		margin-top: 0.25rem !important;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		line-height: 1.6;
+		color: ${({ theme }) => theme.color.mediumGrey};
+	}
+
+	.thread + .thread {
+		margin-top: 1rem;
+	}
+
+	.thread-title {
+		margin: 0 0 0.25rem;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+	}
+
+	.thread-cats {
+		margin-left: 0.375rem;
+		font-size: 0.75rem;
+		font-weight: ${({ theme }) => theme.fontWeight.regular};
+		color: ${({ theme }) => theme.color.primary};
+	}
+
+	.thread-text {
+		margin: 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		line-height: 1.7;
+		color: ${({ theme }) => theme.color.mediumGrey};
+	}
+
+	/* 오른쪽 상자 안 '이 메일에 실린 소식' 목록 */
+	.stories {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		margin: 0;
+		padding-left: 1.125rem;
+		list-style: disc;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		line-height: 1.6;
+		color: ${({ theme }) => theme.color.text};
+		word-break: keep-all;
+
+		.also-in {
+			margin-left: 0.375rem;
+			font-size: 0.75rem;
+			color: ${({ theme }) => theme.color.subText};
+		}
+	}
+
 	/* 뉴스레터 하나: 관심사 › · 큰 제목 · 그림(+ 북마크 · 링크 복사) | AI 요약 상자, 사이는 가는 줄 */
 	.news {
 		padding: 2.5rem 0;
 		scroll-margin-top: 6rem;
 
-		& + .news {
+		/* 뉴스레터끼리 · 오늘 한눈에 · 흐름 다음은 가는 줄로 나눈다 */
+		& + .news,
+		.digest + & {
 			border-top: 1px solid ${({ theme }) => theme.color.border};
 		}
 	}
