@@ -94,6 +94,11 @@ export class HighlightsPageQueryDto extends PageQueryDto {
   @IsOptional()
   @IsIn(['starred', 'memo'])
   filter?: 'starred' | 'memo';
+
+  /** 정렬: 최근 스크랩순(desc, 기본) · 오래된순(asc) */
+  @IsOptional()
+  @IsIn(['desc', 'asc'])
+  order?: 'desc' | 'asc';
 }
 
 /** 마이페이지 북마크 쪽 (#123): 관심사 · 정렬(북마크한 순 · 발행일순 · 조회수순) */

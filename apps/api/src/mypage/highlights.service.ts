@@ -81,7 +81,7 @@ export class HighlightsService {
   }
 
   /**
-   * 마이페이지 스크랩 한 쪽 (최근 것부터). 폴더 · 보기(중요 · 메모)로 거르고,
+   * 마이페이지 스크랩 한 쪽 (최근 것부터, order=asc면 오래된 것부터). 폴더 · 보기(중요 · 메모)로 거르고,
    * 폴더 줄 · 보기 칩 개수(전체 · 폴더 없음 / 고른 폴더 안의 중요 · 메모)도 같이 준다
    */
   async page(
@@ -91,11 +91,13 @@ export class HighlightsService {
       limit = 30,
       folder,
       filter,
+      order = 'desc',
     }: {
       offset?: number;
       limit?: number;
       folder?: 'none' | number;
       filter?: 'starred' | 'memo';
+      order?: 'desc' | 'asc';
     } = {},
   ) {
     const mine = { userId };
@@ -113,7 +115,7 @@ export class HighlightsService {
       await Promise.all([
         this.prisma.highlight.findMany({
           where,
-          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          orderBy: [{ createdAt: order }, { id: order }],
           skip: offset,
           take: limit,
           select: {

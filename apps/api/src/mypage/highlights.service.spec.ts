@@ -283,4 +283,21 @@ describe('스크랩 · 메모 (#123)', () => {
     // 제목이 이미 있으면 본문을 읽지 않는다
     expect(prisma.newsletter.findMany).not.toHaveBeenCalled();
   });
+
+  it('정렬: 기본은 최근 스크랩순, order=asc면 오래된순 (같은 시각이면 번호 순)', async () => {
+    const prisma = fakePrisma();
+    const service = new HighlightsService(prisma as never);
+    await service.page(7);
+    expect(prisma.highlight.findMany).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      }),
+    );
+    await service.page(7, { order: 'asc' });
+    expect(prisma.highlight.findMany).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      }),
+    );
+  });
 });

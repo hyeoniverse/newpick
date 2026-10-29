@@ -67,6 +67,7 @@ export class MyPageController {
       limit: q.limit,
       folder: folderOf(q.folder),
       filter: q.filter,
+      order: q.order,
     });
   }
 

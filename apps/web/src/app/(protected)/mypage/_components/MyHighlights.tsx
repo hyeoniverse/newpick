@@ -18,7 +18,7 @@ import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
-import ListHead from './list/ListHead';
+import ListHead, { SortSelect } from './list/ListHead';
 import LoadMore from './list/LoadMore';
 import { folderTag, listBox, sourceLine, starToggle, textTools } from './list/styles';
 
@@ -89,7 +89,7 @@ function dayLabel(day: string) {
 		.replace(/\s*\((.)\)$/, ' ($1)');
 }
 
-/** 최근 것부터 온 목록을 스크랩한 날짜별로 (순서 그대로) */
+/** 받은 순서(최근순 · 오래된순) 그대로 스크랩한 날짜별로 묶는다 */
 function byDay(items: Highlight[]) {
 	const groups: { day: string; items: Highlight[] }[] = [];
 	for (const item of items) {
@@ -112,9 +112,12 @@ function byDay(items: Highlight[]) {
 export default function MyHighlights() {
 	const [filter, setFilter] = useState('');
 	const [folder, setFolder] = useState<FolderFilter>('all');
+	// 정렬: 최근 스크랩순(기본) · 오래된순. 날짜별 묶음도 이 순서를 따른다
+	const [order, setOrder] = useState<'desc' | 'asc'>('desc');
 	const filters = new URLSearchParams({
 		...(folder !== 'all' && { folder: String(folder) }),
 		...(filter && { filter }),
+		...(order === 'asc' && { order }),
 	}).toString();
 	const { data, isPending, isError, error, refetch, fetchNextPage, isFetchingNextPage } = useHighlightPages(filters);
 	const items = data?.pages.flatMap((p) => p.items);
@@ -215,6 +218,14 @@ export default function MyHighlights() {
 					]}
 					value={filter}
 					onChange={setFilter}
+				/>
+				<SortSelect
+					value={order}
+					options={[
+						{ value: 'desc', label: '최근 스크랩순' },
+						{ value: 'asc', label: '오래된순' },
+					]}
+					onChange={setOrder}
 				/>
 				<button
 					type="button"
