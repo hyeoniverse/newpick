@@ -68,18 +68,29 @@ const useMarkMail = () => {
 	});
 };
 
-/** 제호 줄 날짜: '2026년 10월 27일 화요일' (한국 시각) */
-const issueDate = (iso: string) =>
+/** '10월 27일 (월) 오전 8:40' (한국 시각) */
+const sentText = (iso: string) =>
 	new Intl.DateTimeFormat('ko-KR', {
 		timeZone: 'Asia/Seoul',
-		year: 'numeric',
 		month: 'long',
 		day: 'numeric',
-		weekday: 'long',
+		weekday: 'short',
+		hour: 'numeric',
+		minute: '2-digit',
 	}).format(new Date(iso));
 
-/** 제목 앞 '10월 27일 뉴픽 · '은 제호 줄과 겹쳐 뺀다 */
-const headline = (subject: string) => subject.replace(/^\d+월 \d+일 뉴픽 · /, '');
+/** 날짜 칸 · 시각에 쓸 조각 (한국 시각): { day: '27', month: '10월', weekday: '화', time: '오전 8:40' } */
+const sentParts = (iso: string) => {
+	const date = new Date(iso);
+	const part = (options: Intl.DateTimeFormatOptions) =>
+		new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', ...options }).format(date);
+	return {
+		day: part({ day: 'numeric' }).replace('일', ''),
+		month: part({ month: 'long' }),
+		weekday: part({ weekday: 'short' }),
+		time: part({ hour: 'numeric', minute: '2-digit' }),
+	};
+};
 
 /** 받은 지 하루가 안 된 메일 (NEW) */
 const isNew = (iso: string) => Date.now() - new Date(iso).getTime() < 24 * 60 * 60 * 1000;
@@ -205,15 +216,12 @@ export default function MySubscribe() {
 			{data.total === 0 ? (
 				<p className="empty">이 조건의 메일이 없어요.</p>
 			) : (
-				/* 신문 지면처럼: 메일 한 통이 한 '호'. 제호 줄(뉴픽 · 제 N호 · 날짜) 아래 세리프 큰 제목, 관심사 · 첫 소식 요약.
-				   누르면 받은 그대로의 메일을 시트로 */
-				<ol className="issues">
-					{data.items.map((mail, index) => {
+				/* 받은편지함: 한 줄이 메일 한 통 (왼쪽 날짜 칸 · 보낸 이 · 제목 · 미리보기). 누르면 받은 그대로의 메일을 시트로 */
+				<ul className="inbox">
+					{data.items.map((mail) => {
 						const first = mail.newsletters[0];
+						const when = sentParts(mail.sentAt);
 						const fresh = isNew(mail.sentAt);
-						// 호수: 받은 메일 중 몇 번째인지 (첫 메일 = 제 1호)
-						const issueNo =
-							order === 'desc' ? data.total - ((page - 1) * PAGE_SIZE + index) : (page - 1) * PAGE_SIZE + index + 1;
 						return (
 							<li
 								key={mail.sentAt}
@@ -226,16 +234,40 @@ export default function MySubscribe() {
 								}}
 								onDragEnd={() => setDragging(null)}
 							>
-								<div className="masthead">
-									<span className="nameplate">뉴픽</span>
-									<span className="no">제 {issueNo}호</span>
-									{fresh && <span className="today">오늘 자</span>}
-									<time dateTime={mail.sentAt}>{issueDate(mail.sentAt)}</time>
-									{/* 줄 단추 안에 단추를 넣지 않게 제호 줄에 따로 */}
+								<button
+									type="button"
+									className="main"
+									onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
+								>
+									{/* 매일 한 통이라 날짜가 곧 메일의 이름: 달력 한 장처럼 */}
+									<span className="date" aria-hidden>
+										<span className="day">{when.day}</span>
+										<span className="mon">
+											{when.month} {when.weekday}
+										</span>
+									</span>
+									<span className="body">
+										<span className="from">
+											<strong>뉴픽</strong>
+											{fresh && <span className="new">NEW</span>}
+											<span className="cats">
+												{[...new Set(mail.newsletters.map((n) => n.category.name))].join(' · ')}
+											</span>
+										</span>
+										<span className="subject">{mail.subject ?? first?.title}</span>
+										{first?.summary && <span className="preview">{first.summary}</span>}
+									</span>
+								</button>
+								{/* 줄 단추 안에 단추를 넣지 않게 옆에 따로 */}
+								<div className="side">
+									<time dateTime={mail.sentAt} title={sentText(mail.sentAt)}>
+										{when.time}
+									</time>
+									{/* '모든 메일'에서 어느 폴더인지 */}
+									{folder === 'all' && mail.folderId && (
+										<span className="folder-tag">{folderName.get(mail.folderId)}</span>
+									)}
 									<span className="actions">
-										{folder === 'all' && mail.folderId && (
-											<span className="folder-tag">{folderName.get(mail.folderId)}</span>
-										)}
 										<FolderMenu
 											className="folder-trigger"
 											label="폴더"
@@ -254,24 +286,10 @@ export default function MySubscribe() {
 										</button>
 									</span>
 								</div>
-								<button
-									type="button"
-									className="main"
-									onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
-								>
-									<span className="headline">{headline(mail.subject ?? first?.title ?? '')}</span>
-									<span className="deck">
-										<span className="section">
-											{[...new Set(mail.newsletters.map((n) => n.category.name))].join(' · ')}
-											<small>{mail.newsletters.length}편</small>
-										</span>
-										{first?.summary && <span className="lead">{first.summary}</span>}
-									</span>
-								</button>
 							</li>
 						);
 					})}
-				</ol>
+				</ul>
 			)}
 			<Pagination
 				className="pagination"
@@ -305,152 +323,162 @@ const MySubscribeStyled = styled.div`
 		margin-top: 0.75rem;
 	}
 
-	/* 신문 지면 목록: 호마다 위 굵은 줄 + 가는 줄(이중선) 제호, 아래 세리프 큰 제목 */
-	.issues {
-		display: flex;
-		flex-direction: column;
-		gap: 2.25rem;
-		margin: 0.5rem 0 0;
+	/* 받은편지함: 테두리 상자 한 장, 메일 사이 구분선 (북마크의 그림 카드와 다르게 글 위주) */
+	.inbox {
+		margin: 0;
 		padding: 0;
 		list-style: none;
-	}
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		overflow: hidden;
 
-	.masthead {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.25rem 0.75rem;
-		padding: 0.5rem 0 0.5rem;
-		border-top: 3px solid ${({ theme }) => theme.color.text};
-		border-bottom: 1px solid ${({ theme }) => theme.color.text};
-		font-size: 0.75rem;
-		color: ${({ theme }) => theme.color.subText};
-		font-variant-numeric: tabular-nums;
-
-		.nameplate {
-			font-family: var(--font-serif), serif;
-			font-size: 1rem;
-			font-weight: 900;
-			letter-spacing: -0.02em;
-			color: ${({ theme }) => theme.color.text};
-		}
-
-		.no {
-			padding-left: 0.75rem;
-			border-left: 1px solid ${({ theme }) => theme.color.border};
-		}
-
-		.today {
-			padding: 0.0625rem 0.5rem;
-			background: ${({ theme }) => theme.color.primary};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: #ffffff;
-		}
-
-		.actions {
+		> li {
 			display: flex;
-			align-items: center;
-			gap: 0.25rem;
-			margin-left: auto;
-		}
-	}
+			align-items: stretch;
+			transition: background 0.15s ease;
 
-	.fresh .masthead {
-		border-top-color: ${({ theme }) => theme.color.primary};
+			& + li {
+				border-top: 1px solid ${({ theme }) => theme.color.border};
+			}
+
+			&:hover {
+				background: ${({ theme }) => theme.color.surface};
+
+				.subject {
+					color: ${({ theme }) => theme.color.primary};
+				}
+			}
+		}
 	}
 
 	.main {
+		flex: 1;
+		min-width: 0;
 		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		width: 100%;
-		padding: 1rem 0 0;
+		align-items: center;
+		gap: 1.25rem;
+		padding: 1.125rem 0 1.125rem 1.25rem;
 		text-align: left;
 		cursor: pointer;
-
-		&:hover .headline {
-			text-decoration: underline;
-			text-decoration-thickness: 1px;
-			text-underline-offset: 0.2em;
-		}
 	}
 
-	.headline {
-		font-family: var(--font-serif), serif;
-		font-size: 1.625rem;
-		font-weight: 900;
-		line-height: 1.3;
-		letter-spacing: -0.02em;
-		word-break: keep-all;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	/* 제목 아래: 왼쪽 면 이름(관심사), 오른쪽 첫 소식 리드 — 세로 가는 줄로 나눔 */
-	.deck {
-		display: flex;
-		gap: 1rem;
-	}
-
-	.section {
+	/* 날짜 칸: 달력 한 장. 오늘 온 메일은 보라로 채움 */
+	.date {
 		flex-shrink: 0;
 		display: flex;
 		flex-direction: column;
-		gap: 0.125rem;
-		width: 5rem;
-		font-size: 0.8125rem;
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		color: ${({ theme }) => theme.color.primary};
+		align-items: center;
+		justify-content: center;
+		width: 3.75rem;
+		height: 3.75rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.background};
 
-		small {
-			font-size: 0.75rem;
-			font-weight: ${({ theme }) => theme.fontWeight.regular};
+		.day {
+			font-size: 1.375rem;
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			line-height: 1.1;
+			color: ${({ theme }) => theme.color.text};
+			font-variant-numeric: tabular-nums;
+		}
+
+		.mon {
+			font-size: 0.6875rem;
 			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 
-	.lead {
-		display: -webkit-box;
-		overflow: hidden;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		padding-left: 1rem;
-		border-left: 1px solid ${({ theme }) => theme.color.border};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		line-height: 1.7;
-		color: ${({ theme }) => theme.color.mediumGrey};
+	.fresh .date {
+		border-color: ${({ theme }) => theme.color.primary};
+		background: ${({ theme }) => theme.color.primary};
+
+		.day,
+		.mon {
+			color: #ffffff;
+		}
 	}
 
-	/* 중요 표시: 꺼지면 회색 빈 별, 켜지면 기본색 꽉 찬 별 (스크랩과 같게) */
-	.star-toggle {
-		display: inline-flex;
+	.body {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.from {
+		display: flex;
 		align-items: center;
-		justify-content: center;
-		width: 1.75rem;
-		height: 1.75rem;
-		color: ${({ theme }) => theme.color.disabled};
-		cursor: pointer;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+		color: ${({ theme }) => theme.color.subText};
 
-		svg {
-			width: 1rem;
-			height: 1rem;
+		strong {
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.text};
 		}
 
-		&:hover {
+		.cats {
 			color: ${({ theme }) => theme.color.primary};
 		}
 
-		&.on {
-			color: ${({ theme }) => theme.color.primary};
-
-			svg {
-				fill: currentColor;
-			}
+		.new {
+			padding: 0.0625rem 0.375rem;
+			border-radius: ${({ theme }) => theme.radius.chip};
+			background: ${({ theme }) => theme.color.primary};
+			font-size: 0.625rem;
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: #ffffff;
 		}
+	}
+
+	.subject,
+	.preview {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+	}
+
+	.subject {
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.text};
+		transition: color 0.15s ease;
+	}
+
+	.preview {
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	/* 오른쪽: 위 받은 시각(· 폴더), 아래 폴더 · 별 */
+	.side {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		justify-content: space-between;
+		gap: 0.25rem;
+		padding: 1rem 1rem 0.75rem 0.75rem;
+
+		time {
+			font-size: 0.75rem;
+			color: ${({ theme }) => theme.color.subText};
+			font-variant-numeric: tabular-nums;
+		}
+	}
+
+	.actions {
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
 	}
 
 	.folder-trigger .trigger {
 		padding: 0.25rem;
 		font: inherit;
+		font-size: 0.75rem;
 		color: ${({ theme }) => theme.color.subText};
 		cursor: pointer;
 
@@ -463,41 +491,68 @@ const MySubscribeStyled = styled.div`
 	.folder-tag {
 		padding: 0 0.5rem;
 		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.chip};
+		background: ${({ theme }) => theme.color.background};
 		font-size: 0.6875rem;
+		color: ${({ theme }) => theme.color.subText};
 	}
 
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		.issues {
-			gap: 1.75rem;
+		.main {
+			gap: 0.875rem;
+			padding: 0.875rem 0 0.875rem 0.875rem;
 		}
 
-		.masthead time {
-			flex-basis: 100%;
-			order: 5;
+		.date {
+			width: 3.25rem;
+			height: 3.25rem;
 		}
 
-		.headline {
-			font-size: 1.3125rem;
-		}
-
-		.deck {
-			flex-direction: column;
-			gap: 0.5rem;
-		}
-
-		.section {
-			flex-direction: row;
-			gap: 0.5rem;
-			width: auto;
-		}
-
-		.lead {
-			padding-left: 0;
-			border-left: none;
-		}
-
+		.preview,
 		.folder-tag {
 			display: none;
+		}
+
+		/* 좁은 화면: 제목을 두 줄까지 (미리보기는 뺌) */
+		.subject {
+			display: -webkit-box;
+			white-space: normal;
+			-webkit-line-clamp: 2;
+			-webkit-box-orient: vertical;
+			line-height: 1.4;
+		}
+
+		.side {
+			padding: 0.875rem 0.625rem 0.5rem 0.25rem;
+		}
+	}
+
+	/* 중요 표시: 꺼지면 회색 빈 별, 켜지면 기본색 꽉 찬 별 (스크랩과 같게) */
+	.star-toggle {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: ${({ theme }) => theme.radius.control};
+		color: ${({ theme }) => theme.color.disabled};
+		cursor: pointer;
+
+		svg {
+			width: 1.125rem;
+			height: 1.125rem;
+		}
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		&.on {
+			color: ${({ theme }) => theme.color.primary};
+
+			svg {
+				fill: currentColor;
+			}
 		}
 	}
 `;
