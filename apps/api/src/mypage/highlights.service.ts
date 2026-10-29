@@ -80,6 +80,73 @@ export class HighlightsService {
     return highlights;
   }
 
+  /**
+   * 마이페이지 스크랩 한 쪽 (최근 것부터). 폴더 · 보기(중요 · 메모)로 거르고,
+   * 폴더 줄 · 보기 칩 개수(전체 · 폴더 없음 / 고른 폴더 안의 중요 · 메모)도 같이 준다
+   */
+  async page(
+    userId: number,
+    {
+      offset = 0,
+      limit = 30,
+      folder,
+      filter,
+    }: {
+      offset?: number;
+      limit?: number;
+      folder?: 'none' | number;
+      filter?: 'starred' | 'memo';
+    } = {},
+  ) {
+    const mine = { userId };
+    const inFolder = {
+      ...mine,
+      ...(folder !== undefined && {
+        folderId: folder === 'none' ? null : folder,
+      }),
+    };
+    const starred = { ...inFolder, starred: true };
+    const memo = { ...inFolder, note: { not: null } };
+    const where =
+      filter === 'starred' ? starred : filter === 'memo' ? memo : inFolder;
+    const [rows, total, all, unfiled, starredCount, memoCount] =
+      await Promise.all([
+        this.prisma.highlight.findMany({
+          where,
+          orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+          skip: offset,
+          take: limit,
+          select: {
+            ...SELECT,
+            newsletter: {
+              select: {
+                title: true,
+                createdAt: true,
+                category: { select: { id: true, name: true } },
+              },
+            },
+          },
+        }),
+        this.prisma.highlight.count({ where }),
+        this.prisma.highlight.count({ where: mine }),
+        this.prisma.highlight.count({ where: { ...mine, folderId: null } }),
+        this.prisma.highlight.count({ where: starred }),
+        this.prisma.highlight.count({ where: memo }),
+      ]);
+    const missing = rows.filter((h) => h.sectionTitle === null);
+    const filled = missing.length
+      ? await this.fillSectionTitles(missing)
+      : new Map<number, string>();
+    return {
+      items: rows.map((h) => ({
+        ...h,
+        sectionTitle: filled.get(h.id) ?? h.sectionTitle,
+      })),
+      total,
+      counts: { all, unfiled, starred: starredCount, memo: memoCount },
+    };
+  }
+
   /** 소식 제목을 본문에서 꺼내 저장 (뉴스레터마다 본문은 한 번만 읽음). id → 제목('' = 없음) */
   private async fillSectionTitles(
     rows: { id: number; newsletterId: number; section: string | null }[],

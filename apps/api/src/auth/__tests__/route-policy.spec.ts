@@ -70,6 +70,8 @@ const EXPECTED: Record<string, Policy> = {
   'DELETE feedback/bookmark': 'auth',
 
   'GET mypage/highlights': 'auth',
+  'GET mypage/highlights/page': 'auth',
+  'GET mypage/bookmarks/page': 'auth',
   'GET mypage/taste': 'auth',
   'POST mypage/highlights': 'auth',
   'POST mypage/highlights/delete': 'auth',

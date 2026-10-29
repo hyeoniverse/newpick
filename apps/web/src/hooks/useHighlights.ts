@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,6 +29,41 @@ export function useHighlights(newsletterId?: number) {
 		queryKey: ['highlights', user?.id, newsletterId ?? 'all'],
 		queryFn: () => apiFetch<Highlight[]>(API_ENDPOINTS.MY.HIGHLIGHTS(newsletterId)),
 		enabled: !!user,
+	});
+}
+
+/** 마이페이지 스크랩 한 쪽 (서버에서 거름) */
+export interface HighlightPage {
+	items: Highlight[];
+	total: number;
+	/** 폴더 줄(전체 · 폴더 없음) · 보기 칩(고른 폴더 안의 중요 · 메모) 개수 */
+	counts: { all: number; unfiled: number; starred: number; memo: number };
+}
+
+/** 한 번에 받는 스크랩 수 */
+export const HIGHLIGHT_PAGE_SIZE = 30;
+
+/**
+ * 마이페이지 스크랩 (#123): 쪽 단위로 받아 '더 보기'로 이어 붙인다.
+ * filters: 'folder=none&filter=starred' 같은 쿼리
+ */
+export function useHighlightPages(filters: string) {
+	const { user } = useAuth();
+	return useInfiniteQuery({
+		queryKey: ['highlights', 'page', user?.id, filters],
+		queryFn: ({ pageParam }) =>
+			apiFetch<HighlightPage>(
+				API_ENDPOINTS.MY.HIGHLIGHTS_PAGE(
+					`offset=${pageParam}&limit=${HIGHLIGHT_PAGE_SIZE}${filters ? `&${filters}` : ''}`,
+				),
+			),
+		initialPageParam: 0,
+		getNextPageParam: (last, pages) => {
+			const loaded = pages.reduce((n, p) => n + p.items.length, 0);
+			return loaded < last.total ? loaded : undefined;
+		},
+		enabled: !!user,
+		placeholderData: (previous) => previous,
 	});
 }
 

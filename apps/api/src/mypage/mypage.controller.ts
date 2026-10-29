@@ -31,12 +31,15 @@ import { HighlightsService } from './highlights.service';
 import { FoldersService } from './folders.service';
 import { TasteService } from '../taste/taste.service';
 import {
+  BookmarksPageQueryDto,
   BulkHighlightsDto,
   CreateHighlightDto,
   DeleteFolderQueryDto,
   DeleteHighlightsDto,
   FolderDto,
+  HighlightsPageQueryDto,
   HighlightsQueryDto,
+  folderOf,
   UpdateHighlightDto,
 } from './dto/highlight.dto';
 
@@ -54,6 +57,17 @@ export class MyPageController {
   @Get('taste')
   async getTaste(@Req() req) {
     return this.tasteService.forUser(this.userIdOf(req));
+  }
+
+  /** 마이페이지 스크랩 한 쪽 (#123): 폴더 · 보기(중요 · 메모)로 거르고 개수도 같이 */
+  @Get('highlights/page')
+  async getHighlightPage(@Req() req, @Query() q: HighlightsPageQueryDto) {
+    return this.highlightsService.page(this.userIdOf(req), {
+      offset: q.offset,
+      limit: q.limit,
+      folder: folderOf(q.folder),
+      filter: q.filter,
+    });
   }
 
   /** 내 스크랩 · 메모 (#123). newsletterId를 주면 그 뉴스레터 것만 */
@@ -139,6 +153,18 @@ export class MyPageController {
   @Get('bookmarks')
   async getBookmarks(@Req() req) {
     return this.myPageService.getBookmarks(this.userIdOf(req));
+  }
+
+  /** 마이페이지 북마크 한 쪽 (#123): 폴더 · 관심사 · 정렬, 개수 · 관심사 칩도 같이 */
+  @Get('bookmarks/page')
+  async getBookmarkPage(@Req() req, @Query() q: BookmarksPageQueryDto) {
+    return this.myPageService.getBookmarkPage(this.userIdOf(req), {
+      offset: q.offset,
+      limit: q.limit,
+      folder: folderOf(q.folder),
+      categoryId: q.categoryId,
+      sort: q.sort,
+    });
   }
 
   /**

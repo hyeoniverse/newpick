@@ -59,6 +59,9 @@ export const API_ENDPOINTS = {
 		/** 회원 탈퇴 (#65) */
 		ACCOUNT: () => `${API_URL}/mypage/account`,
 		/** 스크랩 · 메모 (#123). newsletterId를 주면 그 뉴스레터 것만 */
+		/** 마이페이지 스크랩 · 북마크 한 쪽 (query: offset · limit · folder · filter / categoryId · sort) */
+		HIGHLIGHTS_PAGE: (query: string) => `${API_URL}/mypage/highlights/page?${query}`,
+		BOOKMARKS_PAGE: (query: string) => `${API_URL}/mypage/bookmarks/page?${query}`,
 		HIGHLIGHTS: (newsletterId?: number) =>
 			`${API_URL}/mypage/highlights${newsletterId ? `?newsletterId=${newsletterId}` : ''}`,
 		HIGHLIGHT: (id: number) => `${API_URL}/mypage/highlights/${id}`,

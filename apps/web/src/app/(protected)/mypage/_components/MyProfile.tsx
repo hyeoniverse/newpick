@@ -3,8 +3,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useTab } from '@/hooks/useTab';
-import { useBookmarksList } from '@/hooks/useBookmark';
-import { useHighlights } from '@/hooks/useHighlights';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import styled from 'styled-components';
@@ -22,12 +20,21 @@ function Summary() {
 		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.MAILS(0, 1)),
 		enabled: !!user,
 	});
-	const { data: bookmarks } = useBookmarksList();
-	const { data: highlights } = useHighlights();
+	// 개수만 필요하니 한 개짜리 쪽으로 (목록 전체를 받지 않게)
+	const { data: bookmarks } = useQuery({
+		queryKey: ['bookmarks', 'count', user?.id],
+		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.BOOKMARKS_PAGE('limit=1')),
+		enabled: !!user,
+	});
+	const { data: highlights } = useQuery({
+		queryKey: ['highlights', 'count', user?.id],
+		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.HIGHLIGHTS_PAGE('limit=1')),
+		enabled: !!user,
+	});
 	const items = [
 		{ tab: 'subscriptions', label: '받은 메일', count: mails?.counts.all },
-		{ tab: 'bookmarks', label: '북마크', count: bookmarks?.length },
-		{ tab: 'highlights', label: '스크랩', count: highlights?.length },
+		{ tab: 'bookmarks', label: '북마크', count: bookmarks?.counts.all },
+		{ tab: 'highlights', label: '스크랩', count: highlights?.counts.all },
 	];
 	return (
 		<ul className="summary" aria-label="내 기록">

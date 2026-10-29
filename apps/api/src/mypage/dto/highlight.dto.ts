@@ -9,6 +9,7 @@ import {
   IsOptional,
   IsString,
   Matches,
+  Max,
   MaxLength,
   Min,
   MinLength,
@@ -67,6 +68,54 @@ export class HighlightsQueryDto {
   @Min(1)
   newsletterId?: number;
 }
+
+/** 쪽 단위 목록 공통: 몇 개 건너뛰고 몇 개 (한 번에 50개까지) · 폴더('none' = 폴더 없음) */
+class PageQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(0)
+  offset?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(50)
+  limit?: number;
+
+  @IsOptional()
+  @Matches(/^(none|\d+)$/)
+  folder?: string;
+}
+
+/** 마이페이지 스크랩 쪽 (#123): 보기 = 중요(starred) · 메모(memo) */
+export class HighlightsPageQueryDto extends PageQueryDto {
+  @IsOptional()
+  @IsIn(['starred', 'memo'])
+  filter?: 'starred' | 'memo';
+}
+
+/** 마이페이지 북마크 쪽 (#123): 관심사 · 정렬(북마크한 순 · 발행일순 · 조회수순) */
+export class BookmarksPageQueryDto extends PageQueryDto {
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  categoryId?: number;
+
+  @IsOptional()
+  @IsIn(['bookmarked', 'published', 'views'])
+  sort?: 'bookmarked' | 'published' | 'views';
+}
+
+/** 폴더 쿼리('none' · '12')를 서비스가 쓰는 값으로 */
+export const folderOf = (folder?: string): 'none' | number | undefined =>
+  folder === undefined
+    ? undefined
+    : folder === 'none'
+      ? 'none'
+      : Number(folder);
 
 /** 선택한 스크랩 한꺼번에 바꾸기 (#123): 폴더로 옮기기 · 중요 표시 · 중요 빼기 */
 export class BulkHighlightsDto {

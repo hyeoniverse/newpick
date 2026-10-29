@@ -27,6 +27,7 @@ function fakePrisma(owned = true) {
       delete: jest.fn().mockResolvedValue({}),
       deleteMany: jest.fn().mockResolvedValue({ count: 2 }),
       updateMany: jest.fn().mockResolvedValue({ count: 2 }),
+      count: jest.fn().mockResolvedValue(3),
     },
     $transaction: jest.fn((ops) => Promise.all(ops)),
   };
@@ -247,5 +248,39 @@ describe('스크랩 · 메모 (#123)', () => {
       where: { id: { in: [4] } },
       data: { sectionTitle: '' },
     });
+  });
+
+  it('마이페이지 한 쪽: 폴더 · 보기로 거르고, 중요 · 메모는 고른 폴더 안에서 센다', async () => {
+    const prisma = fakePrisma();
+    prisma.highlight.findMany.mockResolvedValue([
+      { id: 1, newsletterId: 66, section: 'briefing', sectionTitle: '' },
+    ]);
+    const page = await new HighlightsService(prisma as never).page(7, {
+      offset: 30,
+      limit: 30,
+      folder: 9,
+      filter: 'memo',
+    });
+    expect(prisma.highlight.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { userId: 7, folderId: 9, note: { not: null } },
+        skip: 30,
+        take: 30,
+      }),
+    );
+    const counted = prisma.highlight.count.mock.calls.map((c) => c[0].where);
+    expect(counted).toEqual([
+      { userId: 7, folderId: 9, note: { not: null } },
+      { userId: 7 },
+      { userId: 7, folderId: null },
+      { userId: 7, folderId: 9, starred: true },
+      { userId: 7, folderId: 9, note: { not: null } },
+    ]);
+    expect(page).toMatchObject({
+      total: 3,
+      counts: { all: 3, unfiled: 3, starred: 3, memo: 3 },
+    });
+    // 제목이 이미 있으면 본문을 읽지 않는다
+    expect(prisma.newsletter.findMany).not.toHaveBeenCalled();
   });
 });

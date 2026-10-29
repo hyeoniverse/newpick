@@ -10,7 +10,7 @@ import FilterChips from '@/components/common/FilterChips';
 import InputCheck from '@/components/common/InputCheck';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
-import { Highlight, useHighlightMutations, useHighlights } from '@/hooks/useHighlights';
+import { Highlight, useHighlightMutations, useHighlightPages } from '@/hooks/useHighlights';
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/useToast';
 import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
@@ -19,6 +19,7 @@ import MyTaste from './MyTaste';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead from './list/ListHead';
+import LoadMore from './list/LoadMore';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -66,22 +67,23 @@ function asText(items: Highlight[]) {
 		.join('\n\n');
 }
 
-const FILTERS: Record<string, (h: Highlight) => boolean> = {
-	starred: (h) => h.starred,
-	memo: (h) => Boolean(h.note),
-};
-
 /**
  * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
  * 묶지 않고 최근에 스크랩한 것부터 한 줄 목록, 문장마다 위에 출처(관심사 · 뉴스레터 · 소식) 한 줄.
  * 폴더로 정리하고(폴더 줄로 거르기), 문장 아래 원문에서 보기(?hl=번호) · 메모 · 폴더 옮기기 · 지우기, 문장 줄 끝에 중요 표시(별).
  * '선택'으로 골라서 한꺼번에 폴더로 옮기기 · 중요 표시 · 중요 해제 · 복사 · 지우기.
- * 중요 표시한 문장은 지우기 전에 한 번 더 묻는다
+ * 중요 표시한 문장은 지우기 전에 한 번 더 묻는다.
+ * 서버에서 폴더 · 보기로 걸러 한 쪽(30개)씩 받고, 끝의 '더 보기'로 이어 붙인다
  */
 export default function MyHighlights() {
-	const { data, isPending, isError, error, refetch } = useHighlights();
 	const [filter, setFilter] = useState('');
 	const [folder, setFolder] = useState<FolderFilter>('all');
+	const filters = new URLSearchParams({
+		...(folder !== 'all' && { folder: String(folder) }),
+		...(filter && { filter }),
+	}).toString();
+	const { data, isPending, isError, error, refetch, fetchNextPage, isFetchingNextPage } = useHighlightPages(filters);
+	const items = data?.pages.flatMap((p) => p.items);
 	// 끌어서 폴더에 넣기 (데스크톱): 끄는 중인 스크랩 번호들
 	const [dragging, setDragging] = useState<number[] | null>(null);
 	const { data: folders = [] } = useFolders();
@@ -99,16 +101,18 @@ export default function MyHighlights() {
 	const [focused, setFocused] = useState<number | null>(null);
 	useEffect(() => {
 		const target = Number(window.location.hash.match(/^#hl-(\d+)$/)?.[1]);
-		if (!target || !data?.some((h) => h.id === target)) return;
+		if (!target || !items?.some((h) => h.id === target)) return;
 		document.getElementById(`hl-${target}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' });
 		setFocused(target);
 		const timer = window.setTimeout(() => setFocused(null), 2400);
 		return () => window.clearTimeout(timer);
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- 받은 목록이 바뀔 때만 (items는 매번 새 배열)
 	}, [data]);
 
 	if (isPending) return <Skeleton />;
 	if (isError) return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
-	if (data.length === 0) {
+	const first = data.pages[0];
+	if (first.counts.all === 0) {
 		// 스크랩이 없어도 북마크로 모인 주제는 보인다
 		return (
 			<StyledHighlights>
@@ -123,14 +127,12 @@ export default function MyHighlights() {
 		);
 	}
 
-	const inFolder =
-		folder === 'all' ? data : data.filter((h) => (folder === 'none' ? h.folderId === null : h.folderId === folder));
-	// 고른 폴더 안에서 세기
-	const memos = inFolder.filter(FILTERS.memo).length;
-	const stars = inFolder.filter(FILTERS.starred).length;
-	const shown = FILTERS[filter] ? inFolder.filter(FILTERS[filter]) : inFolder;
+	// 서버가 걸러 준 것을 이어 붙인 목록. 중요 · 메모 수는 고른 폴더 안에서 센 것
+	const shown = items ?? [];
+	const { starred: stars, memo: memos } = first.counts;
+	const total = data.pages[data.pages.length - 1].total;
 	const folderName = new Map(folders.map((f) => [f.id, f.name]));
-	const picked = data.filter((h) => selected.has(h.id));
+	const picked = shown.filter((h) => selected.has(h.id));
 	const copy = async () => {
 		try {
 			await navigator.clipboard.writeText(asText(picked));
@@ -160,8 +162,8 @@ export default function MyHighlights() {
 					setFolder(next);
 					setSelected(new Set());
 				}}
-				total={data.length}
-				unfiled={data.filter((h) => h.folderId === null).length}
+				total={first.counts.all}
+				unfiled={first.counts.unfiled}
 				dragging={dragging?.length ?? 0}
 				onDropTo={(folderId) => {
 					if (!dragging) return;
@@ -169,7 +171,7 @@ export default function MyHighlights() {
 					setDragging(null);
 				}}
 			/>
-			<ListHead title="스크랩한 문장" count={inFolder.length}>
+			<ListHead title="스크랩한 문장" count={total}>
 				<FilterChips
 					label="보기"
 					options={[
@@ -224,6 +226,7 @@ export default function MyHighlights() {
 					))}
 				</ul>
 			)}
+			<LoadMore remaining={total - shown.length} loading={isFetchingNextPage} onClick={() => fetchNextPage()} />
 			{/* 고르는 중: 아래에 붙어 따라오는 막대 */}
 			{selecting && (
 				<div className="select-bar" role="region" aria-label="선택한 문장 한꺼번에">

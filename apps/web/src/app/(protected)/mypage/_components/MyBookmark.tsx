@@ -12,34 +12,39 @@ import { errorStateFor, statusOf } from '@/constants/errors';
 import Card from '@/components/common/Card';
 import Text from '@/components/common/Text';
 import { useAuthStore } from '@/stores/useAuthStore';
-import { useBookmarksList, useMoveBookmarksMutation } from '@/hooks/useBookmark';
+import { useBookmarkPages, useMoveBookmarksMutation } from '@/hooks/useBookmark';
 import { useFolders } from '@/hooks/useFolders';
-import { IBookmarkItem } from '@/models/bookmark.model';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
+import LoadMore from './list/LoadMore';
 
-/** 정렬: 북마크한 순 · 발행일순 · 조회수순 */
-const SORTS: Record<string, { label: string; compare: (a: IBookmarkItem, b: IBookmarkItem) => number }> = {
-	bookmarked: { label: '북마크한 순', compare: (a, b) => b.bookmarkedAt.localeCompare(a.bookmarkedAt) },
-	published: { label: '발행일순', compare: (a, b) => b.newsCreatedAt.localeCompare(a.newsCreatedAt) },
-	views: { label: '조회수순', compare: (a, b) => b.viewcount - a.viewcount },
-};
+/** 정렬: 북마크한 순 · 발행일순 · 조회수순 (서버에서 줄 세움) */
+const SORTS = [
+	{ value: 'bookmarked', label: '북마크한 순' },
+	{ value: 'published', label: '발행일순' },
+	{ value: 'views', label: '조회수순' },
+];
 
 /**
  * 마이페이지 북마크 (#123): 폴더(스크랩 · 받은 메일과 같은 폴더) · 관심사 거르기 · 정렬.
- * 목록이 길지 않아 한 번에 받아 화면에서 거르고 줄 세운다. 카드마다 '폴더 옮기기'
+ * 서버에서 거르고 줄 세워 한 쪽(24개)씩 받고, 끝의 '더 보기'로 이어 붙인다. 카드마다 '폴더 옮기기'
  */
 function MyBookmark() {
 	const { user } = useAuthStore();
-	const { data: bookmarks, isPending, isError, error, refetch } = useBookmarksList();
-	const { data: folders = [] } = useFolders();
-	const move = useMoveBookmarksMutation();
 	const [folder, setFolder] = useState<FolderFilter>('all');
 	const [category, setCategory] = useState('');
 	const [sort, setSort] = useState('bookmarked');
+	const filters = new URLSearchParams({
+		...(folder !== 'all' && { folder: String(folder) }),
+		...(category && { categoryId: category }),
+		...(sort !== 'bookmarked' && { sort }),
+	}).toString();
+	const { data, isPending, isError, error, refetch, fetchNextPage, isFetchingNextPage } = useBookmarkPages(filters);
+	const { data: folders = [] } = useFolders();
+	const move = useMoveBookmarksMutation();
 	// 끄는 중인 북마크. 끄는 동안 폴더 줄 · 화면 위 폴더 칸에 놓으면 옮긴다
 	const [dragging, setDragging] = useState<number | null>(null);
 
@@ -58,7 +63,8 @@ function MyBookmark() {
 		return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
 	}
 
-	if (bookmarks.length === 0) {
+	const first = data.pages[0];
+	if (first.counts.all === 0) {
 		return (
 			<EmptyState
 				icon={LuBookmark}
@@ -69,15 +75,8 @@ function MyBookmark() {
 		);
 	}
 
-	const inFolder =
-		folder === 'all'
-			? bookmarks
-			: bookmarks.filter((b) => (folder === 'none' ? b.folderId === null : b.folderId === folder));
-	// 관심사 칩은 북마크에 있는 관심사만
-	const categories = [...new Map(bookmarks.map((b) => [b.category.id, b.category.name])).entries()];
-	const shown = (category ? inFolder.filter((b) => String(b.category.id) === category) : inFolder)
-		.slice()
-		.sort(SORTS[sort].compare);
+	const shown = data.pages.flatMap((p) => p.items);
+	const total = data.pages[data.pages.length - 1].total;
 	const folderName = new Map(folders.map((f) => [f.id, f.name]));
 
 	return (
@@ -88,29 +87,25 @@ function MyBookmark() {
 				allLabel="모든 북마크"
 				value={folder}
 				onChange={setFolder}
-				total={bookmarks.length}
-				unfiled={bookmarks.filter((b) => b.folderId === null).length}
+				total={first.counts.all}
+				unfiled={first.counts.unfiled}
 				dragging={dragging ? 1 : 0}
 				onDropTo={(folderId) => {
 					if (dragging) move.mutate({ newsletterIds: [dragging], folderId });
 					setDragging(null);
 				}}
 			/>
-			<ListHead title="북마크" count={inFolder.length}>
-				<SortSelect
-					value={sort}
-					options={Object.entries(SORTS).map(([value, s]) => ({ value, label: s.label }))}
-					onChange={setSort}
-				/>
+			<ListHead title="북마크" count={total}>
+				<SortSelect value={sort} options={SORTS} onChange={setSort} />
 			</ListHead>
 			{/* 관심사가 둘 이상일 때만 거르기 줄 */}
-			{categories.length > 1 && (
+			{first.categories.length > 1 && (
 				<FilterRow>
 					<FilterChips
 						label="관심사"
 						options={[
 							{ value: '', label: '전체' },
-							...categories.map(([id, name]) => ({ value: String(id), label: name })),
+							...first.categories.map(({ id, name }) => ({ value: String(id), label: name })),
 						]}
 						value={category}
 						onChange={setCategory}
@@ -169,6 +164,7 @@ function MyBookmark() {
 					))}
 				</div>
 			)}
+			<LoadMore remaining={total - shown.length} loading={isFetchingNextPage} onClick={() => fetchNextPage()} />
 		</MyBookmarkStyled>
 	);
 }

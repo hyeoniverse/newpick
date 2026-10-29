@@ -25,8 +25,8 @@ import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 
-/** 한 쪽에 메일 몇 통 */
-const PAGE_SIZE = 5;
+/** 한 쪽에 메일 몇 통 (서버는 20통까지) */
+const PAGE_SIZE = 10;
 
 interface MailNewsletter {
 	id: number;
