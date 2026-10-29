@@ -8,10 +8,11 @@ import API_ENDPOINTS from '@/constants/api';
 import styled from 'styled-components';
 import Imgae from '@/components/common/Image';
 import Text from '@/components/common/Text';
+import { LuChevronRight } from 'react-icons/lu';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
 
-/** 프로필 아래 한눈에: 받은 메일 · 북마크 · 스크랩 수. 누르면 그 탭으로 */
+/** 프로필 아래 한눈에: 받은 메일 · 북마크 · 스크랩 수를 폭 가득 세 칸으로. 누르면 그 탭으로 */
 function Summary() {
 	const { user } = useAuth();
 	const { setActiveTab } = useTab();
@@ -41,8 +42,11 @@ function Summary() {
 			{items.map(({ tab, label, count }) => (
 				<li key={tab}>
 					<button type="button" onClick={() => setActiveTab(tab)}>
+						<span className="label">
+							{label}
+							<LuChevronRight aria-hidden />
+						</span>
 						<strong>{count ?? '–'}</strong>
-						<span>{label}</span>
 					</button>
 				</li>
 			))}
@@ -83,12 +87,12 @@ function Profile() {
 							<Text as="p" color="mediumGrey" className="email">
 								{user.email}
 							</Text>
-							<Summary />
 						</div>
 					</div>
 					<div className="subscribe">
 						<SubscribeToggle />
 					</div>
+					<Summary />
 				</>
 			)}
 		</ProfileStyled>
@@ -152,6 +156,12 @@ const ProfileStyled = styled.div`
 		.profile-text {
 			/* 긴 메일 주소가 좁은 화면(360px) 밖으로 나가 페이지가 옆으로 밀리지 않게 (#17) */
 			min-width: 0;
+			align-self: center;
+
+			> :first-child {
+				font-size: ${({ theme }) => theme.fontSize.large};
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+			}
 
 			p {
 				padding: 0.25rem 0;
@@ -160,44 +170,68 @@ const ProfileStyled = styled.div`
 		}
 	}
 
-	/* 받은 메일 · 북마크 · 스크랩 수: 숫자 위, 이름 아래. 사이는 얇은 세로줄 */
+	/* 받은 메일 · 북마크 · 스크랩 수: 프로필 아래 폭 가득 세 칸 (연한 바탕 · 위아래 줄, 내 뉴스레터의 달 막대와 같은 결).
+	   칸마다 이름 › 위, 큰 숫자 아래. 누르면 그 탭으로 */
 	.summary {
-		display: flex;
-		margin: 0.875rem 0 0;
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		width: 100%;
+		margin: 0;
 		padding: 0;
 		list-style: none;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		background: ${({ theme }) => theme.color.surface};
 
 		li + li {
 			border-left: 1px solid ${({ theme }) => theme.color.border};
-		}
-
-		li:first-child button {
-			padding-left: 0;
 		}
 
 		button {
 			display: flex;
 			flex-direction: column;
 			align-items: flex-start;
-			gap: 0.125rem;
-			padding: 0 1.25rem;
+			gap: 0.375rem;
+			width: 100%;
+			padding: 1rem 1.25rem;
 			cursor: pointer;
+			transition: background-color 0.2s ease;
+
+			.label {
+				display: inline-flex;
+				align-items: center;
+				gap: 0.125rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.mediumGrey};
+
+				svg {
+					width: 0.875rem;
+					height: 0.875rem;
+					color: ${({ theme }) => theme.color.subText};
+					transition: transform 0.2s ease;
+				}
+			}
 
 			strong {
-				font-size: ${({ theme }) => theme.fontSize.medium};
+				font-size: ${({ theme }) => theme.fontSize.extraLarge};
 				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				line-height: 1;
 				color: ${({ theme }) => theme.color.text};
 				font-variant-numeric: tabular-nums;
+				transition: color 0.2s ease;
 			}
 
-			span {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-				color: ${({ theme }) => theme.color.subText};
-			}
+			&:hover {
+				background: ${({ theme }) => theme.color.tertiary};
 
-			&:hover strong,
-			&:hover span {
-				color: ${({ theme }) => theme.color.primary};
+				.label svg {
+					transform: translateX(2px);
+					color: ${({ theme }) => theme.color.primary};
+				}
+
+				strong {
+					color: ${({ theme }) => theme.color.primary};
+				}
 			}
 		}
 	}
@@ -216,6 +250,14 @@ const ProfileStyled = styled.div`
 
 		.subscribe {
 			width: 100%;
+		}
+
+		.summary button {
+			padding: 0.875rem 0.75rem;
+
+			strong {
+				font-size: ${({ theme }) => theme.fontSize.large};
+			}
 		}
 	}
 `;
