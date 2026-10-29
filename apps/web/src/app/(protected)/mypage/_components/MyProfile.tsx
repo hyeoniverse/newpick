@@ -240,6 +240,7 @@ const ProfileStyled = styled.div`
 		.label {
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			color: ${({ theme }) => theme.color.subText};
+			white-space: nowrap;
 		}
 
 		.count {
@@ -264,8 +265,8 @@ const ProfileStyled = styled.div`
 		}
 	}
 
-	/* 휴대폰: 세 칸을 좁게 — 아이콘 위, 이름 · 수 아래 가운데, 화살표는 뺀다 */
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
+	/* 좁은 화면(640px 이하): 한 칸이 좁아 가로로 놓으면 이름이 세로로 꺾이므로 아이콘 위, 이름 · 수 아래 가운데, 화살표는 뺀다 */
+	@media (max-width: 640px) {
 		.summary {
 			gap: 0.5rem;
 

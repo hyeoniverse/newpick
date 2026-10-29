@@ -184,11 +184,13 @@ const MyBookmarkStyled = styled.div`
 		gap: 2rem;
 	}
 
-	/* 북마크 카드 격자: 화면 너비에 맞춰 한 줄 칸 수를 정한다 (테마의 화면 구간 그대로)
-	   PC 4열 · 노트북(1024px 이하) 3열 · 태블릿(768px 이하) 2열 · 휴대폰(425px 이하) 1열 */
+	/* 북마크 카드 격자: 카드 한 장이 약 240px 이상 되게 '목록이 실제로 차지하는 너비'로 열 수를 정한다 (컨테이너 쿼리).
+	   목록 너비 1000px 이상 4열 · 760px 이상 3열 · 520px 이상 2열 · 그보다 좁으면 1열 */
+	container-type: inline-size;
+
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: minmax(0, 1fr);
 		gap: 1rem;
 		margin: 0;
 		padding: 0;
@@ -294,21 +296,21 @@ const MyBookmarkStyled = styled.div`
 		gap: 0.75rem;
 	}
 
-	@media ${({ theme }) => theme.mediaQuery.desktop} {
-		.grid {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-		}
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.tablet} {
+	@container (min-width: 520px) {
 		.grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
 
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
+	@container (min-width: 760px) {
 		.grid {
-			grid-template-columns: minmax(0, 1fr);
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	@container (min-width: 1000px) {
+		.grid {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
 		}
 	}
 `;
