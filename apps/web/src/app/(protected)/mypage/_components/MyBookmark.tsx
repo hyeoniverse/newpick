@@ -20,6 +20,7 @@ import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 import LoadMore from './list/LoadMore';
 import Thumb from './list/Thumb';
+import { folderTag, sourceLine, textTools } from './list/styles';
 
 /** 정렬: 북마크한 순 · 발행일순 · 조회수순 (서버에서 줄 세움) */
 const SORTS = [
@@ -147,8 +148,7 @@ function MyBookmark() {
 								</span>
 								<span className="actions">
 									<FolderMenu
-										className="folder-trigger"
-										label="폴더"
+										label="폴더 옮기기"
 										current={bookmark.folderId}
 										onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
 									/>
@@ -184,10 +184,11 @@ const MyBookmarkStyled = styled.div`
 		gap: 2rem;
 	}
 
-	/* 북마크 카드 격자: 데스크톱 한 줄에 4장, 중간 폭 3장, 휴대폰 2장 */
+	/* 북마크 카드 격자: 카드가 12.5rem(200px)보다 좁아지면 한 줄 칸 수를 줄인다 (넓으면 4장까지).
+	   min을 '한 줄 4장일 때 너비'와 12.5rem 중 큰 값으로 두어, 넓은 화면에서도 5장 이상으로 늘지 않게 */
 	.grid {
 		display: grid;
-		grid-template-columns: repeat(4, minmax(0, 1fr));
+		grid-template-columns: repeat(auto-fill, minmax(max(12.5rem, calc((100% - 3rem) / 4)), 1fr));
 		gap: 1rem;
 		margin: 0;
 		padding: 0;
@@ -231,13 +232,9 @@ const MyBookmarkStyled = styled.div`
 		padding: 0.875rem 1rem 0.5rem;
 	}
 
+	/* 제목 위 작은 줄: 메일 · 스크랩과 같은 모양 (관심사 보라 · 굵게, 날짜 회색) */
 	.kicker {
-		display: flex;
-		gap: 0.5rem;
-		font-size: 0.75rem;
-		color: ${({ theme }) => theme.color.subText};
-		font-variant-numeric: tabular-nums;
-
+		${sourceLine}
 		.cat {
 			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 			color: ${({ theme }) => theme.color.primary};
@@ -272,7 +269,7 @@ const MyBookmarkStyled = styled.div`
 		align-items: center;
 		gap: 0.25rem;
 		min-width: 0;
-		font-size: 0.75rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		color: ${({ theme }) => theme.color.subText};
 		font-variant-numeric: tabular-nums;
 
@@ -283,43 +280,22 @@ const MyBookmarkStyled = styled.div`
 	}
 
 	.folder-tag {
+		${folderTag}
 		margin-left: 0.375rem;
-		padding: 0 0.5rem;
 		overflow: hidden;
 		white-space: nowrap;
 		text-overflow: ellipsis;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
-		font-size: 0.6875rem;
 	}
 
+	/* 카드 아래 글자 단추: 메일 · 스크랩의 글자 단추 줄과 같은 모양 */
 	.actions {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.folder-trigger .trigger {
-		padding: 0.25rem;
-		font: inherit;
-		font-size: 0.75rem;
-		color: ${({ theme }) => theme.color.subText};
-		cursor: pointer;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-			text-decoration: underline;
-		}
-	}
-
-	@media (max-width: 1024px) {
-		.grid {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-		}
+		${textTools}
+		flex-wrap: nowrap;
+		gap: 0.75rem;
 	}
 
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		/* 휴대폰은 작은 카드 두 장 (한 장이면 그림만 너무 크다) */
 		.grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 			gap: 0.625rem;

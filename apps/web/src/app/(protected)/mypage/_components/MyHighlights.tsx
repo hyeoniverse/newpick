@@ -20,6 +20,7 @@ import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead from './list/ListHead';
 import LoadMore from './list/LoadMore';
+import { folderTag, listBox, sourceLine, starToggle, textTools } from './list/styles';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -461,42 +462,13 @@ const StyledHighlights = styled.div`
 
 	/* 스크랩 목록: 카드 한 장 안에 문장마다 구분선 */
 	.list {
-		display: flex;
-		flex-direction: column;
-		margin: 0;
-		padding: 0 1.5rem;
-		list-style: none;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			padding: 0 1rem;
-		}
-
-		> li {
-			padding: 1rem 0;
-		}
-
-		> li + li {
-			border-top: 1px solid ${({ theme }) => theme.color.border};
-		}
+		${listBox}
 	}
 
 	/* 문장 위 출처 한 줄: 관심사 · 뉴스레터 제목 › 01 소식 제목 */
 	.source {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: 0.125rem 0.375rem;
+		${sourceLine}
 		margin: 0 0 0.5rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
-
-		.category {
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			color: ${({ theme }) => theme.color.primary};
-		}
 
 		.newsletter {
 			color: ${({ theme }) => theme.color.text};
@@ -519,12 +491,8 @@ const StyledHighlights = styled.div`
 
 		/* '모든 스크랩'에서 어느 폴더인지 */
 		.folder {
+			${folderTag}
 			margin-left: 0.25rem;
-			padding: 0 0.5rem;
-			border-radius: ${({ theme }) => theme.radius.chip};
-			background: ${({ theme }) => theme.color.surface};
-			font-size: 0.75rem;
-			color: ${({ theme }) => theme.color.subText};
 		}
 
 		/* 뉴스레터 본문의 소식 번호와 같은 모양 */
@@ -579,35 +547,10 @@ const StyledHighlights = styled.div`
 
 	/* 중요 표시 버튼: 꺼지면 회색 빈 별, 켜지면 기본색(보라) 꽉 찬 별 */
 	.star-toggle {
+		${starToggle}
 		grid-area: star;
 		align-self: start;
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
 		margin: -0.25rem -0.375rem 0 0;
-		border-radius: ${({ theme }) => theme.radius.control};
-		color: ${({ theme }) => theme.color.disabled};
-		cursor: pointer;
-
-		svg {
-			width: 1.125rem;
-			height: 1.125rem;
-		}
-
-		&:hover {
-			background: ${({ theme }) => theme.color.surface};
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		&.on {
-			color: ${({ theme }) => theme.color.primary};
-
-			svg {
-				fill: currentColor;
-			}
-		}
 	}
 
 	/* 선택 막대: 목록 아래에 붙어 따라온다 */
@@ -743,27 +686,8 @@ const StyledHighlights = styled.div`
 
 	/* 글자 동작 */
 	.tools {
+		${textTools}
 		grid-area: tools;
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.25rem 1rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-
-		/* 폴더 메뉴 안의 버튼에는 붙지 않게: 바로 아래 것 · 메뉴 단추만 */
-		> a,
-		> button,
-		.trigger {
-			padding: 0;
-			font: inherit;
-			color: ${({ theme }) => theme.color.subText};
-			cursor: pointer;
-
-			&:hover {
-				color: ${({ theme }) => theme.color.primary};
-				text-decoration: underline;
-			}
-		}
 
 		.danger:hover {
 			color: ${({ theme }) => theme.color.error};
