@@ -15,6 +15,7 @@ import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import Pagination from '@/components/common/Pagination';
+import BrandAvatar from '@/components/common/BrandAvatar';
 import FilterChips from '@/components/common/FilterChips';
 import { CATEGORIES } from '@/constants/categories';
 import { errorStateFor, statusOf } from '@/constants/errors';
@@ -78,22 +79,6 @@ const sentText = (iso: string) =>
 		hour: 'numeric',
 		minute: '2-digit',
 	}).format(new Date(iso));
-
-/** 날짜 칸 · 시각에 쓸 조각 (한국 시각): { day: '27', month: '10월', weekday: '화', time: '오전 8:40' } */
-const sentParts = (iso: string) => {
-	const date = new Date(iso);
-	const part = (options: Intl.DateTimeFormatOptions) =>
-		new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', ...options }).format(date);
-	return {
-		day: part({ day: 'numeric' }).replace('일', ''),
-		month: part({ month: 'long' }),
-		weekday: part({ weekday: 'short' }),
-		time: part({ hour: 'numeric', minute: '2-digit' }),
-	};
-};
-
-/** 받은 지 하루가 안 된 메일 (NEW) */
-const isNew = (iso: string) => Date.now() - new Date(iso).getTime() < 24 * 60 * 60 * 1000;
 
 /**
  * 내 뉴스레터: 내가 실제로 받은 메일함 (보낸 시각별 한 통씩, 최신부터). 누르면 받은 그대로의 메일.
@@ -216,79 +201,60 @@ export default function MySubscribe() {
 			{data.total === 0 ? (
 				<p className="empty">이 조건의 메일이 없어요.</p>
 			) : (
-				/* 받은편지함: 한 줄이 메일 한 통 (왼쪽 날짜 칸 · 보낸 이 · 제목 · 미리보기). 누르면 받은 그대로의 메일을 시트로 */
+				/* 받은편지함: 한 줄이 메일 한 통. 누르면 받은 그대로의 메일을 시트로 */
 				<ul className="inbox">
-					{data.items.map((mail) => {
-						const first = mail.newsletters[0];
-						const when = sentParts(mail.sentAt);
-						const fresh = isNew(mail.sentAt);
-						return (
-							<li
-								key={mail.sentAt}
-								className={fresh ? 'fresh' : undefined}
-								draggable
-								onDragStart={(event) => {
-									event.dataTransfer.effectAllowed = 'move';
-									event.dataTransfer.setData('text/plain', mail.subject ?? '');
-									setDragging(mail.sentAt);
-								}}
-								onDragEnd={() => setDragging(null)}
+					{data.items.map((mail) => (
+						<li
+							key={mail.sentAt}
+							draggable
+							onDragStart={(event) => {
+								event.dataTransfer.effectAllowed = 'move';
+								event.dataTransfer.setData('text/plain', mail.subject ?? '');
+								setDragging(mail.sentAt);
+							}}
+							onDragEnd={() => setDragging(null)}
+						>
+							<button
+								type="button"
+								className="mail-row"
+								onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
 							>
-								<button
-									type="button"
-									className="main"
-									onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
-								>
-									{/* 매일 한 통이라 날짜가 곧 메일의 이름: 달력 한 장처럼 */}
-									<span className="date" aria-hidden>
-										<span className="day">{when.day}</span>
-										<span className="mon">
-											{when.month} {when.weekday}
-										</span>
+								<BrandAvatar />
+								<span className="body">
+									<span className="subject">{mail.subject ?? mail.newsletters[0]?.title}</span>
+									<span className="meta">
+										{mail.newsletters.map((n) => n.category.name).join(' · ')} · 뉴스레터 {mail.newsletters.length}편
 									</span>
-									<span className="body">
-										<span className="from">
-											<strong>뉴픽</strong>
-											{fresh && <span className="new">NEW</span>}
-											<span className="cats">
-												{[...new Set(mail.newsletters.map((n) => n.category.name))].join(' · ')}
-											</span>
-										</span>
-										<span className="subject">{mail.subject ?? first?.title}</span>
-										{first?.summary && <span className="preview">{first.summary}</span>}
-									</span>
-								</button>
-								{/* 줄 단추 안에 단추를 넣지 않게 옆에 따로 */}
-								<div className="side">
-									<time dateTime={mail.sentAt} title={sentText(mail.sentAt)}>
-										{when.time}
-									</time>
+								</span>
+								<time className="sent" dateTime={mail.sentAt}>
+									{sentText(mail.sentAt)}
 									{/* '모든 메일'에서 어느 폴더인지 */}
 									{folder === 'all' && mail.folderId && (
 										<span className="folder-tag">{folderName.get(mail.folderId)}</span>
 									)}
-									<span className="actions">
-										<FolderMenu
-											className="folder-trigger"
-											label="폴더"
-											current={mail.folderId}
-											onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
-										/>
-										<button
-											type="button"
-											className={`star-toggle ${mail.starred ? 'on' : ''}`}
-											aria-pressed={mail.starred}
-											aria-label={mail.starred ? '중요 해제' : '중요 표시'}
-											title={mail.starred ? '중요 해제' : '중요 표시'}
-											onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
-										>
-											<LuStar aria-hidden />
-										</button>
-									</span>
-								</div>
-							</li>
-						);
-					})}
+								</time>
+							</button>
+							{/* 줄 단추 안에 단추를 넣지 않게 옆에 따로 */}
+							<div className="actions">
+								<FolderMenu
+									className="mail-folder"
+									label="폴더"
+									current={mail.folderId}
+									onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
+								/>
+								<button
+									type="button"
+									className={`star-toggle ${mail.starred ? 'on' : ''}`}
+									aria-pressed={mail.starred}
+									aria-label={mail.starred ? '중요 해제' : '중요 표시'}
+									title={mail.starred ? '중요 해제' : '중요 표시'}
+									onClick={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
+								>
+									<LuStar aria-hidden />
+								</button>
+							</div>
+						</li>
+					))}
 				</ul>
 			)}
 			<Pagination
@@ -323,207 +289,42 @@ const MySubscribeStyled = styled.div`
 		margin-top: 0.75rem;
 	}
 
-	/* 받은편지함: 테두리 상자 한 장, 메일 사이 구분선 (북마크의 그림 카드와 다르게 글 위주) */
 	.inbox {
 		margin: 0;
 		padding: 0;
 		list-style: none;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		overflow: hidden;
-
-		> li {
-			display: flex;
-			align-items: stretch;
-			transition: background 0.15s ease;
-
-			& + li {
-				border-top: 1px solid ${({ theme }) => theme.color.border};
-			}
-
-			&:hover {
-				background: ${({ theme }) => theme.color.surface};
-
-				.subject {
-					color: ${({ theme }) => theme.color.primary};
-				}
-			}
-		}
+		border-top: 1px solid ${({ theme }) => theme.color.border};
 	}
 
-	.main {
-		flex: 1;
-		min-width: 0;
+	li {
 		display: flex;
 		align-items: center;
-		gap: 1.25rem;
-		padding: 1.125rem 0 1.125rem 1.25rem;
-		text-align: left;
-		cursor: pointer;
-	}
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
 
-	/* 날짜 칸: 달력 한 장. 오늘 온 메일은 보라로 채움 */
-	.date {
-		flex-shrink: 0;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		width: 3.75rem;
-		height: 3.75rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.background};
-
-		.day {
-			font-size: 1.375rem;
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			line-height: 1.1;
-			color: ${({ theme }) => theme.color.text};
-			font-variant-numeric: tabular-nums;
-		}
-
-		.mon {
-			font-size: 0.6875rem;
-			color: ${({ theme }) => theme.color.subText};
-		}
-	}
-
-	.fresh .date {
-		border-color: ${({ theme }) => theme.color.primary};
-		background: ${({ theme }) => theme.color.primary};
-
-		.day,
-		.mon {
-			color: #ffffff;
-		}
-	}
-
-	.body {
-		flex: 1;
-		min-width: 0;
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-
-	.from {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		font-size: 0.75rem;
-		color: ${({ theme }) => theme.color.subText};
-
-		strong {
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.text};
-		}
-
-		.cats {
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		.new {
-			padding: 0.0625rem 0.375rem;
-			border-radius: ${({ theme }) => theme.radius.chip};
-			background: ${({ theme }) => theme.color.primary};
-			font-size: 0.625rem;
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: #ffffff;
-		}
-	}
-
-	.subject,
-	.preview {
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
-
-	.subject {
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.text};
-		transition: color 0.15s ease;
-	}
-
-	.preview {
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	/* 오른쪽: 위 받은 시각(· 폴더), 아래 폴더 · 별 */
-	.side {
-		flex-shrink: 0;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-end;
-		justify-content: space-between;
-		gap: 0.25rem;
-		padding: 1rem 1rem 0.75rem 0.75rem;
-
-		time {
-			font-size: 0.75rem;
-			color: ${({ theme }) => theme.color.subText};
-			font-variant-numeric: tabular-nums;
+		&:hover {
+			background: ${({ theme }) => theme.color.surface};
 		}
 	}
 
 	.actions {
+		flex-shrink: 0;
 		display: flex;
 		align-items: center;
-		gap: 0.25rem;
+		gap: 0.5rem;
+		padding-right: 0.5rem;
 	}
 
-	.folder-trigger .trigger {
+	/* '폴더' 글자 단추 */
+	.mail-folder .trigger {
 		padding: 0.25rem;
 		font: inherit;
-		font-size: 0.75rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		color: ${({ theme }) => theme.color.subText};
 		cursor: pointer;
 
 		&:hover {
 			color: ${({ theme }) => theme.color.primary};
 			text-decoration: underline;
-		}
-	}
-
-	.folder-tag {
-		padding: 0 0.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.background};
-		font-size: 0.6875rem;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		.main {
-			gap: 0.875rem;
-			padding: 0.875rem 0 0.875rem 0.875rem;
-		}
-
-		.date {
-			width: 3.25rem;
-			height: 3.25rem;
-		}
-
-		.preview,
-		.folder-tag {
-			display: none;
-		}
-
-		/* 좁은 화면: 제목을 두 줄까지 (미리보기는 뺌) */
-		.subject {
-			display: -webkit-box;
-			white-space: normal;
-			-webkit-line-clamp: 2;
-			-webkit-box-orient: vertical;
-			line-height: 1.4;
-		}
-
-		.side {
-			padding: 0.875rem 0.625rem 0.5rem 0.25rem;
 		}
 	}
 
@@ -553,6 +354,82 @@ const MySubscribeStyled = styled.div`
 			svg {
 				fill: currentColor;
 			}
+		}
+	}
+
+	.folder-tag {
+		margin-left: 0.5rem;
+		padding: 0 0.5rem;
+		border-radius: ${({ theme }) => theme.radius.chip};
+		background: ${({ theme }) => theme.color.border};
+	}
+
+	/* 받은편지함 한 줄: 보낸 사람 · 제목 · 담긴 관심사 · 받은 시각 */
+	.mail-row {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		flex: 1;
+		/* 긴 제목이 옆 단추(폴더 · 별)를 밀어내지 않게 */
+		min-width: 0;
+		padding: 1.125rem 0.5rem;
+		text-align: left;
+		cursor: pointer;
+
+		&:hover {
+			.subject {
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+	}
+
+	.body {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	.subject {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.text};
+	}
+
+	.meta {
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	.sent {
+		flex-shrink: 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+		font-variant-numeric: tabular-nums;
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		li {
+			align-items: flex-start;
+		}
+
+		.mail-row {
+			flex-wrap: wrap;
+			padding: 1rem 0.25rem;
+		}
+
+		.actions {
+			padding-top: 0.75rem;
+			padding-right: 0;
+		}
+
+		.sent {
+			flex-basis: 100%;
+			padding-left: 3.5rem;
 		}
 	}
 `;
