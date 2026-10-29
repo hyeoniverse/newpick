@@ -159,20 +159,18 @@ const StyeldStartSubscription = styled.div`
 		}
 	}
 
-	/* 관심사 고르기: 얇은 테두리 상자 안에 칩 (목록 탭의 거르기 칩과 같은 모양) */
 	.category-section {
 		display: flex;
 		flex-direction: row;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 1.25rem 1.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
+		gap: 0.875rem;
 		background-color: ${({ theme }) => theme.color.surface};
+		padding: 2rem;
+		border-top: 1px solid ${({ theme }) => theme.color.text};
+		border-bottom: 1px solid ${({ theme }) => theme.color.text};
 
 		.bar {
-			align-self: stretch;
-			border-left: 1px solid ${({ theme }) => theme.color.border};
+			border-left: 1px solid ${({ theme }) => theme.color.lightGrey};
+			height: auto;
 		}
 
 		.categories {
@@ -180,42 +178,19 @@ const StyeldStartSubscription = styled.div`
 			flex-direction: row;
 			flex-wrap: wrap;
 			gap: 0.5rem;
-			margin: 0;
-			padding: 0;
-			list-style: none;
 		}
 
 		.category-btn {
 			width: max-content;
-			height: 2.25rem;
-			padding: 0 1rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
+			color: ${({ theme }) => theme.color.primary};
 			border-radius: ${({ theme }) => theme.radius.chip};
-			background-color: ${({ theme }) => theme.color.background};
-			color: ${({ theme }) => theme.color.text};
-			font-size: ${({ theme }) => theme.fontSize.small};
-
-			&:hover {
-				border-color: ${({ theme }) => theme.color.primary};
-				color: ${({ theme }) => theme.color.primary};
-			}
+			border: 1px solid ${({ theme }) => theme.color.primary};
 		}
 
-		.active,
-		.active:hover {
-			border-color: ${({ theme }) => theme.color.primary};
+		.active {
+			color: ${({ theme }) => theme.color.background};
 			background-color: ${({ theme }) => theme.color.primary};
-			color: #ffffff;
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			flex-direction: column;
-			align-items: flex-start;
-			padding: 1rem;
-
-			.bar {
-				display: none;
-			}
+			border-radius: ${({ theme }) => theme.radius.chip};
 		}
 	}
 
