@@ -18,13 +18,12 @@ import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
-import { CATEGORIES } from '@/constants/categories';
 import { errorStateFor, statusOf } from '@/constants/errors';
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/useToast';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
-import ListHead, { FilterRow, SortSelect } from './list/ListHead';
+import ListHead, { SortSelect } from './list/ListHead';
 
 /** 한 쪽에 메일 몇 통 (서버는 20통까지) */
 const PAGE_SIZE = 5;
@@ -119,7 +118,6 @@ export default function MySubscribe() {
 	const [page, setPage] = useState(1);
 	const [folder, setFolder] = useState<FolderFilter>('all');
 	const [starred, setStarred] = useState(false);
-	const [categoryId, setCategoryId] = useState('');
 	const [order, setOrder] = useState<'desc' | 'asc'>('desc');
 	const { data: folders = [] } = useFolders();
 	const mark = useMarkMail();
@@ -129,7 +127,6 @@ export default function MySubscribe() {
 	const filters = new URLSearchParams({
 		...(starred && { starred: 'true' }),
 		...(folder !== 'all' && { folder: String(folder) }),
-		...(categoryId && { categoryId }),
 		...(order === 'asc' && { order }),
 	}).toString();
 	const { data, isPending, isError, error, refetch } = useQuery({
@@ -214,17 +211,6 @@ export default function MySubscribe() {
 					onChange={refilter(setOrder)}
 				/>
 			</ListHead>
-			<FilterRow>
-				<FilterChips
-					label="관심사"
-					options={[
-						{ value: '', label: '전체' },
-						...CATEGORIES.filter((c) => c.id !== 0).map((c) => ({ value: String(c.id), label: c.name })),
-					]}
-					value={categoryId}
-					onChange={refilter(setCategoryId)}
-				/>
-			</FilterRow>
 			{data.total === 0 ? (
 				<p className="empty">이 조건의 메일이 없어요.</p>
 			) : (
