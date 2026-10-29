@@ -49,7 +49,7 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 		<ModalContents
 			icon={<LuTriangleAlert />}
 			title={`'${folder.name}' 폴더를 지울까요?`}
-			content={`안에 ${inside.join(' · ')}가 있어요.\n어떻게 할지 골라 주세요.`}
+			content={`안에 ${inside.join(' · ')}가 있어요.\n처리 방법을 선택하세요.`}
 			outlineButton="취소"
 			filledButton={contents === 'delete' ? '모두 지우기' : '폴더 지우기'}
 			onCancelClick={onCancel}
