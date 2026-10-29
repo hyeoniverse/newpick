@@ -242,10 +242,14 @@ const StyledInputSelect = styled.div<StyleProps>`
 		}
 	}
 
+	/* 항목 모양은 이 컴포넌트가 다 정한다: 쓰는 화면에 넓은 li 스타일(밑줄 · hover 바탕 등)이 있어도 새어 들지 않게 */
 	.option-item {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		margin: 0;
+		border: none;
+		background: transparent;
 		padding: 0.625rem 0.75rem;
 		border-radius: ${({ theme }) => theme.radius.control};
 		font-size: ${({ theme }) => theme.fontSize.small};
@@ -261,6 +265,10 @@ const StyledInputSelect = styled.div<StyleProps>`
 
 		&.active {
 			background: ${({ theme }) => theme.color.surface};
+		}
+
+		&:hover:not(.active):not(.selected) {
+			background: transparent;
 		}
 
 		&.selected {
