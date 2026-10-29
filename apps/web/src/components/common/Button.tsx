@@ -31,9 +31,17 @@ const Button = ({
 	iconPosition = 'right',
 	...props
 }: Props) => {
-	const textContent = React.Children.toArray(children)
-		.filter((child) => typeof child === 'string')
-		.join(' ');
+	const childList = React.Children.toArray(children);
+	const textContent = childList.filter((child) => typeof child === 'string').join(' ');
+	// 글자만 있는 단추는 hover 때 굵어져도 너비가 그대로이게, 굵은 글자 폭을 미리 잡아 둔다 (.label::after)
+	const label =
+		textContent && childList.every((child) => typeof child === 'string') ? (
+			<span className="label" data-text={textContent}>
+				{children}
+			</span>
+		) : (
+			children
+		);
 
 	return (
 		<StyledButton
@@ -53,7 +61,7 @@ const Button = ({
 		>
 			{isLoading && <LuLoaderCircle className="spinner" aria-hidden />}
 			{icon && iconPosition === 'left' && <span className="icon">{icon}</span>}
-			{children}
+			{label}
 			{icon && iconPosition === 'right' && <span className="icon">{icon}</span>}
 		</StyledButton>
 	);
@@ -130,6 +138,23 @@ export const StyledButton = styled.button.withConfig({
 	.icon {
 		display: inline-flex;
 		align-items: center;
+	}
+
+	/* 보이지 않는 굵은 글자 한 줄(높이 0)이 단추 너비를 hover 때의 굵기로 잡아 둔다 → 굵어져도 움찔하지 않음 */
+	.label {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+
+		&::after {
+			content: attr(data-text);
+			height: 0;
+			overflow: hidden;
+			visibility: hidden;
+			user-select: none;
+			pointer-events: none;
+			font-weight: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].hover.fontWeight ?? 'inherit'};
+		}
 	}
 
 	/* 비활성일 때는 hover 모양을 주지 않는다 */

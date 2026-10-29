@@ -253,8 +253,7 @@ export const lightTheme: Theme = {
 			fontWeight: '500',
 			hover: {
 				color: '#3610e1',
-				// 굵기는 그대로: 굵어지면 글자 폭이 늘어 단추 너비가 움찔거린다
-				fontWeight: '500',
+				fontWeight: '700',
 			},
 		},
 	},
@@ -369,8 +368,7 @@ export const darkTheme: Theme = {
 			fontWeight: '500',
 			hover: {
 				color: '#9ca9ff',
-				// 굵기는 그대로: 굵어지면 글자 폭이 늘어 단추 너비가 움찔거린다
-				fontWeight: '500',
+				fontWeight: '700',
 			},
 		},
 	},
