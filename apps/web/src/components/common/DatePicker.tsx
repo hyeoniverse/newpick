@@ -871,7 +871,7 @@ const StyledTrigger = styled.span`
 		font: inherit;
 		font-variant-numeric: tabular-nums;
 		color: inherit;
-		text-decoration: underline dashed;
+		text-decoration: underline;
 		text-decoration-color: ${({ theme }) => theme.color.lightGrey};
 		text-underline-offset: 0.25em;
 		text-decoration-thickness: 1px;

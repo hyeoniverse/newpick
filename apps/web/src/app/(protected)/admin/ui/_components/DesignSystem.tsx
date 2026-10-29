@@ -705,7 +705,7 @@ const StyledPage = styled.div`
 		hr {
 			width: 100%;
 			border: none;
-			border-top: 1px dashed ${({ theme }) => theme.color.border};
+			border-top: 1px solid ${({ theme }) => theme.color.border};
 		}
 	}
 
@@ -724,7 +724,7 @@ const StyledPage = styled.div`
 	.divider {
 		width: 100%;
 		border: none;
-		border-top: 1px dashed ${({ theme }) => theme.color.border};
+		border-top: 1px solid ${({ theme }) => theme.color.border};
 	}
 
 	.radii {
@@ -758,7 +758,7 @@ const StyledPage = styled.div`
 
 	.error-preview {
 		margin-top: 1rem;
-		border: 1px dashed ${({ theme }) => theme.color.border};
+		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.surface};
 
 		> section {

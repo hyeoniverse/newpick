@@ -15,7 +15,6 @@ import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import Pagination from '@/components/common/Pagination';
-import BrandAvatar from '@/components/common/BrandAvatar';
 import FilterChips from '@/components/common/FilterChips';
 import { CATEGORIES } from '@/constants/categories';
 import { errorStateFor, statusOf } from '@/constants/errors';
@@ -79,6 +78,17 @@ const sentText = (iso: string) =>
 		hour: 'numeric',
 		minute: '2-digit',
 	}).format(new Date(iso));
+
+/** 한국 시각으로 날짜 칸 · 시각에 쓸 조각: { month: '10월', day: '27', time: '(화) 오전 8:40' } */
+const sentParts = (iso: string) => {
+	const part = (options: Intl.DateTimeFormatOptions) =>
+		new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', ...options }).format(new Date(iso));
+	return {
+		month: part({ month: 'long' }),
+		day: part({ day: 'numeric' }).replace('일', ''),
+		time: `(${part({ weekday: 'short' })}) ${part({ hour: 'numeric', minute: '2-digit' })}`,
+	};
+};
 
 /**
  * 내 뉴스레터: 내가 실제로 받은 메일함 (보낸 시각별 한 통씩, 최신부터). 누르면 받은 그대로의 메일.
@@ -219,7 +229,11 @@ export default function MySubscribe() {
 								className="mail-row"
 								onClick={() => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' })}
 							>
-								<BrandAvatar />
+								{/* 메일마다 다른 날짜 칸 (예전 'NP' 동그라미는 줄마다 같아 구별이 안 됐다) */}
+								<span className="date" aria-hidden>
+									<span className="month">{sentParts(mail.sentAt).month}</span>
+									<span className="day">{sentParts(mail.sentAt).day}</span>
+								</span>
 								<span className="body">
 									<span className="subject">{mail.subject ?? mail.newsletters[0]?.title}</span>
 									<span className="meta">
@@ -227,7 +241,8 @@ export default function MySubscribe() {
 									</span>
 								</span>
 								<time className="sent" dateTime={mail.sentAt}>
-									{sentText(mail.sentAt)}
+									<span className="sr-only">{sentText(mail.sentAt)}</span>
+									<span aria-hidden>{sentParts(mail.sentAt).time}</span>
 									{/* '모든 메일'에서 어느 폴더인지 */}
 									{folder === 'all' && mail.folderId && (
 										<span className="folder-tag">{folderName.get(mail.folderId)}</span>
@@ -403,6 +418,41 @@ const MySubscribeStyled = styled.div`
 	.meta {
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		color: ${({ theme }) => theme.color.subText};
+	}
+
+	/* 날짜 칸: 위 달 · 아래 큰 날짜. 줄마다 달라 메일을 날짜로 알아본다 */
+	.date {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		line-height: 1.1;
+
+		.month {
+			font-size: 0.625rem;
+			color: ${({ theme }) => theme.color.subText};
+		}
+
+		.day {
+			font-size: ${({ theme }) => theme.fontSize.small};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.primary};
+			font-variant-numeric: tabular-nums;
+		}
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
 	}
 
 	.sent {

@@ -270,8 +270,10 @@ const StyledFolderBar = styled.div`
 			}
 		}
 
+		/* '새 폴더': 점선 대신 연한 보라 바탕으로 다른 칩과 구분 */
 		&.add {
-			border-style: dashed;
+			border-color: ${({ theme }) => theme.color.tertiary};
+			background: ${({ theme }) => theme.color.tertiary};
 			color: ${({ theme }) => theme.color.primary};
 
 			svg {
@@ -282,7 +284,6 @@ const StyledFolderBar = styled.div`
 
 	/* 끄는 중: 놓을 수 있는 칩 · 마우스가 올라간 칩 */
 	.chip.droppable {
-		border-style: dashed;
 		border-color: ${({ theme }) => theme.color.primary};
 	}
 
@@ -332,7 +333,7 @@ const StyledFolderBar = styled.div`
 			gap: 0.375rem;
 			min-height: 2.75rem;
 			padding: 0 1rem;
-			border: 1px dashed ${({ theme }) => theme.color.primary};
+			border: 1px solid ${({ theme }) => theme.color.primary};
 			border-radius: ${({ theme }) => theme.radius.control};
 			font-size: ${({ theme }) => theme.fontSize.small};
 			color: ${({ theme }) => theme.color.text};
