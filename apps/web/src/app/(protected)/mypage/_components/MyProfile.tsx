@@ -79,8 +79,8 @@ function Profile() {
 						</span>
 						<div className="profile-text">
 							<Text weight="semiBold">{user.username}</Text>
-							{/* 이름 바로 아래, 흐린 회색 대신 본문 색으로 */}
-							<Text as="p" className="email">
+							{/* 이름 바로 아래, 본문 색(text)보다 한 단계 낮은 mediumGrey */}
+							<Text as="p" color="mediumGrey" className="email">
 								{user.email}
 							</Text>
 							<Summary />
