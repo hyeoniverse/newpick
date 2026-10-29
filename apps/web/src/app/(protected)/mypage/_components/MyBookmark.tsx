@@ -1,16 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import styled from 'styled-components';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
-import { LuBookmark } from 'react-icons/lu';
+import { LuBookmark, LuEye } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
-import Card from '@/components/common/Card';
-import Text from '@/components/common/Text';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useBookmarkPages, useMoveBookmarksMutation } from '@/hooks/useBookmark';
 import { useFolders } from '@/hooks/useFolders';
@@ -20,6 +19,7 @@ import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 import LoadMore from './list/LoadMore';
+import Thumb from './list/Thumb';
 
 /** 정렬: 북마크한 순 · 발행일순 · 조회수순 (서버에서 줄 세움) */
 const SORTS = [
@@ -115,12 +115,11 @@ function MyBookmark() {
 			{shown.length === 0 ? (
 				<p className="empty">이 조건의 북마크가 없어요.</p>
 			) : (
-				<div className="trend-cards">
+				/* 북마크: 그림이 위에 오는 작은 카드 격자 (줄 목록인 내 뉴스레터와 다르게 모아 둔 기사 모음처럼, 한 줄에 4장 · 휴대폰 2장). 카드를 끌면 폴더로 */
+				<ul className="grid">
 					{shown.map((bookmark) => (
-						// 카드 속 링크 · 그림을 끌어도 이 칸으로 올라와 폴더로 옮길 수 있게
-						<div
+						<li
 							key={bookmark.id}
-							className="card-drag"
 							draggable
 							onDragStart={(event) => {
 								event.dataTransfer.effectAllowed = 'move';
@@ -128,41 +127,37 @@ function MyBookmark() {
 							}}
 							onDragEnd={() => setDragging(null)}
 						>
-							<Card
-								data={{
-									id: bookmark.id,
-									url: `/articles/detail/${bookmark.id}`,
-									image: `${getFirstImage(bookmark.newsImg)}`,
-									header: bookmark.category.name,
-									main: {
-										title: bookmark.newsTitle,
-										description: bookmark.newsSummary,
-									},
-									footer: (
-										<>
-											<Text color="subText">
-												{dateFormatter(bookmark.newsCreatedAt)}
-												{/* '모든 북마크'에서 어느 폴더인지 */}
-												{folder === 'all' && bookmark.folderId && (
-													<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
-												)}
-											</Text>
-											<div className="right">
-												<FolderMenu
-													className="card-folder"
-													label="폴더"
-													current={bookmark.folderId}
-													onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
-												/>
-												<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
-											</div>
-										</>
-									),
-								}}
-							/>
-						</div>
+							<Link href={`/articles/detail/${bookmark.id}`} className="main" draggable={false}>
+								<Thumb src={getFirstImage(bookmark.newsImg)} className="thumb" />
+								<span className="body">
+									<span className="kicker">
+										<span className="cat">{bookmark.category.name}</span>
+										<span>{dateFormatter(bookmark.newsCreatedAt)}</span>
+									</span>
+									<span className="title">{bookmark.newsTitle}</span>
+								</span>
+							</Link>
+							<div className="foot">
+								<span className="meta">
+									<LuEye aria-hidden /> {bookmark.viewcount.toLocaleString()}
+									{/* '모든 북마크'에서 어느 폴더인지 */}
+									{folder === 'all' && bookmark.folderId && (
+										<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
+									)}
+								</span>
+								<span className="actions">
+									<FolderMenu
+										className="folder-trigger"
+										label="폴더"
+										current={bookmark.folderId}
+										onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
+									/>
+									<BookmarkIcon newsId={bookmark.id} newsletterId={bookmark.id} />
+								</span>
+							</div>
+						</li>
 					))}
-				</div>
+				</ul>
 			)}
 			<LoadMore remaining={total - shown.length} loading={isFetchingNextPage} onClick={() => fetchNextPage()} />
 		</MyBookmarkStyled>
@@ -187,25 +182,128 @@ const MyBookmarkStyled = styled.div`
 		display: grid;
 		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
 		gap: 2rem;
-		width: 100%;
-		height: fit-content;
 	}
 
-	.card-drag {
-		min-width: 0;
+	/* 북마크 카드 격자: 데스크톱 한 줄에 4장, 중간 폭 3장, 휴대폰 2장 */
+	.grid {
+		display: grid;
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		> li {
+			display: flex;
+			flex-direction: column;
+			overflow: hidden;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.surface};
+			background: ${({ theme }) => theme.color.background};
+			transition: border-color 0.15s ease;
+
+			&:hover {
+				border-color: ${({ theme }) => theme.color.primary};
+
+				.title {
+					color: ${({ theme }) => theme.color.primary};
+				}
+			}
+		}
 	}
 
-	.right {
+	.main {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.thumb {
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+	}
+
+	.body {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		padding: 0.875rem 1rem 0.5rem;
+	}
+
+	.kicker {
+		display: flex;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+		color: ${({ theme }) => theme.color.subText};
+		font-variant-numeric: tabular-nums;
+
+		.cat {
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+		}
+	}
+
+	.title {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		line-height: 1.45;
+		/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
+		word-break: keep-all;
+		color: ${({ theme }) => theme.color.text};
+		transition: color 0.15s ease;
+	}
+
+	/* 카드 아래: 조회수 · 폴더 이름표 / 폴더 · 북마크 */
+	.foot {
 		display: flex;
 		align-items: center;
-		gap: 0.75rem;
+		justify-content: space-between;
+		gap: 0.5rem;
+		padding: 0.25rem 0.75rem 0.75rem 1rem;
 	}
 
-	/* 카드 아래 '폴더' 글자 단추 */
-	.card-folder .trigger {
-		padding: 0;
+	.meta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		min-width: 0;
+		font-size: 0.75rem;
+		color: ${({ theme }) => theme.color.subText};
+		font-variant-numeric: tabular-nums;
+
+		svg {
+			width: 0.875rem;
+			height: 0.875rem;
+		}
+	}
+
+	.folder-tag {
+		margin-left: 0.375rem;
+		padding: 0 0.5rem;
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.chip};
+		font-size: 0.6875rem;
+	}
+
+	.actions {
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.folder-trigger .trigger {
+		padding: 0.25rem;
 		font: inherit;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		font-size: 0.75rem;
 		color: ${({ theme }) => theme.color.subText};
 		cursor: pointer;
 
@@ -215,12 +313,29 @@ const MyBookmarkStyled = styled.div`
 		}
 	}
 
-	.folder-tag {
-		margin-left: 0.5rem;
-		padding: 0 0.5rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.surface};
-		font-size: 0.75rem;
+	@media (max-width: 1024px) {
+		.grid {
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+		}
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.grid {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+			gap: 0.625rem;
+		}
+
+		.body {
+			padding: 0.625rem 0.75rem 0.375rem;
+		}
+
+		.foot {
+			padding: 0.125rem 0.5rem 0.5rem 0.75rem;
+		}
+
+		.folder-tag {
+			display: none;
+		}
 	}
 `;
 
