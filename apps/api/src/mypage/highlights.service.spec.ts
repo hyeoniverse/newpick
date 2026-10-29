@@ -28,6 +28,7 @@ function fakePrisma(owned = true) {
       deleteMany: jest.fn().mockResolvedValue({ count: 2 }),
       updateMany: jest.fn().mockResolvedValue({ count: 2 }),
     },
+    $transaction: jest.fn((ops) => Promise.all(ops)),
   };
 }
 
@@ -171,5 +172,80 @@ describe('스크랩 · 메모 (#123)', () => {
       }),
     ).rejects.toMatchObject({ status: 404 });
     expect(prisma.highlight.updateMany).not.toHaveBeenCalled();
+  });
+
+  it('스크랩할 때 소식 제목을 본문에서 한 번 꺼내 저장한다 (브리핑은 빈 글)', async () => {
+    const prisma = fakePrisma();
+    prisma.newsletter.findUnique.mockResolvedValue({
+      id: 66,
+      contentAsHTML:
+        '<article class="story"><h2>코스피 이탈</h2></article><article class="story"><h2>룰라 4선</h2></article>',
+    });
+    const service = new HighlightsService(prisma as never);
+    await service.create(7, {
+      newsletterId: 66,
+      section: 'story-2',
+      text: '문장 하나',
+    });
+    expect(prisma.highlight.upsert.mock.calls[0][0].create).toMatchObject({
+      section: 'story-2',
+      sectionTitle: '룰라 4선',
+    });
+    await service.create(7, {
+      newsletterId: 66,
+      section: 'briefing',
+      text: '문장 둘',
+    });
+    expect(prisma.highlight.upsert.mock.calls[1][0].create.sectionTitle).toBe(
+      '',
+    );
+  });
+
+  it('목록은 꺼내 둔 제목을 쓰고, 없는 것(예전 스크랩 · 본문 고친 뒤)만 본문을 읽어 채운다', async () => {
+    const prisma = fakePrisma();
+    const row = (
+      id: number,
+      sectionTitle: string | null,
+      section = 'story-1',
+    ) => ({
+      id,
+      newsletterId: 66,
+      section,
+      sectionTitle,
+    });
+    prisma.highlight.findMany.mockResolvedValue([
+      row(1, '저장된 제목'),
+      row(2, ''),
+    ]);
+    const service = new HighlightsService(prisma as never);
+    const stored = await service.list(7);
+    expect(stored.map((h) => h.sectionTitle)).toEqual(['저장된 제목', '']);
+    expect(prisma.newsletter.findMany).not.toHaveBeenCalled();
+
+    prisma.highlight.findMany.mockResolvedValue([
+      row(1, '저장된 제목'),
+      row(3, null),
+      row(4, null, 'briefing'),
+    ]);
+    prisma.newsletter.findMany.mockResolvedValue([
+      {
+        id: 66,
+        contentAsHTML: '<article class="story"><h2>새 제목</h2></article>',
+      },
+    ]);
+    const filled = await service.list(7);
+    expect(filled.map((h) => h.sectionTitle)).toEqual([
+      '저장된 제목',
+      '새 제목',
+      '',
+    ]);
+    expect(prisma.highlight.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: [3] } },
+      data: { sectionTitle: '새 제목' },
+    });
+    expect(prisma.highlight.updateMany).toHaveBeenCalledWith({
+      where: { id: { in: [4] } },
+      data: { sectionTitle: '' },
+    });
   });
 });

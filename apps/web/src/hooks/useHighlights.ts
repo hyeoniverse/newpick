@@ -9,7 +9,7 @@ export interface Highlight {
 	id: number;
 	newsletterId: number;
 	section: string | null;
-	/** 소식(story-N)이면 그 소식의 제목 (목록에서만) */
+	/** 소식(story-N)이면 그 소식의 제목 (스크랩할 때 꺼내 둔 것, 빈 글이면 제목 없음) */
 	sectionTitle?: string | null;
 	text: string;
 	note: string | null;

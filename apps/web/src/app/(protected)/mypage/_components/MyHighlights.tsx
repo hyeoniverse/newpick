@@ -25,7 +25,7 @@ function sectionName(highlight: Highlight) {
 	if (highlight.section === 'briefing') return { index: null, name: '에디터 브리핑' };
 	const story = highlight.section?.match(/^story-(\d+)$/);
 	if (!story) return { index: null, name: null };
-	return { index: story[1].padStart(2, '0'), name: highlight.sectionTitle ?? `소식 ${story[1]}` };
+	return { index: story[1].padStart(2, '0'), name: highlight.sectionTitle || `소식 ${story[1]}` };
 }
 
 /** 문장 위 출처 한 줄: 관심사 · 뉴스레터 제목(누르면 그 뉴스레터) › 소식 번호 · 제목 */

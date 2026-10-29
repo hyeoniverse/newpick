@@ -10,7 +10,8 @@ export const normalizeText = (text: string) => text.replace(/\s+/g, ' ').trim();
 
 /**
  * 본문 HTML에서 소식마다 제목 (화면 수집기가 셀 때와 같은 순서: .story 차례). 브리핑 · 구역 모름은 null
- * 마이페이지에서 '소식 2' 대신 그 소식의 제목을 보이려고. 저장하지 않고 읽을 때 꺼내, 본문을 고쳐도 지금 제목이 나온다
+ * 마이페이지에서 '소식 2' 대신 그 소식의 제목을 보이려고. 스크랩할 때 한 번 꺼내 highlights.sectionTitle에 둔다
+ * (본문을 고치면 비워져 다음 목록에서 다시 꺼냄)
  */
 export function sectionTitles(html: string | null) {
   if (!html) return [];
@@ -34,6 +35,7 @@ const SELECT = {
   id: true,
   newsletterId: true,
   section: true,
+  sectionTitle: true,
   text: true,
   note: true,
   starred: true,
@@ -66,21 +68,50 @@ export class HighlightsService {
         },
       },
     });
-    // 소식 제목: 뉴스레터마다 본문을 한 번만 읽는다
-    const ids = [...new Set(highlights.map((h) => h.newsletterId))];
-    const bodies = ids.length
-      ? await this.prisma.newsletter.findMany({
-          where: { id: { in: ids } },
-          select: { id: true, contentAsHTML: true },
-        })
-      : [];
+    // 소식 제목은 꺼내 둔 것을 쓴다. 아직 없는 것(예전 스크랩 · 본문을 고친 뒤)만 본문을 읽어 채워 둔다
+    const missing = highlights.filter((h) => h.sectionTitle === null);
+    if (missing.length) {
+      const filled = await this.fillSectionTitles(missing);
+      return highlights.map((h) => ({
+        ...h,
+        sectionTitle: filled.get(h.id) ?? h.sectionTitle,
+      }));
+    }
+    return highlights;
+  }
+
+  /** 소식 제목을 본문에서 꺼내 저장 (뉴스레터마다 본문은 한 번만 읽음). id → 제목('' = 없음) */
+  private async fillSectionTitles(
+    rows: { id: number; newsletterId: number; section: string | null }[],
+  ) {
+    const ids = [...new Set(rows.map((h) => h.newsletterId))];
+    const bodies = await this.prisma.newsletter.findMany({
+      where: { id: { in: ids } },
+      select: { id: true, contentAsHTML: true },
+    });
     const titles = new Map(
       bodies.map((b) => [b.id, sectionTitles(b.contentAsHTML)]),
     );
-    return highlights.map((h) => ({
-      ...h,
-      sectionTitle: sectionTitle(titles.get(h.newsletterId) ?? [], h.section),
-    }));
+    const filled = new Map(
+      rows.map((h) => [
+        h.id,
+        sectionTitle(titles.get(h.newsletterId) ?? [], h.section) ?? '',
+      ]),
+    );
+    // 같은 제목끼리 묶어 한 번에 저장
+    const byTitle = new Map<string, number[]>();
+    filled.forEach((title, id) =>
+      byTitle.set(title, [...(byTitle.get(title) ?? []), id]),
+    );
+    await this.prisma.$transaction(
+      [...byTitle].map(([title, ids]) =>
+        this.prisma.highlight.updateMany({
+          where: { id: { in: ids } },
+          data: { sectionTitle: title.slice(0, 200) },
+        }),
+      ),
+    );
+    return filled;
   }
 
   async create(userId: number, dto: CreateHighlightDto) {
@@ -88,11 +119,16 @@ export class HighlightsService {
     if (text.length < 2) {
       throw new AppException('BAD_REQUEST', '두 글자 이상 골라 주세요.');
     }
-    const exists = await this.prisma.newsletter.findUnique({
+    const newsletter = await this.prisma.newsletter.findUnique({
       where: { id: dto.newsletterId },
-      select: { id: true },
+      select: { id: true, contentAsHTML: true },
     });
-    if (!exists) throw new AppException('NEWSLETTER_NOT_FOUND');
+    if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
+    // 소식 제목은 지금 한 번 꺼내 둔다 (목록에서 본문을 다시 읽지 않게)
+    const section = dto.section ?? null;
+    const title = (
+      sectionTitle(sectionTitles(newsletter.contentAsHTML), section) ?? ''
+    ).slice(0, 200);
 
     const note = dto.note?.trim() || undefined;
     return this.prisma.highlight.upsert({
@@ -106,7 +142,8 @@ export class HighlightsService {
       create: {
         userId,
         newsletterId: dto.newsletterId,
-        section: dto.section ?? null,
+        section,
+        sectionTitle: title,
         text,
         note: note ?? null,
       },
