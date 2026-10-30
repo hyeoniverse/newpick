@@ -388,6 +388,8 @@ const NewsletterContentStyled = styled.article`
 
 			.claim {
 				flex: 1 1 16rem;
+				/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
+				word-break: keep-all;
 				color: ${({ theme }) => theme.color.mediumGrey};
 			}
 
