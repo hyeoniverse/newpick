@@ -22,7 +22,7 @@ export function authCookieOptions(maxAge?: number): CookieOptions {
 /**
  * 로그인 여부만 알려 주는 표시 쿠키. 토큰이 아니며 스크립트에서 읽을 수 있습니다.
  * 프론트가 정적 페이지에서 첫 화면을 그리기 전에 로그인 상태를 알 수 있도록 씁니다.
- * refresh token과 함께 발급되고 함께 만료됩니다.
+ * refresh token과 함께 발급되고 함께 만료됩니다 (갱신할 때 함께 연장).
  */
 export const SESSION_HINT_COOKIE = 'logged_in';
 
@@ -30,5 +30,11 @@ export function sessionHintCookieOptions(maxAge?: number): CookieOptions {
   return { ...authCookieOptions(maxAge), httpOnly: false };
 }
 
-export const ACCESS_TOKEN_MAX_AGE = 3 * 60 * 60 * 1000; // 3시간
-export const REFRESH_TOKEN_MAX_AGE = 12 * 60 * 60 * 1000; // 12시간
+/** 짧게: 다른 기기를 로그아웃시키면 그 기기는 늦어도 이만큼 뒤에 풀린다 (갱신은 쓰는 동안 조용히) */
+/** 다른 Google 계정으로 바꾸는 중 (누가 바꾸는지, 10분): 돌아온 콜백이 새 로그인이 아니라 연결 바꾸기로 처리 */
+export const GOOGLE_LINK_COOKIE = 'google_link';
+export const GOOGLE_LINK_MAX_AGE = 10 * 60 * 1000;
+
+export const ACCESS_TOKEN_MAX_AGE = 30 * 60 * 1000;
+/** 로그인 유지: 갱신할 때마다 다시 30일. 30일 동안 한 번도 안 들어오면 다시 로그인 */
+export const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60 * 1000;

@@ -44,3 +44,44 @@ export const deleteAccount = async (): Promise<void> => {
 export const logoutUser = async (): Promise<void> => {
 	await apiFetch(API_ENDPOINTS.AUTH.LOGOUT(), { method: 'POST', retryOnUnauthorized: false });
 };
+
+/** 로그인한 기기 한 대 (current: 지금 이 브라우저) */
+export interface LoginSession {
+	id: number;
+	userAgent: string | null;
+	createdAt: string;
+	lastUsedAt: string;
+	current: boolean;
+}
+
+export const fetchSessions = () => apiFetch<LoginSession[]>(API_ENDPOINTS.AUTH.SESSIONS());
+
+export const logoutSession = async (id: number): Promise<void> => {
+	await apiFetch(API_ENDPOINTS.AUTH.SESSION(id), { method: 'DELETE' });
+};
+
+export const logoutOtherSessions = () =>
+	apiFetch<{ removed: number }>(API_ENDPOINTS.AUTH.LOGOUT_OTHERS(), { method: 'POST' });
+
+/**
+ * 다른 Google 계정으로 바꾸기: 구글 계정 고르기로 이동했다가 마이페이지 설정(?google=…)으로 돌아온다.
+ * 이 주소는 브라우저가 직접 열어 401이면 갱신해 줄 곳이 없으므로, 먼저 로그인 상태를 확인(필요하면 갱신)한다
+ */
+export const linkGoogleAccount = async (): Promise<void> => {
+	await apiFetch(API_ENDPOINTS.MY.PROFILE());
+	window.location.href = API_ENDPOINTS.AUTH.GOOGLE_LINK();
+};
+
+/** 이메일 바꾸기 1단계: 새 주소로 6자리 코드 */
+export const sendEmailCode = (email: string) =>
+	apiFetch<{ email: string; expiresAt: string; resendAfter: string }>(API_ENDPOINTS.MY.EMAIL_CODE(), {
+		method: 'POST',
+		body: { email },
+	});
+
+/** 이메일 바꾸기 2단계: 코드가 맞으면 바뀐 주소 */
+export const verifyEmailCode = (code: string) =>
+	apiFetch<{ email: string }>(API_ENDPOINTS.MY.EMAIL_VERIFY(), {
+		method: 'POST',
+		body: { code },
+	});

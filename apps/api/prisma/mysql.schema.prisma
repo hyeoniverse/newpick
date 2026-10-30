@@ -11,6 +11,8 @@ datasource db {
 model User {
   id                      Int      @id @default(autoincrement())
   email                   String   @unique
+  /// Google 계정 고유 ID. 로그인은 이것으로 찾는다 (이메일을 바꿔도 같은 계정). 예전 사용자는 다음 로그인 때 채운다
+  googleSub               String?  @unique @db.VarChar(64)
   username                String?
   profileImg              String?
   timezone                String   @default("UTC")
@@ -27,6 +29,7 @@ model User {
   interests   UserInterest[]
   oAuthTokens OAuthToken[]
   subscribers Subscriber[]
+  emailChange EmailChange?
 
   @@map("users")
 }
@@ -45,16 +48,40 @@ model Subscriber {
 }
 
 // OAuthToken 모델
+/// 로그인 세션: 기기(브라우저)마다 한 줄 (마이페이지에서 보고 따로 로그아웃). refresh token은 원문 대신 SHA-256만 둔다.
+/// 갱신할 때마다 새 토큰으로 바꾸고(rotation) 만료를 미룬다. 바로 전 토큰도 잠깐(동시에 갱신한 다른 탭) 받는다
 model OAuthToken {
-  id           Int      @id @default(autoincrement())
-  userId       Int      @unique
-  refreshToken String   @db.Text
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
+  id         Int       @id @default(autoincrement())
+  userId     Int
+  tokenHash  String    @unique @db.Char(64)
+  prevHash   String?   @db.Char(64)
+  rotatedAt  DateTime?
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  /// 로그인한 브라우저 (마이페이지 '로그인한 기기'에 보여 줌)
+  userAgent  String?   @db.VarChar(255)
+  /// 마지막으로 토큰을 갱신한 때 (access token이 3시간이라 그 정도 단위)
+  lastUsedAt DateTime  @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@index([userId])
+  @@index([prevHash])
   @@map("oauth_tokens")
+}
+
+/// 이메일 바꾸기 진행 중: 새 주소로 보낸 인증 코드 (사용자마다 하나, 코드는 SHA-256만)
+model EmailChange {
+  userId    Int      @id
+  newEmail  String
+  codeHash  String   @db.Char(64)
+  attempts  Int      @default(0)
+  sentAt    DateTime @default(now())
+  expiresAt DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_changes")
 }
 
 // Newsletter 모델
