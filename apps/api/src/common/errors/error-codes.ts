@@ -143,6 +143,27 @@ export const ERROR_CODES = {
     status: HttpStatus.BAD_REQUEST,
     message: '관심 분야를 다시 골라 주세요.',
   },
+  EMAIL_UNCHANGED: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '지금 쓰는 이메일과 같습니다.',
+  },
+  EMAIL_TAKEN: {
+    status: HttpStatus.CONFLICT,
+    message: '다른 계정이 쓰는 이메일입니다.',
+  },
+  EMAIL_CODE_TOO_SOON: {
+    status: HttpStatus.TOO_MANY_REQUESTS,
+    message:
+      '인증 코드는 1분에 한 번 보낼 수 있습니다. 잠시 뒤 다시 보내 주세요.',
+  },
+  EMAIL_CODE_INVALID: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '인증 코드가 맞지 않습니다.',
+  },
+  EMAIL_CODE_EXPIRED: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '인증 코드가 만료되었습니다. 코드를 다시 받아 주세요.',
+  },
 } as const satisfies Record<string, { status: HttpStatus; message: string }>;
 
 export type ErrorCode = keyof typeof ERROR_CODES;

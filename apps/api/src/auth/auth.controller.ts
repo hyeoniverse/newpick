@@ -1,4 +1,14 @@
-import { Controller, Get, Req, Post, Res, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Delete,
+  Get,
+  Param,
+  ParseIntPipe,
+  Req,
+  Post,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
@@ -46,11 +56,12 @@ export class AuthController {
     if (!user) return res.redirect(loginFailedUrl());
 
     const accessToken = await this.authService.generateAccessToken(user.id);
-    const refreshToken = await this.authService.generateRefreshToken(user.id);
+    // 이 기기의 세션 (다른 기기에서 로그인한 것은 그대로 둔다)
+    const refreshToken = await this.authService.createSession(
+      user.id,
+      req.headers['user-agent'],
+    );
 
-    await this.authService.storeRefreshToken(user.id, refreshToken);
-
-    // Refresh Token을 한 번만 설정
     res.cookie(
       'access_token',
       accessToken,
@@ -74,8 +85,8 @@ export class AuthController {
   }
 
   /**
-   * Refresh Token을 사용하여 새로운 Access Token 발급
-   * authGuard를 제거하여 만료된 Access Token도 허용
+   * Refresh Token으로 새 Access Token 발급. authGuard가 없어 만료된 Access Token도 허용.
+   * refresh token도 새것으로 바꾸고(rotation) 30일을 다시 센다 → 쓰는 동안은 로그인이 풀리지 않는다
    */
   @Public()
   @Get('refresh')
@@ -91,16 +102,12 @@ export class AuthController {
     if (!refreshToken) throw expired();
 
     try {
-      const userId =
-        await this.authService.verifyAndDecodeRefreshToken(refreshToken);
-      if (!userId) throw expired();
-
-      // Refresh Token이 DB에 저장된 것과 일치하는지 확인
-      const isTokenValid = await this.authService.verifyRefreshToken(
-        userId,
+      const session = await this.authService.rotateSession(
         refreshToken,
+        req.headers['user-agent'],
       );
-      if (!isTokenValid) throw expired();
+      if (!session) throw expired();
+      const { userId } = session;
 
       const newAccessToken = await this.authService.generateAccessToken(userId);
 
@@ -109,6 +116,15 @@ export class AuthController {
         newAccessToken,
         authCookieOptions(ACCESS_TOKEN_MAX_AGE),
       );
+
+      // 바로 전 토큰으로 온 늦은 탭이면 새 refresh token은 먼저 온 응답이 이미 내려 줬다
+      if (session.refreshToken) {
+        res.cookie(
+          'refresh_token',
+          session.refreshToken,
+          authCookieOptions(REFRESH_TOKEN_MAX_AGE),
+        );
+      }
 
       res.cookie(
         SESSION_HINT_COOKIE,
@@ -130,8 +146,8 @@ export class AuthController {
     const user = req.user as { id: number };
     if (!user?.id) throw new AppException('UNAUTHORIZED');
 
-    // Refresh Token을 DB에서 완전히 삭제 (실패하면 ApiExceptionFilter가 500으로 기록·응답)
-    await this.authService.removeRefreshToken(user.id);
+    // 이 기기의 세션만 지운다 (다른 기기 로그인은 그대로. 실패하면 ApiExceptionFilter가 500으로 기록·응답)
+    await this.authService.removeSession(req.cookies['refresh_token']);
 
     // 쿠키 완전 삭제
     res.clearCookie('access_token', authCookieOptions());
@@ -141,5 +157,39 @@ export class AuthController {
     res.clearCookie(SESSION_HINT_COOKIE, sessionHintCookieOptions());
 
     return res.status(200).json({ message: 'Logged out successfully' });
+  }
+
+  /** 마이페이지 '로그인한 기기': 지금 이 기기가 맨 위(current) */
+  @Get('sessions')
+  async sessions(@Req() req: Request) {
+    const { id } = req.user as { id: number };
+    return this.authService.listSessions(id, req.cookies['refresh_token']);
+  }
+
+  /** 이 기기만 남기고 모두 로그아웃 */
+  @Post('sessions/logout-others')
+  async logoutOthers(@Req() req: Request) {
+    const { id } = req.user as { id: number };
+    const removed = await this.authService.removeOtherSessions(
+      id,
+      req.cookies['refresh_token'],
+    );
+    return { removed };
+  }
+
+  /** 다른 기기 하나 로그아웃. 그 기기는 access token이 끝나는(최대 30분) 대로 로그인이 풀린다 */
+  @Delete('sessions/:id')
+  async removeSession(
+    @Req() req: Request,
+    @Param('id', ParseIntPipe) sessionId: number,
+  ) {
+    const { id } = req.user as { id: number };
+    const removed = await this.authService.removeSessionById(
+      id,
+      sessionId,
+      req.cookies['refresh_token'],
+    );
+    if (!removed) throw new AppException('NOT_FOUND');
+    return { removed };
   }
 }
