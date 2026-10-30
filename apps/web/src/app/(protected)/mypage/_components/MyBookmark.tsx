@@ -20,7 +20,7 @@ import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 import LoadMore from './list/LoadMore';
 import Thumb from './list/Thumb';
-import { folderTag, sourceLine, textTools } from './list/styles';
+import { sourceLine, textTools } from './list/styles';
 
 /** 정렬: 북마크한 순 · 발행일순 · 조회수순 (서버에서 줄 세움) */
 const SORTS = [
@@ -142,6 +142,7 @@ function MyBookmark() {
 								<Link href={`/articles/detail/${bookmark.id}`} className="main" draggable={false}>
 									<span className="body">
 										<span className="kicker">
+											{/* 관심사: 메일 · 스크랩 블록의 관심사 칩과 같은 모양 */}
 											<span className="cat">{bookmark.category.name}</span>
 											<span>{dateFormatter(bookmark.newsCreatedAt)}</span>
 										</span>
@@ -151,14 +152,13 @@ function MyBookmark() {
 								<div className="foot">
 									<span className="meta">
 										<LuEye aria-hidden /> {bookmark.viewcount.toLocaleString()}
-										{/* '모든 북마크'에서 어느 폴더인지 */}
-										{folder === 'all' && bookmark.folderId && (
-											<span className="folder-tag">{folderName.get(bookmark.folderId)}</span>
-										)}
 									</span>
 									<span className="actions">
+										{/* 내 뉴스레터와 같은 글: '모든 북마크'에서는 어느 폴더인지도 */}
 										<FolderMenu
-											label="폴더 옮기기"
+											label={
+												folder === 'all' && bookmark.folderId ? `폴더 · ${folderName.get(bookmark.folderId)}` : '폴더'
+											}
 											current={bookmark.folderId}
 											onPick={(folderId) => move.mutate({ newsletterIds: [bookmark.id], folderId })}
 										/>
@@ -283,8 +283,12 @@ const MyBookmarkStyled = styled.div`
 		font-size: 0.75rem;
 		line-height: 1.4;
 		.cat {
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			padding: 0 0.5rem;
+			border-radius: ${({ theme }) => theme.radius.chip};
+			background: ${({ theme }) => theme.color.tertiary};
+			font-weight: ${({ theme }) => theme.fontWeight.medium};
 			color: ${({ theme }) => theme.color.primary};
+			white-space: nowrap;
 		}
 	}
 
@@ -294,7 +298,7 @@ const MyBookmarkStyled = styled.div`
 		/* 납작한 카드라 제목은 한 줄 (넘치면 …) */
 		-webkit-line-clamp: 1;
 		-webkit-box-orient: vertical;
-		font-size: 0.875rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		font-weight: ${({ theme }) => theme.fontWeight.bold};
 		line-height: 1.35;
 		/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
@@ -327,14 +331,6 @@ const MyBookmarkStyled = styled.div`
 		}
 	}
 
-	.folder-tag {
-		${folderTag}
-		margin-left: 0.375rem;
-		overflow: hidden;
-		white-space: nowrap;
-		text-overflow: ellipsis;
-	}
-
 	/* 카드 아래 글자 단추: 메일 · 스크랩의 글자 단추 줄과 같은 모양 */
 	.actions {
 		${textTools}
@@ -342,6 +338,16 @@ const MyBookmarkStyled = styled.div`
 		gap: 0.75rem;
 		/* 북마크 단추(누르는 칸 40px)가 줄 높이를 키우지 않게: 줄은 1.5rem, 단추는 위아래로 넘쳐 누르는 칸은 그대로 */
 		height: 1.25rem;
+		min-width: 0;
+
+		/* '폴더 · 이름'이 길면 카드 폭 안에서 … */
+		.trigger {
+			display: block;
+			max-width: 9rem;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
 	}
 
 	/* 한 줄 칸 수 (목록 너비 기준): 1000px 이상 3장 · 680px 이상 2장 · 그 아래 1장 */
