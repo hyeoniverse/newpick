@@ -3,7 +3,7 @@
 import 'sanitize.css';
 import { createGlobalStyle } from 'styled-components';
 import { STYLE } from '@/constants/numbers';
-import { darkTheme, lightTheme, themeVars } from '@/styles/theme';
+import { darkTheme, fontVars, lightTheme, themeVars } from '@/styles/theme';
 
 export const GlobalStyle = createGlobalStyle`
     /* 테마 색: <html data-theme>(머리의 스크립트가 그리기 전에 정한다)에 따라 바뀐다 */
@@ -14,6 +14,23 @@ export const GlobalStyle = createGlobalStyle`
     :root[data-theme='dark'] {
         ${themeVars(darkTheme)}
         color-scheme: dark;
+    }
+
+    /* 글자 크기: 화면이 좁아지면 한 단계씩 줄어든다 (theme.fontSize · theme.heading) */
+    :root {
+        ${fontVars()}
+    }
+
+    @media ${lightTheme.mediaQuery.tablet} {
+        :root {
+            ${fontVars('tablet')}
+        }
+    }
+
+    @media ${lightTheme.mediaQuery.mobile} {
+        :root {
+            ${fontVars('mobile')}
+        }
     }
 
     /* 글꼴: Pretendard 다이나믹 서브셋 (styles/pretendard.css, #14). 받는 동안은 시스템 글꼴 */
