@@ -229,14 +229,21 @@ export default function AccountEmail() {
 								if (value.length === 6 && !busy) setTimeout(() => codeForm.current?.requestSubmit());
 							}}
 						/>
+						{error && (
+							<p className="error" role="alert">
+								{error}
+							</p>
+						)}
 						<p className="code-meta">
-							{step.expiresAt > now ? (
-								<>
-									남은 시간 <span className="clock">{clock(step.expiresAt - now)}</span>
-								</>
-							) : (
-								'인증 코드가 만료되었습니다. 재전송해 주세요.'
-							)}
+							<span>
+								{step.expiresAt > now ? (
+									<>
+										남은 시간 <span className="clock">{clock(step.expiresAt - now)}</span>
+									</>
+								) : (
+									'인증 코드가 만료되었습니다. 재전송해 주세요.'
+								)}
+							</span>
 							<button
 								type="button"
 								className="resend"
@@ -258,7 +265,8 @@ export default function AccountEmail() {
 				</div>
 			)}
 
-			{error && (
+			{/* 코드 단계의 오류는 코드 칸 바로 아래에 (폼 안) */}
+			{error && step.kind !== 'code' && (
 				<p className="error" role="alert">
 					{error}
 				</p>
