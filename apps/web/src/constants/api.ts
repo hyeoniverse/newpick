@@ -15,6 +15,10 @@ export const API_ENDPOINTS = {
 		LOGIN: () => `${API_URL}/auth/google`,
 		LOGOUT: () => `${API_URL}/auth/logout`,
 		REFRESH: () => `${API_URL}/auth/refresh`,
+		/** 로그인한 기기: 목록 · 하나 로그아웃 · 이 기기만 남기기 */
+		SESSIONS: () => `${API_URL}/auth/sessions`,
+		SESSION: (id: number) => `${API_URL}/auth/sessions/${id}`,
+		LOGOUT_OTHERS: () => `${API_URL}/auth/sessions/logout-others`,
 	},
 	ADMIN: {
 		/** 사이트 캐시 비우기 (#73) */
@@ -58,6 +62,9 @@ export const API_ENDPOINTS = {
 		MAIL: (sentAt: string) => `${API_URL}/mypage/mails/view?sentAt=${encodeURIComponent(sentAt)}`,
 		/** 회원 탈퇴 (#65) */
 		ACCOUNT: () => `${API_URL}/mypage/account`,
+		/** 이메일 바꾸기: 새 주소로 인증 코드 → 코드 확인 */
+		EMAIL_CODE: () => `${API_URL}/mypage/email/code`,
+		EMAIL_VERIFY: () => `${API_URL}/mypage/email/verify`,
 		/** 스크랩 · 메모 (#123). newsletterId를 주면 그 뉴스레터 것만 */
 		/** 마이페이지 스크랩 · 북마크 한 쪽 (query: offset · limit · folder · filter / categoryId · sort) */
 		HIGHLIGHTS_PAGE: (query: string) => `${API_URL}/mypage/highlights/page?${query}`,

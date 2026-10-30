@@ -63,7 +63,8 @@ type RefreshResult = { ok: true; response: NextResponse } | { ok: false; setCook
 async function refreshSession(request: NextRequest, refreshToken: string): Promise<RefreshResult> {
 	try {
 		const result = await fetch(`${BACK_URL}/auth/refresh`, {
-			headers: { Cookie: `${REFRESH_COOKIE}=${refreshToken}` },
+			// 로그인한 기기 목록이 웹 서버가 아니라 사용자 브라우저를 보이게
+			headers: { Cookie: `${REFRESH_COOKIE}=${refreshToken}`, 'User-Agent': request.headers.get('user-agent') ?? '' },
 			cache: 'no-store',
 		});
 		const setCookies = result.headers.getSetCookie();

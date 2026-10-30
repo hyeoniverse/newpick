@@ -44,3 +44,35 @@ export const deleteAccount = async (): Promise<void> => {
 export const logoutUser = async (): Promise<void> => {
 	await apiFetch(API_ENDPOINTS.AUTH.LOGOUT(), { method: 'POST', retryOnUnauthorized: false });
 };
+
+/** 로그인한 기기 한 대 (current: 지금 이 브라우저) */
+export interface LoginSession {
+	id: number;
+	userAgent: string | null;
+	createdAt: string;
+	lastUsedAt: string;
+	current: boolean;
+}
+
+export const fetchSessions = () => apiFetch<LoginSession[]>(API_ENDPOINTS.AUTH.SESSIONS());
+
+export const logoutSession = async (id: number): Promise<void> => {
+	await apiFetch(API_ENDPOINTS.AUTH.SESSION(id), { method: 'DELETE' });
+};
+
+export const logoutOtherSessions = () =>
+	apiFetch<{ removed: number }>(API_ENDPOINTS.AUTH.LOGOUT_OTHERS(), { method: 'POST' });
+
+/** 이메일 바꾸기 1단계: 새 주소로 6자리 코드 */
+export const sendEmailCode = (email: string) =>
+	apiFetch<{ email: string; expiresAt: string; resendAfter: string }>(API_ENDPOINTS.MY.EMAIL_CODE(), {
+		method: 'POST',
+		body: { email },
+	});
+
+/** 이메일 바꾸기 2단계: 코드가 맞으면 바뀐 주소 */
+export const verifyEmailCode = (code: string) =>
+	apiFetch<{ email: string }>(API_ENDPOINTS.MY.EMAIL_VERIFY(), {
+		method: 'POST',
+		body: { code },
+	});
