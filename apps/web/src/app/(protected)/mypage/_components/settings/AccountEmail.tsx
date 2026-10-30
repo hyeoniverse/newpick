@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimationEvent, FormEvent, useEffect, useState } from 'react';
+import { AnimationEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
 import { linkGoogleAccount, sendEmailCode, verifyEmailCode } from '@/api/auth';
 import { ApiError } from '@/api/client';
@@ -9,8 +9,18 @@ import { useToast } from '@/hooks/useToast';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
+import CodeInput from './CodeInput';
 
-type Step = { kind: 'idle' } | { kind: 'enter' } | { kind: 'code'; email: string; resendAfter: number };
+type Step =
+	| { kind: 'idle' }
+	| { kind: 'enter' }
+	| { kind: 'code'; email: string; resendAfter: number; expiresAt: number };
+
+/** 남은 시간 '9:41' */
+const clock = (ms: number) => {
+	const seconds = Math.max(0, Math.ceil(ms / 1000));
+	return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+};
 
 /** API 오류 message는 사용자에게 그대로 보여 줘도 되는 글 (남은 횟수가 있으면 덧붙인다) */
 const errorText = (error: unknown) => {
@@ -39,6 +49,9 @@ export default function AccountEmail() {
 	const [email, setEmail] = useState('');
 	const [code, setCode] = useState('');
 	const [error, setError] = useState('');
+	// 틀린 코드였는지 (칸을 빨갛게, 다시 입력하면 원래대로)
+	const [invalid, setInvalid] = useState(false);
+	const codeForm = useRef<HTMLFormElement>(null);
 	const [busy, setBusy] = useState(false);
 	const [now, setNow] = useState(() => Date.now());
 	// 닫히는 중: 접히는 애니메이션이 끝난 뒤에 폼을 치운다
@@ -79,6 +92,7 @@ export default function AccountEmail() {
 		setEmail('');
 		setCode('');
 		setError('');
+		setInvalid(false);
 	};
 
 	/** 폼 닫기: 접히며 사라진 뒤 reset (움직임 줄이기 설정이면 애니메이션이 없어 바로) */
@@ -99,7 +113,13 @@ export default function AccountEmail() {
 		setError('');
 		try {
 			const sent = await sendEmailCode(to);
-			setStep({ kind: 'code', email: sent.email, resendAfter: new Date(sent.resendAfter).getTime() });
+			setStep({
+				kind: 'code',
+				email: sent.email,
+				resendAfter: new Date(sent.resendAfter).getTime(),
+				expiresAt: new Date(sent.expiresAt).getTime(),
+			});
+			setInvalid(false);
 			setNow(Date.now());
 			setCode('');
 		} catch (e) {
@@ -125,6 +145,7 @@ export default function AccountEmail() {
 			showToast(`수신 이메일을 ${changed.email}(으)로 변경했습니다.`, 'success');
 		} catch (e) {
 			setError(errorText(e));
+			setInvalid(e instanceof ApiError && e.code === 'EMAIL_CODE_INVALID');
 			// 코드가 만료됐거나 다 틀렸으면 새 주소부터 다시
 			if (e instanceof ApiError && e.code === 'EMAIL_CODE_EXPIRED') setStep({ kind: 'enter' });
 		} finally {
@@ -192,41 +213,48 @@ export default function AccountEmail() {
 
 			{step.kind === 'code' && (
 				<div {...revealProps}>
-				<form className="form" onSubmit={onVerify}>
-					<label htmlFor="email-code">
-						<b>{step.email}</b>(으)로 보낸 인증 코드 6자리 (10분간 유효)
-					</label>
-					<div className="row">
-						<input
+					<form ref={codeForm} className="form" onSubmit={onVerify}>
+						<label htmlFor="email-code">
+							<b>{step.email}</b>(으)로 보낸 인증 코드 6자리를 입력해 주세요.
+						</label>
+						<CodeInput
 							id="email-code"
-							className="code"
-							inputMode="numeric"
-							autoComplete="one-time-code"
-							pattern="\d{6}"
-							maxLength={6}
-							required
 							value={code}
-							onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-							placeholder="000000"
+							invalid={invalid}
 							autoFocus
+							onChange={(value) => {
+								setCode(value);
+								setInvalid(false);
+								// 6자리를 다 넣으면 바로 확인
+								if (value.length === 6 && !busy) setTimeout(() => codeForm.current?.requestSubmit());
+							}}
 						/>
-						<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={code.length !== 6}>
-							확인
-						</Button>
-						<Button
-							type="button"
-							scheme="outline"
-							size="small"
-							disabled={busy || waitSeconds > 0}
-							onClick={() => send(step.email)}
-						>
-							{waitSeconds > 0 ? `재전송 (${waitSeconds}초)` : '재전송'}
-						</Button>
-						<Button type="button" scheme="outline" size="small" onClick={close}>
-							취소
-						</Button>
-					</div>
-				</form>
+						<p className="code-meta">
+							{step.expiresAt > now ? (
+								<>
+									남은 시간 <span className="clock">{clock(step.expiresAt - now)}</span>
+								</>
+							) : (
+								'인증 코드가 만료되었습니다. 재전송해 주세요.'
+							)}
+							<button
+								type="button"
+								className="resend"
+								disabled={busy || waitSeconds > 0}
+								onClick={() => send(step.email)}
+							>
+								{waitSeconds > 0 ? `재전송 (${waitSeconds}초)` : '재전송'}
+							</button>
+						</p>
+						<div className="row">
+							<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={code.length !== 6}>
+								확인
+							</Button>
+							<Button type="button" scheme="outline" size="small" onClick={close}>
+								취소
+							</Button>
+						</div>
+					</form>
 				</div>
 			)}
 
@@ -325,7 +353,8 @@ const StyledAccountEmail = styled.section`
 		}
 	}
 
-	input {
+	/* 새 수신 이메일 입력 (인증 코드는 CodeInput이 따로 그린다) */
+	.row > input {
 		flex: 1 1 16rem;
 		min-width: 0;
 		padding: 0 0.75rem;
@@ -338,15 +367,6 @@ const StyledAccountEmail = styled.section`
 		&:focus-visible {
 			outline: none;
 			border-color: ${({ theme }) => theme.color.primary};
-		}
-
-		/* 6자리가 다 보이게: 글자 폭(1ch) × 6 + 간격 + 안쪽 여백 + 테두리 */
-		&.code {
-			flex: 0 0 auto;
-			width: calc(6ch + 5 * 0.25em + 1.5rem + 2px);
-			font-size: ${({ theme }) => theme.fontSize.large};
-			font-variant-numeric: tabular-nums;
-			letter-spacing: 0.25em;
 		}
 	}
 
@@ -387,6 +407,39 @@ const StyledAccountEmail = styled.section`
 		.reveal.closing,
 		.actions {
 			animation: none;
+		}
+	}
+
+	/* 남은 시간 · 재전송 */
+	.code-meta {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 0.75rem;
+		margin: 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+
+		.clock {
+			font-variant-numeric: tabular-nums;
+			color: ${({ theme }) => theme.color.primary};
+		}
+	}
+
+	.resend {
+		padding: 0;
+		border: 0;
+		background: none;
+		font: inherit;
+		color: ${({ theme }) => theme.color.text};
+		text-decoration: underline;
+		text-underline-offset: 0.2em;
+		cursor: pointer;
+
+		&:disabled {
+			color: ${({ theme }) => theme.color.subText};
+			text-decoration: none;
+			cursor: default;
 		}
 	}
 
