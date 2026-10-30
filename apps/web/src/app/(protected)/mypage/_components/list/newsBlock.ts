@@ -11,16 +11,19 @@ export const newsBlock = css`
 		scroll-margin-top: 6rem;
 	}
 
-	/* 제목 + 오른쪽 끝 동작. 제목이 여러 줄이면 동작은 첫 줄 높이 가운데에 그대로 (제목 글줄 높이 = --title-line) */
+	/* 제목 + 오른쪽 끝 동작. 제목이 여러 줄이면 동작은 첫 줄 높이 가운데에 그대로 (제목 글줄 높이 = --title-line).
+	   너비가 많이 모자라 제목 자리가 18rem보다 좁아지면 동작은 제목 아래 따로 한 줄로 내려간다 */
 	.news-head {
 		--title-line: calc(${({ theme }) => theme.fontSize.large} * 1.4);
 		display: flex;
+		flex-wrap: wrap;
 		align-items: flex-start;
-		gap: 1.25rem;
+		/* 동작 줄을 단추 안쪽 여백(0.5rem)만큼 왼쪽으로 당겨, 아래로 내려갔을 때 별이 제목 왼쪽 끝에 맞게. 그만큼 사이를 넓혀 둔다 */
+		gap: 0.25rem 1.75rem;
 		margin-bottom: 1.5rem;
 
 		.news-title {
-			flex: 1;
+			flex: 1 1 18rem;
 			min-width: 0;
 			margin-bottom: 0;
 		}
@@ -109,6 +112,7 @@ export const newsBlock = css`
 		align-items: center;
 		gap: 0.5rem;
 		height: var(--title-line);
+		margin-left: -0.5rem;
 		white-space: nowrap;
 	}
 
@@ -134,7 +138,7 @@ export const newsBlock = css`
 
 		.news-head {
 			--title-line: calc(${({ theme }) => theme.fontSize.medium} * 1.4);
-			gap: 0.75rem;
+			column-gap: 1.25rem;
 		}
 	}
 `;
