@@ -19,6 +19,9 @@ export const GlobalStyle = createGlobalStyle`
     /* 글자 크기: 화면이 좁아지면 한 단계씩 줄어든다 (theme.fontSize · theme.heading) */
     :root {
         ${fontVars()}
+        /* 화면 오른쪽 아래에 떠 있는 위·아래 스크롤 버튼(ScrollButtons)이 차지하는 폭: 오른쪽 1.5rem + 버튼 2.5rem + 틈 0.5rem.
+           바닥에 붙는 막대는 이만큼 비켜 간다 */
+        --np-float-space: 4.5rem;
     }
 
     @media ${lightTheme.mediaQuery.tablet} {

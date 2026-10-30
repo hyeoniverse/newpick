@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import StarToggle from '@/components/common/icons/StarToggle';
 import styled from 'styled-components';
@@ -372,16 +372,18 @@ export default function MyHighlights() {
 															>
 																{block.items.map((highlight, i) => (
 																	<li key={highlight.id} className={i >= QUOTES_SMALL ? 'extra' : undefined}>
-																		<Source
+																																			<HighlightItem
 																			highlight={highlight}
-																			folder={
-																				folder === 'all' && highlight.folderId
-																					? folderName.get(highlight.folderId)
-																					: undefined
+																			source={
+																				<Source
+																				highlight={highlight}
+																				folder={
+																					folder === 'all' && highlight.folderId
+																						? folderName.get(highlight.folderId)
+																						: undefined
+																				}
+																			/>
 																			}
-																		/>
-																		<HighlightItem
-																			highlight={highlight}
 																			focused={highlight.id === focused}
 																			selecting={selecting}
 																			checked={selected.has(highlight.id)}
@@ -491,6 +493,7 @@ export default function MyHighlights() {
 
 function HighlightItem({
 	highlight,
+	source,
 	focused,
 	selecting,
 	checked,
@@ -500,6 +503,8 @@ function HighlightItem({
 	onDragEnd,
 }: {
 	highlight: Highlight;
+	/** 문장 위 출처 한 줄 (소식 번호 · 제목 · 폴더). 별은 이 줄 오른쪽 끝 */
+	source: ReactNode;
 	focused: boolean;
 	selecting: boolean;
 	checked: boolean;
@@ -528,6 +533,7 @@ function HighlightItem({
 			}}
 			onDragEnd={onDragEnd}
 		>
+			{source}
 			{selecting ? (
 				// 상자를 누른 것이 문장 누르기(고르기)로 한 번 더 번지지 않게
 				<span className="pick" onClick={(e) => e.stopPropagation()}>
@@ -548,7 +554,7 @@ function HighlightItem({
 			<p className="quote">
 				<span>{highlight.text}</span>
 			</p>
-			{/* 중요 표시: 문장 줄 오른쪽 끝 별 아이콘 버튼 (켜면 기본색 별) */}
+			{/* 중요 표시: 출처 줄 오른쪽 끝 별 아이콘 버튼 (켜면 기본색 별) */}
 			{!selecting && (
 				<StarToggle
 					className="star-toggle"
@@ -769,7 +775,8 @@ const StyledHighlights = styled.div`
 	/* 문장 위 출처 한 줄: 관심사 · 뉴스레터 제목 › 01 소식 제목 */
 	.source {
 		${sourceLine}
-		margin: 0 0 0.375rem;
+		grid-area: source;
+		margin: 0;
 
 		.section {
 			display: inline-flex;
@@ -795,8 +802,10 @@ const StyledHighlights = styled.div`
 	.item {
 		display: grid;
 		grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+		/* 별은 출처 줄 오른쪽 끝: 문장은 폭 가득 */
 		grid-template-areas:
-			'mark quote star'
+			'source source star'
+			'mark quote quote'
 			'note note note'
 			'tools tools tools';
 		gap: 0.375rem 0.25rem;
@@ -833,13 +842,13 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.primary};
 	}
 
-	/* 중요 표시 별 (공통 StarToggle): 문장 줄 끝, 줄 높이에 맞춰 조금 작게 */
+	/* 중요 표시 별 (공통 StarToggle): 출처 줄 끝, 그 줄 높이 가운데에. 누르는 칸은 넓게, 줄 높이는 그대로 */
 	.star-toggle {
 		grid-area: star;
-		align-self: start;
+		align-self: center;
 		width: 2.25rem;
 		height: 2.25rem;
-		margin: -0.375rem -0.5rem 0 0;
+		margin: -0.5rem -0.5rem -0.5rem 0;
 
 		svg {
 			width: 1.25rem;
@@ -851,6 +860,8 @@ const StyledHighlights = styled.div`
 	.select-bar {
 		position: sticky;
 		bottom: 1rem;
+		/* 오른쪽 아래 스크롤 버튼과 겹치지 않게: 화면 오른쪽 여백이 모자란 만큼만 비켜 간다 (막대는 화면 가운데 놓인 본문 폭) */
+		margin-right: max(0px, calc(var(--np-float-space) - (100vw - 100%) / 2));
 		z-index: 5;
 		display: flex;
 		flex-wrap: wrap;
