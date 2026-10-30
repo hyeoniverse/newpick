@@ -51,13 +51,18 @@ function withStories(html?: string | null) {
 	return stories.length ? { stories } : {};
 }
 
+/** 쉼표로 나눈 주소 목록에서 앞의 limit개. 같은 기사를 두 번 쓴 경우가 있어 빈 항목 · 겹친 주소는 빼고 센다 */
 export function parseUrls(urls: unknown, limit: number = 3): string[] {
 	if (typeof urls !== 'string') {
 		return [];
 	}
 
-	return urls
-		.split(',')
-		.map((url) => url.trim())
-		.slice(0, limit);
+	return [
+		...new Set(
+			urls
+				.split(',')
+				.map((url) => url.trim())
+				.filter(Boolean),
+		),
+	].slice(0, limit);
 }
