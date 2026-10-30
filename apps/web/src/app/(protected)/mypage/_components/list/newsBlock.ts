@@ -198,21 +198,9 @@ export const newsBlock = css`
 			gap: 0.75rem;
 		}
 
-		/* 그림은 작은 썸네일로 줄이고 옆에 분야 (그림이 화면 폭을 다 차지해 블록이 너무 길어지지 않게) */
-		.news-media {
-			display: flex;
-			align-items: center;
-			gap: 0.75rem;
-		}
-
-		.news-image {
-			flex-shrink: 0;
-			width: 40%;
-		}
-
+		/* 그림은 폭 가득 그대로 (줄이는 건 상자 안 내용) */
 		.news-cats {
-			justify-content: flex-start;
-			margin: 0;
+			margin-top: 0.5rem;
 		}
 
 		.news-summary {
