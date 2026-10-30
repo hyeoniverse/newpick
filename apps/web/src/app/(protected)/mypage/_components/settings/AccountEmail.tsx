@@ -1,6 +1,6 @@
 'use client';
 
-import { FormEvent, useEffect, useState } from 'react';
+import { AnimationEvent, FormEvent, useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { linkGoogleAccount, sendEmailCode, verifyEmailCode } from '@/api/auth';
 import { ApiError } from '@/api/client';
@@ -41,6 +41,8 @@ export default function AccountEmail() {
 	const [error, setError] = useState('');
 	const [busy, setBusy] = useState(false);
 	const [now, setNow] = useState(() => Date.now());
+	// 닫히는 중: 접히는 애니메이션이 끝난 뒤에 폼을 치운다
+	const [closing, setClosing] = useState(false);
 
 	// 다른 Google 계정으로 바꾸고 돌아오면 결과를 알리고 주소창의 ?google=…은 지운다
 	useEffect(() => {
@@ -72,10 +74,24 @@ export default function AccountEmail() {
 	}, [step.kind]);
 
 	const reset = () => {
+		setClosing(false);
 		setStep({ kind: 'idle' });
 		setEmail('');
 		setCode('');
 		setError('');
+	};
+
+	/** 폼 닫기: 접히며 사라진 뒤 reset (움직임 줄이기 설정이면 애니메이션이 없어 바로) */
+	const close = () => {
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) reset();
+		else setClosing(true);
+	};
+
+	const revealProps = {
+		className: closing ? 'reveal closing' : 'reveal',
+		onAnimationEnd: (event: AnimationEvent<HTMLDivElement>) => {
+			if (closing && event.target === event.currentTarget) reset();
+		},
 	};
 
 	const send = async (to: string) => {
@@ -105,7 +121,7 @@ export default function AccountEmail() {
 		try {
 			const changed = await verifyEmailCode(code);
 			await refetchUser();
-			reset();
+			close();
 			showToast(`수신 이메일을 ${changed.email}(으)로 변경했습니다.`, 'success');
 		} catch (e) {
 			setError(errorText(e));
@@ -147,7 +163,7 @@ export default function AccountEmail() {
 			</div>
 
 			{step.kind === 'enter' && (
-				<div className="reveal">
+				<div {...revealProps}>
 				<form className="form" onSubmit={onSend}>
 					<label htmlFor="new-email">새 수신 이메일</label>
 					<div className="row">
@@ -166,7 +182,7 @@ export default function AccountEmail() {
 						<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={!email}>
 							인증 코드 요청
 						</Button>
-						<Button type="button" scheme="outline" size="small" onClick={reset}>
+						<Button type="button" scheme="outline" size="small" onClick={close}>
 							취소
 						</Button>
 					</div>
@@ -175,7 +191,7 @@ export default function AccountEmail() {
 			)}
 
 			{step.kind === 'code' && (
-				<div className="reveal">
+				<div {...revealProps}>
 				<form className="form" onSubmit={onVerify}>
 					<label htmlFor="email-code">
 						<b>{step.email}</b>(으)로 보낸 인증 코드 6자리 (10분간 유효)
@@ -206,7 +222,7 @@ export default function AccountEmail() {
 						>
 							{waitSeconds > 0 ? `재전송 (${waitSeconds}초)` : '재전송'}
 						</Button>
-						<Button type="button" scheme="outline" size="small" onClick={reset}>
+						<Button type="button" scheme="outline" size="small" onClick={close}>
 							취소
 						</Button>
 					</div>
@@ -254,10 +270,12 @@ const StyledAccountEmail = styled.section`
 		gap: 0.75rem 1.5rem;
 	}
 
+	/* 폼이 닫힌 뒤 다시 나타날 때 튀지 않게 */
 	.actions {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.5rem;
+		animation: email-actions-in 0.2s ease-out;
 	}
 
 	/* 입력 폼(새 수신 이메일 · 인증 코드)이 열릴 때: 실제 높이만큼 펼쳐지며(아래 내용도 같이 밀려남) 위에서 내려오고 선명해진다 */
@@ -270,6 +288,11 @@ const StyledAccountEmail = styled.section`
 
 		> .form {
 			min-height: 0;
+		}
+
+		/* 닫힐 때: 반대로 접히며 흐려진다 */
+		&.closing {
+			animation: email-form-out 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
 		}
 	}
 
@@ -340,8 +363,29 @@ const StyledAccountEmail = styled.section`
 		}
 	}
 
+	@keyframes email-form-out {
+		from {
+			grid-template-rows: 1fr;
+			opacity: 1;
+			transform: translateY(0);
+		}
+		to {
+			grid-template-rows: 0fr;
+			opacity: 0;
+			transform: translateY(-0.5rem);
+		}
+	}
+
+	@keyframes email-actions-in {
+		from {
+			opacity: 0;
+		}
+	}
+
 	@media (prefers-reduced-motion: reduce) {
-		.reveal {
+		.reveal,
+		.reveal.closing,
+		.actions {
 			animation: none;
 		}
 	}
