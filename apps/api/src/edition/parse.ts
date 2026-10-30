@@ -18,7 +18,8 @@ export type Block =
   | { type: 'stats'; rows: { label: string; value: string; note: string }[] }
   | { type: 'timeline'; rows: { when: string; what: string }[] }
   | { type: 'qa'; rows: { q: string; a: Run[] }[] }
-  | { type: 'quote'; text: string; by: string };
+  | { type: 'quote'; text: string; by: string }
+  | { type: 'perspectives'; rows: { source: string; view: string }[] };
 
 export type ParsedStory = {
   kicker: string;
@@ -100,6 +101,14 @@ function parseBlocks(article: Element): Block[] {
         rows: [...el.querySelectorAll('dt')].map((dt, i) => ({
           q: text(dt),
           a: answers[i] ? runs(answers[i]) : [],
+        })),
+      });
+    } else if (el.matches('div.perspectives')) {
+      blocks.push({
+        type: 'perspectives',
+        rows: [...el.querySelectorAll('li')].map((li) => ({
+          source: text(li.querySelector('.source')),
+          view: text(li.querySelector('.view')),
         })),
       });
     } else if (el.matches('blockquote.quote')) {

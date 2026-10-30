@@ -78,8 +78,20 @@ const analysis = (story: Story, label = '시사점') =>
     ? `<div class="analysis"><h3>${label}</h3>${paragraphs(story.analysis)}</div>`
     : '';
 
+/** 언론사별 시각: 같은 사건을 언론사마다 다르게 본 것 (본문 뒤, 시사점 앞) */
+const perspectives = (story: Story) =>
+  story.perspectives?.length
+    ? `<div class="perspectives"><h3>언론사별 시각</h3><ul>${story.perspectives
+        .map(
+          (p) =>
+            `<li><strong class="source">${escapeHtml(p.source)}</strong><span class="view">${escapeHtml(p.view)}</span></li>`,
+        )
+        .join('')}</ul></div>`
+    : '';
+
 /**
  * 템플릿마다 고유 요소와 순서가 다르다 (#48).
+ * 언론사별 시각이 있으면 모든 템플릿에서 본문 바로 뒤에
  * 꼬리표·헤드라인·리드·출처는 공통이고, 그 사이를 템플릿이 채운다
  */
 const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
@@ -92,6 +104,7 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
       )
       .join('')}</div>`,
     body(s),
+    perspectives(s),
     analysis(s),
   ],
   // 날짜별 경과 → 본문 → 전망
@@ -103,6 +116,7 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
       )
       .join('')}</ol>`,
     body(s),
+    perspectives(s),
     analysis(s, '전망'),
   ],
   // 본문 → 문답 → 시사점
@@ -111,16 +125,18 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
     `<dl class="qa">${s.qa
       .map((x) => `<dt>${escapeHtml(x.q)}</dt><dd>${rich(x.a)}</dd>`)
       .join('')}</dl>`,
+    perspectives(s),
     analysis(s),
   ],
   // 인용문 → 맥락 → 시사점
   quote: (s) => [
     `<blockquote class="quote"><p>${escapeHtml(s.quote.text)}</p><cite>${escapeHtml(s.quote.by)}</cite></blockquote>`,
     body(s),
+    perspectives(s),
     analysis(s),
   ],
-  analysis: (s) => [body(s), analysis(s)],
-  brief: (s) => [body(s)],
+  analysis: (s) => [body(s), perspectives(s), analysis(s)],
+  brief: (s) => [body(s), perspectives(s)],
 };
 
 /**

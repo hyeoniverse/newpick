@@ -30,6 +30,8 @@ export type Template = (typeof TEMPLATES)[number];
 export type Stat = { label: string; value: string; note: string };
 export type Moment = { when: string; what: string };
 export type QA = { q: string; a: string };
+/** 같은 사건을 두고 언론사마다 다른 해석 · 주장 (다양한 시각) */
+export type Perspective = { source: string; view: string };
 
 export type Story = {
   template: Template;
@@ -43,6 +45,8 @@ export type Story = {
   timeline: Moment[];
   qa: QA[];
   quote: { text: string; by: string };
+  /** 언론사별 시각. 같은 사건을 다른 언론사가 다르게 해석 · 주장할 때만 2~3개, 아니면 빈 배열 */
+  perspectives: Perspective[];
   /** 원래 기사 목록에서의 번호 (1부터) */
   sources: number[];
   /** 원출처 사진이 없을 때 Pexels·Unsplash에서 찾을 영어 검색어 */
@@ -108,9 +112,16 @@ export const LIMITS = {
   keywords: { min: 3, max: 6, length: 12 },
   /** 형광펜 강조 (#51): 소식마다 최대 개수, 한 곳 최대 길이 */
   marks: { max: 3, length: 30 },
-  /** 쓰기 단계에 소식 하나당 보내는 기사 수 (같은 사건의 대표 기사) */
+  /** 쓰기 단계에 소식 하나당 보내는 기사 수 (같은 사건의 대표 기사, 다른 언론사 먼저) */
   articlesPerStory: 2,
+  /** 시각이 갈리기 쉬운 분야(PERSPECTIVE_CATEGORIES)는 더 많이 보내 언론사별 주장을 비교하게 */
+  articlesPerStoryWide: 3,
+  /** 언론사별 시각: 최대 개수, 한 시각 최대 길이 */
+  perspectives: { max: 3, view: 80 },
 } as const;
+
+/** 같은 사건을 두고 언론사마다 해석 · 주장이 갈리기 쉬운 분야: 기사를 더 보내고 시각 비교를 더 챙긴다 */
+export const PERSPECTIVE_CATEGORIES = ['정치', '사회'];
 
 /**
  * 중요도 점수표. 예전엔 '여러 언론이 함께 다룬 사건'을 앞세워,
@@ -352,10 +363,16 @@ export const writerPrompt = (
     `  - lead: 리드. 핵심 사실 한 문장, ${LIMITS.lead}자 이내.`,
     `  - body: 경과와 맥락 ${LIMITS.body.min}~${LIMITS.body.max}자, 문단 1~2개. 문단 사이는 빈 줄 하나. 템플릿 고유 항목(stats·timeline·qa·quote)과 같은 내용을 반복하지 않습니다.`,
     `  - analysis: 시사점 ${LIMITS.analysis.min}~${LIMITS.analysis.max}자. 파급 효과, 이해관계자, 쟁점, 전망. 기사에 근거가 없는 예측은 하지 않습니다.`,
+    `  - perspectives: 언론사별 시각. 같은 사건을 다룬 기사가 서로 다른 언론사에서 왔고, 해석 · 평가 · 주장(원인을 어디서 찾는지, 누구 책임으로 보는지, 정책을 찬성하는지 등)이 서로 다를 때만 언론사마다 하나씩 ${LIMITS.perspectives.max}개까지 (source: 기사에 표시된 언론사 이름 그대로, view: 그 언론이 강조하는 주장 · 해석 ${LIMITS.perspectives.view}자 이내). 어느 쪽 편도 들지 않고 각 기사에 있는 주장만 요약하며, 기사에 없는 입장을 지어내지 않습니다. 언론사가 하나뿐이거나 사실 전달만 같고 시각 차이가 없으면 빈 배열.`,
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     `- watch: 관전 포인트. 앞으로 지켜볼 일정·변수 1~${LIMITS.watch.max}개, 하나에 ${LIMITS.watch.length}자 이내. 기사에 나온 것만.`,
     `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개, 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
+    ...(category && PERSPECTIVE_CATEGORIES.includes(category)
+      ? [
+          `- ${category} 분야는 같은 사안을 언론사마다 다르게 보는 경우가 많습니다. 같은 사건을 다룬 기사가 여러 언론사에서 왔으면 주장 · 해석의 차이를 꼼꼼히 비교해 perspectives를 채우고, body · analysis도 한쪽 시각만 따르지 않게 씁니다.`,
+        ]
+      : []),
     ...(existingTags.length
       ? [
           `- keywords는 같은 대상·주제면 이미 쓰고 있는 태그 표기를 그대로 다시 씁니다 (띄어쓰기·영문 표기까지 같게). 정말 새로운 대상일 때만 새 태그를 만듭니다. 이미 쓰는 태그: ${existingTags.join(', ')}`,
@@ -381,7 +398,7 @@ const pairs = (keys: string[]) => ({
   additionalProperties: false,
 });
 
-const WRITER_SCHEMA = {
+export const WRITER_SCHEMA = {
   type: 'object',
   properties: {
     title: { type: 'string' },
@@ -406,6 +423,7 @@ const WRITER_SCHEMA = {
           timeline: { type: 'array', items: pairs(['when', 'what']) },
           qa: { type: 'array', items: pairs(['q', 'a']) },
           quote: pairs(['text', 'by']),
+          perspectives: { type: 'array', items: pairs(['source', 'view']) },
           sources: { type: 'array', items: { type: 'integer' } },
           imageQuery: { type: 'string' },
         },
@@ -420,6 +438,7 @@ const WRITER_SCHEMA = {
           'timeline',
           'qa',
           'quote',
+          'perspectives',
           'sources',
           'imageQuery',
         ],
@@ -559,6 +578,20 @@ export function settleTemplate(story: Story): Story {
  * 응답을 정리하고, 저장하면 안 되는 모양이면 오류를 던집니다.
  * toOriginal: 쓰기 단계 기사 번호(1부터) → 원래 기사 번호(1부터). 없는 번호는 버린다
  */
+/**
+ * 언론사별 시각 정리: 빈 칸 · 같은 언론사 중복을 빼고, 서로 다른 언론사가 둘 이상일 때만 남긴다 (하나면 '시각 비교'가 아니다)
+ */
+export function perspectivesOf(list: Perspective[] = []): Perspective[] {
+  const seen = new Set<string>();
+  const views = list
+    .map((p) => ({ source: plain(p.source), view: plain(p.view) }))
+    .filter(
+      (p) => p.source && p.view && !seen.has(p.source) && seen.add(p.source),
+    )
+    .slice(0, LIMITS.perspectives.max);
+  return views.length >= 2 ? views : [];
+}
+
 export function normalize(
   raw: WrittenNewsletter,
   toOriginal: (n: number) => number | undefined,
@@ -586,6 +619,7 @@ export function normalize(
         timeline: rows(s.timeline, LIMITS.timeline.max),
         qa: qa.map((x, i) => ({ q: x.q, a: answers[i] })),
         quote: { text: clean(plain(s.quote.text)), by: plain(s.quote.by) },
+        perspectives: perspectivesOf(s.perspectives),
         imageQuery: s.imageQuery.trim(),
         sources: [
           ...new Set(
@@ -615,12 +649,36 @@ export function normalize(
   return result;
 }
 
-/** 고른 묶음에서 대표 기사만 꺼낸다 (중요한 묶음 순서 유지) */
-export function pickArticles(clusters: Cluster[], picks: number[]) {
+/**
+ * 한 묶음(같은 사건)에서 보낼 기사: 서로 다른 언론사 기사를 먼저(언론사별 시각을 비교할 수 있게),
+ * 그다음 남은 기사. 묶음 안은 이미 긴 기사(정보가 많은) 순서
+ */
+export function diverseArticles(articles: PrepArticle[], count: number) {
+  const seen = new Set<string>();
+  const firstOfSource = articles.filter((a) => {
+    const key = a.source || `#${a.index}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const rest = articles.filter((a) => !firstOfSource.includes(a));
+  return [...firstOfSource, ...rest].slice(0, count);
+}
+
+/** 고른 묶음에서 대표 기사만 꺼낸다 (중요한 묶음 순서 유지). 시각이 갈리기 쉬운 분야는 더 많이 */
+export function pickArticles(
+  clusters: Cluster[],
+  picks: number[],
+  category?: string,
+) {
+  const perStory =
+    category && PERSPECTIVE_CATEGORIES.includes(category)
+      ? LIMITS.articlesPerStoryWide
+      : LIMITS.articlesPerStory;
   return [...new Set(picks)]
     .filter((n) => Number.isInteger(n) && n >= 1 && n <= clusters.length)
     .slice(0, LIMITS.stories)
-    .flatMap((n) => clusters[n - 1].articles.slice(0, LIMITS.articlesPerStory));
+    .flatMap((n) => diverseArticles(clusters[n - 1].articles, perStory));
 }
 
 @Injectable()
@@ -661,7 +719,7 @@ export class NewsletterWriterService {
       };
       const picks = rankClusters(clusters, scores);
       selection = describeScores(clusters, scores, picks);
-      chosen = pickArticles(clusters, picks);
+      chosen = pickArticles(clusters, picks, category);
       if (!chosen.length) throw new Error('고른 소식이 없음');
     }
 

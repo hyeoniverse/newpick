@@ -351,6 +351,46 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
+		/* 언론사별 시각: 같은 사건을 언론사마다 다르게 본 것 */
+		.perspectives {
+			margin: 1.5rem 0;
+			padding: 1rem 1.25rem;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.surface};
+
+			ul {
+				list-style: none;
+			}
+
+			li {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.25rem 0.75rem;
+				padding: 0.625rem 0;
+				line-height: 1.6;
+
+				& + li {
+					border-top: 1px solid ${({ theme }) => theme.color.border};
+				}
+
+				&:last-child {
+					padding-bottom: 0;
+				}
+			}
+
+			.source {
+				flex-shrink: 0;
+				min-width: 5rem;
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			.view {
+				flex: 1 1 16rem;
+				color: ${({ theme }) => theme.color.mediumGrey};
+			}
+		}
+
 		/* quote: 인용문 */
 		.quote {
 			margin: 0 0 1.5rem;
