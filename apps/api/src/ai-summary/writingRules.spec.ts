@@ -18,7 +18,7 @@ describe('성차별 · 여성혐오 원칙', () => {
     const prompt = writerPrompt(articles, '사회');
     for (const rule of GENDER_RULES) expect(prompt).toContain(rule);
     expect(prompt).toContain(
-      '차별 · 혐오 주장은 대등한 한쪽 주장으로 싣지 않습니다',
+      '차별 · 혐오가 쟁점인 소식은 debate를 빈 배열로 둡니다',
     );
   });
 
