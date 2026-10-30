@@ -197,7 +197,9 @@ const NewsletterContentStyled = styled.article`
 			font-weight: ${({ theme }) => theme.fontWeight.bold};
 			color: ${({ theme }) => theme.color.primary};
 
+			/* 본문 공통 * { margin-bottom }이 번호만 위로 밀어 꼬리표와 어긋나지 않게 */
 			.index {
+				margin: 0;
 				color: ${({ theme }) => theme.color.subText};
 			}
 

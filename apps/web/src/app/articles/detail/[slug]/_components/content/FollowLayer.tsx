@@ -29,6 +29,13 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 	// 방금 눌러 켠 소식: 그 종만 한 번 울린다
 	const [rung, setRung] = useState<number | null>(null);
 
+	// 다 울리면 풀어 둔다: 걸어 둔 채면 가리킬 때 같은 흔들림이 다시 재생되지 않는다
+	useEffect(() => {
+		if (rung === null) return;
+		const timer = window.setTimeout(() => setRung(null), 700);
+		return () => window.clearTimeout(timer);
+	}, [rung]);
+
 	useEffect(() => {
 		const root = rootRef.current;
 		if (!root) return;
