@@ -639,9 +639,29 @@ export default function MySubscribe() {
 												];
 												return (
 													<article className="news">
-														<button type="button" className="news-title" onClick={openMail}>
-															<h3>{mail.subject ?? first?.title}</h3>
-														</button>
+														{/* 제목 줄: 왼쪽 메일 제목, 오른쪽 끝 중요 표시 · 폴더 (메일 하나에 대한 동작을 제목 옆에 모음) */}
+														<div className="news-head">
+															<button type="button" className="news-title" onClick={openMail}>
+																<h3>{mail.subject ?? first?.title}</h3>
+															</button>
+															{/* 받은 메일은 사이트 기사가 아니라 북마크 대신 중요 표시만 (북마크는 기사 화면에서) */}
+															<div className="news-icons">
+																<StarToggle
+																	pressed={mail.starred}
+																	onToggle={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
+																/>
+																<FolderMenu
+																	className="mail-folder"
+																	label={
+																		folder === 'all' && mail.folderId
+																			? `폴더 · ${folderName.get(mail.folderId)}`
+																			: '폴더'
+																	}
+																	current={mail.folderId}
+																	onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
+																/>
+															</div>
+														</div>
 														<div className="news-body">
 															<div className="news-media">
 																<button
@@ -670,26 +690,6 @@ export default function MySubscribe() {
 																			<li key={name}>{name}</li>
 																		))}
 																	</ul>
-																)}
-																{first && (
-																	/* 받은 메일은 사이트 기사가 아니라 북마크 대신 중요 표시만 (북마크는 기사 화면에서) */
-																	<div className="news-icons">
-																		<StarToggle
-																			pressed={mail.starred}
-																			onToggle={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
-																		/>
-																		{/* 폴더: 그림 아래 별 옆 (메일 위 날짜 줄은 제목에 날짜가 있어 뺐다) */}
-																		<FolderMenu
-																			className="mail-folder"
-																			label={
-																				folder === 'all' && mail.folderId
-																					? `폴더 · ${folderName.get(mail.folderId)}`
-																					: '폴더'
-																			}
-																			current={mail.folderId}
-																			onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
-																		/>
-																	</div>
 																)}
 															</div>
 															<div className="news-summary">
@@ -1248,9 +1248,17 @@ const MySubscribeStyled = styled.div`
 		scroll-margin-top: 6rem;
 	}
 
+	.news-head {
+		display: flex;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+	}
+
 	.news-title {
 		display: block;
-		margin-bottom: 1.5rem;
+		min-width: 0;
 		padding: 0;
 		text-align: left;
 		color: inherit;
@@ -1324,12 +1332,13 @@ const MySubscribeStyled = styled.div`
 		}
 	}
 
+	/* 제목 오른쪽 끝: 별 · 폴더. 제목 첫 줄 높이에 맞춘다 */
 	.news-icons {
-		align-items: center;
 		display: flex;
-		justify-content: center;
-		gap: 1rem;
-		margin-top: 0.75rem;
+		flex-shrink: 0;
+		align-items: center;
+		gap: 0.25rem;
+		margin-top: -0.125rem;
 	}
 
 	.news-summary {
