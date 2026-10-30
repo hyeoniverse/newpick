@@ -1,8 +1,10 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { OpenModelService } from '../ai/open-model.service';
 import { ClaudeService, CLAUDE_FAST_MODEL } from './claude.service';
 import {
   Cluster,
   clusterArticles,
+  embeddingText,
   LEAD_CHARS,
   prepare,
   PrepArticle,
@@ -683,7 +685,36 @@ export function pickArticles(
 
 @Injectable()
 export class NewsletterWriterService {
-  constructor(private readonly claude: ClaudeService) {}
+  private readonly logger = new Logger(NewsletterWriterService.name);
+
+  constructor(
+    private readonly claude: ClaudeService,
+    private readonly open: OpenModelService,
+  ) {}
+
+  /**
+   * 같은 사건 묶기용 임베딩 (bge-m3, 무료 할당 안). 설정이 없거나 할당 초과 · 장애면 null → 제목으로만 묶는다
+   * (뉴스레터는 멈추지 않는다). 한 번에 50건씩
+   */
+  private async embeddings(articles: PrepArticle[]) {
+    if (!this.open.configured || articles.length < 2) return null;
+    try {
+      const vectors: number[][] = [];
+      for (let i = 0; i < articles.length; i += 50) {
+        vectors.push(
+          ...(await this.open.embed(
+            articles.slice(i, i + 50).map(embeddingText),
+          )),
+        );
+      }
+      return vectors;
+    } catch (error) {
+      this.logger.warn(
+        `같은 사건 묶기 임베딩 실패, 제목으로만 묶음: ${(error as Error).message}`,
+      );
+      return null;
+    }
+  }
 
   /**
    * 기사 → 뉴스레터 한 편.
@@ -697,7 +728,11 @@ export class NewsletterWriterService {
     hints: { existingTags?: string[]; recentTopics?: string[] } = {},
   ) {
     const { existingTags = [], recentTopics = [] } = hints;
-    const clusters = clusterArticles(prepare(articles));
+    const prepared = prepare(articles);
+    const clusters = clusterArticles(
+      prepared,
+      (await this.embeddings(prepared)) ?? undefined,
+    );
     const usage: Usage[] = [];
 
     let chosen = clusters.length === 1 ? clusters[0].articles : [];

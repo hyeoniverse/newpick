@@ -502,6 +502,8 @@ describe('NewsletterWriterService.write', () => {
         usage: usage('claude-sonnet-5-5'),
       }),
   });
+  /** 오픈 모델 설정이 없을 때: 제목으로만 묶는다 */
+  const noOpen = { configured: false, embed: jest.fn() };
   const articles = [
     { title: '게임대상 후보 발표', content: '후보 본문' },
     { title: '코스피 7개월 만에 최저', content: '코스피 본문' },
@@ -510,10 +512,10 @@ describe('NewsletterWriterService.write', () => {
 
   it('가벼운 모델로 고르고, 고른 기사만 기본 모델로 쓴다', async () => {
     const claude = claudeWith([2]);
-    const result = await new NewsletterWriterService(claude as never).write(
-      articles,
-      '경제',
-    );
+    const result = await new NewsletterWriterService(
+      claude as never,
+      noOpen as never,
+    ).write(articles, '경제');
 
     const [select, write] = claude.generate.mock.calls.map(([o]) => o);
     expect(select.model).toBe(CLAUDE_FAST_MODEL);
@@ -529,7 +531,9 @@ describe('NewsletterWriterService.write', () => {
   it('고른 소식이 없으면 쓰기를 호출하지 않고 실패', async () => {
     const claude = claudeWith([]);
     await expect(
-      new NewsletterWriterService(claude as never).write(articles),
+      new NewsletterWriterService(claude as never, noOpen as never).write(
+        articles,
+      ),
     ).rejects.toThrow('고른 소식이 없음');
     expect(claude.generate).toHaveBeenCalledTimes(1);
   });
@@ -541,7 +545,9 @@ describe('NewsletterWriterService.write', () => {
         usage: usage('claude-sonnet-5-5'),
       }),
     };
-    await new NewsletterWriterService(claude as never).write([articles[1]]);
+    await new NewsletterWriterService(claude as never, noOpen as never).write([
+      articles[1],
+    ]);
     expect(claude.generate).toHaveBeenCalledTimes(1);
   });
 });

@@ -10,6 +10,7 @@ import { NewsletterWriterService } from './newsletterWriter.service';
 import { StoryImageService } from './storyImages';
 import { Logger } from '@nestjs/common';
 import { TagsModule } from '../tags/tags.module';
+import { OpenModelService } from '../ai/open-model.service';
 @Module({
   imports: [CrawledNewsModule, TagsModule],
   controllers: [AiSummaryController],
@@ -26,6 +27,8 @@ import { TagsModule } from '../tags/tags.module';
     CreateNewsletterService,
     NewsletterWriterService,
     StoryImageService,
+    // 같은 사건 묶기용 임베딩 (상태 없는 클라이언트라 AiModule과 따로 둬도 된다)
+    OpenModelService,
   ],
   exports: [
     AiSummaryService,
