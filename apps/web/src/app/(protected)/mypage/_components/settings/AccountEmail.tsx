@@ -247,12 +247,12 @@ const StyledAccountEmail = styled.section`
 		gap: 0.5rem;
 	}
 
-	/* 입력 폼(새 수신 이메일 · 인증 코드)이 열릴 때 위에서 살짝 내려오며 나타난다 */
+	/* 입력 폼(새 수신 이메일 · 인증 코드)이 열릴 때: 높이가 펼쳐지며(아래 내용도 부드럽게 밀려남) 위에서 내려오고 선명해진다 */
 	.form {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		animation: email-form-in 0.24s cubic-bezier(0.2, 0.7, 0.2, 1);
+		animation: email-form-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
 
 		label {
 			font-size: ${({ theme }) => theme.fontSize.small};
@@ -305,10 +305,15 @@ const StyledAccountEmail = styled.section`
 
 	@keyframes email-form-in {
 		from {
+			max-height: 0;
+			overflow: hidden;
 			opacity: 0;
-			transform: translateY(-0.375rem);
+			transform: translateY(-0.75rem);
 		}
 		to {
+			/* 폼의 가장 큰 높이(좁은 화면에서 버튼이 두 줄)보다 넉넉하게 */
+			max-height: 16rem;
+			overflow: hidden;
 			opacity: 1;
 			transform: translateY(0);
 		}
