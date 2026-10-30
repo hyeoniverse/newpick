@@ -309,9 +309,29 @@ export default function MySubscribe() {
 												];
 												return (
 													<article className="news">
-														<button type="button" className="news-title" onClick={openMail}>
-															<h3>{mail.subject ?? first?.title}</h3>
-														</button>
+														{/* 제목 줄: 왼쪽 메일 제목, 오른쪽 끝 중요 표시 · 폴더 (메일 하나에 대한 동작을 제목 옆에 모음) */}
+														<div className="news-head">
+															<button type="button" className="news-title" onClick={openMail}>
+																<h3>{mail.subject ?? first?.title}</h3>
+															</button>
+															{/* 받은 메일은 사이트 기사가 아니라 북마크 대신 중요 표시만 (북마크는 기사 화면에서). 제목이 여러 줄이어도 첫 줄 높이에 맞춘다 */}
+															<div className="news-icons">
+																<StarToggle
+																	pressed={mail.starred}
+																	onToggle={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
+																/>
+																<FolderMenu
+																	className="mail-folder"
+																	label={
+																		folder === 'all' && mail.folderId
+																			? `폴더 · ${folderName.get(mail.folderId)}`
+																			: '폴더'
+																	}
+																	current={mail.folderId}
+																	onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
+																/>
+															</div>
+														</div>
 														<div className="news-body">
 															<div className="news-media">
 																<button
@@ -341,23 +361,6 @@ export default function MySubscribe() {
 																		))}
 																	</ul>
 																)}
-																{/* 받은 메일은 사이트 기사가 아니라 북마크 대신 중요 표시만 (북마크는 기사 화면에서). 폴더는 별 옆 */}
-																<div className="news-icons">
-																	<StarToggle
-																		pressed={mail.starred}
-																		onToggle={() => mark.mutate({ sentAt: mail.sentAt, starred: !mail.starred })}
-																	/>
-																	<FolderMenu
-																		className="mail-folder"
-																		label={
-																			folder === 'all' && mail.folderId
-																				? `폴더 · ${folderName.get(mail.folderId)}`
-																				: '폴더'
-																		}
-																		current={mail.folderId}
-																		onPick={(folderId) => mark.mutate({ sentAt: mail.sentAt, folderId })}
-																	/>
-																</div>
 															</div>
 															<div className="news-summary">
 																{mail.digest?.top.length ? (
