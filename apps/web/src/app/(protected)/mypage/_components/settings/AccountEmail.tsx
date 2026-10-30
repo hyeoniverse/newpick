@@ -132,18 +132,19 @@ export default function AccountEmail() {
 				</div>
 			</div>
 
-			<p className="current">{user?.email}</p>
-
-			{step.kind === 'idle' && (
-				<div className="actions">
-					<Button scheme="monoOutline" size="small" isLoading={busy} onClick={onLinkGoogle}>
-						Google 계정 변경
-					</Button>
-					<Button scheme="monoOutline" size="small" onClick={() => setStep({ kind: 'enter' })}>
-						수신 이메일 변경
-					</Button>
-				</div>
-			)}
+			<div className="current-row">
+				<p className="current">{user?.email}</p>
+				{step.kind === 'idle' && (
+					<div className="actions">
+						<Button scheme="monoOutline" size="small" isLoading={busy} onClick={onLinkGoogle}>
+							Google 계정 변경
+						</Button>
+						<Button scheme="monoOutline" size="small" onClick={() => setStep({ kind: 'enter' })}>
+							수신 이메일 변경
+						</Button>
+					</div>
+				)}
+			</div>
 
 			{step.kind === 'enter' && (
 				<div className="reveal">
@@ -244,7 +245,15 @@ const StyledAccountEmail = styled.section`
 		overflow-wrap: anywhere;
 	}
 
-	/* 바꾸기 버튼: 현재 이메일 바로 아래 */
+	/* 현재 이메일 + 오른쪽 끝 변경 버튼 (좁으면 버튼이 다음 줄로) */
+	.current-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem 1.5rem;
+	}
+
 	.actions {
 		display: flex;
 		flex-wrap: wrap;
