@@ -28,7 +28,9 @@ export default function OpenGraphCard({ urls }: Props) {
 		staleTime: 1000 * 60 * 30,
 	});
 
-	if (relatedNewsData.length === 0) return null;
+	// 주소가 달라도(리다이렉트 등) 원문 링크가 같으면 같은 기사: 한 번만
+	const items = relatedNewsData.filter((item, i, all) => all.findIndex((other) => other.link === item.link) === i);
+	if (items.length === 0) return null;
 
 	return (
 		<StyledRelated>
@@ -37,7 +39,7 @@ export default function OpenGraphCard({ urls }: Props) {
 				관련 뉴스
 			</h2>
 			<ul className="list">
-				{relatedNewsData.map((news) => (
+				{items.map((news) => (
 					<li key={news.link}>
 						<ExternalLink href={news.link} showIcon={false} className="item">
 							<span className="photo">
