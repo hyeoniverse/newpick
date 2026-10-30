@@ -258,10 +258,12 @@ const StyledAccountEmail = styled.section`
 		overflow-wrap: anywhere;
 	}
 
+	/* 입력 폼(새 수신 이메일 · 인증 코드)이 열릴 때 위에서 살짝 내려오며 나타난다 */
 	.form {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+		animation: email-form-in 0.24s cubic-bezier(0.2, 0.7, 0.2, 1);
 
 		label {
 			font-size: ${({ theme }) => theme.fontSize.small};
@@ -309,6 +311,23 @@ const StyledAccountEmail = styled.section`
 			font-size: ${({ theme }) => theme.fontSize.large};
 			font-variant-numeric: tabular-nums;
 			letter-spacing: 0.25em;
+		}
+	}
+
+	@keyframes email-form-in {
+		from {
+			opacity: 0;
+			transform: translateY(-0.375rem);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.form {
+			animation: none;
 		}
 	}
 
