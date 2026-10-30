@@ -98,6 +98,9 @@ function byDay(items: Highlight[]) {
 	return groups;
 }
 
+/** 작은 화면에서 블록마다 처음에 보일 문장 수 (나머지는 '문장 N개 더 보기') */
+const QUOTES_SMALL = 2;
+
 /** 하루 안에서 이어진 같은 뉴스레터 스크랩을 한 블록으로 */
 function byNewsletter(items: Highlight[]) {
 	const blocks: { newsletterId: number; items: Highlight[] }[] = [];
@@ -182,6 +185,8 @@ export default function MyHighlights() {
 		setSelecting(false);
 		setSelected(new Set());
 	};
+	// 작은 화면에서 문장을 모두 펼친 블록 (블록 첫 스크랩 번호)
+	const [openBlocks, setOpenBlocks] = useState<Set<number>>(new Set());
 	// 스크랩 알림의 '모아 보기'로 오면(#hl-번호) 그 문장으로 스크롤하고 잠깐 강조
 	const [focused, setFocused] = useState<number | null>(null);
 	useEffect(() => {
@@ -357,9 +362,16 @@ export default function MyHighlights() {
 															<strong>
 																스크랩한 문장 <span className="count">{block.items.length}</span>
 															</strong>
-															<ul className="quotes">
-																{block.items.map((highlight) => (
-																	<li key={highlight.id}>
+															<ul
+																className={`quotes ${
+																	openBlocks.has(block.items[0].id) ||
+																	block.items.some((h, i) => i >= QUOTES_SMALL && h.id === focused)
+																		? 'open'
+																		: ''
+																}`}
+															>
+																{block.items.map((highlight, i) => (
+																	<li key={highlight.id} className={i >= QUOTES_SMALL ? 'extra' : undefined}>
 																		<Source
 																			highlight={highlight}
 																			folder={
@@ -386,6 +398,16 @@ export default function MyHighlights() {
 																	</li>
 																))}
 															</ul>
+															{/* 작은 화면에서만: 접어 둔 문장 펼치기 (큰 화면에선 다 보여 숨김) */}
+															{block.items.length > QUOTES_SMALL && !openBlocks.has(block.items[0].id) && (
+																<button
+																	type="button"
+																	className="more-quotes"
+																	onClick={() => setOpenBlocks((prev) => new Set(prev).add(block.items[0].id))}
+																>
+																	문장 {block.items.length - QUOTES_SMALL}개 더 보기
+																</button>
+															)}
 														</div>
 													</div>
 												</article>
@@ -684,11 +706,35 @@ const StyledHighlights = styled.div`
 		}
 	}
 
+	/* 접어 둔 문장 펼치기: 작은 화면에서만 */
+	.more-quotes {
+		display: none;
+		width: 100%;
+		margin-top: 0.625rem;
+		padding: 0.5rem 0 0;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
+		font: inherit;
+		font-size: 0.75rem;
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
+		text-align: left;
+		cursor: pointer;
+	}
+
 	/* 작은 화면(좁은 블록): 스크랩 상자도 촘촘하게 */
 	@container news (max-width: 28rem) {
 		.news .news-summary > strong {
 			margin-bottom: 0.5rem;
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		}
+
+		/* 내용도 줄인다: 블록마다 앞 2문장(QUOTES_SMALL)만, 나머지는 '문장 N개 더 보기'로 펼침 */
+		.news .quotes:not(.open) > li.extra {
+			display: none;
+		}
+
+		.news .more-quotes {
+			display: block;
 		}
 
 		.news .quotes > li + li {

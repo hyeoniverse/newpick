@@ -27,6 +27,9 @@ import ListHead, { SortSelect } from './list/ListHead';
 import { newsBlock } from './list/newsBlock';
 import MonthBar, { LoadNewer, MonthIndex, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
 
+/** 작은 화면에서 오늘 한눈에를 몇 개까지 보일지 (나머지는 '외 N개') */
+const GLANCE_SMALL = 3;
+
 /** 한 번에 받아 오는 메일 수 (무한 스크롤 한 묶음, 서버는 20통까지) */
 const PAGE_SIZE = 10;
 
@@ -388,6 +391,12 @@ export default function MySubscribe() {
 																	</>
 																)}
 																<p className="summary-more">
+																	{/* 작은 화면에선 오늘 한눈에를 앞 3개만 보여 주고 나머지 수를 (큰 화면에선 숨김) */}
+																	{(mail.digest?.top.length ?? 0) > GLANCE_SMALL && (
+																		<span className="glance-rest">
+																			오늘 한눈에 외 {(mail.digest?.top.length ?? 0) - GLANCE_SMALL}개
+																		</span>
+																	)}
 																	{!!mail.digest?.threads.length && (
 																		<span>분야를 넘는 흐름 {mail.digest.threads.length}</span>
 																	)}
@@ -535,6 +544,17 @@ const MySubscribeStyled = styled.div`
 		color: ${({ theme }) => theme.color.mediumGrey};
 	}
 
+	/* 작은 화면에서만 보이는 '오늘 한눈에 외 N개' */
+	.glance-rest {
+		display: none;
+	}
+
+	@container news (max-width: 28rem) {
+		.glance-rest {
+			display: inline;
+		}
+	}
+
 	/* 상자 아래: 흐름 · 관전 포인트 수 · 메일로 보기 */
 	.summary-more {
 		display: flex;
@@ -576,6 +596,18 @@ const MySubscribeStyled = styled.div`
 		.news .news-summary strong {
 			margin-bottom: 0.5rem;
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		}
+
+		/* 내용도 줄인다: 앞 3개(GLANCE_SMALL)만, 요약은 한 줄로 자름 */
+		.news .glance > li:nth-child(n + 4) {
+			display: none;
+		}
+
+		.news .news-summary .glance-line {
+			display: -webkit-box;
+			-webkit-line-clamp: 1;
+			-webkit-box-orient: vertical;
+			overflow: hidden;
 		}
 
 		.news .glance {
