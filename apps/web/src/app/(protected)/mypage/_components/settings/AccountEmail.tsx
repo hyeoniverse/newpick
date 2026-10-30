@@ -146,6 +146,7 @@ export default function AccountEmail() {
 			)}
 
 			{step.kind === 'enter' && (
+				<div className="reveal">
 				<form className="form" onSubmit={onSend}>
 					<label htmlFor="new-email">새 수신 이메일</label>
 					<div className="row">
@@ -169,9 +170,11 @@ export default function AccountEmail() {
 						</Button>
 					</div>
 				</form>
+				</div>
 			)}
 
 			{step.kind === 'code' && (
+				<div className="reveal">
 				<form className="form" onSubmit={onVerify}>
 					<label htmlFor="email-code">
 						<b>{step.email}</b>(으)로 보낸 인증 코드 6자리 (10분간 유효)
@@ -207,6 +210,7 @@ export default function AccountEmail() {
 						</Button>
 					</div>
 				</form>
+				</div>
 			)}
 
 			{error && (
@@ -247,12 +251,23 @@ const StyledAccountEmail = styled.section`
 		gap: 0.5rem;
 	}
 
-	/* 입력 폼(새 수신 이메일 · 인증 코드)이 열릴 때: 높이가 펼쳐지며(아래 내용도 부드럽게 밀려남) 위에서 내려오고 선명해진다 */
+	/* 입력 폼(새 수신 이메일 · 인증 코드)이 열릴 때: 실제 높이만큼 펼쳐지며(아래 내용도 같이 밀려남) 위에서 내려오고 선명해진다 */
+	.reveal {
+		display: grid;
+		grid-template-rows: 1fr;
+		/* 펼쳐지는 동안 칸 밖으로 넘친 부분은 가린다 */
+		overflow: hidden;
+		animation: email-form-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
+
+		> .form {
+			min-height: 0;
+		}
+	}
+
 	.form {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
-		animation: email-form-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
 
 		label {
 			font-size: ${({ theme }) => theme.fontSize.small};
@@ -305,22 +320,19 @@ const StyledAccountEmail = styled.section`
 
 	@keyframes email-form-in {
 		from {
-			max-height: 0;
-			overflow: hidden;
+			grid-template-rows: 0fr;
 			opacity: 0;
 			transform: translateY(-0.75rem);
 		}
 		to {
-			/* 폼의 가장 큰 높이(좁은 화면에서 버튼이 두 줄)보다 넉넉하게 */
-			max-height: 16rem;
-			overflow: hidden;
+			grid-template-rows: 1fr;
 			opacity: 1;
 			transform: translateY(0);
 		}
 	}
 
 	@media (prefers-reduced-motion: reduce) {
-		.form {
+		.reveal {
 			animation: none;
 		}
 	}
