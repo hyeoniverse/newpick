@@ -150,8 +150,67 @@ export const newsBlock = css`
 		}
 	}
 
-	/* 블록 폭이 많이 모자라면(제목 자리가 모자람): 동작을 제목 위 오른쪽 끝 따로 한 줄로, 더 작게 */
+	/* 오른쪽 연한 상자 */
+	.news-summary {
+		flex: 3;
+		min-width: 0;
+		padding: 1.25rem 1.5rem;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.surface};
+	}
+
+	/* 작은 화면: 블록 위아래 여백도 줄인다 (블록 자신은 @container로 못 바꿔 화면 폭으로) */
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.news {
+			padding: 1.125rem 0 1.25rem;
+		}
+	}
+
+	/* 좁은 화면: 그림 위 · 상자 아래 */
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
+		.news-body {
+			flex-direction: column;
+		}
+
+		.news-title h3 {
+			font-size: ${({ theme }) => theme.fontSize.medium};
+		}
+
+		.news-head {
+			--title-line: calc(${({ theme }) => theme.fontSize.medium} * 1.4);
+			gap: 0.75rem;
+		}
+	}
+
+	/* 블록 폭이 많이 모자라면(작은 화면): 동작을 제목 위 오른쪽 끝 따로 한 줄로, 더 작게. 블록 안도 촘촘하게 */
 	@container news (max-width: 28rem) {
+		.news-head {
+			--title-line: calc(${({ theme }) => theme.fontSize.small} * 1.4);
+			margin-bottom: 0.75rem;
+		}
+
+		.news-title h3 {
+			font-size: ${({ theme }) => theme.fontSize.small};
+		}
+
+		.news-body {
+			gap: 0.75rem;
+		}
+
+		/* 그림은 조금 납작하게 (16:9 → 2:1) */
+		.news-image {
+			aspect-ratio: 2 / 1;
+		}
+
+		.news-cats {
+			margin-top: 0.5rem;
+		}
+
+		.news-summary {
+			padding: 0.875rem 1rem;
+		}
+
 		.news-head {
 			flex-direction: column;
 			align-items: stretch;
@@ -178,32 +237,6 @@ export const newsBlock = css`
 			.trigger {
 				font-size: 0.75rem;
 			}
-		}
-	}
-
-	/* 오른쪽 연한 상자 */
-	.news-summary {
-		flex: 3;
-		min-width: 0;
-		padding: 1.25rem 1.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.surface};
-	}
-
-	/* 좁은 화면: 그림 위 · 상자 아래 */
-	@media ${({ theme }) => theme.mediaQuery.tablet} {
-		.news-body {
-			flex-direction: column;
-		}
-
-		.news-title h3 {
-			font-size: ${({ theme }) => theme.fontSize.medium};
-		}
-
-		.news-head {
-			--title-line: calc(${({ theme }) => theme.fontSize.medium} * 1.4);
-			gap: 0.75rem;
 		}
 	}
 `;

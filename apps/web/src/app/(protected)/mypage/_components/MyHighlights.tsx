@@ -684,6 +684,28 @@ const StyledHighlights = styled.div`
 		}
 	}
 
+	/* 작은 화면(좁은 블록): 스크랩 상자도 촘촘하게 */
+	@container news (max-width: 28rem) {
+		.news .news-summary > strong {
+			margin-bottom: 0.5rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		}
+
+		.news .quotes > li + li {
+			margin-top: 0.625rem;
+			padding-top: 0.625rem;
+		}
+
+		.news .quote {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			line-height: 1.65;
+		}
+
+		.news .note {
+			font-size: 0.8125rem;
+		}
+	}
+
 	.quotes {
 		display: flex;
 		flex-direction: column;

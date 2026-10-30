@@ -571,6 +571,42 @@ const MySubscribeStyled = styled.div`
 
 	${newsBlock}
 
+	/* 작은 화면(좁은 블록): 오늘 한눈에 상자도 촘촘하게 */
+	@container news (max-width: 28rem) {
+		.news .news-summary strong {
+			margin-bottom: 0.5rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		}
+
+		.news .glance {
+			gap: 0.625rem;
+
+			li {
+				gap: 0.5rem;
+			}
+		}
+
+		.news .glance-no,
+		.news .glance-head {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		}
+
+		.news .glance-cat {
+			margin-right: 0.375rem;
+		}
+
+		.news .news-summary .glance-line {
+			margin-top: 0.125rem !important;
+			font-size: 0.8125rem;
+			line-height: 1.5;
+		}
+
+		.news .news-summary .summary-more {
+			margin-top: 0.75rem !important;
+			padding-top: 0.5rem;
+		}
+	}
+
 	.news-summary {
 		strong {
 			display: block;
