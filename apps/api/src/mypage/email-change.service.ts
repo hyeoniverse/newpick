@@ -73,9 +73,9 @@ export class EmailChangeService {
       '',
       accountMailHtml(
         '이메일 인증 코드',
-        `<p style="margin:0 0 16px;font-size:15px;line-height:1.6">뉴픽 마이페이지에 아래 코드를 넣으면 이 주소로 이메일이 바뀝니다. 10분 동안 쓸 수 있어요.</p>
+        `<p style="margin:0 0 16px;font-size:15px;line-height:1.6">뉴픽 마이페이지에 아래 인증 코드를 입력하면 수신 이메일이 이 주소로 변경됩니다. 인증 코드는 10분간 유효합니다.</p>
   <p style="margin:0;padding:16px;border:1px solid #d9d9d9;border-radius:8px;font-size:28px;font-weight:800;letter-spacing:8px;text-align:center">${code}</p>
-  <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#6b6b6b">직접 요청하지 않았다면 이 메일은 무시해 주세요. 이메일은 바뀌지 않습니다.</p>`,
+  <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#6b6b6b">본인이 요청하지 않았다면 이 메일을 무시해 주세요. 이메일은 변경되지 않습니다.</p>`,
       ),
       '[뉴픽] 이메일 인증 코드',
     );
@@ -138,7 +138,7 @@ export class EmailChangeService {
         this.mail,
         before.email,
         pending.newEmail,
-        '마이페이지에서 받는 주소 바꾸기',
+        '수신 이메일 변경',
       );
     return { email: pending.newEmail };
   }

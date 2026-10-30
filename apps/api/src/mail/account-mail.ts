@@ -1,7 +1,7 @@
 import { Logger } from '@nestjs/common';
 import { MailService } from './mail.service';
 
-/** 계정 안내 메일(인증 코드 · 이메일이 바뀜)의 공통 틀 */
+/** 계정 안내 메일(인증 코드 · 이메일 변경 안내)의 공통 틀 */
 export const accountMailHtml = (title: string, body: string) =>
   `<div style="font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#111">
   <p style="margin:0 0 24px;font-size:20px;font-weight:800;color:#3610e1">NewPick</p>
@@ -25,11 +25,11 @@ export async function notifyEmailChanged(
       oldEmail,
       '',
       accountMailHtml(
-        '이메일이 바뀌었어요',
-        `<p style="margin:0;font-size:15px;line-height:1.6">뉴픽 계정의 이메일이 <b>${newEmail}</b>(으)로 바뀌었습니다 (${how}). 앞으로 뉴스레터는 새 주소로 갑니다.</p>
-  <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#6b6b6b">직접 바꾸지 않았다면 hyeoniverse.dev@gmail.com으로 알려 주세요.</p>`,
+        '이메일 변경 안내',
+        `<p style="margin:0;font-size:15px;line-height:1.6">뉴픽 계정의 이메일이 <b>${newEmail}</b>(으)로 변경되었습니다 (${how}). 앞으로 뉴스레터는 새 이메일로 발송됩니다.</p>
+  <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#6b6b6b">본인이 변경하지 않았다면 hyeoniverse.dev@gmail.com으로 문의해 주세요.</p>`,
       ),
-      '[뉴픽] 이메일이 바뀌었어요',
+      '[뉴픽] 이메일 변경 안내',
     );
   } catch (error) {
     new Logger('AccountMail').warn(

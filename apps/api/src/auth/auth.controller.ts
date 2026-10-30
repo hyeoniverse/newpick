@@ -80,7 +80,7 @@ export class AuthController {
           this.mail,
           result.oldEmail,
           result.email,
-          '다른 Google 계정으로 바꾸기',
+          'Google 계정 변경',
         );
       return res.redirect(linkResultUrl(result.status));
     }

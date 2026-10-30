@@ -42,13 +42,13 @@ export default function LoginSessions() {
 	const removeOne = useMutation({
 		mutationFn: (session: LoginSession) => logoutSession(session.id),
 		onSuccess: () => showToast('선택한 기기에서 로그아웃했습니다.', 'success'),
-		onError: () => showToast('로그아웃하지 못했습니다. 잠시 뒤 다시 시도해 주세요.', 'error'),
+		onError: () => showToast('로그아웃하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error'),
 		onSettled: refresh,
 	});
 	const removeOthers = useMutation({
 		mutationFn: logoutOtherSessions,
 		onSuccess: ({ removed }) => showToast(`다른 기기 ${removed}대에서 로그아웃했습니다.`, 'success'),
-		onError: () => showToast('로그아웃하지 못했습니다. 잠시 뒤 다시 시도해 주세요.', 'error'),
+		onError: () => showToast('로그아웃하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error'),
 		onSettled: refresh,
 	});
 
@@ -81,7 +81,7 @@ export default function LoginSessions() {
 			{isPending ? (
 				<p className="status">불러오는 중…</p>
 			) : isError || sessions.length === 0 ? (
-				<p className="status">로그인한 기기 목록을 불러오지 못했습니다. 잠시 뒤 다시 확인해 주세요.</p>
+				<p className="status">로그인한 기기 목록을 불러오지 못했습니다. 잠시 후 다시 확인해 주세요.</p>
 			) : (
 				<ul>
 					{sessions.map((session) => {

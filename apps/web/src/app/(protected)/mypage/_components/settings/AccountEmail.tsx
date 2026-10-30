@@ -14,7 +14,7 @@ type Step = { kind: 'idle' } | { kind: 'enter' } | { kind: 'code'; email: string
 
 /** API 오류 message는 사용자에게 그대로 보여 줘도 되는 글 (남은 횟수가 있으면 덧붙인다) */
 const errorText = (error: unknown) => {
-	if (!(error instanceof ApiError)) return '잠시 뒤 다시 시도해 주세요.';
+	if (!(error instanceof ApiError)) return '잠시 후 다시 시도해 주세요.';
 	const left = (error.body as { details?: { attemptsLeft?: number } } | undefined)?.details?.attemptsLeft;
 	return left ? `${error.message} (${left}번 남음)` : error.message;
 };
@@ -59,7 +59,7 @@ export default function AccountEmail() {
 		try {
 			await linkGoogleAccount();
 		} catch {
-			showToast('잠시 뒤 다시 시도해 주세요.', 'error');
+			showToast('잠시 후 다시 시도해 주세요.', 'error');
 			setBusy(false);
 		}
 	};
@@ -161,7 +161,7 @@ export default function AccountEmail() {
 							autoFocus
 						/>
 						<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={!email}>
-							인증 코드 받기
+							인증 코드 요청
 						</Button>
 						<Button type="button" scheme="outline" size="small" onClick={reset}>
 							취소
@@ -199,7 +199,7 @@ export default function AccountEmail() {
 							disabled={busy || waitSeconds > 0}
 							onClick={() => send(step.email)}
 						>
-							{waitSeconds > 0 ? `다시 보내기 (${waitSeconds}초)` : '다시 보내기'}
+							{waitSeconds > 0 ? `재전송 (${waitSeconds}초)` : '재전송'}
 						</Button>
 						<Button type="button" scheme="outline" size="small" onClick={reset}>
 							취소

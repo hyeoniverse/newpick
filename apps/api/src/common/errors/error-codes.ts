@@ -145,16 +145,16 @@ export const ERROR_CODES = {
   },
   EMAIL_UNCHANGED: {
     status: HttpStatus.BAD_REQUEST,
-    message: '지금 쓰는 이메일과 같습니다.',
+    message: '현재 이메일과 같습니다.',
   },
   EMAIL_TAKEN: {
     status: HttpStatus.CONFLICT,
-    message: '다른 계정이 쓰는 이메일입니다.',
+    message: '다른 계정에서 사용 중인 이메일입니다.',
   },
   EMAIL_CODE_TOO_SOON: {
     status: HttpStatus.TOO_MANY_REQUESTS,
     message:
-      '인증 코드는 1분에 한 번 보낼 수 있습니다. 잠시 뒤 다시 보내 주세요.',
+      '인증 코드는 1분에 한 번 요청할 수 있습니다. 잠시 후 다시 시도해 주세요.',
   },
   EMAIL_CODE_INVALID: {
     status: HttpStatus.BAD_REQUEST,
@@ -162,7 +162,7 @@ export const ERROR_CODES = {
   },
   EMAIL_CODE_EXPIRED: {
     status: HttpStatus.BAD_REQUEST,
-    message: '인증 코드가 만료되었습니다. 코드를 다시 받아 주세요.',
+    message: '인증 코드가 만료되었습니다. 인증 코드를 다시 요청해 주세요.',
   },
 } as const satisfies Record<string, { status: HttpStatus; message: string }>;
 
