@@ -23,11 +23,13 @@ services:
       - --innodb-buffer-pool-size=64M
       - --performance-schema=OFF
     volumes: [mysql-data:/var/lib/mysql]
+    # 상태 확인: 뜨는 동안만 2초마다, 뜬 뒤엔 1분마다 (1GB 서버라 확인 자체도 아낀다)
     healthcheck:
       test: ['CMD-SHELL', 'mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD']
-      interval: 5s
+      interval: 60s
+      start_period: 60s
+      start_interval: 2s
       retries: 30
-      start_period: 30s
 
   mongo:
     image: mongo:7
@@ -36,9 +38,13 @@ services:
     # WiredTiger 캐시 기본값은 (메모리-1GB)/2 또는 256MB. 1GB 서버라 줄인다
     command: ['--wiredTigerCacheSizeGB', '0.25']
     volumes: [mongo-data:/data/db]
+    # 상태 확인은 포트가 열렸는지만 본다. mongosh(Node)는 한 번에 메모리 약 250MB · 5초 남짓이 들어
+    # 5초 간격이면 쉬지 않고 떠 있으면서 스왑 · CPU 제한으로 서버 전체를 느리게 했다
     healthcheck:
-      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.adminCommand("ping")']
-      interval: 5s
+      test: ['CMD', 'bash', '-c', '</dev/tcp/127.0.0.1/27017']
+      interval: 60s
+      start_period: 60s
+      start_interval: 2s
       retries: 30
 
   api:
