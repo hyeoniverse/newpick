@@ -126,8 +126,8 @@ export default function AccountEmail() {
 						이메일
 					</Title>
 					<Text size="small" color="subText">
-						로그인 Google 계정과 뉴스레터 수신 이메일입니다. Google 계정을 변경하면 둘 다 변경되고, 수신 이메일만
-						변경하면 로그인 계정은 유지됩니다.
+						Google 계정 변경 시 로그인 계정과 수신 이메일이 함께 변경됩니다. 수신 이메일 변경 시 로그인 계정은
+						유지됩니다.
 					</Text>
 				</div>
 				{step.kind === 'idle' && (

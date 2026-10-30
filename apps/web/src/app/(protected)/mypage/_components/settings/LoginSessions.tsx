@@ -62,7 +62,7 @@ export default function LoginSessions() {
 						로그인한 기기
 					</Title>
 					<Text size="small" color="subText">
-						30일간 사용하지 않은 기기는 자동으로 로그아웃됩니다. 다른 기기를 로그아웃하면 30분 안에 적용됩니다.
+						30일간 사용하지 않은 기기는 자동으로 로그아웃됩니다. 다른 기기 로그아웃은 최대 30분 후 적용됩니다.
 					</Text>
 				</div>
 				{others > 0 && (
