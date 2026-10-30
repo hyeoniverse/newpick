@@ -32,12 +32,16 @@ function ago(iso: string) {
 export default function LoginSessions() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
-	const { data: sessions = [], isPending } = useQuery({ queryKey: SESSIONS_KEY, queryFn: fetchSessions });
+	const {
+		data: sessions = [],
+		isPending,
+		isError,
+	} = useQuery({ queryKey: SESSIONS_KEY, queryFn: fetchSessions });
 
 	const refresh = () => queryClient.invalidateQueries({ queryKey: SESSIONS_KEY });
 	const removeOne = useMutation({
 		mutationFn: (session: LoginSession) => logoutSession(session.id),
-		onSuccess: () => showToast('그 기기에서 로그아웃했습니다.', 'success'),
+		onSuccess: () => showToast('선택한 기기에서 로그아웃했습니다.', 'success'),
 		onError: () => showToast('로그아웃하지 못했습니다. 잠시 뒤 다시 시도해 주세요.', 'error'),
 		onSettled: refresh,
 	});
@@ -58,7 +62,7 @@ export default function LoginSessions() {
 						로그인한 기기
 					</Title>
 					<Text size="small" color="subText">
-						30일 동안 쓰지 않은 기기는 저절로 로그아웃됩니다. 로그아웃시킨 기기는 30분 안에 로그인이 풀립니다.
+						30일간 사용하지 않은 기기는 자동으로 로그아웃됩니다. 다른 기기를 로그아웃하면 30분 안에 적용됩니다.
 					</Text>
 				</div>
 				{others > 0 && (
@@ -73,8 +77,11 @@ export default function LoginSessions() {
 				)}
 			</div>
 
+			{/* 목록이 없을 때 빈 상자를 그리지 않는다 (빈 상자는 위 · 아래 테두리가 붙어 굵은 줄 하나로 보인다) */}
 			{isPending ? (
 				<p className="status">불러오는 중…</p>
+			) : isError || sessions.length === 0 ? (
+				<p className="status">로그인한 기기 목록을 불러오지 못했습니다. 잠시 뒤 다시 확인해 주세요.</p>
 			) : (
 				<ul>
 					{sessions.map((session) => {

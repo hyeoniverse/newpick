@@ -21,16 +21,16 @@ const errorText = (error: unknown) => {
 
 /** 다른 Google 계정으로 바꾸고 돌아왔을 때(?google=…) 안내 */
 const LINK_RESULTS: Record<string, [string, 'success' | 'error' | 'info']> = {
-	linked: ['다른 Google 계정으로 바꿨습니다. 이제 그 계정으로 로그인하고, 뉴스레터도 그 주소로 갑니다.', 'success'],
-	same: ['지금 연결된 Google 계정과 같습니다.', 'info'],
-	taken: ['그 Google 계정(또는 주소)은 이미 다른 뉴픽 계정에 연결되어 있어 바꾸지 않았습니다.', 'error'],
-	failed: ['Google 계정을 바꾸지 못했습니다. 다시 시도해 주세요.', 'error'],
+	linked: ['Google 계정을 변경했습니다. 로그인 계정과 수신 이메일이 함께 변경되었습니다.', 'success'],
+	same: ['현재 연결된 Google 계정과 같습니다.', 'info'],
+	taken: ['다른 뉴픽 계정에 연결된 Google 계정(또는 이메일)이라 변경하지 않았습니다.', 'error'],
+	failed: ['Google 계정을 변경하지 못했습니다. 다시 시도해 주세요.', 'error'],
 };
 
 /**
  * 마이페이지 > 설정의 이메일 (로그인 · 뉴스레터 받는 주소). 두 가지로 바꾼다
- * - Google 계정 바꾸기: 구글 계정 고르기 → 로그인 연결과 이메일이 함께 그 계정으로 (주소는 Google이 확인한 것)
- * - 받는 주소만 바꾸기: 새 주소 → 그 주소로 온 6자리 코드. 로그인은 그대로 같은 Google 계정으로
+ * - Google 계정 변경: 구글 계정 고르기 → 로그인 연결과 이메일이 함께 그 계정으로 (주소는 Google이 확인한 것)
+ * - 수신 이메일 변경: 새 주소 → 그 주소로 온 6자리 코드. 로그인은 그대로 같은 Google 계정으로
  */
 export default function AccountEmail() {
 	const { user, refetchUser } = useAuth();
@@ -106,7 +106,7 @@ export default function AccountEmail() {
 			const changed = await verifyEmailCode(code);
 			await refetchUser();
 			reset();
-			showToast(`이메일을 ${changed.email}(으)로 바꿨습니다.`, 'success');
+			showToast(`수신 이메일을 ${changed.email}(으)로 변경했습니다.`, 'success');
 		} catch (e) {
 			setError(errorText(e));
 			// 코드가 만료됐거나 다 틀렸으면 새 주소부터 다시
@@ -126,17 +126,17 @@ export default function AccountEmail() {
 						이메일
 					</Title>
 					<Text size="small" color="subText">
-						로그인한 Google 계정과 뉴스레터를 받는 주소입니다. Google 계정을 바꾸면 로그인과 주소가 함께 바뀌고, 받는
-						주소만 바꾸면 로그인은 지금 Google 계정 그대로입니다.
+						로그인 Google 계정과 뉴스레터 수신 이메일입니다. Google 계정을 변경하면 둘 다 변경되고, 수신 이메일만
+						변경하면 로그인 계정은 유지됩니다.
 					</Text>
 				</div>
 				{step.kind === 'idle' && (
 					<div className="actions">
 						<Button scheme="monoOutline" size="small" isLoading={busy} onClick={onLinkGoogle}>
-							Google 계정 바꾸기
+							Google 계정 변경
 						</Button>
 						<Button scheme="monoOutline" size="small" onClick={() => setStep({ kind: 'enter' })}>
-							받는 주소만 바꾸기
+							수신 이메일 변경
 						</Button>
 					</div>
 				)}
@@ -146,7 +146,7 @@ export default function AccountEmail() {
 
 			{step.kind === 'enter' && (
 				<form className="form" onSubmit={onSend}>
-					<label htmlFor="new-email">뉴스레터를 받을 새 주소</label>
+					<label htmlFor="new-email">새 수신 이메일</label>
 					<div className="row">
 						<input
 							id="new-email"
@@ -173,7 +173,7 @@ export default function AccountEmail() {
 			{step.kind === 'code' && (
 				<form className="form" onSubmit={onVerify}>
 					<label htmlFor="email-code">
-						<b>{step.email}</b>(으)로 보낸 6자리 코드 (10분 동안)
+						<b>{step.email}</b>(으)로 보낸 인증 코드 6자리 (10분간 유효)
 					</label>
 					<div className="row">
 						<input
