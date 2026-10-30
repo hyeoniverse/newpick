@@ -92,20 +92,21 @@ export default function StartSubscription() {
 				</Text>
 			</div>
 			<div className="category-section">
-				<div className="all-category">
-					<Button
-						type="button"
-						scheme="default"
-						className={
-							selectedInterests.length === CATEGORIES.length ? 'active category-btn' : 'category-btn'
-						}
-						onClick={() => handleSelectInterests(CATEGORIES[0])}
-					>
-						전체
-					</Button>
-				</div>
-				<div className="bar" />
+				{/* 전체 · 구분선 · 관심사를 한 줄바꿈 흐름에: 넘치면 다음 줄은 구분선 뒤가 아니라 맨 왼쪽(전체 아래)부터 */}
 				<ul className="categories">
+					<li>
+						<Button
+							type="button"
+							scheme="default"
+							className={
+								selectedInterests.length === CATEGORIES.length ? 'active category-btn' : 'category-btn'
+							}
+							onClick={() => handleSelectInterests(CATEGORIES[0])}
+						>
+							전체
+						</Button>
+					</li>
+					<li className="bar" aria-hidden />
 					{CATEGORIES.slice(1).map((category, index) => (
 						<li key={index}>
 							<Button
@@ -168,16 +169,22 @@ const StyeldStartSubscription = styled.div`
 		border-top: 1px solid ${({ theme }) => theme.color.text};
 		border-bottom: 1px solid ${({ theme }) => theme.color.text};
 
-		.bar {
-			border-left: 1px solid ${({ theme }) => theme.color.lightGrey};
-			height: auto;
-		}
-
 		.categories {
 			display: flex;
 			flex-direction: row;
 			flex-wrap: wrap;
 			gap: 0.5rem;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+
+		/* 전체와 관심사 사이 세로줄: 그 줄 높이만큼 */
+		.bar {
+			align-self: stretch;
+			width: 1px;
+			margin: 0 0.1875rem;
+			background: ${({ theme }) => theme.color.lightGrey};
 		}
 
 		.category-btn {

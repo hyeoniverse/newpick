@@ -17,10 +17,11 @@ const whenActive = (rules: ReturnType<typeof css>) => css`
 
 /**
  * 누르면 바뀌는 단추(북마크 · 별)의 '누를 때 일 미리 보기'. 방금 눌러 바뀐 단추(data-settled)에서는
- * 마우스가 나갔다 다시 들어오기 전까지 미리 보기를 하지 않아, 바뀐 상태가 그대로 보인다
+ * 마우스가 나갔다 다시 들어오기 전까지 미리 보기를 하지 않아, 바뀐 상태가 그대로 보인다.
+ * 아이콘을 바로 감싼 단추를 가리킬 때만: 카드 전체가 링크인 곳(뉴스레터 배너 등)에서 카드만 가리켜도 미리 보기가 켜지지 않게
  */
 const whenPreview = (rules: ReturnType<typeof css>) => css`
-	:is(a, button):is(:hover, :focus-visible):not([data-settled]) & {
+	button:is(:hover, :focus-visible):not([data-settled]) > & {
 		${rules}
 	}
 `;
