@@ -81,12 +81,10 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 					>
 						<BellGlyph on={!!current} ring={!!current && rung === storyIndex} />
 						{current ? '지켜보는 중' : '후속 지켜보기'}
-						{current && current._count.updates > 0 && (
-							<span className="count">후속 {current._count.updates}</span>
-						)}
+						{current && current._count.updates > 0 && <span className="count">후속 {current._count.updates}</span>}
 					</FollowButton>,
 					slot,
-					`follow-${storyIndex}`
+					`follow-${storyIndex}`,
 				);
 			})}
 		</>

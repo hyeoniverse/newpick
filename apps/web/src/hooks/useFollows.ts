@@ -56,7 +56,7 @@ export function useNewsletterFollows(newsletterId: number) {
 		queryKey: [KEY, user?.id, 'newsletter', newsletterId],
 		queryFn: () =>
 			apiFetch<{ id: number; storyIndex: number; _count: { updates: number } }[]>(
-				API_ENDPOINTS.MY.FOLLOWS_OF(newsletterId)
+				API_ENDPOINTS.MY.FOLLOWS_OF(newsletterId),
 			),
 		enabled: !!user,
 	});
@@ -70,8 +70,7 @@ export function useFollowMutations() {
 	const follow = useMutation({
 		mutationFn: (body: { newsletterId: number; storyIndex: number }) =>
 			apiFetch(API_ENDPOINTS.MY.FOLLOWS(), { method: 'POST', body }),
-		onSuccess: () =>
-			showToast("후속 기사가 나오면 마이페이지 '지켜보기'와 머리글에 알려 드립니다.", 'success'),
+		onSuccess: () => showToast("후속 기사가 나오면 마이페이지 '지켜보기'와 머리글에 알려 드립니다.", 'success'),
 		onError: () => showToast('지켜보기를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error'),
 		onSettled: refresh,
 	});

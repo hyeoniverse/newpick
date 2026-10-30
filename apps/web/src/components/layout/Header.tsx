@@ -92,11 +92,7 @@ export default function Header() {
 								toggleButton={
 									<StyledAvatar>
 										<StyledUserCircle>
-											{user.profileImg ? (
-												<Imgae src={user.profileImg} alt="" ratio="square" />
-											) : (
-												<AvatarPlaceholder />
-											)}
+											{user.profileImg ? <Imgae src={user.profileImg} alt="" ratio="square" /> : <AvatarPlaceholder />}
 										</StyledUserCircle>
 										{unseenFollows > 0 && (
 											<span className="follow-dot" role="status" aria-label={`새 후속 소식 ${unseenFollows}건`} />
