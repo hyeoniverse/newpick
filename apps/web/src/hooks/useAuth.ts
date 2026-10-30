@@ -11,7 +11,16 @@ import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/stores/useAuthStore';
 
 /** 로그인한 사람마다 다른 조회 결과. 로그아웃·탈퇴하면 지운다 */
-const USER_QUERY_KEYS = ['user', 'bookmarks', 'highlights', 'subscriptionStatus', 'subscriptionInterests'];
+const USER_QUERY_KEYS = [
+	'user',
+	'bookmarks',
+	'highlights',
+	'folders',
+	'myMails',
+	'taste',
+	'subscriptionStatus',
+	'subscriptionInterests',
+];
 
 export const useAuth = () => {
 	const { showToast } = useToast();

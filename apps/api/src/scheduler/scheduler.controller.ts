@@ -10,6 +10,7 @@ import { NewsletterRepo } from 'src/repository/newsletter.repository';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 import { DashboardService } from './dashboard.service';
 import { StatsService } from './stats.service';
+import { TasteService } from 'src/taste/taste.service';
 import {
   DashboardAiLogsQueryDto,
   DashboardArticlesQueryDto,
@@ -32,6 +33,7 @@ export class SchedulerController {
     private readonly newsletterRepository: NewsletterRepo,
     private readonly dashboardService: DashboardService,
     private readonly statsService: StatsService,
+    private readonly tasteService: TasteService,
   ) {}
 
   /** 관리자 대시보드: 스케줄러 · 오늘 수집 · 발행 · AI 요약 기록 · 발송을 한 번에 (#21) */
@@ -77,6 +79,15 @@ export class SchedulerController {
     return {
       message: '발송 통계 조회 성공',
       data: await this.statsService.delivery(from, to),
+    };
+  }
+
+  /** 통계: 모두의 취향 신호 — 많이 모인 태그 · 관심사, 신호를 남긴 사람 수 (#123) */
+  @Get('stats/taste')
+  async tasteStats() {
+    return {
+      message: '취향 통계 조회 성공',
+      data: await this.tasteService.overview(),
     };
   }
 

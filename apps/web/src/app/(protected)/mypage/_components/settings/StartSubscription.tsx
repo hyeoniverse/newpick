@@ -57,13 +57,14 @@ export default function StartSubscription() {
 		<StyeldStartSubscription>
 			<div className="description">
 				<div className="title">
-					<Title size="extraSmall" weight="semiBold">
+					<Title size="extraSmall" weight="bold">
 						뉴스레터 설정
 					</Title>
 					{isSubscribed !== null && (
 						<Button
 							type="submit"
-							scheme="danger"
+							// 탈퇴하기와 같은 무게로: 빨간 꽉 찬 단추가 화면에서 가장 눈에 띄지 않게
+							scheme="monoOutline"
 							size="small"
 							onClick={() =>
 								openModal(
@@ -132,7 +133,7 @@ export default function StartSubscription() {
 					onClick={handleSubscribe}
 					disabled={isChangingSubscription}
 				>
-					{isSubscribed === false ? '재시작' : '완료'}
+					{isSubscribed === false ? '구독 다시 시작' : '완료'}
 				</Button>
 			</div>
 		</StyeldStartSubscription>

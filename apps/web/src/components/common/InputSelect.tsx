@@ -15,6 +15,11 @@ interface Props {
 	onBlur?: (name: string, value: string) => void;
 	placeholder?: string;
 	children?: React.ReactNode;
+	/** small: 거르기 칩 줄 옆에 놓는 작은 칸 (높이 2rem · 둥근 모서리 · 글자 폭만큼). 기본은 입력칸 크기 */
+	size?: 'medium' | 'small';
+	/** 이름표 없이 쓸 때 화면 읽기용 이름 (예: '정렬') */
+	ariaLabel?: string;
+	className?: string;
 }
 
 /**
@@ -31,6 +36,9 @@ const InputSelect: React.FC<Props> = ({
 	onBlur,
 	placeholder = '선택하세요',
 	children,
+	size = 'medium',
+	ariaLabel,
+	className,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
 	const [active, setActive] = useState(-1);
@@ -41,7 +49,12 @@ const InputSelect: React.FC<Props> = ({
 	const selected = options.find((option) => option.value === value);
 
 	const open = () => {
-		setActive(Math.max(0, options.findIndex((option) => option.value === value)));
+		setActive(
+			Math.max(
+				0,
+				options.findIndex((option) => option.value === value),
+			),
+		);
 		setIsOpen(true);
 	};
 
@@ -93,7 +106,7 @@ const InputSelect: React.FC<Props> = ({
 	}, [handleClickOutside]);
 
 	return (
-		<StyledInputSelect ref={selectRef} $open={isOpen}>
+		<StyledInputSelect ref={selectRef} $open={isOpen} className={`${size} ${className ?? ''}`}>
 			{label && <label htmlFor={buttonId}>{label}</label>}
 			<button
 				id={buttonId}
@@ -103,13 +116,14 @@ const InputSelect: React.FC<Props> = ({
 				aria-haspopup="listbox"
 				aria-expanded={isOpen}
 				aria-controls={listId}
+				aria-label={label ? undefined : ariaLabel}
 				onClick={() => (isOpen ? close() : open())}
 				onKeyDown={handleKeyDown}
 			>
 				<span>{selected?.label ?? placeholder}</span>
 				<LuChevronDown className="select-arrow" aria-hidden />
 			</button>
-			<ul id={listId} className="options-list" role="listbox" aria-label={label ?? placeholder}>
+			<ul id={listId} className="options-list" role="listbox" aria-label={label ?? ariaLabel ?? placeholder}>
 				{options.map((option, i) => (
 					<li
 						key={option.value}
@@ -197,10 +211,45 @@ const StyledInputSelect = styled.div<StyleProps>`
 			visibility 0.15s;
 	}
 
+	/* 작은 칸: 거르기 칩과 같은 높이 · 둥근 모서리, 글자 폭만큼. 펼친 목록은 오른쪽 끝에 맞춘다 */
+	&.small {
+		width: auto;
+
+		.select-display {
+			height: 2rem;
+			padding: 0 0.625rem 0 0.875rem;
+			border-radius: ${({ theme }) => theme.radius.chip};
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			line-height: 1;
+
+			.select-arrow {
+				width: 0.875rem;
+				height: 0.875rem;
+			}
+		}
+
+		.options-list {
+			left: auto;
+			right: 0;
+			width: max-content;
+			min-width: 100%;
+		}
+
+		.option-item {
+			gap: 1rem;
+			padding: 0.5rem 0.625rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		}
+	}
+
+	/* 항목 모양은 이 컴포넌트가 다 정한다: 쓰는 화면에 넓은 li 스타일(밑줄 · hover 바탕 등)이 있어도 새어 들지 않게 */
 	.option-item {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
+		margin: 0;
+		border: none;
+		background: transparent;
 		padding: 0.625rem 0.75rem;
 		border-radius: ${({ theme }) => theme.radius.control};
 		font-size: ${({ theme }) => theme.fontSize.small};
@@ -216,6 +265,10 @@ const StyledInputSelect = styled.div<StyleProps>`
 
 		&.active {
 			background: ${({ theme }) => theme.color.surface};
+		}
+
+		&:hover:not(.active):not(.selected) {
+			background: transparent;
 		}
 
 		&.selected {

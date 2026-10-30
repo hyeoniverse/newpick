@@ -404,5 +404,42 @@ const themedPart = ({ color, buttonScheme, shadow }: Theme): ThemedPart => ({ co
 
 export const themeVars = (theme: Theme) => toVarDeclarations(themedPart(theme), []).join('\n');
 
-/** 컴포넌트가 쓰는 테마: 크기·글꼴 등은 그대로, 바뀌는 색은 CSS 변수. 라이트·다크 어느 쪽이든 같다 */
-export const cssVarTheme: Theme = { ...lightTheme, ...toVarRefs(themedPart(lightTheme), []) };
+/**
+ * 글자 크기: 화면이 좁아지면 한 단계씩 줄인다. 색과 같은 방식으로 컴포넌트에는 var(--np-…)를 주고,
+ * 실제 크기는 GlobalStyle이 화면 폭(tablet·mobile)에 따라 정한다. 컴포넌트마다 @media로 줄이지 않아도 된다
+ */
+type FontPart = Pick<Theme, 'fontSize' | 'heading'>;
+
+const fontPart = ({ fontSize, heading }: Theme): FontPart => ({ fontSize, heading });
+
+const fontSteps: Record<'tablet' | 'mobile', FontPart> = {
+	tablet: {
+		fontSize: { extraSmall: '0.875rem', small: '1rem', medium: '1.0625rem', large: '1.25rem', extraLarge: '1.5rem' },
+		heading: {
+			extraSmall: { fontSize: '1.375rem' },
+			small: { fontSize: '1.5rem' },
+			medium: { fontSize: '1.75rem' },
+			large: { fontSize: '2rem' },
+			extraLarge: { fontSize: '2.5rem' },
+		},
+	},
+	mobile: {
+		fontSize: { extraSmall: '0.8125rem', small: '0.9375rem', medium: '1rem', large: '1.125rem', extraLarge: '1.375rem' },
+		heading: {
+			extraSmall: { fontSize: '1.25rem' },
+			small: { fontSize: '1.375rem' },
+			medium: { fontSize: '1.5rem' },
+			large: { fontSize: '1.75rem' },
+			extraLarge: { fontSize: '2rem' },
+		},
+	},
+};
+
+export const fontVars = (step?: keyof typeof fontSteps) => toVarDeclarations(step ? fontSteps[step] : fontPart(lightTheme), []).join('\n');
+
+/** 컴포넌트가 쓰는 테마: 간격 등은 그대로, 바뀌는 색과 글자 크기는 CSS 변수. 라이트·다크 어느 쪽이든 같다 */
+export const cssVarTheme: Theme = {
+	...lightTheme,
+	...toVarRefs(themedPart(lightTheme), []),
+	...toVarRefs(fontPart(lightTheme), []),
+};

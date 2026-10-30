@@ -159,7 +159,24 @@ export class EditionService {
     );
   }
 
-  /** 구독자 한 명의 메일. 고른 분야 소식이 그날 하나도 없으면 null */
+  /**
+   * 이미 보낸 메일의 짜임새만 (마이페이지 목록용): 오늘 한눈에 · 분야를 넘는 흐름 · 분야별 소식 제목 · 관전 포인트.
+   * rebuildMail과 같은 재료(보낸 날의 편집본 + 엮은 뉴스레터)로 엮되 HTML은 만들지 않는다 (AI 호출 없음)
+   */
+  async rebuildDigest(sentAt: Date, newsletterIds: number[]) {
+    const date = dayjs(sentAt).tz(KST).format('YYYY-MM-DD');
+    const [saved, sources] = await Promise.all([
+      this.prisma.dailyEdition.findUnique({ where: { date } }),
+      this.loadSources({ ids: newsletterIds }),
+    ]);
+    return composeEdition(
+      sources,
+      (saved?.editorial as Editorial | null) ?? null,
+      sources.map((s) => s.categoryId),
+      dayjs.tz(date, KST).toDate(),
+    );
+  }
+
   /**
    * 구독자 한 명의 메일. userId를 주면(실제 발송) 그 사람의 원클릭 해지를 붙인다 (#18)
    * - 본문 아래 '수신 거부': 로그인 없이 여는 확인 화면 /unsubscribe?token=

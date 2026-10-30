@@ -526,7 +526,7 @@ const mainCardStyles = css`
 				display: flex;
 				gap: 0.625rem;
 				padding: 0.375rem 0;
-				border-top: 1px dashed ${({ theme }) => theme.color.border};
+				border-top: 1px solid ${({ theme }) => theme.color.border};
 				font-size: ${({ theme }) => theme.fontSize.small};
 				line-height: 1.5;
 				color: ${({ theme }) => theme.color.text};

@@ -2,7 +2,24 @@
 
 import styled from 'styled-components';
 import { FaChevronUp, FaChevronDown } from 'react-icons/fa6';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
+/**
+ * 바닥에 붙는 막대(예: 스크랩 고르기 막대)가 나타나면 위·아래 스크롤 버튼을 그 높이만큼 위로 올린다.
+ * 막대에 ref로 달면, 막대가 있는 동안 높이를 --np-float-lift로 알리고 사라지면 되돌린다
+ */
+export function useLiftScrollButtons() {
+	return useCallback((bar: HTMLElement | null) => {
+		if (!bar) return;
+		const root = document.documentElement;
+		const observer = new ResizeObserver(() => root.style.setProperty('--np-float-lift', `${bar.offsetHeight}px`));
+		observer.observe(bar);
+		return () => {
+			observer.disconnect();
+			root.style.removeProperty('--np-float-lift');
+		};
+	}, []);
+}
 
 function ScrollButtons() {
 	const [showButtons, setShowButtons] = useState(false);
@@ -66,7 +83,9 @@ function ScrollButtons() {
 
 const ScrollButtonsContainer = styled.div`
 	position: fixed;
-	bottom: 1.5rem;
+	/* 바닥에 붙는 막대가 있으면 그 높이만큼 위로 (useLiftScrollButtons) */
+	bottom: calc(1.5rem + var(--np-float-lift, 0px));
+	transition: bottom 0.2s ease;
 	right: 1.5rem;
 	display: flex;
 	flex-direction: column;

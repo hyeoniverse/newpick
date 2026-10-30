@@ -3,7 +3,7 @@
 import 'sanitize.css';
 import { createGlobalStyle } from 'styled-components';
 import { STYLE } from '@/constants/numbers';
-import { darkTheme, lightTheme, themeVars } from '@/styles/theme';
+import { darkTheme, fontVars, lightTheme, themeVars } from '@/styles/theme';
 
 export const GlobalStyle = createGlobalStyle`
     /* 테마 색: <html data-theme>(머리의 스크립트가 그리기 전에 정한다)에 따라 바뀐다 */
@@ -14,6 +14,23 @@ export const GlobalStyle = createGlobalStyle`
     :root[data-theme='dark'] {
         ${themeVars(darkTheme)}
         color-scheme: dark;
+    }
+
+    /* 글자 크기: 화면이 좁아지면 한 단계씩 줄어든다 (theme.fontSize · theme.heading) */
+    :root {
+        ${fontVars()}
+    }
+
+    @media ${lightTheme.mediaQuery.tablet} {
+        :root {
+            ${fontVars('tablet')}
+        }
+    }
+
+    @media ${lightTheme.mediaQuery.mobile} {
+        :root {
+            ${fontVars('mobile')}
+        }
     }
 
     /* 글꼴: Pretendard 다이나믹 서브셋 (styles/pretendard.css, #14). 받는 동안은 시스템 글꼴 */
@@ -75,7 +92,8 @@ export const GlobalStyle = createGlobalStyle`
         outline: none;
     }
 
-    /* 본문 바로가기: 평소엔 숨기고 Tab을 처음 누르면 왼쪽 위에 보인다 */
+    /* 본문 바로가기: 평소엔 숨기고 Tab을 처음 누르면 왼쪽 위에 보인다.
+       위로 밀어 두기만 하면 맥에서 맨 위를 더 끌어올릴 때(튕김) 드러나서, 투명하게 · 누를 수 없게도 둔다 */
     .skip-link {
         position: absolute;
         top: 0.5rem;
@@ -87,9 +105,13 @@ export const GlobalStyle = createGlobalStyle`
         color: #ffffff;
         font-weight: 600;
         transform: translateY(-200%);
+        opacity: 0;
+        pointer-events: none;
 
         &:focus-visible {
             transform: none;
+            opacity: 1;
+            pointer-events: auto;
         }
     }
 `;

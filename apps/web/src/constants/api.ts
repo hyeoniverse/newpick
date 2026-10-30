@@ -37,7 +37,7 @@ export const API_ENDPOINTS = {
 		LIST: (kind: 'newsletters' | 'mails' | 'ai-logs' | 'job-runs' | 'articles', query: string) =>
 			`${API_URL}/scheduler/dashboard/${kind}?${query}`,
 		/** 통계 (#122): 구독자 · AI 비용 · 발송 (쿼리 from · to) */
-		STATS: (kind: 'subscribers' | 'cost' | 'delivery' | 'traffic' | 'page', query: string) =>
+		STATS: (kind: 'subscribers' | 'cost' | 'delivery' | 'traffic' | 'page' | 'taste', query: string) =>
 			`${API_URL}/scheduler/stats/${kind}?${query}`,
 		/** 예약 작업 시간 (GET 보기 · PUT 바꾸기) */
 		SCHEDULE: () => `${API_URL}/scheduler/schedule`,
@@ -52,15 +52,33 @@ export const API_ENDPOINTS = {
 		PROFILE: () => `${API_URL}/mypage/profile`,
 		BOOKMARKS: () => `${API_URL}/mypage/bookmarks`,
 		/** 내가 실제로 받은 메일 (보낸 시각별 한 통씩) */
-		MAILS: (offset: number, limit: number) => `${API_URL}/mypage/mails?offset=${offset}&limit=${limit}`,
+		MAILS: (offset: number, limit: number, filters = '') =>
+			`${API_URL}/mypage/mails?offset=${offset}&limit=${limit}${filters ? `&${filters}` : ''}`,
 		/** 받은 메일 한 통을 받은 그대로 (sentAt: 목록의 값 그대로) */
 		MAIL: (sentAt: string) => `${API_URL}/mypage/mails/view?sentAt=${encodeURIComponent(sentAt)}`,
 		/** 회원 탈퇴 (#65) */
 		ACCOUNT: () => `${API_URL}/mypage/account`,
 		/** 스크랩 · 메모 (#123). newsletterId를 주면 그 뉴스레터 것만 */
+		/** 마이페이지 스크랩 · 북마크 한 쪽 (query: offset · limit · folder · filter / categoryId · sort) */
+		HIGHLIGHTS_PAGE: (query: string) => `${API_URL}/mypage/highlights/page?${query}`,
+		BOOKMARKS_PAGE: (query: string) => `${API_URL}/mypage/bookmarks/page?${query}`,
 		HIGHLIGHTS: (newsletterId?: number) =>
 			`${API_URL}/mypage/highlights${newsletterId ? `?newsletterId=${newsletterId}` : ''}`,
 		HIGHLIGHT: (id: number) => `${API_URL}/mypage/highlights/${id}`,
+		/** 선택한 스크랩 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 해제 (POST { ids, action, folderId? }) */
+		HIGHLIGHTS_BULK: () => `${API_URL}/mypage/highlights/bulk`,
+		/** 폴더: 스크랩 · 북마크 · 받은 메일 공통 (GET 목록 · POST 만들기) */
+		FOLDERS: () => `${API_URL}/mypage/folders`,
+		/** 폴더 하나 (PATCH 이름 바꾸기 · DELETE 지우기) */
+		FOLDER: (id: number, query = '') => `${API_URL}/mypage/folders/${id}${query ? `?${query}` : ''}`,
+		/** 받은 메일 한 통 표시: 중요 · 폴더 (PATCH { sentAt, starred?, folderId? }) */
+		MAIL_MARK: () => `${API_URL}/mypage/mails/mark`,
+		/** 북마크 폴더 옮기기 (POST { newsletterIds, folderId }) */
+		BOOKMARKS_MOVE: () => `${API_URL}/mypage/bookmarks/move`,
+		/** 선택한 스크랩 지우기 (POST { ids }) */
+		HIGHLIGHTS_DELETE: () => `${API_URL}/mypage/highlights/delete`,
+		/** 내 취향 점수 (#123 2단계): 북마크 · 스크랩 · 메모로 모은 태그 · 관심사 */
+		TASTE: () => `${API_URL}/mypage/taste`,
 	},
 	SUBSCRIBERS: {
 		STATUS: () => `${API_URL}/subscribers/status`,

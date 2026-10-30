@@ -12,7 +12,7 @@ interface Props {
 	/** 띄울 실제 주소 (예: /articles/detail/66) */
 	path: string;
 	device: 'desktop' | 'tablet' | 'mobile';
-	/** 문서 20칸 평균 머문 시간 (ms) */
+	/** 어텐션 맵: 문서 20칸 평균 체류 시간 (ms) */
 	attention: number[];
 	/** [가로 비율, 세로 비율, 구역] */
 	clicks: Click[];
@@ -22,7 +22,7 @@ interface Props {
 const FRAME_WIDTH = { desktop: 1280, tablet: 820, mobile: 390 };
 
 /**
- * 히트맵 (#131): 실제 페이지를 iframe으로 띄우고 그 위에 머문 곳(문서 20칸마다 진하기) · 클릭(점 밀도)을 겹친다.
+ * 히트맵 (#131): 실제 페이지를 iframe으로 띄우고 그 위에 어텐션 맵(문서 20칸마다 진하기) · 클릭 맵(점 밀도)을 겹친다.
  * 페이지는 기록 위치를 문서 높이 비율로 남겨, 지금 화면 높이에 맞춰 그린다.
  * iframe 주소에 ?__notrack을 붙여 미리보기가 방문 기록에 들어가지 않게 한다
  */
@@ -87,10 +87,10 @@ export default function Heatmap({ path, device, attention, clicks }: Props) {
 		<StyledHeatmap>
 			<div className="toolbar" role="group" aria-label="히트맵 보기">
 				<button type="button" aria-pressed={mode === 'attention'} onClick={() => setMode('attention')}>
-					머문 곳
+					어텐션 맵
 				</button>
 				<button type="button" aria-pressed={mode === 'clicks'} onClick={() => setMode('clicks')}>
-					클릭 {clicks.length.toLocaleString()}번
+					클릭 맵 {clicks.length.toLocaleString()}번
 				</button>
 				<span className="legend">
 					{mode === 'attention' ? (
@@ -124,7 +124,7 @@ export default function Heatmap({ path, device, attention, clicks }: Props) {
 						tabIndex={-1}
 					/>
 					{mode === 'attention' && (
-						<ol className="bands" aria-label="문서 20칸 평균 머문 시간">
+						<ol className="bands" aria-label="문서 20칸 평균 체류 시간 (어텐션 맵)">
 							{attention.map((value, i) => (
 								<li
 									key={i}

@@ -5,6 +5,7 @@ import useSubscribe from '@/hooks/useSubscribe';
 import { styled } from 'styled-components';
 import InputCheck from '@/components/common/InputCheck';
 import Text from '@/components/common/Text';
+import { LuCircleCheck } from 'react-icons/lu';
 
 interface Props {
 	name: string;
@@ -45,11 +46,18 @@ export default function ArgreementCheck({ name, className }: Props) {
 					</div>
 				</>
 			) : (
-				<>
-					<Text size="extraSmall" weight="semiBold" color="primary">
-						이미 약관에 동의하셨습니다.
-					</Text>
-				</>
+				// 이미 동의한 사람: 눈에 띄는 안내 대신 회색 한 줄로 (무엇에 동의했는지 링크와 함께)
+				<p className="agreed">
+					<LuCircleCheck aria-hidden />
+					<Link href="/terms" target="_blank">
+						이용약관
+					</Link>
+					&nbsp;·&nbsp;
+					<Link href="/privacy" target="_blank">
+						개인정보 처리방침
+					</Link>
+					에 동의했습니다.
+				</p>
 			)}
 		</StyledAgreement>
 	);
@@ -76,6 +84,27 @@ const StyledAgreement = styled.div`
 		vertical-align: middle;
 		span {
 			white-space: nowrap;
+		}
+	}
+
+	.agreed {
+		display: inline-flex;
+		align-items: center;
+		margin: 0;
+		color: ${({ theme }) => theme.color.subText};
+
+		svg {
+			flex-shrink: 0;
+			width: 0.875rem;
+			height: 0.875rem;
+			margin-right: 0.375rem;
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		a {
+			font-weight: inherit;
+			color: inherit;
+			text-decoration: underline;
 		}
 	}
 

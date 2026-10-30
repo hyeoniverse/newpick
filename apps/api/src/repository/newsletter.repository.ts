@@ -251,10 +251,18 @@ export class NewsletterRepo {
   }
 
   async updateNewsletter(id: number, data: Prisma.NewsletterUpdateInput) {
-    return this.prisma.newsletter.update({
+    const updated = await this.prisma.newsletter.update({
       where: { id },
       data,
     });
+    // 본문을 고치면 스크랩에 꺼내 둔 소식 제목을 비워, 다음에 목록을 볼 때 새 본문에서 다시 꺼낸다
+    if (data.contentAsHTML !== undefined) {
+      await this.prisma.highlight.updateMany({
+        where: { newsletterId: id },
+        data: { sectionTitle: null },
+      });
+    }
+    return updated;
   }
 
   /**

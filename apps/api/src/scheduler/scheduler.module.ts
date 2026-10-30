@@ -10,6 +10,7 @@ import { SubscriberModule } from 'src/subscriber/subscriber.module';
 import { CategoryModule } from 'src/category/category.module';
 import { BasicRepositoryModule } from 'src/repository/module';
 import { EditionModule } from 'src/edition/edition.module';
+import { TasteModule } from 'src/taste/taste.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { EditionModule } from 'src/edition/edition.module';
     CategoryModule,
     BasicRepositoryModule,
     EditionModule,
+    TasteModule,
   ],
   providers: [SchedulerService, DashboardService, StatsService],
   controllers: [SchedulerController],
