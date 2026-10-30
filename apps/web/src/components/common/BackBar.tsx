@@ -72,12 +72,18 @@ const BackBarStyled = styled.div<{ $folded: boolean; $withTitle: boolean }>`
 			visibility 0.2s;
 	}
 
+	/* 테두리는 옆의 제목 칸과 같은 연한 색 (버튼 기본 monoOutline은 진한 회색) */
 	.back {
+		border-color: ${({ theme }) => theme.color.border};
 		background: ${({ theme }) => theme.color.background};
 		gap: ${({ $folded }) => ($folded ? '0' : '0.5rem')};
 		transition:
 			gap 0.3s ease,
 			padding 0.3s ease;
+
+		&:hover {
+			border-color: ${({ theme }) => theme.color.lightGrey};
+		}
 	}
 
 	.move-text {
