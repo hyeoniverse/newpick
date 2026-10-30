@@ -230,17 +230,22 @@ const StyledAccountEmail = styled.section`
 		}
 	}
 
+	/* 입력칸과 버튼은 같은 높이 (좁은 화면에서 버튼이 다음 줄로 내려가도) */
 	.row {
 		display: flex;
 		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem;
+
+		> input,
+		> button {
+			height: 2.5rem;
+		}
 	}
 
 	input {
 		flex: 1 1 16rem;
 		min-width: 0;
-		height: 2.5rem;
 		padding: 0 0.75rem;
 		border: 1px solid ${({ theme }) => theme.color.border};
 		border-radius: ${({ theme }) => theme.radius.control};
@@ -253,12 +258,10 @@ const StyledAccountEmail = styled.section`
 			border-color: ${({ theme }) => theme.color.primary};
 		}
 
-		/* 6자리가 다 보이게: 글자 폭(1ch) × 6 + 간격 + 안쪽 여백 */
+		/* 6자리가 다 보이게: 글자 폭(1ch) × 6 + 간격 + 안쪽 여백 + 테두리 */
 		&.code {
 			flex: 0 0 auto;
 			width: calc(6ch + 5 * 0.25em + 1.5rem + 2px);
-			box-sizing: content-box;
-			padding: 0 0.75rem;
 			font-size: ${({ theme }) => theme.fontSize.large};
 			font-variant-numeric: tabular-nums;
 			letter-spacing: 0.25em;
