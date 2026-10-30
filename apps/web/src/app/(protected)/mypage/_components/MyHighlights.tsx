@@ -3,6 +3,7 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import StarToggle from '@/components/common/icons/StarToggle';
+import { useLiftScrollButtons } from '@/components/common/ScrollButtons';
 import styled from 'styled-components';
 import { LuHighlighter, LuNewspaper } from 'react-icons/lu';
 import Image from '@/components/common/Image';
@@ -153,6 +154,8 @@ export default function MyHighlights() {
 	const items = data?.pages.flatMap((p) => p.items).filter((h) => !seen.has(h.id) && seen.add(h.id));
 	// 아래 끝 표시: 화면에 들어오면 다음 쪽
 	const endRef = useRef<HTMLDivElement>(null);
+	// 고르기 막대가 바닥에 붙어 있는 동안 위·아래 스크롤 버튼을 그 위로
+	const liftScrollButtons = useLiftScrollButtons();
 	useEffect(() => {
 		const el = endRef.current;
 		if (!el || !hasNextPage) return;
@@ -427,7 +430,7 @@ export default function MyHighlights() {
 			{isFetchingNextPage && <p className="list-status">스크랩을 더 불러오는 중…</p>}
 			{/* 고르는 중: 아래에 붙어 따라오는 막대 */}
 			{selecting && (
-				<div className="select-bar" role="region" aria-label="선택한 문장 한꺼번에">
+				<div ref={liftScrollButtons} className="select-bar" role="region" aria-label="선택한 문장 한꺼번에">
 					<InputCheck
 						name="highlights-select-all"
 						className="select-all"
@@ -860,8 +863,6 @@ const StyledHighlights = styled.div`
 	.select-bar {
 		position: sticky;
 		bottom: 1rem;
-		/* 오른쪽 아래 스크롤 버튼과 겹치지 않게: 화면 오른쪽 여백이 모자란 만큼만 비켜 간다 (막대는 화면 가운데 놓인 본문 폭) */
-		margin-right: max(0px, calc(var(--np-float-space) - (100vw - 100%) / 2));
 		z-index: 5;
 		display: flex;
 		flex-wrap: wrap;
