@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OpenModelService } from '../ai/open-model.service';
+import { GENDER_RULES } from './writingRules';
 import { ClaudeService, CLAUDE_FAST_MODEL } from './claude.service';
 import {
   Cluster,
@@ -163,6 +164,7 @@ const SCORING_RULES = [
   '- 보도 수(한 곳만 보도했는지)는 점수에 넣지 않습니다. 한 언론만 먼저 보도한 큰 소식도 크게 봅니다.',
   '- 국내 소식이라고 더 높게, 해외 소식이라고 더 낮게 보지 않습니다. 영향의 크기로만 봅니다.',
   '- 빼는 소식(excluded: true): 시상식·행사·후보 발표, 기업 홍보·제품 리뷰, 연예·가십, 단순 인사·동정, 지역 단신, 광고성 기사.',
+  '- 여성을 깎아내리거나 대상화하는 것이 기사의 중심인 소식(외모 품평, 성적 대상화, 선정적 가십, 여성혐오 발언을 흥밋거리로 옮긴 기사)도 빼는 소식(excluded: true)입니다. 성차별 · 여성혐오 자체를 문제로 다루는 보도(차별 · 폭력 사건, 제도 개선, 판결 등)는 빼지 않습니다.',
   '- reason은 점수의 근거를 40자 안의 한 줄로 씁니다.',
 ];
 
@@ -346,6 +348,10 @@ export const writerPrompt = (
     '- 첫 문장에 사실(누가, 무엇을, 얼마나)을 쓰고 이어서 맥락을 씁니다. 형용사보다 수치와 근거를 씁니다.',
     '- 전문 용어는 그대로 쓰되, 처음 나올 때 괄호로 짧게 풉니다.',
     `- 강조: body·analysis·qa의 답(a)에서 독자가 꼭 기억할 핵심 구절(결정적 수치, 결론, 변화)을 ==구절==로 감쌉니다. 소식마다 1~${LIMITS.marks.max}곳(모든 소식에 최소 1곳), 한 곳은 ${LIMITS.marks.length}자 이내. 문장 전체가 아니라 핵심 구절만 감싸고, 다른 항목에는 쓰지 않습니다.`,
+    '',
+    '## 성차별 · 여성혐오',
+    ...GENDER_RULES,
+    '- 이 원칙은 아래 debate에도 같습니다: 차별 · 혐오 주장과 그 해명은 대등한 한쪽 주장으로 싣지 않습니다. 차별 · 혐오가 쟁점인 소식은 debate를 빈 배열로 둡니다.',
     '',
     '## 항목',
     `- title: 가장 중요한 소식 하나를 담은 헤드라인. ${LIMITS.title}자 이내, 기사 제목 형식. 여러 소식을 ·, 쉼표, "외"로 나열하지 않고, 날짜·"주요 소식"·"브리핑" 같은 말은 넣지 않습니다.`,

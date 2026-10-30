@@ -1,3 +1,4 @@
+import { GENDER_RULES } from '../ai-summary/writingRules';
 import type { ParsedStory } from './parse';
 import { storyText } from './parse';
 
@@ -68,7 +69,10 @@ ${list}
 3. threads: 서로 다른 분야의 소식이 한 흐름으로 이어질 때만 (최대 ${EDITION_LIMITS.threads}개, 억지로 만들지 않는다)
    - refs: 이어지는 소식 번호 (서로 다른 분야 2개 이상, 두 분야를 잇는 흐름을 우선)
    - title: ${EDITION_LIMITS.threadTitle}자 이내 (예: "반도체 수출 규제가 증시로")
-   - text: 2~3문장. 어떻게 이어지는지, 독자가 무엇을 봐야 하는지. 근거는 소식에 있는 사실만`;
+   - text: 2~3문장. 어떻게 이어지는지, 독자가 무엇을 봐야 하는지. 근거는 소식에 있는 사실만
+
+line · text를 쓸 때 (성차별 · 여성혐오):
+${GENDER_RULES.join('\n')}`;
 };
 
 export const EDITOR_SCHEMA = {
