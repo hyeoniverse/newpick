@@ -140,6 +140,33 @@ function byMonth(items: Mail[]) {
 }
 
 /**
+ * 숫자판처럼 넘어가는 글자: 값이 바뀌면 이전 값은 빠져나가고 새 값이 같은 방향에서 들어온다.
+ * from-below면 위로 넘어가고(아래에서 올라옴), from-above면 아래로 넘어간다
+ */
+function Roll({ value, enter, className = '' }: { value: string; enter: string; className?: string }) {
+	const [current, setCurrent] = useState(value);
+	const [previous, setPrevious] = useState<string | null>(null);
+	const [turn, setTurn] = useState(0);
+	if (current !== value) {
+		setPrevious(current);
+		setCurrent(value);
+		setTurn((n) => n + 1);
+	}
+	return (
+		<span className={`roll ${className}`}>
+			<span key={`in-${turn}`} className={turn ? `roll-in ${enter}` : undefined}>
+				{current}
+			</span>
+			{previous !== null && (
+				<span key={`out-${turn}`} className={`roll-out ${enter}`} aria-hidden onAnimationEnd={() => setPrevious(null)}>
+					{previous}
+				</span>
+			)}
+		</span>
+	);
+}
+
+/**
  * 달 막대 (원래 마이페이지의 날짜 막대처럼): 큰 '2026년 10월 ▾' + 그 달에 받은 날짜 바로가기('27일 · 24일 …').
  * 목록 위에 하나만 두고 위에 붙어 따라오며, 지금 보는 메일의 달로 내용만 바뀐다.
  * 붙는 순간 바탕 · 위아래 줄이 화면 양끝까지 천천히 펼쳐진다 (원래 디자인의 full-width).
@@ -162,7 +189,6 @@ function MonthBar({
 	const [active, setActive] = useState<string | null>(null);
 	// 막대에 보이는 달: 지금 보는 메일의 달 (붙기 전에는 목록 첫 달)
 	const month = active ? monthOf(active) : groups[0].month;
-	const mails = groups.find((g) => g.month === month)?.items ?? [];
 	// 바뀐 방향: 목록에서 뒤에 있는 달로 가면 아래에서 올라오고, 앞 달로 가면 위에서 내려온다 (처음엔 움직이지 않음)
 	const [shown, setShown] = useState(month);
 	const [enter, setEnter] = useState('');
@@ -171,6 +197,15 @@ function MonthBar({
 		setShown(month);
 		setEnter(order(month) > order(shown) ? 'from-below' : 'from-above');
 	}
+	// 날짜 줄은 잠깐 흐려졌다가 새 달 날짜로 바뀌어 또렷해진다 (daysMonth가 month를 조금 늦게 따라감)
+	const [daysMonth, setDaysMonth] = useState(month);
+	const leaving = daysMonth !== month;
+	useEffect(() => {
+		if (!leaving) return;
+		const timer = window.setTimeout(() => setDaysMonth(month), 160);
+		return () => window.clearTimeout(timer);
+	}, [leaving, month]);
+	const mails = groups.find((g) => g.month === daysMonth)?.items ?? [];
 	const daysRef = useRef<HTMLUListElement>(null);
 	// 날짜 줄을 더 밀어 볼 수 있는 쪽 (그쪽에 화살표 · 흐림)
 	const [edges, setEdges] = useState({ left: false, right: false });
@@ -186,7 +221,7 @@ function MonthBar({
 		updateEdges();
 		window.addEventListener('resize', updateEdges);
 		return () => window.removeEventListener('resize', updateEdges);
-	}, [month, groups]);
+	}, [daysMonth, groups]);
 	const slide = (direction: 1 | -1) => {
 		const list = daysRef.current;
 		list?.scrollBy({ left: direction * list.clientWidth * 0.66, behavior: 'smooth' });
@@ -239,16 +274,20 @@ function MonthBar({
 		};
 	}, [top, groups]);
 
-	// 지금 보는 날짜가 날짜 줄 밖에 있으면 줄만 옆으로 밀어 가운데로 (페이지는 위아래로 움직이지 않게 scrollIntoView 대신)
+	// 지금 보는 날짜가 날짜 줄 밖에 있으면 줄만 옆으로 밀어 가운데로 (페이지는 위아래로 움직이지 않게 scrollIntoView 대신).
+	// 달이 막 바뀐 줄은 흐린 동안 바로 그 자리에 두어, 또렷해질 때 옆으로 미끄러지지 않게
+	const centeredMonth = useRef(daysMonth);
 	useEffect(() => {
 		const list = daysRef.current;
 		const button = active && list?.querySelector<HTMLElement>(`[data-sent="${active}"]`);
 		if (!list || !button) return;
+		const fresh = centeredMonth.current !== daysMonth;
+		centeredMonth.current = daysMonth;
 		const left = button.offsetLeft - list.offsetLeft;
-		if (left < list.scrollLeft || left + button.offsetWidth > list.scrollLeft + list.clientWidth) {
-			list.scrollTo({ left: left - (list.clientWidth - button.offsetWidth) / 2, behavior: 'smooth' });
+		if (fresh || left < list.scrollLeft || left + button.offsetWidth > list.scrollLeft + list.clientWidth) {
+			list.scrollTo({ left: left - (list.clientWidth - button.offsetWidth) / 2, behavior: fresh ? 'auto' : 'smooth' });
 		}
-	}, [active]);
+	}, [active, daysMonth]);
 
 	// 펼친 달 목록: 바깥을 누르거나 Esc면 닫는다
 	useEffect(() => {
@@ -271,116 +310,112 @@ function MonthBar({
 			className={`month-bar ${stuck ? 'stuck' : ''}`}
 			style={{ top, ['--page-w' as string]: `${pageWidth}px` }}
 		>
-			{/* 달이 바뀌면 내용이 새 달 쪽에서 밀려 들어온다 (아래로 보면 아래에서, 위로 보면 위에서) */}
-			<div key={month} className={`bar-content ${enter}`}>
-				{/* 연도 · 월을 따로 고른다: '2026년 ▾' · '10월 ▾' */}
-				<div className="month-title">
-					<div className="picker">
-						<button
-							type="button"
-							aria-haspopup="listbox"
-							aria-expanded={open === 'year'}
-							onClick={() => setOpen((v) => (v === 'year' ? null : 'year'))}
-						>
-							{year}년
-							<LuChevronDown aria-hidden />
-						</button>
-						{open === 'year' && (
-							<ul className="month-menu" role="listbox" aria-label="받은 해로 이동">
-								{years.map((y) => {
-									const yearMonths = months.filter((m) => m.month.startsWith(y));
-									return (
-										<li key={y} role="option" aria-selected={y === year}>
-											<button
-												type="button"
-												onClick={() => {
-													setOpen(null);
-													// 그해에서 지금 정렬 순서로 가장 먼저 나오는 달로
-													onJump(yearMonths[0]);
-												}}
-											>
-												{y}년<span className="month-count">{yearMonths.reduce((n, m) => n + m.count, 0)}통</span>
-											</button>
-										</li>
-									);
-								})}
-							</ul>
-						)}
-					</div>
-					<div className="picker">
-						<button
-							type="button"
-							aria-haspopup="listbox"
-							aria-expanded={open === 'month'}
-							onClick={() => setOpen((v) => (v === 'month' ? null : 'month'))}
-						>
-							{Number(month.slice(5))}월
-							<LuChevronDown aria-hidden />
-						</button>
-						{open === 'month' && (
-							<ul className="month-menu" role="listbox" aria-label={`${year}년 받은 달로 이동`}>
-								{months
-									.filter((m) => m.month.startsWith(year))
-									.map((m) => (
-										<li key={m.month} role="option" aria-selected={m.month === month}>
-											<button
-												type="button"
-												onClick={() => {
-													setOpen(null);
-													onJump(m);
-												}}
-											>
-												{Number(m.month.slice(5))}월<span className="month-count">{m.count}통</span>
-											</button>
-										</li>
-									))}
-							</ul>
-						)}
-					</div>
-				</div>
-				<div className={`days-wrap ${edges.left ? 'more-left' : ''} ${edges.right ? 'more-right' : ''}`}>
-					{/* 화살표는 날짜 줄 양옆 제자리에 (줄 위에 겹치지 않게). 밀 곳이 없으면 자리만 남기고 숨긴다 */}
+			{/* 달이 바뀌면 연도 · 월 글자는 숫자판처럼 넘어가고(아래로 보면 위로, 위로 보면 아래로), 날짜 줄은 흐려졌다 바뀐다 */}
+			{/* 연도 · 월을 따로 고른다: '2026년 ▾' · '10월 ▾' */}
+			<div className="month-title">
+				<div className="picker">
 					<button
 						type="button"
-						className={`days-arrow ${edges.left ? 'show' : ''}`}
-						aria-label="앞 날짜 보기"
-						onClick={() => slide(-1)}
+						aria-haspopup="listbox"
+						aria-expanded={open === 'year'}
+						onClick={() => setOpen((v) => (v === 'year' ? null : 'year'))}
 					>
-						<LuChevronLeft aria-hidden />
+						<Roll value={`${year}년`} enter={enter} />
+						<LuChevronDown aria-hidden />
 					</button>
-					<ul
-						ref={daysRef}
-						className="month-days"
-						aria-label={`${monthLabel(month)}에 받은 메일`}
-						onScroll={updateEdges}
-					>
-						{mails.map((mail) => (
-							<li key={mail.sentAt}>
-								<button
-									type="button"
-									data-sent={mail.sentAt}
-									className={mail.sentAt === active ? 'active' : undefined}
-									aria-current={mail.sentAt === active ? 'true' : undefined}
-									onClick={() =>
-										document
-											.getElementById(`mail-${mail.sentAt}`)
-											?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-									}
-								>
-									{dayLabel(mail.sentAt)}
-								</button>
-							</li>
-						))}
-					</ul>
+					{open === 'year' && (
+						<ul className="month-menu" role="listbox" aria-label="받은 해로 이동">
+							{years.map((y) => {
+								const yearMonths = months.filter((m) => m.month.startsWith(y));
+								return (
+									<li key={y} role="option" aria-selected={y === year}>
+										<button
+											type="button"
+											onClick={() => {
+												setOpen(null);
+												// 그해에서 지금 정렬 순서로 가장 먼저 나오는 달로
+												onJump(yearMonths[0]);
+											}}
+										>
+											{y}년<span className="month-count">{yearMonths.reduce((n, m) => n + m.count, 0)}통</span>
+										</button>
+									</li>
+								);
+							})}
+						</ul>
+					)}
+				</div>
+				<div className="picker">
 					<button
 						type="button"
-						className={`days-arrow ${edges.right ? 'show' : ''}`}
-						aria-label="뒤 날짜 보기"
-						onClick={() => slide(1)}
+						aria-haspopup="listbox"
+						aria-expanded={open === 'month'}
+						onClick={() => setOpen((v) => (v === 'month' ? null : 'month'))}
 					>
-						<LuChevronRight aria-hidden />
+						<Roll value={`${Number(month.slice(5))}월`} enter={enter} className="roll-month" />
+						<LuChevronDown aria-hidden />
 					</button>
+					{open === 'month' && (
+						<ul className="month-menu" role="listbox" aria-label={`${year}년 받은 달로 이동`}>
+							{months
+								.filter((m) => m.month.startsWith(year))
+								.map((m) => (
+									<li key={m.month} role="option" aria-selected={m.month === month}>
+										<button
+											type="button"
+											onClick={() => {
+												setOpen(null);
+												onJump(m);
+											}}
+										>
+											{Number(m.month.slice(5))}월<span className="month-count">{m.count}통</span>
+										</button>
+									</li>
+								))}
+						</ul>
+					)}
 				</div>
+			</div>
+			<div className={`days-wrap ${edges.left ? 'more-left' : ''} ${edges.right ? 'more-right' : ''}`}>
+				{/* 화살표는 날짜 줄 양옆 제자리에 (줄 위에 겹치지 않게). 밀 곳이 없으면 자리만 남기고 숨긴다 */}
+				<button
+					type="button"
+					className={`days-arrow ${edges.left ? 'show' : ''}`}
+					aria-label="앞 날짜 보기"
+					onClick={() => slide(-1)}
+				>
+					<LuChevronLeft aria-hidden />
+				</button>
+				<ul
+					ref={daysRef}
+					className={`month-days ${leaving ? 'leaving' : ''}`}
+					aria-label={`${monthLabel(daysMonth)}에 받은 메일`}
+					onScroll={updateEdges}
+				>
+					{mails.map((mail) => (
+						<li key={mail.sentAt}>
+							<button
+								type="button"
+								data-sent={mail.sentAt}
+								className={mail.sentAt === active ? 'active' : undefined}
+								aria-current={mail.sentAt === active ? 'true' : undefined}
+								onClick={() =>
+									document.getElementById(`mail-${mail.sentAt}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+								}
+							>
+								{dayLabel(mail.sentAt)}
+							</button>
+						</li>
+					))}
+				</ul>
+				<button
+					type="button"
+					className={`days-arrow ${edges.right ? 'show' : ''}`}
+					aria-label="뒤 날짜 보기"
+					onClick={() => slide(1)}
+				>
+					<LuChevronRight aria-hidden />
+				</button>
 			</div>
 		</div>
 	);
@@ -809,32 +844,71 @@ const MySubscribeStyled = styled.div`
 		}
 	}
 
-	/* 달이 바뀔 때 막대 내용(연도 · 월 · 날짜 줄)이 새 달 쪽에서 밀려 들어온다. 바탕 · 줄은 그대로 */
-	.bar-content {
-		&.from-below {
-			animation: month-from-below 0.4s ease;
+	/* 숫자판처럼 넘어가는 연도 · 월: 이전 값과 새 값을 한 칸에 겹쳐 두고 함께 위(또는 아래)로 민다 */
+	.roll {
+		display: inline-grid;
+		overflow: hidden;
+
+		> span {
+			grid-area: 1 / 1;
+			text-align: center;
 		}
 
-		&.from-above {
-			animation: month-from-above 0.4s ease;
+		/* 월은 한 자리 · 두 자리로 폭이 달라, 넘어간 뒤 제목이 옆으로 튀지 않게 두 자리 폭을 늘 잡아 둔다 */
+		&.roll-month {
+			min-width: 2.25em;
+			font-variant-numeric: tabular-nums;
+		}
+
+		.roll-in.from-below {
+			animation: roll-in-below 0.38s cubic-bezier(0.2, 0.7, 0.2, 1);
+		}
+
+		.roll-out.from-below {
+			animation: roll-out-up 0.38s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
+		}
+
+		.roll-in.from-above {
+			animation: roll-in-above 0.38s cubic-bezier(0.2, 0.7, 0.2, 1);
+		}
+
+		.roll-out.from-above {
+			animation: roll-out-down 0.38s cubic-bezier(0.2, 0.7, 0.2, 1) forwards;
 		}
 
 		@media (prefers-reduced-motion: reduce) {
-			animation: none !important;
+			.roll-in,
+			.roll-out {
+				animation-duration: 1ms;
+			}
 		}
 	}
 
-	@keyframes month-from-below {
+	@keyframes roll-in-below {
 		from {
 			opacity: 0;
-			transform: translateY(0.75rem);
+			transform: translateY(100%);
 		}
 	}
 
-	@keyframes month-from-above {
+	@keyframes roll-out-up {
+		to {
+			opacity: 0;
+			transform: translateY(-100%);
+		}
+	}
+
+	@keyframes roll-in-above {
 		from {
 			opacity: 0;
-			transform: translateY(-0.75rem);
+			transform: translateY(-100%);
+		}
+	}
+
+	@keyframes roll-out-down {
+		to {
+			opacity: 0;
+			transform: translateY(100%);
 		}
 	}
 
@@ -997,6 +1071,17 @@ const MySubscribeStyled = styled.div`
 		padding: 0 0 0.5rem;
 		overflow-x: auto;
 		list-style: none;
+		transition: opacity 0.16s ease;
+
+		/* 달이 바뀌는 동안 잠깐 흐려졌다가 새 달 날짜로 또렷해진다 */
+		&.leaving {
+			opacity: 0;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+		}
+
 		/* 옆으로 밀어 보되 스크롤바는 숨긴다 (지금 보는 날짜로 저절로 옮겨 준다) */
 		scrollbar-width: none;
 
