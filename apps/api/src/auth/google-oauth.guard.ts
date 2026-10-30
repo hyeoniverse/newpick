@@ -1,7 +1,13 @@
 import { ExecutionContext, Injectable } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
+import { JwtService } from '@nestjs/jwt';
 import { AppException } from '../common/errors/app.exception';
+import {
+  GOOGLE_LINK_COOKIE,
+  GOOGLE_LINK_MAX_AGE,
+  authCookieOptions,
+} from './cookie-options';
 
 const GOOGLE_ENV = [
   'GOOGLE_CLIENT_ID',
@@ -19,6 +25,18 @@ export const missingGoogleEnv = (env: NodeJS.ProcessEnv = process.env) =>
  */
 @Injectable()
 export class GoogleOAuthGuard extends AuthGuard('google') {
+  constructor(private readonly jwtService: JwtService) {
+    super();
+  }
+
+  /** 다른 Google 계정으로 바꿀 때는 지금 로그인된 계정을 건너뛰고 계정 고르기 화면부터 */
+  getAuthenticateOptions(context: ExecutionContext) {
+    const request = context.switchToHttp().getRequest<Request>();
+    return request.path?.endsWith('/link')
+      ? { prompt: 'select_account' }
+      : undefined;
+  }
+
   canActivate(context: ExecutionContext) {
     const missing = missingGoogleEnv();
     if (missing.length) {
@@ -27,8 +45,29 @@ export class GoogleOAuthGuard extends AuthGuard('google') {
     }
 
     const request = context.switchToHttp().getRequest<Request>();
+    if (request.path?.endsWith('/link')) this.markLink(context);
     if (!request.path?.endsWith('/callback')) return super.canActivate(context);
     return this.callbackOrRedirect(context);
+  }
+
+  /**
+   * 다른 Google 계정으로 바꾸기: 누가 바꾸는지 서명한 짧은 쿠키를 남긴다 (로그인한 사람만 이 경로에 온다, 전역 JwtAuthGuard).
+   * passport가 바로 구글로 보내 컨트롤러까지 가지 않으므로 여기서
+   */
+  private markLink(context: ExecutionContext) {
+    const http = context.switchToHttp();
+    const user = http.getRequest<Request>().user as { id: number };
+    const token = this.jwtService.sign(
+      { sub: user.id, purpose: 'google-link' },
+      { expiresIn: Math.floor(GOOGLE_LINK_MAX_AGE / 1000) },
+    );
+    http
+      .getResponse<Response>()
+      .cookie(
+        GOOGLE_LINK_COOKIE,
+        token,
+        authCookieOptions(GOOGLE_LINK_MAX_AGE),
+      );
   }
 
   /**

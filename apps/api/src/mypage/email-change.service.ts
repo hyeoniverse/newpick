@@ -1,9 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomInt, timingSafeEqual } from 'node:crypto';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AppException } from '../common/errors/app.exception';
 import { MailService } from '../mail/mail.service';
+import { accountMailHtml, notifyEmailChanged } from '../mail/account-mail';
 
 /** 인증 코드가 유효한 시간 */
 export const CODE_TTL_MS = 10 * 60 * 1000;
@@ -21,14 +22,6 @@ const sameHash = (a: string, b: string) =>
 
 export const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
-const mailHtml = (title: string, body: string) =>
-  `<div style="font-family:-apple-system,BlinkMacSystemFont,'Apple SD Gothic Neo',sans-serif;max-width:480px;margin:0 auto;padding:32px 24px;color:#111">
-  <p style="margin:0 0 24px;font-size:20px;font-weight:800;color:#3610e1">NewPick</p>
-  <p style="margin:0 0 16px;font-size:18px;font-weight:700">${title}</p>
-  ${body}
-  <p style="margin:32px 0 0;font-size:12px;color:#737373">이 메일은 발신 전용입니다.</p>
-</div>`;
-
 /**
  * 마이페이지에서 이메일(로그인 · 메일 받는 주소) 바꾸기.
  * 새 주소로 6자리 코드를 보내고, 그 코드를 맞게 넣어야 바뀐다 (남의 주소로 메일이 가지 않게).
@@ -36,8 +29,6 @@ const mailHtml = (title: string, body: string) =>
  */
 @Injectable()
 export class EmailChangeService {
-  private readonly logger = new Logger(EmailChangeService.name);
-
   constructor(
     private readonly prisma: MysqlPrismaService,
     private readonly mail: MailService,
@@ -80,7 +71,7 @@ export class EmailChangeService {
     await this.mail.sendHtmlMail(
       email,
       '',
-      mailHtml(
+      accountMailHtml(
         '이메일 인증 코드',
         `<p style="margin:0 0 16px;font-size:15px;line-height:1.6">뉴픽 마이페이지에 아래 코드를 넣으면 이 주소로 이메일이 바뀝니다. 10분 동안 쓸 수 있어요.</p>
   <p style="margin:0;padding:16px;border:1px solid #d9d9d9;border-radius:8px;font-size:28px;font-weight:800;letter-spacing:8px;text-align:center">${code}</p>
@@ -142,7 +133,13 @@ export class EmailChangeService {
       throw error;
     }
 
-    if (before) await this.notifyOldAddress(before.email, pending.newEmail);
+    if (before)
+      await notifyEmailChanged(
+        this.mail,
+        before.email,
+        pending.newEmail,
+        '마이페이지에서 받는 주소 바꾸기',
+      );
     return { email: pending.newEmail };
   }
 
@@ -156,23 +153,5 @@ export class EmailChangeService {
 
   private discard(userId: number) {
     return this.prisma.emailChange.deleteMany({ where: { userId } });
-  }
-
-  /** 예전 주소에 알림 (본인이 아니면 알아챌 수 있게). 못 보내도 바꾸기는 그대로 */
-  private async notifyOldAddress(oldEmail: string, newEmail: string) {
-    try {
-      await this.mail.sendHtmlMail(
-        oldEmail,
-        '',
-        mailHtml(
-          '이메일이 바뀌었어요',
-          `<p style="margin:0;font-size:15px;line-height:1.6">뉴픽 계정의 이메일이 <b>${newEmail}</b>(으)로 바뀌었습니다. 앞으로 뉴스레터는 새 주소로 갑니다.</p>
-  <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#6b6b6b">직접 바꾸지 않았다면 hyeoniverse.dev@gmail.com으로 알려 주세요.</p>`,
-        ),
-        '[뉴픽] 이메일이 바뀌었어요',
-      );
-    } catch (error) {
-      this.logger.warn(`예전 주소 알림 실패: ${(error as Error).message}`);
-    }
   }
 }

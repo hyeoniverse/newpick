@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState } from 'react';
 import styled from 'styled-components';
-import { sendEmailCode, verifyEmailCode } from '@/api/auth';
+import { linkGoogleAccount, sendEmailCode, verifyEmailCode } from '@/api/auth';
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
@@ -19,9 +19,18 @@ const errorText = (error: unknown) => {
 	return left ? `${error.message} (${left}번 남음)` : error.message;
 };
 
+/** 다른 Google 계정으로 바꾸고 돌아왔을 때(?google=…) 안내 */
+const LINK_RESULTS: Record<string, [string, 'success' | 'error' | 'info']> = {
+	linked: ['다른 Google 계정으로 바꿨습니다. 이제 그 계정으로 로그인하고, 뉴스레터도 그 주소로 갑니다.', 'success'],
+	same: ['지금 연결된 Google 계정과 같습니다.', 'info'],
+	taken: ['그 Google 계정(또는 주소)은 이미 다른 뉴픽 계정에 연결되어 있어 바꾸지 않았습니다.', 'error'],
+	failed: ['Google 계정을 바꾸지 못했습니다. 다시 시도해 주세요.', 'error'],
+};
+
 /**
- * 마이페이지 > 설정의 이메일 (로그인 · 뉴스레터 받는 주소).
- * 바꾸기 → 새 주소 → 그 주소로 온 6자리 코드를 넣으면 바뀐다. 로그인은 그대로 같은 Google 계정으로
+ * 마이페이지 > 설정의 이메일 (로그인 · 뉴스레터 받는 주소). 두 가지로 바꾼다
+ * - Google 계정 바꾸기: 구글 계정 고르기 → 로그인 연결과 이메일이 함께 그 계정으로 (주소는 Google이 확인한 것)
+ * - 받는 주소만 바꾸기: 새 주소 → 그 주소로 온 6자리 코드. 로그인은 그대로 같은 Google 계정으로
  */
 export default function AccountEmail() {
 	const { user, refetchUser } = useAuth();
@@ -32,6 +41,28 @@ export default function AccountEmail() {
 	const [error, setError] = useState('');
 	const [busy, setBusy] = useState(false);
 	const [now, setNow] = useState(() => Date.now());
+
+	// 다른 Google 계정으로 바꾸고 돌아오면 결과를 알리고 주소창의 ?google=…은 지운다
+	useEffect(() => {
+		const url = new URL(window.location.href);
+		const result = LINK_RESULTS[url.searchParams.get('google') ?? ''];
+		if (!result) return;
+		showToast(...result);
+		refetchUser();
+		url.searchParams.delete('google');
+		window.history.replaceState(null, '', url);
+		// eslint-disable-next-line react-hooks/exhaustive-deps -- 돌아온 첫 화면에서 한 번만
+	}, []);
+
+	const onLinkGoogle = async () => {
+		setBusy(true);
+		try {
+			await linkGoogleAccount();
+		} catch {
+			showToast('잠시 뒤 다시 시도해 주세요.', 'error');
+			setBusy(false);
+		}
+	};
 
 	// 다시 보내기까지 남은 초를 세기 위해 코드 단계에서만 1초마다
 	useEffect(() => {
@@ -95,13 +126,19 @@ export default function AccountEmail() {
 						이메일
 					</Title>
 					<Text size="small" color="subText">
-						로그인 계정과 뉴스레터를 받는 주소입니다. 바꿔도 같은 Google 계정으로 로그인합니다.
+						로그인한 Google 계정과 뉴스레터를 받는 주소입니다. Google 계정을 바꾸면 로그인과 주소가 함께 바뀌고, 받는
+						주소만 바꾸면 로그인은 지금 Google 계정 그대로입니다.
 					</Text>
 				</div>
 				{step.kind === 'idle' && (
-					<Button scheme="monoOutline" size="small" onClick={() => setStep({ kind: 'enter' })}>
-						바꾸기
-					</Button>
+					<div className="actions">
+						<Button scheme="monoOutline" size="small" isLoading={busy} onClick={onLinkGoogle}>
+							Google 계정 바꾸기
+						</Button>
+						<Button scheme="monoOutline" size="small" onClick={() => setStep({ kind: 'enter' })}>
+							받는 주소만 바꾸기
+						</Button>
+					</div>
 				)}
 			</div>
 
@@ -109,7 +146,7 @@ export default function AccountEmail() {
 
 			{step.kind === 'enter' && (
 				<form className="form" onSubmit={onSend}>
-					<label htmlFor="new-email">새 이메일</label>
+					<label htmlFor="new-email">뉴스레터를 받을 새 주소</label>
 					<div className="row">
 						<input
 							id="new-email"
@@ -195,10 +232,17 @@ const StyledAccountEmail = styled.section`
 		justify-content: space-between;
 		gap: 1.5rem;
 
-		> div {
+		> div:first-child {
 			display: flex;
 			flex-direction: column;
 			gap: 0.375rem;
+		}
+
+		.actions {
+			display: flex;
+			flex-shrink: 0;
+			flex-wrap: wrap;
+			gap: 0.5rem;
 		}
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {

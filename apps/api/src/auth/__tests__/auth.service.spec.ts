@@ -10,6 +10,7 @@ const prismaMock = () => ({
     update: jest.fn(),
     create: jest.fn(),
   },
+  emailChange: { deleteMany: jest.fn().mockResolvedValue({ count: 0 }) },
   oAuthToken: {
     create: jest.fn().mockResolvedValue({}),
     deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
@@ -256,5 +257,73 @@ describe('AuthService Google 로그인', () => {
         profileImg: 'p',
       },
     });
+  });
+});
+
+describe('AuthService 다른 Google 계정으로 바꾸기', () => {
+  const me = { email: 'old@gmail.com', googleSub: 'g-old' };
+  /** id로 찾으면 나, googleSub · email로 찾으면 그것을 쓰는 계정 */
+  const lookup = (owners: Record<string, number> = {}) =>
+    jest.fn(({ where }) =>
+      Promise.resolve(
+        where.id
+          ? me
+          : owners[where.googleSub ?? where.email]
+            ? { id: owners[where.googleSub ?? where.email] }
+            : null,
+      ),
+    );
+
+  it('로그인 연결과 이메일을 함께 바꾸고, 하던 받는 주소 바꾸기는 그만둔다', async () => {
+    const { prisma, service } = setup();
+    prisma.user.findUnique = lookup();
+    prisma.user.update.mockResolvedValue({});
+
+    expect(
+      await service.linkGoogleAccount(7, 'g-new', 'new@gmail.com'),
+    ).toEqual({
+      status: 'linked',
+      oldEmail: 'old@gmail.com',
+      email: 'new@gmail.com',
+    });
+    expect(prisma.user.update).toHaveBeenCalledWith({
+      where: { id: 7 },
+      data: { googleSub: 'g-new', email: 'new@gmail.com' },
+    });
+    expect(prisma.emailChange.deleteMany).toHaveBeenCalledWith({
+      where: { userId: 7 },
+    });
+  });
+
+  it('같은 Google 계정이면 그대로, 다른 뉴픽 계정이 쓰는 Google 계정 · 주소면 바꾸지 않는다', async () => {
+    const { prisma, service } = setup();
+    prisma.user.findUnique = lookup();
+    expect(await service.linkGoogleAccount(7, 'g-old', 'x@gmail.com')).toEqual({
+      status: 'same',
+    });
+
+    prisma.user.findUnique = lookup({ 'g-new': 9 });
+    expect(
+      await service.linkGoogleAccount(7, 'g-new', 'new@gmail.com'),
+    ).toEqual({ status: 'taken' });
+    prisma.user.findUnique = lookup({ 'new@gmail.com': 9 });
+    expect(
+      await service.linkGoogleAccount(7, 'g-new', 'new@gmail.com'),
+    ).toEqual({ status: 'taken' });
+    expect(prisma.user.update).not.toHaveBeenCalled();
+  });
+
+  it('바꾸기 쿠키는 목적이 맞는 서명만 받는다', () => {
+    const { jwt, service } = setup();
+    expect(
+      service.linkUserId(jwt.sign({ sub: 7, purpose: 'google-link' })),
+    ).toBe(7);
+    expect(service.linkUserId(jwt.sign({ sub: 7 }))).toBeNull();
+    expect(
+      service.linkUserId(
+        jwt.sign({ sub: 7, purpose: 'google-link' }, { secret: 'other' }),
+      ),
+    ).toBeNull();
+    expect(service.linkUserId(undefined)).toBeNull();
   });
 });

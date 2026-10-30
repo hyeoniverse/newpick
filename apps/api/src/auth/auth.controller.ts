@@ -16,21 +16,38 @@ import { GoogleOAuthGuard, loginFailedUrl } from './google-oauth.guard';
 import { AppException } from '../common/errors/app.exception';
 import {
   ACCESS_TOKEN_MAX_AGE,
+  GOOGLE_LINK_COOKIE,
   REFRESH_TOKEN_MAX_AGE,
   SESSION_HINT_COOKIE,
   authCookieOptions,
   sessionHintCookieOptions,
 } from './cookie-options';
 import { Public } from 'src/auth/decorators/auth.decorators';
+import { MailService } from '../mail/mail.service';
+import { notifyEmailChanged } from '../mail/account-mail';
+
+/** 다른 Google 계정으로 바꾼 뒤 돌아갈 곳. 웹은 ?google=…를 보고 안내한다 */
+const linkResultUrl = (result: string) =>
+  `${process.env.FRONTEND_URL ?? ''}/mypage?tab=settings&google=${result}`;
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly mail: MailService,
+  ) {}
 
   @Public()
   @Get('google')
   @UseGuards(GoogleOAuthGuard)
   async googleLogin() {
+    return { message: 'Redirecting to Google OAuth...' };
+  }
+
+  /** 다른 Google 계정으로 바꾸기 (로그인 필요): 가드가 표시 쿠키를 남기고 구글 계정 고르기로 보낸다 */
+  @Get('google/link')
+  @UseGuards(GoogleOAuthGuard)
+  async googleLink() {
     return { message: 'Redirecting to Google OAuth...' };
   }
 
@@ -41,7 +58,32 @@ export class AuthController {
     // 브라우저가 직접 여는 주소라, 실패하면 JSON이 아니라 사이트로 돌려보낸다
     if (!req.user) return res.redirect(loginFailedUrl());
 
-    const { googleSub, email, username, profileImg } = req.user as any;
+    const { googleSub, email, username, profileImg, emailVerified } =
+      req.user as any;
+
+    // 다른 Google 계정으로 바꾸는 중이면 새 로그인이 아니라 지금 계정의 연결을 바꾼다
+    const linkUserId = this.authService.linkUserId(
+      req.cookies?.[GOOGLE_LINK_COOKIE],
+    );
+    if (req.cookies?.[GOOGLE_LINK_COOKIE])
+      res.clearCookie(GOOGLE_LINK_COOKIE, authCookieOptions());
+    if (linkUserId) {
+      if (!googleSub || !email || !emailVerified)
+        return res.redirect(linkResultUrl('failed'));
+      const result = await this.authService.linkGoogleAccount(
+        linkUserId,
+        googleSub,
+        email,
+      );
+      if (result.status === 'linked' && result.oldEmail !== result.email)
+        await notifyEmailChanged(
+          this.mail,
+          result.oldEmail,
+          result.email,
+          '다른 Google 계정으로 바꾸기',
+        );
+      return res.redirect(linkResultUrl(result.status));
+    }
 
     // 유효한 사용자만 등록하도록 개선
     if (!email || !username) return res.redirect(loginFailedUrl());

@@ -51,6 +51,59 @@ export class AuthService {
     });
   }
 
+  /** 다른 Google 계정으로 바꾸기 쿠키를 확인해 바꾸는 사람의 id. 아니면 null */
+  linkUserId(token: string | undefined): number | null {
+    if (!token) return null;
+    try {
+      const payload = this.jwtService.verify<{ sub: number; purpose?: string }>(
+        token,
+      );
+      return payload.purpose === 'google-link' ? payload.sub : null;
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * 로그인한 계정을 다른 Google 계정으로 바꾼다: 로그인 연결(googleSub)과 이메일을 함께.
+   * 주소는 Google이 확인한 것이라 인증 코드가 필요 없다. 새 Google 계정 · 그 주소를 다른 뉴픽 계정이 쓰면 바꾸지 않는다 (합치지 않음)
+   */
+  async linkGoogleAccount(
+    userId: number,
+    googleSub: string,
+    email: string,
+  ): Promise<
+    | { status: 'linked'; oldEmail: string; email: string }
+    | { status: 'same' | 'taken' | 'failed' }
+  > {
+    const me = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { email: true, googleSub: true },
+    });
+    if (!me) return { status: 'failed' };
+    if (me.googleSub === googleSub) return { status: 'same' };
+
+    const [bySub, byEmail] = await Promise.all([
+      this.prisma.user.findUnique({
+        where: { googleSub },
+        select: { id: true },
+      }),
+      this.prisma.user.findUnique({ where: { email }, select: { id: true } }),
+    ]);
+    if ((bySub && bySub.id !== userId) || (byEmail && byEmail.id !== userId))
+      return { status: 'taken' };
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { googleSub, email },
+      }),
+      // 받는 주소 바꾸기를 하던 중이었으면 그만둔다
+      this.prisma.emailChange.deleteMany({ where: { userId } }),
+    ]);
+    return { status: 'linked', oldEmail: me.email, email };
+  }
+
   async generateAccessToken(userId: number) {
     return this.jwtService.sign(
       { sub: userId },

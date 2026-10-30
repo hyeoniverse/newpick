@@ -31,6 +31,10 @@ export function sessionHintCookieOptions(maxAge?: number): CookieOptions {
 }
 
 /** 짧게: 다른 기기를 로그아웃시키면 그 기기는 늦어도 이만큼 뒤에 풀린다 (갱신은 쓰는 동안 조용히) */
+/** 다른 Google 계정으로 바꾸는 중 (누가 바꾸는지, 10분): 돌아온 콜백이 새 로그인이 아니라 연결 바꾸기로 처리 */
+export const GOOGLE_LINK_COOKIE = 'google_link';
+export const GOOGLE_LINK_MAX_AGE = 10 * 60 * 1000;
+
 export const ACCESS_TOKEN_MAX_AGE = 30 * 60 * 1000;
 /** 로그인 유지: 갱신할 때마다 다시 30일. 30일 동안 한 번도 안 들어오면 다시 로그인 */
 export const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60 * 1000;

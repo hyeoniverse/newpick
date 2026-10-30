@@ -1,5 +1,6 @@
 import { ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
+import { JwtService } from '@nestjs/jwt';
 import { GoogleOAuthGuard, missingGoogleEnv } from '../google-oauth.guard';
 import { GoogleStrategy } from '../google.strategy';
 
@@ -30,7 +31,7 @@ describe('Google 로그인 설정이 없을 때', () => {
 
   it('로그인 경로는 503 (빠진 키 이름은 응답이 아니라 서버 로그에만)', () => {
     configure({ GOOGLE_CLIENT_ID: 'id' });
-    const guard = new GoogleOAuthGuard();
+    const guard = new GoogleOAuthGuard({} as never);
 
     expect(() => guard.canActivate({} as ExecutionContext)).toThrow(
       expect.objectContaining({
@@ -56,7 +57,9 @@ describe('Google 로그인 설정이 없을 때', () => {
     const passport = jest.spyOn(parent, 'canActivate').mockReturnValue(true);
 
     expect(
-      new GoogleOAuthGuard().canActivate(httpContext('/auth/google')),
+      new GoogleOAuthGuard({} as never).canActivate(
+        httpContext('/auth/google'),
+      ),
     ).toBe(true);
     expect(passport).toHaveBeenCalledTimes(1);
   });
@@ -82,13 +85,51 @@ describe('구글에서 돌아오는 길(callback)', () => {
     const redirect = jest.fn();
 
     await expect(
-      new GoogleOAuthGuard().canActivate(
+      new GoogleOAuthGuard({} as never).canActivate(
         httpContext('/auth/google/callback', redirect),
       ),
     ).resolves.toBe(false);
     expect(redirect).toHaveBeenCalledWith(
       'http://localhost:3000/?login=failed',
     );
+  });
+});
+
+describe('다른 Google 계정으로 바꾸기 (auth/google/link)', () => {
+  beforeEach(() =>
+    configure({
+      GOOGLE_CLIENT_ID: 'id',
+      GOOGLE_CLIENT_SECRET: 'secret',
+      GOOGLE_REDIRECT_URI: 'http://localhost:3000/api/auth/google/callback',
+    }),
+  );
+
+  it('누가 바꾸는지 서명한 10분 쿠키를 남기고, 계정 고르기 화면부터 연다', () => {
+    const parent = Object.getPrototypeOf(
+      GoogleOAuthGuard.prototype,
+    ) as InstanceType<ReturnType<typeof AuthGuard>>;
+    jest.spyOn(parent, 'canActivate').mockReturnValue(true);
+    const jwt = new JwtService({ secret: 'test-access-secret' });
+    const cookie = jest.fn();
+    const context = {
+      switchToHttp: () => ({
+        getRequest: () => ({ path: '/auth/google/link', user: { id: 7 } }),
+        getResponse: () => ({ cookie }),
+      }),
+    } as unknown as ExecutionContext;
+    const guard = new GoogleOAuthGuard(jwt);
+
+    expect(guard.canActivate(context)).toBe(true);
+    const [name, token, options] = cookie.mock.calls[0];
+    expect(name).toBe('google_link');
+    expect(jwt.verify(token)).toMatchObject({ sub: 7, purpose: 'google-link' });
+    expect(options).toMatchObject({ httpOnly: true, maxAge: 10 * 60 * 1000 });
+    expect(guard.getAuthenticateOptions(context)).toEqual({
+      prompt: 'select_account',
+    });
+    expect(
+      guard.getAuthenticateOptions(httpContext('/auth/google')),
+    ).toBeUndefined();
   });
 });
 

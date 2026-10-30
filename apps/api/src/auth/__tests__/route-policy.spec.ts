@@ -32,6 +32,7 @@ const EXPECTED: Record<string, Policy> = {
   'GET auth/google/callback': 'public',
   'GET auth/refresh': 'public',
   'POST auth/logout': 'auth',
+  'GET auth/google/link': 'auth',
   'GET auth/sessions': 'auth',
   'POST auth/sessions/logout-others': 'auth',
   'DELETE auth/sessions/:id': 'auth',

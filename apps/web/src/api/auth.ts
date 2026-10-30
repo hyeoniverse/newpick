@@ -63,6 +63,15 @@ export const logoutSession = async (id: number): Promise<void> => {
 export const logoutOtherSessions = () =>
 	apiFetch<{ removed: number }>(API_ENDPOINTS.AUTH.LOGOUT_OTHERS(), { method: 'POST' });
 
+/**
+ * 다른 Google 계정으로 바꾸기: 구글 계정 고르기로 이동했다가 마이페이지 설정(?google=…)으로 돌아온다.
+ * 이 주소는 브라우저가 직접 열어 401이면 갱신해 줄 곳이 없으므로, 먼저 로그인 상태를 확인(필요하면 갱신)한다
+ */
+export const linkGoogleAccount = async (): Promise<void> => {
+	await apiFetch(API_ENDPOINTS.MY.PROFILE());
+	window.location.href = API_ENDPOINTS.AUTH.GOOGLE_LINK();
+};
+
 /** 이메일 바꾸기 1단계: 새 주소로 6자리 코드 */
 export const sendEmailCode = (email: string) =>
 	apiFetch<{ email: string; expiresAt: string; resendAfter: string }>(API_ENDPOINTS.MY.EMAIL_CODE(), {

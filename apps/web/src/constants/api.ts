@@ -14,6 +14,8 @@ export const API_ENDPOINTS = {
 	AUTH: {
 		LOGIN: () => `${API_URL}/auth/google`,
 		LOGOUT: () => `${API_URL}/auth/logout`,
+		/** 다른 Google 계정으로 바꾸기 (로그인 연결 · 이메일 함께) */
+		GOOGLE_LINK: () => `${API_URL}/auth/google/link`,
 		REFRESH: () => `${API_URL}/auth/refresh`,
 		/** 로그인한 기기: 목록 · 하나 로그아웃 · 이 기기만 남기기 */
 		SESSIONS: () => `${API_URL}/auth/sessions`,

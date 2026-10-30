@@ -34,6 +34,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     const user = {
       googleSub: id,
       email: emails?.[0]?.value || null,
+      // Google이 확인한 주소인지 (다른 Google 계정으로 바꿀 때 인증 코드 대신 이것으로)
+      emailVerified: emails?.[0]?.verified !== false,
       username: displayName || null,
       profileImg: photos?.[0]?.value || null,
     };
