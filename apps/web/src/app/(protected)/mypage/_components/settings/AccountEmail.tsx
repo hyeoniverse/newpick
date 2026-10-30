@@ -130,19 +130,20 @@ export default function AccountEmail() {
 						유지됩니다.
 					</Text>
 				</div>
-				{step.kind === 'idle' && (
-					<div className="actions">
-						<Button scheme="monoOutline" size="small" isLoading={busy} onClick={onLinkGoogle}>
-							Google 계정 변경
-						</Button>
-						<Button scheme="monoOutline" size="small" onClick={() => setStep({ kind: 'enter' })}>
-							수신 이메일 변경
-						</Button>
-					</div>
-				)}
 			</div>
 
 			<p className="current">{user?.email}</p>
+
+			{step.kind === 'idle' && (
+				<div className="actions">
+					<Button scheme="monoOutline" size="small" isLoading={busy} onClick={onLinkGoogle}>
+						Google 계정 변경
+					</Button>
+					<Button scheme="monoOutline" size="small" onClick={() => setStep({ kind: 'enter' })}>
+						수신 이메일 변경
+					</Button>
+				</div>
+			)}
 
 			{step.kind === 'enter' && (
 				<form className="form" onSubmit={onSend}>
@@ -226,29 +227,10 @@ const StyledAccountEmail = styled.section`
 	border-top: 1px solid ${({ theme }) => theme.color.border};
 	word-break: keep-all;
 
-	.head {
+	.head > div {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1.5rem;
-
-		> div:first-child {
-			display: flex;
-			flex-direction: column;
-			gap: 0.375rem;
-		}
-
-		.actions {
-			display: flex;
-			flex-shrink: 0;
-			flex-wrap: wrap;
-			gap: 0.5rem;
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			flex-direction: column;
-			align-items: flex-start;
-		}
+		flex-direction: column;
+		gap: 0.375rem;
 	}
 
 	.current {
@@ -256,6 +238,13 @@ const StyledAccountEmail = styled.section`
 		font-size: ${({ theme }) => theme.fontSize.medium};
 		font-weight: ${({ theme }) => theme.fontWeight.medium};
 		overflow-wrap: anywhere;
+	}
+
+	/* 바꾸기 버튼: 현재 이메일 바로 아래 */
+	.actions {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
 	}
 
 	/* 입력 폼(새 수신 이메일 · 인증 코드)이 열릴 때 위에서 살짝 내려오며 나타난다 */
