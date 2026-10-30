@@ -7,23 +7,23 @@ import { css } from 'styled-components';
  */
 export const newsBlock = css`
 	.news {
+		/* 블록 폭을 재어 좁으면 제목 줄 동작을 위로 올린다 (화면이 아니라 블록 폭 기준) */
+		container: news / inline-size;
 		padding: 1.75rem 0 2rem;
 		scroll-margin-top: 6rem;
 	}
 
 	/* 제목 + 오른쪽 끝 동작. 제목이 여러 줄이면 동작은 첫 줄 높이 가운데에 그대로 (제목 글줄 높이 = --title-line).
-	   너비가 많이 모자라 제목 자리가 18rem보다 좁아지면 동작은 제목 아래 따로 한 줄로 내려간다 */
+	   블록 폭이 많이 모자라면 동작은 제목 위 오른쪽 따로 한 줄로 (아래 @container) */
 	.news-head {
 		--title-line: calc(${({ theme }) => theme.fontSize.large} * 1.4);
 		display: flex;
-		flex-wrap: wrap;
 		align-items: flex-start;
-		/* 동작 줄을 단추 안쪽 여백(0.5rem)만큼 왼쪽으로 당겨, 아래로 내려갔을 때 별이 제목 왼쪽 끝에 맞게. 그만큼 사이를 넓혀 둔다 */
-		gap: 0.25rem 1.75rem;
+		gap: 1.25rem;
 		margin-bottom: 1.5rem;
 
 		.news-title {
-			flex: 1 1 18rem;
+			flex: 1;
 			min-width: 0;
 			margin-bottom: 0;
 		}
@@ -112,8 +112,73 @@ export const newsBlock = css`
 		align-items: center;
 		gap: 0.5rem;
 		height: var(--title-line);
-		margin-left: -0.5rem;
 		white-space: nowrap;
+
+		/* 아이콘 단추 (별): 화면이 작아질수록 조금씩 작게 */
+		> button {
+			width: 2.5rem;
+			height: 2.5rem;
+
+			svg {
+				width: 1.5rem;
+				height: 1.5rem;
+			}
+		}
+
+		.trigger {
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		}
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
+		.news-icons {
+			gap: 0.25rem;
+
+			> button {
+				width: 2.25rem;
+				height: 2.25rem;
+
+				svg {
+					width: 1.375rem;
+					height: 1.375rem;
+				}
+			}
+
+			.trigger {
+				font-size: 0.8125rem;
+			}
+		}
+	}
+
+	/* 블록 폭이 많이 모자라면(제목 자리가 모자람): 동작을 제목 위 오른쪽 끝 따로 한 줄로, 더 작게 */
+	@container news (max-width: 28rem) {
+		.news-head {
+			flex-direction: column;
+			align-items: stretch;
+			gap: 0.125rem;
+		}
+
+		.news-icons {
+			order: -1;
+			align-self: flex-end;
+			height: auto;
+			/* 단추 안쪽 여백만큼 밀어 폴더 글자 끝을 제목 오른쪽 끝에 맞추고, 블록 위 여백 쪽으로 올려 붙인다 */
+			margin: -0.75rem -0.25rem 0 0;
+
+			> button {
+				width: 2rem;
+				height: 2rem;
+
+				svg {
+					width: 1.25rem;
+					height: 1.25rem;
+				}
+			}
+
+			.trigger {
+				font-size: 0.75rem;
+			}
+		}
 	}
 
 	/* 오른쪽 연한 상자 */
@@ -138,7 +203,7 @@ export const newsBlock = css`
 
 		.news-head {
 			--title-line: calc(${({ theme }) => theme.fontSize.medium} * 1.4);
-			column-gap: 1.25rem;
+			gap: 0.75rem;
 		}
 	}
 `;
