@@ -19,7 +19,8 @@ export interface Highlight {
 	folderId: number | null;
 	createdAt: string;
 	updatedAt: string;
-	newsletter?: { title: string; createdAt: string; category: { id: number; name: string } };
+	/** 썸네일(image)은 마이페이지 쪽 목록에만 온다 */
+	newsletter?: { title: string; createdAt: string; image?: string | null; category: { id: number; name: string } };
 }
 
 /** 내 스크랩. newsletterId를 주면 그 뉴스레터 것만 (상세 화면 형광펜), 아니면 전체 (마이페이지) */
@@ -38,30 +39,33 @@ export interface HighlightPage {
 	total: number;
 	/** 폴더 줄(전체 · 폴더 없음) · 보기 칩(고른 폴더 안의 중요 · 메모) 개수 */
 	counts: { all: number; unfiled: number; starred: number; memo: number };
+	/** 달 막대 바로 가기: 거르기 · 정렬을 적용한 순서로 달마다 개수와 그 달 첫 스크랩의 순번 */
+	months?: { month: string; count: number; firstIndex: number }[];
 }
 
 /** 한 번에 받는 스크랩 수 */
 export const HIGHLIGHT_PAGE_SIZE = 30;
 
 /**
- * 마이페이지 스크랩 (#123): 쪽 단위로 받아 '더 보기'로 이어 붙인다.
- * filters: 'folder=none&filter=starred' 같은 쿼리
+ * 마이페이지 스크랩 (#123): 쪽 단위로 받아 아래로 이어 붙인다 (무한 스크롤).
+ * filters: 'folder=none&filter=starred' 같은 쿼리. startOffset: 달로 건너뛰면 그 달 첫 스크랩 순번부터 (위로는 앞 쪽)
  */
-export function useHighlightPages(filters: string) {
+export function useHighlightPages(filters: string, startOffset = 0) {
 	const { user } = useAuth();
 	return useInfiniteQuery({
-		queryKey: ['highlights', 'page', user?.id, filters],
-		queryFn: ({ pageParam }) =>
-			apiFetch<HighlightPage>(
+		queryKey: ['highlights', 'page', user?.id, filters, startOffset],
+		queryFn: async ({ pageParam }) => ({
+			...(await apiFetch<HighlightPage>(
 				API_ENDPOINTS.MY.HIGHLIGHTS_PAGE(
 					`offset=${pageParam}&limit=${HIGHLIGHT_PAGE_SIZE}${filters ? `&${filters}` : ''}`,
 				),
-			),
-		initialPageParam: 0,
-		getNextPageParam: (last, pages) => {
-			const loaded = pages.reduce((n, p) => n + p.items.length, 0);
-			return loaded < last.total ? loaded : undefined;
-		},
+			)),
+			offset: pageParam,
+		}),
+		initialPageParam: startOffset,
+		getNextPageParam: (last) =>
+			last.offset + last.items.length < last.total ? last.offset + HIGHLIGHT_PAGE_SIZE : undefined,
+		getPreviousPageParam: (first) => (first.offset > 0 ? Math.max(0, first.offset - HIGHLIGHT_PAGE_SIZE) : undefined),
 		enabled: !!user,
 		placeholderData: (previous) => previous,
 	});

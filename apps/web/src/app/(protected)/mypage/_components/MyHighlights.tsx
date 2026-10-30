@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import StarToggle from '@/components/common/icons/StarToggle';
 import styled from 'styled-components';
-import { LuHighlighter } from 'react-icons/lu';
+import { LuHighlighter, LuNewspaper } from 'react-icons/lu';
+import Image from '@/components/common/Image';
+import { useHeader } from '@/hooks/useHeader';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
@@ -20,8 +22,9 @@ import MyTaste from './MyTaste';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
-import LoadMore from './list/LoadMore';
-import { folderTag, listBox, sourceLine, textTools } from './list/styles';
+import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
+import { newsBlock } from './list/newsBlock';
+import { folderTag, sourceLine, textTools } from './list/styles';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -31,21 +34,14 @@ function sectionName(highlight: Highlight) {
 	return { index: story[1].padStart(2, '0'), name: highlight.sectionTitle || `소식 ${story[1]}` };
 }
 
-/** 문장 위 출처 한 줄: 관심사 · 뉴스레터 제목(누르면 그 뉴스레터) › 소식 번호 · 제목 */
+/** 문장 위 한 줄: 뉴스레터 안 어느 소식인지(번호 · 제목) · 폴더. 뉴스레터 제목 · 관심사는 블록 머리에 */
 function Source({ highlight, folder }: { highlight: Highlight; folder?: string }) {
-	const newsletter = highlight.newsletter;
 	const { index, name } = sectionName(highlight);
+	if (!name && !folder) return null;
 	return (
 		<p className="source">
-			{newsletter && <span className="category">{newsletter.category.name}</span>}
-			<Link href={`/articles/detail/${highlight.newsletterId}`} className="newsletter">
-				{newsletter?.title ?? `뉴스레터 #${highlight.newsletterId}`}
-			</Link>
 			{name && (
 				<span className="section">
-					<span className="sep" aria-hidden>
-						›
-					</span>
 					{index && <span className="index">{index}</span>}
 					{name}
 				</span>
@@ -102,26 +98,77 @@ function byDay(items: Highlight[]) {
 	return groups;
 }
 
+/** 하루 안에서 이어진 같은 뉴스레터 스크랩을 한 블록으로 */
+function byNewsletter(items: Highlight[]) {
+	const blocks: { newsletterId: number; items: Highlight[] }[] = [];
+	for (const item of items) {
+		const last = blocks[blocks.length - 1];
+		if (last?.newsletterId === item.newsletterId) last.items.push(item);
+		else blocks.push({ newsletterId: item.newsletterId, items: [item] });
+	}
+	return blocks;
+}
+
 /**
  * 마이페이지 스크랩 (#123 1단계): 뉴스레터 본문에서 스크랩한 문장 · 메모를 모아 본다.
- * 묶지 않고 최근에 스크랩한 것부터 한 줄 목록, 문장마다 위에 출처(관심사 · 뉴스레터 · 소식) 한 줄.
+ * 내 뉴스레터와 같은 모양: 위에 붙어 따라오는 달 막대(연도 · 월로 바로 가기, 스크랩한 날짜 바로가기) 아래
+ * 뉴스레터 하나가 블록 하나 — 날짜 · 큰 제목, 왼쪽 그림 · 관심사, 오른쪽 연한 상자에 그날 스크랩한 문장들(소식 번호 · 제목 한 줄).
  * 폴더로 정리하고(폴더 줄로 거르기), 문장 아래 원문에서 보기(?hl=번호) · 메모 · 폴더 옮기기 · 지우기, 문장 줄 끝에 중요 표시(별).
  * '선택'으로 골라서 한꺼번에 폴더로 옮기기 · 중요 표시 · 중요 해제 · 복사 · 지우기.
  * 중요 표시한 문장은 지우기 전에 한 번 더 묻는다.
- * 서버에서 폴더 · 보기로 걸러 한 쪽(30개)씩 받고, 끝의 '더 보기'로 이어 붙인다
+ * 서버에서 폴더 · 보기로 걸러 한 쪽(30개)씩 받고, 아래 끝에 닿으면 이어 붙인다 (달로 건너뛰면 위로 '더 최근 스크랩 보기')
  */
 export default function MyHighlights() {
 	const [filter, setFilter] = useState('');
 	const [folder, setFolder] = useState<FolderFilter>('all');
 	// 정렬: 최근 스크랩순(기본) · 오래된순. 날짜별 묶음도 이 순서를 따른다
 	const [order, setOrder] = useState<'desc' | 'asc'>('desc');
+	// 달 막대에서 고른 달로: 그 달 첫 스크랩 순번부터 받아 와서 그 달 묶음으로 스크롤
+	const { startOffset, setStartOffset, jumpToMonth } = useMonthJump();
+	// 달 막대가 붙는 높이: 헤더가 보이면 그 아래
+	const { headerHeight } = useHeader();
 	const filters = new URLSearchParams({
 		...(folder !== 'all' && { folder: String(folder) }),
 		...(filter && { filter }),
 		...(order === 'asc' && { order }),
 	}).toString();
-	const { data, isPending, isError, error, refetch, fetchNextPage, isFetchingNextPage } = useHighlightPages(filters);
-	const items = data?.pages.flatMap((p) => p.items);
+	const {
+		data,
+		isPending,
+		isError,
+		error,
+		refetch,
+		fetchNextPage,
+		fetchPreviousPage,
+		hasNextPage,
+		hasPreviousPage,
+		isFetchingNextPage,
+		isFetchingPreviousPage,
+	} = useHighlightPages(filters, startOffset);
+	// 앞 쪽이 겹치지 않게 (건너뛴 자리가 한 쪽 수의 배수가 아니면 앞 쪽 끝이 겹칠 수 있다)
+	const seen = new Set<number>();
+	const items = data?.pages.flatMap((p) => p.items).filter((h) => !seen.has(h.id) && seen.add(h.id));
+	// 아래 끝 표시: 화면에 들어오면 다음 쪽
+	const endRef = useRef<HTMLDivElement>(null);
+	useEffect(() => {
+		const el = endRef.current;
+		if (!el || !hasNextPage) return;
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries[0].isIntersecting && !isFetchingNextPage) fetchNextPage();
+			},
+			{ rootMargin: '400px 0px' },
+		);
+		observer.observe(el);
+		return () => observer.disconnect();
+	}, [hasNextPage, isFetchingNextPage, fetchNextPage, items?.length]);
+	// 거르기 · 정렬을 바꾸면 맨 위부터
+	const refilter =
+		<T,>(set: (value: T) => void) =>
+		(value: T) => {
+			set(value);
+			setStartOffset(0);
+		};
 	// 끌어서 폴더에 넣기 (데스크톱): 끄는 중인 스크랩 번호들
 	const [dragging, setDragging] = useState<number[] | null>(null);
 	const { data: folders = [] } = useFolders();
@@ -168,8 +215,11 @@ export default function MyHighlights() {
 	// 서버가 걸러 준 것을 이어 붙인 목록. 중요 · 메모 수는 고른 폴더 안에서 센 것
 	const shown = items ?? [];
 	const { starred: stars, memo: memos } = first.counts;
-	const total = data.pages[data.pages.length - 1].total;
+	const last = data.pages[data.pages.length - 1];
+	const total = last.total;
 	const folderName = new Map(folders.map((f) => [f.id, f.name]));
+	// 달 → 날짜 → (블록은 그리면서) 로 묶음
+	const months = byMonth(shown, (h) => h.createdAt).map(({ month, items }) => ({ month, days: byDay(items) }));
 	const picked = shown.filter((h) => selected.has(h.id));
 	const copy = async () => {
 		try {
@@ -197,7 +247,7 @@ export default function MyHighlights() {
 				allLabel="모든 스크랩"
 				value={folder}
 				onChange={(next) => {
-					setFolder(next);
+					refilter(setFolder)(next);
 					setSelected(new Set());
 				}}
 				total={first.counts.all}
@@ -218,7 +268,7 @@ export default function MyHighlights() {
 						{ value: 'memo', label: `메모 ${memos}` },
 					]}
 					value={filter}
-					onChange={setFilter}
+					onChange={refilter(setFilter)}
 				/>
 				<SortSelect
 					value={order}
@@ -226,7 +276,7 @@ export default function MyHighlights() {
 						{ value: 'desc', label: '최근 스크랩순' },
 						{ value: 'asc', label: '오래된순' },
 					]}
-					onChange={setOrder}
+					onChange={refilter(setOrder)}
 				/>
 				<button
 					type="button"
@@ -246,39 +296,111 @@ export default function MyHighlights() {
 							: "이 폴더에 스크랩이 없어요. 문장 아래 '폴더 옮기기'나 '선택'으로 옮겨 보세요."}
 				</p>
 			)}
-			{/* 최근에 스크랩한 것부터 (목록이 그 순서로 온다), 카드 한 장 안에 구분선으로 */}
-			{/* 스크랩한 날짜별로 묶어서 (최근 날짜부터): 날짜 머리 + 그날 문장들 상자 한 장 */}
-			{byDay(shown).map(({ day, items }) => (
-				<section key={day} className="day" aria-label={dayLabel(day)}>
-					<h4 className="day-head">
-						{dayLabel(day)} <span className="day-count">{items.length}</span>
-					</h4>
-					<ul className="list">
-						{items.map((highlight) => (
-							<li key={highlight.id}>
-								<Source
-									highlight={highlight}
-									folder={folder === 'all' && highlight.folderId ? folderName.get(highlight.folderId) : undefined}
-								/>
-								<HighlightItem
-									highlight={highlight}
-									focused={highlight.id === focused}
-									selecting={selecting}
-									checked={selected.has(highlight.id)}
-									onToggle={() => toggle(highlight.id)}
-									onRemove={() => confirmRemove([highlight])}
-									// 고르는 중에 고른 것 하나를 끌면 고른 것 전부, 아니면 이것 하나
-									onDragStart={() =>
-										setDragging(selecting && selected.has(highlight.id) ? [...selected] : [highlight.id])
-									}
-									onDragEnd={() => setDragging(null)}
-								/>
-							</li>
+			{shown.length > 0 && (
+				/* 내 뉴스레터와 같은 짜임: 달 막대 하나가 위에 붙어 따라오고, 그 아래 날짜마다 뉴스레터 블록 */
+				<div className="inbox">
+					{hasPreviousPage && (
+						<LoadNewer
+							label="더 최근 스크랩 보기"
+							loading={isFetchingPreviousPage}
+							onClick={() => fetchPreviousPage()}
+						/>
+					)}
+					<div className="months">
+						<MonthBar
+							groups={months.map(({ month, days }) => ({
+								month,
+								items: days.map(({ day, items }) => ({ id: `hl-day-${day}`, at: items[0].createdAt })),
+							}))}
+							top={headerHeight}
+							months={last.months ?? []}
+							onJump={jumpToMonth}
+							noun="스크랩"
+						/>
+						{months.map(({ month, days }) => (
+							<section key={month} id={`month-${month}`} className="month" aria-label={monthLabel(month)}>
+								{days.map(({ day, items }) => (
+									<div key={day} id={`hl-day-${day}`} className="scrap-day">
+										{byNewsletter(items).map((block) => {
+											const newsletter = block.items[0].newsletter;
+											const href = `/articles/detail/${block.newsletterId}`;
+											return (
+												<article key={block.items[0].id} className="news">
+													{/* 스크랩한 날 (제목에 날짜가 없어 위에 작게) */}
+													<p className="news-date">{dayLabel(day)}</p>
+													<Link href={href} className="news-title">
+														<h3>{newsletter?.title ?? `뉴스레터 #${block.newsletterId}`}</h3>
+													</Link>
+													<div className="news-body">
+														<div className="news-media">
+															<Link href={href} className="news-image" tabIndex={-1} aria-hidden>
+																{newsletter?.image ? (
+																	<Image
+																		src={newsletter.image}
+																		alt=""
+																		ratio="wide"
+																		borderRadius="medium"
+																		priority={false}
+																	/>
+																) : (
+																	<LuNewspaper />
+																)}
+															</Link>
+															{newsletter && (
+																<ul className="news-cats" aria-label="관심사">
+																	<li>{newsletter.category.name}</li>
+																</ul>
+															)}
+														</div>
+														{/* 오른쪽 상자: 이 뉴스레터에서 그날 스크랩한 문장들 */}
+														<div className="news-summary">
+															<strong>
+																스크랩한 문장 <span className="count">{block.items.length}</span>
+															</strong>
+															<ul className="quotes">
+																{block.items.map((highlight) => (
+																	<li key={highlight.id}>
+																		<Source
+																			highlight={highlight}
+																			folder={
+																				folder === 'all' && highlight.folderId
+																					? folderName.get(highlight.folderId)
+																					: undefined
+																			}
+																		/>
+																		<HighlightItem
+																			highlight={highlight}
+																			focused={highlight.id === focused}
+																			selecting={selecting}
+																			checked={selected.has(highlight.id)}
+																			onToggle={() => toggle(highlight.id)}
+																			onRemove={() => confirmRemove([highlight])}
+																			// 고르는 중에 고른 것 하나를 끌면 고른 것 전부, 아니면 이것 하나
+																			onDragStart={() =>
+																				setDragging(
+																					selecting && selected.has(highlight.id) ? [...selected] : [highlight.id],
+																				)
+																			}
+																			onDragEnd={() => setDragging(null)}
+																		/>
+																	</li>
+																))}
+															</ul>
+														</div>
+													</div>
+												</article>
+											);
+										})}
+									</div>
+								))}
+							</section>
 						))}
-					</ul>
-				</section>
-			))}
-			<LoadMore remaining={total - shown.length} loading={isFetchingNextPage} onClick={() => fetchNextPage()} />
+					</div>
+				</div>
+			)}
+			{/* 무한 스크롤: 이 표시가 보이면 다음 쪽 */}
+			<div ref={endRef} className="list-end" aria-hidden />
+			{isFetchingNextPage && <p className="list-status">스크랩을 더 불러오는 중…</p>}
 			{/* 고르는 중: 아래에 붙어 따라오는 막대 */}
 			{selecting && (
 				<div className="select-bar" role="region" aria-label="선택한 문장 한꺼번에">
@@ -506,53 +628,85 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	/* 스크랩 목록: 카드 한 장 안에 문장마다 구분선 */
-	/* 날짜별 묶음: 날짜 머리(작게) 아래 그날 문장 상자 */
-	.day {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
+	.list-end {
+		height: 1px;
 	}
 
-	.day-head {
+	.list-status {
 		margin: 0;
+		padding: 1rem 0;
+		text-align: center;
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.text};
+		color: ${({ theme }) => theme.color.subText};
+	}
 
-		.day-count {
-			margin-left: 0.25rem;
-			font-weight: ${({ theme }) => theme.fontWeight.regular};
-			color: ${({ theme }) => theme.color.subText};
+	/* '더 최근 스크랩 보기' · 달 막대 · 달 묶음을 틈 없이 한 상자로 (내 뉴스레터와 같음) */
+	.inbox,
+	.months {
+		display: flex;
+		flex-direction: column;
+	}
+
+	/* 달 · 날짜로 건너뛰었을 때 헤더 · 달 막대에 가리지 않게 */
+	.month,
+	.scrap-day {
+		scroll-margin-top: calc(var(--bar-h, 7rem) + 3rem);
+	}
+
+	/* 뉴스레터 블록 사이 가는 줄 */
+	.news + .news,
+	.scrap-day + .scrap-day .news:first-child {
+		border-top: 1px solid ${({ theme }) => theme.color.border};
+	}
+
+	${newsBlock}
+
+	/* 스크랩한 날: 제목 위 작게 */
+	.news-date {
+		margin: 0 0 0.375rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	/* 오른쪽 상자: '스크랩한 문장 N' + 문장들 (사이 가는 줄) */
+	.news-summary {
+		> strong {
+			display: block;
+			margin-bottom: 0.875rem;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+
+			.count {
+				margin-left: 0.125rem;
+				color: ${({ theme }) => theme.color.primary};
+				font-variant-numeric: tabular-nums;
+			}
 		}
 	}
 
-	.list {
-		${listBox}
+	.quotes {
+		display: flex;
+		flex-direction: column;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		> li + li {
+			margin-top: 1rem;
+			padding-top: 1rem;
+			border-top: 1px solid ${({ theme }) => theme.color.border};
+		}
 	}
 
 	/* 문장 위 출처 한 줄: 관심사 · 뉴스레터 제목 › 01 소식 제목 */
 	.source {
 		${sourceLine}
-		margin: 0 0 0.5rem;
-
-		.newsletter {
-			color: ${({ theme }) => theme.color.text};
-
-			&:hover {
-				color: ${({ theme }) => theme.color.primary};
-				text-decoration: underline;
-			}
-		}
+		margin: 0 0 0.375rem;
 
 		.section {
 			display: inline-flex;
 			align-items: baseline;
 			gap: 0.375rem;
-		}
-
-		.sep {
-			color: ${({ theme }) => theme.color.disabled};
 		}
 
 		/* '모든 스크랩'에서 어느 폴더인지 */
@@ -578,7 +732,7 @@ const StyledHighlights = styled.div`
 			'note note note'
 			'tools tools tools';
 		gap: 0.375rem 0.25rem;
-		scroll-margin-top: 6rem;
+		scroll-margin-top: calc(var(--bar-h, 7rem) + 3rem);
 
 		/* 알림에서 바로 온 문장: 잠깐 배경으로 표시 */
 		&.focused .quote span {

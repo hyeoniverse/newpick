@@ -252,9 +252,17 @@ describe('스크랩 · 메모 (#123)', () => {
 
   it('마이페이지 한 쪽: 폴더 · 보기로 거르고, 중요 · 메모는 고른 폴더 안에서 센다', async () => {
     const prisma = fakePrisma();
-    prisma.highlight.findMany.mockResolvedValue([
-      { id: 1, newsletterId: 66, section: 'briefing', sectionTitle: '' },
-    ]);
+    // 한 쪽 목록(take 있음)과, 달 막대용으로 거른 것 전부의 스크랩 시각(10월 2개 · 9월 1개, 한국 시각)
+    prisma.highlight.findMany.mockImplementation(
+      async (args: { take?: number }) =>
+        args.take
+          ? [{ id: 1, newsletterId: 66, section: 'briefing', sectionTitle: '' }]
+          : [
+              { createdAt: new Date('2026-10-20T01:00:00Z') },
+              { createdAt: new Date('2026-09-30T16:00:00Z') },
+              { createdAt: new Date('2026-09-30T14:00:00Z') },
+            ],
+    );
     const page = await new HighlightsService(prisma as never).page(7, {
       offset: 30,
       limit: 30,
@@ -268,9 +276,12 @@ describe('스크랩 · 메모 (#123)', () => {
         take: 30,
       }),
     );
+    expect(prisma.highlight.findMany).toHaveBeenCalledWith({
+      where: { userId: 7, folderId: 9, note: { not: null } },
+      select: { createdAt: true },
+    });
     const counted = prisma.highlight.count.mock.calls.map((c) => c[0].where);
     expect(counted).toEqual([
-      { userId: 7, folderId: 9, note: { not: null } },
       { userId: 7 },
       { userId: 7, folderId: null },
       { userId: 7, folderId: 9, starred: true },
@@ -279,6 +290,11 @@ describe('스크랩 · 메모 (#123)', () => {
     expect(page).toMatchObject({
       total: 3,
       counts: { all: 3, unfiled: 3, starred: 3, memo: 3 },
+      // 9월 30일 16시(UTC)는 한국 시각으로 10월 1일
+      months: [
+        { month: '2026-10', count: 2, firstIndex: 0 },
+        { month: '2026-09', count: 1, firstIndex: 2 },
+      ],
     });
     // 제목이 이미 있으면 본문을 읽지 않는다
     expect(prisma.newsletter.findMany).not.toHaveBeenCalled();
@@ -288,13 +304,15 @@ describe('스크랩 · 메모 (#123)', () => {
     const prisma = fakePrisma();
     const service = new HighlightsService(prisma as never);
     await service.page(7);
-    expect(prisma.highlight.findMany).toHaveBeenLastCalledWith(
+    expect(prisma.highlight.findMany).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({
         orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       }),
     );
     await service.page(7, { order: 'asc' });
-    expect(prisma.highlight.findMany).toHaveBeenLastCalledWith(
+    expect(prisma.highlight.findMany).toHaveBeenNthCalledWith(
+      3,
       expect.objectContaining({
         orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       }),

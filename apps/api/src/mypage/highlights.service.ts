@@ -3,6 +3,7 @@ import { JSDOM } from 'jsdom';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AppException } from '../common/errors/app.exception';
 import { assertOwnFolder } from './folders.service';
+import { monthIndex } from './mypage.service';
 import { BulkHighlightsDto, CreateHighlightDto } from './dto/highlight.dto';
 
 /** 문장의 공백을 하나로 (화면에서 고른 글은 줄바꿈 · 여러 칸이 섞여 온다) */
@@ -111,7 +112,7 @@ export class HighlightsService {
     const memo = { ...inFolder, note: { not: null } };
     const where =
       filter === 'starred' ? starred : filter === 'memo' ? memo : inFolder;
-    const [rows, total, all, unfiled, starredCount, memoCount] =
+    const [rows, times, all, unfiled, starredCount, memoCount] =
       await Promise.all([
         this.prisma.highlight.findMany({
           where,
@@ -124,12 +125,14 @@ export class HighlightsService {
               select: {
                 title: true,
                 createdAt: true,
+                imageUrl: true,
                 category: { select: { id: true, name: true } },
               },
             },
           },
         }),
-        this.prisma.highlight.count({ where }),
+        // 달 이동용: 거른 것 전부의 스크랩 시각 (개수도 여기서)
+        this.prisma.highlight.findMany({ where, select: { createdAt: true } }),
         this.prisma.highlight.count({ where: mine }),
         this.prisma.highlight.count({ where: { ...mine, folderId: null } }),
         this.prisma.highlight.count({ where: starred }),
@@ -140,12 +143,24 @@ export class HighlightsService {
       ? await this.fillSectionTitles(missing)
       : new Map<number, string>();
     return {
-      items: rows.map((h) => ({
+      items: rows.map(({ newsletter, ...h }) => ({
         ...h,
         sectionTitle: filled.get(h.id) ?? h.sectionTitle,
+        // 썸네일: 그림 주소 여러 개 중 첫 것
+        newsletter: newsletter && {
+          title: newsletter.title,
+          createdAt: newsletter.createdAt,
+          category: newsletter.category,
+          image: newsletter.imageUrl?.split(',').find(Boolean) ?? null,
+        },
       })),
-      total,
+      total: times.length,
       counts: { all, unfiled, starred: starredCount, memo: memoCount },
+      // 스크랩한 달마다 개수와 그 달 첫 스크랩의 순번 (정렬 순서대로, 한국 시각) — 달 막대에서 바로 가기
+      months: monthIndex(
+        times.map((t) => t.createdAt),
+        order,
+      ),
     };
   }
 
