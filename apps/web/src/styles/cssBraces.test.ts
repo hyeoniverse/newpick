@@ -46,7 +46,8 @@ function braceProblems(text: string, name: string): string[] {
 	for (const match of text.matchAll(start)) {
 		const begin = match.index + match[0].length;
 		let css = '';
-		for (let i = begin; i < templateEnd(text, begin); ) {
+		const end = templateEnd(text, begin);
+		for (let i = begin; i < end; ) {
 			if (text.startsWith('${', i)) {
 				i = skipInterpolation(text, i + 2);
 				css += 'X';
