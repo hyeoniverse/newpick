@@ -112,8 +112,25 @@ export const StyledButton = styled.button.withConfig({
 		outline-offset: 2px;
 	}
 
+	/* 로딩 중: 글자 · 아이콘은 투명하게 자리만 지키고(너비 그대로 → 옆 단추가 밀려 줄바꿈되지 않음), 도는 아이콘은 가운데에 겹친다 */
 	.spinner {
+		position: absolute;
+		inset: 0;
+		margin: auto;
 		animation: ${spin} 0.8s linear infinite;
+	}
+
+	/* 요소로 감싸지 않은 글자도 가리게 글자색은 투명, 도는 아이콘만 단추 글자색으로 */
+	&[aria-busy='true'] {
+		color: transparent;
+
+		> :not(.spinner) {
+			visibility: hidden;
+		}
+
+		.spinner {
+			color: ${({ theme, scheme }) => theme.buttonScheme[scheme ?? 'default'].color};
+		}
 	}
 
 	white-space: nowrap;
