@@ -53,7 +53,7 @@ import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import CustomIcon from '@/components/common/icons/CustomIcon';
 import BookmarkToggle from '@/components/common/icons/BookmarkToggle';
 import StarToggle from '@/components/common/icons/StarToggle';
-import { ShareGlyph } from '@/components/common/icons/Glyphs';
+import { BellGlyph, ShareGlyph } from '@/components/common/icons/Glyphs';
 import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import ExternalLink from '@/components/common/ExternalLink';
@@ -150,6 +150,7 @@ function DesignSystemBody() {
 	const [errorKey, setErrorKey] = useState('deleted');
 	const [bookmarked, setBookmarked] = useState(false);
 	const [starred, setStarred] = useState(false);
+	const [watching, setWatching] = useState(false);
 
 	return (
 		<StyledPage>
@@ -450,7 +451,7 @@ function DesignSystemBody() {
 			<Section
 				id="link"
 				title="링크 · 아이콘"
-				note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon · BookmarkToggle · StarToggle"
+				note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon · BookmarkToggle · StarToggle · BellGlyph"
 			>
 				<Text size="small">
 					<ExternalLink href="https://kopico.go.kr">kopico.go.kr</ExternalLink> — 마우스를 올리면 화살표가 움직입니다
@@ -473,6 +474,14 @@ function DesignSystemBody() {
 					<StarToggle pressed={starred} onToggle={() => setStarred((v) => !v)} />
 					<Text size="extraSmall" color="subText">
 						StarToggle — 중요 표시(받은 메일 · 스크랩). 가리키면 살짝 기울며 커지고, 켜면 아래에서부터 보라가 차오릅니다
+					</Text>
+				</div>
+				<div className="wrap">
+					<CustomIcon label="후속 지켜보기" onClick={() => setWatching((v) => !v)}>
+						<BellGlyph on={watching} ring={watching} />
+					</CustomIcon>
+					<Text size="extraSmall" color="subText">
+						BellGlyph — 후속 지켜보기(뉴스레터 상세). 가리키면 종이 흔들리고 추가 따라가며, 켜면 한 번 울리고 양옆에 울림이 퍼집니다
 					</Text>
 				</div>
 			</Section>

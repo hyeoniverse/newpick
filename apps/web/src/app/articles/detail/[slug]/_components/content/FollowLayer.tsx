@@ -3,10 +3,10 @@
 import { RefObject, useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 import styled from 'styled-components';
-import { LuBellPlus, LuBellRing } from 'react-icons/lu';
 import { useAuth } from '@/hooks/useAuth';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 import { useFollowMutations, useNewsletterFollows } from '@/hooks/useFollows';
+import { BellGlyph } from '@/components/common/icons/Glyphs';
 
 interface Props {
 	newsletterId: number;
@@ -26,6 +26,8 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 	const { data: follows = [] } = useNewsletterFollows(newsletterId);
 	const { follow, unfollow } = useFollowMutations();
 	const [slots, setSlots] = useState<HTMLElement[]>([]);
+	// 방금 눌러 켠 소식: 그 종만 한 번 울린다
+	const [rung, setRung] = useState<number | null>(null);
 
 	useEffect(() => {
 		const root = rootRef.current;
@@ -69,11 +71,15 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 								openLogin('후속 기사를 받으려면 로그인해 주세요');
 								return;
 							}
-							if (current) unfollow.mutate(current.id);
-							else follow.mutate({ newsletterId, storyIndex });
+							if (current) {
+								unfollow.mutate(current.id);
+								return;
+							}
+							setRung(storyIndex);
+							follow.mutate({ newsletterId, storyIndex });
 						}}
 					>
-						{current ? <LuBellRing aria-hidden /> : <LuBellPlus aria-hidden />}
+						<BellGlyph on={!!current} ring={!!current && rung === storyIndex} />
 						{current ? '지켜보는 중' : '후속 지켜보기'}
 						{current && current._count.updates > 0 && (
 							<span className="count">후속 {current._count.updates}</span>
@@ -106,7 +112,13 @@ const FollowButton = styled.button`
 		color 0.15s ease,
 		border-color 0.15s ease;
 
+	line-height: 1.25;
+
+	/* 본문 공통 * { margin-bottom }이 아이콘을 위로 밀지 않게 · inline 기준선 대신 단추 가운데에 */
 	svg {
+		display: block;
+		flex-shrink: 0;
+		margin: 0;
 		width: 0.875rem;
 		height: 0.875rem;
 	}
@@ -127,7 +139,7 @@ const FollowButton = styled.button`
 	}
 
 	.count {
-		margin-left: 0.125rem;
+		margin: 0 0 0 0.125rem;
 		font-weight: ${({ theme }) => theme.fontWeight.bold};
 	}
 `;
