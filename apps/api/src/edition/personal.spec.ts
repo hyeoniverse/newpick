@@ -166,13 +166,18 @@ describe('사람마다 쓰는 글 (personalNote)', () => {
     expect(prompt).toContain('반도체, AI');
     expect(prompt).toContain('[30-1] (세계, 구독하지 않은 분야)');
     expect(prompt).toContain('새 사실을 지어내지 않습니다');
-    expect(prompt).toContain('존댓말(~습니다, ~보세요)');
+    expect(prompt).toContain('해요체(~했어요, ~보세요)');
+    expect(prompt).toContain('briefing과 whys 모두 해요체');
+    expect(prompt).toContain('짐작하지 않습니다');
+    expect(prompt).toContain('독자를 가르치는 말');
     expect(prompt).toContain('여성을 깎아내리거나');
   });
 
   it("'나에게 왜'는 관심 태그와 닿은 소식 · 다른 분야에서 더한 소식에만", () => {
     const prompt = notePrompt(composed, profile);
     expect(prompt).toContain('이 소식들만 하나씩: 10-2, 20-1, 30-1');
+    // 닿은 관심 주제를 소식마다 넘긴다 (일반론 대신 그 주제로 잇게)
+    expect(prompt).toMatch(/\[10-2\] .*\(닿은 관심: [^)]+\)/);
     expect(
       normalizeNote(
         {
