@@ -631,6 +631,12 @@ export default function MySubscribe() {
 											{(() => {
 												const first = mail.newsletters.find((n) => n.image) ?? mail.newsletters[0];
 												const openMail = () => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' });
+												const categories = [
+													...new Set(
+														mail.digest?.sections.map((section) => section.category) ??
+															mail.newsletters.map((n) => n.category.name),
+													),
+												];
 												return (
 													<article className="news">
 														<button type="button" className="news-title" onClick={openMail}>
@@ -657,6 +663,14 @@ export default function MySubscribe() {
 																		<LuNewspaper />
 																	)}
 																</button>
+																{/* 이 메일에 엮인 분야: 그림 바로 아래 (맞춤 메일이라 한 통에 여러 분야, 메일의 분야별 소식 순서대로) */}
+																{categories.length > 0 && (
+																	<ul className="news-cats" aria-label="분야">
+																		{categories.map((name) => (
+																			<li key={name}>{name}</li>
+																		))}
+																	</ul>
+																)}
 																{first && (
 																	/* 받은 메일은 사이트 기사가 아니라 북마크 대신 중요 표시만 (북마크는 기사 화면에서) */
 																	<div className="news-icons">
@@ -1285,6 +1299,28 @@ const MySubscribeStyled = styled.div`
 		> svg {
 			width: 1.75rem;
 			height: 1.75rem;
+		}
+	}
+
+	/* 그림 아래 분야: 분류는 알약 모양(radius.chip) · 연보라 바탕 · 보라 글자 */
+	.news-cats {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 0.375rem;
+		margin: 0.75rem 0 0;
+		padding: 0;
+		list-style: none;
+
+		li {
+			padding: 0.125rem 0.625rem;
+			border-radius: ${({ theme }) => theme.radius.chip};
+			background: ${({ theme }) => theme.color.tertiary};
+			font-size: 0.75rem;
+			font-weight: ${({ theme }) => theme.fontWeight.medium};
+			line-height: 1.5;
+			color: ${({ theme }) => theme.color.primary};
+			white-space: nowrap;
 		}
 	}
 
