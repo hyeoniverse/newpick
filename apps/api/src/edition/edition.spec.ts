@@ -17,7 +17,7 @@ const story = (overrides: Partial<Story> = {}): Story => ({
   timeline: [],
   qa: [],
   quote: { text: '', by: '' },
-  perspectives: [],
+  debate: [],
   sources: [1, 2],
   imageQuery: '',
   ...overrides,

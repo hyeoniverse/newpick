@@ -19,7 +19,10 @@ export type Block =
   | { type: 'timeline'; rows: { when: string; what: string }[] }
   | { type: 'qa'; rows: { q: string; a: Run[] }[] }
   | { type: 'quote'; text: string; by: string }
-  | { type: 'perspectives'; rows: { source: string; view: string }[] };
+  | {
+      type: 'debate';
+      rows: { side: string; claim: string; source: string }[];
+    };
 
 export type ParsedStory = {
   kicker: string;
@@ -103,12 +106,13 @@ function parseBlocks(article: Element): Block[] {
           a: answers[i] ? runs(answers[i]) : [],
         })),
       });
-    } else if (el.matches('div.perspectives')) {
+    } else if (el.matches('div.debate')) {
       blocks.push({
-        type: 'perspectives',
+        type: 'debate',
         rows: [...el.querySelectorAll('li')].map((li) => ({
+          side: text(li.querySelector('.side')),
+          claim: text(li.querySelector('.claim')),
           source: text(li.querySelector('.source')),
-          view: text(li.querySelector('.view')),
         })),
       });
     } else if (el.matches('blockquote.quote')) {

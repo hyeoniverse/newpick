@@ -351,8 +351,8 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
-		/* 언론사별 시각: 같은 사건을 언론사마다 다르게 본 것 */
-		.perspectives {
+		/* 엇갈린 주장: 같은 사안을 두고 맞서는 주장 (누가 · 무엇을 · 어느 기사에서) */
+		.debate {
 			margin: 1.5rem 0;
 			padding: 1rem 1.25rem;
 			border: 1px solid ${({ theme }) => theme.color.border};
@@ -365,6 +365,7 @@ const NewsletterContentStyled = styled.article`
 			li {
 				display: flex;
 				flex-wrap: wrap;
+				align-items: baseline;
 				gap: 0.25rem 0.75rem;
 				padding: 0.625rem 0;
 				line-height: 1.6;
@@ -378,16 +379,22 @@ const NewsletterContentStyled = styled.article`
 				}
 			}
 
-			.source {
+			.side {
 				flex-shrink: 0;
 				min-width: 5rem;
 				font-weight: ${({ theme }) => theme.fontWeight.bold};
 				color: ${({ theme }) => theme.color.primary};
 			}
 
-			.view {
+			.claim {
 				flex: 1 1 16rem;
 				color: ${({ theme }) => theme.color.mediumGrey};
+			}
+
+			/* 그 주장이 실린 기사의 언론사 */
+			.source {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.subText};
 			}
 		}
 

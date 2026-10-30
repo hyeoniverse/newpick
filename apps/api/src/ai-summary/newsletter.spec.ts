@@ -49,7 +49,7 @@ const written = (
       timeline: [],
       qa: [],
       quote: { text: '', by: '' },
-      perspectives: [],
+      debate: [],
       sources: [2],
       imageQuery: 'stock market',
     },

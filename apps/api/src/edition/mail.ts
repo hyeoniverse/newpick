@@ -79,11 +79,11 @@ function block(b: Block): string {
             `<p style="margin:0 0 4px;font-size:14px;font-weight:700;color:${C.text};">Q. ${esc(r.q)}</p><p style="${P}">${runs(r.a)}</p>`,
         )
         .join('');
-    case 'perspectives':
-      return `<div style="margin:4px 0 16px;padding:14px 16px;border:1px solid ${C.border};border-radius:8px;">${label('언론사별 시각')}${b.rows
+    case 'debate':
+      return `<div style="margin:4px 0 16px;padding:14px 16px;border:1px solid ${C.border};border-radius:8px;">${label('엇갈린 주장')}${b.rows
         .map(
           (r) =>
-            `<p style="margin:0 0 6px;font-size:14px;line-height:1.6;color:${C.text};"><strong style="color:${C.primary};">${esc(r.source)}</strong>&nbsp; ${esc(r.view)}</p>`,
+            `<p style="margin:0 0 6px;font-size:14px;line-height:1.6;color:${C.text};"><strong style="color:${C.primary};">${esc(r.side)}</strong>&nbsp; ${esc(r.claim)}${r.source ? ` <span style="font-size:12px;color:${C.muted};">${esc(r.source)}</span>` : ''}</p>`,
         )
         .join('')}</div>`;
     case 'quote':

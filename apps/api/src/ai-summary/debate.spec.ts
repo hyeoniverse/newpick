@@ -5,7 +5,7 @@ import {
   diverseArticles,
   LIMITS,
   NewsletterWriterService,
-  perspectivesOf,
+  debateOf,
   pickArticles,
   Story,
   writerPrompt,
@@ -34,7 +34,7 @@ const cluster = prepare([
   },
 ]);
 
-describe('언론사별 시각: 기사 고르기', () => {
+describe('엇갈린 주장: 기사 고르기', () => {
   it('같은 사건 안에서 서로 다른 언론사 기사를 먼저 고른다', () => {
     expect(diverseArticles(cluster, 3).map((a) => a.source)).toEqual([
       '동아일보',
@@ -66,33 +66,42 @@ describe('언론사별 시각: 기사 고르기', () => {
   });
 });
 
-describe('언론사별 시각: 쓰기 · 정리', () => {
-  it('프롬프트에 시각 항목이 있고, 정치 · 사회는 시각 비교를 따로 당부한다', () => {
-    expect(writerPrompt(cluster, '경제')).toContain('perspectives:');
-    expect(writerPrompt(cluster, '경제')).not.toContain(
-      '언론사마다 다르게 보는',
+describe('엇갈린 주장: 쓰기 · 정리', () => {
+  it('프롬프트: 서로 반대되는 주장일 때만, 정치 · 사회는 따로 당부', () => {
+    const prompt = writerPrompt(cluster, '경제');
+    expect(prompt).toContain('debate:');
+    expect(prompt).toContain('서로 반대되는 주장');
+    expect(prompt).toContain('강조점만 다르거나');
+    expect(prompt).not.toContain('주장이 맞서는 경우가 많습니다');
+    expect(writerPrompt(cluster, '정치')).toContain(
+      '주장이 맞서는 경우가 많습니다',
     );
-    expect(writerPrompt(cluster, '정치')).toContain('언론사마다 다르게 보는');
   });
 
-  it('서로 다른 언론사가 둘 이상일 때만 남기고, 같은 언론사 · 빈 칸은 뺀다', () => {
+  it('주장하는 쪽이 둘 이상일 때만 남기고, 같은 쪽 · 빈 칸은 뺀다', () => {
     expect(
-      perspectivesOf([
-        { source: '한겨레', view: '절차적 정당성을 강조' },
-        { source: '한겨레', view: '중복' },
-        { source: '', view: '이름 없음' },
-        { source: '조선일보', view: '정치적 의도를 지적' },
+      debateOf([
+        { side: '여당', claim: '적법한 절차', source: '한겨레' },
+        { side: '여당', claim: '중복', source: '조선일보' },
+        { side: '', claim: '주체 없음', source: 'KBS' },
+        { side: '야당', claim: '권한 남용', source: '조선일보' },
       ]),
     ).toEqual([
-      { source: '한겨레', view: '절차적 정당성을 강조' },
-      { source: '조선일보', view: '정치적 의도를 지적' },
+      { side: '여당', claim: '적법한 절차', source: '한겨레' },
+      { side: '야당', claim: '권한 남용', source: '조선일보' },
     ]);
-    expect(perspectivesOf([{ source: '한겨레', view: '하나뿐' }])).toEqual([]);
-    expect(perspectivesOf(undefined)).toEqual([]);
+    // 한쪽 주장만이면 '엇갈린' 주장이 아니다 (언론사가 달라도)
+    expect(
+      debateOf([
+        { side: '정부', claim: '추진', source: '한겨레' },
+        { side: '정부', claim: '추진', source: '조선일보' },
+      ]),
+    ).toEqual([]);
+    expect(debateOf(undefined)).toEqual([]);
   });
 });
 
-describe('언론사별 시각: 본문 · 메일', () => {
+describe('엇갈린 주장: 본문 · 메일', () => {
   const story: Story = {
     template: 'timeline',
     kicker: '선관위',
@@ -104,50 +113,48 @@ describe('언론사별 시각: 본문 · 메일', () => {
     timeline: [{ when: '28일', what: '검증' }],
     qa: [],
     quote: { text: '', by: '' },
-    perspectives: [
-      { source: '한겨레', view: '절차적 정당성을 강조' },
-      { source: '조선일보', view: '정치적 의도를 지적' },
+    debate: [
+      { side: '여당', claim: '적법한 절차에 따른 검증', source: '한겨레' },
+      { side: '야당', claim: '정치적 의도의 권한 남용', source: '조선일보' },
     ],
     sources: [],
     imageQuery: '',
   };
 
-  it('본문 뒤 · 전망 앞에 언론사별 시각 칸', () => {
+  it('본문 뒤 · 전망 앞에 엇갈린 주장 칸 (누가 · 무엇을 · 어느 기사에서)', () => {
     const html = renderNewsletterHtml({
       briefing: '',
       stories: [story],
       watch: [],
     });
     expect(html).toContain(
-      '<div class="perspectives"><h3>언론사별 시각</h3><ul><li><strong class="source">한겨레</strong><span class="view">절차적 정당성을 강조</span></li>',
+      '<div class="debate"><h3>엇갈린 주장</h3><ul><li><strong class="side">여당</strong><span class="claim">적법한 절차에 따른 검증</span><span class="source">한겨레</span></li>',
     );
-    expect(html.indexOf('class="body"')).toBeLessThan(
-      html.indexOf('perspectives'),
-    );
-    expect(html.indexOf('perspectives')).toBeLessThan(
+    expect(html.indexOf('class="body"')).toBeLessThan(html.indexOf('debate'));
+    expect(html.indexOf('debate')).toBeLessThan(
       html.indexOf('class="analysis"'),
     );
     expect(
       renderNewsletterHtml({
         briefing: '',
-        stories: [{ ...story, perspectives: [] }],
+        stories: [{ ...story, debate: [] }],
         watch: [],
       }),
-    ).not.toContain('perspectives');
+    ).not.toContain('debate');
   });
 
-  it('메일은 저장된 본문에서 시각을 다시 읽어 그린다', () => {
+  it('메일은 저장된 본문에서 엇갈린 주장을 다시 읽어 그린다', () => {
     const html = renderNewsletterHtml({
       briefing: '',
       stories: [story],
       watch: [],
     });
     const [parsed] = parseNewsletterHtml(html).stories;
-    expect(parsed.blocks.find((b) => b.type === 'perspectives')).toEqual({
-      type: 'perspectives',
+    expect(parsed.blocks.find((b) => b.type === 'debate')).toEqual({
+      type: 'debate',
       rows: [
-        { source: '한겨레', view: '절차적 정당성을 강조' },
-        { source: '조선일보', view: '정치적 의도를 지적' },
+        { side: '여당', claim: '적법한 절차에 따른 검증', source: '한겨레' },
+        { side: '야당', claim: '정치적 의도의 권한 남용', source: '조선일보' },
       ],
     });
 
@@ -173,9 +180,10 @@ describe('언론사별 시각: 본문 · 메일', () => {
       'https://newpick.app/',
       'hello@newpick.app',
     );
-    expect(mail).toContain('언론사별 시각');
+    expect(mail).toContain('엇갈린 주장');
     expect(mail).toContain('조선일보');
-    expect(mail).toContain('정치적 의도를 지적');
+    expect(mail).toContain('정치적 의도의 권한 남용');
+    expect(mail).toContain('야당');
     expect(mail).not.toMatch(/class=/);
   });
 });
@@ -265,7 +273,7 @@ describe('같은 사건 묶기: 임베딩', () => {
                     timeline: [],
                     qa: [],
                     quote: { text: '', by: '' },
-                    perspectives: [],
+                    debate: [],
                     sources: [1],
                     imageQuery: '',
                   },

@@ -32,8 +32,8 @@ export type Template = (typeof TEMPLATES)[number];
 export type Stat = { label: string; value: string; note: string };
 export type Moment = { when: string; what: string };
 export type QA = { q: string; a: string };
-/** 같은 사건을 두고 언론사마다 다른 해석 · 주장 (다양한 시각) */
-export type Perspective = { source: string; view: string };
+/** 엇갈린 주장 하나: 누가(side) 무엇을 주장하는지(claim), 그 주장이 실린 기사의 언론사(source) */
+export type Claim = { side: string; claim: string; source: string };
 
 export type Story = {
   template: Template;
@@ -47,8 +47,8 @@ export type Story = {
   timeline: Moment[];
   qa: QA[];
   quote: { text: string; by: string };
-  /** 언론사별 시각. 같은 사건을 다른 언론사가 다르게 해석 · 주장할 때만 2~3개, 아니면 빈 배열 */
-  perspectives: Perspective[];
+  /** 엇갈린 주장. 같은 사안을 두고 서로 반대되는 주장이 있을 때만 2~3개, 아니면 빈 배열 */
+  debate: Claim[];
   /** 원래 기사 목록에서의 번호 (1부터) */
   sources: number[];
   /** 원출처 사진이 없을 때 Pexels·Unsplash에서 찾을 영어 검색어 */
@@ -116,14 +116,14 @@ export const LIMITS = {
   marks: { max: 3, length: 30 },
   /** 쓰기 단계에 소식 하나당 보내는 기사 수 (같은 사건의 대표 기사, 다른 언론사 먼저) */
   articlesPerStory: 2,
-  /** 시각이 갈리기 쉬운 분야(PERSPECTIVE_CATEGORIES)는 더 많이 보내 언론사별 주장을 비교하게 */
+  /** 주장이 엇갈리기 쉬운 분야(DEBATE_CATEGORIES)는 더 많이 보내 반대 주장을 찾을 수 있게 */
   articlesPerStoryWide: 3,
-  /** 언론사별 시각: 최대 개수, 한 시각 최대 길이 */
-  perspectives: { max: 3, view: 80 },
+  /** 엇갈린 주장: 최대 개수, 주장 하나 최대 길이 */
+  debate: { max: 3, claim: 80 },
 } as const;
 
-/** 같은 사건을 두고 언론사마다 해석 · 주장이 갈리기 쉬운 분야: 기사를 더 보내고 시각 비교를 더 챙긴다 */
-export const PERSPECTIVE_CATEGORIES = ['정치', '사회'];
+/** 같은 사안을 두고 주장이 엇갈리기 쉬운 분야: 기사를 더 보내고 반대 주장을 더 챙긴다 */
+export const DEBATE_CATEGORIES = ['정치', '사회'];
 
 /**
  * 중요도 점수표. 예전엔 '여러 언론이 함께 다룬 사건'을 앞세워,
@@ -365,14 +365,14 @@ export const writerPrompt = (
     `  - lead: 리드. 핵심 사실 한 문장, ${LIMITS.lead}자 이내.`,
     `  - body: 경과와 맥락 ${LIMITS.body.min}~${LIMITS.body.max}자, 문단 1~2개. 문단 사이는 빈 줄 하나. 템플릿 고유 항목(stats·timeline·qa·quote)과 같은 내용을 반복하지 않습니다.`,
     `  - analysis: 시사점 ${LIMITS.analysis.min}~${LIMITS.analysis.max}자. 파급 효과, 이해관계자, 쟁점, 전망. 기사에 근거가 없는 예측은 하지 않습니다.`,
-    `  - perspectives: 언론사별 시각. 같은 사건을 다룬 기사가 서로 다른 언론사에서 왔고, 해석 · 평가 · 주장(원인을 어디서 찾는지, 누구 책임으로 보는지, 정책을 찬성하는지 등)이 서로 다를 때만 언론사마다 하나씩 ${LIMITS.perspectives.max}개까지 (source: 기사에 표시된 언론사 이름 그대로, view: 그 언론이 강조하는 주장 · 해석 ${LIMITS.perspectives.view}자 이내). 어느 쪽 편도 들지 않고 각 기사에 있는 주장만 요약하며, 기사에 없는 입장을 지어내지 않습니다. 언론사가 하나뿐이거나 사실 전달만 같고 시각 차이가 없으면 빈 배열.`,
+    `  - debate: 엇갈린 주장. 같은 사안을 두고 기사에 **서로 반대되는 주장**이 있을 때만 (한쪽은 A라고 하고 다른 쪽은 A가 아니라고 하거나, 같은 일을 정반대로 평가할 때. 예: 여당은 "적법한 절차" · 야당은 "권한 남용"). 주장하는 쪽마다 하나씩 2~${LIMITS.debate.max}개 (side: 주장하는 쪽 — 정당 · 기관 · 인물, 사설이나 칼럼이면 그 언론사 / claim: 그쪽 주장 ${LIMITS.debate.claim}자 이내 / source: 그 주장이 실린 기사의 언론사 이름 그대로). 강조점만 다르거나, 같은 사실을 다르게 전할 뿐이거나, 한쪽 주장만 있으면 빈 배열. 양쪽을 같은 길이 · 같은 어조로 쓰고 어느 편도 들지 않으며, 기사에 없는 주장은 지어내지 않습니다.`,
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     `- watch: 관전 포인트. 앞으로 지켜볼 일정·변수 1~${LIMITS.watch.max}개, 하나에 ${LIMITS.watch.length}자 이내. 기사에 나온 것만.`,
     `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개, 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
-    ...(category && PERSPECTIVE_CATEGORIES.includes(category)
+    ...(category && DEBATE_CATEGORIES.includes(category)
       ? [
-          `- ${category} 분야는 같은 사안을 언론사마다 다르게 보는 경우가 많습니다. 같은 사건을 다룬 기사가 여러 언론사에서 왔으면 주장 · 해석의 차이를 꼼꼼히 비교해 perspectives를 채우고, body · analysis도 한쪽 시각만 따르지 않게 씁니다.`,
+          `- ${category} 분야는 같은 사안을 두고 주장이 맞서는 경우가 많습니다. 여러 기사(언론사)를 비교해 서로 반대되는 주장이 있으면 debate를 채우고, body · analysis도 한쪽 주장만 따르지 않게 씁니다.`,
         ]
       : []),
     ...(existingTags.length
@@ -425,7 +425,7 @@ export const WRITER_SCHEMA = {
           timeline: { type: 'array', items: pairs(['when', 'what']) },
           qa: { type: 'array', items: pairs(['q', 'a']) },
           quote: pairs(['text', 'by']),
-          perspectives: { type: 'array', items: pairs(['source', 'view']) },
+          debate: { type: 'array', items: pairs(['side', 'claim', 'source']) },
           sources: { type: 'array', items: { type: 'integer' } },
           imageQuery: { type: 'string' },
         },
@@ -440,7 +440,7 @@ export const WRITER_SCHEMA = {
           'timeline',
           'qa',
           'quote',
-          'perspectives',
+          'debate',
           'sources',
           'imageQuery',
         ],
@@ -581,17 +581,19 @@ export function settleTemplate(story: Story): Story {
  * toOriginal: 쓰기 단계 기사 번호(1부터) → 원래 기사 번호(1부터). 없는 번호는 버린다
  */
 /**
- * 언론사별 시각 정리: 빈 칸 · 같은 언론사 중복을 빼고, 서로 다른 언론사가 둘 이상일 때만 남긴다 (하나면 '시각 비교'가 아니다)
+ * 엇갈린 주장 정리: 빈 칸 · 같은 쪽 중복을 빼고, 주장하는 쪽이 둘 이상일 때만 남긴다 (한쪽뿐이면 '엇갈린' 주장이 아니다)
  */
-export function perspectivesOf(list: Perspective[] = []): Perspective[] {
+export function debateOf(list: Claim[] = []): Claim[] {
   const seen = new Set<string>();
-  const views = list
-    .map((p) => ({ source: plain(p.source), view: plain(p.view) }))
-    .filter(
-      (p) => p.source && p.view && !seen.has(p.source) && seen.add(p.source),
-    )
-    .slice(0, LIMITS.perspectives.max);
-  return views.length >= 2 ? views : [];
+  const claims = list
+    .map((c) => ({
+      side: plain(c.side),
+      claim: plain(c.claim),
+      source: plain(c.source ?? ''),
+    }))
+    .filter((c) => c.side && c.claim && !seen.has(c.side) && seen.add(c.side))
+    .slice(0, LIMITS.debate.max);
+  return claims.length >= 2 ? claims : [];
 }
 
 export function normalize(
@@ -621,7 +623,7 @@ export function normalize(
         timeline: rows(s.timeline, LIMITS.timeline.max),
         qa: qa.map((x, i) => ({ q: x.q, a: answers[i] })),
         quote: { text: clean(plain(s.quote.text)), by: plain(s.quote.by) },
-        perspectives: perspectivesOf(s.perspectives),
+        debate: debateOf(s.debate),
         imageQuery: s.imageQuery.trim(),
         sources: [
           ...new Set(
@@ -652,7 +654,7 @@ export function normalize(
 }
 
 /**
- * 한 묶음(같은 사건)에서 보낼 기사: 서로 다른 언론사 기사를 먼저(언론사별 시각을 비교할 수 있게),
+ * 한 묶음(같은 사건)에서 보낼 기사: 서로 다른 언론사 기사를 먼저(맞서는 주장을 찾을 수 있게),
  * 그다음 남은 기사. 묶음 안은 이미 긴 기사(정보가 많은) 순서
  */
 export function diverseArticles(articles: PrepArticle[], count: number) {
@@ -667,14 +669,14 @@ export function diverseArticles(articles: PrepArticle[], count: number) {
   return [...firstOfSource, ...rest].slice(0, count);
 }
 
-/** 고른 묶음에서 대표 기사만 꺼낸다 (중요한 묶음 순서 유지). 시각이 갈리기 쉬운 분야는 더 많이 */
+/** 고른 묶음에서 대표 기사만 꺼낸다 (중요한 묶음 순서 유지). 주장이 엇갈리기 쉬운 분야는 더 많이 */
 export function pickArticles(
   clusters: Cluster[],
   picks: number[],
   category?: string,
 ) {
   const perStory =
-    category && PERSPECTIVE_CATEGORIES.includes(category)
+    category && DEBATE_CATEGORIES.includes(category)
       ? LIMITS.articlesPerStoryWide
       : LIMITS.articlesPerStory;
   return [...new Set(picks)]
