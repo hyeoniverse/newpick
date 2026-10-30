@@ -79,14 +79,48 @@ export function titleSimilarity(a: string, b: string): number {
  */
 export const SAME_EVENT = 0.25;
 
-/** 제목 유사도로 같은 사건을 묶는다 (union-find). 큰 묶음이 먼저 */
-export function clusterArticles(articles: PrepArticle[]): Cluster[] {
+/**
+ * 임베딩(bge-m3)이 이만큼 비슷하면 같은 사건으로 본다. 언론사마다 제목을 달리 달아 제목으로는 못 묶는 경우를 잡는다.
+ * 2026-10-26 정치 기사 26건(제목으로는 26개 묶음): 같은 사건 0.66~0.84(주진우 골프 의혹 3곳 · 오세훈 무죄 2곳 · 전작권 3곳),
+ * 다른 사건 중 가장 비슷한 쌍 0.615(같은 장관의 다른 사안)
+ */
+export const SAME_EVENT_EMBEDDING = 0.64;
+
+/** 임베딩에 넣을 글: 제목 + 본문 앞부분 */
+export const embeddingText = (article: PrepArticle) =>
+  `${article.title}\n${article.content.slice(0, 300)}`;
+
+export function cosine(a: number[], b: number[]): number {
+  let dot = 0;
+  let x = 0;
+  let y = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    x += a[i] * a[i];
+    y += b[i] * b[i];
+  }
+  return x && y ? dot / Math.sqrt(x * y) : 0;
+}
+
+/**
+ * 같은 사건을 묶는다 (union-find). 큰 묶음이 먼저.
+ * 제목이 비슷하거나, 임베딩(vectors, 기사와 같은 순서)이 있으면 뜻이 비슷한 기사끼리도 묶는다
+ */
+export function clusterArticles(
+  articles: PrepArticle[],
+  vectors?: number[][],
+): Cluster[] {
   const parent = articles.map((_, i) => i);
   const find = (i: number): number =>
     parent[i] === i ? i : (parent[i] = find(parent[i]));
   for (let i = 0; i < articles.length; i++) {
     for (let j = i + 1; j < articles.length; j++) {
-      if (titleSimilarity(articles[i].title, articles[j].title) >= SAME_EVENT) {
+      if (
+        titleSimilarity(articles[i].title, articles[j].title) >= SAME_EVENT ||
+        (vectors?.[i] &&
+          vectors[j] &&
+          cosine(vectors[i], vectors[j]) >= SAME_EVENT_EMBEDDING)
+      ) {
         parent[find(i)] = find(j);
       }
     }

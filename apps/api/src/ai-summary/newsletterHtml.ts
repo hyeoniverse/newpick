@@ -78,8 +78,20 @@ const analysis = (story: Story, label = '시사점') =>
     ? `<div class="analysis"><h3>${label}</h3>${paragraphs(story.analysis)}</div>`
     : '';
 
+/** 엇갈린 주장: 같은 사안을 두고 맞서는 주장 (본문 뒤, 시사점 앞). 누가 · 무엇을 · 어느 기사에서 */
+const debate = (story: Story) =>
+  story.debate?.length
+    ? `<div class="debate"><h3>엇갈린 주장</h3><ul>${story.debate
+        .map(
+          (c) =>
+            `<li><strong class="side">${escapeHtml(c.side)}</strong><span class="claim">${escapeHtml(c.claim)}</span>${c.source ? `<span class="source">${escapeHtml(c.source)}</span>` : ''}</li>`,
+        )
+        .join('')}</ul></div>`
+    : '';
+
 /**
  * 템플릿마다 고유 요소와 순서가 다르다 (#48).
+ * 엇갈린 주장이 있으면 모든 템플릿에서 본문 바로 뒤에
  * 꼬리표·헤드라인·리드·출처는 공통이고, 그 사이를 템플릿이 채운다
  */
 const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
@@ -92,6 +104,7 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
       )
       .join('')}</div>`,
     body(s),
+    debate(s),
     analysis(s),
   ],
   // 날짜별 경과 → 본문 → 전망
@@ -103,6 +116,7 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
       )
       .join('')}</ol>`,
     body(s),
+    debate(s),
     analysis(s, '전망'),
   ],
   // 본문 → 문답 → 시사점
@@ -111,16 +125,18 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
     `<dl class="qa">${s.qa
       .map((x) => `<dt>${escapeHtml(x.q)}</dt><dd>${rich(x.a)}</dd>`)
       .join('')}</dl>`,
+    debate(s),
     analysis(s),
   ],
   // 인용문 → 맥락 → 시사점
   quote: (s) => [
     `<blockquote class="quote"><p>${escapeHtml(s.quote.text)}</p><cite>${escapeHtml(s.quote.by)}</cite></blockquote>`,
     body(s),
+    debate(s),
     analysis(s),
   ],
-  analysis: (s) => [body(s), analysis(s)],
-  brief: (s) => [body(s)],
+  analysis: (s) => [body(s), debate(s), analysis(s)],
+  brief: (s) => [body(s), debate(s)],
 };
 
 /**

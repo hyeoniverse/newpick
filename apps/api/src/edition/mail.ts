@@ -79,6 +79,13 @@ function block(b: Block): string {
             `<p style="margin:0 0 4px;font-size:14px;font-weight:700;color:${C.text};">Q. ${esc(r.q)}</p><p style="${P}">${runs(r.a)}</p>`,
         )
         .join('');
+    case 'debate':
+      return `<div style="margin:4px 0 16px;padding:14px 16px;border:1px solid ${C.border};border-radius:8px;">${label('엇갈린 주장')}${b.rows
+        .map(
+          (r) =>
+            `<p style="margin:0 0 6px;font-size:14px;line-height:1.6;color:${C.text};"><strong style="color:${C.primary};">${esc(r.side)}</strong>&nbsp; ${esc(r.claim)}${r.source ? ` <span style="font-size:12px;color:${C.muted};">${esc(r.source)}</span>` : ''}</p>`,
+        )
+        .join('')}</div>`;
     case 'quote':
       return `<blockquote style="margin:0 0 16px;padding:4px 0 4px 14px;border-left:3px solid ${C.primary};"><p style="margin:0 0 4px;font-size:16px;line-height:1.6;font-weight:600;color:${C.text};">“${esc(b.text)}”</p><p style="margin:0;font-size:13px;color:${C.muted};">${esc(b.by)}</p></blockquote>`;
   }

@@ -351,6 +351,55 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
+		/* 엇갈린 주장: 같은 사안을 두고 맞서는 주장 (누가 · 무엇을 · 어느 기사에서) */
+		.debate {
+			margin: 1.5rem 0;
+			padding: 1rem 1.25rem;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.surface};
+
+			ul {
+				list-style: none;
+			}
+
+			li {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: baseline;
+				gap: 0.25rem 0.75rem;
+				padding: 0.625rem 0;
+				line-height: 1.6;
+
+				& + li {
+					border-top: 1px solid ${({ theme }) => theme.color.border};
+				}
+
+				&:last-child {
+					padding-bottom: 0;
+				}
+			}
+
+			.side {
+				flex-shrink: 0;
+				min-width: 5rem;
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			.claim {
+				flex: 1 1 16rem;
+				/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
+				word-break: keep-all;
+				color: ${({ theme }) => theme.color.mediumGrey};
+			}
+
+			/* 그 주장이 실린 기사의 언론사 */
+			.source {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.subText};
+			}
+		}
+
 		/* quote: 인용문 */
 		.quote {
 			margin: 0 0 1.5rem;

@@ -1,8 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { OpenModelService } from '../ai/open-model.service';
+import { GENDER_RULES } from './writingRules';
 import { ClaudeService, CLAUDE_FAST_MODEL } from './claude.service';
 import {
   Cluster,
   clusterArticles,
+  embeddingText,
   LEAD_CHARS,
   prepare,
   PrepArticle,
@@ -30,6 +33,8 @@ export type Template = (typeof TEMPLATES)[number];
 export type Stat = { label: string; value: string; note: string };
 export type Moment = { when: string; what: string };
 export type QA = { q: string; a: string };
+/** 엇갈린 주장 하나: 누가(side) 무엇을 주장하는지(claim), 그 주장이 실린 기사의 언론사(source) */
+export type Claim = { side: string; claim: string; source: string };
 
 export type Story = {
   template: Template;
@@ -43,6 +48,8 @@ export type Story = {
   timeline: Moment[];
   qa: QA[];
   quote: { text: string; by: string };
+  /** 엇갈린 주장. 같은 사안을 두고 서로 반대되는 주장이 있을 때만 2~3개, 아니면 빈 배열 */
+  debate: Claim[];
   /** 원래 기사 목록에서의 번호 (1부터) */
   sources: number[];
   /** 원출처 사진이 없을 때 Pexels·Unsplash에서 찾을 영어 검색어 */
@@ -108,9 +115,16 @@ export const LIMITS = {
   keywords: { min: 3, max: 6, length: 12 },
   /** 형광펜 강조 (#51): 소식마다 최대 개수, 한 곳 최대 길이 */
   marks: { max: 3, length: 30 },
-  /** 쓰기 단계에 소식 하나당 보내는 기사 수 (같은 사건의 대표 기사) */
+  /** 쓰기 단계에 소식 하나당 보내는 기사 수 (같은 사건의 대표 기사, 다른 언론사 먼저) */
   articlesPerStory: 2,
+  /** 주장이 엇갈리기 쉬운 분야(DEBATE_CATEGORIES)는 더 많이 보내 반대 주장을 찾을 수 있게 */
+  articlesPerStoryWide: 3,
+  /** 엇갈린 주장: 최대 개수, 주장 하나 최대 길이 */
+  debate: { max: 3, claim: 80 },
 } as const;
+
+/** 같은 사안을 두고 주장이 엇갈리기 쉬운 분야: 기사를 더 보내고 반대 주장을 더 챙긴다 */
+export const DEBATE_CATEGORIES = ['정치', '사회'];
 
 /**
  * 중요도 점수표. 예전엔 '여러 언론이 함께 다룬 사건'을 앞세워,
@@ -150,6 +164,7 @@ const SCORING_RULES = [
   '- 보도 수(한 곳만 보도했는지)는 점수에 넣지 않습니다. 한 언론만 먼저 보도한 큰 소식도 크게 봅니다.',
   '- 국내 소식이라고 더 높게, 해외 소식이라고 더 낮게 보지 않습니다. 영향의 크기로만 봅니다.',
   '- 빼는 소식(excluded: true): 시상식·행사·후보 발표, 기업 홍보·제품 리뷰, 연예·가십, 단순 인사·동정, 지역 단신, 광고성 기사.',
+  '- 여성을 깎아내리거나 대상화하는 것이 기사의 중심인 소식(외모 품평, 성적 대상화, 선정적 가십, 여성혐오 발언을 흥밋거리로 옮긴 기사)도 빼는 소식(excluded: true)입니다. 성차별 · 여성혐오 자체를 문제로 다루는 보도(차별 · 폭력 사건, 제도 개선, 판결 등)는 빼지 않습니다.',
   '- reason은 점수의 근거를 40자 안의 한 줄로 씁니다.',
 ];
 
@@ -334,6 +349,10 @@ export const writerPrompt = (
     '- 전문 용어는 그대로 쓰되, 처음 나올 때 괄호로 짧게 풉니다.',
     `- 강조: body·analysis·qa의 답(a)에서 독자가 꼭 기억할 핵심 구절(결정적 수치, 결론, 변화)을 ==구절==로 감쌉니다. 소식마다 1~${LIMITS.marks.max}곳(모든 소식에 최소 1곳), 한 곳은 ${LIMITS.marks.length}자 이내. 문장 전체가 아니라 핵심 구절만 감싸고, 다른 항목에는 쓰지 않습니다.`,
     '',
+    '## 성차별 · 여성혐오',
+    ...GENDER_RULES,
+    '- 이 원칙은 아래 debate에도 같습니다: 차별 · 혐오 주장과 그 해명은 대등한 한쪽 주장으로 싣지 않습니다. 차별 · 혐오가 쟁점인 소식은 debate를 빈 배열로 둡니다.',
+    '',
     '## 항목',
     `- title: 가장 중요한 소식 하나를 담은 헤드라인. ${LIMITS.title}자 이내, 기사 제목 형식. 여러 소식을 ·, 쉼표, "외"로 나열하지 않고, 날짜·"주요 소식"·"브리핑" 같은 말은 넣지 않습니다.`,
     `- subtitle: 나머지 소식을 한 문장으로. ${LIMITS.subtitle}자 이내. 소식이 하나뿐이면 그 소식의 의미를 한 문장으로.`,
@@ -352,10 +371,16 @@ export const writerPrompt = (
     `  - lead: 리드. 핵심 사실 한 문장, ${LIMITS.lead}자 이내.`,
     `  - body: 경과와 맥락 ${LIMITS.body.min}~${LIMITS.body.max}자, 문단 1~2개. 문단 사이는 빈 줄 하나. 템플릿 고유 항목(stats·timeline·qa·quote)과 같은 내용을 반복하지 않습니다.`,
     `  - analysis: 시사점 ${LIMITS.analysis.min}~${LIMITS.analysis.max}자. 파급 효과, 이해관계자, 쟁점, 전망. 기사에 근거가 없는 예측은 하지 않습니다.`,
+    `  - debate: 엇갈린 주장. 같은 사안을 두고 기사에 **서로 반대되는 주장**이 있을 때만 (한쪽은 A라고 하고 다른 쪽은 A가 아니라고 하거나, 같은 일을 정반대로 평가할 때. 예: 여당은 "적법한 절차" · 야당은 "권한 남용"). 주장하는 쪽마다 하나씩 2~${LIMITS.debate.max}개 (side: 주장하는 쪽 — 정당 · 기관 · 인물, 사설이나 칼럼이면 그 언론사 / claim: 그쪽 주장 ${LIMITS.debate.claim}자 이내 / source: 그 주장이 실린 기사의 언론사 이름 그대로). 강조점만 다르거나, 같은 사실을 다르게 전할 뿐이거나, 한쪽 주장만 있으면 빈 배열. 양쪽을 같은 길이 · 같은 어조로 쓰고 어느 편도 들지 않으며, 기사에 없는 주장은 지어내지 않습니다.`,
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     `- watch: 관전 포인트. 앞으로 지켜볼 일정·변수 1~${LIMITS.watch.max}개, 하나에 ${LIMITS.watch.length}자 이내. 기사에 나온 것만.`,
     `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개, 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
+    ...(category && DEBATE_CATEGORIES.includes(category)
+      ? [
+          `- ${category} 분야는 같은 사안을 두고 주장이 맞서는 경우가 많습니다. 여러 기사(언론사)를 비교해 서로 반대되는 주장이 있으면 debate를 채우고, body · analysis도 한쪽 주장만 따르지 않게 씁니다.`,
+        ]
+      : []),
     ...(existingTags.length
       ? [
           `- keywords는 같은 대상·주제면 이미 쓰고 있는 태그 표기를 그대로 다시 씁니다 (띄어쓰기·영문 표기까지 같게). 정말 새로운 대상일 때만 새 태그를 만듭니다. 이미 쓰는 태그: ${existingTags.join(', ')}`,
@@ -406,6 +431,7 @@ export const WRITER_SCHEMA = {
           timeline: { type: 'array', items: pairs(['when', 'what']) },
           qa: { type: 'array', items: pairs(['q', 'a']) },
           quote: pairs(['text', 'by']),
+          debate: { type: 'array', items: pairs(['side', 'claim', 'source']) },
           sources: { type: 'array', items: { type: 'integer' } },
           imageQuery: { type: 'string' },
         },
@@ -420,6 +446,7 @@ export const WRITER_SCHEMA = {
           'timeline',
           'qa',
           'quote',
+          'debate',
           'sources',
           'imageQuery',
         ],
@@ -559,6 +586,22 @@ export function settleTemplate(story: Story): Story {
  * 응답을 정리하고, 저장하면 안 되는 모양이면 오류를 던집니다.
  * toOriginal: 쓰기 단계 기사 번호(1부터) → 원래 기사 번호(1부터). 없는 번호는 버린다
  */
+/**
+ * 엇갈린 주장 정리: 빈 칸 · 같은 쪽 중복을 빼고, 주장하는 쪽이 둘 이상일 때만 남긴다 (한쪽뿐이면 '엇갈린' 주장이 아니다)
+ */
+export function debateOf(list: Claim[] = []): Claim[] {
+  const seen = new Set<string>();
+  const claims = list
+    .map((c) => ({
+      side: plain(c.side),
+      claim: plain(c.claim),
+      source: plain(c.source ?? ''),
+    }))
+    .filter((c) => c.side && c.claim && !seen.has(c.side) && seen.add(c.side))
+    .slice(0, LIMITS.debate.max);
+  return claims.length >= 2 ? claims : [];
+}
+
 export function normalize(
   raw: WrittenNewsletter,
   toOriginal: (n: number) => number | undefined,
@@ -586,6 +629,7 @@ export function normalize(
         timeline: rows(s.timeline, LIMITS.timeline.max),
         qa: qa.map((x, i) => ({ q: x.q, a: answers[i] })),
         quote: { text: clean(plain(s.quote.text)), by: plain(s.quote.by) },
+        debate: debateOf(s.debate),
         imageQuery: s.imageQuery.trim(),
         sources: [
           ...new Set(
@@ -615,17 +659,70 @@ export function normalize(
   return result;
 }
 
-/** 고른 묶음에서 대표 기사만 꺼낸다 (중요한 묶음 순서 유지) */
-export function pickArticles(clusters: Cluster[], picks: number[]) {
+/**
+ * 한 묶음(같은 사건)에서 보낼 기사: 서로 다른 언론사 기사를 먼저(맞서는 주장을 찾을 수 있게),
+ * 그다음 남은 기사. 묶음 안은 이미 긴 기사(정보가 많은) 순서
+ */
+export function diverseArticles(articles: PrepArticle[], count: number) {
+  const seen = new Set<string>();
+  const firstOfSource = articles.filter((a) => {
+    const key = a.source || `#${a.index}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  const rest = articles.filter((a) => !firstOfSource.includes(a));
+  return [...firstOfSource, ...rest].slice(0, count);
+}
+
+/** 고른 묶음에서 대표 기사만 꺼낸다 (중요한 묶음 순서 유지). 주장이 엇갈리기 쉬운 분야는 더 많이 */
+export function pickArticles(
+  clusters: Cluster[],
+  picks: number[],
+  category?: string,
+) {
+  const perStory =
+    category && DEBATE_CATEGORIES.includes(category)
+      ? LIMITS.articlesPerStoryWide
+      : LIMITS.articlesPerStory;
   return [...new Set(picks)]
     .filter((n) => Number.isInteger(n) && n >= 1 && n <= clusters.length)
     .slice(0, LIMITS.stories)
-    .flatMap((n) => clusters[n - 1].articles.slice(0, LIMITS.articlesPerStory));
+    .flatMap((n) => diverseArticles(clusters[n - 1].articles, perStory));
 }
 
 @Injectable()
 export class NewsletterWriterService {
-  constructor(private readonly claude: ClaudeService) {}
+  private readonly logger = new Logger(NewsletterWriterService.name);
+
+  constructor(
+    private readonly claude: ClaudeService,
+    private readonly open: OpenModelService,
+  ) {}
+
+  /**
+   * 같은 사건 묶기용 임베딩 (bge-m3, 무료 할당 안). 설정이 없거나 할당 초과 · 장애면 null → 제목으로만 묶는다
+   * (뉴스레터는 멈추지 않는다). 한 번에 50건씩
+   */
+  private async embeddings(articles: PrepArticle[]) {
+    if (!this.open.configured || articles.length < 2) return null;
+    try {
+      const vectors: number[][] = [];
+      for (let i = 0; i < articles.length; i += 50) {
+        vectors.push(
+          ...(await this.open.embed(
+            articles.slice(i, i + 50).map(embeddingText),
+          )),
+        );
+      }
+      return vectors;
+    } catch (error) {
+      this.logger.warn(
+        `같은 사건 묶기 임베딩 실패, 제목으로만 묶음: ${(error as Error).message}`,
+      );
+      return null;
+    }
+  }
 
   /**
    * 기사 → 뉴스레터 한 편.
@@ -639,7 +736,11 @@ export class NewsletterWriterService {
     hints: { existingTags?: string[]; recentTopics?: string[] } = {},
   ) {
     const { existingTags = [], recentTopics = [] } = hints;
-    const clusters = clusterArticles(prepare(articles));
+    const prepared = prepare(articles);
+    const clusters = clusterArticles(
+      prepared,
+      (await this.embeddings(prepared)) ?? undefined,
+    );
     const usage: Usage[] = [];
 
     let chosen = clusters.length === 1 ? clusters[0].articles : [];
@@ -661,7 +762,7 @@ export class NewsletterWriterService {
       };
       const picks = rankClusters(clusters, scores);
       selection = describeScores(clusters, scores, picks);
-      chosen = pickArticles(clusters, picks);
+      chosen = pickArticles(clusters, picks, category);
       if (!chosen.length) throw new Error('고른 소식이 없음');
     }
 
