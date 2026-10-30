@@ -31,6 +31,11 @@ export const MYPAGE_NAVIGATION: INavigation[] = [
 	},
 	{
 		id: 3,
+		title: `지켜보기`,
+		link: `follows`,
+	},
+	{
+		id: 4,
 		title: `구독 설정`,
 		link: `settings`,
 	},

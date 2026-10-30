@@ -24,6 +24,7 @@ model User {
 
   bookmarks   Bookmark[]
   highlights  Highlight[]
+  follows     StoryFollow[]
   folders     Folder[]
   mailMarks   MailMark[]
   interests   UserInterest[]
@@ -104,6 +105,8 @@ model Newsletter {
   bookmarks  Bookmark[]
   highlights Highlight[]
   archives   EmailArchive[]
+  follows    StoryFollow[]
+  followUps  FollowUpdate[]
 
   /// 지난 뉴스레터 검색 (#20). 실제 인덱스는 한국어를 2글자씩 나누는 ngram 파서로 만든다(마이그레이션 SQL)
   @@fulltext([title, subtitle, content], map: "newsletters_search_idx")
@@ -378,4 +381,47 @@ model MailMark {
   @@unique([userId, sentAt])
   @@index([folderId])
   @@map("mail_marks")
+}
+
+/// 후속 지켜보기: 사용자가 뉴스레터 속 소식 하나를 지켜본다. 이어지는 새 소식이 나오면 follow_updates에 쌓인다.
+/// 판정용으로 그 소식의 제목 · 글을 그때 그대로 남긴다 (뉴스레터가 고쳐져도 지켜본 내용 기준)
+model StoryFollow {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  newsletterId Int
+  /// 뉴스레터 안 소식 순서 (1부터)
+  storyIndex   Int
+  heading      String   @db.VarChar(200)
+  text         String   @db.Text
+  /// 판정용 임베딩 (bge-m3). 처음 판정할 때 한 번 계산해 둔다
+  embedding    Json?
+  createdAt    DateTime @default(now())
+
+  user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  newsletter Newsletter     @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+  updates    FollowUpdate[]
+
+  @@unique([userId, newsletterId, storyIndex])
+  @@index([newsletterId])
+  @@map("story_follows")
+}
+
+/// 지켜보는 소식에 이어진 새 소식 (하루 한 번 판정)
+model FollowUpdate {
+  id           Int       @id @default(autoincrement())
+  followId     Int
+  newsletterId Int
+  storyIndex   Int
+  heading      String    @db.VarChar(200)
+  /// 어떻게 이어지는지 한 줄 (판정 모델이 쓴 것, 없으면 빈 문자열)
+  reason       String    @db.VarChar(300)
+  createdAt    DateTime  @default(now())
+  /// 사용자가 봤는지 (머리글 표시 · 마이페이지 '새 소식')
+  seenAt       DateTime?
+
+  follow     StoryFollow @relation(fields: [followId], references: [id], onDelete: Cascade)
+  newsletter Newsletter  @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+
+  @@unique([followId, newsletterId, storyIndex])
+  @@map("follow_updates")
 }

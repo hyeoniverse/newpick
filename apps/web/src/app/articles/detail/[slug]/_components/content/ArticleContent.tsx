@@ -7,6 +7,7 @@ import HeightAutoImg from '@/components/common/HeightAutoImg';
 import OpenGraphCard from '@/components/common/article/OpenGraphCard';
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import HighlightLayer from './HighlightLayer';
+import FollowLayer from './FollowLayer';
 
 interface NewsletterContentProps {
 	content: string;
@@ -31,6 +32,8 @@ function ArticleContent({ content, flex, className, articleImage, newsId, relate
 				<div ref={bodyRef} data-track-content dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
 				{/* 스크랩 · 메모 (#123): 뉴스레터 상세에서만 (관리자 미리보기 등은 newsId 없음) */}
 				{newsId && <HighlightLayer newsletterId={newsId} rootRef={bodyRef} />}
+				{/* 후속 지켜보기: 소식마다 단추 */}
+				{newsId && <FollowLayer newsletterId={newsId} rootRef={bodyRef} content={content} />}
 				<div className="content-bottom-margin" />
 			</NewsletterContentStyled>
 			{/* 본문을 다 읽은 자리에서 바로 구독 권유, 그 아래 출처(관련 뉴스) */}
@@ -184,8 +187,10 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
+		/* 소식 머리줄: 번호 · 꼬리표, 오른쪽 끝에 후속 지켜보기 단추 (FollowLayer) */
 		.kicker {
 			display: flex;
+			align-items: center;
 			gap: 0.5rem;
 			margin-bottom: 0.5rem;
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
@@ -194,6 +199,12 @@ const NewsletterContentStyled = styled.article`
 
 			.index {
 				color: ${({ theme }) => theme.color.subText};
+			}
+
+			/* FollowLayer가 만드는 자리: 머리줄 오른쪽 끝 */
+			.follow-slot {
+				display: flex;
+				margin: 0 0 0 auto;
 			}
 		}
 

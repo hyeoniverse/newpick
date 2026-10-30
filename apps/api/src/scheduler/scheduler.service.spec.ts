@@ -66,6 +66,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     registry as never,
     prisma as never,
     editionService as never,
+    { detect: jest.fn().mockResolvedValue({}) } as never,
     siteCache as never,
   );
   // 요약 다시 시도 사이 쉬는 시간은 테스트에서 없앤다
