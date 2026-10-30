@@ -166,6 +166,7 @@ describe('사람마다 쓰는 글 (personalNote)', () => {
     expect(prompt).toContain('반도체, AI');
     expect(prompt).toContain('[30-1] (세계, 구독하지 않은 분야)');
     expect(prompt).toContain('새 사실을 지어내지 않습니다');
+    expect(prompt).toContain('존댓말(~습니다, ~보세요)');
     expect(prompt).toContain('여성을 깎아내리거나');
   });
 
