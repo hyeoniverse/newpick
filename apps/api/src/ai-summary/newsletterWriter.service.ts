@@ -381,7 +381,7 @@ const pairs = (keys: string[]) => ({
   additionalProperties: false,
 });
 
-const WRITER_SCHEMA = {
+export const WRITER_SCHEMA = {
   type: 'object',
   properties: {
     title: { type: 'string' },

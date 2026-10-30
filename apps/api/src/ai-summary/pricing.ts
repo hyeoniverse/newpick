@@ -21,6 +21,8 @@ const PRICES: {
   { prefix: 'claude-opus-5-5', input: 4, output: 20 },
   { prefix: 'claude-opus-5', input: 5, output: 25 },
   { prefix: 'claude-sonnet-5', input: 2, output: 10 },
+  // 오픈 모델 (Workers AI, #119): 무료 요금제의 하루 할당 안에서만 쓰고 넘으면 거절되므로 0원
+  { prefix: '@cf/', input: 0, output: 0 },
   // Haiku 5.5는 입력이 10만 토큰을 넘으면 비싸진다
   {
     prefix: 'claude-haiku-5-5',
