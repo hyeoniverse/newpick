@@ -1,3 +1,4 @@
+import type { MailPlan } from '../edition/personalize';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import PQueue from '@esm2cjs/p-queue';
@@ -32,6 +33,8 @@ export type BuiltMail = {
   subject: string;
   html: string;
   newsletterIds: number[];
+  /** 맞춤 계획 (#123 3단계). 있으면 발송 기록에 함께 남겨 마이페이지에서 받은 그대로 다시 만든다 */
+  plan?: MailPlan | null;
   /** 덧붙일 메일 헤더 (List-Unsubscribe 등, #18) */
   headers?: Record<string, string>;
 };
@@ -118,7 +121,7 @@ export class MailService {
           html: mail.html,
           ...(mail.headers && { headers: mail.headers }),
         });
-        await this.archive(subscriber.email, mail.newsletterIds);
+        await this.archive(subscriber.email, mail.newsletterIds, mail.plan);
         return { email: subscriber.email, success: true, attempts: attempt };
       } catch (error) {
         this.logger.warn(
@@ -141,7 +144,11 @@ export class MailService {
    * 발송 기록. 한 통에 엮은 분야별 뉴스레터마다 남긴다.
    * 기록이 실패해도 메일은 이미 나갔으므로 다시 보내지 않는다 (같은 메일 두 번 방지)
    */
-  private async archive(email: string, newsletterIds: number[]) {
+  private async archive(
+    email: string,
+    newsletterIds: number[],
+    plan?: MailPlan | null,
+  ) {
     const sentAt = new Date();
     try {
       await this.prisma.emailArchive.createMany({
@@ -151,6 +158,10 @@ export class MailService {
           email,
         })),
       });
+      if (plan)
+        await this.prisma.mailPlan.create({
+          data: { email, sentAt, plan: plan as object },
+        });
     } catch (error) {
       this.logger.warn(`발송 기록 실패 ${email}: ${error.message}`);
     }

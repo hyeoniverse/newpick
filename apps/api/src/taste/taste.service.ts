@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
-import { toRules } from 'src/tags/tags';
+import { tagKey, toRules } from 'src/tags/tags';
+import type { TasteProfile } from 'src/edition/personalize';
 import {
   HALF_LIFE_DAYS,
   STAR_BONUS,
@@ -72,6 +73,28 @@ export class TasteService {
       rules: toRules(rules),
       names: new Map(categories.map((c) => [c.id, c.name])),
     };
+  }
+
+  /**
+   * 맞춤 메일용 취향 (#123 3단계): 사람마다 점수 큰 태그. 발송 때 구독자 모두를 한 번에 계산한다 (AI 호출 없음).
+   * 신호가 없는 사람은 빠진다 (맞춤 없이 지금 그대로)
+   */
+  async profiles(userIds: number[]): Promise<Map<number, TasteProfile>> {
+    if (!userIds.length) return new Map();
+    const { byUser, rules } = await this.signals(userIds);
+    const result = new Map<number, TasteProfile>();
+    for (const [userId, signals] of byUser) {
+      const { topics } = scoreTaste(signals, rules);
+      if (topics.length)
+        result.set(userId, {
+          topics: topics.map((t) => ({
+            name: t.topic,
+            key: tagKey(t.topic),
+            score: t.score,
+          })),
+        });
+    }
+    return result;
   }
 
   /** 마이페이지: 내 취향 (태그 20개까지, 관심사, 신호 수) */
