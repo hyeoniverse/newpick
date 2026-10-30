@@ -132,8 +132,6 @@ const StyledSubPage = styled.div`
 		gap: 0.75rem;
 	}
 
-	}
-
 	/* 기간 제목(괄호 속 날짜로 고르기) 왼쪽, 오늘 · 어제 · … 버튼은 오른쪽 끝 */
 	.head {
 		display: flex;
