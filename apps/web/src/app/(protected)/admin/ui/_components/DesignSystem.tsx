@@ -481,7 +481,8 @@ function DesignSystemBody() {
 						<BellGlyph on={watching} ring={watching} />
 					</CustomIcon>
 					<Text size="extraSmall" color="subText">
-						BellGlyph — 후속 지켜보기(뉴스레터 상세). 가리키면 종이 흔들리고 추가 따라가며, 켜면 한 번 울리고 양옆에 울림이 퍼집니다
+						BellGlyph — 후속 지켜보기(뉴스레터 상세). 가리키면 종이 흔들리고 추가 따라가며, 켜면 한 번 울리고 양옆에
+						울림이 퍼집니다
 					</Text>
 				</div>
 			</Section>
