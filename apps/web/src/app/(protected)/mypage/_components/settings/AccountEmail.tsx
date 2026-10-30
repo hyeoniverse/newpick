@@ -253,7 +253,7 @@ export default function AccountEmail() {
 								{waitSeconds > 0 ? `재전송 (${waitSeconds}초)` : '재전송'}
 							</button>
 						</p>
-						<div className="row">
+						<div className="row end">
 							<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={code.length !== 6}>
 								확인
 							</Button>
@@ -358,6 +358,11 @@ const StyledAccountEmail = styled.section`
 		> input,
 		> button {
 			height: 2.5rem;
+		}
+
+		/* 인증 코드의 확인 · 취소는 오른쪽 끝 */
+		&.end {
+			justify-content: flex-end;
 		}
 	}
 
