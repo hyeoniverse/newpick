@@ -90,6 +90,8 @@ const EXPECTED: Record<string, Policy> = {
   'PATCH mypage/highlights/:id': 'auth',
   'DELETE mypage/highlights/:id': 'auth',
   'GET mypage/profile': 'auth',
+  'GET mypage/personal-mail': 'auth',
+  'PUT mypage/personal-mail': 'auth',
   'GET mypage/follows': 'auth',
   'GET mypage/follows/unseen': 'auth',
   'POST mypage/follows/seen': 'auth',

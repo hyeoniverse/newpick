@@ -61,6 +61,15 @@ function setup(failingCategoryId: number, edition: unknown = null) {
   const registry = { getCronJob: jest.fn().mockReturnValue(cronJob) };
   const prisma = {
     scheduleConfig: { upsert: jest.fn().mockResolvedValue({}) },
+    // 맞춤 메일 설정: 기본은 모두 켜짐 (끈 사람은 optedOut에)
+    optedOut: new Set<number>(),
+    user: {
+      findMany: jest.fn(async (args: { where: { id: { in: number[] } } }) =>
+        args.where.id.in
+          .filter((id) => !prisma.optedOut.has(id))
+          .map((id) => ({ id })),
+      ),
+    },
     jobRun: {
       create: jest.fn().mockResolvedValue({ id: 41 }),
       update: jest.fn().mockResolvedValue({}),
@@ -285,6 +294,17 @@ describe('구독 메일 (#55)', () => {
       picks: [],
       articles,
     });
+  });
+
+  it('맞춤 메일을 끈 사람은 취향을 계산하지 않고 분야별 메일을 받는다 (#123 16)', async () => {
+    const edition = { date: '2026-10-27', sources: [], editorial: null };
+    const { service, tasteService, editionService, prisma } = setup(0, edition);
+    prisma.optedOut.add(7);
+    await service.sendEmailSummary();
+    expect(tasteService.profiles).toHaveBeenCalledWith([]);
+    expect(
+      (editionService.composeMail.mock.calls[0] as unknown[])[3],
+    ).toBeFalsy();
   });
 
   it('오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)', async () => {
