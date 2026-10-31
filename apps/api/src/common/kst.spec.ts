@@ -1,4 +1,10 @@
-import { kstDayRange, kstDaysAgo, toKstDate } from './kst';
+import {
+  kstDayLabel,
+  kstDayRange,
+  kstDaysAgo,
+  kstStamp,
+  toKstDate,
+} from './kst';
 
 /**
  * 크롤링은 매일 08:00 KST(= 전날 23:00 UTC)에 실행됩니다.
@@ -34,5 +40,14 @@ describe('kstDaysAgo', () => {
     const now = new Date('2026-10-19T16:30:00.000Z'); // 2026-10-20 01:30 KST
     expect(kstDaysAgo(0, now)).toBe('2026-10-20');
     expect(kstDaysAgo(7, now)).toBe('2026-10-13');
+  });
+});
+
+describe('kstStamp · kstDayLabel', () => {
+  it('네이버 기사 시각과 같은 꼴로 (UTC 서버에서도 KST)', () => {
+    expect(kstStamp(new Date('2026-10-30T21:00:00Z'))).toBe(
+      '2026-10-31 06:00:00',
+    );
+    expect(kstDayLabel(new Date('2026-10-30T21:00:00Z'))).toBe('10월 31일');
   });
 });

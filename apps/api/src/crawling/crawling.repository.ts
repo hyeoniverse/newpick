@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { CrawledNews } from './schema/crawling.schema';
 import { CategoryRepository } from 'src/category/category.repository';
-import { kstDayRange } from 'src/common/kst';
+import { kstDayRange, kstStamp } from 'src/common/kst';
 import { AppException } from '../common/errors/app.exception';
 
 @Injectable()
@@ -49,10 +49,18 @@ export class CrawlingRepository {
   /**
    * 요약할 기사: [start, end] 사이에 처음 모은 이 분야 기사 (AI 요약은 '그날의 뉴스'만, 최신부터)
    */
+  /**
+   * 뉴스레터 재료: 그 사이에 처음 모았고, 기사도 그 사이에 나온 것만.
+   * 네이버 헤드라인에는 하루 넘게 지난 기사도 남아 있어, 모은 시각만 보면 며칠 전 기사가 섞인다
+   */
   async getCrawledNewsBetween(start: Date, end: Date, categoryId: number) {
     const category = await this.categoryRepository.findById(categoryId);
     return this.crawledNews
-      .find({ createdAt: { $gte: start, $lte: end }, category: category.name })
+      .find({
+        createdAt: { $gte: start, $lte: end },
+        publishedAt: { $gte: kstStamp(start) },
+        category: category.name,
+      })
       .sort({ createdAt: -1 })
       .lean<CrawledNews[]>()
       .exec();

@@ -9,7 +9,9 @@ import {
   LEAD_CHARS,
   prepare,
   PrepArticle,
+  publishedLabel,
 } from './articlePrep';
+import { kstDayLabel } from '../common/kst';
 
 /**
  * 소식마다 내용에 맞는 템플릿 (#48). 모두 꼬리표·헤드라인·리드·본문을 갖고, 템플릿마다 고유 요소가 하나씩 있다
@@ -88,6 +90,8 @@ export type SourceArticle = {
   title: string;
   content: string;
   source?: string;
+  /** 보도 시각 (KST). 프롬프트에 붙여 지난 일을 오늘 일처럼 쓰지 않게 한다 */
+  publishedAt?: string;
 };
 
 export type Usage = {
@@ -194,20 +198,31 @@ export const describeClusters = (clusters: Cluster[]) =>
       const outlets = [
         ...new Set(c.articles.map((a) => a.source).filter(Boolean)),
       ];
+      const at = publishedLabel(top.publishedAt);
       return [
-        `[${i + 1}] 보도 ${c.articles.length}건${outlets.length ? ` (${outlets.join(', ')})` : ''}`,
+        `[${i + 1}] 보도 ${c.articles.length}건${outlets.length ? ` (${outlets.join(', ')})` : ''}${at ? ` · ${at}` : ''}`,
         ...c.articles.map((a) => `제목: ${a.title}`),
         `첫 부분: ${top.content.slice(0, LEAD_CHARS)}`,
       ].join('\n');
     })
     .join('\n\n');
 
+/** 오늘 날짜와 날짜 원칙: 지난 일을 오늘 소식처럼 쓰지 않게 (기사마다 보도 시각을 붙인다) */
+export const dateRules = (today: Date) => [
+  `오늘은 ${kstDayLabel(today)}입니다. 소식마다 보도 시각(월/일 시:분)을 붙였습니다.`,
+  "- 기사 속 사건이 어제 이전에 일어난 일이면 '오늘' 일처럼 쓰지 않고 날짜를 밝힙니다 (예: '29일 발표한'). 본문의 '전날' · '지난 ○일'도 오늘 날짜 기준으로 읽습니다.",
+];
+
 export const selectPrompt = (
   clusters: Cluster[],
   category?: string,
   recentTopics: string[] = [],
+  today: Date = new Date(),
 ) =>
   [
+    ...dateRules(today),
+    '- 며칠 전 일을 새 진전 없이 다시 다룬 기사는 새로움 1점입니다.',
+    '',
     `오늘 수집한 ${category ? `${category} 분야 ` : ''}소식 ${clusters.length}개입니다. 뉴스레터에는 이 가운데 정말 주요한 소식 최대 ${LIMITS.stories}개만 싣습니다. 고르는 건 점수 합계로 하므로, 모든 소식(1~${clusters.length}번)에 아래 점수표대로 점수를 매겨 주세요.`,
     '',
     ...SCORING_RULES,
@@ -330,7 +345,7 @@ export const numberArticles = (articles: PrepArticle[]) =>
   articles
     .map(
       (a, i) =>
-        `[${i + 1}]${a.source ? ` (${a.source})` : ''} ${a.title}\n${a.content}`,
+        `[${i + 1}]${a.source ? ` (${a.source}${a.publishedAt ? ` · ${publishedLabel(a.publishedAt)}` : ''})` : ''} ${a.title}\n${a.content}`,
     )
     .join('\n\n');
 
@@ -339,8 +354,11 @@ export const writerPrompt = (
   category?: string,
   existingTags: string[] = [],
   recentTopics: string[] = [],
+  today: Date = new Date(),
 ) =>
   [
+    ...dateRules(today),
+    '',
     `아래 ${category ? `${category} 분야 ` : ''}기사 ${articles.length}건은 오늘 뉴스레터에 실을 소식으로 이미 고른 것입니다. 이걸로 전문가용 뉴스 브리핑 한 편을 써 주세요. 같은 사건을 다룬 기사는 한 소식으로 합칩니다.`,
     '',
     '## 문체',
@@ -733,9 +751,14 @@ export class NewsletterWriterService {
   async write(
     articles: SourceArticle[],
     category?: string,
-    hints: { existingTags?: string[]; recentTopics?: string[] } = {},
+    hints: {
+      existingTags?: string[];
+      recentTopics?: string[];
+      /** 뉴스레터 날짜 (프롬프트의 '오늘') */
+      today?: Date;
+    } = {},
   ) {
-    const { existingTags = [], recentTopics = [] } = hints;
+    const { existingTags = [], recentTopics = [], today = new Date() } = hints;
     const prepared = prepare(articles);
     const clusters = clusterArticles(
       prepared,
@@ -750,7 +773,7 @@ export class NewsletterWriterService {
       const selected = await this.claude.generate({
         model: CLAUDE_FAST_MODEL,
         system: SELECT_SYSTEM,
-        prompt: selectPrompt(clusters, category, recentTopics),
+        prompt: selectPrompt(clusters, category, recentTopics, today),
         schema: SELECT_SCHEMA,
         effort: 'low',
         // 묶음마다 점수 한 줄씩 (30묶음이면 2천 토큰 남짓)
@@ -769,7 +792,7 @@ export class NewsletterWriterService {
     // 뉴스레터 본문이 되는 호출이라 effort를 높입니다.
     const written = await this.claude.generate({
       system: WRITER_SYSTEM,
-      prompt: writerPrompt(chosen, category, existingTags, recentTopics),
+      prompt: writerPrompt(chosen, category, existingTags, recentTopics, today),
       schema: WRITER_SCHEMA,
       effort: 'medium',
       maxTokens: 12000,
