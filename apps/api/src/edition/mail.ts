@@ -94,11 +94,15 @@ function block(b: Block): string {
 const caption = (links: Link[]) =>
   links.map((l) => a(l.text, l.url, `color:${C.muted};`)).join('');
 
-function story({ story: s, alsoIn }: ComposedStory, first: boolean): string {
+function story(
+  { story: s, alsoIn, category }: ComposedStory,
+  first: boolean,
+): string {
   return [
     `<div style="${first ? '' : `margin-top:28px;padding-top:24px;border-top:1px solid ${C.border};`}">`,
-    s.kicker
-      ? `<p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${C.primary};letter-spacing:0.02em;">${esc(s.kicker)}</p>`
+    // 맞춤 메일은 분야별 묶음이 없어 머리말 앞에 분야를 붙인다 ('경제 · 증시')
+    category || s.kicker
+      ? `<p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${C.primary};letter-spacing:0.02em;">${esc([category, s.kicker].filter(Boolean).join(' · '))}</p>`
       : '',
     `<h2 style="margin:0 0 8px;font-size:21px;line-height:1.4;font-weight:800;color:${C.text};">${esc(s.heading)}</h2>`,
     s.lead
@@ -144,6 +148,10 @@ export function renderEditionMail(
     [
       `<p style="margin:0 0 4px;font-size:20px;font-weight:900;color:${C.primary};">NewPick</p>`,
       `<p style="margin:0 0 22px;font-size:13px;color:${C.muted};">${esc(edition.dateLabel)} · ${esc(edition.categories.join(' · '))}</p>`,
+      // 사람마다 쓴 맞춤 브리핑
+      edition.briefing
+        ? `<div style="margin:0 0 22px;padding:14px 16px;background:${C.tint};border-radius:8px;"><p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${C.primary};">오늘의 맞춤 브리핑</p><p style="margin:0;font-size:14px;line-height:1.7;color:${C.text};">${esc(edition.briefing)}</p></div>`
+        : '',
       heading('오늘 한눈에'),
       edition.top
         .map(
@@ -166,7 +174,24 @@ export function renderEditionMail(
       )
     : '';
 
-  const sections = edition.sections
+  const more = (category: string, newsletterId: number) =>
+    `<a href="${esc(`${base}/articles/detail/${newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:${C.primary};text-decoration:none;">${esc(category)} 뉴스레터 전문 보기 →</a>`;
+
+  // 맞춤 메일: 분야를 나누지 않고 점수 순으로 한 카드에. 소식마다 분야와 그 뉴스레터 링크
+  const personal = edition.personal
+    ? card(
+        edition.sections
+          .flatMap((section) => section.stories)
+          .map(
+            (s, i) =>
+              story(s, i === 0) +
+              `<p style="margin:14px 0 0;">${more(s.category!, s.newsletterId!)}</p>`,
+          )
+          .join(''),
+      )
+    : '';
+
+  const sections = (edition.personal ? [] : edition.sections)
     .map((section) =>
       card(
         [
@@ -178,7 +203,7 @@ export function renderEditionMail(
                 : '') +
               `<p style="${P}">${esc(section.fallback.summary)}</p>`
             : section.stories.map((s, i) => story(s, i === 0)).join(''),
-          `<p style="margin:22px 0 0;"><a href="${esc(`${base}/articles/detail/${section.newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:${C.primary};text-decoration:none;">${esc(section.category)} 뉴스레터 전문 보기 →</a></p>`,
+          `<p style="margin:22px 0 0;">${more(section.category, section.newsletterId)}</p>`,
         ].join(''),
       ),
     )
@@ -216,5 +241,5 @@ export function renderEditionMail(
     ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(edition.top[0].line)}</div>`
     : '';
 
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${sections}${watch}${footer}</table></td></tr></table></body></html>`;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${personal}${sections}${watch}${footer}</table></td></tr></table></body></html>`;
 }

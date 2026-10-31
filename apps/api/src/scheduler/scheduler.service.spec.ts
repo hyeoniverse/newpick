@@ -30,6 +30,15 @@ function setup(failingCategoryId: number, edition: unknown = null) {
       html: '',
       newsletterIds: interests,
     })),
+    writeNote: jest.fn().mockResolvedValue({
+      subject: '맞춤 제목',
+      briefing: '맞춤 브리핑',
+    }),
+    embedForPlans: jest.fn().mockResolvedValue(new Map()),
+  };
+  const tasteService = {
+    profiles: jest.fn().mockResolvedValue(new Map()),
+    signalTexts: jest.fn().mockResolvedValue(new Map()),
   };
   const mailService = {
     sendHtmlMail: jest.fn(),
@@ -66,6 +75,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     registry as never,
     prisma as never,
     editionService as never,
+    tasteService as never,
     siteCache as never,
   );
   // 요약 다시 시도 사이 쉬는 시간은 테스트에서 없앤다
@@ -76,6 +86,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     crawlingRepository,
     aiSummaryService,
     editionService,
+    tasteService,
     mailService,
     siteCache,
     prisma,
@@ -165,7 +176,56 @@ describe('구독 메일 (#55)', () => {
     const [subscribers] = mailService.sendBulkMail.mock.calls[0];
     expect(subscribers.map((s) => s.email)).toEqual(['a@example.com']);
     // 사람마다 원클릭 해지(#18)를 붙이도록 회원 id도 넘긴다
-    expect(editionService.composeMail).toHaveBeenCalledWith(edition, [1, 3], 7);
+    expect(editionService.composeMail).toHaveBeenCalledWith(
+      edition,
+      [1, 3],
+      7,
+      undefined,
+    );
+    // 취향 신호가 없으면 맞춤 글도 쓰지 않는다
+    expect(editionService.writeNote).not.toHaveBeenCalled();
+  });
+
+  it('취향이 있는 구독자는 맞춤 계획을 세우고 사람마다 글을 써서 넘긴다', async () => {
+    const edition = {
+      date: '2026-10-27',
+      editorial: null,
+      sources: [
+        {
+          newsletterId: 20,
+          categoryId: 1,
+          category: '경제',
+          title: '경제',
+          stories: [
+            {
+              kicker: '',
+              heading: '반도체 수출 늘어',
+              lead: '반도체 수출이 석 달째 늘었다',
+              blocks: [],
+              sources: [],
+            },
+          ],
+        },
+      ],
+    };
+    const { service, editionService, tasteService } = setup(0, edition);
+    tasteService.profiles.mockResolvedValue(
+      new Map([[7, { topics: [{ name: '반도체', key: '반도체', score: 3 }] }]]),
+    );
+    await service.sendEmailSummary();
+
+    // 메일을 받는 구독자(관심 분야가 있는 7)만
+    expect(tasteService.profiles).toHaveBeenCalledWith([7]);
+    expect(editionService.writeNote).toHaveBeenCalledTimes(1);
+    const plan = (editionService.composeMail.mock.calls[0] as unknown[])[3] as {
+      picks: { ref: string }[];
+      note: { subject: string };
+    };
+    // 임베딩이 없으면(여기서는 빈 결과) 관심 태그로
+    expect(tasteService.signalTexts).toHaveBeenCalledWith([7]);
+    expect(editionService.embedForPlans).toHaveBeenCalledTimes(1);
+    expect(plan.picks).toEqual([{ ref: '20-1', newsletterId: 20 }]);
+    expect(plan.note.subject).toBe('맞춤 제목');
   });
 
   it('오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)', async () => {

@@ -9,7 +9,10 @@ jest.mock('nodemailer', () => ({
 
 function setup(sendMail: jest.Mock, createMany = jest.fn()) {
   (nodemailer.createTransport as jest.Mock).mockReturnValue({ sendMail });
-  const prisma = { emailArchive: { createMany } };
+  const prisma = {
+    emailArchive: { createMany },
+    mailPlan: { create: jest.fn().mockResolvedValue({}) },
+  };
   const service = new MailService(
     new Logger(),
     prisma as never,
@@ -93,6 +96,26 @@ describe('MailService.sendBulkMail', () => {
     expect(
       sendMail.mock.calls.filter(([o]) => o.to === 'bad@example.com'),
     ).toHaveLength(3);
+  });
+
+  it('맞춤 메일은 계획을 발송 기록과 같은 시각으로 남긴다 (마이페이지에서 받은 그대로)', async () => {
+    const sendMail = jest.fn().mockResolvedValue({});
+    const { service, prisma } = setup(sendMail);
+    const plan = { picks: [{ ref: '10-1', newsletterId: 10 }] };
+    await service.sendBulkMail(
+      [
+        { email: 'a@example.com', interests: [1], name: 'a' },
+        { email: 'b@example.com', interests: [2], name: 'b' },
+      ],
+      (s) => ({ ...build(s)!, plan: s.name === 'a' ? plan : null }),
+    );
+    expect(prisma.mailPlan.create).toHaveBeenCalledTimes(1);
+    const { data } = prisma.mailPlan.create.mock.calls[0][0];
+    expect(data).toMatchObject({ email: 'a@example.com', plan });
+    const archived = prisma.emailArchive.createMany.mock.calls.find(
+      ([arg]) => arg.data[0].email === 'a@example.com',
+    )[0];
+    expect(data.sentAt).toEqual(archived.data[0].sentAt);
   });
 
   it('발송 기록이 실패해도 같은 메일을 다시 보내지 않는다', async () => {

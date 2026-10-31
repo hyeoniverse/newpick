@@ -1,3 +1,5 @@
+import type { ComposedSection } from '../edition/compose';
+import type { MailPlan } from '../edition/personalize';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import {
@@ -345,6 +347,14 @@ export class MyPageService {
 
     // 메일 제목 · 짜임새(오늘 한눈에 · 흐름 · 분야별 소식 · 관전 포인트)를 발송 때와 같은 방식으로 다시 엮는다 (AI 호출 없음).
     // 메일은 사이트 뉴스레터를 그대로 붙인 게 아니라 고른 분야로 다시 엮은 것이라, 목록도 그 짜임새로 보여 준다
+    // 맞춤 메일(#123 3단계)은 그때의 계획으로 (받은 그대로)
+    const plans = await this.prisma.mailPlan.findMany({
+      where: { email: where.email, sentAt: { in: sends.map((s) => s.sentAt) } },
+      select: { sentAt: true, plan: true },
+    });
+    const planAt = (sentAt: Date) =>
+      (plans.find((p) => p.sentAt.getTime() === sentAt.getTime())?.plan ??
+        null) as MailPlan | null;
     const digests = await Promise.all(
       sends.map(({ sentAt }) =>
         this.editionService.rebuildDigest(
@@ -352,6 +362,7 @@ export class MyPageService {
           archives
             .filter((a) => a.sentAt.getTime() === sentAt.getTime())
             .map((a) => a.newsletter.id),
+          planAt(sentAt),
         ),
       ),
     );
@@ -371,15 +382,7 @@ export class MyPageService {
             line,
           })),
           threads: digests[i].threads,
-          sections: digests[i].sections.map((s) => ({
-            category: s.category,
-            newsletterId: s.newsletterId,
-            title: s.title,
-            stories: s.stories.map((st) => ({
-              heading: st.story.heading,
-              alsoIn: st.alsoIn,
-            })),
-          })),
+          sections: mergeSections(digests[i].sections),
           watch: digests[i].watch,
         },
         starred: markOf.get(sentAt.getTime())?.starred ?? false,
@@ -408,15 +411,22 @@ export class MyPageService {
       select: { email: true },
     });
     if (!user) throw new AppException('USER_NOT_FOUND');
-    const archives = await this.prisma.emailArchive.findMany({
-      where: { email: user.email, sentAt },
-      select: { newsletterId: true },
-    });
+    const [archives, saved] = await Promise.all([
+      this.prisma.emailArchive.findMany({
+        where: { email: user.email, sentAt },
+        select: { newsletterId: true },
+      }),
+      this.prisma.mailPlan.findUnique({
+        where: { email_sentAt: { email: user.email, sentAt } },
+        select: { plan: true },
+      }),
+    ]);
     const mail =
       archives.length &&
       (await this.editionService.rebuildMail(
         sentAt,
         archives.map((a) => a.newsletterId),
+        (saved?.plan ?? null) as MailPlan | null,
       ));
     if (!mail)
       throw new AppException('NOT_FOUND', '받은 메일을 찾지 못했어요.');
@@ -443,4 +453,33 @@ export class MyPageService {
     );
     return { interests: await getInterestIds(this.prisma, userId) };
   }
+}
+
+/**
+ * 목록용 분야별 소식 제목. 맞춤 메일은 소식 하나씩 점수 순이라 같은 분야를 한 줄로 모은다
+ * (분야는 처음 나온 순서, 소식은 메일 순서)
+ */
+function mergeSections(sections: ComposedSection[]) {
+  const merged: {
+    category: string;
+    newsletterId: number;
+    title: string;
+    stories: { heading: string; alsoIn: string[] }[];
+  }[] = [];
+  for (const s of sections) {
+    const stories = s.stories.map((st) => ({
+      heading: st.story.heading,
+      alsoIn: st.alsoIn,
+    }));
+    const same = merged.find((m) => m.newsletterId === s.newsletterId);
+    if (same) same.stories.push(...stories);
+    else
+      merged.push({
+        category: s.category,
+        newsletterId: s.newsletterId,
+        title: s.title,
+        stories,
+      });
+  }
+  return merged;
 }
