@@ -1,5 +1,6 @@
 import type { ComposedEdition, ComposedStory } from './compose';
 import type { Block, Link, Run } from './parse';
+import type { MailLinkKind } from '../mail-click/mail-link';
 
 /**
  * 구독 메일 HTML (#55). 메일 앱은 사이트 CSS·<style>을 제대로 쓰지 못해 모든 모양을 인라인 스타일로 준다.
@@ -94,9 +95,18 @@ function block(b: Block): string {
 const caption = (links: Link[]) =>
   links.map((l) => a(l.text, l.url, `color:${C.muted};`)).join('');
 
+/** 메일 링크를 클릭 기록 주소로 감싼다 (#123 15). 없으면(미리보기 · 마이페이지 다시 보기) 원래 주소 그대로 */
+export type MailLinkTracker = (url: string, kind: MailLinkKind) => string;
+
+/** 링크 감싸기: 감쌀 함수가 없거나 웹 주소가 아니면 그대로 */
+const linkWith =
+  (track?: MailLinkTracker) => (url: string | undefined, kind: MailLinkKind) =>
+    track && isWebUrl(url) ? track(url!, kind) : url;
+
 function story(
   { story: s, alsoIn, category }: ComposedStory,
   first: boolean,
+  go = linkWith(),
 ): string {
   return [
     `<div style="${first ? '' : `margin-top:28px;padding-top:24px;border-top:1px solid ${C.border};`}">`,
@@ -114,7 +124,7 @@ function story(
       : '',
     s.blocks.map(block).join(''),
     s.sources.length
-      ? `<p style="margin:0;font-size:12px;color:${C.muted};">출처 ${s.sources.map((l) => a(l.text, l.url, `color:${C.muted};`)).join(' · ')}</p>`
+      ? `<p style="margin:0;font-size:12px;color:${C.muted};">출처 ${s.sources.map((l) => a(l.text, go(l.url, 'source'), `color:${C.muted};`)).join(' · ')}</p>`
       : '',
     alsoIn.length
       ? `<p style="margin:6px 0 0;font-size:12px;color:${C.muted};">${esc(alsoIn.join('·'))} 뉴스레터에도 실린 소식입니다</p>`
@@ -139,8 +149,11 @@ export function renderEditionMail(
   contactEmail = '',
   /** 받는 사람의 원클릭 해지 화면 주소 (#18). 없으면(미리보기 등) 마이페이지 설정 */
   unsubscribeUrl?: string,
+  /** 실제 발송: 뉴스레터 · 원문 · 추천 기사 링크를 클릭 기록 주소로 (수신 거부 · 약관 등 아래쪽 링크는 그대로) */
+  track?: MailLinkTracker,
 ): string {
   const base = frontendUrl.replace(/\/$/, '');
+  const go = linkWith(track);
   // 메일에서 사이트로 온 방문을 방문 통계(#131)에서 '메일'로 세도록 utm을 붙인다
   const utm = 'utm_source=newsletter&utm_medium=email&utm_campaign=daily';
 
@@ -175,7 +188,7 @@ export function renderEditionMail(
     : '';
 
   const more = (category: string, newsletterId: number) =>
-    `<a href="${esc(`${base}/articles/detail/${newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:${C.primary};text-decoration:none;">${esc(category)} 뉴스레터 전문 보기 →</a>`;
+    `<a href="${esc(go(`${base}/articles/detail/${newsletterId}?${utm}`, 'newsletter')!)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:${C.primary};text-decoration:none;">${esc(category)} 뉴스레터 전문 보기 →</a>`;
 
   // 맞춤 메일: 분야를 나누지 않고 점수 순으로 한 카드에. 소식마다 분야와 그 뉴스레터 링크
   const personal = edition.personal
@@ -184,7 +197,7 @@ export function renderEditionMail(
           .flatMap((section) => section.stories)
           .map(
             (s, i) =>
-              story(s, i === 0) +
+              story(s, i === 0, go) +
               `<p style="margin:14px 0 0;">${more(s.category!, s.newsletterId!)}</p>`,
           )
           .join(''),
@@ -202,7 +215,7 @@ export function renderEditionMail(
                 ? `<p style="margin:0 0 12px;font-size:15px;font-weight:600;color:${C.sub};">${esc(section.fallback.subtitle)}</p>`
                 : '') +
               `<p style="${P}">${esc(section.fallback.summary)}</p>`
-            : section.stories.map((s, i) => story(s, i === 0)).join(''),
+            : section.stories.map((s, i) => story(s, i === 0, go)).join(''),
           `<p style="margin:22px 0 0;">${more(section.category, section.newsletterId)}</p>`,
         ].join(''),
       ),
@@ -216,7 +229,7 @@ export function renderEditionMail(
           edition.articles
             .map(
               (x, i) =>
-                `<div style="${i ? `margin-top:14px;padding-top:14px;border-top:1px solid ${C.border};` : ''}"><p style="margin:0 0 4px;font-size:12px;color:${C.muted};">${esc([x.source, x.category].filter(Boolean).join(' · '))}</p>${a(x.title, x.link, `font-size:15px;font-weight:700;line-height:1.5;color:${C.text};`)}</div>`,
+                `<div style="${i ? `margin-top:14px;padding-top:14px;border-top:1px solid ${C.border};` : ''}"><p style="margin:0 0 4px;font-size:12px;color:${C.muted};">${esc([x.source, x.category].filter(Boolean).join(' · '))}</p>${a(x.title, go(x.link, 'article'), `font-size:15px;font-weight:700;line-height:1.5;color:${C.text};`)}</div>`,
             )
             .join(''),
       )

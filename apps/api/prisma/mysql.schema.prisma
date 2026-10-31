@@ -152,6 +152,21 @@ model EmailArchive {
 
 /// 맞춤 메일 계획 (#123 3단계): 한 통에서 취향으로 앞당긴 소식 · 더한 다른 분야 소식.
 /// 마이페이지에서 받은 그대로 다시 만들 때 쓴다. 맞춤이 없던 메일은 없다
+/// 메일 링크 클릭 (#123 15). 맞춤 메일과 분야별 메일의 클릭률을 비교하려고 남긴다.
+/// 누가 눌렀는지(이메일 · 회원)는 남기지 않는다: 메일 날짜 · 맞춤 메일인지 · 링크 종류만
+model MailClick {
+  id        Int      @id @default(autoincrement())
+  /// 메일 날짜 (KST 'YYYY-MM-DD')
+  day       String   @db.VarChar(10)
+  personal  Boolean
+  /// newsletter(사이트 뉴스레터) · source(원문 출처) · article(추천 기사)
+  kind      String   @db.VarChar(16)
+  createdAt DateTime @default(now())
+
+  @@index([day])
+  @@map("mail_clicks")
+}
+
 model MailPlan {
   id     Int      @id @default(autoincrement())
   email  String

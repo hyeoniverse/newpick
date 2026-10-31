@@ -1,3 +1,4 @@
+import { MAIL_LINK_KINDS, MailLinkKind } from 'src/mail-click/mail-link';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { kstDays, kstDaysAgo, kstMonth, toKstDate } from 'src/common/kst';
@@ -294,7 +295,7 @@ export class StatsService {
    */
   async delivery(from?: string, to?: string) {
     const { days, inRange, start, end, ...range } = this.period(from, to);
-    const [sent, runs, newsletters, categories] = await Promise.all([
+    const [sent, runs, newsletters, categories, clicks] = await Promise.all([
       this.prisma.$queryRaw<
         Array<{ day: Date | string; recipients: bigint; mails: bigint }>
       >`
@@ -321,6 +322,7 @@ export class StatsService {
         select: { id: true, name: true },
         orderBy: { id: 'asc' },
       }),
+      this.mailClicks(range.from, range.to, start, end),
     ]);
 
     const byDay = new Map(
@@ -384,6 +386,47 @@ export class StatsService {
           .slice(0, 5)
           .map((n) => ({ ...n, category: names.get(n.categoryId) ?? null })),
       },
+      clicks,
+    };
+  }
+
+  /**
+   * 메일 링크 클릭 (#123 15): 맞춤 메일 · 분야별 메일마다 보낸 메일 수와 클릭 수(링크 종류별).
+   * 클릭은 누가 눌렀는지 남기지 않아 한 사람이 여러 번 누르면 여러 번 센다 (클릭률 = 클릭 ÷ 보낸 메일)
+   */
+  private async mailClicks(from: string, to: string, start: Date, end: Date) {
+    const [mails, personal, rows] = await Promise.all([
+      // 한 통 = 받는 사람 · 보낸 시각 (발송 기록은 엮은 뉴스레터마다 한 줄)
+      this.prisma.$queryRaw<Array<{ n: bigint }>>`
+        SELECT COUNT(DISTINCT email, sentAt) AS n FROM email_archives
+        WHERE sentAt >= ${start} AND sentAt <= ${end}`,
+      // 맞춤 메일 = 고른 소식이 있는 계획 (추천 기사만 붙은 분야별 메일은 분야별로)
+      this.prisma.$queryRaw<Array<{ n: bigint }>>`
+        SELECT COUNT(*) AS n FROM mail_plans
+        WHERE sentAt >= ${start} AND sentAt <= ${end}
+          AND JSON_LENGTH(JSON_EXTRACT(plan, '$.picks')) > 0`,
+      this.prisma.mailClick.groupBy({
+        by: ['personal', 'kind'],
+        where: { day: { gte: from, lte: to } },
+        _count: { _all: true },
+      }),
+    ]);
+    const total = Number(mails[0]?.n ?? 0);
+    const personalMails = Number(personal[0]?.n ?? 0);
+    const group = (isPersonal: boolean, sentMails: number) => {
+      const byKind = Object.fromEntries(
+        MAIL_LINK_KINDS.map((kind) => [
+          kind,
+          rows.find((r) => r.personal === isPersonal && r.kind === kind)?._count
+            ._all ?? 0,
+        ]),
+      ) as Record<MailLinkKind, number>;
+      const clicks = Object.values(byKind).reduce((n, c) => n + c, 0);
+      return { mails: sentMails, clicks, byKind };
+    };
+    return {
+      personal: group(true, personalMails),
+      plain: group(false, Math.max(0, total - personalMails)),
     };
   }
 

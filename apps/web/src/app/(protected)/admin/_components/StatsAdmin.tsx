@@ -68,7 +68,18 @@ interface DeliveryStats {
 		byCategory: { id: number; name: string; views: number; newsletters: number }[];
 		top: { id: number; title: string; category: string | null; viewcount: number }[];
 	};
+	/** 메일 링크 클릭 (#123): 누가 눌렀는지는 남기지 않아 같은 사람이 여러 번 누르면 여러 번 센다 */
+	clicks: Record<'personal' | 'plain', MailClicks>;
 }
+
+interface MailClicks {
+	mails: number;
+	clicks: number;
+	byKind: { newsletter: number; source: number; article: number };
+}
+
+/** 클릭률: 클릭 ÷ 보낸 메일 (보낸 메일이 없으면 -) */
+const clickRate = (c: MailClicks) => (c.mails ? `${((c.clicks / c.mails) * 100).toFixed(1)}%` : '-');
 
 const TYPE_LABEL: Record<string, string> = {
 	summarization: '뉴스레터 쓰기',
@@ -484,6 +495,26 @@ export default function StatsAdmin() {
 									</ol>
 								</Chart>
 							</div>
+							<Chart
+								title="메일 링크 클릭"
+								hint="클릭 ÷ 보낸 메일. 누가 눌렀는지는 남기지 않아, 한 사람이 여러 번 누르면 여러 번 셉니다"
+							>
+								<dl className="numbers">
+									{(
+										[
+											['맞춤 메일', d.clicks.personal],
+											['분야별 메일', d.clicks.plain],
+										] as const
+									).map(([label, c]) => (
+										<Stat
+											key={label}
+											label={`${label} 클릭률`}
+											value={clickRate(c)}
+											sub={`${c.mails.toLocaleString()}통 · 클릭 ${c.clicks.toLocaleString()}번 (뉴스레터 ${c.byKind.newsletter} · 원문 ${c.byKind.source} · 추천 기사 ${c.byKind.article})`}
+										/>
+									))}
+								</dl>
+							</Chart>
 							<DayTable
 								caption="날짜별 발송"
 								head={['날짜', '받은 사람', '보낸 메일', '작업 성공', '일부 실패', '실패', '건너뜀']}

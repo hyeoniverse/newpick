@@ -16,6 +16,7 @@ import { SubscriberController } from 'src/subscriber/subscriber.controller';
 import { UnsubscribeController } from 'src/subscriber/unsubscribe.controller';
 import { EditionController } from 'src/edition/edition.controller';
 import { AnalyticsController } from 'src/analytics/analytics.controller';
+import { MailClickController } from 'src/mail-click/mail-click.controller';
 
 /**
  * 모든 라우트의 접근 정책. 라우트를 추가·삭제하거나 정책을 바꾸면 이 표도 함께 바꿔야 테스트가 통과합니다.
@@ -28,6 +29,7 @@ const EXPECTED: Record<string, Policy> = {
 
   // 방문 기록 받기 (#131): 로그인 없이
   'POST analytics/collect': 'public',
+  'GET r/:token': 'public',
 
   'GET auth/google': 'public',
   'GET auth/google/callback': 'public',
@@ -176,6 +178,7 @@ describe('라우트 접근 정책', () => {
     SchedulerController,
     EditionController,
     AnalyticsController,
+    MailClickController,
   ]);
 
   it('모든 라우트가 정해진 정책과 일치한다', () => {
