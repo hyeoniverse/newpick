@@ -19,6 +19,8 @@ model User {
   frequency               String   @default("weekly") // 발송 주기
   role                    String   @default("user")
   notificationPreferences Json?
+  /// 맞춤 메일 (#123): 끄면 북마크 · 스크랩으로 고르지 않고 구독한 분야의 뉴스레터를 분야별로 받는다
+  personalMail            Boolean  @default(true)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 

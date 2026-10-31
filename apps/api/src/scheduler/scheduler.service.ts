@@ -445,13 +445,15 @@ export class SchedulerService implements OnApplicationBootstrap {
       return;
     }
 
-    // 맞춤 메일 (#123 3단계): 구독자 모두의 취향을 한 번에 계산 (AI 호출 없음). 실패하면 맞춤 없이 그대로 보낸다
+    // 맞춤 메일 (#123 3단계): 구독자 모두의 취향을 한 번에 계산 (AI 호출 없음). 실패하면 맞춤 없이 그대로 보낸다.
+    // 맞춤을 끈 사람(#123 16)은 빼서 분야별 메일을 받게 한다
+    const personalIds = await this.personalMailUsers(
+      validSubscribers
+        .map((s) => s.userId)
+        .filter((id): id is number => typeof id === 'number'),
+    );
     const profiles = await this.tasteService
-      .profiles(
-        validSubscribers
-          .map((s) => s.userId)
-          .filter((id): id is number => typeof id === 'number'),
-      )
+      .profiles(personalIds)
       .catch((error) => {
         this.logger.warn(
           `맞춤 취향 계산 실패, 맞춤 없이 보냄: ${error.message}`,
@@ -712,5 +714,22 @@ export class SchedulerService implements OnApplicationBootstrap {
   getMailSendCycle(): string {
     const job = this.schedulerRegistry.getCronJob(MAIL_JOB_NAME);
     return String(job.cronTime.source);
+  }
+
+  /** 맞춤 메일을 켜 둔 사용자만 (기본은 켜짐). 읽기에 실패하면 아무도 맞춤으로 보내지 않는다 */
+  private async personalMailUsers(userIds: number[]) {
+    if (!userIds.length) return [];
+    const rows = await this.prisma.user
+      .findMany({
+        where: { id: { in: userIds }, personalMail: true },
+        select: { id: true },
+      })
+      .catch((error) => {
+        this.logger.warn(
+          `맞춤 설정 읽기 실패, 맞춤 없이 보냄: ${error.message}`,
+        );
+        return [];
+      });
+    return rows.map((r) => r.id);
   }
 }

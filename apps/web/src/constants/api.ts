@@ -56,6 +56,8 @@ export const API_ENDPOINTS = {
 	},
 	MY: {
 		PROFILE: () => `${API_URL}/mypage/profile`,
+		/** 맞춤 메일 켜짐 여부 (GET) · 켜기 · 끄기 (PUT { enabled }) */
+		PERSONAL_MAIL: () => `${API_URL}/mypage/personal-mail`,
 		BOOKMARKS: () => `${API_URL}/mypage/bookmarks`,
 		/** 내가 실제로 받은 메일 (보낸 시각별 한 통씩) */
 		MAILS: (offset: number, limit: number, filters = '') =>
