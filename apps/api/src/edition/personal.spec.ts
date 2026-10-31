@@ -94,7 +94,15 @@ describe('맞춤 계획 (planMail): 분야를 나누지 않고 점수 순', () =
     // 편집 없음 → 뉴스레터 안 순서가 중요도(3, 2, 1)
     // 반도체 수출 2+5+2=9 · 미국 반도체 규제(세계) 3+5=8 · 코스피 3+2=5 · AI 규제법 3+2.5+2=7.5 ...
     expect(refs(plan).slice(0, 3)).toEqual(['10-2', '30-1', '20-1']);
-    expect(plan!.picks).toHaveLength(PERSONAL_LIMITS.stories);
+  });
+
+  it('구독하지 않은 분야는 관심이 닿는 소식만 (자리를 채우려고 끌어오지 않는다)', () => {
+    const picks = refs(planMail(sources, [1, 2], profile));
+    // 세계: 반도체 규제(닿음)는 들어오고 룰라 4선(안 닿음)은 빠진다
+    expect(picks).toContain('30-1');
+    expect(picks).not.toContain('30-2');
+    // 구독 분야 5개 + 닿은 다른 분야 1개 = 6 (7자리여도 채우지 않는다)
+    expect(picks).toHaveLength(6);
   });
 
   it('구독한 분야에서 편집 중요도가 가장 높은 소식 2개는 늘 들어간다', () => {
@@ -145,7 +153,8 @@ describe('맞춤 계획 (planMail): 분야를 나누지 않고 점수 순', () =
     ]);
     const picks = refs(planMail(sources, [1, 2], taste, vectors));
     expect(picks[0]).toBe('30-1');
-    expect(picks.indexOf('30-2')).toBeGreaterThan(picks.indexOf('20-1'));
+    // 구독하지 않은 분야라 관심으로 안 치면 들어오지 않는다
+    expect(picks).not.toContain('30-2');
   });
 
   it('취향이 없거나 어떤 소식에도 닿지 않으면 계획이 없다 (분야별 메일 그대로)', () => {

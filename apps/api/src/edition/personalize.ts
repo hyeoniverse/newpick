@@ -12,6 +12,7 @@ import type { PersonalNote } from './personalNote';
  * 관심 점수는 북마크 · 스크랩한 글과 뜻이 얼마나 가까운지(임베딩). 임베딩이 없는 날(할당 초과 등)은
  * 관심 태그(#136)가 소식 글에 나오는지로 대신한다.
  * 구독한 분야에서 편집 중요도가 가장 높은 소식(PERSONAL_LIMITS.keep개)은 늘 넣는다: 관심사만 보다 큰 소식을 놓치지 않게.
+ * 구독하지 않은 분야는 관심이 닿는 소식만 들어온다.
  * 취향 신호가 없거나 어떤 소식에도 닿지 않으면 계획이 없고, 메일은 지금처럼 분야별이다
  */
 
@@ -133,17 +134,17 @@ export function planMail(
         vectors?.get(ref),
         taste,
       );
-      const touched = interest >= PERSONAL_LIMITS.min;
+      // 북마크한 그 소식이 다시 실린 것은 관심으로 치지 않는다 (새로 볼 게 없다)
+      const touched = interest >= PERSONAL_LIMITS.min && !seen;
       return {
         ref,
         newsletterId: source.newsletterId,
         chosen,
         importance,
         touched,
-        // 북마크한 그 소식이 다시 실린 것은 관심으로 치지 않는다 (새로 볼 게 없다)
         score:
           importance +
-          (touched && !seen ? PERSONAL_LIMITS.interest * interest : 0) +
+          (touched ? PERSONAL_LIMITS.interest * interest : 0) +
           (chosen ? PERSONAL_LIMITS.subscribed : 0),
         order: candidatesOrder(sources, source, i),
       };
@@ -168,8 +169,11 @@ export function planMail(
       .sort((a, b) => b.importance - a.importance || a.order - b.order),
     PERSONAL_LIMITS.keep,
   );
+  // 구독하지 않은 분야는 관심이 닿는 소식만 (자리를 채우려고 관심 없는 소식을 끌어오지 않는다)
   take(
-    [...candidates].sort((a, b) => b.score - a.score || a.order - b.order),
+    candidates
+      .filter((c) => c.chosen || c.touched)
+      .sort((a, b) => b.score - a.score || a.order - b.order),
     PERSONAL_LIMITS.stories,
   );
 
