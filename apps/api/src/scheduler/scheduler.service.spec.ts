@@ -33,10 +33,13 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     writeNote: jest.fn().mockResolvedValue({
       subject: '맞춤 제목',
       briefing: '맞춤 브리핑',
-      whys: {},
     }),
+    embedForPlans: jest.fn().mockResolvedValue(new Map()),
   };
-  const tasteService = { profiles: jest.fn().mockResolvedValue(new Map()) };
+  const tasteService = {
+    profiles: jest.fn().mockResolvedValue(new Map()),
+    signalTexts: jest.fn().mockResolvedValue(new Map()),
+  };
   const mailService = {
     sendHtmlMail: jest.fn(),
     sendBulkMail: jest.fn(async (subscribers, build) => {
@@ -218,7 +221,10 @@ describe('구독 메일 (#55)', () => {
       boosts: Record<string, unknown>;
       note: { subject: string };
     };
-    expect(plan.boosts['20-1']).toEqual({ bonus: 2, topics: ['반도체'] });
+    // 임베딩이 없으면(여기서는 빈 결과) 관심 태그로
+    expect(tasteService.signalTexts).toHaveBeenCalledWith([7]);
+    expect(editionService.embedForPlans).toHaveBeenCalledTimes(1);
+    expect(plan.boosts['20-1']).toEqual({ bonus: 5, topics: ['반도체'] });
     expect(plan.note.subject).toBe('맞춤 제목');
   });
 

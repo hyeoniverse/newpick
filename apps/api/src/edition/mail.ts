@@ -1,5 +1,6 @@
 import type { ComposedEdition, ComposedStory } from './compose';
 import type { Block, Link, Run } from './parse';
+import type { MatchReason } from './personalize';
 
 /**
  * 구독 메일 HTML (#55). 메일 앱은 사이트 CSS·<style>을 제대로 쓰지 못해 모든 모양을 인라인 스타일로 준다.
@@ -125,14 +126,17 @@ const tag = (text: string) =>
 const heading = (text: string) =>
   `<h3 style="margin:0 0 14px;font-size:13px;font-weight:800;letter-spacing:0.04em;color:${C.muted};">${esc(text)}</h3>`;
 
-/** 맞춤 이유: 닿은 관심 태그 */
-/** 맞춤 이유: 사람마다 쓴 '나에게 왜' 한 줄, 없으면 닿은 관심 태그 */
-const interest = (topics?: string[], why?: string) =>
-  why
-    ? `<p style="margin:4px 0 0;font-size:13px;line-height:1.55;color:${C.primary};">→ ${esc(why)}</p>`
-    : topics?.length
-      ? `<p style="margin:4px 0 0;font-size:12px;color:${C.primary};">관심 · ${esc(topics.join(' · '))}</p>`
+/** 맞춤 이유: 계산한 그대로 (닿은 관심 태그, 아니면 가장 가까운 북마크 · 스크랩) */
+const interest = (reason?: MatchReason) => {
+  const text = reason?.topics.length
+    ? `관심 · ${reason.topics.join(' · ')}`
+    : reason?.because
+      ? `${reason.because.kind === 'scrap' ? '스크랩한' : '북마크한'} 「${reason.because.label}」와 이어져요`
       : '';
+  return text
+    ? `<p style="margin:4px 0 0;font-size:12px;color:${C.primary};">${esc(text)}</p>`
+    : '';
+};
 
 const card = (inner: string) =>
   `<tr><td style="padding:26px 24px;background:#ffffff;border-radius:12px;">${inner}</td></tr><tr><td style="height:12px;line-height:12px;font-size:0;">&nbsp;</td></tr>`;
@@ -161,7 +165,7 @@ export function renderEditionMail(
       edition.top
         .map(
           (t, i) =>
-            `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="width:26px;padding:0 0 14px;vertical-align:top;font-size:15px;font-weight:800;color:${C.primary};">${i + 1}</td><td style="padding:0 0 14px;vertical-align:top;">${tag(t.category)}<span style="font-size:15px;font-weight:700;line-height:1.5;color:${C.text};">${esc(t.heading)}</span><p style="margin:3px 0 0;font-size:14px;line-height:1.6;color:${C.sub};">${esc(t.line)}</p>${interest(t.topics, t.why)}</td></tr></table>`,
+            `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="width:26px;padding:0 0 14px;vertical-align:top;font-size:15px;font-weight:800;color:${C.primary};">${i + 1}</td><td style="padding:0 0 14px;vertical-align:top;">${tag(t.category)}<span style="font-size:15px;font-weight:700;line-height:1.5;color:${C.text};">${esc(t.heading)}</span><p style="margin:3px 0 0;font-size:14px;line-height:1.6;color:${C.sub};">${esc(t.line)}</p>${interest(t.reason)}</td></tr></table>`,
         )
         .join(''),
     ].join(''),
@@ -205,7 +209,7 @@ export function renderEditionMail(
           edition.extras
             .map(
               (x, i) =>
-                `<div style="${i ? `margin-top:14px;padding-top:14px;border-top:1px solid ${C.border};` : ''}">${tag(x.category)}<a href="${esc(`${base}/articles/detail/${x.newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:15px;font-weight:700;line-height:1.5;color:${C.text};text-decoration:none;">${esc(x.heading)}</a><p style="margin:3px 0 0;font-size:14px;line-height:1.6;color:${C.sub};">${esc(x.line)}</p>${interest(x.topics, x.why)}</div>`,
+                `<div style="${i ? `margin-top:14px;padding-top:14px;border-top:1px solid ${C.border};` : ''}">${tag(x.category)}<a href="${esc(`${base}/articles/detail/${x.newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:15px;font-weight:700;line-height:1.5;color:${C.text};text-decoration:none;">${esc(x.heading)}</a><p style="margin:3px 0 0;font-size:14px;line-height:1.6;color:${C.sub};">${esc(x.line)}</p>${interest(x.reason)}</div>`,
             )
             .join(''),
       )

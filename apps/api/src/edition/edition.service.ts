@@ -14,7 +14,8 @@ import {
   storyRef,
 } from './editor';
 import { composeEdition, EditionNewsletter } from './compose';
-import type { MailPlan, TasteProfile } from './personalize';
+import { MailPlan, storyEmbeddingText, TasteProfile } from './personalize';
+import type { SignalText } from '../taste/taste.service';
 import {
   NOTE_SCHEMA,
   NOTE_SYSTEM,
@@ -71,12 +72,54 @@ export class EditionService {
         schema: NOTE_SCHEMA,
         maxTokens: 1500,
       });
-      return normalizeNote(JSON.parse(text), composed);
+      return normalizeNote(JSON.parse(text));
     } catch (error) {
       this.logger.warn(
         `맞춤 글 쓰기 실패, 맞춤 순서만으로 보냄: ${(error as Error).message}`,
       );
       return null;
+    }
+  }
+
+  /**
+   * 맞춤 점수용 임베딩 (#123 3단계): 그날 소식(구독자 모두가 같이 쓴다)과 사람마다 신호 글을 한 번에 계산해
+   * 취향(profiles)에 신호 벡터를 채우고 소식(ref)마다 벡터를 돌려준다. 무료 할당(bge-m3) 안에서 끝난다.
+   * 안 되면 빈 결과 — planMail이 관심 태그로만 점수를 매긴다
+   */
+  async embedForPlans(
+    edition: Edition,
+    profiles: Map<number, TasteProfile>,
+    texts: Map<number, SignalText[]>,
+  ): Promise<Map<string, number[]>> {
+    const stories = edition.sources.flatMap((source) =>
+      source.stories.map((story, i) => ({
+        ref: storyRef(source.newsletterId, i),
+        text: storyEmbeddingText(story),
+      })),
+    );
+    // 신호 글은 사람마다 겹칠 수 있어 한 번씩만
+    const signalTexts = [
+      ...new Set([...texts.values()].flat().map((t) => t.text)),
+    ];
+    const all = [...stories.map((s) => s.text), ...signalTexts];
+    if (!stories.length || !signalTexts.length) return new Map();
+    try {
+      const vectors: number[][] = [];
+      for (let i = 0; i < all.length; i += EMBED_BATCH)
+        vectors.push(...(await this.ai.embed(all.slice(i, i + EMBED_BATCH))));
+      const byText = new Map(
+        signalTexts.map((text, i) => [text, vectors[stories.length + i]]),
+      );
+      for (const [userId, profile] of profiles)
+        profile.signals = (texts.get(userId) ?? []).map(
+          ({ text, ...signal }) => ({ ...signal, vector: byText.get(text)! }),
+        );
+      return new Map(stories.map((s, i) => [s.ref, vectors[i]]));
+    } catch (error) {
+      this.logger.warn(
+        `맞춤 임베딩 실패, 관심 태그로만 고름: ${(error as Error).message}`,
+      );
+      return new Map();
     }
   }
 
@@ -317,6 +360,9 @@ export class EditionService {
       });
   }
 }
+
+/** 임베딩은 한 번에 이만큼씩 */
+const EMBED_BATCH = 50;
 
 /** 다시 만들 때 불러올 뉴스레터: 발송 기록(고른 분야) + 맞춤으로 더한 다른 분야 */
 const withExtras = (newsletterIds: number[], plan?: MailPlan | null) => [

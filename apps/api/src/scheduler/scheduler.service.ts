@@ -445,7 +445,17 @@ export class SchedulerService implements OnApplicationBootstrap {
         return new Map();
       });
 
-    // 사람마다: 취향으로 순서 · 다른 분야 소식을 정하고(계산), 오픈 모델로 제목 · 맞춤 브리핑 · '나에게 왜'를 쓴다.
+    // 관심 점수는 뜻으로 (북마크 · 스크랩과 오늘 소식의 임베딩). 실패하면 관심 태그로만
+    const texts = await this.tasteService
+      .signalTexts([...profiles.keys()])
+      .catch(() => new Map());
+    const vectors = await this.editionService.embedForPlans(
+      edition,
+      profiles,
+      texts,
+    );
+
+    // 사람마다: 관심 점수로 순서 · 다른 분야 소식을 정하고(계산), 오픈 모델로 제목 · 맞춤 브리핑을 쓴다.
     // 글쓰기는 3명씩 동시에. 못 쓰면 그 사람은 맞춤 순서만 있는 메일
     const plans = new Map<number, MailPlan | null>();
     const planned = validSubscribers.filter(
@@ -455,7 +465,12 @@ export class SchedulerService implements OnApplicationBootstrap {
       await Promise.all(
         planned.slice(i, i + 3).map(async (subscriber) => {
           const profile = profiles.get(subscriber.userId!)!;
-          const plan = planMail(edition.sources, subscriber.interests, profile);
+          const plan = planMail(
+            edition.sources,
+            subscriber.interests,
+            profile,
+            vectors,
+          );
           if (plan)
             plan.note = await this.editionService.writeNote(
               edition,
