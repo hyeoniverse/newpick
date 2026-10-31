@@ -25,7 +25,6 @@ import {
 } from './personalNote';
 import { AiService } from '../ai/ai.service';
 import { createUnsubscribeToken } from 'src/subscriber/unsubscribe-token';
-import { createMailLinkToken } from 'src/mail-click/mail-link';
 import { renderEditionMail } from './mail';
 
 export type Edition = {
@@ -310,16 +309,6 @@ export class EditionService {
         base,
         process.env.MAIL_USER,
         token && `${base}/unsubscribe?token=${token}`,
-        // 실제 발송만 링크 클릭을 센다 (#123 15). 누가 눌렀는지는 넣지 않고, 날짜 · 맞춤 메일인지 · 링크 종류만
-        token
-          ? (url, kind) =>
-              `${base}/api/r/${createMailLinkToken({
-                url,
-                day: edition.date,
-                personal: !!composed.personal,
-                kind,
-              })}`
-          : undefined,
       ),
       newsletterIds: composed.newsletterIds,
       // 실제로 맞춤으로 엮었거나 추천 기사가 있을 때만 남긴다

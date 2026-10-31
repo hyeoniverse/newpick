@@ -1,4 +1,3 @@
-import { verifyMailLinkToken } from 'src/mail-click/mail-link';
 import { renderNewsletterHtml } from '../ai-summary/newsletterHtml';
 import type { Story } from '../ai-summary/newsletterWriter.service';
 import { parseNewsletterHtml, ParsedStory } from './parse';
@@ -468,25 +467,5 @@ describe('EditionService (#55)', () => {
     const mail = service.composeMail(edition!, [3])!;
     expect(mail.subject).toBe('10월 27일 뉴픽 · 경제 소식');
     expect(mail.newsletterIds).toEqual([20]);
-  });
-
-  it('실제 발송(받는 사람이 있음)만 링크를 클릭 기록 주소로 감싼다, 미리보기는 그대로 (#123 15)', async () => {
-    process.env.FRONTEND_URL = 'https://newpick.example';
-    const { service } = setup();
-    const edition = (await service.latestEdition())!;
-    expect(service.composeMail(edition, [3])!.html).not.toContain('/api/r/');
-    const sent = service.composeMail(edition, [3], 7)!.html;
-    const links = [...sent.matchAll(/\/api\/r\/([A-Za-z0-9_.-]+)/g)].map((m) =>
-      verifyMailLinkToken(m[1]),
-    );
-    // 원문 출처 · 뉴스레터 전문 보기 모두 감싸고, 날짜 · 분야별 메일(맞춤 아님)을 담는다
-    expect(new Set(links.map((l) => l?.kind))).toEqual(
-      new Set(['source', 'newsletter']),
-    );
-    expect(links.every((l) => l?.day === '2026-10-27' && !l.personal)).toBe(
-      true,
-    );
-    expect(sent).toContain('https://newpick.example/api/r/');
-    delete process.env.FRONTEND_URL;
   });
 });

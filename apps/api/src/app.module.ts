@@ -29,7 +29,6 @@ import { CoopMiddleware } from './middleware/coop.middleware';
 import { EditionModule } from './edition/edition.module';
 import { SiteCacheModule } from './site-cache/site-cache.module';
 import { AnalyticsModule } from './analytics/analytics.module';
-import { MailClickModule } from './mail-click/mail-click.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -47,7 +46,6 @@ import { MailClickModule } from './mail-click/mail-click.module';
     AiSummaryModule, // AI 요약 모듈
     FeedbackModule, // 피드백 모듈
     AnalyticsModule, // 방문 통계 (#131)
-    MailClickModule, // 메일 링크 클릭 (#123)
     PrismaModule, // Prisma 모듈
     MyPageModule, // 마이페이지 모듈
     FollowsModule, // 후속 지켜보기
