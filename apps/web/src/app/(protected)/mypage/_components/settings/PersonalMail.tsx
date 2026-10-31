@@ -47,34 +47,39 @@ export default function PersonalMail() {
 	return (
 		<StyledPersonalMail>
 			<div className="head">
-				<div>
-					<Title size="extraSmall" weight="bold" as="h2">
-						맞춤 메일
-					</Title>
-					<Text size="small" color="subText">
-						북마크 · 스크랩한 소식을 바탕으로 그날 모든 분야에서 관심 있을 소식을 골라 보내드립니다.
-						<br />
-						끄면 구독한 분야의 뉴스레터를 분야별로 받습니다. 다음 메일부터 적용됩니다.
-						{user.isSubscribed === false && (
-							<>
-								<br />
-								지금은 구독이 멈춰 있어, 구독을 다시 시작하면 이 설정대로 보내드립니다.
-							</>
-						)}
-					</Text>
-				</div>
+				<Title size="extraSmall" weight="bold" as="h2">
+					맞춤 메일
+				</Title>
+				<Text size="small" color="subText">
+					북마크 · 스크랩한 소식을 바탕으로 그날 모든 분야에서 관심 있을 소식을 골라 보내드립니다.
+					<br />
+					끄면 구독한 분야의 뉴스레터를 분야별로 받습니다. 다음 메일부터 적용됩니다.
+					{user.isSubscribed === false && (
+						<>
+							<br />
+							지금은 구독이 멈춰 있어, 구독을 다시 시작하면 이 설정대로 보내드립니다.
+						</>
+					)}
+				</Text>
+			</div>
+			{/* 스위치는 설명 아래 따로 한 줄: 지금 상태를 글자로 함께 */}
+			<div className="control">
 				<Switch
 					checked={enabled}
 					label="맞춤 메일"
 					disabled={isPending || save.isPending}
 					onChange={(next) => save.mutate(next)}
 				/>
+				<span aria-hidden>{enabled ? '켜짐' : '꺼짐'}</span>
 			</div>
 		</StyledPersonalMail>
 	);
 }
 
 const StyledPersonalMail = styled.section`
+	display: flex;
+	flex-direction: column;
+	gap: 1rem;
 	margin-top: 4rem;
 	padding-top: 2rem;
 	border-top: 1px solid ${({ theme }) => theme.color.border};
@@ -82,14 +87,19 @@ const StyledPersonalMail = styled.section`
 
 	.head {
 		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1.5rem;
+		flex-direction: column;
+		gap: 0.375rem;
+	}
 
-		> div {
-			display: flex;
-			flex-direction: column;
-			gap: 0.375rem;
+	.control {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+
+		span {
+			font-size: ${({ theme }) => theme.fontSize.small};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.text};
 		}
 	}
 `;
