@@ -152,9 +152,16 @@ export function planMail(
   );
   if (!candidates.some((c) => c.touched)) return null;
 
-  // 같은 사건은 하나만 (편집의 duplicates)
+  // 같은 사건은 하나만 (편집의 duplicates). 다만 편집이 분야를 넘는 흐름으로 이은 소식끼리는
+  // 같은 사건의 다른 면(정치 결과 ↔ 시장 반응)이라 둘 다 둔다 — 흐름 설명이 양쪽 소식을 가리키게
+  const linked = (a: string, b: string) =>
+    (editorial?.threads ?? []).some(
+      (t) => t.refs.includes(a) && t.refs.includes(b),
+    );
   const groupOf = (ref: string) =>
-    editorial?.duplicates.find((group) => group.includes(ref)) ?? [ref];
+    (
+      editorial?.duplicates.find((group) => group.includes(ref)) ?? [ref]
+    ).filter((other) => other === ref || !linked(ref, other));
   const picked: typeof candidates = [];
   const take = (list: typeof candidates, limit: number) => {
     for (const c of list) {

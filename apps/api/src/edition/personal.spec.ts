@@ -142,6 +142,23 @@ describe('맞춤 계획 (planMail): 분야를 나누지 않고 점수 순', () =
     expect(picks).not.toContain('30-1');
   });
 
+  it('같은 사건이어도 편집이 분야를 넘는 흐름으로 이었으면 둘 다 싣고, 흐름도 보인다', () => {
+    const editorial = {
+      ranking: {},
+      duplicates: [['10-2', '30-1']],
+      threads: [
+        { title: '반도체 흐름', text: '이어진다', refs: ['10-2', '30-1'] },
+      ],
+    };
+    const plan = planMail(sources, [1, 2], profile, undefined, editorial);
+    expect(refs(plan)).toEqual(expect.arrayContaining(['10-2', '30-1']));
+    expect(
+      composeEdition(sources, editorial, [1, 2], DATE, plan)!.threads.map(
+        (t) => t.title,
+      ),
+    ).toEqual(['반도체 흐름']);
+  });
+
   it('북마크한 그 소식이 다시 실린 것은 관심으로 치지 않는다', () => {
     const taste: TasteProfile = {
       topics: [],
