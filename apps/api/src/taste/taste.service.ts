@@ -94,7 +94,13 @@ export class TasteService {
    */
   async profiles(userIds: number[]): Promise<Map<number, TasteProfile>> {
     if (!userIds.length) return new Map();
-    const { byUser, rules } = await this.signals(userIds);
+    const [{ byUser, rules }, follows] = await Promise.all([
+      this.signals(userIds),
+      this.prisma.tagFollow.findMany({
+        where: { userId: { in: userIds } },
+        select: { userId: true, tag: true },
+      }),
+    ]);
     const result = new Map<number, TasteProfile>();
     for (const [userId, signals] of byUser) {
       const { topics } = scoreTaste(signals, rules);
@@ -106,6 +112,15 @@ export class TasteService {
             score: t.score,
           })),
         });
+    }
+    // 팔로우한 태그 (#123 5단계): 북마크 · 스크랩이 없어도 맞춤이 된다
+    for (const { userId, tag } of follows) {
+      const profile = result.get(userId) ?? { topics: [] };
+      profile.follows = [
+        ...(profile.follows ?? []),
+        { name: tag, key: tagKey(tag) },
+      ];
+      result.set(userId, profile);
     }
     return result;
   }
@@ -160,12 +175,24 @@ export class TasteService {
     ].sort((a, b) => b.at.getTime() - a.at.getTime());
 
     const result = new Map<number, SignalText[]>();
+    // 팔로우한 태그는 개수 제한 밖에서 늘 넣는다 (뜻이 가까운 소식 · 기사도 닿게)
+    const follows = await this.prisma.tagFollow.findMany({
+      where: { userId: { in: userIds } },
+      select: { userId: true, tag: true },
+    });
+    for (const { userId, tag } of follows)
+      result.set(userId, [
+        ...(result.get(userId) ?? []),
+        { kind: 'tag', label: tag, text: tag },
+      ]);
     for (const row of rows) {
       const mine = result.get(row.userId) ?? [];
-      result.set(
-        row.userId,
-        [...mine, ...row.texts].slice(0, SIGNAL_TEXT_LIMITS.count),
-      );
+      const tags = mine.filter((t) => t.kind === 'tag');
+      const others = mine.filter((t) => t.kind !== 'tag');
+      result.set(row.userId, [
+        ...tags,
+        ...[...others, ...row.texts].slice(0, SIGNAL_TEXT_LIMITS.count),
+      ]);
     }
     return result;
   }

@@ -9,6 +9,7 @@ import styled from 'styled-components';
 import { PERIOD_OPTIONS, SearchPeriod, readFilters, toPageHref } from '@/utils/newsletterSearch';
 import { kstDate } from '@/utils/formatter';
 import { DateRangePicker } from '@/components/common/DatePicker';
+import TagFollowButton from '@/components/common/tag/TagFollowButton';
 
 /**
  * 뉴스레터 목록 위 필터 줄 (#20): 기간 · 키워드(태그에서 들어옴).
@@ -90,6 +91,8 @@ export default function SearchFilters() {
 						<LuX aria-label="키워드 조건 지우기" />
 					</button>
 				)}
+				{/* 태그로 고른 목록에서 그 태그를 팔로우 (#123): 맞춤 메일에서 이 태그의 소식을 앞에 */}
+				{filters.keyword && <TagFollowButton tag={filters.keyword} />}
 			</div>
 			{keywords.length > 0 && (
 				<div className="tags" role="group" aria-label="자주 나온 태그 (최근 30일)">

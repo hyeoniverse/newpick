@@ -17,9 +17,9 @@ import type { ArticlePick } from '../recommend/pick';
  * 취향 신호가 없거나 어떤 소식에도 닿지 않으면 계획이 없고, 메일은 지금처럼 분야별이다
  */
 
-/** 취향 신호 하나: 북마크한 소식(제목 · 리드) 또는 스크랩한 문장(+메모)의 임베딩 */
+/** 취향 신호 하나: 북마크한 소식(제목 · 리드), 스크랩한 문장(+메모), 팔로우한 태그의 임베딩 */
 export type TasteSignal = {
-  kind: 'bookmark' | 'scrap';
+  kind: 'bookmark' | 'scrap' | 'tag';
   /** 소식 제목 · 스크랩 문장 앞부분 (이미 본 소식을 알아보는 데 쓴다) */
   label: string;
   vector: number[];
@@ -29,6 +29,8 @@ export type TasteSignal = {
 export type TasteProfile = {
   topics: { name: string; key: string; score: number }[];
   signals?: TasteSignal[];
+  /** 팔로우한 태그 (#123 5단계): 소식 글에 나오면 관심 점수 최대 */
+  follows?: { name: string; key: string }[];
 };
 
 /** 한 사람의 메일 계획. 발송 기록에 함께 남겨 마이페이지에서 받은 그대로 다시 만든다 */
@@ -85,6 +87,13 @@ export function interestScore(
   vector: number[] | undefined,
   profile: TasteProfile,
 ): { score: number; seen: boolean } {
+  // 직접 팔로우한 태그가 소식 글에 나오면 가장 강한 관심 (추측한 취향보다 확실한 신호)
+  if (
+    profile.follows?.some(
+      (f) => f.key.length >= 2 && storyKey(story).includes(f.key),
+    )
+  )
+    return { score: 1, seen: false };
   if (!vector || !profile.signals?.length)
     return {
       score: Math.min(1, relevance(storyKey(story), profile)),
@@ -118,7 +127,12 @@ export function planMail(
   vectors?: Map<string, number[]>,
   editorial?: Editorial | null,
 ): MailPlan | null {
-  if (!profile?.topics.length && !profile?.signals?.length) return null;
+  if (
+    !profile?.topics.length &&
+    !profile?.signals?.length &&
+    !profile?.follows?.length
+  )
+    return null;
   const taste = {
     ...profile,
     topics: [...profile.topics]

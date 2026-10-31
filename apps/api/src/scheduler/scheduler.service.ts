@@ -520,6 +520,7 @@ export class SchedulerService implements OnApplicationBootstrap {
         return {
           userId: s.userId!,
           signals: profiles.get(s.userId!)?.signals ?? [],
+          keywords: profiles.get(s.userId!)?.follows?.map((f) => f.key) ?? [],
           shown: refs
             .map((ref) => vectors.get(ref))
             .filter((v): v is number[] => !!v),
