@@ -1,3 +1,4 @@
+import { FollowsModule } from 'src/follows/follows.module';
 import { Module } from '@nestjs/common';
 import { SchedulerService } from './scheduler.service';
 import { SchedulerController } from './scheduler.controller';
@@ -23,6 +24,7 @@ import { RecommendModule } from 'src/recommend/recommend.module';
     BasicRepositoryModule,
     EditionModule,
     TasteModule,
+    FollowsModule,
     RecommendModule,
   ],
   providers: [SchedulerService, DashboardService, StatsService],

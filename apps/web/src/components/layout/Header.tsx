@@ -19,11 +19,14 @@ import Dropdown from '@/components/common/Dropdown';
 import Navigation from '@/components/layout/header/Navigation';
 import Drawer from '@/components/layout/header/Drawer';
 import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
+import { useUnseenFollows } from '@/hooks/useFollows';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import HeaderSearch, { HeaderSearchFallback } from '@/components/layout/header/HeaderSearch';
 
 export default function Header() {
 	const { user, session, handleLogout } = useAuth();
+	// 후속 지켜보기: 아직 안 본 후속 소식 (프로필에 점 · 메뉴에 개수)
+	const { data: unseenFollows = 0 } = useUnseenFollows();
 	const openLogin = useOpenLogin();
 	const { isHeaderOpen, setHeaderOpen } = useHeader();
 	const { closeDropdown } = useDropdown(['auth', 'drawer']);
@@ -87,15 +90,14 @@ export default function Header() {
 								className="auth"
 								label="내 계정 메뉴"
 								toggleButton={
-									user.profileImg ? (
+									<StyledAvatar>
 										<StyledUserCircle>
-											<Imgae src={user.profileImg} alt="" ratio="square" />
+											{user.profileImg ? <Imgae src={user.profileImg} alt="" ratio="square" /> : <AvatarPlaceholder />}
 										</StyledUserCircle>
-									) : (
-										<StyledUserCircle>
-											<AvatarPlaceholder />
-										</StyledUserCircle>
-									)
+										{unseenFollows > 0 && (
+											<span className="follow-dot" role="status" aria-label={`새 후속 소식 ${unseenFollows}건`} />
+										)}
+									</StyledAvatar>
 								}
 							>
 								<>
@@ -105,6 +107,13 @@ export default function Header() {
 											마이페이지
 										</Button>
 									</Link>
+									{unseenFollows > 0 && (
+										<Link href="/mypage?tab=follows">
+											<Button as="span" className="item">
+												새 후속 소식 {unseenFollows}
+											</Button>
+										</Link>
+									)}
 									{/* 관리자에게만 보이는 진입점 (#73). 실제 권한은 API가 지킨다 */}
 									{user.role === 'admin' && (
 										<Link href="/admin">
@@ -265,6 +274,23 @@ const StyledHeader = styled.header<StyledProps>`
 			visibility: visible;
 			transform: scaleX(1);
 		}
+	}
+`;
+
+/** 프로필 + 새 후속 소식 점 (원은 overflow: hidden이라 점은 바깥 칸에) */
+const StyledAvatar = styled.span`
+	position: relative;
+	display: inline-flex;
+
+	.follow-dot {
+		position: absolute;
+		top: 0;
+		right: 0;
+		width: 0.625rem;
+		height: 0.625rem;
+		border: 2px solid ${({ theme }) => theme.color.background};
+		border-radius: 50%;
+		background: ${({ theme }) => theme.color.primary};
 	}
 `;
 

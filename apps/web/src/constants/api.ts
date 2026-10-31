@@ -64,6 +64,12 @@ export const API_ENDPOINTS = {
 		MAIL: (sentAt: string) => `${API_URL}/mypage/mails/view?sentAt=${encodeURIComponent(sentAt)}`,
 		/** 회원 탈퇴 (#65) */
 		ACCOUNT: () => `${API_URL}/mypage/account`,
+		/** 후속 지켜보기: 목록 · 안 본 수 · 봤음 · 이 뉴스레터에서 지켜보는 소식 · 시작 · 끄기 */
+		FOLLOWS: () => `${API_URL}/mypage/follows`,
+		FOLLOWS_UNSEEN: () => `${API_URL}/mypage/follows/unseen`,
+		FOLLOWS_SEEN: () => `${API_URL}/mypage/follows/seen`,
+		FOLLOWS_OF: (newsletterId: number) => `${API_URL}/mypage/follows/newsletter/${newsletterId}`,
+		FOLLOW: (id: number) => `${API_URL}/mypage/follows/${id}`,
 		/** 이메일 바꾸기: 새 주소로 인증 코드 → 코드 확인 */
 		EMAIL_CODE: () => `${API_URL}/mypage/email/code`,
 		EMAIL_VERIFY: () => `${API_URL}/mypage/email/verify`,

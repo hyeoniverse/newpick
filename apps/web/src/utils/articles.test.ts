@@ -27,6 +27,14 @@ describe('URL 목록 문자열', () => {
 		expect(parseUrls('https://a.com,https://b.com', 1)).toEqual(['https://a.com']);
 	});
 
+	it('겹친 주소 · 빈 항목은 빼고 센다 (같은 기사를 두 번 쓴 뉴스레터)', () => {
+		expect(parseUrls('https://a.com,https://a.com, ,https://b.com,https://c.com')).toEqual([
+			'https://a.com',
+			'https://b.com',
+			'https://c.com',
+		]);
+	});
+
 	it('문자열이 아니면 빈 배열', () => {
 		expect(parseUrls(undefined)).toEqual([]);
 		expect(parseUrls(['https://a.com'])).toEqual([]);

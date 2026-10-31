@@ -1,3 +1,4 @@
+import type { ComposedSection } from '../edition/compose';
 import type { MailPlan } from '../edition/personalize';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
@@ -381,15 +382,7 @@ export class MyPageService {
             line,
           })),
           threads: digests[i].threads,
-          sections: digests[i].sections.map((s) => ({
-            category: s.category,
-            newsletterId: s.newsletterId,
-            title: s.title,
-            stories: s.stories.map((st) => ({
-              heading: st.story.heading,
-              alsoIn: st.alsoIn,
-            })),
-          })),
+          sections: mergeSections(digests[i].sections),
           watch: digests[i].watch,
         },
         starred: markOf.get(sentAt.getTime())?.starred ?? false,
@@ -460,4 +453,33 @@ export class MyPageService {
     );
     return { interests: await getInterestIds(this.prisma, userId) };
   }
+}
+
+/**
+ * 목록용 분야별 소식 제목. 맞춤 메일은 소식 하나씩 점수 순이라 같은 분야를 한 줄로 모은다
+ * (분야는 처음 나온 순서, 소식은 메일 순서)
+ */
+function mergeSections(sections: ComposedSection[]) {
+  const merged: {
+    category: string;
+    newsletterId: number;
+    title: string;
+    stories: { heading: string; alsoIn: string[] }[];
+  }[] = [];
+  for (const s of sections) {
+    const stories = s.stories.map((st) => ({
+      heading: st.story.heading,
+      alsoIn: st.alsoIn,
+    }));
+    const same = merged.find((m) => m.newsletterId === s.newsletterId);
+    if (same) same.stories.push(...stories);
+    else
+      merged.push({
+        category: s.category,
+        newsletterId: s.newsletterId,
+        title: s.title,
+        stories,
+      });
+  }
+  return merged;
 }

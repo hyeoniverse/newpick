@@ -1,6 +1,8 @@
+import { FollowsService } from 'src/follows/follows.service';
 import { MailPlan, planMail } from 'src/edition/personalize';
-import { RecommendService } from 'src/recommend/recommend.service';
 import { TasteService } from 'src/taste/taste.service';
+import { RecommendService } from 'src/recommend/recommend.service';
+import { storyRef } from 'src/edition/editor';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { MailService } from 'src/mail/mail.service';
@@ -129,9 +131,10 @@ export class SchedulerService implements OnApplicationBootstrap {
     private schedulerRegistry: SchedulerRegistry,
     private readonly prisma: MysqlPrismaService,
     private readonly editionService: EditionService,
+    private readonly followsService: FollowsService,
     private readonly tasteService: TasteService,
-    private readonly siteCache: SiteCacheService,
     private readonly recommendService: RecommendService,
+    private readonly siteCache: SiteCacheService,
   ) {}
 
   /**
@@ -345,6 +348,15 @@ export class SchedulerService implements OnApplicationBootstrap {
       // 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
       await this.editionService.ensureEdition();
 
+      // 후속 지켜보기: 오늘 소식이 누군가 지켜보는 소식의 후속인지 판정 (실패해도 요약은 끝난 것)
+      if (generatedNewsletter.length > 0) {
+        await this.followsService
+          .detect()
+          .catch((error) =>
+            this.logger.warn(`후속 지켜보기 판정 실패: ${error.message}`),
+          );
+      }
+
       // 새 글이 생겼으면 사이트 첫 화면·목록이 10분 기다리지 않고 바로 보여 주게 (#73)
       if (generatedNewsletter.length > 0) {
         await this.siteCache.refresh('뉴스레터 생성');
@@ -447,7 +459,17 @@ export class SchedulerService implements OnApplicationBootstrap {
         return new Map();
       });
 
-    // 사람마다: 취향으로 순서 · 다른 분야 소식을 정하고(계산), 오픈 모델로 제목 · 맞춤 브리핑 · '나에게 왜'를 쓴다.
+    // 관심 점수는 뜻으로 (북마크 · 스크랩과 오늘 소식의 임베딩). 실패하면 관심 태그로만
+    const texts = await this.tasteService
+      .signalTexts([...profiles.keys()])
+      .catch(() => new Map());
+    const vectors = await this.editionService.embedForPlans(
+      edition,
+      profiles,
+      texts,
+    );
+
+    // 사람마다: 분야를 나누지 않고 점수 높은 소식을 고르고(계산), 오픈 모델로 제목 · 맞춤 브리핑을 쓴다.
     // 글쓰기는 3명씩 동시에. 못 쓰면 그 사람은 맞춤 순서만 있는 메일
     const plans = new Map<number, MailPlan | null>();
     const planned = validSubscribers.filter(
@@ -457,7 +479,13 @@ export class SchedulerService implements OnApplicationBootstrap {
       await Promise.all(
         planned.slice(i, i + 3).map(async (subscriber) => {
           const profile = profiles.get(subscriber.userId!)!;
-          const plan = planMail(edition.sources, subscriber.interests, profile);
+          const plan = planMail(
+            edition.sources,
+            subscriber.interests,
+            profile,
+            vectors,
+            edition.editorial,
+          );
           if (plan)
             plan.note = await this.editionService.writeNote(
               edition,
@@ -474,27 +502,35 @@ export class SchedulerService implements OnApplicationBootstrap {
       this.logger.log(`맞춤 메일 ${plans.size}명 (사람마다 쓴 글 ${notes}명)`);
     }
 
-    // 추천 기사: 북마크 · 스크랩과 뜻이 가까운 오늘 기사 (임베딩 비교만, 글은 쓰지 않는다).
-    // 그 사람 메일에 이미 실린 기사는 뺀다. 오늘 앞당길 소식이 없던 사람도 추천이 있으면 계획을 만든다
-    const picks = await this.recommendService.forUsers(
-      planned.map((subscriber) => ({
-        userId: subscriber.userId!,
-        newsletterIds: [
-          ...edition.sources
-            .filter((s) => subscriber.interests.includes(s.categoryId))
-            .map((s) => s.newsletterId),
-          ...(plans
-            .get(subscriber.userId!)
-            ?.extras.map((e) => e.newsletterId) ?? []),
-        ],
-      })),
-      edition.date,
+    // 추천 기사: 맞춤 계획에 쓴 신호 임베딩 그대로, 그날 뉴스레터 재료와 같은 창에서 뉴스레터에 안 쓴 기사.
+    // 맞춤으로 고른 소식이 없는 사람도 추천 기사만 붙는다 (분야별 메일 + 추천 기사)
+    const now = new Date();
+    const recommended = await this.recommendService.forUsers(
+      planned.map((s) => {
+        // 그 사람 메일에 실린 소식: 맞춤이면 고른 소식, 아니면 구독 분야 소식 전부
+        const refs =
+          plans.get(s.userId!)?.picks.map((p) => p.ref) ??
+          edition.sources
+            .filter((source) => s.interests.includes(source.categoryId))
+            .flatMap((source) =>
+              source.stories.map((_, i) => storyRef(source.newsletterId, i)),
+            );
+        return {
+          userId: s.userId!,
+          signals: profiles.get(s.userId!)?.signals ?? [],
+          shown: refs
+            .map((ref) => vectors.get(ref))
+            .filter((v): v is number[] => !!v),
+        };
+      }),
+      {
+        start: new Date(now.getTime() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000),
+        end: now,
+      },
+      edition.sources.map((s) => s.newsletterId),
     );
-    for (const [userId, list] of picks)
-      plans.set(userId, {
-        ...(plans.get(userId) ?? { boosts: {}, extras: [] }),
-        picks: list,
-      });
+    for (const [userId, articles] of recommended)
+      plans.set(userId, { ...(plans.get(userId) ?? { picks: [] }), articles });
 
     const result = await this.mailService.sendBulkMail(
       validSubscribers.map((subscriber) => ({

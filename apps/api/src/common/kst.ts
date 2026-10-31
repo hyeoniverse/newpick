@@ -24,6 +24,17 @@ export function kstDayRange(dateStart: string | Date, dateEnd: string | Date) {
   };
 }
 
+/** 네이버 기사 시각과 같은 꼴의 KST 시각 'YYYY-MM-DD HH:mm:ss' (문자열로 크기를 비교할 수 있다) */
+export function kstStamp(input: Date): string {
+  return dayjs(input).tz(KST).format('YYYY-MM-DD HH:mm:ss');
+}
+
+/** KST 날짜를 '10월 31일'로 */
+export function kstDayLabel(input: Date = new Date()): string {
+  const day = dayjs(input).tz(KST);
+  return `${day.month() + 1}월 ${day.date()}일`;
+}
+
 /** 오늘(KST)로부터 days일 전 날짜 'YYYY-MM-DD' */
 export function kstDaysAgo(days: number, now: Date = new Date()): string {
   return dayjs(now).tz(KST).subtract(days, 'day').format('YYYY-MM-DD');

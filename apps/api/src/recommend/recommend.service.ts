@@ -2,33 +2,20 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AiService } from '../ai/ai.service';
 import { embeddingText } from '../ai-summary/articlePrep';
-import { kstDayRange, kstDaysAgo } from '../common/kst';
 import { CrawlingRepository } from '../crawling/crawling.repository';
-import { parseNewsletterHtml } from '../edition/parse';
-import {
-  ArticlePick,
-  Candidate,
-  pickArticles,
-  RECOMMEND_LIMITS,
-  Signal,
-  signalLabel,
-} from './pick';
+import type { TasteSignal } from '../edition/personalize';
+import { SIGNAL_TEXT_LIMITS } from '../taste/taste.service';
+import { ArticlePick, Candidate, pickArticles } from './pick';
 
 /** 임베딩은 한 번에 이만큼씩 */
 const BATCH = 50;
 
-const links = (usedNews?: string | null) =>
-  (usedNews ?? '')
-    .split(',')
-    .map((link) => link.trim())
-    .filter(Boolean);
-
-type SignalText = Omit<Signal, 'vector'> & { text: string };
-
 /**
- * 추천 기사 (#123): 사람마다 북마크 · 스크랩한 소식과 뜻이 가까운 오늘 기사를 고른다.
- * 기사 임베딩은 뉴스레터를 쓸 때 남긴 것을 다시 쓰고(없는 것만 계산), 신호는 그때그때 계산한다.
- * 임베딩을 못 하는 날(할당 초과 등)은 추천 없이 보낸다
+ * 추천 기사 (#123): 사람마다 북마크 · 스크랩한 소식과 뜻이 가까운 오늘 기사를 원문으로 권한다.
+ * 신호 임베딩은 맞춤 메일이 이미 계산한 것(EditionService.embedForPlans)을 그대로 쓰고,
+ * 기사 임베딩은 뉴스레터를 쓸 때 남긴 것을 다시 쓴다(없는 것만 계산).
+ * 그날 뉴스레터에 쓴 기사, 그 사람이 북마크 · 스크랩한 뉴스레터에 쓴 기사(이미 본 기사)는 권하지 않는다.
+ * 임베딩을 못 하는 날은 추천 없이 보낸다
  */
 @Injectable()
 export class RecommendService {
@@ -41,56 +28,38 @@ export class RecommendService {
   ) {}
 
   /**
-   * 사람마다 추천 기사. newsletterIds = 그 사람 메일에 엮은 뉴스레터 (그 기사들은 이미 실렸으니 뺀다)
+   * 사람마다 추천 기사. shown: 그 사람 메일에 실린 소식의 임베딩 (같은 사건 기사는 뺀다),
+   * window: 그날 뉴스레터 재료와 같은 창 (모았고 나온 시각), newsletterIds: 그날 뉴스레터 (거기 쓴 기사는 뺀다)
    */
   async forUsers(
-    users: { userId: number; newsletterIds: number[] }[],
-    date = kstDaysAgo(0),
+    users: { userId: number; signals: TasteSignal[]; shown?: number[][] }[],
+    window: { start: Date; end: Date },
+    newsletterIds: number[],
   ): Promise<Map<number, ArticlePick[]>> {
     const result = new Map<number, ArticlePick[]>();
-    if (!users.length) return result;
+    const withSignals = users.filter((u) => u.signals.length);
+    if (!withSignals.length) return result;
     try {
-      const signals = await this.signals(users.map((u) => u.userId));
-      if (![...signals.values()].some((s) => s.texts.length)) return result;
-      const candidates = await this.candidates(date);
+      const candidates = await this.candidates(window);
       if (!candidates.length) return result;
-
-      // 신호 글은 사람마다 겹칠 수 있어 한 번씩만 계산
-      const texts = [
-        ...new Set(
-          [...signals.values()].flatMap((s) => s.texts.map((t) => t.text)),
-        ),
-      ];
-      const vectors = new Map<string, number[]>();
-      for (let i = 0; i < texts.length; i += BATCH) {
-        const batch = texts.slice(i, i + BATCH);
-        (await this.ai.embed(batch)).forEach((v, j) =>
-          vectors.set(batch[j], v),
-        );
-      }
-
-      const mailLinks = await this.usedLinks(
-        users.flatMap((u) => u.newsletterIds),
+      const used = links(
+        await this.prisma.newsletter.findMany({
+          where: { id: { in: newsletterIds } },
+          select: { usedNews: true },
+        }),
       );
-      for (const user of users) {
-        const mine = signals.get(user.userId);
-        if (!mine?.texts.length) continue;
-        const exclude = new Set([
-          ...mine.usedLinks,
-          ...user.newsletterIds.flatMap((id) => mailLinks.get(id) ?? []),
-        ]);
+      const seen = await this.seenLinks(withSignals.map((u) => u.userId));
+      for (const user of withSignals) {
         const picks = pickArticles(
-          mine.texts.map(({ text, ...rest }) => ({
-            ...rest,
-            vector: vectors.get(text)!,
-          })),
+          user.signals,
           candidates,
-          exclude,
+          new Set([...used, ...(seen.get(user.userId) ?? [])]),
+          user.shown,
         );
         if (picks.length) result.set(user.userId, picks);
       }
       this.logger.log(
-        `추천 기사: ${users.length}명 중 ${result.size}명 (후보 기사 ${candidates.length}건)`,
+        `추천 기사: ${withSignals.length}명 중 ${result.size}명 (후보 기사 ${candidates.length}건)`,
       );
     } catch (error) {
       this.logger.warn(
@@ -100,86 +69,15 @@ export class RecommendService {
     return result;
   }
 
-  /**
-   * 사람마다 최근 신호: 스크랩한 문장(+메모)과 북마크한 뉴스레터의 소식(제목 · 리드).
-   * 그 뉴스레터에 이미 쓴 기사는 다시 권하지 않게 모아 둔다
-   */
-  private async signals(userIds: number[]) {
-    const since = new Date(
-      Date.now() - RECOMMEND_LIMITS.maxAgeDays * 24 * 60 * 60 * 1000,
+  /** 창 안의 기사와 임베딩. 뉴스레터를 쓸 때 남기지 못한 것만 계산해 남긴다 */
+  private async candidates(window: {
+    start: Date;
+    end: Date;
+  }): Promise<Candidate[]> {
+    const articles = await this.crawling.findForRecommend(
+      window.start,
+      window.end,
     );
-    const where = { userId: { in: userIds }, createdAt: { gte: since } };
-    const newsletter = {
-      select: { id: true, contentAsHTML: true, usedNews: true },
-    };
-    const [bookmarks, highlights] = await Promise.all([
-      this.prisma.bookmark.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        select: { userId: true, createdAt: true, newsletter },
-      }),
-      this.prisma.highlight.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        select: {
-          userId: true,
-          createdAt: true,
-          text: true,
-          note: true,
-          newsletter,
-        },
-      }),
-    ]);
-
-    type Row = { at: Date; texts: SignalText[]; used: string[] };
-    const rows = new Map<number, Row[]>();
-    const add = (userId: number, row: Row) =>
-      rows.set(userId, [...(rows.get(userId) ?? []), row]);
-    for (const b of bookmarks)
-      add(b.userId, {
-        at: b.createdAt,
-        used: links(b.newsletter.usedNews),
-        texts: parseNewsletterHtml(b.newsletter.contentAsHTML).stories.map(
-          (story) => ({
-            kind: 'bookmark' as const,
-            label: story.heading,
-            text: [story.heading, story.lead].filter(Boolean).join('\n'),
-          }),
-        ),
-      });
-    for (const h of highlights)
-      add(h.userId, {
-        at: h.createdAt,
-        used: links(h.newsletter.usedNews),
-        texts: [
-          {
-            kind: 'scrap' as const,
-            label: signalLabel(h.text),
-            text: [h.text, h.note].filter(Boolean).join('\n'),
-          },
-        ],
-      });
-
-    const result = new Map<
-      number,
-      { texts: SignalText[]; usedLinks: string[] }
-    >();
-    for (const [userId, list] of rows) {
-      const recent = list.sort((a, b) => b.at.getTime() - a.at.getTime());
-      result.set(userId, {
-        texts: recent
-          .flatMap((r) => r.texts)
-          .slice(0, RECOMMEND_LIMITS.signals),
-        usedLinks: recent.flatMap((r) => r.used),
-      });
-    }
-    return result;
-  }
-
-  /** 오늘 모은 기사와 임베딩. 뉴스레터를 쓸 때 남기지 못한 것만 계산해 남긴다 */
-  private async candidates(date: string): Promise<Candidate[]> {
-    const { start, end } = kstDayRange(date, date);
-    const articles = await this.crawling.findForRecommend(start, end);
     const missing = articles.filter((a) => !a.embedding?.length);
     for (let i = 0; i < missing.length; i += BATCH) {
       const batch = missing.slice(i, i + BATCH);
@@ -207,12 +105,44 @@ export class RecommendService {
     }));
   }
 
-  /** 뉴스레터마다 쓴 기사 링크 */
-  private async usedLinks(newsletterIds: number[]) {
-    const rows = await this.prisma.newsletter.findMany({
-      where: { id: { in: [...new Set(newsletterIds)] } },
-      select: { id: true, usedNews: true },
-    });
-    return new Map(rows.map((r) => [r.id, links(r.usedNews)]));
+  /** 사람마다 최근 북마크 · 스크랩한 뉴스레터에 쓴 기사 링크 (신호와 같은 기간) */
+  private async seenLinks(userIds: number[]) {
+    const where = {
+      userId: { in: userIds },
+      createdAt: {
+        gte: new Date(
+          Date.now() - SIGNAL_TEXT_LIMITS.maxAgeDays * 24 * 60 * 60 * 1000,
+        ),
+      },
+    };
+    const newsletter = { select: { usedNews: true } };
+    const rows = [
+      ...(await this.prisma.bookmark.findMany({
+        where,
+        select: { userId: true, newsletter },
+      })),
+      ...(await this.prisma.highlight.findMany({
+        where,
+        select: { userId: true, newsletter },
+      })),
+    ];
+    const result = new Map<number, string[]>();
+    for (const row of rows)
+      result.set(row.userId, [
+        ...(result.get(row.userId) ?? []),
+        ...links([row.newsletter]),
+      ]);
+    return result;
   }
 }
+
+/** 뉴스레터들에 쓴 기사 링크 */
+const links = (rows: { usedNews: string | null }[]) =>
+  new Set(
+    rows.flatMap((r) =>
+      (r.usedNews ?? '')
+        .split(',')
+        .map((link) => link.trim())
+        .filter(Boolean),
+    ),
+  );
