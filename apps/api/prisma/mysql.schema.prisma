@@ -150,6 +150,18 @@ model EmailArchive {
   @@map("email_archives")
 }
 
+/// 맞춤 메일 계획 (#123 3단계): 한 통에서 취향으로 앞당긴 소식 · 더한 다른 분야 소식.
+/// 마이페이지에서 받은 그대로 다시 만들 때 쓴다. 맞춤이 없던 메일은 없다
+model MailPlan {
+  id     Int      @id @default(autoincrement())
+  email  String
+  sentAt DateTime
+  plan   Json
+
+  @@unique([email, sentAt])
+  @@map("mail_plans")
+}
+
 // AiProcessLog 모델
 model AiProcessLog {
   id           Int      @id @default(autoincrement())

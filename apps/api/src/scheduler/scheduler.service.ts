@@ -1,4 +1,6 @@
 import { FollowsService } from 'src/follows/follows.service';
+import { MailPlan, planMail } from 'src/edition/personalize';
+import { TasteService } from 'src/taste/taste.service';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { MailService } from 'src/mail/mail.service';
@@ -128,6 +130,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     private readonly prisma: MysqlPrismaService,
     private readonly editionService: EditionService,
     private readonly followsService: FollowsService,
+    private readonly tasteService: TasteService,
     private readonly siteCache: SiteCacheService,
   ) {}
 
@@ -439,6 +442,63 @@ export class SchedulerService implements OnApplicationBootstrap {
       return;
     }
 
+    // 맞춤 메일 (#123 3단계): 구독자 모두의 취향을 한 번에 계산 (AI 호출 없음). 실패하면 맞춤 없이 그대로 보낸다
+    const profiles = await this.tasteService
+      .profiles(
+        validSubscribers
+          .map((s) => s.userId)
+          .filter((id): id is number => typeof id === 'number'),
+      )
+      .catch((error) => {
+        this.logger.warn(
+          `맞춤 취향 계산 실패, 맞춤 없이 보냄: ${error.message}`,
+        );
+        return new Map();
+      });
+
+    // 관심 점수는 뜻으로 (북마크 · 스크랩과 오늘 소식의 임베딩). 실패하면 관심 태그로만
+    const texts = await this.tasteService
+      .signalTexts([...profiles.keys()])
+      .catch(() => new Map());
+    const vectors = await this.editionService.embedForPlans(
+      edition,
+      profiles,
+      texts,
+    );
+
+    // 사람마다: 분야를 나누지 않고 점수 높은 소식을 고르고(계산), 오픈 모델로 제목 · 맞춤 브리핑을 쓴다.
+    // 글쓰기는 3명씩 동시에. 못 쓰면 그 사람은 맞춤 순서만 있는 메일
+    const plans = new Map<number, MailPlan | null>();
+    const planned = validSubscribers.filter(
+      (s) => typeof s.userId === 'number' && profiles.has(s.userId),
+    );
+    for (let i = 0; i < planned.length; i += 3) {
+      await Promise.all(
+        planned.slice(i, i + 3).map(async (subscriber) => {
+          const profile = profiles.get(subscriber.userId!)!;
+          const plan = planMail(
+            edition.sources,
+            subscriber.interests,
+            profile,
+            vectors,
+            edition.editorial,
+          );
+          if (plan)
+            plan.note = await this.editionService.writeNote(
+              edition,
+              subscriber.interests,
+              plan,
+              profile,
+            );
+          plans.set(subscriber.userId!, plan);
+        }),
+      );
+    }
+    if (planned.length) {
+      const notes = [...plans.values()].filter((p) => p?.note).length;
+      this.logger.log(`맞춤 메일 ${plans.size}명 (사람마다 쓴 글 ${notes}명)`);
+    }
+
     const result = await this.mailService.sendBulkMail(
       validSubscribers.map((subscriber) => ({
         email: subscriber.email,
@@ -452,6 +512,7 @@ export class SchedulerService implements OnApplicationBootstrap {
           edition,
           subscriber.interests,
           subscriber.userId,
+          subscriber.userId !== undefined ? plans.get(subscriber.userId) : null,
         ),
     );
 

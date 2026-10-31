@@ -2,6 +2,7 @@ import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma, Newsletter } from '@prisma/client';
 import dayjs from 'dayjs';
+import { kstDayRange } from '../common/kst';
 
 @Injectable()
 export class NewsletterRepo {
@@ -342,25 +343,27 @@ export class NewsletterRepo {
   /**
    * 모든 카테고리에 대해 가장 최신의 뉴스레터 한 건씩 조회
    */
+  /**
+   * 오늘의 트렌드: 가장 최근 뉴스레터가 나온 날(KST)의 뉴스레터를 분야마다 한 편씩.
+   * 예전에는 분야마다 '가장 최근'이라, 오늘 어느 분야가 생성되지 않으면 며칠 전 뉴스레터가 섞여 보였다.
+   * 오늘 것이 아직 없으면(아침 생성 전) 어제 것만 보인다
+   */
   async getLatestNewslettersForAllCategories(): Promise<Newsletter[]> {
-    // 각 카테고리별로 가장 최신의 뉴스레터를 가져오기 위해 distinct 조회
-    const categories = await this.prisma.newsletter.findMany({
-      select: { categoryId: true },
-      distinct: ['categoryId'],
+    const latest = await this.prisma.newsletter.findFirst({
+      orderBy: { createdAt: 'desc' },
+      select: { createdAt: true },
     });
-
-    const newsletters: Newsletter[] = [];
-    // 각 카테고리별로 가장 최신 뉴스레터 조회
-    for (const { categoryId } of categories) {
-      const newsletter = await this.prisma.newsletter.findFirst({
-        where: { categoryId },
-        orderBy: { createdAt: 'desc' },
-      });
-      if (newsletter) {
-        newsletters.push(newsletter);
-      }
-    }
-    return newsletters;
+    if (!latest) return [];
+    const { start, end } = kstDayRange(latest.createdAt, latest.createdAt);
+    const newsletters = await this.prisma.newsletter.findMany({
+      where: { createdAt: { gte: start, lte: end } },
+      // 같은 날 다시 만든 분야는 가장 늦게 만든 것으로
+      orderBy: [{ categoryId: 'asc' }, { createdAt: 'desc' }],
+    });
+    const seen = new Set<number>();
+    return newsletters.filter(
+      (n) => !seen.has(n.categoryId) && !!seen.add(n.categoryId),
+    );
   }
 
   async addViewcount(id: number) {

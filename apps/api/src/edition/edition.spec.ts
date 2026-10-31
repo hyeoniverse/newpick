@@ -406,7 +406,11 @@ describe('EditionService (#55)', () => {
         usage: { model: 'claude-sonnet-5-5', input: 1000, output: 234 },
       }),
     };
-    const service = new EditionService(prisma as never, claude as never);
+    const service = new EditionService(
+      prisma as never,
+      claude as never,
+      {} as never,
+    );
     return { service, prisma, claude };
   }
 

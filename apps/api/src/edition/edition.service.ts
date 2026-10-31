@@ -14,6 +14,16 @@ import {
   storyRef,
 } from './editor';
 import { composeEdition, EditionNewsletter } from './compose';
+import { MailPlan, storyEmbeddingText, TasteProfile } from './personalize';
+import type { SignalText } from '../taste/taste.service';
+import {
+  NOTE_SCHEMA,
+  NOTE_SYSTEM,
+  normalizeNote,
+  notePrompt,
+  PersonalNote,
+} from './personalNote';
+import { AiService } from '../ai/ai.service';
 import { createUnsubscribeToken } from 'src/subscriber/unsubscribe-token';
 import { renderEditionMail } from './mail';
 
@@ -31,7 +41,87 @@ export class EditionService {
   constructor(
     private readonly prisma: MysqlPrismaService,
     private readonly claude: ClaudeService,
+    private readonly ai: AiService,
   ) {}
+
+  /**
+   * 사람마다 쓰는 글 (#123 3단계): 이 사람에게 갈 메일(맞춤 계획까지 반영)을 보고 제목 · 맞춤 브리핑을 쓴다.
+   * 오픈 모델(Workers AI 무료 할당)만 쓰고 Claude로 넘기지 않는다 — 안 되면 null(맞춤 순서만 있는 메일)
+   */
+  async writeNote(
+    edition: Edition,
+    interests: number[],
+    plan: MailPlan,
+    profile: TasteProfile,
+  ): Promise<PersonalNote | null> {
+    const composed = composeEdition(
+      edition.sources,
+      edition.editorial,
+      interests,
+      dayjs.tz(edition.date, KST).toDate(),
+      plan,
+    );
+    if (!composed?.top.length) return null;
+    try {
+      const { text } = await this.ai.generate({
+        stage: 'personal-note',
+        prefer: 'open',
+        fallback: false,
+        system: NOTE_SYSTEM,
+        prompt: notePrompt(composed, profile),
+        schema: NOTE_SCHEMA,
+        maxTokens: 1500,
+      });
+      return normalizeNote(JSON.parse(text));
+    } catch (error) {
+      this.logger.warn(
+        `맞춤 글 쓰기 실패, 맞춤 순서만으로 보냄: ${(error as Error).message}`,
+      );
+      return null;
+    }
+  }
+
+  /**
+   * 맞춤 점수용 임베딩 (#123 3단계): 그날 소식(구독자 모두가 같이 쓴다)과 사람마다 신호 글을 한 번에 계산해
+   * 취향(profiles)에 신호 벡터를 채우고 소식(ref)마다 벡터를 돌려준다. 무료 할당(bge-m3) 안에서 끝난다.
+   * 안 되면 빈 결과 — planMail이 관심 태그로만 점수를 매긴다
+   */
+  async embedForPlans(
+    edition: Edition,
+    profiles: Map<number, TasteProfile>,
+    texts: Map<number, SignalText[]>,
+  ): Promise<Map<string, number[]>> {
+    const stories = edition.sources.flatMap((source) =>
+      source.stories.map((story, i) => ({
+        ref: storyRef(source.newsletterId, i),
+        text: storyEmbeddingText(story),
+      })),
+    );
+    // 신호 글은 사람마다 겹칠 수 있어 한 번씩만
+    const signalTexts = [
+      ...new Set([...texts.values()].flat().map((t) => t.text)),
+    ];
+    const all = [...stories.map((s) => s.text), ...signalTexts];
+    if (!stories.length || !signalTexts.length) return new Map();
+    try {
+      const vectors: number[][] = [];
+      for (let i = 0; i < all.length; i += EMBED_BATCH)
+        vectors.push(...(await this.ai.embed(all.slice(i, i + EMBED_BATCH))));
+      const byText = new Map(
+        signalTexts.map((text, i) => [text, vectors[stories.length + i]]),
+      );
+      for (const [userId, profile] of profiles)
+        profile.signals = (texts.get(userId) ?? []).map(
+          ({ text, ...signal }) => ({ ...signal, vector: byText.get(text)! }),
+        );
+      return new Map(stories.map((s, i) => [s.ref, vectors[i]]));
+    } catch (error) {
+      this.logger.warn(
+        `맞춤 임베딩 실패, 관심 태그로만 고름: ${(error as Error).message}`,
+      );
+      return new Map();
+    }
+  }
 
   /**
    * 그 날짜(KST)의 편집본. 처음이면 그날 뉴스레터로 편집해 저장하고, 있으면 그대로 쓴다 (다시 보내도 호출 없음).
@@ -143,11 +233,15 @@ export class EditionService {
    * 이미 보낸 메일 다시 만들기 (마이페이지 '내 뉴스레터'). 보낸 날의 편집본 + 그 메일에 엮은 뉴스레터로
    * 발송 때와 같은 HTML을 만든다 (AI 호출 없음). 수신 거부 링크는 붙이지 않는다
    */
-  async rebuildMail(sentAt: Date, newsletterIds: number[]) {
+  async rebuildMail(
+    sentAt: Date,
+    newsletterIds: number[],
+    plan?: MailPlan | null,
+  ) {
     const date = dayjs(sentAt).tz(KST).format('YYYY-MM-DD');
     const [saved, sources] = await Promise.all([
       this.prisma.dailyEdition.findUnique({ where: { date } }),
-      this.loadSources({ ids: newsletterIds }),
+      this.loadSources({ ids: withExtras(newsletterIds, plan) }),
     ]);
     return this.composeMail(
       {
@@ -155,7 +249,9 @@ export class EditionService {
         sources,
         editorial: (saved?.editorial as Editorial | null) ?? null,
       },
-      sources.map((s) => s.categoryId),
+      interestsOf(sources, newsletterIds),
+      undefined,
+      plan,
     );
   }
 
@@ -163,17 +259,22 @@ export class EditionService {
    * 이미 보낸 메일의 짜임새만 (마이페이지 목록용): 오늘 한눈에 · 분야를 넘는 흐름 · 분야별 소식 제목 · 관전 포인트.
    * rebuildMail과 같은 재료(보낸 날의 편집본 + 엮은 뉴스레터)로 엮되 HTML은 만들지 않는다 (AI 호출 없음)
    */
-  async rebuildDigest(sentAt: Date, newsletterIds: number[]) {
+  async rebuildDigest(
+    sentAt: Date,
+    newsletterIds: number[],
+    plan?: MailPlan | null,
+  ) {
     const date = dayjs(sentAt).tz(KST).format('YYYY-MM-DD');
     const [saved, sources] = await Promise.all([
       this.prisma.dailyEdition.findUnique({ where: { date } }),
-      this.loadSources({ ids: newsletterIds }),
+      this.loadSources({ ids: withExtras(newsletterIds, plan) }),
     ]);
     return composeEdition(
       sources,
       (saved?.editorial as Editorial | null) ?? null,
-      sources.map((s) => s.categoryId),
+      interestsOf(sources, newsletterIds),
       dayjs.tz(date, KST).toDate(),
+      plan,
     );
   }
 
@@ -182,12 +283,19 @@ export class EditionService {
    * - 본문 아래 '수신 거부': 로그인 없이 여는 확인 화면 /unsubscribe?token=
    * - 메일 헤더 List-Unsubscribe(+ -Post): 메일 앱의 '구독 취소' 버튼이 사이트를 거쳐 API로 바로 POST (RFC 8058)
    */
-  composeMail(edition: Edition, interests: number[], userId?: number) {
+  composeMail(
+    edition: Edition,
+    interests: number[],
+    userId?: number,
+    /** 맞춤 계획 (#123 3단계). 없으면 지금처럼 고른 분야로만 */
+    plan?: MailPlan | null,
+  ) {
     const composed = composeEdition(
       edition.sources,
       edition.editorial,
       interests,
       dayjs.tz(edition.date, KST).toDate(),
+      plan,
     );
     if (!composed) return null;
 
@@ -202,7 +310,9 @@ export class EditionService {
         process.env.MAIL_USER,
         token && `${base}/unsubscribe?token=${token}`,
       ),
-      newsletterIds: composed.sections.map((s) => s.newsletterId),
+      newsletterIds: composed.newsletterIds,
+      // 실제로 맞춤으로 엮었을 때만 남긴다
+      plan: composed.personal ? plan : null,
       ...(token && {
         headers: {
           'List-Unsubscribe': `<${base}/api/subscribers/unsubscribe?token=${token}>`,
@@ -247,3 +357,20 @@ export class EditionService {
       });
   }
 }
+
+/** 임베딩은 한 번에 이만큼씩 */
+const EMBED_BATCH = 50;
+
+/** 다시 만들 때 불러올 뉴스레터: 발송 기록 + 맞춤 계획의 소식이 있는 뉴스레터 */
+const withExtras = (newsletterIds: number[], plan?: MailPlan | null) => [
+  ...new Set([
+    ...newsletterIds,
+    ...(plan?.picks?.map((p) => p.newsletterId) ?? []),
+  ]),
+];
+
+/** 고른 분야: 발송 기록에 있는 뉴스레터의 분야만 (맞춤으로 더한 분야는 빼고) */
+const interestsOf = (sources: EditionNewsletter[], newsletterIds: number[]) =>
+  sources
+    .filter((s) => newsletterIds.includes(s.newsletterId))
+    .map((s) => s.categoryId);

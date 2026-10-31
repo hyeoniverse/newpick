@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
-import { toRules } from 'src/tags/tags';
+import { tagKey, toRules } from 'src/tags/tags';
+import { parseNewsletterHtml } from 'src/edition/parse';
+import type { TasteProfile, TasteSignal } from 'src/edition/personalize';
 import {
   HALF_LIFE_DAYS,
   STAR_BONUS,
@@ -15,6 +17,18 @@ const asKeywords = (value: unknown) =>
     : [];
 
 const NEWSLETTER = { select: { categoryId: true, keywords: true } } as const;
+
+/** 맞춤 메일에서 뜻을 비교할 신호 (최근 것부터 이만큼, 이 기간 안) */
+export const SIGNAL_TEXT_LIMITS = { count: 24, maxAgeDays: 30, label: 30 };
+
+/** 임베딩할 신호 글 */
+export type SignalText = Omit<TasteSignal, 'vector'> & { text: string };
+
+/** 스크랩 문장은 앞부분만 이름으로 */
+export const signalLabel = (text: string, max = SIGNAL_TEXT_LIMITS.label) => {
+  const flat = text.replace(/\s+/g, ' ').trim();
+  return flat.length > max ? `${flat.slice(0, max)}…` : flat;
+};
 
 /**
  * 취향 점수 (#123 2단계). 점수 표를 따로 두지 않고 북마크 · 스크랩 · 메모(원본)에서 그때그때 계산한다:
@@ -72,6 +86,88 @@ export class TasteService {
       rules: toRules(rules),
       names: new Map(categories.map((c) => [c.id, c.name])),
     };
+  }
+
+  /**
+   * 맞춤 메일용 취향 (#123 3단계): 사람마다 점수 큰 태그. 발송 때 구독자 모두를 한 번에 계산한다 (AI 호출 없음).
+   * 신호가 없는 사람은 빠진다 (맞춤 없이 지금 그대로)
+   */
+  async profiles(userIds: number[]): Promise<Map<number, TasteProfile>> {
+    if (!userIds.length) return new Map();
+    const { byUser, rules } = await this.signals(userIds);
+    const result = new Map<number, TasteProfile>();
+    for (const [userId, signals] of byUser) {
+      const { topics } = scoreTaste(signals, rules);
+      if (topics.length)
+        result.set(userId, {
+          topics: topics.map((t) => ({
+            name: t.topic,
+            key: tagKey(t.topic),
+            score: t.score,
+          })),
+        });
+    }
+    return result;
+  }
+
+  /**
+   * 맞춤 메일에서 뜻을 비교할 신호 글 (사람마다 최근 것부터): 북마크한 뉴스레터의 소식(제목 · 리드),
+   * 스크랩한 문장(+메모). 임베딩은 EditionService가 한 번에 한다
+   */
+  async signalTexts(userIds: number[]): Promise<Map<number, SignalText[]>> {
+    if (!userIds.length) return new Map();
+    const since = new Date(
+      Date.now() - SIGNAL_TEXT_LIMITS.maxAgeDays * 24 * 60 * 60 * 1000,
+    );
+    const where = { userId: { in: userIds }, createdAt: { gte: since } };
+    const [bookmarks, highlights] = await Promise.all([
+      this.prisma.bookmark.findMany({
+        where,
+        select: {
+          userId: true,
+          createdAt: true,
+          newsletter: { select: { contentAsHTML: true } },
+        },
+      }),
+      this.prisma.highlight.findMany({
+        where,
+        select: { userId: true, createdAt: true, text: true, note: true },
+      }),
+    ]);
+    const rows = [
+      ...bookmarks.map((b) => ({
+        userId: b.userId,
+        at: b.createdAt,
+        texts: parseNewsletterHtml(b.newsletter.contentAsHTML).stories.map(
+          (story): SignalText => ({
+            kind: 'bookmark',
+            label: story.heading,
+            text: [story.heading, story.lead].filter(Boolean).join('\n'),
+          }),
+        ),
+      })),
+      ...highlights.map((h) => ({
+        userId: h.userId,
+        at: h.createdAt,
+        texts: [
+          {
+            kind: 'scrap' as const,
+            label: signalLabel(h.text),
+            text: [h.text, h.note].filter(Boolean).join('\n'),
+          },
+        ],
+      })),
+    ].sort((a, b) => b.at.getTime() - a.at.getTime());
+
+    const result = new Map<number, SignalText[]>();
+    for (const row of rows) {
+      const mine = result.get(row.userId) ?? [];
+      result.set(
+        row.userId,
+        [...mine, ...row.texts].slice(0, SIGNAL_TEXT_LIMITS.count),
+      );
+    }
+    return result;
   }
 
   /** 마이페이지: 내 취향 (태그 20개까지, 관심사, 신호 수) */
