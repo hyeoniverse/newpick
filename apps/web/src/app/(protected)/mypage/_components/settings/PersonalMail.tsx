@@ -62,15 +62,15 @@ export default function PersonalMail() {
 					)}
 				</Text>
 			</div>
-			{/* 스위치는 설명 아래 따로 한 줄, 오른쪽 끝에: 지금 상태를 글자로 함께 */}
+			{/* 스위치는 설명 아래 따로 한 줄: 지금 상태를 글자로 함께 */}
 			<div className="control">
-				<span aria-hidden>{enabled ? '켜짐' : '꺼짐'}</span>
 				<Switch
 					checked={enabled}
 					label="맞춤 메일"
 					disabled={isPending || save.isPending}
 					onChange={(next) => save.mutate(next)}
 				/>
+				<span aria-hidden>{enabled ? '켜짐' : '꺼짐'}</span>
 			</div>
 		</StyledPersonalMail>
 	);
@@ -94,7 +94,6 @@ const StyledPersonalMail = styled.section`
 	.control {
 		display: flex;
 		align-items: center;
-		justify-content: flex-end;
 		gap: 0.625rem;
 
 		span {
