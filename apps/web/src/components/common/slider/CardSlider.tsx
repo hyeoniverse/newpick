@@ -31,12 +31,17 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 	// 연속 클릭 방지 해제
 	useTimeout(() => setIsScrolling(false), isScrolling ? 500 : null);
 
+	// 큰 배너(main)는 끝에서 처음으로 이어진다: 첫 카드를 맨 뒤에 하나 더 두고, 거기까지 옆으로 넘긴 뒤
+	// 보이지 않게 진짜 첫 카드로 옮긴다 (예전에는 모든 카드를 거꾸로 훑으며 되감겼다)
+	const loop = type === 'main' && data.length > 1;
+
 	const handleScroll = useCallback(
 		(direction: 'left' | 'right') => {
 			if (isScrolling) return;
 			setIsScrolling(true);
 
-			if (cardContainerRef.current && cardRef.current) {
+			const container = cardContainerRef.current;
+			if (container && cardRef.current) {
 				let cardWidth = isMobile ? cardRef.current.offsetWidth : cardRef.current.offsetWidth * 2;
 				let gap = isMobile ? 24 : 24 * 2;
 				if (type === 'main') {
@@ -45,23 +50,38 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 				}
 
 				const scrollAmount = cardWidth + gap;
-				let newIndex = currentIndex;
+				const last = data.length - 1;
+				const to = (index: number, behavior: ScrollBehavior) =>
+					container.scrollTo({ left: index * scrollAmount, behavior });
 
-				if (direction === 'left') {
-					newIndex = currentIndex === 0 ? data.length - 1 : currentIndex - 1;
-				} else {
-					newIndex = currentIndex === data.length - 1 ? 0 : currentIndex + 1;
+				if (loop && direction === 'right' && currentIndex === last) {
+					// 맨 뒤의 첫 카드까지 넘긴 뒤, 같은 모습인 진짜 첫 카드로 순간 이동
+					setCurrentIndex(0);
+					to(data.length, 'smooth');
+					afterScroll(container, () => to(0, 'instant'));
+					return;
+				}
+				if (loop && direction === 'left' && currentIndex === 0) {
+					// 맨 뒤의 첫 카드로 순간 이동한 뒤, 마지막 카드로 넘긴다
+					setCurrentIndex(last);
+					to(data.length, 'instant');
+					to(last, 'smooth');
+					return;
 				}
 
+				const newIndex =
+					direction === 'left'
+						? currentIndex === 0
+							? last
+							: currentIndex - 1
+						: currentIndex === last
+							? 0
+							: currentIndex + 1;
 				setCurrentIndex(newIndex);
-
-				cardContainerRef.current.scrollTo({
-					left: newIndex * scrollAmount,
-					behavior: 'smooth',
-				});
+				to(newIndex, 'smooth');
 			}
 		},
-		[isScrolling, isMobile, type, currentIndex, data.length]
+		[isScrolling, isMobile, type, currentIndex, data.length, loop],
 	);
 
 	const goToSlide = (index: number) => {
@@ -119,6 +139,8 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 				{data.map((item, index) => (
 					<Card key={index} className="card" type={type} ref={index === 0 ? cardRef : null} data={item} />
 				))}
+				{/* 이어 넘기기용 첫 카드 복제본: 화면 읽기 · 키보드에서는 빠진다 */}
+				{loop && <Card key="loop" className="card" type={type} ref={hideFromAssistiveTech} data={data[0]} />}
 			</div>
 			<div className="controls">
 				{type === 'main' && (
@@ -157,6 +179,25 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 		</StyledCardSlider>
 	);
 };
+
+/** 부드러운 넘김이 끝나면 한 번 (scrollend가 없는 브라우저는 시간으로) */
+function afterScroll(container: HTMLElement, run: () => void) {
+	let done = false;
+	const once = () => {
+		if (done) return;
+		done = true;
+		container.removeEventListener('scrollend', once);
+		run();
+	};
+	container.addEventListener('scrollend', once);
+	window.setTimeout(once, 800);
+}
+
+/** 복제본은 눈에만 보이게 */
+function hideFromAssistiveTech(el: HTMLDivElement | null) {
+	el?.setAttribute('aria-hidden', 'true');
+	el?.setAttribute('inert', '');
+}
 
 interface StyledProps {
 	$type?: 'main' | 'sub';
