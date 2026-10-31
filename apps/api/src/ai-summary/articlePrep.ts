@@ -12,7 +12,15 @@ export type PrepArticle = {
   index: number;
   title: string;
   source?: string;
+  /** 보도 시각 'YYYY-MM-DD HH:mm:ss' (KST, 네이버 기사) */
+  publishedAt?: string;
   content: string;
+};
+
+/** 보도 시각을 프롬프트용으로 짧게: '2026-10-30 18:30:00' → '10/30 18:30' */
+export const publishedLabel = (publishedAt?: string) => {
+  const m = publishedAt?.match(/^\d{4}-(\d{2})-(\d{2}) (\d{2}:\d{2})/);
+  return m ? `${Number(m[1])}/${Number(m[2])} ${m[3]}` : '';
 };
 
 export type Cluster = { articles: PrepArticle[] };
@@ -139,12 +147,18 @@ export function clusterArticles(
 }
 
 export function prepare(
-  articles: { title: string; content: string; source?: string }[],
+  articles: {
+    title: string;
+    content: string;
+    source?: string;
+    publishedAt?: string;
+  }[],
 ): PrepArticle[] {
   return articles.map((a, index) => ({
     index,
     title: a.title.trim(),
     source: a.source,
+    ...(a.publishedAt && { publishedAt: a.publishedAt }),
     content: truncate(cleanText(a.content), MAX_ARTICLE_CHARS),
   }));
 }

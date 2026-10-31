@@ -234,6 +234,28 @@ describe('2단계: 쓰기', () => {
     );
   });
 
+  it('오늘 날짜와 기사마다 보도 시각을 붙여, 지난 일을 오늘 일처럼 쓰지 않게 한다', () => {
+    const dated = prepare([
+      {
+        title: '기사 A',
+        content: '본문 A',
+        source: '연합뉴스',
+        publishedAt: '2026-10-30 18:05:12',
+      },
+    ]);
+    expect(numberArticles(dated)).toBe(
+      '[1] (연합뉴스 · 10/30 18:05) 기사 A\n본문 A',
+    );
+    const today = new Date('2026-10-31T06:00:00+09:00');
+    const prompt = writerPrompt(dated, 'IT', [], [], today);
+    expect(prompt).toContain('오늘은 10월 31일입니다.');
+    expect(prompt).toContain("'오늘' 일처럼 쓰지 않고 날짜를 밝힙니다");
+    const select = selectPrompt([{ articles: dated }], 'IT', [], today);
+    expect(select).toContain('오늘은 10월 31일입니다.');
+    expect(select).toContain('보도 1건 (연합뉴스) · 10/30 18:05');
+    expect(select).toContain('새 진전 없이 다시 다룬 기사는 새로움 1점');
+  });
+
   it('이미 쓰는 태그를 주면 같은 주제는 그 표기를 다시 쓰게 한다 (#20 태그 정돈)', () => {
     expect(writerPrompt(articles, 'IT')).not.toContain('이미 쓰는 태그');
     expect(writerPrompt(articles, 'IT', ['AI 해킹', '코스피'])).toContain(
