@@ -211,6 +211,20 @@ export function renderEditionMail(
       )
     : '';
 
+  // 맞춤: 추천 기사 (북마크 · 스크랩과 뜻이 가까운 오늘 기사 원문). 왜 권했는지는 계산한 그대로
+  const picks = edition.picks.length
+    ? card(
+        heading('추천 기사') +
+          `<p style="margin:-6px 0 14px;font-size:13px;line-height:1.6;color:${C.muted};">북마크 · 스크랩한 소식과 이어지는 오늘 기사예요. 누르면 언론사 원문으로 갑니다.</p>` +
+          edition.picks
+            .map(
+              (p, i) =>
+                `<div style="${i ? `margin-top:14px;padding-top:14px;border-top:1px solid ${C.border};` : ''}"><p style="margin:0 0 4px;font-size:12px;color:${C.muted};">${esc(p.source)}${p.category ? ` · ${esc(p.category)}` : ''}</p><a href="${esc(p.link)}" target="_blank" rel="noopener noreferrer" style="font-size:15px;font-weight:700;line-height:1.5;color:${C.text};text-decoration:none;">${esc(p.title)}</a><p style="margin:4px 0 0;font-size:13px;line-height:1.6;color:${C.primary};">${p.because.kind === 'scrap' ? '스크랩한' : '북마크한'} 「${esc(p.because.label)}」와 이어져요</p></div>`,
+            )
+            .join(''),
+      )
+    : '';
+
   const watch = edition.watch.length
     ? card(
         heading('관전 포인트') +
@@ -243,5 +257,5 @@ export function renderEditionMail(
     ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(edition.top[0].line)}</div>`
     : '';
 
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${sections}${extras}${watch}${footer}</table></td></tr></table></body></html>`;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${sections}${extras}${picks}${watch}${footer}</table></td></tr></table></body></html>`;
 }

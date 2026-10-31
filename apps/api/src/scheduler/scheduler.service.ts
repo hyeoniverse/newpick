@@ -1,4 +1,5 @@
 import { MailPlan, planMail } from 'src/edition/personalize';
+import { RecommendService } from 'src/recommend/recommend.service';
 import { TasteService } from 'src/taste/taste.service';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
@@ -130,6 +131,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     private readonly editionService: EditionService,
     private readonly tasteService: TasteService,
     private readonly siteCache: SiteCacheService,
+    private readonly recommendService: RecommendService,
   ) {}
 
   /**
@@ -471,6 +473,28 @@ export class SchedulerService implements OnApplicationBootstrap {
       const notes = [...plans.values()].filter((p) => p?.note).length;
       this.logger.log(`맞춤 메일 ${plans.size}명 (사람마다 쓴 글 ${notes}명)`);
     }
+
+    // 추천 기사: 북마크 · 스크랩과 뜻이 가까운 오늘 기사 (임베딩 비교만, 글은 쓰지 않는다).
+    // 그 사람 메일에 이미 실린 기사는 뺀다. 오늘 앞당길 소식이 없던 사람도 추천이 있으면 계획을 만든다
+    const picks = await this.recommendService.forUsers(
+      planned.map((subscriber) => ({
+        userId: subscriber.userId!,
+        newsletterIds: [
+          ...edition.sources
+            .filter((s) => subscriber.interests.includes(s.categoryId))
+            .map((s) => s.newsletterId),
+          ...(plans
+            .get(subscriber.userId!)
+            ?.extras.map((e) => e.newsletterId) ?? []),
+        ],
+      })),
+      edition.date,
+    );
+    for (const [userId, list] of picks)
+      plans.set(userId, {
+        ...(plans.get(userId) ?? { boosts: {}, extras: [] }),
+        picks: list,
+      });
 
     const result = await this.mailService.sendBulkMail(
       validSubscribers.map((subscriber) => ({

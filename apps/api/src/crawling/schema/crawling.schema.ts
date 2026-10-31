@@ -33,6 +33,13 @@ export class CrawledNews extends Document {
 
   @Prop({ type: String, required: true })
   content: string;
+
+  /**
+   * 문장 임베딩 (bge-m3). 뉴스레터를 쓸 때 같은 사건 묶기로 계산한 것을 남겨, 추천 기사에서 다시 쓴다.
+   * 무거워 기본 조회에서는 뺀다
+   */
+  @Prop({ type: [Number], required: false, select: false })
+  embedding?: number[];
 }
 
 export const CrawledNewsSchema = SchemaFactory.createForClass(CrawledNews);

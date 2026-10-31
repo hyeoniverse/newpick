@@ -11,6 +11,7 @@ import { CategoryModule } from 'src/category/category.module';
 import { BasicRepositoryModule } from 'src/repository/module';
 import { EditionModule } from 'src/edition/edition.module';
 import { TasteModule } from 'src/taste/taste.module';
+import { RecommendModule } from 'src/recommend/recommend.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { TasteModule } from 'src/taste/taste.module';
     BasicRepositoryModule,
     EditionModule,
     TasteModule,
+    RecommendModule,
   ],
   providers: [SchedulerService, DashboardService, StatsService],
   controllers: [SchedulerController],

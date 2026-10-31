@@ -51,6 +51,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     ]),
   };
   const siteCache = { refresh: jest.fn().mockResolvedValue({ ok: true }) };
+  const recommendService = { forUsers: jest.fn().mockResolvedValue(new Map()) };
   const cronJob = { setTime: jest.fn(), start: jest.fn() };
   const registry = { getCronJob: jest.fn().mockReturnValue(cronJob) };
   const prisma = {
@@ -74,6 +75,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     editionService as never,
     tasteService as never,
     siteCache as never,
+    recommendService as never,
   );
   // 요약 다시 시도 사이 쉬는 시간은 테스트에서 없앤다
   (service as unknown as { summaryRetryDelayMs: number }).summaryRetryDelayMs =
@@ -86,6 +88,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     tasteService,
     mailService,
     siteCache,
+    recommendService,
     prisma,
     registry,
     cronJob,
@@ -220,6 +223,66 @@ describe('구독 메일 (#55)', () => {
     };
     expect(plan.boosts['20-1']).toEqual({ bonus: 2, topics: ['반도체'] });
     expect(plan.note.subject).toBe('맞춤 제목');
+  });
+
+  it('추천 기사: 메일에 엮은 뉴스레터를 넘겨(이미 실린 기사는 빼게) 고른 것을 계획에 붙인다', async () => {
+    const edition = {
+      date: '2026-10-27',
+      editorial: null,
+      sources: [
+        {
+          newsletterId: 20,
+          categoryId: 1,
+          category: '경제',
+          title: '경제',
+          stories: [
+            {
+              kicker: '',
+              heading: '날씨',
+              lead: '맑음',
+              blocks: [],
+              sources: [],
+            },
+          ],
+        },
+        {
+          newsletterId: 30,
+          categoryId: 9,
+          category: '세계',
+          title: '세계',
+          stories: [],
+        },
+      ],
+    };
+    const { service, editionService, tasteService, recommendService } = setup(
+      0,
+      edition,
+    );
+    // 오늘 소식에는 닿지 않아 계획이 없던 사람도 추천이 있으면 계획을 만든다
+    tasteService.profiles.mockResolvedValue(
+      new Map([[7, { topics: [{ name: '반도체', key: '반도체', score: 3 }] }]]),
+    );
+    const pick = {
+      title: '반도체 기사',
+      link: 'https://n.news/1',
+      source: 'A',
+      category: '경제',
+      because: { kind: 'scrap', label: '반도체 수출' },
+      score: 0.8,
+    };
+    recommendService.forUsers.mockResolvedValue(new Map([[7, [pick]]]));
+    await service.sendEmailSummary();
+
+    expect(recommendService.forUsers).toHaveBeenCalledWith(
+      [{ userId: 7, newsletterIds: [20] }],
+      '2026-10-27',
+    );
+    expect(editionService.writeNote).not.toHaveBeenCalled();
+    expect((editionService.composeMail.mock.calls[0] as unknown[])[3]).toEqual({
+      boosts: {},
+      extras: [],
+      picks: [pick],
+    });
   });
 
   it('오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)', async () => {

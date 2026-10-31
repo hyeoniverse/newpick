@@ -628,7 +628,9 @@ describe('파이프라인', () => {
       newsletter: written(),
       tokens: 1,
       usage: [{ model: 'claude-sonnet-5-5', input: 1, output: 0 }],
+      embeddings: [{ index: 1, vector: [0.1, 0.2] }],
     });
+    const saveEmbeddings = jest.fn().mockResolvedValue(undefined);
     const prisma = {
       aiProcessLog: { create: jest.fn() },
       newsCategory: { findUnique: jest.fn().mockResolvedValue({ name: 'IT' }) },
@@ -657,6 +659,7 @@ describe('파이프라인', () => {
           tags.map((t) => (t === 'AI해킹' ? 'AI 해킹' : t)),
         ),
       } as never,
+      { saveEmbeddings } as never,
     );
 
     await service.summarizeText(news as never, 1, false);
@@ -676,5 +679,9 @@ describe('파이프라인', () => {
       'i2',
       ['코스피', '외국인 매도'],
     );
+    // 같은 사건 묶기로 계산한 임베딩은 기사 링크로 남긴다 (추천 기사에서 다시 쓴다)
+    expect(saveEmbeddings).toHaveBeenCalledWith([
+      { link: 'l2', embedding: [0.1, 0.2] },
+    ]);
   });
 });

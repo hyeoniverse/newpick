@@ -1,3 +1,4 @@
+import type { ArticlePick } from '../recommend/pick';
 import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
 import type { ParsedStory } from './parse';
@@ -68,6 +69,8 @@ export type ComposedEdition = {
     topics: string[];
     why?: string;
   }[];
+  /** 맞춤: 추천 기사 (원문 링크) */
+  picks: ArticlePick[];
 };
 
 export const COMPOSE_LIMITS = { top: 5, watch: 5 };
@@ -291,6 +294,7 @@ export function composeEdition(
     sections,
     watch,
     extras,
+    picks: plan?.picks ?? [],
   };
 }
 

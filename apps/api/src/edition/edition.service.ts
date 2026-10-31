@@ -268,9 +268,12 @@ export class EditionService {
         token && `${base}/unsubscribe?token=${token}`,
       ),
       newsletterIds: composed.sections.map((s) => s.newsletterId),
-      // 실제로 쓴 맞춤만 남긴다 (더한 소식이 없고 앞당긴 소식도 없으면 기록하지 않음)
+      // 실제로 쓴 맞춤만 남긴다 (더한 소식 · 추천 기사 · 앞당긴 소식이 모두 없으면 기록하지 않음)
       plan:
-        plan && (composed.extras.length || Object.keys(plan.boosts).length)
+        plan &&
+        (composed.extras.length ||
+          composed.picks.length ||
+          Object.keys(plan.boosts).length)
           ? plan
           : null,
       ...(token && {

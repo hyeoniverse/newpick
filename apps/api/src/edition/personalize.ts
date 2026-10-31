@@ -1,3 +1,4 @@
+import type { ArticlePick } from '../recommend/pick';
 import { tagKey } from 'src/tags/tags';
 import type { EditionSource } from './editor';
 import { storyRef } from './editor';
@@ -25,6 +26,8 @@ export type MailPlan = {
   extras: { ref: string; newsletterId: number; topics: string[] }[];
   /** 사람마다 쓴 제목 · 맞춤 브리핑 · '나에게 왜' (personalNote.ts). 못 쓰면 없음 */
   note?: PersonalNote | null;
+  /** 추천 기사: 북마크 · 스크랩과 뜻이 가까운 오늘 기사 원문 (recommend/pick.ts). 없으면 칸이 없다 */
+  picks?: ArticlePick[];
 };
 
 export const PERSONAL_LIMITS = {
