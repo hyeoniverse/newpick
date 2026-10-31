@@ -94,6 +94,23 @@ export class MyPageService {
    * 사용자 프로필 조회
    * @param userId 사용자 ID
    */
+  /** 맞춤 메일 켜짐 여부 (#123 16) */
+  async getPersonalMail(userId: number) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { personalMail: true },
+    });
+    return { enabled: user?.personalMail ?? true };
+  }
+
+  async setPersonalMail(userId: number, enabled: boolean) {
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { personalMail: enabled },
+    });
+    return { enabled };
+  }
+
   async getProfile(userId: number) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },

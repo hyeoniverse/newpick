@@ -45,6 +45,7 @@ import {
   folderOf,
   UpdateHighlightDto,
 } from './dto/highlight.dto';
+import { PersonalMailDto } from './dto/personal-mail.dto';
 
 /** 로그인 필요 (전역 JwtAuthGuard). 구독 상태·기록은 /subscribers에서 조회합니다. */
 @Controller('mypage')
@@ -150,6 +151,18 @@ export class MyPageController {
   @Get('profile')
   async getProfile(@Req() req) {
     return this.myPageService.getProfile(this.userIdOf(req));
+  }
+
+  /** 맞춤 메일 켜짐 여부 (#123 16) */
+  @Get('personal-mail')
+  async getPersonalMail(@Req() req) {
+    return this.myPageService.getPersonalMail(this.userIdOf(req));
+  }
+
+  /** 맞춤 메일 켜기 · 끄기: 다음 메일부터 적용 */
+  @Put('personal-mail')
+  async setPersonalMail(@Req() req, @Body() body: PersonalMailDto) {
+    return this.myPageService.setPersonalMail(this.userIdOf(req), body.enabled);
   }
 
   /** 이메일 바꾸기 1단계: 새 주소로 6자리 인증 코드 (1분에 한 번) */

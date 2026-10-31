@@ -46,3 +46,9 @@ export const cancelSubscription = async (): Promise<void> => {
  * 구독 기록 조회 API
  */
 export const fetchSubscriptionHistory = async () => apiFetch(API_ENDPOINTS.SUBSCRIBERS.HISTORY());
+
+/** 맞춤 메일 (#123): 켜 두면 북마크 · 스크랩으로 그날 모든 분야에서 골라 보내고, 끄면 구독한 분야를 분야별로 */
+export const fetchPersonalMail = () => apiFetch<{ enabled: boolean }>(API_ENDPOINTS.MY.PERSONAL_MAIL());
+
+export const savePersonalMail = (enabled: boolean) =>
+	apiFetch<{ enabled: boolean }>(API_ENDPOINTS.MY.PERSONAL_MAIL(), { method: 'PUT', body: { enabled } });
