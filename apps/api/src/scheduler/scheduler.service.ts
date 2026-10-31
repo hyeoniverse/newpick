@@ -1,3 +1,4 @@
+import { FollowsService } from 'src/follows/follows.service';
 import { MailPlan, planMail } from 'src/edition/personalize';
 import { TasteService } from 'src/taste/taste.service';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
@@ -128,6 +129,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     private schedulerRegistry: SchedulerRegistry,
     private readonly prisma: MysqlPrismaService,
     private readonly editionService: EditionService,
+    private readonly followsService: FollowsService,
     private readonly tasteService: TasteService,
     private readonly siteCache: SiteCacheService,
   ) {}
@@ -342,6 +344,15 @@ export class SchedulerService implements OnApplicationBootstrap {
 
       // 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
       await this.editionService.ensureEdition();
+
+      // 후속 지켜보기: 오늘 소식이 누군가 지켜보는 소식의 후속인지 판정 (실패해도 요약은 끝난 것)
+      if (generatedNewsletter.length > 0) {
+        await this.followsService
+          .detect()
+          .catch((error) =>
+            this.logger.warn(`후속 지켜보기 판정 실패: ${error.message}`),
+          );
+      }
 
       // 새 글이 생겼으면 사이트 첫 화면·목록이 10분 기다리지 않고 바로 보여 주게 (#73)
       if (generatedNewsletter.length > 0) {

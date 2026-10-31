@@ -1,3 +1,4 @@
+import { FollowsModule } from 'src/follows/follows.module';
 import { Module } from '@nestjs/common';
 import { SchedulerService } from './scheduler.service';
 import { SchedulerController } from './scheduler.controller';
@@ -22,6 +23,7 @@ import { TasteModule } from 'src/taste/taste.module';
     BasicRepositoryModule,
     EditionModule,
     TasteModule,
+    FollowsModule,
   ],
   providers: [SchedulerService, DashboardService, StatsService],
   controllers: [SchedulerController],

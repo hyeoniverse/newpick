@@ -238,6 +238,105 @@ export function ShareGlyph({ className }: { className?: string }) {
 	);
 }
 
+// ---------- 종(후속 지켜보기): 가리키면 종이 흔들리고 추가 한 박자 늦게 따라간다. 끈 것은 +가 살짝 커지고, 켜면 한 번 울리며 양옆에 울림이 퍼진다 ----------
+
+/** 꼭대기를 축으로 좌우로 흔들리다 멈춘다 */
+const swing = keyframes`
+	0% { transform: rotate(0); }
+	20% { transform: rotate(14deg); }
+	40% { transform: rotate(-10deg); }
+	60% { transform: rotate(6deg); }
+	80% { transform: rotate(-3deg); }
+	100% { transform: rotate(0); }
+`;
+
+/** 추는 종보다 크게, 반대쪽으로 */
+const knock = keyframes`
+	0%, 100% { transform: translateX(0); }
+	30% { transform: translateX(-1.5px); }
+	55% { transform: translateX(1.5px); }
+	80% { transform: translateX(-0.5px); }
+`;
+
+/** 울림이 바깥으로 퍼졌다 제자리로 */
+const spread = keyframes`
+	0% { opacity: 0; transform: translateX(0); }
+	40% { opacity: 1; }
+	60% { transform: translateX(var(--out)); }
+	100% { opacity: 1; transform: translateX(0); }
+`;
+
+const BellSvg = styled(Svg)<{ $ring: boolean }>`
+	.bell {
+		transform-origin: 50% 0;
+	}
+	.wave-left {
+		--out: -1.5px;
+	}
+	.wave-right {
+		--out: 1.5px;
+	}
+
+	/* 눌러서 켠 순간 한 번 울린다 (이미 켜져 있던 것은 열 때마다 울리지 않게 ring으로 따로) */
+	${({ $ring }) =>
+		$ring &&
+		css`
+			.bell {
+				animation: ${swing} 0.6s ease-out;
+			}
+			.clapper {
+				animation: ${knock} 0.6s ease-out 0.05s;
+			}
+			.wave {
+				animation: ${spread} 0.6s ease-out both;
+			}
+		`}
+
+	${whenActive(css`
+		.bell {
+			animation: ${swing} 0.6s ease-out;
+		}
+		.clapper {
+			animation: ${knock} 0.6s ease-out 0.05s;
+		}
+		.wave {
+			animation: ${spread} 0.6s ease-out both;
+		}
+		.plus {
+			transform: scale(1.25);
+		}
+	`)}
+`;
+
+/** 후속 지켜보기 종. 끈 것은 종 + (지켜보기 시작), 켠 것은 울리는 종 */
+export function BellGlyph({ on, ring = false, className }: { on: boolean; ring?: boolean; className?: string }) {
+	return (
+		<BellSvg {...base} className={className} $ring={ring}>
+			<g className="bell">
+				<path
+					d={
+						on
+							? 'M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9'
+							: 'M19.3 14.8C20.1 16.4 21 17 21 17H3s3-2 3-9c0-3.3 2.7-6 6-6 1 0 1.9.2 2.8.7'
+					}
+				/>
+				<path className="clapper" d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+			</g>
+			{on ? (
+				<>
+					<path className="wave wave-left" d="M4 2C2.8 3.7 2 5.7 2 8" />
+					<path className="wave wave-right" d="M22 8c0-2.3-.8-4.3-2-6" />
+				</>
+			) : (
+				<g className="plus">
+					<path d="M15 8h6" />
+					<path d="M18 5v6" />
+				</g>
+			)}
+		</BellSvg>
+	);
+}
+
 // ---------- 체크: 붓으로 긋듯 그려진다 ----------
 
 const draw = keyframes`

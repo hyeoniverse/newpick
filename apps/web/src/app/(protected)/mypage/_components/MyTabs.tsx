@@ -9,6 +9,7 @@ const MySubscribe = lazy(() => import('@/app/(protected)/mypage/_components/MySu
 const MyBookmark = lazy(() => import('@/app/(protected)/mypage/_components/MyBookmark'));
 const MyHighlights = lazy(() => import('@/app/(protected)/mypage/_components/MyHighlights'));
 const MySettings = lazy(() => import('@/app/(protected)/mypage/_components/MySettings'));
+const MyFollows = lazy(() => import('@/app/(protected)/mypage/_components/MyFollows'));
 
 function MyTabs() {
 	const { activeTab } = useTab();
@@ -19,6 +20,7 @@ function MyTabs() {
 				{activeTab === 'subscriptions' && <MySubscribe />}
 				{activeTab === 'bookmarks' && <MyBookmark />}
 				{activeTab === 'highlights' && <MyHighlights />}
+				{activeTab === 'follows' && <MyFollows />}
 				{activeTab === 'settings' && <MySettings />}
 			</div>
 		</Suspense>

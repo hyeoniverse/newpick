@@ -1,3 +1,4 @@
+import { FollowsModule } from './follows/follows.module';
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -47,6 +48,7 @@ import { AnalyticsModule } from './analytics/analytics.module';
     AnalyticsModule, // 방문 통계 (#131)
     PrismaModule, // Prisma 모듈
     MyPageModule, // 마이페이지 모듈
+    FollowsModule, // 후속 지켜보기
     AdminModule, // 관리자 페이지 모듈
     MailModule, // 메일 모듈
     CategoryModule, // 카테고리 모듈

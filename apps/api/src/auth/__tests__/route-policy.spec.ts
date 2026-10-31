@@ -7,6 +7,7 @@ import { CategoryController } from 'src/category/category.controller';
 import { CrawlingController } from 'src/crawling/crawling.controller';
 import { FeedbackController } from 'src/feedback/feedback.controller';
 import { MyPageController } from 'src/mypage/mypage.controller';
+import { FollowsController } from 'src/follows/follows.controller';
 import { BasicRepositoryController } from 'src/repository/controllers/newsletter.controller';
 import { AiProcessingLogController } from 'src/repository/controllers/aiProcessingLog.controller';
 import { EmailArchivesController } from 'src/repository/controllers/emailArchieve.controller';
@@ -89,6 +90,12 @@ const EXPECTED: Record<string, Policy> = {
   'PATCH mypage/highlights/:id': 'auth',
   'DELETE mypage/highlights/:id': 'auth',
   'GET mypage/profile': 'auth',
+  'GET mypage/follows': 'auth',
+  'GET mypage/follows/unseen': 'auth',
+  'POST mypage/follows/seen': 'auth',
+  'GET mypage/follows/newsletter/:id': 'auth',
+  'POST mypage/follows': 'auth',
+  'DELETE mypage/follows/:id': 'auth',
   'POST mypage/email/code': 'auth',
   'POST mypage/email/verify': 'auth',
   'GET mypage/bookmarks': 'auth',
@@ -160,6 +167,7 @@ describe('라우트 접근 정책', () => {
     AiSummaryController,
     FeedbackController,
     MyPageController,
+    FollowsController,
     SubscriberController,
     UnsubscribeController,
     AdminController,

@@ -75,6 +75,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     registry as never,
     prisma as never,
     editionService as never,
+    { detect: jest.fn().mockResolvedValue({}) } as never,
     tasteService as never,
     siteCache as never,
   );
