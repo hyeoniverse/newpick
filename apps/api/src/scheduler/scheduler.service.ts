@@ -455,7 +455,7 @@ export class SchedulerService implements OnApplicationBootstrap {
       texts,
     );
 
-    // 사람마다: 관심 점수로 순서 · 다른 분야 소식을 정하고(계산), 오픈 모델로 제목 · 맞춤 브리핑을 쓴다.
+    // 사람마다: 분야를 나누지 않고 점수 높은 소식을 고르고(계산), 오픈 모델로 제목 · 맞춤 브리핑을 쓴다.
     // 글쓰기는 3명씩 동시에. 못 쓰면 그 사람은 맞춤 순서만 있는 메일
     const plans = new Map<number, MailPlan | null>();
     const planned = validSubscribers.filter(
@@ -470,6 +470,7 @@ export class SchedulerService implements OnApplicationBootstrap {
             subscriber.interests,
             profile,
             vectors,
+            edition.editorial,
           );
           if (plan)
             plan.note = await this.editionService.writeNote(

@@ -101,10 +101,7 @@ describe('MailService.sendBulkMail', () => {
   it('맞춤 메일은 계획을 발송 기록과 같은 시각으로 남긴다 (마이페이지에서 받은 그대로)', async () => {
     const sendMail = jest.fn().mockResolvedValue({});
     const { service, prisma } = setup(sendMail);
-    const plan = {
-      boosts: { '10-1': { bonus: 2, topics: ['반도체'] } },
-      extras: [],
-    };
+    const plan = { picks: [{ ref: '10-1', newsletterId: 10 }] };
     await service.sendBulkMail(
       [
         { email: 'a@example.com', interests: [1], name: 'a' },

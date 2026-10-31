@@ -1,6 +1,5 @@
 import type { ComposedEdition, ComposedStory } from './compose';
 import type { Block, Link, Run } from './parse';
-import type { MatchReason } from './personalize';
 
 /**
  * 구독 메일 HTML (#55). 메일 앱은 사이트 CSS·<style>을 제대로 쓰지 못해 모든 모양을 인라인 스타일로 준다.
@@ -95,11 +94,15 @@ function block(b: Block): string {
 const caption = (links: Link[]) =>
   links.map((l) => a(l.text, l.url, `color:${C.muted};`)).join('');
 
-function story({ story: s, alsoIn }: ComposedStory, first: boolean): string {
+function story(
+  { story: s, alsoIn, category }: ComposedStory,
+  first: boolean,
+): string {
   return [
     `<div style="${first ? '' : `margin-top:28px;padding-top:24px;border-top:1px solid ${C.border};`}">`,
-    s.kicker
-      ? `<p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${C.primary};letter-spacing:0.02em;">${esc(s.kicker)}</p>`
+    // 맞춤 메일은 분야별 묶음이 없어 머리말 앞에 분야를 붙인다 ('경제 · 증시')
+    category || s.kicker
+      ? `<p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${C.primary};letter-spacing:0.02em;">${esc([category, s.kicker].filter(Boolean).join(' · '))}</p>`
       : '',
     `<h2 style="margin:0 0 8px;font-size:21px;line-height:1.4;font-weight:800;color:${C.text};">${esc(s.heading)}</h2>`,
     s.lead
@@ -125,18 +128,6 @@ const tag = (text: string) =>
 
 const heading = (text: string) =>
   `<h3 style="margin:0 0 14px;font-size:13px;font-weight:800;letter-spacing:0.04em;color:${C.muted};">${esc(text)}</h3>`;
-
-/** 맞춤 이유: 계산한 그대로 (닿은 관심 태그, 아니면 가장 가까운 북마크 · 스크랩) */
-const interest = (reason?: MatchReason) => {
-  const text = reason?.topics.length
-    ? `관심 · ${reason.topics.join(' · ')}`
-    : reason?.because
-      ? `${reason.because.kind === 'scrap' ? '스크랩한' : '북마크한'} 「${reason.because.label}」와 이어져요`
-      : '';
-  return text
-    ? `<p style="margin:4px 0 0;font-size:12px;color:${C.primary};">${esc(text)}</p>`
-    : '';
-};
 
 const card = (inner: string) =>
   `<tr><td style="padding:26px 24px;background:#ffffff;border-radius:12px;">${inner}</td></tr><tr><td style="height:12px;line-height:12px;font-size:0;">&nbsp;</td></tr>`;
@@ -165,7 +156,7 @@ export function renderEditionMail(
       edition.top
         .map(
           (t, i) =>
-            `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="width:26px;padding:0 0 14px;vertical-align:top;font-size:15px;font-weight:800;color:${C.primary};">${i + 1}</td><td style="padding:0 0 14px;vertical-align:top;">${tag(t.category)}<span style="font-size:15px;font-weight:700;line-height:1.5;color:${C.text};">${esc(t.heading)}</span><p style="margin:3px 0 0;font-size:14px;line-height:1.6;color:${C.sub};">${esc(t.line)}</p>${interest(t.reason)}</td></tr></table>`,
+            `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;"><tr><td style="width:26px;padding:0 0 14px;vertical-align:top;font-size:15px;font-weight:800;color:${C.primary};">${i + 1}</td><td style="padding:0 0 14px;vertical-align:top;">${tag(t.category)}<span style="font-size:15px;font-weight:700;line-height:1.5;color:${C.text};">${esc(t.heading)}</span><p style="margin:3px 0 0;font-size:14px;line-height:1.6;color:${C.sub};">${esc(t.line)}</p></td></tr></table>`,
         )
         .join(''),
     ].join(''),
@@ -183,7 +174,24 @@ export function renderEditionMail(
       )
     : '';
 
-  const sections = edition.sections
+  const more = (category: string, newsletterId: number) =>
+    `<a href="${esc(`${base}/articles/detail/${newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:${C.primary};text-decoration:none;">${esc(category)} 뉴스레터 전문 보기 →</a>`;
+
+  // 맞춤 메일: 분야를 나누지 않고 점수 순으로 한 카드에. 소식마다 분야와 그 뉴스레터 링크
+  const personal = edition.personal
+    ? card(
+        edition.sections
+          .flatMap((section) => section.stories)
+          .map(
+            (s, i) =>
+              story(s, i === 0) +
+              `<p style="margin:14px 0 0;">${more(s.category!, s.newsletterId!)}</p>`,
+          )
+          .join(''),
+      )
+    : '';
+
+  const sections = (edition.personal ? [] : edition.sections)
     .map((section) =>
       card(
         [
@@ -195,25 +203,11 @@ export function renderEditionMail(
                 : '') +
               `<p style="${P}">${esc(section.fallback.summary)}</p>`
             : section.stories.map((s, i) => story(s, i === 0)).join(''),
-          `<p style="margin:22px 0 0;"><a href="${esc(`${base}/articles/detail/${section.newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:14px;font-weight:700;color:${C.primary};text-decoration:none;">${esc(section.category)} 뉴스레터 전문 보기 →</a></p>`,
+          `<p style="margin:22px 0 0;">${more(section.category, section.newsletterId)}</p>`,
         ].join(''),
       ),
     )
     .join('');
-
-  // 맞춤: 고르지 않은 분야에서 취향과 닿는 소식
-  const extras = edition.extras.length
-    ? card(
-        heading('관심 가질 만한 소식') +
-          `<p style="margin:-6px 0 14px;font-size:13px;line-height:1.6;color:${C.muted};">고르지 않은 분야지만 북마크 · 스크랩한 주제와 이어지는 소식입니다.</p>` +
-          edition.extras
-            .map(
-              (x, i) =>
-                `<div style="${i ? `margin-top:14px;padding-top:14px;border-top:1px solid ${C.border};` : ''}">${tag(x.category)}<a href="${esc(`${base}/articles/detail/${x.newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:15px;font-weight:700;line-height:1.5;color:${C.text};text-decoration:none;">${esc(x.heading)}</a><p style="margin:3px 0 0;font-size:14px;line-height:1.6;color:${C.sub};">${esc(x.line)}</p>${interest(x.reason)}</div>`,
-            )
-            .join(''),
-      )
-    : '';
 
   const watch = edition.watch.length
     ? card(
@@ -247,5 +241,5 @@ export function renderEditionMail(
     ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(edition.top[0].line)}</div>`
     : '';
 
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${sections}${extras}${watch}${footer}</table></td></tr></table></body></html>`;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${personal}${sections}${watch}${footer}</table></td></tr></table></body></html>`;
 }

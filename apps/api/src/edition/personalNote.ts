@@ -1,6 +1,6 @@
 import { GENDER_RULES } from 'src/ai-summary/writingRules';
 import type { ComposedEdition } from './compose';
-import type { MatchReason, TasteProfile } from './personalize';
+import type { TasteProfile } from './personalize';
 
 /**
  * 사람마다 쓰는 글 (#123 3단계): 메일 제목 · 맞춤 브리핑.
@@ -23,34 +23,20 @@ export const notePrompt = (edition: ComposedEdition, profile: TasteProfile) => {
     .slice(0, NOTE_LIMITS.topics)
     .map((t) => t.name)
     .join(', ');
-  // 닿은 관심을 함께 넘긴다: 없으면 브리핑이 "~분야 구독자로서"처럼 일반론으로 흐른다
-  const touched = (reason?: MatchReason) =>
-    reason?.topics.length
-      ? ` (닿은 관심: ${reason.topics.join(', ')})`
-      : reason?.because
-        ? ` (닿은 관심: ${reason.because.label})`
-        : '';
-  const stories = [
-    ...edition.top.map(
-      (t) =>
-        `[${t.ref}] (${t.category}) ${t.heading} — ${t.line}${touched(t.reason)}`,
-    ),
-    ...edition.extras.map(
-      (x) =>
-        `[${x.ref}] (${x.category}, 구독하지 않은 분야) ${x.heading} — ${x.line}${touched(x.reason)}`,
-    ),
-  ].join('\n');
+  const stories = edition.top
+    .map((t) => `[${t.ref}] (${t.category}) ${t.heading} — ${t.line}`)
+    .join('\n');
   return [
     `이 독자가 요즘 북마크 · 스크랩한 주제: ${topics}`,
-    `이 독자가 구독하는 분야: ${edition.categories.join(', ')}`,
+    `오늘 메일에 실린 분야: ${edition.categories.join(', ')}`,
     '',
-    '오늘 이 독자에게 보내는 소식입니다.',
+    '오늘 이 독자에게 보내는 소식입니다 (이 독자의 관심에 맞춰 고른 순서).',
     stories,
     '',
     '이 독자 한 사람을 위한 글을 씁니다.',
     `- subject: 메일 제목. 이 독자의 관심사와 가장 닿는 오늘 소식 하나를 담아 ${NOTE_LIMITS.subject}자 이내, 기사 제목 형식. 날짜 · "뉴픽"은 넣지 않습니다.`,
     `- briefing: 맞춤 브리핑 2~3문장, ${NOTE_LIMITS.briefing}자 이내. 독자에게 직접 건네는 글이라 부드러운 해요체(~했어요, ~보세요)로 씁니다.`,
-    '  소식 하나하나를 되읊지 않습니다 (소식마다 닿은 관심은 메일에 따로 보입니다). 오늘 소식들이 서로, 그리고 독자의 관심과 어떻게 이어지는지 한 흐름으로 묶고, 무엇을 먼저 보면 좋은지 씁니다.',
+    '  소식 하나하나를 되읊지 않습니다. 오늘 소식들이 서로, 그리고 독자의 관심과 어떻게 이어지는지 한 흐름으로 묶고, 무엇을 먼저 보면 좋은지 씁니다.',
     "  '관심 두신'은 브리핑 전체에서 많아야 한 번만 씁니다. 관심 주제와 닿는 소식이 적으면 오늘 꼭 알아야 할 소식을 중심으로 씁니다.",
     '- 해요체(~했어요, ~예요)로 씁니다. ~습니다체 · 반말은 쓰지 않습니다. "~님", 감탄, 칭찬, 이모지는 쓰지 않습니다.',
     '- "~할 필요가 있어요" · "~를 주시해야 해요"처럼 독자를 가르치는 말, "~분야 구독자로서" 같은 일반론은 쓰지 않습니다.',

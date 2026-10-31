@@ -45,7 +45,7 @@ export class EditionService {
   ) {}
 
   /**
-   * 사람마다 쓰는 글 (#123 3단계): 이 사람에게 갈 메일(맞춤 계획까지 반영)을 보고 제목 · 맞춤 브리핑 · '나에게 왜'를 쓴다.
+   * 사람마다 쓰는 글 (#123 3단계): 이 사람에게 갈 메일(맞춤 계획까지 반영)을 보고 제목 · 맞춤 브리핑을 쓴다.
    * 오픈 모델(Workers AI 무료 할당)만 쓰고 Claude로 넘기지 않는다 — 안 되면 null(맞춤 순서만 있는 메일)
    */
   async writeNote(
@@ -310,12 +310,9 @@ export class EditionService {
         process.env.MAIL_USER,
         token && `${base}/unsubscribe?token=${token}`,
       ),
-      newsletterIds: composed.sections.map((s) => s.newsletterId),
-      // 실제로 쓴 맞춤만 남긴다 (더한 소식이 없고 앞당긴 소식도 없으면 기록하지 않음)
-      plan:
-        plan && (composed.extras.length || Object.keys(plan.boosts).length)
-          ? plan
-          : null,
+      newsletterIds: composed.newsletterIds,
+      // 실제로 맞춤으로 엮었을 때만 남긴다
+      plan: composed.personal ? plan : null,
       ...(token && {
         headers: {
           'List-Unsubscribe': `<${base}/api/subscribers/unsubscribe?token=${token}>`,
@@ -364,11 +361,11 @@ export class EditionService {
 /** 임베딩은 한 번에 이만큼씩 */
 const EMBED_BATCH = 50;
 
-/** 다시 만들 때 불러올 뉴스레터: 발송 기록(고른 분야) + 맞춤으로 더한 다른 분야 */
+/** 다시 만들 때 불러올 뉴스레터: 발송 기록 + 맞춤 계획의 소식이 있는 뉴스레터 */
 const withExtras = (newsletterIds: number[], plan?: MailPlan | null) => [
   ...new Set([
     ...newsletterIds,
-    ...(plan?.extras.map((e) => e.newsletterId) ?? []),
+    ...(plan?.picks?.map((p) => p.newsletterId) ?? []),
   ]),
 ];
 

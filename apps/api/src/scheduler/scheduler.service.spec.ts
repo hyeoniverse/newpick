@@ -218,13 +218,13 @@ describe('구독 메일 (#55)', () => {
     expect(tasteService.profiles).toHaveBeenCalledWith([7]);
     expect(editionService.writeNote).toHaveBeenCalledTimes(1);
     const plan = (editionService.composeMail.mock.calls[0] as unknown[])[3] as {
-      boosts: Record<string, unknown>;
+      picks: { ref: string }[];
       note: { subject: string };
     };
     // 임베딩이 없으면(여기서는 빈 결과) 관심 태그로
     expect(tasteService.signalTexts).toHaveBeenCalledWith([7]);
     expect(editionService.embedForPlans).toHaveBeenCalledTimes(1);
-    expect(plan.boosts['20-1']).toEqual({ bonus: 5, topics: ['반도체'] });
+    expect(plan.picks).toEqual([{ ref: '20-1', newsletterId: 20 }]);
     expect(plan.note.subject).toBe('맞춤 제목');
   });
 
