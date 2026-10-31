@@ -13,7 +13,8 @@ const PERSONAL_MAIL_KEY = ['personal-mail'];
 
 /**
  * 마이페이지 > 설정의 맞춤 메일 (#123 16): 켜 두면 북마크 · 스크랩을 바탕으로 그날 모든 분야에서 골라 보내고,
- * 끄면 구독한 분야의 뉴스레터를 분야별로 보낸다. 누르면 바로 저장되고 다음 메일부터 적용된다
+ * 끄면 구독한 분야의 뉴스레터를 분야별로 보낸다. 누르면 바로 저장되고 다음 메일부터 적용된다.
+ * 구독이 멈춰 있어도 보인다 (다시 시작하면 그 설정대로)
  */
 export default function PersonalMail() {
 	const { user } = useAuth();
@@ -22,7 +23,7 @@ export default function PersonalMail() {
 	const { data, isPending } = useQuery({
 		queryKey: PERSONAL_MAIL_KEY,
 		queryFn: fetchPersonalMail,
-		enabled: user?.isSubscribed === true,
+		enabled: user?.isSubscribed != null,
 	});
 	const save = useMutation({
 		mutationFn: savePersonalMail,
@@ -39,8 +40,8 @@ export default function PersonalMail() {
 		onSuccess: ({ enabled }) => showToast(enabled ? '맞춤 메일을 켰습니다.' : '맞춤 메일을 껐습니다.', 'success'),
 	});
 
-	// 구독 중일 때만: 메일을 받지 않으면 고를 메일도 없다
-	if (user?.isSubscribed !== true) return null;
+	// 구독 기록이 있을 때만 (구독 해지 단추와 같은 기준). 일시 중지 중에도 미리 정해 둘 수 있다
+	if (user?.isSubscribed == null) return null;
 	const enabled = data?.enabled ?? true;
 
 	return (
@@ -54,6 +55,12 @@ export default function PersonalMail() {
 						북마크 · 스크랩한 소식을 바탕으로 그날 모든 분야에서 관심 있을 소식을 골라 보내드립니다.
 						<br />
 						끄면 구독한 분야의 뉴스레터를 분야별로 받습니다. 다음 메일부터 적용됩니다.
+						{user.isSubscribed === false && (
+							<>
+								<br />
+								지금은 구독이 멈춰 있어, 구독을 다시 시작하면 이 설정대로 보내드립니다.
+							</>
+						)}
 					</Text>
 				</div>
 				<Switch
