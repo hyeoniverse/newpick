@@ -78,8 +78,8 @@ interface MailClicks {
 	byKind: { newsletter: number; source: number; article: number };
 }
 
-/** 클릭률: 클릭 ÷ 보낸 메일 (보낸 메일이 없으면 -) */
-const clickRate = (c: MailClicks) => (c.mails ? `${((c.clicks / c.mails) * 100).toFixed(1)}%` : '-');
+/** 메일 한 통당 클릭: 클릭 ÷ 보낸 메일 (사람을 가리지 않아 1을 넘을 수 있다, 보낸 메일이 없으면 -) */
+const clicksPerMail = (c: MailClicks) => (c.mails ? `${(c.clicks / c.mails).toFixed(2)}번` : '-');
 
 const TYPE_LABEL: Record<string, string> = {
 	summarization: '뉴스레터 쓰기',
@@ -497,7 +497,7 @@ export default function StatsAdmin() {
 							</div>
 							<Chart
 								title="메일 링크 클릭"
-								hint="클릭 ÷ 보낸 메일. 누가 눌렀는지는 남기지 않아, 한 사람이 여러 번 누르면 여러 번 셉니다"
+								hint="메일 한 통당 클릭 = 클릭 ÷ 보낸 메일. 누가 눌렀는지는 남기지 않아, 한 사람이 여러 번 누르면 여러 번 셉니다"
 							>
 								<dl className="numbers">
 									{(
@@ -508,8 +508,8 @@ export default function StatsAdmin() {
 									).map(([label, c]) => (
 										<Stat
 											key={label}
-											label={`${label} 클릭률`}
-											value={clickRate(c)}
+											label={`${label} · 한 통당 클릭`}
+											value={clicksPerMail(c)}
 											sub={`${c.mails.toLocaleString()}통 · 클릭 ${c.clicks.toLocaleString()}번 (뉴스레터 ${c.byKind.newsletter} · 원문 ${c.byKind.source} · 추천 기사 ${c.byKind.article})`}
 										/>
 									))}

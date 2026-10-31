@@ -392,7 +392,7 @@ export class StatsService {
 
   /**
    * 메일 링크 클릭 (#123 15): 맞춤 메일 · 분야별 메일마다 보낸 메일 수와 클릭 수(링크 종류별).
-   * 클릭은 누가 눌렀는지 남기지 않아 한 사람이 여러 번 누르면 여러 번 센다 (클릭률 = 클릭 ÷ 보낸 메일)
+   * 클릭은 누가 눌렀는지 남기지 않아 한 사람이 여러 번 누르면 여러 번 센다 (메일 한 통당 클릭 = 클릭 ÷ 보낸 메일)
    */
   private async mailClicks(from: string, to: string, start: Date, end: Date) {
     const [mails, personal, rows] = await Promise.all([
