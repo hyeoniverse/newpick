@@ -48,6 +48,7 @@ describe('추천 기사 고르기', () => {
         [article('a', [1, 0, 0]), article('b', [0, 1, 0])],
         new Set(),
         [],
+        [],
         { ...RECOMMEND_LIMITS, picks: 1 },
       ),
     ).toHaveLength(1);
@@ -63,6 +64,22 @@ describe('추천 기사 고르기', () => {
         (p) => p.title,
       ),
     ).toEqual(['후속 기사']);
+  });
+
+  it('팔로우한 태그가 제목에 나온 기사는 임베딩이 닿지 않아도 권한다 (신호 없이 태그만 있어도)', () => {
+    const picks = pickArticles(
+      [],
+      [
+        article('엔비디아 실적 발표', [0, 0, 1]),
+        article('다른 기사', [0, 0, 1], 'other'),
+      ],
+      new Set(),
+      [],
+      ['엔비디아'],
+    );
+    expect(picks.map((p) => [p.title, p.score])).toEqual([
+      ['엔비디아 실적 발표', RECOMMEND_LIMITS.keyword],
+    ]);
   });
 
   it('신호가 없으면 아무것도 권하지 않는다', () => {

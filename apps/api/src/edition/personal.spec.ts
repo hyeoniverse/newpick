@@ -174,6 +174,23 @@ describe('맞춤 계획 (planMail): 분야를 나누지 않고 점수 순', () =
     expect(picks).not.toContain('30-2');
   });
 
+  it('팔로우한 태그(#123 5단계)가 소식에 나오면 관심 최대, 북마크 · 스크랩이 없어도 맞춤이 된다', () => {
+    const followOnly: TasteProfile = {
+      topics: [],
+      follows: [{ name: '룰라', key: '룰라' }],
+    };
+    // 임베딩이 있어도 팔로우한 태그가 나오면 1
+    expect(
+      interestScore(story('룰라 4선'), [0, 0, 1], {
+        ...followOnly,
+        signals: [{ kind: 'scrap', label: 'x', vector: [1, 0, 0] }],
+      }),
+    ).toEqual({ score: 1, seen: false });
+    const picks = refs(planMail(sources, [1, 2], followOnly));
+    // 구독하지 않은 세계 분야의 '룰라 4선'이 맨 앞 (중요도 2 + 관심 5)
+    expect(picks[0]).toBe('30-2');
+  });
+
   it('취향이 없거나 어떤 소식에도 닿지 않으면 계획이 없다 (분야별 메일 그대로)', () => {
     expect(planMail(sources, [1], null)).toBeNull();
     expect(planMail(sources, [1], { topics: [] })).toBeNull();

@@ -284,7 +284,7 @@ describe('구독 메일 (#55)', () => {
     const [users, window, newsletterIds] =
       recommendService.forUsers.mock.calls[0];
     // 임베딩이 없으면(여기서는 빈 결과) 메일에 실린 소식 벡터도 없다
-    expect(users).toEqual([{ userId: 7, signals, shown: [] }]);
+    expect(users).toEqual([{ userId: 7, signals, keywords: [], shown: [] }]);
     expect(window.end.getTime() - window.start.getTime()).toBe(
       SUMMARY_WINDOW_HOURS * 60 * 60 * 1000,
     );

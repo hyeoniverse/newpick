@@ -46,6 +46,8 @@ import {
   UpdateHighlightDto,
 } from './dto/highlight.dto';
 import { PersonalMailDto } from './dto/personal-mail.dto';
+import { TagFollowDto } from './dto/tag-follow.dto';
+import { TagFollowsService } from './tag-follows.service';
 
 /** 로그인 필요 (전역 JwtAuthGuard). 구독 상태·기록은 /subscribers에서 조회합니다. */
 @Controller('mypage')
@@ -56,6 +58,7 @@ export class MyPageController {
     private readonly tasteService: TasteService,
     private readonly foldersService: FoldersService,
     private readonly emailChangeService: EmailChangeService,
+    private readonly tagFollowsService: TagFollowsService,
   ) {}
 
   /** 내 취향 점수 (#123 2단계): 북마크 · 스크랩 · 메모로 모은 태그 · 관심사 */
@@ -151,6 +154,24 @@ export class MyPageController {
   @Get('profile')
   async getProfile(@Req() req) {
     return this.myPageService.getProfile(this.userIdOf(req));
+  }
+
+  /** 팔로우한 태그 (#123 5단계) */
+  @Get('tag-follows')
+  async getTagFollows(@Req() req) {
+    return this.tagFollowsService.list(this.userIdOf(req));
+  }
+
+  /** 태그 팔로우: 뉴스레터 태그 표기에 맞춰 저장 (20개까지) */
+  @Post('tag-follows')
+  async followTag(@Req() req, @Body() body: TagFollowDto) {
+    return this.tagFollowsService.follow(this.userIdOf(req), body.tag);
+  }
+
+  /** 태그 팔로우 끊기 */
+  @Delete('tag-follows/:tag')
+  async unfollowTag(@Req() req, @Param('tag') tag: string) {
+    return this.tagFollowsService.unfollow(this.userIdOf(req), tag);
   }
 
   /** 맞춤 메일 켜짐 여부 (#123 16) */

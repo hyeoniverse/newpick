@@ -118,6 +118,10 @@ export const ERROR_CODES = {
     status: HttpStatus.NOT_FOUND,
     message: '북마크를 찾을 수 없습니다.',
   },
+  TAG_FOLLOW_LIMIT: {
+    status: HttpStatus.BAD_REQUEST,
+    message: '태그는 20개까지 팔로우할 수 있습니다.',
+  },
   HIGHLIGHT_NOT_FOUND: {
     status: HttpStatus.NOT_FOUND,
     message: '스크랩을 찾을 수 없습니다.',

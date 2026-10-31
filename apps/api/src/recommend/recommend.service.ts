@@ -32,12 +32,20 @@ export class RecommendService {
    * window: 그날 뉴스레터 재료와 같은 창 (모았고 나온 시각), newsletterIds: 그날 뉴스레터 (거기 쓴 기사는 뺀다)
    */
   async forUsers(
-    users: { userId: number; signals: TasteSignal[]; shown?: number[][] }[],
+    users: {
+      userId: number;
+      signals: TasteSignal[];
+      shown?: number[][];
+      /** 팔로우한 태그의 비교 열쇠 (#123 5단계) */
+      keywords?: string[];
+    }[],
     window: { start: Date; end: Date },
     newsletterIds: number[],
   ): Promise<Map<number, ArticlePick[]>> {
     const result = new Map<number, ArticlePick[]>();
-    const withSignals = users.filter((u) => u.signals.length);
+    const withSignals = users.filter(
+      (u) => u.signals.length || u.keywords?.length,
+    );
     if (!withSignals.length) return result;
     try {
       const candidates = await this.candidates(window);
@@ -55,6 +63,7 @@ export class RecommendService {
           candidates,
           new Set([...used, ...(seen.get(user.userId) ?? [])]),
           user.shown,
+          user.keywords,
         );
         if (picks.length) result.set(user.userId, picks);
       }
