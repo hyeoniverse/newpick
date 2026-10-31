@@ -311,8 +311,8 @@ export class EditionService {
         token && `${base}/unsubscribe?token=${token}`,
       ),
       newsletterIds: composed.newsletterIds,
-      // 실제로 맞춤으로 엮었을 때만 남긴다
-      plan: composed.personal ? plan : null,
+      // 실제로 맞춤으로 엮었거나 추천 기사가 있을 때만 남긴다
+      plan: composed.personal || composed.articles.length ? plan : null,
       ...(token && {
         headers: {
           'List-Unsubscribe': `<${base}/api/subscribers/unsubscribe?token=${token}>`,

@@ -2,6 +2,7 @@ import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
 import type { ParsedStory } from './parse';
 import type { MailPlan } from './personalize';
+import type { ArticlePick } from '../recommend/pick';
 
 /**
  * 구독자가 고른 분야로 그날의 메일 한 통을 엮는다 (#55). 호출 없음.
@@ -56,6 +57,8 @@ export type ComposedEdition = {
   briefing?: string;
   /** 메일에 엮은 뉴스레터 (발송 기록) */
   newsletterIds: number[];
+  /** 추천 기사: 뉴스레터에 쓰지 않은 오늘 기사 원문 (맞춤 계획에서). 분야별 메일에도 붙는다 */
+  articles: ArticlePick[];
 };
 
 export const COMPOSE_LIMITS = { top: 5, watch: 5 };
@@ -229,6 +232,7 @@ export function composeEdition(
     sections,
     watch,
     newsletterIds: sections.map((s) => s.newsletterId),
+    articles: plan?.articles ?? [],
   };
 }
 
@@ -297,6 +301,7 @@ function composePersonal(
     watch: mergeWatch(used.map((s) => s.watch)),
     personal: true,
     newsletterIds: used.map((s) => s.newsletterId),
+    articles: plan.articles ?? [],
   };
 }
 

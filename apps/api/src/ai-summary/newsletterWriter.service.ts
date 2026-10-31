@@ -760,10 +760,8 @@ export class NewsletterWriterService {
   ) {
     const { existingTags = [], recentTopics = [], today = new Date() } = hints;
     const prepared = prepare(articles);
-    const clusters = clusterArticles(
-      prepared,
-      (await this.embeddings(prepared)) ?? undefined,
-    );
+    const vectors = await this.embeddings(prepared);
+    const clusters = clusterArticles(prepared, vectors ?? undefined);
     const usage: Usage[] = [];
 
     let chosen = clusters.length === 1 ? clusters[0].articles : [];
@@ -804,6 +802,18 @@ export class NewsletterWriterService {
       (n) => (chosen[n - 1] ? chosen[n - 1].index + 1 : undefined),
     );
     const tokens = usage.reduce((sum, u) => sum + u.input + u.output, 0);
-    return { newsletter, tokens, usage, selection };
+    return {
+      newsletter,
+      tokens,
+      usage,
+      selection,
+      // 원래 기사 목록의 위치(index)마다 임베딩: 부른 쪽이 남겨 추천 기사에 다시 쓴다
+      embeddings: vectors
+        ? prepared.map((article, i) => ({
+            index: article.index,
+            vector: vectors[i],
+          }))
+        : [],
+    };
   }
 }

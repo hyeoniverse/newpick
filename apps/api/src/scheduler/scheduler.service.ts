@@ -1,6 +1,8 @@
 import { FollowsService } from 'src/follows/follows.service';
 import { MailPlan, planMail } from 'src/edition/personalize';
 import { TasteService } from 'src/taste/taste.service';
+import { RecommendService } from 'src/recommend/recommend.service';
+import { storyRef } from 'src/edition/editor';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { MailService } from 'src/mail/mail.service';
@@ -131,6 +133,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     private readonly editionService: EditionService,
     private readonly followsService: FollowsService,
     private readonly tasteService: TasteService,
+    private readonly recommendService: RecommendService,
     private readonly siteCache: SiteCacheService,
   ) {}
 
@@ -498,6 +501,36 @@ export class SchedulerService implements OnApplicationBootstrap {
       const notes = [...plans.values()].filter((p) => p?.note).length;
       this.logger.log(`맞춤 메일 ${plans.size}명 (사람마다 쓴 글 ${notes}명)`);
     }
+
+    // 추천 기사: 맞춤 계획에 쓴 신호 임베딩 그대로, 그날 뉴스레터 재료와 같은 창에서 뉴스레터에 안 쓴 기사.
+    // 맞춤으로 고른 소식이 없는 사람도 추천 기사만 붙는다 (분야별 메일 + 추천 기사)
+    const now = new Date();
+    const recommended = await this.recommendService.forUsers(
+      planned.map((s) => {
+        // 그 사람 메일에 실린 소식: 맞춤이면 고른 소식, 아니면 구독 분야 소식 전부
+        const refs =
+          plans.get(s.userId!)?.picks.map((p) => p.ref) ??
+          edition.sources
+            .filter((source) => s.interests.includes(source.categoryId))
+            .flatMap((source) =>
+              source.stories.map((_, i) => storyRef(source.newsletterId, i)),
+            );
+        return {
+          userId: s.userId!,
+          signals: profiles.get(s.userId!)?.signals ?? [],
+          shown: refs
+            .map((ref) => vectors.get(ref))
+            .filter((v): v is number[] => !!v),
+        };
+      }),
+      {
+        start: new Date(now.getTime() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000),
+        end: now,
+      },
+      edition.sources.map((s) => s.newsletterId),
+    );
+    for (const [userId, articles] of recommended)
+      plans.set(userId, { ...(plans.get(userId) ?? { picks: [] }), articles });
 
     const result = await this.mailService.sendBulkMail(
       validSubscribers.map((subscriber) => ({

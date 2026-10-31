@@ -66,6 +66,50 @@ export class CrawlingRepository {
       .exec();
   }
 
+  /** 뉴스레터를 쓰며 계산한 임베딩을 남긴다 (추천 기사에서 다시 쓴다) */
+  async saveEmbeddings(items: { link: string; embedding: number[] }[]) {
+    if (!items.length) return;
+    await this.crawledNews.bulkWrite(
+      items.map(({ link, embedding }) => ({
+        updateOne: { filter: { link }, update: { $set: { embedding } } },
+      })),
+      { ordered: false },
+    );
+  }
+
+  /** 추천 후보: 뉴스레터 재료와 같은 조건 — 그 사이에 모았고 기사도 그 사이에 나온 것 (본문 · 임베딩 포함) */
+  async findForRecommend(start: Date, end: Date) {
+    return this.crawledNews
+      .find(
+        {
+          createdAt: { $gte: start, $lte: end },
+          publishedAt: { $gte: kstStamp(start) },
+        },
+        {
+          title: 1,
+          link: 1,
+          source: 1,
+          category: 1,
+          content: 1,
+          publishedAt: 1,
+          embedding: 1,
+        },
+      )
+      .lean<
+        Pick<
+          CrawledNews,
+          | 'title'
+          | 'link'
+          | 'source'
+          | 'category'
+          | 'content'
+          | 'publishedAt'
+          | 'embedding'
+        >[]
+      >()
+      .exec();
+  }
+
   // 가장 최근 크롤링 데이터 조회
   async getLatestCrawledNews(): Promise<CrawledNews> {
     return await this.crawledNews.findOne().sort({ createdAt: -1 });

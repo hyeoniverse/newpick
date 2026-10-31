@@ -209,6 +209,19 @@ export function renderEditionMail(
     )
     .join('');
 
+  // 추천 기사: 뉴스레터에 쓰지 않은 오늘 기사 원문 (언론사 · 분야, 제목은 원문 링크)
+  const articles = edition.articles.length
+    ? card(
+        heading('추천 기사') +
+          edition.articles
+            .map(
+              (x, i) =>
+                `<div style="${i ? `margin-top:14px;padding-top:14px;border-top:1px solid ${C.border};` : ''}"><p style="margin:0 0 4px;font-size:12px;color:${C.muted};">${esc([x.source, x.category].filter(Boolean).join(' · '))}</p>${a(x.title, x.link, `font-size:15px;font-weight:700;line-height:1.5;color:${C.text};`)}</div>`,
+            )
+            .join(''),
+      )
+    : '';
+
   const watch = edition.watch.length
     ? card(
         heading('관전 포인트') +
@@ -241,5 +254,5 @@ export function renderEditionMail(
     ? `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${esc(edition.top[0].line)}</div>`
     : '';
 
-  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${personal}${sections}${watch}${footer}</table></td></tr></table></body></html>`;
+  return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${personal}${sections}${articles}${watch}${footer}</table></td></tr></table></body></html>`;
 }

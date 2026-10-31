@@ -1,3 +1,4 @@
+import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { usageLog } from './pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
@@ -31,6 +32,7 @@ export class AiSummaryService {
     private readonly newsletterWriterService: NewsletterWriterService,
     private readonly storyImageService: StoryImageService,
     private readonly tagsService: TagsService,
+    private readonly crawlingRepository: CrawlingRepository,
   ) {}
 
   /** 최근 RECENT_DAYS일 이 분야 뉴스레터: 제목 · 부제 · 쓴 기사 링크 */
@@ -85,12 +87,25 @@ export class AiSummaryService {
         tokens,
         usage,
         selection,
+        embeddings = [],
       } = await this.newsletterWriterService.write(news, category, {
         // 같은 주제면 이미 쓰는 태그를 다시 쓰게 (#20 태그 정돈)
         existingTags: await this.tagsService.recentTags(),
         recentTopics,
       });
       const { title, subtitle, summary, stories } = written;
+      // 같은 사건 묶기로 계산한 임베딩을 남긴다 (추천 기사에서 다시 계산하지 않게). 실패해도 뉴스레터는 계속
+      if (!test && embeddings.length)
+        await this.crawlingRepository
+          .saveEmbeddings(
+            embeddings.map(({ index, vector }) => ({
+              link: news[index].link,
+              embedding: vector,
+            })),
+          )
+          .catch((error) =>
+            this.logger.warn(`기사 임베딩 저장 실패: ${error.message}`),
+          );
       // 저장 전에 합치기 · 지우기 규칙과 기존 표기로 맞춘다 (띄어쓰기 · 대소문자만 다른 태그가 갈라지지 않게)
       const keywords = await this.tagsService.canonicalize(written.keywords);
 

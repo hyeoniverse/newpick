@@ -40,6 +40,9 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     profiles: jest.fn().mockResolvedValue(new Map()),
     signalTexts: jest.fn().mockResolvedValue(new Map()),
   };
+  const recommendService = {
+    forUsers: jest.fn().mockResolvedValue(new Map()),
+  };
   const mailService = {
     sendHtmlMail: jest.fn(),
     sendBulkMail: jest.fn(async (subscribers, build) => {
@@ -77,6 +80,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     editionService as never,
     { detect: jest.fn().mockResolvedValue({}) } as never,
     tasteService as never,
+    recommendService as never,
     siteCache as never,
   );
   // 요약 다시 시도 사이 쉬는 시간은 테스트에서 없앤다
@@ -88,6 +92,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     aiSummaryService,
     editionService,
     tasteService,
+    recommendService,
     mailService,
     siteCache,
     prisma,
@@ -227,6 +232,59 @@ describe('구독 메일 (#55)', () => {
     expect(editionService.embedForPlans).toHaveBeenCalledTimes(1);
     expect(plan.picks).toEqual([{ ref: '20-1', newsletterId: 20 }]);
     expect(plan.note.subject).toBe('맞춤 제목');
+  });
+
+  it('추천 기사: 맞춤 신호 그대로 그날 뉴스레터를 빼고 고르고, 맞춤으로 고른 소식이 없어도 계획에 붙는다', async () => {
+    const edition = {
+      date: '2026-10-27',
+      editorial: null,
+      sources: [
+        {
+          newsletterId: 20,
+          categoryId: 1,
+          category: '경제',
+          title: '경제',
+          stories: [
+            { kicker: '', heading: '환율', lead: '', blocks: [], sources: [] },
+          ],
+        },
+      ],
+    };
+    const { service, editionService, tasteService, recommendService } = setup(
+      0,
+      edition,
+    );
+    const signals = [{ kind: 'bookmark', label: 'x', vector: [1, 0] }];
+    tasteService.profiles.mockResolvedValue(
+      new Map([
+        [7, { topics: [{ name: '야구', key: '야구', score: 1 }], signals }],
+      ]),
+    );
+    const articles = [
+      {
+        title: '기사',
+        link: 'https://n.news/1',
+        source: '한경',
+        category: '경제',
+        score: 0.7,
+      },
+    ];
+    recommendService.forUsers.mockResolvedValue(new Map([[7, articles]]));
+    await service.sendEmailSummary();
+
+    const [users, window, newsletterIds] =
+      recommendService.forUsers.mock.calls[0];
+    // 임베딩이 없으면(여기서는 빈 결과) 메일에 실린 소식 벡터도 없다
+    expect(users).toEqual([{ userId: 7, signals, shown: [] }]);
+    expect(window.end.getTime() - window.start.getTime()).toBe(
+      SUMMARY_WINDOW_HOURS * 60 * 60 * 1000,
+    );
+    expect(newsletterIds).toEqual([20]);
+    // 관심(야구)이 소식에 안 닿아 맞춤 계획은 없지만 추천 기사는 붙는다
+    expect((editionService.composeMail.mock.calls[0] as unknown[])[3]).toEqual({
+      picks: [],
+      articles,
+    });
   });
 
   it('오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)', async () => {
