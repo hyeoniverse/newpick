@@ -75,8 +75,11 @@ export default function TagFollows() {
 					{suggestions.map((t) => (
 						<li key={t.keyword}>
 							<button type="button" disabled={follow.isPending} onClick={() => add(t.keyword)}>
-								<span className="hash">#</span>
-								{t.keyword}
+								{/* #과 이름은 한 덩어리로 (단추의 gap이 그 사이를 벌리지 않게) */}
+								<span>
+									<span className="hash">#</span>
+									{t.keyword}
+								</span>
 								<span className="count">{t.count}편</span>
 								<LuPlus aria-hidden />
 							</button>
