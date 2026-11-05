@@ -5,6 +5,7 @@ import styled from 'styled-components';
 import { LuFolder, LuFolderPlus } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
 import { Folder, useFolderMutations } from '@/hooks/useFolders';
+import { useLiftScrollButtons } from '@/components/common/ScrollButtons';
 import FolderDeleteModal from './FolderDeleteModal';
 
 /** 폴더 거르기 값: 'all' 모두 · 'none' 폴더 없음 · 폴더 번호 */
@@ -50,6 +51,8 @@ export default function FolderBar({
 	const current = typeof value === 'number' ? folders.find((f) => f.id === value) : undefined;
 	// 끄는 중 마우스가 올라간 폴더 (강조)
 	const [over, setOver] = useState<FolderFilter | null>(null);
+	// 폴더 칸이 화면 아래에 뜨는 동안 위로 · 아래로 단추를 그 위로 올린다
+	const liftScrollButtons = useLiftScrollButtons();
 	/** 끌어 놓을 수 있는 칸 ('모두'는 빼고) */
 	const dropProps = (key: Exclude<FolderFilter, 'all'>) => ({
 		onDragOver: (event: React.DragEvent) => {
@@ -99,11 +102,20 @@ export default function FolderBar({
 
 	return (
 		<StyledFolderBar role="group" aria-label="폴더">
-			{/* 끄는 중: 화면 위에 폴더 칸을 띄워 멀리 끌고 올라가지 않아도 놓을 수 있게 */}
+			{/* 끄는 중: 화면 아래에 폴더 칸을 띄워 멀리 끌고 올라가지 않아도 놓을 수 있게 (스크랩 선택 막대와 같은 자리).
+			    폴더는 한 줄, 넘치면 옆으로: 끄는 채로 칸 양 끝에 가져가면 그쪽으로 넘어간다 */}
 			{dragging > 0 && (
-				<div className="drop-dock" aria-hidden>
+				<div ref={liftScrollButtons} className="drop-dock" aria-hidden>
 					<p>{dragging > 1 ? `${dragging}개를` : '여기에'} 놓을 폴더</p>
-					<div className="targets">
+					<div
+						className="targets"
+						onDragOver={(event) => {
+							const box = event.currentTarget.getBoundingClientRect();
+							const edge = 48;
+							if (event.clientX < box.left + edge) event.currentTarget.scrollLeft -= 12;
+							else if (event.clientX > box.right - edge) event.currentTarget.scrollLeft += 12;
+						}}
+					>
 						<div className={`target ${over === 'none' ? 'over' : ''}`} {...dropProps('none')}>
 							폴더 없음
 						</div>
@@ -298,10 +310,10 @@ const StyledFolderBar = styled.div`
 		}
 	}
 
-	/* 끄는 중 화면 위에 뜨는 폴더 칸 */
+	/* 끄는 중 화면 아래에 뜨는 폴더 칸: 그림자로 목록 위에 떠 있게 */
 	.drop-dock {
 		position: fixed;
-		top: 5rem;
+		bottom: 1.5rem;
 		left: 50%;
 		z-index: 900;
 		display: flex;
@@ -312,6 +324,7 @@ const StyledFolderBar = styled.div`
 		border: 1px solid ${({ theme }) => theme.color.primary};
 		border-radius: ${({ theme }) => theme.radius.surface};
 		background: ${({ theme }) => theme.color.background};
+		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 		transform: translateX(-50%);
 
 		p {
@@ -321,13 +334,20 @@ const StyledFolderBar = styled.div`
 			color: ${({ theme }) => theme.color.primary};
 		}
 
+		/* 폴더는 한 줄로, 넘치면 옆으로 (칸이 화면을 덮지 않게) */
 		.targets {
 			display: flex;
-			flex-wrap: wrap;
 			gap: 0.5rem;
+			overflow-x: auto;
+			scrollbar-width: none;
+
+			&::-webkit-scrollbar {
+				display: none;
+			}
 		}
 
 		.target {
+			flex-shrink: 0;
 			display: inline-flex;
 			align-items: center;
 			gap: 0.375rem;
@@ -337,6 +357,7 @@ const StyledFolderBar = styled.div`
 			border-radius: ${({ theme }) => theme.radius.control};
 			font-size: ${({ theme }) => theme.fontSize.small};
 			color: ${({ theme }) => theme.color.text};
+			white-space: nowrap;
 
 			svg {
 				width: 1rem;
