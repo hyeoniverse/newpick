@@ -326,6 +326,12 @@ const StyledCard = styled.div<StyledProps>`
 			white-space: nowrap;
 		}
 
+		/* 날짜 | 조회수 (휴대폰은 · ) */
+		.views::before {
+			content: '|';
+			margin-right: 0.5rem;
+		}
+
 		.rounded-icon-button {
 			padding: 0.5rem 0.5rem;
 			border-radius: ${({ theme }) => theme.borderRadius.circle};
@@ -675,54 +681,27 @@ const listCardStyles = css`
 			}
 		}
 
-		/* 휴대폰: 글(제목 · 설명 · 태그) | 작은 썸네일, 그 아래 날짜 · 조회수 · 북마크 줄은 카드 폭 가득 (북마크가 오른쪽 끝에) */
+		/*
+		 * 휴대폰은 뉴스 앱 목록처럼: 제목 | 썸네일, 아래 한 줄에 분야 · 날짜 · 조회수, 북마크는 오른쪽 끝.
+		 * 설명 · 태그는 뺀다. 안쪽 칸들을 풀어(display: contents) 카드 한 격자에 놓는다
+		 */
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			.content {
-				display: grid;
-				grid-template-columns: minmax(0, 1fr) 6.5rem;
-				column-gap: 0.875rem;
-				row-gap: 0.25rem;
-				align-items: start;
-
-				.left {
-					display: contents;
-				}
-
-				.left > * {
-					grid-column: 1;
-				}
-
-				/* 썸네일은 제목 옆에 4:3로 */
-				.image-placeholder {
-					grid-column: 2;
-					grid-row: 1 / span 3;
-					width: 6rem;
-					aspect-ratio: 4 / 3;
-
-					> div,
-					img {
-						height: 100%;
-						aspect-ratio: auto;
-					}
-				}
-
-				/* 북마크 단추(누르는 칸 40px)가 줄 높이를 키우지 않게: 줄은 1.25rem, 단추는 위아래로 넘쳐 누르는 칸은 그대로 */
-				.card-footer {
-					grid-column: 1 / -1;
-					height: 1.25rem;
-					margin-top: 0.375rem;
-					align-items: center;
-					gap: 0.375rem;
-				}
+			.content,
+			.content .left,
+			.card-footer {
+				display: contents;
 			}
 
-			.card-header {
-				margin-bottom: 0.25rem;
+			.content .description,
+			.content .tags {
+				display: none;
+			}
 
-				p,
-				span {
-					font-size: ${({ theme }) => theme.fontSize.extraSmall};
-				}
+			.stretched-link {
+				grid-row: 1;
+				grid-column: 1 / 5;
+				align-self: start;
+				padding-right: 0.5rem;
 			}
 
 			.title {
@@ -730,31 +709,67 @@ const listCardStyles = css`
 				line-height: 1.4;
 			}
 
-			.description {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-				color: ${({ theme }) => theme.color.subText};
-			}
+			/* 썸네일은 제목 옆에 4:3로 */
+			.content .image-placeholder {
+				grid-row: 1;
+				grid-column: 5;
+				width: 5.5rem;
+				aspect-ratio: 4 / 3;
 
-			/* 태그는 칩 대신 글자만 (#앤트로픽 #IPO) */
-			.tags {
-				margin-top: 0.125rem;
-				gap: 0.5rem;
-
-				li {
-					padding: 0;
-					border: none;
-					font-size: 0.75rem;
+				> div,
+				img {
+					height: 100%;
+					aspect-ratio: auto;
 				}
 			}
 
+			/* 아래 정보 줄: 분야 · 날짜 · 조회수 · (빈 칸) · 북마크 */
+			.card-header {
+				grid-row: 2;
+				grid-column: 1;
+				margin: 0;
+			}
+
+			.card-header p,
+			.card-header span,
 			.card-footer p,
 			.card-footer span {
 				font-size: 0.75rem;
+				line-height: 1.25rem;
 			}
 
-			.card-footer .right svg {
-				width: 1.125rem;
-				height: 1.125rem;
+			.card-footer > :first-child {
+				grid-row: 2;
+				grid-column: 2;
+
+				&::before {
+					content: '·';
+					margin-right: 0.375rem;
+				}
+			}
+
+			.card-footer .views {
+				grid-row: 2;
+				grid-column: 3;
+
+				&::before {
+					content: '·';
+					margin-right: 0.375rem;
+				}
+			}
+
+			/* 북마크 단추(누르는 칸 40px)가 줄 높이를 키우지 않게 1.25rem 줄에 넘치게 둔다. 카드 전체 링크 위에서 눌리게 */
+			.card-footer .right {
+				grid-row: 2;
+				grid-column: 5;
+				height: 1.25rem;
+				position: relative;
+				z-index: 1;
+
+				svg {
+					width: 1.125rem;
+					height: 1.125rem;
+				}
 			}
 		}
 	}
@@ -762,6 +777,15 @@ const listCardStyles = css`
 	@media ${({ theme }) => theme.mediaQuery.mobile} {
 		.card-body {
 			padding: 1rem 0;
+		}
+
+		/* 공통 .card-body .card-main(flex)보다 앞서도록 같은 깊이로 */
+		.card-body .card-main {
+			display: grid;
+			grid-template-columns: auto auto auto minmax(0, 1fr) 5.5rem;
+			column-gap: 0.375rem;
+			row-gap: 0.5rem;
+			align-items: center;
 		}
 	}
 `;
