@@ -126,9 +126,9 @@ export default function ListSection() {
 		</Text>
 	);
 
-	// 정렬은 늘 머리 줄 오른쪽 끝 (태그로 고른 목록이면 태그 줄 끝)
-	const sortButtons = (
-		<div className="right-section">
+	// 정렬: 데스크톱은 머리 줄 오른쪽 끝(태그로 고른 목록이면 태그 줄 끝), 휴대폰은 머리 맨 아래 따로 한 줄(오른쪽 끝)
+	const sortButtons = (where: 'inline' | 'row') => (
+		<div className={`right-section sort-${where}`}>
 			<Button data-active={filters.sort === 'latest'} onClick={() => setSort('latest')}>
 				최신순
 			</Button>
@@ -158,7 +158,7 @@ export default function ListSection() {
 									))}
 								</ul>
 								{tags.length === 1 && count}
-								{sortButtons}
+								{sortButtons('inline')}
 							</div>
 							{/* 태그 여러 개: 조건을 한 문장으로 — 고른 태그가 [하나라도 ▾] 들어간 뉴스레터 N건 */}
 							{tags.length > 1 && (
@@ -200,7 +200,8 @@ export default function ListSection() {
 						</>
 					)}
 				</div>
-				{!tags.length && sortButtons}
+				{!tags.length && sortButtons('inline')}
+				{tags.length > 0 && sortButtons('row')}
 			</div>
 			{total === 0 && !isLoading ? (
 				<EmptyState
@@ -273,13 +274,27 @@ const StyledListSection = styled.section`
 		justify-content: space-between;
 		align-items: center;
 
-		/* 휴대폰: 제목이 길면 줄을 넘기되, 정렬은 늘 오른쪽 끝 */
+		/* 태그로 고른 목록의 휴대폰용 정렬 줄은 데스크톱에선 숨긴다 */
+		.right-section.sort-row {
+			display: none;
+		}
+
+		/* 휴대폰: 정렬은 따로 한 줄, 오른쪽 끝 */
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
 			flex-wrap: wrap;
-			gap: 0.5rem;
+			gap: 0.75rem;
 
 			.right-section {
-				margin-left: auto;
+				width: 100%;
+				justify-content: flex-end;
+			}
+
+			.picked-row .sort-inline {
+				display: none;
+			}
+
+			.right-section.sort-row {
+				display: flex;
 			}
 		}
 
