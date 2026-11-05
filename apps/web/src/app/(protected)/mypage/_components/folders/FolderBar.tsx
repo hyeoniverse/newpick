@@ -53,6 +53,13 @@ export default function FolderBar({
 	const [over, setOver] = useState<FolderFilter | null>(null);
 	// 폴더 칸이 화면 아래에 뜨는 동안 위로 · 아래로 단추를 그 위로 올린다
 	const liftScrollButtons = useLiftScrollButtons();
+	// 폴더 칸이 옆으로 넘칠 때 가려진 쪽 끝을 흐리게 (더 있다는 표시)
+	const [more, setMore] = useState({ left: false, right: false });
+	const measure = (el: HTMLElement | null) => {
+		if (!el) return;
+		const next = { left: el.scrollLeft > 1, right: el.scrollLeft + el.clientWidth < el.scrollWidth - 1 };
+		setMore((prev) => (prev.left === next.left && prev.right === next.right ? prev : next));
+	};
 	/** 끌어 놓을 수 있는 칸 ('모두'는 빼고) */
 	const dropProps = (key: Exclude<FolderFilter, 'all'>) => ({
 		onDragOver: (event: React.DragEvent) => {
@@ -108,7 +115,9 @@ export default function FolderBar({
 				<div ref={liftScrollButtons} className="drop-dock" aria-hidden>
 					<p>{dragging > 1 ? `${dragging}개를` : '여기에'} 놓을 폴더</p>
 					<div
-						className="targets"
+						ref={measure}
+						className={['targets', more.left && 'more-left', more.right && 'more-right'].filter(Boolean).join(' ')}
+						onScroll={(event) => measure(event.currentTarget)}
 						onDragOver={(event) => {
 							const box = event.currentTarget.getBoundingClientRect();
 							const edge = 48;
@@ -343,6 +352,18 @@ const StyledFolderBar = styled.div`
 
 			&::-webkit-scrollbar {
 				display: none;
+			}
+
+			&.more-right {
+				mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
+			}
+
+			&.more-left {
+				mask-image: linear-gradient(to left, #000 calc(100% - 3rem), transparent);
+			}
+
+			&.more-left.more-right {
+				mask-image: linear-gradient(to right, transparent, #000 3rem, #000 calc(100% - 3rem), transparent);
 			}
 		}
 
