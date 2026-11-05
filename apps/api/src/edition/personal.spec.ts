@@ -188,7 +188,7 @@ describe('맞춤 계획 (planMail): 분야를 나누지 않고 점수 순', () =
 describe('맞춤 메일 엮기', () => {
   const plan = planMail(sources, [1, 2], profile)!;
 
-  it('계획의 소식을 점수 순 그대로: 오늘 한눈에 · 본문 순서가 같고, 분야는 실린 것만', () => {
+  it('계획의 소식을 점수 순 그대로: 오늘을 한눈에 · 본문 순서가 같고, 분야는 실린 것만', () => {
     const mine = composeEdition(sources, null, [1, 2], DATE, plan)!;
     expect(mine.personal).toBe(true);
     expect(mine.top.map((t) => t.ref)).toEqual(refs(plan));
