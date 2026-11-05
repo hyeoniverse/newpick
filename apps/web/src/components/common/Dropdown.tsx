@@ -225,47 +225,32 @@ const StyledDropdown = styled.div`
 				flex-direction: column;
 			}
 
-			/* 뉴스레터 아래 분야: 들여 쓴 하위 메뉴(왼쪽 안내선), 두 칸 격자의 글자 줄. 지금 분야는 강조색 · 굵게 · 앞에 작은 점 */
+			/* 뉴스레터 아래 분야: 위 메뉴와 같은 줄 모양을 한 단계 작게 들여 쓴 목록. 지금 분야는 연한 강조색 바탕 · 강조색 */
 			.categories {
-				display: grid;
-				grid-template-columns: repeat(2, minmax(0, 1fr));
-				column-gap: 0.5rem;
-				margin: 0.125rem 0 0.5rem 1.25rem;
-				padding: 0 0 0 0.75rem;
-				border-left: 1px solid ${({ theme }) => theme.color.border};
+				display: flex;
+				flex-direction: column;
+				margin: 0 0 0.5rem;
+				padding: 0;
 				list-style: none;
 			}
 
 			.category {
-				position: relative;
 				display: flex;
 				align-items: center;
 				min-height: 2.75rem;
-				padding: 0 0.75rem;
+				padding: 0 0.75rem 0 1.5rem;
 				border-radius: ${({ theme }) => theme.radius.control};
 				font-size: ${({ theme }) => theme.fontSize.small};
-				color: ${({ theme }) => theme.color.subText};
+				color: ${({ theme }) => theme.color.text};
 
 				&:hover {
 					background: ${({ theme }) => theme.color.surface};
-					color: ${({ theme }) => theme.color.text};
 				}
 
 				&[aria-current='page'] {
+					background: ${({ theme }) => theme.color.tertiary};
 					color: ${({ theme }) => theme.color.primary};
 					font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-
-					&::before {
-						content: '';
-						position: absolute;
-						left: 0.25rem;
-						top: 50%;
-						width: 0.3125rem;
-						height: 0.3125rem;
-						border-radius: 50%;
-						background: ${({ theme }) => theme.color.primary};
-						transform: translateY(-50%);
-					}
 				}
 			}
 
