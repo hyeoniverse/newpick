@@ -9,10 +9,10 @@ import { fetchAllKeywords } from '@/api/article';
 import { useTagFollows } from '@/hooks/useTagFollows';
 import { toPageHref, readFilters } from '@/utils/newsletterSearch';
 import Text from '@/components/common/Text';
-import Title from '@/components/common/Title';
+import ListHead from '@/app/(protected)/mypage/_components/list/ListHead';
 
 /**
- * 마이페이지 > 설정의 팔로우한 태그 (#123): 매일 메일의 '팔로우한 태그' 칸에 태그마다 그날 소식(모든 분야)과
+ * 마이페이지 > 지켜보기의 팔로우한 태그 (#123, 지켜보는 소식 아래): 매일 메일의 '팔로우한 태그' 칸에 태그마다 그날 소식(모든 분야)과
  * 뉴스레터에 실리지 않은 기사 중 제목에 나온 것을 모아 보낸다 (맞춤을 꺼도).
  * 여기서 바로 추가(태그 이름을 치면 실제 뉴스레터 태그 중 맞는 것을 많이 쓴 순으로)하거나, 뉴스레터 목록의 태그에서 팔로우한다
  */
@@ -41,9 +41,7 @@ export default function TagFollows() {
 	return (
 		<StyledTagFollows>
 			<div className="head">
-				<Title size="extraSmall" weight="bold" as="h2">
-					팔로우한 태그
-				</Title>
+				<ListHead title="팔로우한 태그" count={follows.length} />
 				<Text size="small" color="subText">
 					매일 메일의 ‘팔로우한 태그’ 칸에 태그마다 그날 소식과 관련 기사를 모아 드립니다. 20개까지 팔로우할 수
 					있습니다.
@@ -126,7 +124,7 @@ const StyledTagFollows = styled.section`
 	display: flex;
 	flex-direction: column;
 	gap: 1rem;
-	margin-top: 4rem;
+	margin-top: 2.5rem;
 	padding-top: 2rem;
 	border-top: 1px solid ${({ theme }) => theme.color.border};
 	word-break: keep-all;

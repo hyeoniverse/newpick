@@ -41,7 +41,7 @@ export default function StartSubscription() {
 					content={`내일부터 새로운 뉴스레터를 보내드려요.`}
 					filledButton="확인"
 					onConfirmClick={closeModal}
-				/>
+				/>,
 			);
 			setChecked(false);
 		}
@@ -76,7 +76,7 @@ export default function StartSubscription() {
 										onCancelClick={handleCancel}
 										filledButton="취소"
 										onConfirmClick={closeModal}
-									/>
+									/>,
 								)
 							}
 							disabled={isChangingSubscription}
@@ -98,9 +98,7 @@ export default function StartSubscription() {
 						<Button
 							type="button"
 							scheme="default"
-							className={
-								selectedInterests.length === CATEGORIES.length ? 'active category-btn' : 'category-btn'
-							}
+							className={selectedInterests.length === CATEGORIES.length ? 'active category-btn' : 'category-btn'}
 							onClick={() => handleSelectInterests(CATEGORIES[0])}
 						>
 							전체
@@ -115,9 +113,7 @@ export default function StartSubscription() {
 								onClick={() => {
 									handleSelectInterests(category);
 								}}
-								className={
-									selectedInterests.includes(category.name) ? 'category-btn active' : 'category-btn'
-								}
+								className={selectedInterests.includes(category.name) ? 'category-btn active' : 'category-btn'}
 							>
 								{category.name}
 							</Button>

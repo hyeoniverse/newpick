@@ -375,17 +375,17 @@ export default function MyHighlights() {
 															>
 																{block.items.map((highlight, i) => (
 																	<li key={highlight.id} className={i >= QUOTES_SMALL ? 'extra' : undefined}>
-																																			<HighlightItem
+																		<HighlightItem
 																			highlight={highlight}
 																			source={
 																				<Source
-																				highlight={highlight}
-																				folder={
-																					folder === 'all' && highlight.folderId
-																						? folderName.get(highlight.folderId)
-																						: undefined
-																				}
-																			/>
+																					highlight={highlight}
+																					folder={
+																						folder === 'all' && highlight.folderId
+																							? folderName.get(highlight.folderId)
+																							: undefined
+																					}
+																				/>
 																			}
 																			focused={highlight.id === focused}
 																			selecting={selecting}
