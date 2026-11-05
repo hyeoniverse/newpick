@@ -439,9 +439,10 @@ const StyledHotSection = styled.section<StyledProps>`
 				display: none;
 			}
 
+			/* 제목 한 줄뿐이라 제목 줄 안에 들어가는 크기로 (위 태그 줄을 덮지 않게) */
 			.watermark svg {
-				width: 5.5rem;
-				height: 5.5rem;
+				width: 3.5rem;
+				height: 3.5rem;
 			}
 		}
 	}
