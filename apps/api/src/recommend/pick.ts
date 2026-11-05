@@ -11,8 +11,6 @@ export const RECOMMEND_LIMITS = {
   min: 0.6,
   /** 한 사람에게 권하는 기사 수 */
   picks: 3,
-  /** 팔로우한 태그가 제목에 나온 기사의 점수 (임베딩이 닿지 않아도 기준을 넘게) */
-  keyword: 0.7,
 };
 
 export type Candidate = {
@@ -33,21 +31,53 @@ export type ArticlePick = {
 };
 
 /**
+ * 팔로우한 태그마다 제목에 그 태그가 나온 기사 (임베딩 없이 글자로, 이미 뉴스레터에 쓴 기사는 뺀다).
+ * 같은 기사는 먼저 나온 태그에만
+ */
+export function tagArticles(
+  candidates: Omit<Candidate, 'vector'>[],
+  tags: { name: string; key: string }[],
+  exclude: Set<string>,
+  limit: number,
+): Map<string, ArticlePick[]> {
+  const result = new Map<string, ArticlePick[]>();
+  const taken = new Set<string>();
+  for (const tag of tags) {
+    if (tag.key.length < 2) continue;
+    const picks = candidates
+      .filter(
+        (c) =>
+          !exclude.has(c.link) &&
+          !taken.has(c.link) &&
+          tagKey(c.title).includes(tag.key),
+      )
+      .slice(0, limit)
+      .map((c) => ({
+        title: c.title,
+        link: c.link,
+        source: c.source,
+        category: c.category,
+        score: 1,
+      }));
+    picks.forEach((p) => taken.add(p.link));
+    if (picks.length) result.set(tag.name, picks);
+  }
+  return result;
+}
+
+/**
  * 기사마다 가장 가까운 신호와의 코사인으로 매기고, 기준을 넘는 것 중 가까운 순으로.
  * 같은 사건(서로 SAME_EVENT_EMBEDDING 이상)은 하나만. 이미 뉴스레터에 쓴 기사(exclude)와,
- * 그 사람 메일에 실린 소식(shown)과 같은 사건인 기사는 뺀다 (다른 언론사가 쓴 같은 소식).
- * keywords: 팔로우한 태그(비교 열쇠, #123 5단계) — 제목에 나오면 RECOMMEND_LIMITS.keyword 이상으로 친다
+ * 그 사람 메일에 실린 소식(shown)과 같은 사건인 기사는 뺀다 (다른 언론사가 쓴 같은 소식)
  */
 export function pickArticles(
   signals: Pick<TasteSignal, 'vector'>[],
   candidates: Candidate[],
   exclude: Set<string>,
   shown: number[][] = [],
-  keywords: string[] = [],
   limits = RECOMMEND_LIMITS,
 ): ArticlePick[] {
-  if (!signals.length && !keywords.length) return [];
-  const keyed = keywords.filter((k) => k.length >= 2);
+  if (!signals.length) return [];
   const scored = candidates
     .filter((c) => !exclude.has(c.link))
     .filter(
@@ -56,11 +86,7 @@ export function pickArticles(
     .map((candidate) => ({
       candidate,
       score: Math.max(
-        -1,
         ...signals.map((s) => cosine(s.vector, candidate.vector)),
-        keyed.some((k) => tagKey(candidate.title).includes(k))
-          ? limits.keyword
-          : -1,
       ),
     }))
     .filter((s) => s.score >= limits.min)

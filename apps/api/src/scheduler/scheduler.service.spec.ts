@@ -39,9 +39,11 @@ function setup(failingCategoryId: number, edition: unknown = null) {
   const tasteService = {
     profiles: jest.fn().mockResolvedValue(new Map()),
     signalTexts: jest.fn().mockResolvedValue(new Map()),
+    tagFollows: jest.fn().mockResolvedValue(new Map()),
   };
   const recommendService = {
     forUsers: jest.fn().mockResolvedValue(new Map()),
+    forTags: jest.fn().mockResolvedValue(new Map()),
   };
   const mailService = {
     sendHtmlMail: jest.fn(),
@@ -284,7 +286,7 @@ describe('구독 메일 (#55)', () => {
     const [users, window, newsletterIds] =
       recommendService.forUsers.mock.calls[0];
     // 임베딩이 없으면(여기서는 빈 결과) 메일에 실린 소식 벡터도 없다
-    expect(users).toEqual([{ userId: 7, signals, keywords: [], shown: [] }]);
+    expect(users).toEqual([{ userId: 7, signals, shown: [] }]);
     expect(window.end.getTime() - window.start.getTime()).toBe(
       SUMMARY_WINDOW_HOURS * 60 * 60 * 1000,
     );
@@ -305,6 +307,73 @@ describe('구독 메일 (#55)', () => {
     expect(
       (editionService.composeMail.mock.calls[0] as unknown[])[3],
     ).toBeFalsy();
+  });
+
+  it('팔로우한 태그 칸: 맞춤을 꺼도, 태그마다 그날 소식(모든 분야) · 기사, 소식 · 기사가 없는 태그는 뺀다', async () => {
+    const edition = {
+      date: '2026-10-27',
+      editorial: null,
+      sources: [
+        {
+          newsletterId: 30,
+          categoryId: 3,
+          category: '세계',
+          title: '세계',
+          stories: [
+            {
+              kicker: '',
+              heading: '룰라 4선',
+              lead: '',
+              blocks: [],
+              sources: [],
+            },
+          ],
+        },
+      ],
+    };
+    const { service, editionService, tasteService, recommendService, prisma } =
+      setup(0, edition);
+    prisma.optedOut.add(7);
+    tasteService.tagFollows.mockResolvedValue(
+      new Map([
+        [
+          7,
+          [
+            { name: '룰라', key: '룰라' },
+            { name: '야구', key: '야구' },
+          ],
+        ],
+      ]),
+    );
+    const article = {
+      title: '룰라 여파',
+      link: 'https://n.news/1',
+      source: '한경',
+      category: '경제',
+      score: 1,
+    };
+    recommendService.forTags.mockResolvedValue(
+      new Map([[7, new Map([['룰라', [article]]])]]),
+    );
+    await service.sendEmailSummary();
+    expect(tasteService.tagFollows).toHaveBeenCalledWith([7]);
+    expect((editionService.composeMail.mock.calls[0] as unknown[])[3]).toEqual({
+      picks: [],
+      tags: [
+        {
+          tag: '룰라',
+          stories: [
+            {
+              ref: '30-1',
+              newsletterId: 30,
+              category: '세계',
+              heading: '룰라 4선',
+            },
+          ],
+          articles: [article],
+        },
+      ],
+    });
   });
 
   it('오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)', async () => {

@@ -17,9 +17,9 @@ import type { ArticlePick } from '../recommend/pick';
  * 취향 신호가 없거나 어떤 소식에도 닿지 않으면 계획이 없고, 메일은 지금처럼 분야별이다
  */
 
-/** 취향 신호 하나: 북마크한 소식(제목 · 리드), 스크랩한 문장(+메모), 팔로우한 태그의 임베딩 */
+/** 취향 신호 하나: 북마크한 소식(제목 · 리드) 또는 스크랩한 문장(+메모)의 임베딩 */
 export type TasteSignal = {
-  kind: 'bookmark' | 'scrap' | 'tag';
+  kind: 'bookmark' | 'scrap';
   /** 소식 제목 · 스크랩 문장 앞부분 (이미 본 소식을 알아보는 데 쓴다) */
   label: string;
   vector: number[];
@@ -29,8 +29,6 @@ export type TasteSignal = {
 export type TasteProfile = {
   topics: { name: string; key: string; score: number }[];
   signals?: TasteSignal[];
-  /** 팔로우한 태그 (#123 5단계): 소식 글에 나오면 관심 점수 최대 */
-  follows?: { name: string; key: string }[];
 };
 
 /** 한 사람의 메일 계획. 발송 기록에 함께 남겨 마이페이지에서 받은 그대로 다시 만든다 */
@@ -41,7 +39,57 @@ export type MailPlan = {
   note?: PersonalNote | null;
   /** 뉴스레터에 쓰지 않은 오늘 기사 중 관심과 가까운 원문 (recommend) */
   articles?: ArticlePick[];
+  /** 팔로우한 태그 칸 (#123 5단계): 태그마다 그날 소식 · 뉴스레터에 안 실린 기사 */
+  tags?: TagNews[];
 };
+
+/** 팔로우한 태그 하나의 그날 소식 */
+export type TagNews = {
+  tag: string;
+  stories: {
+    ref: string;
+    newsletterId: number;
+    category: string;
+    heading: string;
+  }[];
+  articles: ArticlePick[];
+};
+
+export const TAG_LIMITS = {
+  /** 메일에 싣는 태그 수 (소식이 있는 것만, 팔로우한 순) */
+  tags: 5,
+  /** 태그 하나에 싣는 뉴스레터 소식 · 기사 수 */
+  stories: 3,
+  articles: 2,
+};
+
+/**
+ * 팔로우한 태그마다 그날 소식 (모든 분야): 소식 글(제목 · 리드 · 본문 앞부분)에 태그가 나오는 것.
+ * 맞춤 순서(오늘 한눈에)에는 섞지 않고 따로 칸으로 보여 준다 (직접 고른 것과 추측한 취향을 나눈다)
+ */
+export function tagStories(
+  sources: EditionSource[],
+  tags: { name: string; key: string }[],
+): Map<string, TagNews['stories']> {
+  const result = new Map<string, TagNews['stories']>();
+  for (const tag of tags) {
+    if (tag.key.length < 2) continue;
+    const stories = sources
+      .flatMap((source) =>
+        source.stories.map((story, i) => ({ source, story, i })),
+      )
+      .filter(({ story }) => storyKey(story).includes(tag.key))
+      .slice(0, TAG_LIMITS.stories)
+      .map(({ source, story, i }) => ({
+        ref: storyRef(source.newsletterId, i),
+        newsletterId: source.newsletterId,
+        category: source.category,
+        heading: story.heading,
+      }));
+    if (stories.length) result.set(tag.name, stories);
+  }
+  return result;
+}
 
 export const PERSONAL_LIMITS = {
   /** 메일에 싣는 소식 수 */
@@ -87,13 +135,6 @@ export function interestScore(
   vector: number[] | undefined,
   profile: TasteProfile,
 ): { score: number; seen: boolean } {
-  // 직접 팔로우한 태그가 소식 글에 나오면 가장 강한 관심 (추측한 취향보다 확실한 신호)
-  if (
-    profile.follows?.some(
-      (f) => f.key.length >= 2 && storyKey(story).includes(f.key),
-    )
-  )
-    return { score: 1, seen: false };
   if (!vector || !profile.signals?.length)
     return {
       score: Math.min(1, relevance(storyKey(story), profile)),
@@ -127,12 +168,7 @@ export function planMail(
   vectors?: Map<string, number[]>,
   editorial?: Editorial | null,
 ): MailPlan | null {
-  if (
-    !profile?.topics.length &&
-    !profile?.signals?.length &&
-    !profile?.follows?.length
-  )
-    return null;
+  if (!profile?.topics.length && !profile?.signals?.length) return null;
   const taste = {
     ...profile,
     topics: [...profile.topics]

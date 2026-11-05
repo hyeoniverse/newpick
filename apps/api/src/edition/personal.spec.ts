@@ -6,6 +6,7 @@ import {
   PERSONAL_LIMITS,
   planMail,
   relevance,
+  tagStories,
   TasteProfile,
 } from './personalize';
 import { normalizeNote, notePrompt } from './personalNote';
@@ -174,23 +175,6 @@ describe('맞춤 계획 (planMail): 분야를 나누지 않고 점수 순', () =
     expect(picks).not.toContain('30-2');
   });
 
-  it('팔로우한 태그(#123 5단계)가 소식에 나오면 관심 최대, 북마크 · 스크랩이 없어도 맞춤이 된다', () => {
-    const followOnly: TasteProfile = {
-      topics: [],
-      follows: [{ name: '룰라', key: '룰라' }],
-    };
-    // 임베딩이 있어도 팔로우한 태그가 나오면 1
-    expect(
-      interestScore(story('룰라 4선'), [0, 0, 1], {
-        ...followOnly,
-        signals: [{ kind: 'scrap', label: 'x', vector: [1, 0, 0] }],
-      }),
-    ).toEqual({ score: 1, seen: false });
-    const picks = refs(planMail(sources, [1, 2], followOnly));
-    // 구독하지 않은 세계 분야의 '룰라 4선'이 맨 앞 (중요도 2 + 관심 5)
-    expect(picks[0]).toBe('30-2');
-  });
-
   it('취향이 없거나 어떤 소식에도 닿지 않으면 계획이 없다 (분야별 메일 그대로)', () => {
     expect(planMail(sources, [1], null)).toBeNull();
     expect(planMail(sources, [1], { topics: [] })).toBeNull();
@@ -199,6 +183,57 @@ describe('맞춤 계획 (planMail): 분야를 나누지 않고 점수 순', () =
         topics: [{ name: '야구', key: '야구', score: 1 }],
       }),
     ).toBeNull();
+  });
+});
+
+describe('팔로우한 태그 칸', () => {
+  it('태그마다 그날 소식 (모든 분야, 소식 글에 나온 것), 없는 태그는 뺀다', () => {
+    const result = tagStories(sources, [
+      { name: '반도체', key: '반도체' },
+      { name: '야구', key: '야구' },
+    ]);
+    expect(result.get('반도체')!.map((s) => [s.ref, s.category])).toEqual([
+      ['10-2', '경제'],
+      ['30-1', '세계'],
+    ]);
+    expect(result.has('야구')).toBe(false);
+  });
+
+  it('메일: 오늘 한눈에 앞에 따로 칸, 오늘 한눈에 순서는 그대로', () => {
+    const plain = composeEdition(sources, null, [1, 2], DATE)!;
+    const withTags = composeEdition(sources, null, [1, 2], DATE, {
+      picks: [],
+      tags: [
+        {
+          tag: '반도체',
+          stories: [
+            {
+              ref: '30-1',
+              newsletterId: 30,
+              category: '세계',
+              heading: '미국 반도체 수출 규제 강화',
+            },
+          ],
+          articles: [
+            {
+              title: '반도체 기사',
+              link: 'https://n.news/1',
+              source: '한경',
+              category: '경제',
+              score: 1,
+            },
+          ],
+        },
+      ],
+    })!;
+    expect(withTags.top).toEqual(plain.top);
+    const mail = renderEditionMail(withTags, 'https://newpick.app');
+    expect(mail).toContain('팔로우한 태그');
+    expect(mail).toContain('#반도체');
+    expect(mail).toContain('href="https://n.news/1"');
+    expect(mail.indexOf('팔로우한 태그')).toBeLessThan(
+      mail.indexOf('오늘 한눈에'),
+    );
   });
 });
 
