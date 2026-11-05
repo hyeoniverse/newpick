@@ -692,18 +692,36 @@ const listCardStyles = css`
 					grid-column: 1;
 				}
 
+				/* 썸네일은 제목 옆에 4:3로 */
 				.image-placeholder {
 					grid-column: 2;
 					grid-row: 1 / span 3;
-					width: 6.5rem;
+					width: 6rem;
+					aspect-ratio: 4 / 3;
+
+					> div,
+					img {
+						height: 100%;
+						aspect-ratio: auto;
+					}
 				}
 
-				/* 북마크 단추(누르는 칸 40px)가 줄 높이를 키우지 않게: 줄은 1.5rem, 단추는 위아래로 넘쳐 누르는 칸은 그대로 */
+				/* 북마크 단추(누르는 칸 40px)가 줄 높이를 키우지 않게: 줄은 1.25rem, 단추는 위아래로 넘쳐 누르는 칸은 그대로 */
 				.card-footer {
 					grid-column: 1 / -1;
-					height: 1.5rem;
-					margin-top: 0.5rem;
+					height: 1.25rem;
+					margin-top: 0.375rem;
 					align-items: center;
+					gap: 0.375rem;
+				}
+			}
+
+			.card-header {
+				margin-bottom: 0.25rem;
+
+				p,
+				span {
+					font-size: ${({ theme }) => theme.fontSize.extraSmall};
 				}
 			}
 
@@ -717,10 +735,33 @@ const listCardStyles = css`
 				color: ${({ theme }) => theme.color.subText};
 			}
 
+			/* 태그는 칩 대신 글자만 (#앤트로픽 #IPO) */
+			.tags {
+				margin-top: 0.125rem;
+				gap: 0.5rem;
+
+				li {
+					padding: 0;
+					border: none;
+					font-size: 0.75rem;
+				}
+			}
+
 			.card-footer p,
 			.card-footer span {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				font-size: 0.75rem;
 			}
+
+			.card-footer .right svg {
+				width: 1.125rem;
+				height: 1.125rem;
+			}
+		}
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.card-body {
+			padding: 1rem 0;
 		}
 	}
 `;
