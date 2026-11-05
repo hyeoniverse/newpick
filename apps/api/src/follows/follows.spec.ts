@@ -123,6 +123,24 @@ describe('FollowsService', () => {
     });
   });
 
+  it("지켜보기: '관전 포인트'가 있으면 판정 글 맨 앞에 둔다", async () => {
+    const { prisma, service } = setup();
+    prisma.newsletter.findUnique.mockResolvedValue({
+      contentAsHTML: renderNewsletterHtml({
+        briefing: '',
+        stories: [
+          { ...story('룰라 4선'), next: '선거 무효 요청이 받아들여질지' },
+        ],
+        watch: [],
+      }),
+    });
+    await service.follow(7, 10, 1);
+    const { create } = prisma.storyFollow.upsert.mock.calls[0][0];
+    expect(create.text.split('\n')[0]).toBe(
+      '관전 포인트: 선거 무효 요청이 받아들여질지',
+    );
+  });
+
   it('지켜보는 소식이 없으면 아무것도 부르지 않는다', async () => {
     const { prisma, ai, service } = setup();
     prisma.storyFollow.findMany.mockResolvedValue([]);

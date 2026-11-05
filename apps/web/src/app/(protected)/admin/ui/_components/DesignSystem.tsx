@@ -417,7 +417,9 @@ function DesignSystemBody() {
 					<Card type="sub" data={SAMPLE_CARD} />
 				</div>
 				<SummaryTextBox>
-					26일 코스피가 외국인 순매도와 AI 수익성 우려로 5469.47에 마감해 종가 기준 4월 6일 이후 최저를 기록했다.
+					{
+						'26일 코스피가 외국인 순매도와 AI 수익성 우려로 5469.47에 마감해 종가 기준 4월 6일 이후 최저를 기록했다. 한국은행이 발표한 10월 소비자심리지수는 105.4로 전월보다 1.2p 내렸다.'
+					}
 				</SummaryTextBox>
 			</Section>
 

@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import { useEffect, useState } from 'react';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
+import { useFloatStore } from '@/stores/useFloatStore';
 
 interface Props {
 	className?: string;
@@ -11,7 +12,10 @@ interface Props {
 }
 
 function MobileLikeLinkButton({ className, newsId }: Props) {
-	const [showButton, setShowButton] = useState(false);
+	const [scrolled, setScrolled] = useState(false);
+	// 휴대폰 아래 시트가 열려 있으면 잠깐 숨긴다 (스크롤 단추와 같은 움직임)
+	const sheetOpen = useFloatStore((s) => s.sheetOpen);
+	const showButton = scrolled && !sheetOpen;
 
 	useEffect(() => {
 		const handleScroll = () => {
@@ -22,9 +26,9 @@ function MobileLikeLinkButton({ className, newsId }: Props) {
 			const scrollBottom = window.scrollY + window.innerHeight;
 
 			if (scrollBottom > footerTop) {
-				setShowButton(false);
+				setScrolled(false);
 			} else {
-				setShowButton(window.scrollY > 100);
+				setScrolled(window.scrollY > 100);
 			}
 		};
 
@@ -43,10 +47,7 @@ function MobileLikeLinkButton({ className, newsId }: Props) {
 				newsletterId={newsId}
 				className={`mobile-icon blur ${showButton ? 'fade-in ' : 'fade-out'}`}
 			/>
-			<LinkCopyIcon
-				id={crypto.randomUUID()}
-				className={`mobile-icon blur ${showButton ? 'fade-in ' : 'fade-out'}`}
-			/>
+			<LinkCopyIcon id={crypto.randomUUID()} className={`mobile-icon blur ${showButton ? 'fade-in ' : 'fade-out'}`} />
 		</MobileLikeLinkButtonStyled>
 	);
 }
@@ -72,7 +73,9 @@ const MobileLikeLinkButtonStyled = styled.div`
 
 		opacity: 0;
 		transform: translateY(10px);
-		transition: opacity 0.3s ease, transform 0.3s ease;
+		transition:
+			opacity 0.3s ease,
+			transform 0.3s ease;
 
 		&.fade-in {
 			opacity: 80%;
