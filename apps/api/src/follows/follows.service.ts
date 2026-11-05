@@ -54,7 +54,7 @@ export class FollowsService {
         heading: true,
         reason: true,
         newsletterId: true,
-        follow: { select: { userId: true, heading: true } },
+        follow: { select: { userId: true, heading: true, newsletterId: true } },
         newsletter: { select: { category: { select: { name: true } } } },
       },
     });
@@ -63,6 +63,7 @@ export class FollowsService {
       if (list.length >= FOLLOW_LIMITS.mail) continue;
       list.push({
         followed: row.follow.heading,
+        followedNewsletterId: row.follow.newsletterId,
         heading: row.heading,
         reason: row.reason,
         newsletterId: row.newsletterId,

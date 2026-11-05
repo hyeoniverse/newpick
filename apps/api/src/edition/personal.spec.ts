@@ -255,6 +255,7 @@ describe('맞춤 메일 엮기', () => {
         follows: [
           {
             followed: '룰라 4선',
+            followedNewsletterId: 63,
             heading: '보우소나루 불복 선언',
             reason: '선거 무효 요청이 나왔다',
             newsletterId: 69,
@@ -265,7 +266,10 @@ describe('맞춤 메일 엮기', () => {
       'https://newpick.app',
     );
     expect(mail).toContain('지켜보던 소식의 후속');
-    expect(mail).toContain('지켜보던 소식 · 룰라 4선');
+    // 지켜보던 소식도 그 원래 뉴스레터로
+    expect(mail).toMatch(
+      /지켜보던 소식 · <a href="https:\/\/newpick\.app\/articles\/detail\/63\?[^"]*"[^>]*>룰라 4선<\/a>/,
+    );
     expect(mail).toContain('href="https://newpick.app/articles/detail/69?');
     expect(mail.indexOf('지켜보던 소식의 후속')).toBeLessThan(
       mail.indexOf('오늘 한눈에'),

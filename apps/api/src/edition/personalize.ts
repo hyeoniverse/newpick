@@ -47,6 +47,8 @@ export type MailPlan = {
 export type MailFollow = {
   /** 지켜보던 소식 제목 */
   followed: string;
+  /** 지켜보던 소식이 실린 뉴스레터 (원문 링크) */
+  followedNewsletterId: number;
   /** 이어진 새 소식 제목 */
   heading: string;
   /** 어떻게 이어지는지 한 줄 (없으면 빈 문자열) */

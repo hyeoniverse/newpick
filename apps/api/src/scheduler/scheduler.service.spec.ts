@@ -322,6 +322,7 @@ describe('구독 메일 (#55)', () => {
     const follows = [
       {
         followed: '룰라 4선',
+        followedNewsletterId: 63,
         heading: '보우소나루 불복',
         reason: '선거 무효 요청',
         newsletterId: 69,

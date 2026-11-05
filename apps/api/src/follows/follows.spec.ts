@@ -129,7 +129,7 @@ describe('FollowsService', () => {
       heading,
       reason: '이어짐',
       newsletterId: 69,
-      follow: { userId, heading: '룰라 4선' },
+      follow: { userId, heading: '룰라 4선', newsletterId: 63 },
       newsletter: { category: { name: '세계' } },
     });
     (
@@ -147,6 +147,7 @@ describe('FollowsService', () => {
     expect(result.get(7)).toHaveLength(FOLLOW_LIMITS.mail);
     expect(result.get(7)![0]).toEqual({
       followed: '룰라 4선',
+      followedNewsletterId: 63,
       heading: '후속 0',
       reason: '이어짐',
       newsletterId: 69,
