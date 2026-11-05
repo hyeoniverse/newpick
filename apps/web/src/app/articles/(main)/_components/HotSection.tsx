@@ -459,13 +459,14 @@ const StyledHotSection = styled.section<StyledProps>`
 				font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			}
 
+			/* 아이콘은 자리를 차지하지 않고(absolute) 크게, 글 뒤 오른쪽에 옅게 */
 			.watermark {
-				top: 0.25rem;
-				transform: none;
+				right: -0.25rem;
+				opacity: 0.08;
 
 				svg {
-					width: 3rem;
-					height: 3rem;
+					width: 6.5rem;
+					height: 6.5rem;
 				}
 			}
 		}
@@ -495,8 +496,8 @@ const StyledHotSection = styled.section<StyledProps>`
 			}
 
 			.watermark svg {
-				width: 2.5rem;
-				height: 2.5rem;
+				width: 5.5rem;
+				height: 5.5rem;
 			}
 		}
 	}
