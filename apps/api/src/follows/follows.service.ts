@@ -8,7 +8,7 @@ import {
   acceptedFrom,
   candidatesFor,
   FOLLOW_LIMITS,
-  WATCH_OFFSET,
+  watchStories,
   JUDGE_SCHEMA,
   JUDGE_SYSTEM,
   judgePrompt,
@@ -37,6 +37,46 @@ export class FollowsService {
     private readonly ai: AiService,
   ) {}
 
+  /** 관전 포인트 → 소식 짝 (뉴스레터 내용이 그대로면 다시 계산하지 않는다) */
+  private readonly watchMaps = new Map<string, number[]>();
+
+  /**
+   * 뉴스레터 상세: 관전 포인트마다 가장 가까운 소식 번호 (1부터, 없으면 0).
+   * 관전 포인트의 '후속 지켜보기'는 그 소식을 지켜봐서, 두 단추가 함께 켜진다.
+   * 뜻으로 비교(bge-m3)하고, 임베딩을 못 하면 겹치는 낱말로
+   */
+  async watchMap(newsletterId: number): Promise<number[]> {
+    const newsletter = await this.prisma.newsletter.findUnique({
+      where: { id: newsletterId },
+      select: { contentAsHTML: true },
+    });
+    if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
+    const key = `${newsletterId}:${newsletter.contentAsHTML.length}`;
+    const cached = this.watchMaps.get(key);
+    if (cached) return cached;
+    const { watch, stories } = parseNewsletterHtml(newsletter.contentAsHTML);
+    if (!watch.length || !stories.length) return [];
+    const texts = stories.map((s) =>
+      [s.heading, s.lead].filter(Boolean).join('\n'),
+    );
+    let vectors: { watch: number[][]; stories: number[][] } | undefined;
+    try {
+      const all = await this.ai.embed([...watch, ...texts]);
+      vectors = {
+        watch: all.slice(0, watch.length),
+        stories: all.slice(watch.length),
+      };
+    } catch (error) {
+      this.logger.warn(
+        `관전 포인트 짝 임베딩 실패, 낱말로: ${(error as Error).message}`,
+      );
+    }
+    const map = watchStories(watch, texts, vectors);
+    // 임베딩으로 맞춘 것만 남겨 둔다 (낱말로 맞춘 건 다음에 다시 시도)
+    if (vectors) this.watchMaps.set(key, map);
+    return map;
+  }
+
   /** 지켜보기 시작: 그 소식의 제목 · 글을 그때 그대로 남긴다 */
   async follow(userId: number, newsletterId: number, storyIndex: number) {
     const newsletter = await this.prisma.newsletter.findUnique({
@@ -44,16 +84,10 @@ export class FollowsService {
       select: { contentAsHTML: true },
     });
     if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
-    const parsed = parseNewsletterHtml(newsletter.contentAsHTML);
-    // 관전 포인트(WATCH_OFFSET + 순서)는 그 문장을 제목 · 판정용 글로 남긴다
-    const watch =
-      storyIndex > WATCH_OFFSET
-        ? parsed.watch[storyIndex - WATCH_OFFSET - 1]
-        : undefined;
-    const story =
-      storyIndex > WATCH_OFFSET ? undefined : parsed.stories[storyIndex - 1];
-    if (!story && !watch)
-      throw new AppException('NOT_FOUND', '그 소식이 없습니다.');
+    const story = parseNewsletterHtml(newsletter.contentAsHTML).stories[
+      storyIndex - 1
+    ];
+    if (!story) throw new AppException('NOT_FOUND', '그 소식이 없습니다.');
     const follow = await this.prisma.storyFollow.upsert({
       where: {
         userId_newsletterId_storyIndex: { userId, newsletterId, storyIndex },
@@ -63,8 +97,8 @@ export class FollowsService {
         userId,
         newsletterId,
         storyIndex,
-        heading: (story?.heading ?? watch!).slice(0, 200),
-        text: story ? textOf(story) : watch!,
+        heading: story.heading.slice(0, 200),
+        text: textOf(story),
       },
       select: { id: true, storyIndex: true },
     });

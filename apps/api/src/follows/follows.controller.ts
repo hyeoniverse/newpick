@@ -43,6 +43,12 @@ export class FollowsController {
     return this.follows.forNewsletter(userIdOf(req), id);
   }
 
+  /** 뉴스레터 상세: 관전 포인트마다 이어진 소식 번호 (관전 포인트의 후속 지켜보기는 그 소식을 지켜본다) */
+  @Get('newsletter/:id/watch')
+  watchMap(@Param('id', ParseIntPipe) id: number) {
+    return this.follows.watchMap(id);
+  }
+
   @Post()
   follow(@Req() req: Request, @Body() body: FollowStoryDto) {
     return this.follows.follow(

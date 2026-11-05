@@ -6,8 +6,28 @@ import { cosine } from 'src/ai-summary/articlePrep';
  * 2. 오픈 모델이 "같은 사건 · 사안의 새 진전인가"를 판정한다 (비슷한 주제의 다른 일은 뺀다).
  * 오픈 모델을 못 쓰는 날은 아주 비슷한 것만 받아들인다
  */
-/** 관전 포인트 지켜보기의 순서 번호: WATCH_OFFSET + 관전 포인트 순서 (소식 번호와 겹치지 않게) */
-export const WATCH_OFFSET = 1000;
+/**
+ * 관전 포인트마다 가장 가까운 소식 (1부터, 없으면 0): 관전 포인트의 '후속 지켜보기'는 그 소식을 지켜본다.
+ * vectors가 있으면 뜻(코사인), 없으면 겹치는 낱말 수로
+ */
+export function watchStories(
+  watch: string[],
+  stories: string[],
+  vectors?: { watch: number[][]; stories: number[][] },
+): number[] {
+  const words = (text: string) =>
+    new Set(text.match(/[가-힣A-Za-z0-9]{2,}/g) ?? []);
+  const storyWords = stories.map(words);
+  return watch.map((item, i) => {
+    const scores = stories.map((_, j) =>
+      vectors
+        ? cosine(vectors.watch[i], vectors.stories[j])
+        : [...words(item)].filter((w) => storyWords[j].has(w)).length,
+    );
+    const best = Math.max(...scores);
+    return best > 0 ? scores.indexOf(best) + 1 : 0;
+  });
+}
 
 export const FOLLOW_LIMITS = {
   /** 이만큼 비슷해야 판정 후보 (같은 사건의 며칠 뒤 소식은 같은 날 다른 언론사 기사보다 덜 비슷하다) */
