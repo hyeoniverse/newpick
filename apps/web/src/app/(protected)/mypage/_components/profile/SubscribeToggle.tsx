@@ -43,7 +43,7 @@ function SubscribeToggle() {
 									filledButton="확인"
 									onCancelClick={closeModal}
 									onConfirmClick={handleConfirm}
-								/>,
+								/>
 							)
 						}
 					>
@@ -89,10 +89,7 @@ const SubscribeToggleStyled = styled.div`
 		&:hover {
 			color: ${({ theme }) => theme.color.primary};
 			border: 1px solid ${({ theme }) => theme.color.primary};
-			transition:
-				background-color 0.5s,
-				border-color 0.5s,
-				color 0.5s;
+			transition: background-color 0.5s, border-color 0.5s, color 0.5s;
 		}
 
 		.svg {
