@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsInt, Max, Min, ValidateIf } from 'class-validator';
 
 /** 후속 지켜보기: 뉴스레터 속 소식 하나 */
 export class FollowStoryDto {
@@ -16,9 +16,9 @@ export class FollowStoryDto {
   storyIndex: number;
 }
 
-/** 본 것으로: newsletterId가 있으면 그 뉴스레터 상세에서 본 후속만 */
+/** 본 것으로: newsletterId가 있으면 그 뉴스레터 상세에서 본 후속만 (null은 거부: Prisma에 그대로 가면 500) */
 export class SeenDto {
-  @IsOptional()
+  @ValidateIf((o) => o.newsletterId !== undefined)
   @Type(() => Number)
   @IsInt()
   @Min(1)
