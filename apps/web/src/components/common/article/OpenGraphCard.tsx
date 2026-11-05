@@ -154,9 +154,9 @@ const StyledRelated = styled.section`
 		}
 	}
 
-	/* 구분선 목록: 배경 · 테두리 없이 얇은 선으로 나누고 사진은 오른쪽 */
+	/* 구분선 목록: 배경 · 테두리 없이 얇은 선으로 나누고 사진은 오른쪽. 선은 모두 다른 구분선과 같은 색 */
 	.list {
-		border-top: 1px solid ${({ theme }) => theme.color.text};
+		border-top: 1px solid ${({ theme }) => theme.color.border};
 
 		li {
 			border-bottom: 1px solid ${({ theme }) => theme.color.border};
