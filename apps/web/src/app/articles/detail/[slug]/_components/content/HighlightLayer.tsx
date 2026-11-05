@@ -10,6 +10,7 @@ import { useOpenLogin } from '@/hooks/useOpenLogin';
 import { Highlight as Scrap, useHighlightMutations, useHighlights } from '@/hooks/useHighlights';
 import { findTextRange } from '@/utils/textRange';
 import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
+import { useMediaQuery } from '@/hooks/useMediaQuery';
 
 interface Props {
 	newsletterId: number;
@@ -17,11 +18,21 @@ interface Props {
 	rootRef: React.RefObject<HTMLElement | null>;
 }
 
-type Picked = { text: string; section?: string; rect: DOMRect };
+/** 고른 글의 자리: 문서 기준 좌표 (화면이 아니라). 팝오버가 글에 붙어 함께 스크롤된다 */
+type Box = { left: number; top: number; bottom: number; width: number };
+type Picked = { text: string; section?: string; rect: Box };
 type Popover =
 	| { kind: 'toolbar'; picked: Picked }
 	| { kind: 'memo'; picked: Picked }
-	| { kind: 'saved'; highlight: Scrap; rect: DOMRect };
+	| { kind: 'saved'; highlight: Scrap; rect: Box };
+
+/** 화면 좌표 → 문서 좌표 (연 순간의 스크롤 위치를 더해 둔다) */
+const onPage = (rect: DOMRect): Box => ({
+	left: rect.left + window.scrollX,
+	top: rect.top + window.scrollY,
+	bottom: rect.bottom + window.scrollY,
+	width: rect.width,
+});
 
 const MAX_TEXT = 500;
 
@@ -100,10 +111,11 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	const [memo, setMemo] = useState('');
 	const ranges = useRef(new Map<number, Range>());
 	const scrolledTo = useRef<number | null>(null);
-	const openedAt = useRef(0);
 	const bandsRef = useRef<HTMLDivElement>(null);
 	const [bands, setBands] = useState<Band[]>([]);
 	const [focusId, setFocusId] = useState<number | null>(null);
+	// 휴대폰: 글 옆 팝오버 대신 아래 시트 (손가락이 닿기 쉽고, 메모를 쓸 때 키보드에 가리지 않는다)
+	const { isMobile } = useMediaQuery();
 
 	// 형광펜 칠하기 (#123): 문장의 줄마다 띠를 본문 뒤에 그린다.
 	// 브라우저 기본 칠하기(::highlight · 배경)는 글꼴의 줄 상자 높이를 따라가서, 글꼴 · 크기 · 굵기가 다른 곳(제목 · 굵은 글 · 강조)마다
@@ -171,7 +183,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 		return {
 			text: text.slice(0, MAX_TEXT),
 			section: sectionOf(root, range.startContainer),
-			rect: range.getBoundingClientRect(),
+			rect: onPage(range.getBoundingClientRect()),
 		};
 	}, [rootRef]);
 
@@ -182,7 +194,6 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 			window.setTimeout(() => {
 				const picked = readSelection();
 				if (picked) {
-					openedAt.current = window.scrollY;
 					setPopover({ kind: 'toolbar', picked });
 					return;
 				}
@@ -196,7 +207,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 						const range = ranges.current.get(highlight.id);
 						if (range?.isPointInRange(caret.node, caret.offset)) {
 							setMemo(highlight.note ?? '');
-							setPopover({ kind: 'saved', highlight, rect: range.getBoundingClientRect() });
+							setPopover({ kind: 'saved', highlight, rect: onPage(range.getBoundingClientRect()) });
 							return;
 						}
 					}
@@ -209,24 +220,17 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 			else if (event.shiftKey) {
 				const picked = readSelection();
 				if (picked) {
-					openedAt.current = window.scrollY;
 					setPopover({ kind: 'toolbar', picked });
 				}
 			}
 		};
-		// 도구 막대는 글을 따라 움직이지 않으므로, 스크롤하면 닫는다 (부드러운 스크롤 끝자락 같은 작은 움직임은 무시)
-		const close = () => {
-			if (Math.abs(window.scrollY - openedAt.current) > 40) setPopover((p) => (p?.kind === 'toolbar' ? null : p));
-		};
 		document.addEventListener('mouseup', onPointerUp);
 		document.addEventListener('touchend', onPointerUp);
 		document.addEventListener('keyup', onKey);
-		window.addEventListener('scroll', close, { passive: true });
 		return () => {
 			document.removeEventListener('mouseup', onPointerUp);
 			document.removeEventListener('touchend', onPointerUp);
 			document.removeEventListener('keyup', onKey);
-			window.removeEventListener('scroll', close);
 		};
 	}, [highlights, readSelection, rootRef]);
 
@@ -260,113 +264,130 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	if (!popover) return bandLayer;
 
 	const rect = popover.kind === 'saved' ? popover.rect : popover.picked.rect;
-	// 터치 화면은 글 아래에 (휴대폰의 기본 복사 메뉴가 위에 뜨므로)
+	// 데스크톱: 글에 붙인다 (문서 좌표, 스크롤하면 글과 함께 움직인다). 도구 막대는 글 위, 메모 · 내 스크랩은 글 아래.
+	// 터치 화면은 도구 막대도 글 아래에 (기기의 기본 복사 메뉴가 위에 뜨므로)
 	const below =
 		popover.kind !== 'toolbar' || (typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches);
-	const style: React.CSSProperties = {
-		left: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
-		top: below ? rect.bottom + 10 : rect.top - 10,
-		transform: below ? 'translateX(-50%)' : 'translate(-50%, -100%)',
-	};
+	const style: React.CSSProperties | undefined = isMobile
+		? undefined
+		: {
+				left: Math.min(
+					Math.max(rect.left + rect.width / 2, window.scrollX + 120),
+					window.scrollX + window.innerWidth - 120,
+				),
+				top: below ? rect.bottom + 10 : rect.top - 10,
+				transform: below ? 'translateX(-50%)' : 'translate(-50%, -100%)',
+			};
+	// 휴대폰에서 메모 · 내 스크랩은 뒤를 어둡게 깔고 그곳을 누르면 닫는다 (도구 막대는 고른 글이 보이게 깔지 않는다)
+	const dim = isMobile && popover.kind !== 'toolbar';
 
 	return (
 		<>
 			{bandLayer}
 			{/* 본문 스타일(문단 · 블록 여백)이 붙지 않게 body에 띄운다 */}
 			{createPortal(
-				<StyledPopover style={style} data-highlight-popover role="dialog" aria-label="스크랩 · 메모">
-					{popover.kind === 'toolbar' && (
-						<div className="toolbar">
-							<button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => save(popover.picked)}>
-								<LuHighlighter aria-hidden /> 스크랩
-							</button>
-							<span className="divider" aria-hidden />
-							<button
-								type="button"
-								onMouseDown={(e) => e.preventDefault()}
-								onClick={() => (user ? setPopover({ kind: 'memo', picked: popover.picked }) : needLogin())}
+				<>
+					{dim && <StyledDim data-highlight-popover aria-hidden onClick={() => setPopover(null)} />}
+					<StyledPopover
+						style={style}
+						className={isMobile ? `sheet ${popover.kind}` : undefined}
+						data-highlight-popover
+						role="dialog"
+						aria-label="스크랩 · 메모"
+					>
+						{popover.kind === 'toolbar' && (
+							<div className="toolbar">
+								<button type="button" onMouseDown={(e) => e.preventDefault()} onClick={() => save(popover.picked)}>
+									<LuHighlighter aria-hidden /> 스크랩
+								</button>
+								<span className="divider" aria-hidden />
+								<button
+									type="button"
+									onMouseDown={(e) => e.preventDefault()}
+									onClick={() => (user ? setPopover({ kind: 'memo', picked: popover.picked }) : needLogin())}
+								>
+									<LuMessageSquarePlus aria-hidden /> 메모
+								</button>
+							</div>
+						)}
+						{popover.kind === 'memo' && (
+							<form
+								className="memo"
+								onSubmit={(event) => {
+									event.preventDefault();
+									save(popover.picked, memo);
+								}}
 							>
-								<LuMessageSquarePlus aria-hidden /> 메모
-							</button>
-						</div>
-					)}
-					{popover.kind === 'memo' && (
-						<form
-							className="memo"
-							onSubmit={(event) => {
-								event.preventDefault();
-								save(popover.picked, memo);
-							}}
-						>
-							<blockquote>{popover.picked.text}</blockquote>
-							<textarea
-								value={memo}
-								onChange={(e) => setMemo(e.target.value)}
-								placeholder="이 문장에 대한 내 생각"
-								rows={3}
-								maxLength={2000}
-								autoFocus
-							/>
-							<div className="actions">
-								<button type="button" onClick={() => setPopover(null)}>
-									취소
-								</button>
-								<button type="submit" className="primary" disabled={!memo.trim()}>
-									메모 저장
-								</button>
-							</div>
-						</form>
-					)}
-					{popover.kind === 'saved' && (
-						<form
-							className="memo"
-							onSubmit={(event) => {
-								event.preventDefault();
-								update.mutate({ id: popover.highlight.id, note: memo });
-								setPopover(null);
-							}}
-						>
-							<div className="saved-head">
-								<p className="label">내 스크랩</p>
-								{/* 중요 표시 켜고 끄기 */}
-								<button
-									type="button"
-									className={`star-toggle ${popover.highlight.starred ? 'on' : ''}`}
-									aria-pressed={popover.highlight.starred}
-									onClick={() => {
-										update.mutate({ id: popover.highlight.id, starred: !popover.highlight.starred });
-										setPopover(null);
-									}}
-								>
-									{popover.highlight.starred ? '★ 중요 해제' : '☆ 중요 표시'}
-								</button>
-							</div>
-							<textarea
-								value={memo}
-								onChange={(e) => setMemo(e.target.value)}
-								placeholder="메모 남기기 (선택)"
-								rows={3}
-								maxLength={2000}
-							/>
-							<div className="actions">
-								<button
-									type="button"
-									className="danger"
-									// 여기서는 바로 지우되, 중요 표시한 문장이면 한 번 더 묻는다
-									onClick={() => {
-										confirmRemove([popover.highlight], { askFirst: false });
-										setPopover(null);
-									}}
-								>
-									<LuTrash2 aria-hidden /> 스크랩 지우기
-								</button>
-								<button type="submit" className="primary" disabled={memo === (popover.highlight.note ?? '')}>
-									메모 저장
-								</button>
-							</div>
-						</form>
-					)}
-				</StyledPopover>,
+								<blockquote>{popover.picked.text}</blockquote>
+								<textarea
+									value={memo}
+									onChange={(e) => setMemo(e.target.value)}
+									placeholder="이 문장에 대한 내 생각"
+									rows={3}
+									maxLength={2000}
+									autoFocus
+								/>
+								<div className="actions">
+									<button type="button" onClick={() => setPopover(null)}>
+										취소
+									</button>
+									<button type="submit" className="primary" disabled={!memo.trim()}>
+										메모 저장
+									</button>
+								</div>
+							</form>
+						)}
+						{popover.kind === 'saved' && (
+							<form
+								className="memo"
+								onSubmit={(event) => {
+									event.preventDefault();
+									update.mutate({ id: popover.highlight.id, note: memo });
+									setPopover(null);
+								}}
+							>
+								<div className="saved-head">
+									<p className="label">내 스크랩</p>
+									{/* 중요 표시 켜고 끄기 */}
+									<button
+										type="button"
+										className={`star-toggle ${popover.highlight.starred ? 'on' : ''}`}
+										aria-pressed={popover.highlight.starred}
+										onClick={() => {
+											update.mutate({ id: popover.highlight.id, starred: !popover.highlight.starred });
+											setPopover(null);
+										}}
+									>
+										{popover.highlight.starred ? '★ 중요 해제' : '☆ 중요 표시'}
+									</button>
+								</div>
+								<textarea
+									value={memo}
+									onChange={(e) => setMemo(e.target.value)}
+									placeholder="메모 남기기 (선택)"
+									rows={3}
+									maxLength={2000}
+								/>
+								<div className="actions">
+									<button
+										type="button"
+										className="danger"
+										// 여기서는 바로 지우되, 중요 표시한 문장이면 한 번 더 묻는다
+										onClick={() => {
+											confirmRemove([popover.highlight], { askFirst: false });
+											setPopover(null);
+										}}
+									>
+										<LuTrash2 aria-hidden /> 스크랩 지우기
+									</button>
+									<button type="submit" className="primary" disabled={memo === (popover.highlight.note ?? '')}>
+										메모 저장
+									</button>
+								</div>
+							</form>
+						)}
+					</StyledPopover>
+				</>,
 				document.body,
 			)}
 		</>
@@ -399,8 +420,17 @@ const StyledBands = styled.div`
 	}
 `;
 
-const StyledPopover = styled.div`
+/** 휴대폰 시트 뒤 어둡게 */
+const StyledDim = styled.div`
 	position: fixed;
+	inset: 0;
+	z-index: 999;
+	background: rgba(0, 0, 0, 0.35);
+`;
+
+const StyledPopover = styled.div`
+	/* 문서 기준으로 띄워 글과 함께 스크롤된다 (body에 붙여 둔다) */
+	position: absolute;
 	z-index: 1000;
 	display: flex;
 	flex-direction: column;
@@ -556,6 +586,59 @@ const StyledPopover = styled.div`
 				opacity: 0.5;
 				cursor: default;
 			}
+		}
+	}
+
+	/* 휴대폰: 아래에 붙은 시트. 도구 막대는 단추 둘을 반씩 크게 */
+	&.sheet {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		max-width: none;
+		border-width: 1px 0 0;
+		border-radius: ${({ theme }) => theme.radius.floating} ${({ theme }) => theme.radius.floating} 0 0;
+		padding-bottom: env(safe-area-inset-bottom);
+		box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+		font-size: ${({ theme }) => theme.fontSize.small};
+		animation: sheet-up 0.2s ease-out;
+
+		.toolbar {
+			padding: 0.5rem;
+
+			button {
+				flex: 1;
+				height: 3rem;
+			}
+		}
+
+		.memo {
+			width: 100%;
+			padding: 1.25rem 1rem;
+		}
+
+		textarea {
+			/* 16px 미만이면 iOS가 입력할 때 화면을 확대한다 */
+			font-size: 1rem;
+		}
+
+		.actions button {
+			padding: 0.625rem 1rem;
+		}
+	}
+
+	@keyframes sheet-up {
+		from {
+			transform: translateY(100%);
+		}
+		to {
+			transform: translateY(0);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&.sheet {
+			animation: none;
 		}
 	}
 `;
