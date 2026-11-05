@@ -43,7 +43,7 @@ export default function MyFollows() {
 					<Skeleton />
 				) : follows?.length ? (
 					<>
-						<p className="intro">이어지는 새 소식은 하루 한 번 찾아 메일과 여기에 알려 드립니다.</p>
+						<p className="intro">이어지는 새 소식은 하루 한 번 확인해 메일과 이 목록에 표시합니다.</p>
 						<ul className="follows">
 							{follows.map((f) => (
 								<FollowCard key={f.id} follow={f} fresh={fresh} onUnfollow={() => unfollow.mutate(f.id)} />
