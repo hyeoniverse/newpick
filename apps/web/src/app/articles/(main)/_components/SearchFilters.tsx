@@ -84,19 +84,25 @@ export default function SearchFilters() {
 					</button>
 				)}
 			</div>
-			{keywords.length > 0 && (
+			{(keywords.length > 0 || filters.keywords.length > 0) && (
 				<div className="tags" role="group" aria-label="자주 나온 태그 (최근 30일, 여러 개 고를 수 있음)">
 					{/* 이름표는 제자리, 태그만 옆으로 넘긴다 */}
 					<span className="tags-label">태그</span>
 					<div className="tags-list">
-						{keywords.map(({ keyword, count }) => {
+						{/* 고른 태그가 자주 나온 태그에 없으면(상세 · 태그 전체 화면에서 들어옴) 맨 앞에 켜진 채로: 여기서 끈다 */}
+						{[
+							...filters.keywords
+								.filter((tag) => !keywords.some(({ keyword }) => keyword === tag))
+								.map((keyword) => ({ keyword, count: 0 })),
+							...keywords,
+						].map(({ keyword, count }) => {
 							const active = filters.keywords.includes(keyword);
 							return (
 								<button
 									key={keyword}
 									type="button"
 									aria-pressed={active}
-									title={`최근 30일 ${count}편`}
+									title={count ? `최근 30일 ${count}편` : undefined}
 									onClick={() => go({ keywords: toggleKeyword(filters.keywords, keyword) })}
 								>
 									<span className="hash">#</span>

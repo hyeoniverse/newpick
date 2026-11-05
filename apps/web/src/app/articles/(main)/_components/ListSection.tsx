@@ -12,7 +12,7 @@ import Card from '@/components/common/Card';
 import Spinner from '@/components/common/loader/Spinner';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LuSearchX, LuX } from 'react-icons/lu';
+import { LuSearchX } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { parseArticles } from '@/utils/parseArticles';
@@ -136,19 +136,11 @@ export default function ListSection() {
 								{heading}
 							</Title>
 							<div className="picked-row">
-								{/* 태그마다 따로 제목 모양 칩, 칩마다 빼기(×) */}
-								<ul className="picked" aria-label="고른 태그">
+								{/* 제목: 태그마다 따로 분야 제목과 같은 모양. 켜고 끄기는 위 태그 줄에서 */}
+								<ul className="picked" aria-hidden>
 									{tags.map((tag) => (
 										<li key={tag} className="pick">
 											#{tag}
-											<button
-												type="button"
-												className="remove"
-												aria-label={`#${tag} 빼기`}
-												onClick={() => go({ keywords: toggleKeyword(tags, tag) })}
-											>
-												<LuX aria-hidden />
-											</button>
 										</li>
 									))}
 								</ul>
@@ -351,7 +343,7 @@ const StyledListSection = styled.section`
 		white-space: nowrap;
 	}
 
-	/* 고른 태그: 태그마다 따로, 분야 제목과 같은 모양(연한 강조색 바탕 · 강조색 글자), 안에 빼기 */
+	/* 고른 태그 제목: 태그마다 따로, 분야 제목과 같은 모양(연한 강조색 바탕 · 강조색 글자) */
 	.picked {
 		display: flex;
 		flex-wrap: wrap;
@@ -367,37 +359,13 @@ const StyledListSection = styled.section`
 		align-items: center;
 		gap: 0.25rem;
 		margin: 0;
-		padding: 0.25rem 0.5rem 0.25rem 1rem;
+		padding: 0.25rem 1rem;
 		border-radius: ${({ theme }) => theme.radius.chip};
 		background: ${({ theme }) => theme.color.tertiary};
 		font-size: 1.5rem;
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		color: ${({ theme }) => theme.color.primary};
 		white-space: nowrap;
-
-		.remove {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			width: 1.75rem;
-			height: 1.75rem;
-			border: none;
-			border-radius: 50%;
-			background: transparent;
-			color: ${({ theme }) => theme.color.primary};
-			opacity: 0.6;
-			cursor: pointer;
-
-			svg {
-				width: 1rem;
-				height: 1rem;
-			}
-
-			&:hover {
-				opacity: 1;
-				background: ${({ theme }) => theme.color.background};
-			}
-		}
 	}
 
 	.picked-row {
