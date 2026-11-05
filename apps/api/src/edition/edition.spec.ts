@@ -323,7 +323,7 @@ describe('메일 HTML (#55)', () => {
 
   it('사이트 CSS 없이 보이도록 인라인 스타일만 쓴다', () => {
     expect(mail).not.toMatch(/<style|class=/);
-    expect(mail).toContain('오늘 한눈에');
+    expect(mail).toContain('오늘을 한눈에');
     expect(mail).toContain('관전 포인트');
   });
 
