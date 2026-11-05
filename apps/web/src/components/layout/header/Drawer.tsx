@@ -42,7 +42,11 @@ const Drawer = () => {
 			<nav aria-label="메뉴">
 				{NAVIGATION.map((item) => (
 					<div key={item.id}>
-						<Link href={item.link} className="item" aria-current={pathname.startsWith(item.link) ? 'page' : undefined}>
+						<Link
+							href={item.link}
+							className={item.link === '/articles' ? 'item has-sub' : 'item'}
+							aria-current={pathname.startsWith(item.link) ? 'page' : undefined}
+						>
 							{item.title}
 							<LuChevronRight aria-hidden />
 						</Link>

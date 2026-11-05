@@ -193,26 +193,27 @@ const StyledDropdown = styled.div`
 				top: var(--np-header-h, 3.5rem);
 				left: 0;
 				right: 0;
-				display: block;
-				padding: 0.5rem 1rem 1rem;
-				border-bottom: 1px solid ${({ theme }) => theme.color.border};
+				/* 아코디언: 높이 0에서 내용 높이까지 펼쳐진다 (grid 0fr → 1fr) */
+				display: grid;
+				grid-template-rows: 0fr;
+				border-bottom: 1px solid transparent;
 				background: ${({ theme }) => theme.color.background};
-				box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.32);
+				box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0);
 				clip-path: inset(0 -100vmax -100vmax -100vmax);
 				cursor: default;
 
 				visibility: hidden;
-				opacity: 0;
-				transform: translateY(-0.5rem);
 				transition:
-					opacity 0.2s ease,
-					transform 0.2s ease,
-					visibility 0.2s;
+					grid-template-rows 0.3s ease,
+					box-shadow 0.3s ease,
+					border-color 0.3s ease,
+					visibility 0.3s;
 
 				&.open {
 					visibility: visible;
-					opacity: 1;
-					transform: none;
+					grid-template-rows: 1fr;
+					border-bottom-color: ${({ theme }) => theme.color.border};
+					box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.32);
 				}
 
 				@media (prefers-reduced-motion: reduce) {
@@ -223,6 +224,18 @@ const StyledDropdown = styled.div`
 			nav {
 				display: flex;
 				flex-direction: column;
+				min-height: 0;
+				overflow: hidden;
+				padding: 0 1rem;
+
+				/* 위아래 여백은 안쪽 끝 요소에 (접히면 여백까지 0이 되게) */
+				> :first-child {
+					margin-top: 0.5rem;
+				}
+
+				> :last-child {
+					margin-bottom: 1rem;
+				}
 			}
 
 			/* 분야가 강조되면 위 '뉴스레터' 줄은 글자색만 (바탕이 두 줄 겹치지 않게) */
@@ -275,6 +288,12 @@ const StyledDropdown = styled.div`
 					width: 1.125rem;
 					height: 1.125rem;
 					color: ${({ theme }) => theme.color.subText};
+					transition: transform 0.2s ease;
+				}
+
+				/* 아래에 분야가 펼쳐져 있는 '뉴스레터'는 화살표가 아래로 */
+				&.has-sub svg {
+					transform: rotate(90deg);
 				}
 
 				&:hover {
