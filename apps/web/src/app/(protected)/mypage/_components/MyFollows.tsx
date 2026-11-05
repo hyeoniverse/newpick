@@ -39,7 +39,7 @@ export default function MyFollows() {
 			<EmptyState
 				icon={LuBellPlus}
 				title="지켜보는 소식이 없어요"
-				description="뉴스레터의 소식마다 있는 '후속 지켜보기'를 누르면, 이어지는 새 소식이 나올 때 여기에 쌓이고 머리글에 알려 드립니다."
+				description="뉴스레터의 소식마다 있는 '후속 지켜보기'를 누르면, 이어지는 새 소식이 여기에 쌓이고 머리글에 표시됩니다."
 				action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
 			/>
 		);
@@ -112,7 +112,7 @@ function FollowCard({
 
 			{follow.quiet && (
 				<div className="quiet">
-					<p>30일 넘게 이어진 소식이 없습니다. 일이 마무리됐다면 정리해 주세요.</p>
+					<p>30일 넘게 이어진 소식이 없습니다. 끝난 일이면 정리할 수 있습니다.</p>
 					<div className="quiet-actions">
 						<Button scheme="outline" size="small" onClick={onKeep}>
 							계속 지켜보기

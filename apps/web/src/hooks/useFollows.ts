@@ -90,7 +90,7 @@ export function useFollowMutations() {
 	const follow = useMutation({
 		mutationFn: (body: { newsletterId: number; storyIndex: number }) =>
 			apiFetch(API_ENDPOINTS.MY.FOLLOWS(), { method: 'POST', body }),
-		onSuccess: () => showToast("후속 기사가 나오면 마이페이지 '지켜보기'와 머리글에 알려 드립니다.", 'success'),
+		onSuccess: () => showToast("후속이 나오면 마이페이지 '지켜보기'와 머리글에 표시합니다.", 'success'),
 		onError: () => showToast('지켜보기를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error'),
 		onSettled: refresh,
 	});
@@ -108,7 +108,7 @@ export function useFollowMutations() {
 	});
 	const keep = useMutation({
 		mutationFn: (id: number) => apiFetch(API_ENDPOINTS.MY.FOLLOW_KEEP(id), { method: 'POST' }),
-		onSuccess: () => showToast('계속 지켜봅니다. 30일 뒤에 다시 여쭙겠습니다.', 'success'),
+		onSuccess: () => showToast('계속 지켜봅니다. 30일 뒤 다시 확인합니다.', 'success'),
 		onError: () => showToast('잠시 후 다시 시도해 주세요.', 'error'),
 		onSettled: refresh,
 	});
