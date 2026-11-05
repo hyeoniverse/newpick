@@ -377,40 +377,6 @@ const StyledListSection = styled.section`
 		}
 	}
 
-	/* 휴대폰: 위쪽을 가볍게 — 조건 문장 · 팔로우 · 정렬을 한 단계 작게 */
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		.match {
-			gap: 0.25rem 0.375rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-
-			.clear {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			}
-		}
-
-		.follows {
-			gap: 0.375rem;
-
-			.follows-label {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			}
-
-			button {
-				padding: 0.125rem 0.5rem;
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			}
-		}
-
-		.right-section {
-			gap: 0.25rem;
-
-			button {
-				padding: 0.375rem 0.625rem;
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			}
-		}
-	}
-
 	/* 고른 태그 · (태그 하나면) 개수 · 정렬(오른쪽 끝) */
 	.picked-row {
 		display: flex;
@@ -488,5 +454,39 @@ const StyledListSection = styled.section`
 		justify-content: center;
 		align-items: center;
 		margin-top: 1rem;
+	}
+
+	/* 휴대폰: 위쪽을 가볍게 — 조건 문장 · 팔로우 · 정렬을 한 단계 작게 */
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.match {
+			gap: 0.25rem 0.375rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+
+			.clear {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
+
+		.follows {
+			gap: 0.375rem;
+
+			.follows-label {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+
+			button {
+				padding: 0.125rem 0.5rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
+
+		.right-section {
+			gap: 0.25rem;
+
+			button {
+				padding: 0.375rem 0.625rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
 	}
 `;
