@@ -6,6 +6,7 @@ import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import OpenGraphCard from '@/components/common/article/OpenGraphCard';
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import { linkDebateSources } from '@/utils/debateSources';
 import HighlightLayer from './HighlightLayer';
 import FollowLayer from './FollowLayer';
 
@@ -29,7 +30,11 @@ function ArticleContent({ content, flex, className, articleImage, newsId, relate
 			)}
 			<NewsletterContentStyled>
 				{/* 방문 통계 (#131): 본문의 브리핑 · 소식을 구역으로 센다 */}
-				<div ref={bodyRef} data-track-content dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
+				<div
+					ref={bodyRef}
+					data-track-content
+					dangerouslySetInnerHTML={{ __html: sanitizeHtml(linkDebateSources(content)) }}
+				/>
 				{/* 스크랩 · 메모 (#123): 뉴스레터 상세에서만 (관리자 미리보기 등은 newsId 없음) */}
 				{newsId && <HighlightLayer newsletterId={newsId} rootRef={bodyRef} />}
 				{/* 후속 지켜보기: 소식마다 단추 */}
@@ -406,10 +411,20 @@ const NewsletterContentStyled = styled.article`
 				color: ${({ theme }) => theme.color.mediumGrey};
 			}
 
-			/* 그 주장이 실린 기사의 언론사 */
+			/* 그 주장이 실린 기사의 언론사: 출처 줄에 그 기사가 있으면 원문 링크 (utils/debateSources) */
 			.source {
 				font-size: ${({ theme }) => theme.fontSize.extraSmall};
 				color: ${({ theme }) => theme.color.subText};
+			}
+
+			a.source {
+				text-decoration: underline;
+				text-decoration-thickness: 1px;
+				text-underline-offset: 2px;
+
+				&:hover {
+					color: ${({ theme }) => theme.color.primary};
+				}
 			}
 		}
 
@@ -502,6 +517,13 @@ const NewsletterContentStyled = styled.article`
 					width: 0.4rem;
 					height: 2px;
 					background: ${({ theme }) => theme.color.primary};
+				}
+
+				/* FollowLayer가 만드는 자리: 관전 포인트 글 끝에 이어서 */
+				.watch-slot {
+					display: inline-flex;
+					margin: 0 0 0 0.5rem;
+					vertical-align: middle;
 				}
 			}
 		}

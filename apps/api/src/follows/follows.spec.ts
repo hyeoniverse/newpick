@@ -4,6 +4,7 @@ import {
   acceptedFrom,
   candidatesFor,
   FOLLOW_LIMITS,
+  WATCH_OFFSET,
   judgePrompt,
 } from './detect';
 import { FollowsService } from './follows.service';
@@ -121,6 +122,27 @@ describe('FollowsService', () => {
     await expect(service.follow(7, 10, 5)).rejects.toMatchObject({
       status: 404,
     });
+  });
+
+  it('관전 포인트 지켜보기(WATCH_OFFSET + 순서): 그 문장을 제목 · 판정용 글로, 없는 순서면 404', async () => {
+    const { prisma, service } = setup();
+    prisma.newsletter.findUnique.mockResolvedValue({
+      contentAsHTML: renderNewsletterHtml({
+        briefing: '',
+        stories: [story('첫 소식')],
+        watch: ['CPTPP 가입 신청 시점', '군공항 대미 협의 결과'],
+      }),
+    });
+    await service.follow(7, 10, WATCH_OFFSET + 2);
+    const { create } = prisma.storyFollow.upsert.mock.calls[0][0];
+    expect(create).toMatchObject({
+      storyIndex: WATCH_OFFSET + 2,
+      heading: '군공항 대미 협의 결과',
+      text: '군공항 대미 협의 결과',
+    });
+    await expect(service.follow(7, 10, WATCH_OFFSET + 3)).rejects.toMatchObject(
+      { status: 404 },
+    );
   });
 
   it('지켜보는 소식이 없으면 아무것도 부르지 않는다', async () => {

@@ -15,18 +15,23 @@ interface Props {
 	content: string;
 }
 
+/** 관전 포인트 n번째의 지켜보기 번호 (소식 번호와 겹치지 않게, API와 같다) */
+export const WATCH_OFFSET = 1000;
+
+type Slot = { el: HTMLElement; index: number; watch: boolean };
+
 /**
- * 후속 지켜보기: 본문의 소식(article.story)마다 머리줄 오른쪽에 단추.
+ * 후속 지켜보기: 본문의 소식(article.story)마다 머리줄 오른쪽에, 관전 포인트(section.watch li)마다 끝에 단추.
  * 켜 두면 이어지는 새 소식이 나왔을 때 마이페이지 '지켜보기'와 머리글에 알린다 (판정은 하루 한 번, 서버).
- * 본문은 React 밖 HTML이라, 소식마다 자리(span)를 만들어 그 안에 단추를 그린다
+ * 본문은 React 밖 HTML이라, 소식 · 관전 포인트마다 자리(span)를 만들어 그 안에 단추를 그린다
  */
 export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 	const { user } = useAuth();
 	const openLogin = useOpenLogin();
 	const { data: follows = [] } = useNewsletterFollows(newsletterId);
 	const { follow, unfollow } = useFollowMutations();
-	const [slots, setSlots] = useState<HTMLElement[]>([]);
-	// 방금 눌러 켠 소식: 그 종만 한 번 울린다
+	const [slots, setSlots] = useState<Slot[]>([]);
+	// 방금 눌러 켠 자리: 그 종만 한 번 울린다
 	const [rung, setRung] = useState<number | null>(null);
 
 	// 다 울리면 풀어 둔다: 걸어 둔 채면 가리킬 때 같은 흔들림이 다시 재생되지 않는다
@@ -39,16 +44,28 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 	useEffect(() => {
 		const root = rootRef.current;
 		if (!root) return;
-		let made: HTMLElement[] = [];
+		let made: Slot[] = [];
+		const slotIn = (parent: Element, className: string) => {
+			const el = document.createElement('span');
+			el.className = className;
+			parent.appendChild(el);
+			return el;
+		};
 		const build = () => {
-			made.forEach((slot) => slot.remove());
-			made = [...root.querySelectorAll('article.story')].map((story) => {
-				const head = story.querySelector('.kicker') ?? story;
-				const slot = document.createElement('span');
-				slot.className = 'follow-slot';
-				head.appendChild(slot);
-				return slot;
-			});
+			made.forEach((slot) => slot.el.remove());
+			made = [
+				...[...root.querySelectorAll('article.story')].map((story, i) => ({
+					el: slotIn(story.querySelector('.kicker') ?? story, 'follow-slot'),
+					index: i + 1,
+					watch: false,
+				})),
+				// 관전 포인트도 '앞으로 지켜볼 일'이라 하나씩 지켜볼 수 있다
+				...[...root.querySelectorAll('section.watch li')].map((item, i) => ({
+					el: slotIn(item, 'follow-slot watch-slot'),
+					index: WATCH_OFFSET + i + 1,
+					watch: true,
+				})),
+			];
 			setSlots(made);
 		};
 		build();
@@ -57,21 +74,21 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 		observer.observe(root, { childList: true });
 		return () => {
 			observer.disconnect();
-			made.forEach((slot) => slot.remove());
+			made.forEach((slot) => slot.el.remove());
 		};
 	}, [rootRef, content]);
 
 	return (
 		<>
-			{slots.map((slot, i) => {
-				const storyIndex = i + 1;
-				const current = follows.find((f) => f.storyIndex === storyIndex);
+			{slots.map(({ el, index, watch }) => {
+				const current = follows.find((f) => f.storyIndex === index);
 				const busy = follow.isPending || unfollow.isPending;
 				return createPortal(
 					<FollowButton
 						type="button"
-						className={current ? 'on' : undefined}
+						className={[current ? 'on' : '', watch ? 'compact' : ''].filter(Boolean).join(' ') || undefined}
 						aria-pressed={!!current}
+						aria-label={watch ? (current ? '이 관전 포인트 지켜보는 중' : '이 관전 포인트 후속 지켜보기') : undefined}
 						disabled={busy}
 						onClick={() => {
 							if (!user) {
@@ -82,16 +99,16 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 								unfollow.mutate(current.id);
 								return;
 							}
-							setRung(storyIndex);
-							follow.mutate({ newsletterId, storyIndex });
+							setRung(index);
+							follow.mutate({ newsletterId, storyIndex: index });
 						}}
 					>
-						<BellGlyph on={!!current} ring={!!current && rung === storyIndex} />
-						{current ? '지켜보는 중' : '후속 지켜보기'}
+						<BellGlyph on={!!current} ring={!!current && rung === index} />
+						{current ? '지켜보는 중' : watch ? '지켜보기' : '후속 지켜보기'}
 						{current && current._count.updates > 0 && <span className="count">후속 {current._count.updates}</span>}
 					</FollowButton>,
-					slot,
-					`follow-${storyIndex}`,
+					el,
+					`follow-${index}`,
 				);
 			})}
 		</>
@@ -104,18 +121,19 @@ const FollowButton = styled.button`
 	gap: 0.25rem;
 	margin: 0;
 	padding: 0.25rem 0.625rem;
-	border: 1px solid ${({ theme }) => theme.color.border};
+	/* 눈에 띄게: 강조색 테두리 · 글자 (지켜보는 중이면 강조색으로 채운다) */
+	border: 1px solid ${({ theme }) => theme.color.primary};
 	border-radius: ${({ theme }) => theme.radius.chip};
 	background: ${({ theme }) => theme.color.background};
 	font-size: 0.75rem;
-	font-weight: ${({ theme }) => theme.fontWeight.medium};
+	font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 	letter-spacing: 0;
-	color: ${({ theme }) => theme.color.subText};
+	color: ${({ theme }) => theme.color.primary};
 	white-space: nowrap;
 	cursor: pointer;
 	transition:
 		color 0.15s ease,
-		border-color 0.15s ease;
+		background 0.15s ease;
 
 	line-height: 1.25;
 
@@ -128,14 +146,19 @@ const FollowButton = styled.button`
 		height: 0.875rem;
 	}
 
-	&:hover:not(:disabled),
-	&.on {
-		border-color: ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.primary};
+	&:hover:not(:disabled) {
+		background: ${({ theme }) => theme.color.tertiary};
 	}
 
 	&.on {
-		background: ${({ theme }) => theme.color.tertiary};
+		background: ${({ theme }) => theme.color.primary};
+		color: ${({ theme }) => theme.color.background};
+	}
+
+	/* 관전 포인트 끝: 글이 이어지는 자리라 조금 작게 */
+	&.compact {
+		padding: 0.125rem 0.5rem;
+		font-size: 0.6875rem;
 	}
 
 	&:disabled {

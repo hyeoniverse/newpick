@@ -6,6 +6,9 @@ import { cosine } from 'src/ai-summary/articlePrep';
  * 2. 오픈 모델이 "같은 사건 · 사안의 새 진전인가"를 판정한다 (비슷한 주제의 다른 일은 뺀다).
  * 오픈 모델을 못 쓰는 날은 아주 비슷한 것만 받아들인다
  */
+/** 관전 포인트 지켜보기의 순서 번호: WATCH_OFFSET + 관전 포인트 순서 (소식 번호와 겹치지 않게) */
+export const WATCH_OFFSET = 1000;
+
 export const FOLLOW_LIMITS = {
   /** 이만큼 비슷해야 판정 후보 (같은 사건의 며칠 뒤 소식은 같은 날 다른 언론사 기사보다 덜 비슷하다) */
   candidate: 0.55,

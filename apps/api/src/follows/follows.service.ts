@@ -8,6 +8,7 @@ import {
   acceptedFrom,
   candidatesFor,
   FOLLOW_LIMITS,
+  WATCH_OFFSET,
   JUDGE_SCHEMA,
   JUDGE_SYSTEM,
   judgePrompt,
@@ -43,10 +44,16 @@ export class FollowsService {
       select: { contentAsHTML: true },
     });
     if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
-    const story = parseNewsletterHtml(newsletter.contentAsHTML).stories[
-      storyIndex - 1
-    ];
-    if (!story) throw new AppException('NOT_FOUND', '그 소식이 없습니다.');
+    const parsed = parseNewsletterHtml(newsletter.contentAsHTML);
+    // 관전 포인트(WATCH_OFFSET + 순서)는 그 문장을 제목 · 판정용 글로 남긴다
+    const watch =
+      storyIndex > WATCH_OFFSET
+        ? parsed.watch[storyIndex - WATCH_OFFSET - 1]
+        : undefined;
+    const story =
+      storyIndex > WATCH_OFFSET ? undefined : parsed.stories[storyIndex - 1];
+    if (!story && !watch)
+      throw new AppException('NOT_FOUND', '그 소식이 없습니다.');
     const follow = await this.prisma.storyFollow.upsert({
       where: {
         userId_newsletterId_storyIndex: { userId, newsletterId, storyIndex },
@@ -56,8 +63,8 @@ export class FollowsService {
         userId,
         newsletterId,
         storyIndex,
-        heading: story.heading.slice(0, 200),
-        text: textOf(story),
+        heading: (story?.heading ?? watch!).slice(0, 200),
+        text: story ? textOf(story) : watch!,
       },
       select: { id: true, storyIndex: true },
     });
