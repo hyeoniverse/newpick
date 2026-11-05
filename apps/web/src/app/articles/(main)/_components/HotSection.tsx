@@ -600,6 +600,49 @@ const StyledHotSection = styled.section<StyledProps>`
 			text-decoration-color: ${({ theme }) => theme.color.primary};
 		}
 
+		/* 휴대폰: 사진은 카드 가장자리까지(위 모서리만 둥글게), 글은 안쪽 여백.
+		   제목 두 줄 자리를 비워 두지 않고, 날짜 줄은 북마크 단추가 줄을 높이지 않게 */
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			.card .card-body {
+				padding: 0 0 0.625rem;
+				overflow: hidden;
+			}
+
+			.image-placeholder {
+				margin-bottom: 0.375rem;
+				border-radius: 0;
+
+				img {
+					border-radius: 0;
+				}
+			}
+
+			.card-main {
+				padding-right: 0;
+
+				.category,
+				.title,
+				.tags,
+				.card-footer {
+					margin-inline: 1rem;
+					width: auto;
+				}
+
+				.title {
+					min-height: 0;
+					line-height: 1.4;
+				}
+
+				.card-footer {
+					height: 2rem;
+					margin-top: 0.375rem;
+					padding-top: 0.5rem;
+					align-items: center;
+					font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				}
+			}
+		}
+
 		/* 점·화살표는 띠 아래 오른쪽 한 줄. 분야 페이지(카드 하나)에서도 자리는 남겨 높이를 맞춘다 */
 		.controls {
 			display: flex;
