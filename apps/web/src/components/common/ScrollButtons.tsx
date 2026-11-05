@@ -100,17 +100,21 @@ const ScrollButtonsContainer = styled.div`
 	bottom: calc(1.5rem + var(--np-float-lift, 0px));
 	transition:
 		bottom 0.2s ease,
-		opacity 0.15s ease,
-		visibility 0.15s;
+		transform 0.25s ease,
+		visibility 0.25s;
 	right: 1.5rem;
 	display: flex;
 	flex-direction: column;
 	z-index: 999;
 
-	/* 잠깐 숨김 (useHideScrollButtons) */
+	/* 잠깐 숨김 (useHideScrollButtons): 오른쪽 화면 밖으로 밀려 나갔다가 끝나면 다시 들어온다 */
 	html[data-np-hide-float] & {
-		opacity: 0;
+		transform: translateX(calc(100% + 1.5rem));
 		visibility: hidden;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		transition: none;
 	}
 `;
 
