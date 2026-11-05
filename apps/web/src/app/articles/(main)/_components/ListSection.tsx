@@ -17,7 +17,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { parseArticles } from '@/utils/parseArticles';
 import { fetchSearchNewsletters } from '@/api/article';
-import { SearchSort, filtersKey, readFilters, toApiQuery, toPageHref } from '@/utils/newsletterSearch';
+import { SearchSort, filtersKey, isSearching, readFilters, toApiQuery, toPageHref } from '@/utils/newsletterSearch';
 import TagFollowButton from '@/components/common/tag/TagFollowButton';
 import InputSelect from '@/components/common/InputSelect';
 import { useToast } from '@/hooks/useToast';
@@ -193,7 +193,14 @@ export default function ListSection() {
 						</>
 					) : (
 						<>
-							<Title as="h2" size="extraSmall" weight="semiBold" color="primary" className="tag">
+							{/* 거르지 않은 분야 목록이면 위 배너가 이미 분야 제목('경제 뉴스레터')이라 제목은 화면 읽기용으로만, 개수만 보인다 */}
+							<Title
+								as="h2"
+								size="extraSmall"
+								weight="semiBold"
+								color="primary"
+								className={!isSearching(filters) && filters.period === 'all' ? 'sr-only' : 'tag'}
+							>
 								{heading}
 							</Title>
 							{count}
