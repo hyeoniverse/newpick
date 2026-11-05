@@ -1,14 +1,28 @@
+import { useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { LuChevronRight } from 'react-icons/lu';
 import { NAVIGATION } from '@/constants/navigation';
-import { useAuth } from '@/hooks/useAuth';
 
 import styled from 'styled-components';
-import Button from '@/components/common/Button';
 import Dropdown from '@/components/common/Dropdown';
-import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
 
+/**
+ * 태블릿 · 휴대폰 메뉴: 머리글 아래로 펼쳐지는 목록, 뒤는 어둡게.
+ * 지금 보는 메뉴는 강조색. 화면 모드 단추는 로그인 전에도 머리글에 있어 여기엔 두지 않는다
+ */
 const Drawer = () => {
-	const { user } = useAuth();
+	const pathname = usePathname();
+
+	// 펼친 메뉴는 머리글 바로 아래에: 머리글 높이를 --np-header-h로 알린다 (글자 크기 등으로 바뀌면 다시)
+	useEffect(() => {
+		const header = document.querySelector('header');
+		if (!header) return;
+		const root = document.documentElement;
+		const observer = new ResizeObserver(() => root.style.setProperty('--np-header-h', `${header.offsetHeight}px`));
+		observer.observe(header);
+		return () => observer.disconnect();
+	}, []);
 
 	return (
 		<Dropdown
@@ -23,14 +37,19 @@ const Drawer = () => {
 				</StyledDrawerButton>
 			}
 		>
-			{!user && <ThemeSwitcher className="item" />}
-			{NAVIGATION.map((item, index) => (
-				<div className="item" key={`drawer-${index}`}>
-					<Link href={item.link}>
-						<Button as="span">{item.title}</Button>
+			<nav aria-label="메뉴">
+				{NAVIGATION.map((item) => (
+					<Link
+						key={item.id}
+						href={item.link}
+						className="item"
+						aria-current={pathname.startsWith(item.link) ? 'page' : undefined}
+					>
+						{item.title}
+						<LuChevronRight aria-hidden />
 					</Link>
-				</div>
-			))}
+				))}
+			</nav>
 		</Dropdown>
 	);
 };

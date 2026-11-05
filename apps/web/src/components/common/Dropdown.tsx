@@ -69,7 +69,7 @@ const Dropdown = ({ type, children, toggleButton, className, label }: Props) => 
 					(toggleButton.type !== React.Fragment
 						? React.cloneElement(toggleButton as React.ReactElement<React.HTMLAttributes<HTMLDivElement>>, {
 								className: isDropdownOpen ? 'open' : '',
-						  })
+							})
 						: toggleButton)}
 			</button>
 			<div id={panelId} className={`panel ${isDropdownOpen ? 'open' : ''}`}>
@@ -184,82 +184,76 @@ const StyledDropdown = styled.div`
 			}
 		}
 
+		/* 머리글 바로 아래로 펼쳐지는 메뉴 (태블릿 · 휴대폰). 뒤 화면은 그림자를 넓게 깔아 어둡게(머리글 위로는 자름) */
 		.panel {
-			visibility: hidden;
-			position: absolute;
-			top: calc(100% + 1rem - 2px);
-			left: 0;
-			margin-left: -1rem;
-			background: ${({ theme }) => theme.color.surface};
-			box-shadow: ${({ theme }) => theme.shadow.medium};
-
-			display: flex;
-			flex-direction: column;
-			justify-content: center;
-
-			transform-origin: top;
-			transition: all 0.3s ease;
+			display: none;
 
 			@media ${({ theme }) => theme.mediaQuery.tablet} {
-				width: 100vw;
-				height: 0;
+				position: fixed;
+				top: var(--np-header-h, 3.5rem);
+				left: 0;
+				right: 0;
+				display: block;
+				padding: 0.5rem 1rem 1rem;
+				border-bottom: 1px solid ${({ theme }) => theme.color.border};
+				background: ${({ theme }) => theme.color.background};
+				box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.32);
+				clip-path: inset(0 -100vmax -100vmax -100vmax);
+				cursor: default;
 
-				border: 1px solid ${({ theme }) => theme.color.border};
 				visibility: hidden;
 				opacity: 0;
-				transform: scaleY(0);
-				overflow: hidden;
+				transform: translateY(-0.5rem);
+				transition:
+					opacity 0.2s ease,
+					transform 0.2s ease,
+					visibility 0.2s;
 
 				&.open {
-					height: fit-content;
 					visibility: visible;
 					opacity: 1;
-					transform: scaleY(1);
+					transform: none;
+				}
+
+				@media (prefers-reduced-motion: reduce) {
+					transition: none;
 				}
 			}
 
-			a {
-				width: 100%;
-				height: 100%;
-				padding: 0;
-				margin: 0;
-			}
-
-			button {
-				width: 100%;
-				padding: 0.75rem 0;
-			}
-
-			.item {
-				width: 100%;
-				height: 0;
-				position: relative;
-				visibility: hidden;
-				opacity: 0;
-				transform: scaleY(0);
-
+			nav {
 				display: flex;
 				flex-direction: column;
-				justify-content: center;
+			}
+
+			/* 메뉴 한 줄: 누르는 칸 넉넉히, 오른쪽 끝에 작은 화살표 */
+			.item {
+				display: flex;
 				align-items: center;
+				justify-content: space-between;
+				min-height: 3.25rem;
+				padding: 0 0.75rem;
+				border-radius: ${({ theme }) => theme.radius.control};
+				font-size: ${({ theme }) => theme.fontSize.medium};
+				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+				color: ${({ theme }) => theme.color.text};
 
-				cursor: pointer;
-				box-shadow: 0 -1px 0 ${({ theme }) => theme.color.border};
-				font-weight: ${({ theme }) => theme.fontWeight.bold};
-
-				transfrom-origin: top center;
-				transition: transform 0.3s ease;
-
-				&:hover {
-					color: ${({ theme }) => theme.color.primary};
+				svg {
+					width: 1.125rem;
+					height: 1.125rem;
+					color: ${({ theme }) => theme.color.subText};
 				}
 
-				@media ${({ theme }) => theme.mediaQuery.tablet} {
-					height: fit-content;
-					/* 닫힌 메뉴의 항목이 탭으로 잡히지 않게, 보임 여부는 panel을 따른다 */
-					visibility: inherit;
-					opacity: 1;
-					transform: scaleY(1);
+				&:hover {
+					background: ${({ theme }) => theme.color.surface};
+				}
+
+				&[aria-current='page'] {
+					background: ${({ theme }) => theme.color.tertiary};
+					color: ${({ theme }) => theme.color.primary};
+
+					svg {
+						color: ${({ theme }) => theme.color.primary};
+					}
 				}
 			}
 		}
