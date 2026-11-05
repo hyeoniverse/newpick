@@ -334,7 +334,22 @@ export default function MyHighlights() {
 											const newsletter = block.items[0].newsletter;
 											const href = `/articles/detail/${block.newsletterId}`;
 											return (
-												<article key={block.items[0].id} className="news">
+												<article
+													key={block.items[0].id}
+													className={
+														dragging && block.items.every((h) => dragging.includes(h.id)) ? 'news dragging' : 'news'
+													}
+													// 뉴스레터 묶음(그림 · 제목 · 상자)을 끌면 그 안의 스크랩 전부를 폴더로 (내 뉴스레터처럼).
+													// 문장 하나를 끌면 그 문장만 (문장 쪽에서 멈춘다)
+													draggable={!selecting}
+													onDragStart={(event) => {
+														const ids = block.items.map((h) => h.id);
+														event.dataTransfer.effectAllowed = 'move';
+														setFolderDragGhost(event, `${newsletter?.title ?? '스크랩'} · ${ids.length}개`);
+														setDragging(ids);
+													}}
+													onDragEnd={() => setDragging(null)}
+												>
 													{/* 스크랩한 날 (제목에 날짜가 없어 위에 작게) */}
 													<p className="news-date">{dayLabel(day)}</p>
 													<Link href={href} className="news-title">
@@ -538,6 +553,8 @@ function HighlightItem({
 			onDragStart={(event) => {
 				event.dataTransfer.effectAllowed = 'move';
 				event.dataTransfer.setData('text/plain', highlight.text);
+				// 묶음(article)의 끌기로 번지지 않게: 이 문장만
+				event.stopPropagation();
 				onDragStart(event);
 			}}
 			onDragEnd={onDragEnd}
@@ -809,6 +826,7 @@ const StyledHighlights = styled.div`
 	}
 
 	/* 끄는 중인 것: 흐리게 (세 탭 같은 모양) */
+	.news.dragging,
 	.item.dragging {
 		opacity: 0.4;
 	}
