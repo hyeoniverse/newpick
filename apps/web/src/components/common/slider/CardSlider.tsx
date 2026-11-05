@@ -110,6 +110,24 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 		return () => clearInterval(interval);
 	}, [currentIndex, autoScrollInterval, handleScroll, type]);
 
+	// 화면 폭이 바뀌면 카드 폭도 바뀌므로 지금 카드 자리로 다시 맞춘다 (전에는 다음에 넘길 때까지 카드가 걸쳐 보였다)
+	const indexRef = useRef(currentIndex);
+	indexRef.current = currentIndex;
+	useEffect(() => {
+		const container = cardContainerRef.current;
+		if (!container) return;
+		let width = container.clientWidth;
+		const observer = new ResizeObserver(() => {
+			if (container.clientWidth === width) return;
+			width = container.clientWidth;
+			const card = container.children[indexRef.current] as HTMLElement | undefined;
+			const first = container.children[0] as HTMLElement | undefined;
+			if (card && first) container.scrollTo({ left: card.offsetLeft - first.offsetLeft, behavior: 'instant' });
+		});
+		observer.observe(container);
+		return () => observer.disconnect();
+	}, []);
+
 	// 스크롤 처리 함수
 	useEffect(() => {
 		const updateScrollState = () => {

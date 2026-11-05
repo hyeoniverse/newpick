@@ -791,13 +791,13 @@ const listCardStyles = css`
 			}
 		}
 
-		/* 태그(글자만) | 북마크. 북마크의 누르는 칸(40px)은 1.25rem 줄 밖으로 넘친다 */
+		/* 태그(글자만) | 북마크. 북마크의 누르는 칸(40px)은 1.5rem 줄 밖으로 넘친다 */
 		.bottom {
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
 			gap: 0.5rem;
-			height: 1.25rem;
+			height: 1.5rem;
 			margin-top: 0.25rem;
 		}
 
@@ -814,16 +814,18 @@ const listCardStyles = css`
 			}
 		}
 
+		/* 북마크는 PC와 같은 24px, 아이콘 오른쪽 끝을 썸네일 끝에 맞춘다(단추 안쪽 여백만큼 밖으로) */
 		.action {
 			position: relative;
 			z-index: 1;
 			margin-left: auto;
+			margin-right: -0.5rem;
 			display: flex;
 			align-items: center;
 
 			svg {
-				width: 1.125rem;
-				height: 1.125rem;
+				width: 1.5rem;
+				height: 1.5rem;
 			}
 		}
 	}
