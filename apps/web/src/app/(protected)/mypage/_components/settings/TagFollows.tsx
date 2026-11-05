@@ -12,8 +12,8 @@ import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 
 /**
- * 마이페이지 > 설정의 팔로우한 태그 (#123): 맞춤 메일에서 이 태그가 나온 소식을 앞에 보내고,
- * 뉴스레터에 실리지 않은 기사 중 제목에 나온 것을 추천 기사로 챙긴다.
+ * 마이페이지 > 설정의 팔로우한 태그 (#123): 매일 메일의 '팔로우한 태그' 칸에 태그마다 그날 소식(모든 분야)과
+ * 뉴스레터에 실리지 않은 기사 중 제목에 나온 것을 모아 보낸다 (맞춤을 꺼도).
  * 여기서 바로 추가(태그 이름을 치면 실제 뉴스레터 태그 중 맞는 것을 많이 쓴 순으로)하거나, 뉴스레터 목록의 태그에서 팔로우한다
  */
 export default function TagFollows() {
@@ -45,7 +45,7 @@ export default function TagFollows() {
 					팔로우한 태그
 				</Title>
 				<Text size="small" color="subText">
-					팔로우한 태그가 나온 소식을 맞춤 메일 앞쪽에 보내드립니다. 20개까지 팔로우할 수 있습니다.
+					매일 메일의 '팔로우한 태그' 칸에 태그마다 그날 소식과 관련 기사를 모아 드립니다. 20개까지 팔로우할 수 있습니다.
 				</Text>
 			</div>
 			<form

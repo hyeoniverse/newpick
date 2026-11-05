@@ -123,7 +123,7 @@ export default function SearchFilters() {
 						</button>
 					</>
 				)}
-				{/* 태그로 고른 목록에서 그 태그를 팔로우 (#123): 맞춤 메일에서 이 태그의 소식을 앞에 */}
+				{/* 태그로 고른 목록에서 그 태그를 팔로우 (#123): 메일의 '팔로우한 태그' 칸에 이 태그의 소식 */}
 				{filters.keywords.map((tag) => (
 					<TagFollowButton key={`follow-${tag}`} tag={tag} />
 				))}

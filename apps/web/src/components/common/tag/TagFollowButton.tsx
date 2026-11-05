@@ -11,7 +11,7 @@ interface Props {
 	className?: string;
 }
 
-/** 태그 팔로우 단추 (#123): 팔로우하면 맞춤 메일에서 이 태그의 소식을 앞에 보낸다. 로그인하지 않았으면 로그인 창 */
+/** 태그 팔로우 단추 (#123): 팔로우하면 메일의 '팔로우한 태그' 칸에 이 태그의 소식을 모은다. 로그인하지 않았으면 로그인 창 */
 export default function TagFollowButton({ tag, className }: Props) {
 	const { user } = useAuth();
 	const openLogin = useOpenLogin();
