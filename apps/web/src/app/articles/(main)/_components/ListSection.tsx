@@ -126,6 +126,18 @@ export default function ListSection() {
 		</Text>
 	);
 
+	// 정렬은 늘 머리 줄 오른쪽 끝 (태그로 고른 목록이면 태그 줄 끝)
+	const sortButtons = (
+		<div className="right-section">
+			<Button data-active={filters.sort === 'latest'} onClick={() => setSort('latest')}>
+				최신순
+			</Button>
+			<Button data-active={filters.sort === 'popular'} onClick={() => setSort('popular')}>
+				인기순
+			</Button>
+		</div>
+	);
+
 	return (
 		<StyledListSection data-track-section="articles-list">
 			<div className="header">
@@ -146,6 +158,7 @@ export default function ListSection() {
 									))}
 								</ul>
 								{tags.length === 1 && count}
+								{sortButtons}
 							</div>
 							{/* 태그 여러 개: 조건을 한 문장으로 — 고른 태그가 [하나라도 ▾] 들어간 뉴스레터 N건 */}
 							{tags.length > 1 && (
@@ -187,14 +200,7 @@ export default function ListSection() {
 						</>
 					)}
 				</div>
-				<div className="right-section">
-					<Button data-active={filters.sort === 'latest'} onClick={() => setSort('latest')}>
-						최신순
-					</Button>
-					<Button data-active={filters.sort === 'popular'} onClick={() => setSort('popular')}>
-						인기순
-					</Button>
-				</div>
+				{!tags.length && sortButtons}
 			</div>
 			{total === 0 && !isLoading ? (
 				<EmptyState
@@ -267,20 +273,13 @@ const StyledListSection = styled.section`
 		justify-content: space-between;
 		align-items: center;
 
-		/* 두 줄(칩 · 조건 문장)이면 정렬 단추는 칩 줄 높이에 */
-		&:has(.stack) {
-			align-items: flex-start;
-
-			.right-section {
-				margin-top: 0.375rem;
-			}
-		}
-
+		/* 휴대폰: 제목이 길면 줄을 넘기되, 정렬은 늘 오른쪽 끝 */
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
 			flex-wrap: wrap;
+			gap: 0.5rem;
 
 			.right-section {
-				margin-top: 1rem;
+				margin-left: auto;
 			}
 		}
 
@@ -297,9 +296,15 @@ const StyledListSection = styled.section`
 
 			/* 태그 여러 개: 칩 줄 아래에 조건 문장 (휴대폰에서도 정렬 단추보다 먼저) */
 			&.stack {
+				flex: 1;
+				min-width: 0;
 				flex-direction: column;
-				align-items: flex-start;
+				align-items: stretch;
 				gap: 0.75rem;
+
+				@media ${({ theme }) => theme.mediaQuery.mobile} {
+					gap: 0.5rem;
+				}
 			}
 
 			.count {
@@ -366,13 +371,61 @@ const StyledListSection = styled.section`
 			margin-right: 0.0625rem;
 			color: ${({ theme }) => theme.color.primary};
 		}
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			font-size: ${({ theme }) => theme.fontSize.medium};
+		}
 	}
 
+	/* 휴대폰: 위쪽을 가볍게 — 조건 문장 · 팔로우 · 정렬을 한 단계 작게 */
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.match {
+			gap: 0.25rem 0.375rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+
+			.clear {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
+
+		.follows {
+			gap: 0.375rem;
+
+			.follows-label {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+
+			button {
+				padding: 0.125rem 0.5rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
+
+		.right-section {
+			gap: 0.25rem;
+
+			button {
+				padding: 0.375rem 0.625rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
+	}
+
+	/* 고른 태그 · (태그 하나면) 개수 · 정렬(오른쪽 끝) */
 	.picked-row {
 		display: flex;
-		flex-wrap: wrap;
 		align-items: center;
 		gap: 0.5rem 1rem;
+
+		.picked {
+			flex: 1;
+			min-width: 0;
+		}
+
+		.right-section {
+			flex-shrink: 0;
+			margin-left: auto;
+		}
 	}
 
 	.follows {
