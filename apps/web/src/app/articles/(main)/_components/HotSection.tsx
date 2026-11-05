@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { CATEGORIES } from '@/constants/categories';
 
@@ -13,7 +13,9 @@ import CardSlider from '@/components/common/slider/CardSlider';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { filterByCategories } from '@/utils/queryNewsletters';
-import { isSearching, readFilters, toPageHref } from '@/utils/newsletterSearch';
+import { PERIOD_OPTIONS, isSearching, readFilters, toPageHref } from '@/utils/newsletterSearch';
+import { kstDate } from '@/utils/formatter';
+import InputSelect from '@/components/common/InputSelect';
 import SearchFilters from '@/app/articles/(main)/_components/SearchFilters';
 
 /** 분야 페이지 배너 요약 (page.tsx가 서버에서 계산) */
@@ -41,6 +43,7 @@ interface Props {
 }
 
 export default function HotSection({ trends: initiallData = [], stats }: Props) {
+	const router = useRouter();
 	const searchParams = useSearchParams();
 	const filters = readFilters(searchParams);
 	const categoryName = mapIdToTitle([filters.categoryId])[0]; // Query Parameter를 카테고리 이름으로 변환
@@ -73,6 +76,36 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 					</Link>
 				))}
 			</nav>
+
+			{/* 태블릿 · 휴대폰: 분야 칩 두 줄 · 기간 줄 대신 고르기 칸 두 개 한 줄 (위쪽을 가볍게). 직접 지정의 날짜 칸은 아래 기간 줄에 */}
+			<div className="compact-filters" role="group" aria-label="분야 · 기간">
+				<InputSelect
+					name="category"
+					size="small"
+					ariaLabel="분야"
+					value={String(filters.categoryId)}
+					options={CATEGORIES.map((c) => ({ value: String(c.id), label: c.name }))}
+					onChange={(value) => router.push(toPageHref({ ...filters, categoryId: Number(value) }), { scroll: false })}
+				/>
+				<InputSelect
+					name="period"
+					size="small"
+					ariaLabel="기간"
+					value={filters.period}
+					options={PERIOD_OPTIONS}
+					onChange={(value) => {
+						const period = PERIOD_OPTIONS.find((o) => o.value === value)?.value ?? 'all';
+						router.replace(
+							toPageHref(
+								period === 'custom'
+									? { ...filters, period, from: filters.from || kstDate(29), to: filters.to || kstDate(0) }
+									: { ...filters, period },
+							),
+							{ scroll: false },
+						);
+					}}
+				/>
+			</div>
 
 			<SearchFilters />
 
@@ -225,6 +258,22 @@ const StyledHotSection = styled.section<StyledProps>`
 		width: 100%;
 	}
 
+	/* 분야 · 기간 고르기 칸: 태블릿 · 휴대폰에서만 (데스크톱은 분야 칩 · 기간 줄) */
+	.compact-filters {
+		display: none;
+		gap: 0.5rem;
+
+		/* 펼친 목록은 칸 왼쪽에 맞춘다 (화면 왼쪽 끝에서 잘리지 않게) */
+		.options-list {
+			left: 0;
+			right: auto;
+		}
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			display: flex;
+		}
+	}
+
 	/* 분야 칩: 지금 분야는 강조색으로 채움 */
 	.category-chips {
 		display: flex;
@@ -253,6 +302,21 @@ const StyledHotSection = styled.section<StyledProps>`
 				background: ${({ theme }) => theme.color.primary};
 				color: ${({ theme }) => theme.color.background};
 			}
+		}
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
+		.category-chips {
+			display: none;
+		}
+
+		/* 기간 단추 줄은 숨기고, 직접 지정일 때 날짜 칸만 남긴다 */
+		.filters .periods > button {
+			display: none;
+		}
+
+		.filters .periods:not(.custom) {
+			display: none;
 		}
 	}
 
