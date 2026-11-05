@@ -52,18 +52,27 @@ const SummaryListStyled = styled.ul`
 	flex-direction: column;
 	gap: 0.5rem;
 	margin: 0;
-	padding: 0 0 0 1.125rem;
+	padding: 0;
+	list-style: none;
 	color: ${({ theme }) => theme.color.mediumGrey};
-	list-style: disc;
 	word-break: keep-all;
 
+	/* 글머리 점은 직접 그린다 (사이트 공통 CSS가 목록 점을 지운다) */
 	li {
+		position: relative;
 		margin: 0;
-		padding-left: 0.125rem;
+		padding-left: 1rem;
 		line-height: 1.6;
 
-		&::marker {
-			color: ${({ theme }) => theme.color.primary};
+		&::before {
+			content: '';
+			position: absolute;
+			left: 0.125rem;
+			top: 0.7em;
+			width: 0.3125rem;
+			height: 0.3125rem;
+			border-radius: 50%;
+			background: ${({ theme }) => theme.color.primary};
 		}
 	}
 `;
