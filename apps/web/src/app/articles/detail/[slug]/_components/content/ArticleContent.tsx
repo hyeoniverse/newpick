@@ -497,6 +497,10 @@ const NewsletterContentStyled = styled.article`
 
 			li {
 				position: relative;
+				/* 글은 왼쪽, 지켜보기 단추는 오른쪽 끝 (글이 길면 단추는 그 줄 끝에서 세로 가운데) */
+				display: flex;
+				align-items: center;
+				gap: 0.75rem;
 				padding: 0.5rem 0 0.5rem 1rem;
 				line-height: 1.6;
 				color: ${({ theme }) => theme.color.mediumGrey};
@@ -514,8 +518,8 @@ const NewsletterContentStyled = styled.article`
 				/* FollowLayer가 만드는 자리: 관전 포인트 글 끝에 이어서 */
 				.watch-slot {
 					display: inline-flex;
-					margin: 0 0 0 0.5rem;
-					vertical-align: middle;
+					flex-shrink: 0;
+					margin: 0 0 0 auto;
 				}
 			}
 		}

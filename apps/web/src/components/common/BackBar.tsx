@@ -2,6 +2,7 @@
 
 import styled from 'styled-components';
 import { IoArrowBack } from 'react-icons/io5';
+import Button from '@/components/common/Button';
 import MoveButton from '@/components/common/MoveButton';
 import { useHeader } from '@/hooks/useHeader';
 
@@ -29,9 +30,15 @@ export default function BackBar({ text, onClick, title, showTitle = false, onTit
 			{title &&
 				(onTitleClick ? (
 					// 숨어 있을 때(showTitle 아님)는 visibility: hidden이라 누를 수도, 탭으로 갈 수도 없다
-					<button type="button" className="bar-title" onClick={onTitleClick} aria-label={`제목으로 이동: ${title}`}>
-						<span>{title}</span>
-					</button>
+					<Button
+						type="button"
+						scheme="monoOutline"
+						className="bar-title"
+						onClick={onTitleClick}
+						aria-label={`제목으로 이동: ${title}`}
+					>
+						{title}
+					</Button>
 				) : (
 					<p className="bar-title" aria-hidden>
 						<span>{title}</span>
@@ -65,19 +72,13 @@ const BackBarStyled = styled.div<{ $folded: boolean; $withTitle: boolean }>`
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		color: ${({ theme }) => theme.color.text};
 
-		/* 단추일 때 (onTitleClick) */
+		/* 단추일 때 (onTitleClick): 공통 Button. 긴 제목은 줄여 쓴다 */
 		&:is(button) {
-			margin: 0;
-			cursor: pointer;
-
-			&:hover {
-				border-color: ${({ theme }) => theme.color.lightGrey};
-			}
-
-			&:focus-visible {
-				outline: 2px solid ${({ theme }) => theme.color.primary};
-				outline-offset: 2px;
-			}
+			flex-shrink: 1;
+			justify-content: flex-start;
+			/* 공통 Button은 height: fit-content라, 옆 뒤로 가기 단추와 같은 높이로 늘린다 */
+			align-self: stretch;
+			height: auto;
 		}
 
 		span {
@@ -92,7 +93,10 @@ const BackBarStyled = styled.div<{ $folded: boolean; $withTitle: boolean }>`
 		transition:
 			opacity 0.2s ease,
 			transform 0.2s ease,
-			visibility 0.2s;
+			visibility 0.2s,
+			color 0.15s ease,
+			background 0.15s ease,
+			border-color 0.15s ease;
 	}
 
 	/* 테두리는 옆의 제목 칸과 같은 연한 색 (버튼 기본 monoOutline은 진한 회색) */
@@ -102,10 +106,21 @@ const BackBarStyled = styled.div<{ $folded: boolean; $withTitle: boolean }>`
 		gap: ${({ $folded }) => ($folded ? '0' : '0.5rem')};
 		transition:
 			gap 0.3s ease,
-			padding 0.3s ease;
+			padding 0.3s ease,
+			color 0.15s ease,
+			background 0.15s ease,
+			border-color 0.15s ease;
+	}
 
-		&:hover {
-			border-color: ${({ theme }) => theme.color.lightGrey};
+	/* 뒤로 가기 · 제목 단추는 같은 모양: 가리키면 포인트색 테두리 · 글자 · 아이콘에 연한 포인트색 바탕 */
+	.back:hover:not(:disabled),
+	button.bar-title:hover:not(:disabled) {
+		border-color: ${({ theme }) => theme.color.primary};
+		background: ${({ theme }) => theme.color.tertiary};
+		color: ${({ theme }) => theme.color.primary};
+
+		svg {
+			color: ${({ theme }) => theme.color.primary};
 		}
 	}
 
