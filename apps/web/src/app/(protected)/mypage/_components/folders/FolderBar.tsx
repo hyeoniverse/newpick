@@ -346,6 +346,7 @@ const StyledFolderBar = styled.div`
 		/* 폴더는 한 줄로, 넘치면 옆으로 (칸이 화면을 덮지 않게) */
 		.targets {
 			display: flex;
+			align-items: center;
 			gap: 0.5rem;
 			overflow-x: auto;
 			scrollbar-width: none;
@@ -399,6 +400,8 @@ const StyledFolderBar = styled.div`
 		}
 
 		.hint {
+			flex-shrink: 0;
+			white-space: nowrap;
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 			color: ${({ theme }) => theme.color.subText};
 		}
