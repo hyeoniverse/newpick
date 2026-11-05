@@ -22,6 +22,7 @@ import { errorStateFor, statusOf } from '@/constants/errors';
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/useToast';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
+import { setFolderDragGhost } from './folders/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 import { newsBlock } from './list/newsBlock';
@@ -296,6 +297,7 @@ export default function MySubscribe() {
 											onDragStart={(event) => {
 												event.dataTransfer.effectAllowed = 'move';
 												event.dataTransfer.setData('text/plain', mail.subject ?? '');
+												setFolderDragGhost(event, mail.subject ?? mail.newsletters[0]?.title ?? '받은 메일');
 												setDragging(mail.sentAt);
 											}}
 											onDragEnd={() => setDragging(null)}

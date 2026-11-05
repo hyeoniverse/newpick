@@ -16,6 +16,7 @@ import { useFolders } from '@/hooks/useFolders';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
+import { setFolderDragGhost } from './folders/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 import LoadMore from './list/LoadMore';
@@ -124,6 +125,7 @@ function MyBookmark() {
 							draggable
 							onDragStart={(event) => {
 								event.dataTransfer.effectAllowed = 'move';
+								setFolderDragGhost(event, bookmark.newsTitle);
 								setDragging(bookmark.id);
 							}}
 							onDragEnd={() => setDragging(null)}

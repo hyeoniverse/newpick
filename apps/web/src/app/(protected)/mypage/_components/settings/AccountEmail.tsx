@@ -12,9 +12,7 @@ import Title from '@/components/common/Title';
 import CodeInput from './CodeInput';
 
 type Step =
-	| { kind: 'idle' }
-	| { kind: 'enter' }
-	| { kind: 'code'; email: string; resendAfter: number; expiresAt: number };
+	{ kind: 'idle' } | { kind: 'enter' } | { kind: 'code'; email: string; resendAfter: number; expiresAt: number };
 
 /** 남은 시간 '9:41' */
 const clock = (ms: number) => {
@@ -185,29 +183,29 @@ export default function AccountEmail() {
 
 			{step.kind === 'enter' && (
 				<div {...revealProps}>
-				<form className="form" onSubmit={onSend}>
-					<label htmlFor="new-email">새 수신 이메일</label>
-					<div className="row">
-						<input
-							id="new-email"
-							type="email"
-							inputMode="email"
-							autoComplete="email"
-							required
-							maxLength={191}
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="name@example.com"
-							autoFocus
-						/>
-						<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={!email}>
-							인증 코드 요청
-						</Button>
-						<Button type="button" scheme="outline" size="small" onClick={close}>
-							취소
-						</Button>
-					</div>
-				</form>
+					<form className="form" onSubmit={onSend}>
+						<label htmlFor="new-email">새 수신 이메일</label>
+						<div className="row">
+							<input
+								id="new-email"
+								type="email"
+								inputMode="email"
+								autoComplete="email"
+								required
+								maxLength={191}
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								placeholder="name@example.com"
+								autoFocus
+							/>
+							<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={!email}>
+								인증 코드 요청
+							</Button>
+							<Button type="button" scheme="outline" size="small" onClick={close}>
+								취소
+							</Button>
+						</div>
+					</form>
 				</div>
 			)}
 

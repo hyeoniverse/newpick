@@ -21,6 +21,7 @@ import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
+import { setFolderDragGhost } from './folders/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
@@ -375,17 +376,17 @@ export default function MyHighlights() {
 															>
 																{block.items.map((highlight, i) => (
 																	<li key={highlight.id} className={i >= QUOTES_SMALL ? 'extra' : undefined}>
-																																			<HighlightItem
+																		<HighlightItem
 																			highlight={highlight}
 																			source={
 																				<Source
-																				highlight={highlight}
-																				folder={
-																					folder === 'all' && highlight.folderId
-																						? folderName.get(highlight.folderId)
-																						: undefined
-																				}
-																			/>
+																					highlight={highlight}
+																					folder={
+																						folder === 'all' && highlight.folderId
+																							? folderName.get(highlight.folderId)
+																							: undefined
+																					}
+																				/>
 																			}
 																			focused={highlight.id === focused}
 																			selecting={selecting}
@@ -393,11 +394,12 @@ export default function MyHighlights() {
 																			onToggle={() => toggle(highlight.id)}
 																			onRemove={() => confirmRemove([highlight])}
 																			// 고르는 중에 고른 것 하나를 끌면 고른 것 전부, 아니면 이것 하나
-																			onDragStart={() =>
-																				setDragging(
-																					selecting && selected.has(highlight.id) ? [...selected] : [highlight.id],
-																				)
-																			}
+																			onDragStart={(event) => {
+																				const ids =
+																					selecting && selected.has(highlight.id) ? [...selected] : [highlight.id];
+																				setFolderDragGhost(event, highlight.text, ids.length);
+																				setDragging(ids);
+																			}}
 																			onDragEnd={() => setDragging(null)}
 																		/>
 																	</li>
@@ -513,7 +515,7 @@ function HighlightItem({
 	checked: boolean;
 	onToggle: () => void;
 	onRemove: () => void;
-	onDragStart: () => void;
+	onDragStart: (event: React.DragEvent) => void;
 	onDragEnd: () => void;
 }) {
 	const { update, bulk } = useHighlightMutations();
@@ -532,7 +534,7 @@ function HighlightItem({
 			onDragStart={(event) => {
 				event.dataTransfer.effectAllowed = 'move';
 				event.dataTransfer.setData('text/plain', highlight.text);
-				onDragStart();
+				onDragStart(event);
 			}}
 			onDragEnd={onDragEnd}
 		>
