@@ -74,7 +74,7 @@ function FollowCard({
 }) {
 	return (
 		<li className="follow">
-			<div className="head">
+			<div className="follow-head">
 				<p className="meta">
 					<span className="category">{follow.newsletter.category.name}</span>
 					<span className="nowrap">{day(follow.newsletter.createdAt)} 소식</span>
@@ -152,7 +152,7 @@ const StyledFollows = styled.div`
 		}
 	}
 
-	.head {
+	.follow-head {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;

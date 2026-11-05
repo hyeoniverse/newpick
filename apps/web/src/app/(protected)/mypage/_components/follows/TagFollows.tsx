@@ -40,7 +40,7 @@ export default function TagFollows() {
 
 	return (
 		<StyledTagFollows>
-			<div className="head">
+			<div className="tag-follows-head">
 				<ListHead title="팔로우한 태그" count={follows.length} />
 				<Text size="small" color="subText">
 					매일 메일의 ‘팔로우한 태그’ 칸에 태그마다 그날 소식과 관련 기사를 모아 드립니다. 20개까지 팔로우할 수
@@ -129,7 +129,7 @@ const StyledTagFollows = styled.section`
 	border-top: 1px solid ${({ theme }) => theme.color.border};
 	word-break: keep-all;
 
-	.head {
+	.tag-follows-head {
 		display: flex;
 		flex-direction: column;
 		gap: 0.375rem;
