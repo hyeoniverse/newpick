@@ -454,6 +454,11 @@ const StyledHotSection = styled.section<StyledProps>`
 				display: none;
 			}
 
+			/* 발행 수를 뺀 뒤 키워드도 없으면 빈 줄 자리를 남기지 않는다 */
+			.stats:not(:has(.keywords)) {
+				display: none;
+			}
+
 			.keywords {
 				margin-top: 0.125rem;
 			}
