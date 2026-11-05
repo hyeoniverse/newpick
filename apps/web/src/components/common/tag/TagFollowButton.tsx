@@ -9,10 +9,12 @@ import { useTagFollows } from '@/hooks/useTagFollows';
 interface Props {
 	tag: string;
 	className?: string;
+	/** 태그 칩 안에 둘 때: 태그 이름 없이 '팔로우' · '팔로우 중' (읽는 이름에는 태그를 넣는다) */
+	short?: boolean;
 }
 
 /** 태그 팔로우 단추 (#123): 팔로우하면 메일의 '팔로우한 태그' 칸에 이 태그의 소식을 모은다. 로그인하지 않았으면 로그인 창 */
-export default function TagFollowButton({ tag, className }: Props) {
+export default function TagFollowButton({ tag, className, short }: Props) {
 	const { user } = useAuth();
 	const openLogin = useOpenLogin();
 	const { isFollowing, follow, unfollow } = useTagFollows();
@@ -24,6 +26,7 @@ export default function TagFollowButton({ tag, className }: Props) {
 			type="button"
 			className={[className, on ? 'on' : ''].filter(Boolean).join(' ')}
 			aria-pressed={on}
+			aria-label={short ? `#${tag} 팔로우` : undefined}
 			disabled={busy}
 			onClick={() => {
 				if (!user) {
@@ -35,7 +38,7 @@ export default function TagFollowButton({ tag, className }: Props) {
 			}}
 		>
 			{on ? <LuCheck aria-hidden /> : <LuPlus aria-hidden />}
-			{on ? `#${tag} 팔로우 중` : `#${tag} 팔로우`}
+			{short ? (on ? '팔로우 중' : '팔로우') : on ? `#${tag} 팔로우 중` : `#${tag} 팔로우`}
 		</StyledTagFollowButton>
 	);
 }

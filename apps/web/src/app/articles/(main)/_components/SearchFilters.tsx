@@ -9,11 +9,10 @@ import styled from 'styled-components';
 import { PERIOD_OPTIONS, SearchPeriod, readFilters, toPageHref, toggleKeyword } from '@/utils/newsletterSearch';
 import { kstDate } from '@/utils/formatter';
 import { DateRangePicker } from '@/components/common/DatePicker';
-import TagFollowButton from '@/components/common/tag/TagFollowButton';
 
 /**
- * 뉴스레터 목록 위 필터 줄 (#20): 기간 · 키워드(태그에서 들어옴).
- * 검색어는 헤더 검색칸, 정렬은 목록 머리의 최신순 · 인기순, 관심사는 위 칩. 모두 주소에 남는다
+ * 뉴스레터 목록 위 필터 줄 (#20): 기간 · 자주 나온 태그(여러 개 고르기).
+ * 검색어는 헤더 검색칸, 고른 태그 · 조건 · 정렬은 목록 머리(ListSection), 관심사는 위 칩. 모두 주소에 남는다
  */
 export default function SearchFilters() {
 	const router = useRouter();
@@ -84,49 +83,6 @@ export default function SearchFilters() {
 						<LuX aria-label="검색어 지우기" />
 					</button>
 				)}
-				{/* 고른 태그가 아래 태그 줄에 있으면 거기서 켜짐으로 보이므로 칩은 그 밖의 태그일 때만 */}
-				{filters.keywords
-					.filter((tag) => !keywords.some(({ keyword }) => keyword === tag))
-					.map((tag) => (
-						<button
-							key={tag}
-							type="button"
-							className="keyword"
-							onClick={() => go({ keywords: toggleKeyword(filters.keywords, tag) })}
-						>
-							#{tag}
-							<LuX aria-label={`#${tag} 조건 지우기`} />
-						</button>
-					))}
-				{filters.keywords.length > 1 && (
-					<>
-						{/* 태그 여러 개: 하나라도 붙은 것(OR) · 모두 붙은 것(AND) */}
-						<div className="match" role="group" aria-label="고른 태그 조건">
-							{(
-								[
-									['any', '하나라도'],
-									['all', '모두'],
-								] as const
-							).map(([value, label]) => (
-								<button
-									key={value}
-									type="button"
-									aria-pressed={filters.match === value}
-									onClick={() => go({ match: value })}
-								>
-									{label}
-								</button>
-							))}
-						</div>
-						<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
-							태그 모두 지우기
-						</button>
-					</>
-				)}
-				{/* 태그로 고른 목록에서 그 태그를 팔로우 (#123): 메일의 '팔로우한 태그' 칸에 이 태그의 소식 */}
-				{filters.keywords.map((tag) => (
-					<TagFollowButton key={`follow-${tag}`} tag={tag} />
-				))}
 			</div>
 			{keywords.length > 0 && (
 				<div className="tags" role="group" aria-label="자주 나온 태그 (최근 30일, 여러 개 고를 수 있음)">
@@ -380,46 +336,5 @@ const StyledSearchFilters = styled.div`
 		font-size: ${({ theme }) => theme.fontSize.small};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		cursor: pointer;
-	}
-
-	/* 태그 조건: 두 칸짜리 고르기 (고른 쪽은 포인트색으로 채움) */
-	.match {
-		display: inline-flex;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
-		overflow: hidden;
-
-		button {
-			padding: 0.25rem 0.75rem;
-			border: none;
-			background: ${({ theme }) => theme.color.background};
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: ${({ theme }) => theme.color.subText};
-			cursor: pointer;
-
-			&:hover {
-				color: ${({ theme }) => theme.color.primary};
-			}
-
-			&[aria-pressed='true'] {
-				background: ${({ theme }) => theme.color.primary};
-				color: ${({ theme }) => theme.color.background};
-				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			}
-		}
-	}
-
-	/* 여러 태그를 고른 뒤 한 번에 풀기: 글자 단추 */
-	.clear {
-		padding: 0.25rem 0.25rem;
-		border: none;
-		background: transparent;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.subText};
-		cursor: pointer;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-		}
 	}
 `;

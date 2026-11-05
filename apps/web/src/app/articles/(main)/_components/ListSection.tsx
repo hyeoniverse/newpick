@@ -12,12 +12,13 @@ import Card from '@/components/common/Card';
 import Spinner from '@/components/common/loader/Spinner';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { LuSearchX } from 'react-icons/lu';
+import { LuSearchX, LuX } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { parseArticles } from '@/utils/parseArticles';
 import { fetchSearchNewsletters } from '@/api/article';
-import { SearchSort, filtersKey, readFilters, toApiQuery, toPageHref } from '@/utils/newsletterSearch';
+import { SearchSort, filtersKey, readFilters, toApiQuery, toPageHref, toggleKeyword } from '@/utils/newsletterSearch';
+import TagFollowButton from '@/components/common/tag/TagFollowButton';
 import { useToast } from '@/hooks/useToast';
 
 export default function ListSection() {
@@ -108,25 +109,56 @@ export default function ListSection() {
 		};
 	}, [isLoading, hasMore, articles.length, loadMoreArticles]);
 
-	const setSort = (sort: SearchSort) => router.replace(toPageHref({ ...filters, sort }), { scroll: false });
+	const go = (next: Partial<typeof filters>) => router.replace(toPageHref({ ...filters, ...next }), { scroll: false });
+	const setSort = (sort: SearchSort) => go({ sort });
 
+	// 태그로 고른 목록: 제목 자리에 고른 태그 칩 (칩마다 팔로우 · 빼기)
+	const tags = filters.q ? [] : filters.keywords;
 	const heading = filters.q
 		? `‘${filters.q}’ 검색 결과`
-		: filters.keywords.length
-			? filters.keywords.map((k) => `#${k}`).join(filters.match === 'all' ? ' + ' : ' · ')
+		: tags.length
+			? tags.map((k) => `#${k}`).join(filters.match === 'all' ? ' + ' : ' · ')
 			: categoryName;
+	const count = total !== null && (
+		<Text size="small" color="subText" className="count" aria-live="polite">
+			{total.toLocaleString()}건
+		</Text>
+	);
 
 	return (
 		<StyledListSection data-track-section="articles-list">
 			<div className="header">
 				<div className="title">
-					<Title as="h2" size="extraSmall" weight="semiBold" color="primary" className="tag">
-						{heading}
-					</Title>
-					{total !== null && (
-						<Text size="small" color="subText" className="count" aria-live="polite">
-							{total.toLocaleString()}건
-						</Text>
+					{tags.length ? (
+						<>
+							<Title as="h2" className="sr-only">
+								{heading}
+							</Title>
+							<ul className="picked" aria-label="고른 태그">
+								{tags.map((tag) => (
+									<li key={tag} className="pick">
+										<span className="name">#{tag}</span>
+										<TagFollowButton tag={tag} short className="follow" />
+										<button
+											type="button"
+											className="remove"
+											aria-label={`#${tag} 빼기`}
+											onClick={() => go({ keywords: toggleKeyword(tags, tag) })}
+										>
+											<LuX aria-hidden />
+										</button>
+									</li>
+								))}
+							</ul>
+							{tags.length === 1 && count}
+						</>
+					) : (
+						<>
+							<Title as="h2" size="extraSmall" weight="semiBold" color="primary" className="tag">
+								{heading}
+							</Title>
+							{count}
+						</>
 					)}
 				</div>
 				<div className="right-section">
@@ -138,6 +170,27 @@ export default function ListSection() {
 					</Button>
 				</div>
 			</div>
+			{/* 태그 여러 개: 조건을 한 문장으로 — 고른 태그가 [하나라도 ▾] 들어간 뉴스레터 N건 */}
+			{tags.length > 1 && (
+				<div className="match">
+					<label>
+						고른 태그가{' '}
+						<select
+							value={filters.match}
+							aria-label="고른 태그 조건"
+							onChange={(e) => go({ match: e.target.value === 'all' ? 'all' : 'any' })}
+						>
+							<option value="any">하나라도</option>
+							<option value="all">모두</option>
+						</select>{' '}
+						들어간 뉴스레터
+					</label>
+					{count}
+					<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
+						지우기
+					</button>
+				</div>
+			)}
 			{total === 0 && !isLoading ? (
 				<EmptyState
 					icon={LuSearchX}
@@ -256,6 +309,115 @@ const StyledListSection = styled.section`
 				background: ${({ theme }) => theme.color.tertiary};
 				color: ${({ theme }) => theme.color.primary};
 				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			}
+		}
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+
+	/* 고른 태그 칩: 연한 강조색 바탕에 태그 이름, 안에 팔로우 · 빼기 */
+	.picked {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.pick {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		padding: 0.3125rem 0.375rem 0.3125rem 1rem;
+		border-radius: ${({ theme }) => theme.radius.chip};
+		background: ${({ theme }) => theme.color.tertiary};
+
+		.name {
+			margin-right: 0.25rem;
+			font-size: ${({ theme }) => theme.fontSize.medium};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.primary};
+			white-space: nowrap;
+		}
+
+		.follow {
+			padding: 0.1875rem 0.5rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		}
+
+		.remove {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			width: 1.625rem;
+			height: 1.625rem;
+			border: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: 50%;
+			background: ${({ theme }) => theme.color.background};
+			color: ${({ theme }) => theme.color.subText};
+			cursor: pointer;
+
+			svg {
+				width: 0.875rem;
+				height: 0.875rem;
+			}
+
+			&:hover {
+				border-color: ${({ theme }) => theme.color.primary};
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+	}
+
+	/* 조건 문장: 고른 쪽만 강조색 테두리 칸 */
+	.match {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 0.5rem;
+		font-size: ${({ theme }) => theme.fontSize.medium};
+		color: ${({ theme }) => theme.color.text};
+
+		select {
+			margin: 0 0.125rem;
+			padding: 0.25rem 1.75rem 0.25rem 0.75rem;
+			border: 1px solid ${({ theme }) => theme.color.primary};
+			border-radius: 0.5rem;
+			background: ${({ theme }) => theme.color.background}
+				url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0h10L5 6z' fill='%233610e1'/%3E%3C/svg%3E")
+				no-repeat right 0.625rem center;
+			appearance: none;
+			font: inherit;
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+			cursor: pointer;
+		}
+
+		.count {
+			margin-left: -0.25rem;
+		}
+
+		.clear {
+			margin-left: 0.25rem;
+			padding: 0.25rem;
+			border: none;
+			background: transparent;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			color: ${({ theme }) => theme.color.subText};
+			cursor: pointer;
+
+			&:hover {
+				color: ${({ theme }) => theme.color.primary};
 			}
 		}
 	}
