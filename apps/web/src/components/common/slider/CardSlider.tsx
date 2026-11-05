@@ -142,40 +142,43 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 				{/* 이어 넘기기용 첫 카드 복제본: 화면 읽기 · 키보드에서는 빠진다 */}
 				{loop && <Card key="loop" className="card" type={type} ref={hideFromAssistiveTech} data={data[0]} />}
 			</div>
-			<div className="controls">
-				{type === 'main' && (
-					<>
-						{data.map((_, index) => (
-							<Button
-								key={index}
-								className="indicator"
-								onClick={() => goToSlide(index)}
-								aria-label={`${index + 1}번째 기사`}
-								aria-current={index === currentIndex || undefined}
-							>
-								{index === currentIndex ? <div className="filled" /> : <div className="empty" />}
-							</Button>
-						))}
-					</>
-				)}
+			{/* 카드가 하나면 넘길 것이 없어 점 · 화살표 줄을 그리지 않는다 (빈 줄 자리도 없게) */}
+			{data.length > 1 && (
+				<div className="controls">
+					{type === 'main' && (
+						<>
+							{data.map((_, index) => (
+								<Button
+									key={index}
+									className="indicator"
+									onClick={() => goToSlide(index)}
+									aria-label={`${index + 1}번째 기사`}
+									aria-current={index === currentIndex || undefined}
+								>
+									{index === currentIndex ? <div className="filled" /> : <div className="empty" />}
+								</Button>
+							))}
+						</>
+					)}
 
-				<div className="arrow">
-					<Button
-						className="left"
-						icon={<IoIosArrowBack aria-hidden />}
-						aria-label="이전"
-						onClick={() => handleScroll('left')}
-						disabled={type !== 'main' && !canScrollLeft}
-					/>
-					<Button
-						className="right"
-						icon={<IoIosArrowForward aria-hidden />}
-						aria-label="다음"
-						onClick={() => handleScroll('right')}
-						disabled={type !== 'main' && !canScrollRight}
-					/>
+					<div className="arrow">
+						<Button
+							className="left"
+							icon={<IoIosArrowBack aria-hidden />}
+							aria-label="이전"
+							onClick={() => handleScroll('left')}
+							disabled={type !== 'main' && !canScrollLeft}
+						/>
+						<Button
+							className="right"
+							icon={<IoIosArrowForward aria-hidden />}
+							aria-label="다음"
+							onClick={() => handleScroll('right')}
+							disabled={type !== 'main' && !canScrollRight}
+						/>
+					</div>
 				</div>
-			</div>
+			)}
 		</StyledCardSlider>
 	);
 };
