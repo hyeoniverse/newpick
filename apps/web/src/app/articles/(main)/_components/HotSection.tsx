@@ -420,8 +420,6 @@ const StyledHotSection = styled.section<StyledProps>`
 				display: -webkit-box;
 				-webkit-box-orient: vertical;
 				-webkit-line-clamp: 2;
-				/* 분야마다 줄 수가 달라도 높이가 같게 두 줄 자리 */
-				min-height: 3em;
 				white-space: normal;
 				word-break: keep-all;
 				font-size: ${({ theme }) => theme.fontSize.small};
