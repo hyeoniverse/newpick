@@ -17,7 +17,7 @@ import EmptyState from '@/components/common/EmptyState';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { parseArticles } from '@/utils/parseArticles';
 import { fetchSearchNewsletters } from '@/api/article';
-import { SearchSort, filtersKey, readFilters, toApiQuery, toPageHref, toggleKeyword } from '@/utils/newsletterSearch';
+import { SearchSort, filtersKey, readFilters, toApiQuery, toPageHref } from '@/utils/newsletterSearch';
 import TagFollowButton from '@/components/common/tag/TagFollowButton';
 import InputSelect from '@/components/common/InputSelect';
 import { useToast } from '@/hooks/useToast';
