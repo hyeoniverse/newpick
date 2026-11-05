@@ -16,11 +16,11 @@ import {
 
 /**
  * 판정 · 임베딩에 쓰는 소식 글 (제목 · 리드 · 본문 앞부분).
- * '다음에 볼 것'이 있으면 앞에 둔다: 후속 판정이 독자가 기다리는 그 일을 기준으로 찾게
+ * '지켜볼 일'이 있으면 앞에 둔다: 후속 판정이 독자가 기다리는 그 일을 기준으로 찾게
  */
 const textOf = (story: ParsedStory) =>
   [
-    story.next && `다음에 볼 것: ${story.next}`,
+    story.next && `지켜볼 일: ${story.next}`,
     story.heading,
     story.lead,
     storyText(story, 600),

@@ -160,9 +160,9 @@ export function renderNewsletterHtml(
       story.lead ? `<p class="lead">${escapeHtml(story.lead)}</p>` : '',
       figure(story),
       ...TEMPLATE_PARTS[story.template](story),
-      // 다음에 볼 것: 소식 끝, 출처 위. 화면은 이 옆에 '후속 지켜보기' 단추를 둔다
+      // 지켜볼 일: 소식 끝, 출처 위. 이름 없이 한 줄만 두고, 화면은 이 옆에 '후속 지켜보기' 단추를 둔다
       story.next
-        ? `<p class="next"><strong>다음에 볼 것</strong><span>${escapeHtml(story.next)}</span></p>`
+        ? `<p class="next"><span>${escapeHtml(story.next)}</span></p>`
         : '',
       credit(story, articles),
       '</article>',

@@ -466,7 +466,7 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
-		/* 다음에 볼 것: 소식 끝 한 줄, 오른쪽 끝에 후속 지켜보기 단추 (FollowLayer) */
+		/* 지켜볼 일: 소식 끝 한 줄, 오른쪽 끝에 후속 지켜보기 단추 (FollowLayer) */
 		.next {
 			display: flex;
 			align-items: center;
@@ -478,13 +478,6 @@ const NewsletterContentStyled = styled.article`
 			font-size: ${({ theme }) => theme.fontSize.small};
 			line-height: 1.5;
 			color: ${({ theme }) => theme.color.text};
-
-			strong {
-				flex-shrink: 0;
-				margin: 0;
-				font-weight: ${({ theme }) => theme.fontWeight.bold};
-				color: ${({ theme }) => theme.color.primary};
-			}
 
 			span {
 				margin: 0;
@@ -507,7 +500,7 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
-		/* 예전 뉴스레터(다음에 볼 것 없음): 출처 위에 단추만 오른쪽 끝에 */
+		/* 예전 뉴스레터(지켜볼 일 없음): 출처 위에 단추만 오른쪽 끝에 */
 		.follow-row {
 			display: flex;
 			justify-content: flex-end;

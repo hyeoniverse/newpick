@@ -20,10 +20,10 @@ const story = (next?: string) => ({
   imageQuery: 'ballot box',
 });
 
-describe('다음에 볼 것 (소식마다 후속 지켜보기의 기준)', () => {
+describe('지켜볼 일 (소식마다 후속 지켜보기의 기준)', () => {
   it('쓰기 프롬프트에 소식마다 next를 물음 · 명사구로 쓰라는 지시가 있다', () => {
     const prompt = writerPrompt(prepare([{ title: '기사', content: '본문' }]));
-    expect(prompt).toContain('- next: 다음에 볼 것');
+    expect(prompt).toContain('- next: 지켜볼 일');
     expect(prompt).toContain(`${LIMITS.next}자 이내`);
   });
 
@@ -50,7 +50,7 @@ describe('다음에 볼 것 (소식마다 후속 지켜보기의 기준)', () =>
       { source: '경향신문', link: 'https://n.news/1' },
     ]);
     expect(html).toContain(
-      '<p class="next"><strong>다음에 볼 것</strong><span>보우소나루 측 선거 무효 요청이 받아들여질지</span></p><p class="credit">',
+      '<p class="next"><span>보우소나루 측 선거 무효 요청이 받아들여질지</span></p><p class="credit">',
     );
     const parsed = parseNewsletterHtml(html);
     expect(parsed.stories[0].next).toBe(

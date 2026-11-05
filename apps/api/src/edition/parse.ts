@@ -31,7 +31,7 @@ export type ParsedStory = {
   image?: { url: string; alt: string; caption: Link[] };
   blocks: Block[];
   sources: Link[];
-  /** 다음에 볼 것 (예전 뉴스레터에는 없다) */
+  /** 지켜볼 일 (예전 뉴스레터에는 없다) */
   next?: string;
 };
 
