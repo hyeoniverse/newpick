@@ -15,7 +15,7 @@ const day = (iso: string) =>
 	new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(iso));
 
 /**
- * 마이페이지 > 지켜보기: 지켜보는 소식마다 이어진 새 소식을 시간순으로 (처음 소식 → 후속들), 그 아래 팔로우한 태그(#123).
+ * 마이페이지 > 지켜보기: 지켜보는 소식마다 이어진 새 소식을 시간순으로 (처음 소식 → 후속들), 그 위에 팔로우한 태그(#123, 짧아서 먼저).
  * 둘 다 '직접 고른 것을 메일로 받는' 기능이라 한 탭에 둔다.
  * 이 탭을 열면 새 후속을 본 것으로 한다(머리글 표시가 꺼짐). 이번 화면에서는 '새' 표시를 그대로 둔다
  */
@@ -36,6 +36,7 @@ export default function MyFollows() {
 
 	return (
 		<StyledFollows>
+			<TagFollows />
 			<section className="stories">
 				<ListHead title="지켜보는 소식" count={follows?.length ?? 0} />
 				{isPending ? (
@@ -58,7 +59,6 @@ export default function MyFollows() {
 					/>
 				)}
 			</section>
-			<TagFollows />
 		</StyledFollows>
 	);
 }
@@ -118,10 +118,14 @@ const StyledFollows = styled.div`
 	padding: 0 0 2rem;
 	word-break: keep-all;
 
+	/* 팔로우한 태그 아래: 줄로 나눈다 */
 	.stories {
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+		margin-top: 2.5rem;
+		padding-top: 2rem;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
 	}
 
 	.intro {
