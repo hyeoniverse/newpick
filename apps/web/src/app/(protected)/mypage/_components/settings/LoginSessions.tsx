@@ -21,7 +21,7 @@ function ago(iso: string) {
 	const days = Math.floor(hours / 24);
 	if (days < 7) return `${days}일 전`;
 	return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(
-		new Date(iso),
+		new Date(iso)
 	);
 }
 
@@ -32,7 +32,11 @@ function ago(iso: string) {
 export default function LoginSessions() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
-	const { data: sessions = [], isPending, isError } = useQuery({ queryKey: SESSIONS_KEY, queryFn: fetchSessions });
+	const {
+		data: sessions = [],
+		isPending,
+		isError,
+	} = useQuery({ queryKey: SESSIONS_KEY, queryFn: fetchSessions });
 
 	const refresh = () => queryClient.invalidateQueries({ queryKey: SESSIONS_KEY });
 	const removeOne = useMutation({
