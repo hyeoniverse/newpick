@@ -165,6 +165,8 @@ export default function ListSection() {
 									description: article.subtitle || article.summary,
 									tags: article.keywords,
 								},
+								date: article.date,
+								action: <BookmarkIcon newsId={article.id} newsletterId={article.id} />,
 								footer: (
 									<>
 										<Text color="subText">{article.date}</Text>
