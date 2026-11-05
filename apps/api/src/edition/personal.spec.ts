@@ -248,6 +248,30 @@ describe('맞춤 메일 엮기', () => {
     expect(mail).not.toMatch(/class=/);
   });
 
+  it('지켜보던 소식의 후속은 메일 맨 위(오늘 한눈에 앞)에, 맞춤 계획이 없어도', () => {
+    const mail = renderEditionMail(
+      composeEdition(sources, null, [1, 2], DATE, {
+        picks: [],
+        follows: [
+          {
+            followed: '룰라 4선',
+            heading: '보우소나루 불복 선언',
+            reason: '선거 무효 요청이 나왔다',
+            newsletterId: 69,
+            category: '세계',
+          },
+        ],
+      })!,
+      'https://newpick.app',
+    );
+    expect(mail).toContain('지켜보던 소식의 후속');
+    expect(mail).toContain('지켜보던 소식 · 룰라 4선');
+    expect(mail).toContain('href="https://newpick.app/articles/detail/69?');
+    expect(mail.indexOf('지켜보던 소식의 후속')).toBeLessThan(
+      mail.indexOf('오늘 한눈에'),
+    );
+  });
+
   it('맞춤이 없으면 메일은 지금과 같다 (분야별, 브리핑 없음)', () => {
     const plain = composeEdition(sources, null, [1, 2], DATE)!;
     expect(plain.personal).toBeUndefined();
