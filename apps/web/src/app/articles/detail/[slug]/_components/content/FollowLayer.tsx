@@ -86,7 +86,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 				return createPortal(
 					<FollowButton
 						type="button"
-						className={[current ? 'on' : '', watch ? 'compact' : ''].filter(Boolean).join(' ') || undefined}
+						className={current ? 'on' : undefined}
 						aria-pressed={!!current}
 						aria-label={watch ? (current ? '이 관전 포인트 지켜보는 중' : '이 관전 포인트 후속 지켜보기') : undefined}
 						disabled={busy}
@@ -104,7 +104,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 						}}
 					>
 						<BellGlyph on={!!current} ring={!!current && rung === index} />
-						{current ? '지켜보는 중' : watch ? '지켜보기' : '후속 지켜보기'}
+						{current ? '지켜보는 중' : '후속 지켜보기'}
 						{current && current._count.updates > 0 && <span className="count">후속 {current._count.updates}</span>}
 					</FollowButton>,
 					el,
@@ -155,10 +155,10 @@ const FollowButton = styled.button`
 		color: ${({ theme }) => theme.color.background};
 	}
 
-	/* 관전 포인트 끝: 글이 이어지는 자리라 조금 작게 */
-	&.compact {
-		padding: 0.125rem 0.5rem;
-		font-size: 0.6875rem;
+	/* 켜진 단추를 가리켜도 채운 바탕 그대로 (연한 바탕이 덮이면 흰 글자가 안 보인다), 조금 옅게만 */
+	&.on:hover:not(:disabled) {
+		background: ${({ theme }) => theme.color.primary};
+		opacity: 0.85;
 	}
 
 	&:disabled {
