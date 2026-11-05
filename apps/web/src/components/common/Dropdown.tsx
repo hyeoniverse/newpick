@@ -225,6 +225,11 @@ const StyledDropdown = styled.div`
 				flex-direction: column;
 			}
 
+			/* 분야가 강조되면 위 '뉴스레터' 줄은 글자색만 (바탕이 두 줄 겹치지 않게) */
+			.item[aria-current='page']:has(~ .categories [aria-current='page']) {
+				background: transparent;
+			}
+
 			/* 뉴스레터 아래 분야: 위 메뉴와 같은 줄 모양을 한 단계 작게 들여 쓴 목록. 지금 분야는 연한 강조색 바탕 · 강조색 */
 			.categories {
 				display: flex;
