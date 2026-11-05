@@ -258,7 +258,20 @@ const StyledHotSection = styled.section<StyledProps>`
 	   100vw 요소를 쓰면 스크롤바 폭만큼 가로로 넘쳐, 섹션 뒤에 깔리는 ::before로 그린다 */
 	position: relative;
 	isolation: isolate;
-	padding-bottom: 2.5rem;
+	padding-bottom: 1.5rem;
+
+	/* 배너 다음 목록까지 (목록의 위 여백도 여기서 줄인다) */
+	& + [data-track-section='articles-list'] {
+		margin-top: 1.5rem;
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		padding-bottom: 0.75rem;
+
+		& + [data-track-section='articles-list'] {
+			margin-top: 1rem;
+		}
+	}
 
 	&::before {
 		content: '';
