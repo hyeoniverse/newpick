@@ -16,7 +16,7 @@ test('체험하기는 생성 없이 고른 분야를 한 통으로 엮은 실제
 	// 기본은 IT. 경제를 더 고르면 두 분야가 한 통의 메일로
 	await sheet.getByRole('button', { name: '경제', exact: true }).click();
 	const mail = sheet.frameLocator('iframe[title="구독 메일 미리보기"]');
-	await expect(mail.getByText('오늘 한눈에')).toBeVisible();
+	await expect(mail.getByText('오늘을 한눈에')).toBeVisible();
 	await expect(mail.getByRole('heading', { name: SEEDED_NEWSLETTERS[0].title })).toBeVisible(); // 카테고리 1 = IT
 	await expect(mail.getByRole('heading', { name: SEEDED_NEWSLETTERS[2].title })).toBeVisible(); // 카테고리 3 = 경제
 	await expect(mail.getByRole('heading', { name: SEEDED_NEWSLETTERS[1].title })).toHaveCount(0); // 정치는 고르지 않음
