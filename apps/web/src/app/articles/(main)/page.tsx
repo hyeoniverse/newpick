@@ -13,17 +13,10 @@ import ArticlesLoading from '@/app/articles/(main)/_components/ArticlesLoading';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
-/** 분야 페이지 배너의 요약: 최근 7일 편 수와 자주 나온 키워드 3개 */
+/** 분야 페이지 배너의 요약: 최근 7일 편 수 */
 function summarize(newsletters: IArticleDetail[]): CategoryStats {
 	const since = Date.now() - WEEK;
-	const recent = newsletters.filter((n) => new Date(n.createdAt).getTime() >= since);
-	const counts = new Map<string, number>();
-	for (const n of recent) for (const k of n.keywords ?? []) counts.set(k, (counts.get(k) ?? 0) + 1);
-	const keywords = [...counts.entries()]
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, 3)
-		.map(([k]) => k);
-	return { weekCount: recent.length, keywords };
+	return { weekCount: newsletters.filter((n) => new Date(n.createdAt).getTime() >= since).length };
 }
 
 /**

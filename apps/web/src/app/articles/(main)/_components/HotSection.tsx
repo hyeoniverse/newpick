@@ -22,8 +22,6 @@ import SearchFilters from '@/app/articles/(main)/_components/SearchFilters';
 export interface CategoryStats {
 	/** 최근 7일 발행 편 수 */
 	weekCount: number;
-	/** 최근 7일 자주 나온 키워드 */
-	keywords: string[];
 }
 
 /** 띠 오른쪽에 크게·옅게 까는 분야 아이콘 */
@@ -61,9 +59,6 @@ export default function HotSection({ trends: initiallData = [], stats, latest }:
 	// 오늘 이 분야 뉴스레터가 없으면 이 분야의 가장 최근 것으로 (분야마다 배너가 있다 없다 하지 않게). 그것도 없으면 배너를 통째로 뺀다
 	const fallback = !isAll && filteredTrends.length === 0 && latest;
 	if (fallback) filteredTrends = [latest];
-
-	// 전체: 오늘 발행본들의 키워드에서, 분야: 서버가 센 최근 7일 키워드
-	const summaryKeywords = isAll ? topKeywords(initiallData) : (stats?.keywords ?? []);
 
 	return (
 		<StyledHotSection data-track-section="articles-hot" $isAll={isAll}>
@@ -141,17 +136,6 @@ export default function HotSection({ trends: initiallData = [], stats, latest }:
 									</>
 								)}
 							</span>
-							{summaryKeywords.length > 0 && (
-								// 태블릿 이하에서는 키워드만 아래 줄로 내려 옆으로 넘긴다 (…로 잘리지 않게)
-								<span className="keywords">
-									<span className="keywords-label">{' · 자주 나온 키워드 '}</span>
-									{summaryKeywords.map((k) => (
-										<Link key={k} href={toPageHref({ ...filters, keyword: k })} className="keyword">
-											#{k}
-										</Link>
-									))}
-								</span>
-							)}
 						</p>
 					</div>
 					<hr />
@@ -200,16 +184,6 @@ export default function HotSection({ trends: initiallData = [], stats, latest }:
 			)}
 		</StyledHotSection>
 	);
-}
-
-/** 여러 뉴스레터에서 자주 나온 키워드 3개 */
-function topKeywords(trends: IArticleSummary[]) {
-	const counts = new Map<string, number>();
-	for (const t of trends) for (const k of t.keywords ?? []) counts.set(k, (counts.get(k) ?? 0) + 1);
-	return [...counts.entries()]
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, 3)
-		.map(([k]) => k);
 }
 
 /** 'YYYY-MM-DD' → '10월 27일' (못 읽으면 그대로) */
@@ -387,12 +361,6 @@ const StyledHotSection = styled.section<StyledProps>`
 			strong {
 				color: ${({ theme }) => theme.color.text};
 			}
-
-			.keyword {
-				margin-left: 0.375rem;
-				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-				color: ${({ theme }) => theme.color.primary};
-			}
 		}
 
 		.watermark {
@@ -444,32 +412,6 @@ const StyledHotSection = styled.section<StyledProps>`
 				white-space: normal;
 			}
 
-			.keywords {
-				display: flex;
-				gap: 0.375rem;
-				margin-top: 0.375rem;
-				overflow-x: auto;
-				scrollbar-width: none;
-
-				&::-webkit-scrollbar {
-					display: none;
-				}
-			}
-
-			.keywords-label {
-				display: none;
-			}
-
-			.keyword {
-				flex-shrink: 0;
-				margin-left: 0;
-				padding: 0.125rem 0.5rem;
-				border: 1px solid ${({ theme }) => theme.color.border};
-				border-radius: ${({ theme }) => theme.radius.chip};
-				background: ${({ theme }) => theme.color.background};
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			}
-
 			/* 아이콘은 자리를 차지하지 않고(absolute) 크게, 글 뒤 오른쪽에 옅게 */
 			.watermark {
 				right: -0.25rem;
@@ -482,19 +424,10 @@ const StyledHotSection = styled.section<StyledProps>`
 			}
 		}
 
-		/* 휴대폰은 더 짧게: 설명 · 요약(발행 수) 줄은 빼고 제목 · 키워드만 */
+		/* 휴대폰은 더 짧게: 설명 · 요약(발행 수) 줄은 빼고 제목만 */
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			.count {
+			.stats {
 				display: none;
-			}
-
-			/* 발행 수를 뺀 뒤 키워드도 없으면 빈 줄 자리를 남기지 않는다 */
-			.stats:not(:has(.keywords)) {
-				display: none;
-			}
-
-			.keywords {
-				margin-top: 0.125rem;
 			}
 
 			h1,
