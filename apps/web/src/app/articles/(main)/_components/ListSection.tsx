@@ -140,7 +140,8 @@ export default function ListSection() {
 								<ul className="picked" aria-hidden>
 									{tags.map((tag) => (
 										<li key={tag} className="pick">
-											#{tag}
+											<span className="hash">#</span>
+											{tag}
 										</li>
 									))}
 								</ul>
@@ -343,29 +344,28 @@ const StyledListSection = styled.section`
 		white-space: nowrap;
 	}
 
-	/* 고른 태그 제목: 태그마다 따로, 분야 제목과 같은 모양(연한 강조색 바탕 · 강조색 글자) */
+	/* 고른 태그 제목: 바탕 없이 글자만, #만 강조색 (카드 태그처럼 가볍게) */
 	.picked {
 		display: flex;
 		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem;
+		align-items: baseline;
+		gap: 0.25rem 1rem;
 		margin: 0;
 		padding: 0;
 		list-style: none;
 	}
 
 	.pick {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
 		margin: 0;
-		padding: 0.25rem 1rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.tertiary};
-		font-size: 1.5rem;
+		font-size: ${({ theme }) => theme.fontSize.large};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.primary};
+		color: ${({ theme }) => theme.color.text};
 		white-space: nowrap;
+
+		.hash {
+			margin-right: 0.0625rem;
+			color: ${({ theme }) => theme.color.primary};
+		}
 	}
 
 	.picked-row {
