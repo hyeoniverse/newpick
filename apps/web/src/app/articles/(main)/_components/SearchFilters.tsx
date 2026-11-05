@@ -99,9 +99,29 @@ export default function SearchFilters() {
 						</button>
 					))}
 				{filters.keywords.length > 1 && (
-					<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
-						태그 모두 지우기
-					</button>
+					<>
+						{/* 태그 여러 개: 하나라도 붙은 것(OR) · 모두 붙은 것(AND) */}
+						<div className="match" role="group" aria-label="고른 태그 조건">
+							{(
+								[
+									['any', '하나라도'],
+									['all', '모두'],
+								] as const
+							).map(([value, label]) => (
+								<button
+									key={value}
+									type="button"
+									aria-pressed={filters.match === value}
+									onClick={() => go({ match: value })}
+								>
+									{label}
+								</button>
+							))}
+						</div>
+						<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
+							태그 모두 지우기
+						</button>
+					</>
 				)}
 				{/* 태그로 고른 목록에서 그 태그를 팔로우 (#123): 맞춤 메일에서 이 태그의 소식을 앞에 */}
 				{filters.keywords.map((tag) => (
@@ -360,6 +380,33 @@ const StyledSearchFilters = styled.div`
 		font-size: ${({ theme }) => theme.fontSize.small};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		cursor: pointer;
+	}
+
+	/* 태그 조건: 두 칸짜리 고르기 (고른 쪽은 포인트색으로 채움) */
+	.match {
+		display: inline-flex;
+		border: 1px solid ${({ theme }) => theme.color.border};
+		border-radius: ${({ theme }) => theme.radius.chip};
+		overflow: hidden;
+
+		button {
+			padding: 0.25rem 0.75rem;
+			border: none;
+			background: ${({ theme }) => theme.color.background};
+			font-size: ${({ theme }) => theme.fontSize.small};
+			color: ${({ theme }) => theme.color.subText};
+			cursor: pointer;
+
+			&:hover {
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			&[aria-pressed='true'] {
+				background: ${({ theme }) => theme.color.primary};
+				color: ${({ theme }) => theme.color.background};
+				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			}
+		}
 	}
 
 	/* 여러 태그를 고른 뒤 한 번에 풀기: 글자 단추 */

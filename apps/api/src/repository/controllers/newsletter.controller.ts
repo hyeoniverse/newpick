@@ -124,6 +124,7 @@ export class BasicRepositoryController {
     const { items, total } = await this.newsletterRepo.searchNewsletters({
       booleanQuery,
       keywords: query.keyword ?? [],
+      matchAll: query.match === 'all',
       categoryId: query.categoryId,
       from,
       to,

@@ -10,6 +10,7 @@ describe('newsletterSearch (#20)', () => {
 		expect(readFilters(params('q= 코스피 &categoryId=3&period=week&sort=popular'))).toEqual({
 			q: '코스피',
 			keywords: [],
+			match: 'any',
 			categoryId: 3,
 			period: 'week',
 			from: '',
@@ -57,5 +58,14 @@ describe('newsletterSearch (#20)', () => {
 		expect(toggleKeyword(['룰라', '코스피'], '룰라')).toEqual(['코스피']);
 		const full = Array.from({ length: KEYWORD_LIMIT }, (_, i) => `태그${i}`);
 		expect(toggleKeyword(full, '새 태그')).toEqual([...full.slice(1), '새 태그']);
+	});
+
+	it('태그 조건: 모두(AND)면 주소 · API에 match=all, 태그가 하나면 붙이지 않는다', () => {
+		const both = readFilters(params('keyword=룰라&keyword=코스피&match=all'));
+		expect(both.match).toBe('all');
+		expect(toPageHref(both)).toContain('match=all');
+		expect(toApiQuery(both, 11, 0, NOW)).toContain('match=all');
+		expect(toPageHref(readFilters(params('keyword=룰라&match=all')))).not.toContain('match');
+		expect(readFilters(params('keyword=룰라&match=x')).match).toBe('any');
 	});
 });

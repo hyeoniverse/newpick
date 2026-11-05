@@ -78,8 +78,9 @@ export class NewsletterRepo {
    */
   async searchNewsletters(params: {
     booleanQuery: string | null;
-    /** 고른 태그: 그중 하나라도 붙은 뉴스레터 */
+    /** 고른 태그: 그중 하나라도 붙은 뉴스레터 (matchAll이면 모두 붙은 것) */
     keywords?: string[];
+    matchAll?: boolean;
     categoryId?: number;
     from?: Date;
     to?: Date;
@@ -100,7 +101,7 @@ export class NewsletterRepo {
             (keyword) =>
               Prisma.sql`JSON_CONTAINS(keywords, JSON_QUOTE(${keyword}))`,
           ),
-          ' OR ',
+          params.matchAll ? ' AND ' : ' OR ',
         )})`,
       );
     }

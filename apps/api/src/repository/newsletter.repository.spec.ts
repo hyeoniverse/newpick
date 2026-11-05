@@ -95,3 +95,25 @@ describe('뉴스레터 검색 · 태그 여러 개', () => {
     expect(query).toContain('코스피');
   });
 });
+
+describe('뉴스레터 검색 · 태그 모두', () => {
+  it('matchAll이면 고른 태그가 모두 붙은 뉴스레터 (AND)', async () => {
+    const queryRaw = jest
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ total: BigInt(0) }]);
+    await new NewsletterRepo({
+      $queryRaw: queryRaw,
+    } as never).searchNewsletters({
+      booleanQuery: null,
+      keywords: ['룰라', '코스피'],
+      matchAll: true,
+      sort: 'latest',
+      limit: 10,
+      offset: 0,
+    });
+    const query = JSON.stringify(queryRaw.mock.calls[0]);
+    expect(query).toMatch(/JSON_CONTAINS[\s\S]*AND[\s\S]*JSON_CONTAINS/);
+    expect(query).not.toMatch(/JSON_CONTAINS[^]*? OR [^]*?JSON_CONTAINS/);
+  });
+});

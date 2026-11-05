@@ -162,6 +162,11 @@ export class NewsletterSearchDto {
   @Length(1, 30, { each: true, message: 'keyword는 1~30자여야 합니다' })
   keyword?: string[];
 
+  /** 태그 여러 개일 때: any(하나라도 붙은 것, 기본) · all(모두 붙은 것) */
+  @IsOptional()
+  @IsIn(['any', 'all'], { message: 'match는 any 또는 all이어야 합니다' })
+  match?: 'any' | 'all';
+
   @IsOptional()
   @Type(() => Number)
   @IsInt({ message: 'categoryId는 정수여야 합니다' })

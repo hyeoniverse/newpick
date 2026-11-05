@@ -113,7 +113,7 @@ export default function ListSection() {
 	const heading = filters.q
 		? `‘${filters.q}’ 검색 결과`
 		: filters.keywords.length
-			? filters.keywords.map((k) => `#${k}`).join(' · ')
+			? filters.keywords.map((k) => `#${k}`).join(filters.match === 'all' ? ' + ' : ' · ')
 			: categoryName;
 
 	return (

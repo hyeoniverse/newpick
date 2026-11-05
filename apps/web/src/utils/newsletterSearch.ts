@@ -9,6 +9,8 @@ export interface NewsletterFilters {
 	q: string;
 	/** 고른 태그 (여러 개면 그중 하나라도 붙은 뉴스레터). 주소에는 keyword=a&keyword=b */
 	keywords: string[];
+	/** 태그 여러 개일 때: any(하나라도 붙은 것, 기본) · all(모두 붙은 것). 주소에는 all일 때만 match=all */
+	match: 'any' | 'all';
 	categoryId: number;
 	period: SearchPeriod;
 	from: string;
@@ -40,6 +42,7 @@ export function readFilters(params: Params): NewsletterFilters {
 	return {
 		q: (params.get('q') ?? '').trim(),
 		keywords: [...new Set(params.getAll('keyword').map((k) => k.trim()))].filter(Boolean).slice(0, KEYWORD_LIMIT),
+		match: params.get('match') === 'all' ? 'all' : 'any',
 		categoryId: Number(params.get('categoryId')) || 0,
 		period: PERIODS.includes(period) ? period : 'all',
 		from: DATE.test(from) ? from : '',
@@ -76,6 +79,7 @@ export function toApiQuery(filters: NewsletterFilters, limit: number, offset: nu
 	const query = new URLSearchParams();
 	if (filters.q.length >= 2) query.set('q', filters.q);
 	filters.keywords.forEach((keyword) => query.append('keyword', keyword));
+	if (filters.match === 'all' && filters.keywords.length > 1) query.set('match', 'all');
 	if (filters.categoryId) query.set('categoryId', String(filters.categoryId));
 	const { from, to } = periodRange(filters, now);
 	if (from) query.set('from', from);
@@ -92,6 +96,7 @@ export function toPageHref(filters: NewsletterFilters): string {
 	if (filters.categoryId) query.set('categoryId', String(filters.categoryId));
 	if (filters.q) query.set('q', filters.q);
 	filters.keywords.forEach((keyword) => query.append('keyword', keyword));
+	if (filters.match === 'all' && filters.keywords.length > 1) query.set('match', 'all');
 	if (filters.period !== 'all') query.set('period', filters.period);
 	if (filters.period === 'custom') {
 		if (filters.from) query.set('from', filters.from);
