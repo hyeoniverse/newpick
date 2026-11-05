@@ -814,14 +814,19 @@ const listCardStyles = css`
 			}
 		}
 
-		/* 북마크는 PC와 같은 24px, 아이콘 오른쪽 끝을 썸네일 끝에 맞춘다(단추 안쪽 여백만큼 밖으로) */
+		/* 북마크는 PC와 같은 24px, 누르는 칸은 44px(손가락 최소 크기). 아이콘 오른쪽 끝을 썸네일 끝에 맞춘다(단추 안쪽 여백만큼 밖으로) */
 		.action {
 			position: relative;
 			z-index: 1;
 			margin-left: auto;
-			margin-right: -0.5rem;
+			margin-right: -0.625rem;
 			display: flex;
 			align-items: center;
+
+			button {
+				width: 2.75rem;
+				height: 2.75rem;
+			}
 
 			svg {
 				width: 1.5rem;
