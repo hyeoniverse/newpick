@@ -318,6 +318,11 @@ const StyledHotSection = styled.section<StyledProps>`
 		.filters .periods:not(.custom) {
 			display: none;
 		}
+
+		/* 날짜 칸 · 검색어 칩도 없으면 빈 줄 자리도 남기지 않는다 */
+		.filters:not(:has(.periods.custom, .keyword)) {
+			display: none;
+		}
 	}
 
 	/* 분야 소개: 제목 · 한 줄 설명 · 최근 7일 요약. 오른쪽에 분야 아이콘을 크고 옅게 */
