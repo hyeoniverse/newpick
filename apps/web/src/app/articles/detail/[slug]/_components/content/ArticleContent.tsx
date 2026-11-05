@@ -184,7 +184,7 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
-		/* 소식 머리줄: 번호 · 꼬리표, 오른쪽 끝에 후속 지켜보기 단추 (FollowLayer) */
+		/* 소식 머리줄: 번호 · 꼬리표 */
 		.kicker {
 			display: flex;
 			align-items: center;
@@ -198,12 +198,6 @@ const NewsletterContentStyled = styled.article`
 			.index {
 				margin: 0;
 				color: ${({ theme }) => theme.color.subText};
-			}
-
-			/* FollowLayer가 만드는 자리: 머리줄 오른쪽 끝 */
-			.follow-slot {
-				display: flex;
-				margin: 0 0 0 auto;
 			}
 		}
 
@@ -472,6 +466,54 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
+		/* 다음에 볼 것: 소식 끝 한 줄, 오른쪽 끝에 후속 지켜보기 단추 (FollowLayer) */
+		.next {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			margin: 1.5rem 0 0;
+			padding: 0.75rem 0.75rem 0.75rem 1rem;
+			border-left: 3px solid ${({ theme }) => theme.color.primary};
+			background: ${({ theme }) => theme.color.tertiary};
+			font-size: ${({ theme }) => theme.fontSize.small};
+			line-height: 1.5;
+			color: ${({ theme }) => theme.color.text};
+
+			strong {
+				flex-shrink: 0;
+				margin: 0;
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			span {
+				margin: 0;
+				word-break: keep-all;
+			}
+
+			.follow-slot {
+				display: inline-flex;
+				flex-shrink: 0;
+				margin: 0 0 0 auto;
+			}
+
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				flex-wrap: wrap;
+				gap: 0.375rem 0.75rem;
+
+				span {
+					flex-basis: 100%;
+				}
+			}
+		}
+
+		/* 예전 뉴스레터(다음에 볼 것 없음): 출처 위에 단추만 오른쪽 끝에 */
+		.follow-row {
+			display: flex;
+			justify-content: flex-end;
+			margin: 1.25rem 0 0;
+		}
+
 		.credit {
 			margin-top: 1.25rem;
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
@@ -497,10 +539,6 @@ const NewsletterContentStyled = styled.article`
 
 			li {
 				position: relative;
-				/* 글은 왼쪽, 지켜보기 단추는 오른쪽 끝 (글이 길면 단추는 그 줄 끝에서 세로 가운데) */
-				display: flex;
-				align-items: center;
-				gap: 0.75rem;
 				padding: 0.5rem 0 0.5rem 1rem;
 				line-height: 1.6;
 				color: ${({ theme }) => theme.color.mediumGrey};
@@ -513,13 +551,6 @@ const NewsletterContentStyled = styled.article`
 					width: 0.4rem;
 					height: 2px;
 					background: ${({ theme }) => theme.color.primary};
-				}
-
-				/* FollowLayer가 만드는 자리: 관전 포인트 글 끝에 이어서 */
-				.watch-slot {
-					display: inline-flex;
-					flex-shrink: 0;
-					margin: 0 0 0 auto;
 				}
 			}
 		}

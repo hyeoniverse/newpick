@@ -96,7 +96,6 @@ const EXPECTED: Record<string, Policy> = {
   'GET mypage/follows/unseen': 'auth',
   'POST mypage/follows/seen': 'auth',
   'GET mypage/follows/newsletter/:id': 'auth',
-  'GET mypage/follows/newsletter/:id/watch': 'auth',
   'POST mypage/follows': 'auth',
   'DELETE mypage/follows/:id': 'auth',
   'POST mypage/email/code': 'auth',

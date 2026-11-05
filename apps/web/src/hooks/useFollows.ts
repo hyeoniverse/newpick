@@ -62,20 +62,6 @@ export function useNewsletterFollows(newsletterId: number) {
 	});
 }
 
-/**
- * 뉴스레터 상세: 관전 포인트마다 이어진 소식 번호 (1부터, 없으면 0). 관전 포인트의 '후속 지켜보기'는 그 소식을 지켜본다.
- * 서버가 뜻으로 맞춘 값이라 뉴스레터마다 한 번만 (지켜보기를 켜고 꺼도 다시 받지 않는다)
- */
-export function useWatchStories(newsletterId: number) {
-	const { user } = useAuth();
-	return useQuery({
-		queryKey: ['followWatchStories', newsletterId],
-		queryFn: () => apiFetch<number[]>(API_ENDPOINTS.MY.FOLLOWS_WATCH(newsletterId)),
-		enabled: !!user,
-		staleTime: Infinity,
-	});
-}
-
 export function useFollowMutations() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();

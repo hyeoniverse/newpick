@@ -52,6 +52,8 @@ export type Story = {
   quote: { text: string; by: string };
   /** 엇갈린 주장. 같은 사안을 두고 서로 반대되는 주장이 있을 때만 2~3개, 아니면 빈 배열 */
   debate: Claim[];
+  /** 다음에 볼 것: 이 소식에서 앞으로 지켜볼 일정 · 결정 · 변수 한 줄. 후속 지켜보기가 이것을 기다린다 */
+  next?: string;
   /** 원래 기사 목록에서의 번호 (1부터) */
   sources: number[];
   /** 원출처 사진이 없을 때 Pexels·Unsplash에서 찾을 영어 검색어 */
@@ -125,6 +127,7 @@ export const LIMITS = {
   articlesPerStoryWide: 3,
   /** 엇갈린 주장: 최대 개수, 주장 하나 최대 길이 */
   debate: { max: 3, claim: 80 },
+  next: 60,
 } as const;
 
 /** 같은 사안을 두고 주장이 엇갈리기 쉬운 분야: 기사를 더 보내고 반대 주장을 더 챙긴다 */
@@ -390,6 +393,7 @@ export const writerPrompt = (
     `  - body: 경과와 맥락 ${LIMITS.body.min}~${LIMITS.body.max}자, 문단 1~2개. 문단 사이는 빈 줄 하나. 템플릿 고유 항목(stats·timeline·qa·quote)과 같은 내용을 반복하지 않습니다.`,
     `  - analysis: 시사점 ${LIMITS.analysis.min}~${LIMITS.analysis.max}자. 파급 효과, 이해관계자, 쟁점, 전망. 기사에 근거가 없는 예측은 하지 않습니다.`,
     `  - debate: 엇갈린 주장. 같은 사안을 두고 기사에 **서로 반대되는 주장**이 있을 때만 (한쪽은 A라고 하고 다른 쪽은 A가 아니라고 하거나, 같은 일을 정반대로 평가할 때. 예: 여당은 "적법한 절차" · 야당은 "권한 남용"). 주장하는 쪽마다 하나씩 2~${LIMITS.debate.max}개 (side: 주장하는 쪽 — 정당 · 기관 · 인물, 사설이나 칼럼이면 그 언론사 / claim: 그쪽 주장 ${LIMITS.debate.claim}자 이내 / source: 그 주장이 실린 기사의 언론사 이름 그대로). 강조점만 다르거나, 같은 사실을 다르게 전할 뿐이거나, 한쪽 주장만 있으면 빈 배열. 양쪽을 같은 길이 · 같은 어조로 쓰고 어느 편도 들지 않으며, 기사에 없는 주장은 지어내지 않습니다.`,
+    `  - next: 다음에 볼 것. 이 소식에서 앞으로 지켜볼 일정 · 결정 · 변수 하나를 ${LIMITS.next}자 이내의 물음이나 명사구로 (예: "보우소나루 측 선거 무효 요청이 받아들여질지", "공모가와 공모 주식 수 확정"). 기사에 나온 일정 · 변수만 쓰고, 마땅한 일정이 없으면 이 일의 다음 진전이 나올 지점을 씁니다. 독자는 이것을 보고 후속 소식을 받을지 정합니다.`,
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     `- watch: 관전 포인트. 앞으로 지켜볼 일정·변수 1~${LIMITS.watch.max}개, 하나에 ${LIMITS.watch.length}자 이내. 기사에 나온 것만.`,
@@ -450,6 +454,7 @@ export const WRITER_SCHEMA = {
           qa: { type: 'array', items: pairs(['q', 'a']) },
           quote: pairs(['text', 'by']),
           debate: { type: 'array', items: pairs(['side', 'claim', 'source']) },
+          next: { type: 'string' },
           sources: { type: 'array', items: { type: 'integer' } },
           imageQuery: { type: 'string' },
         },
@@ -465,6 +470,7 @@ export const WRITER_SCHEMA = {
           'qa',
           'quote',
           'debate',
+          'next',
           'sources',
           'imageQuery',
         ],
@@ -648,6 +654,7 @@ export function normalize(
         qa: qa.map((x, i) => ({ q: x.q, a: answers[i] })),
         quote: { text: clean(plain(s.quote.text)), by: plain(s.quote.by) },
         debate: debateOf(s.debate),
+        next: plain(s.next ?? '').slice(0, LIMITS.next * 2),
         imageQuery: s.imageQuery.trim(),
         sources: [
           ...new Set(

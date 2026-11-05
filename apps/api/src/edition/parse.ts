@@ -31,6 +31,8 @@ export type ParsedStory = {
   image?: { url: string; alt: string; caption: Link[] };
   blocks: Block[];
   sources: Link[];
+  /** 다음에 볼 것 (예전 뉴스레터에는 없다) */
+  next?: string;
 };
 
 export type ParsedNewsletter = {
@@ -146,6 +148,9 @@ function parseStory(article: Element): ParsedStory {
       : undefined,
     blocks: parseBlocks(article),
     sources: credit ? sourceLinks(credit) : [],
+    ...(article.querySelector('p.next span') && {
+      next: text(article.querySelector('p.next span')),
+    }),
   };
 }
 

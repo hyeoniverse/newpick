@@ -4,7 +4,6 @@ import {
   acceptedFrom,
   candidatesFor,
   FOLLOW_LIMITS,
-  watchStories,
   judgePrompt,
 } from './detect';
 import { FollowsService } from './follows.service';
@@ -88,35 +87,6 @@ describe('후속 판정 규칙', () => {
   });
 });
 
-describe('관전 포인트 → 소식 짝', () => {
-  const stories = [
-    '앤트로픽 IPO 신청\n공모가 미정',
-    '룰라 4선\n보우소나루 불복',
-  ];
-  it('뜻(임베딩)으로 가장 가까운 소식', () => {
-    expect(
-      watchStories(['A', 'B'], stories, {
-        watch: [
-          [0, 1],
-          [1, 0],
-        ],
-        stories: [
-          [1, 0],
-          [0.2, 0.9],
-        ],
-      }),
-    ).toEqual([2, 1]);
-  });
-  it('임베딩이 없으면 겹치는 낱말로, 하나도 안 겹치면 0', () => {
-    expect(
-      watchStories(
-        ['앤트로픽 공모가 확정 여부', '보우소나루 측 선거 무효 요청', '날씨'],
-        stories,
-      ),
-    ).toEqual([1, 2, 0]);
-  });
-});
-
 describe('FollowsService', () => {
   const setup = () => {
     const prisma = {
@@ -153,24 +123,22 @@ describe('FollowsService', () => {
     });
   });
 
-  it('관전 포인트 짝: 임베딩으로 맞추고 같은 내용이면 다시 계산하지 않는다', async () => {
-    const { prisma, ai, service } = setup();
+  it("지켜보기: '다음에 볼 것'이 있으면 판정 글 맨 앞에 둔다", async () => {
+    const { prisma, service } = setup();
     prisma.newsletter.findUnique.mockResolvedValue({
       contentAsHTML: renderNewsletterHtml({
         briefing: '',
-        stories: [story('앤트로픽 IPO'), story('룰라 4선')],
-        watch: ['보우소나루 불복', '공모가 확정'],
+        stories: [
+          { ...story('룰라 4선'), next: '선거 무효 요청이 받아들여질지' },
+        ],
+        watch: [],
       }),
     });
-    ai.embed.mockResolvedValue([
-      [0, 1],
-      [1, 0],
-      [1, 0],
-      [0, 1],
-    ]);
-    expect(await service.watchMap(10)).toEqual([2, 1]);
-    await service.watchMap(10);
-    expect(ai.embed).toHaveBeenCalledTimes(1);
+    await service.follow(7, 10, 1);
+    const { create } = prisma.storyFollow.upsert.mock.calls[0][0];
+    expect(create.text.split('\n')[0]).toBe(
+      '다음에 볼 것: 선거 무효 요청이 받아들여질지',
+    );
   });
 
   it('지켜보는 소식이 없으면 아무것도 부르지 않는다', async () => {
