@@ -698,9 +698,12 @@ const listCardStyles = css`
 					width: 6.5rem;
 				}
 
+				/* 북마크 단추(누르는 칸 40px)가 줄 높이를 키우지 않게: 줄은 1.5rem, 단추는 위아래로 넘쳐 누르는 칸은 그대로 */
 				.card-footer {
 					grid-column: 1 / -1;
-					margin-top: 0.375rem;
+					height: 1.5rem;
+					margin-top: 0.5rem;
+					align-items: center;
 				}
 			}
 
