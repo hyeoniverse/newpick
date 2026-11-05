@@ -11,6 +11,7 @@ import { Highlight as Scrap, useHighlightMutations, useHighlights } from '@/hook
 import { findTextRange } from '@/utils/textRange';
 import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { useFloatStore } from '@/stores/useFloatStore';
 
 interface Props {
 	newsletterId: number;
@@ -116,6 +117,13 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	const [focusId, setFocusId] = useState<number | null>(null);
 	// 휴대폰: 글 옆 팝오버 대신 아래 시트 (손가락이 닿기 쉽고, 메모를 쓸 때 키보드에 가리지 않는다)
 	const { isMobile } = useMediaQuery();
+	// 시트가 떠 있는 동안 떠 있는 단추(스크롤 · 북마크 · 링크)를 잠깐 숨긴다
+	const setSheetOpen = useFloatStore((s) => s.setSheetOpen);
+	const sheetOpen = isMobile && !!popover;
+	useEffect(() => {
+		setSheetOpen(sheetOpen);
+		return () => setSheetOpen(false);
+	}, [sheetOpen, setSheetOpen]);
 
 	// 형광펜 칠하기 (#123): 문장의 줄마다 띠를 본문 뒤에 그린다.
 	// 브라우저 기본 칠하기(::highlight · 배경)는 글꼴의 줄 상자 높이를 따라가서, 글꼴 · 크기 · 굵기가 다른 곳(제목 · 굵은 글 · 강조)마다
