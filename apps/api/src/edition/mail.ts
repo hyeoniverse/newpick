@@ -152,7 +152,7 @@ export function renderEditionMail(
       edition.briefing
         ? `<div style="margin:0 0 22px;padding:14px 16px;background:${C.tint};border-radius:8px;"><p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${C.primary};">오늘의 맞춤 브리핑</p><p style="margin:0;font-size:14px;line-height:1.7;color:${C.text};">${esc(edition.briefing)}</p></div>`
         : '',
-      // 팔로우한 태그: 태그마다 그날 소식(뉴스레터로) · 뉴스레터에 안 실린 기사(원문으로). 오늘 한눈에 순서와는 따로
+      // 팔로우한 태그: 태그마다 그날 소식(뉴스레터로) · 뉴스레터에 안 실린 기사(원문으로). 오늘을 한눈에 순서와는 따로
       edition.tags.length
         ? `<div style="margin:0 0 22px;padding:14px 16px;border:1px solid ${C.border};border-radius:8px;"><p style="margin:0 0 10px;font-size:12px;font-weight:700;color:${C.primary};">팔로우한 태그</p>${edition.tags
             .map(
@@ -170,7 +170,7 @@ export function renderEditionMail(
             )
             .join('')}</div>`
         : '',
-      heading('오늘 한눈에'),
+      heading('오늘을 한눈에'),
       edition.top
         .map(
           (t, i) =>

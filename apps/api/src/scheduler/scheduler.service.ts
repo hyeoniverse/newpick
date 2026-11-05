@@ -540,7 +540,7 @@ export class SchedulerService implements OnApplicationBootstrap {
       plans.set(userId, { ...(plans.get(userId) ?? { picks: [] }), articles });
 
     // 팔로우한 태그 칸 (#123 5단계): 직접 고른 것이라 맞춤을 꺼도 싣는다. 태그마다 그날 소식 · 뉴스레터에 안 실린 기사.
-    // 맞춤 순서(오늘 한눈에)에는 섞지 않는다. 읽기에 실패하면 이 칸 없이
+    // 맞춤 순서(오늘을 한눈에)에는 섞지 않는다. 읽기에 실패하면 이 칸 없이
     const accountIds = validSubscribers
       .map((s) => s.userId)
       .filter((id): id is number => typeof id === 'number');

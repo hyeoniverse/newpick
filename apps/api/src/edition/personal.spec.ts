@@ -199,7 +199,7 @@ describe('팔로우한 태그 칸', () => {
     expect(result.has('야구')).toBe(false);
   });
 
-  it('메일: 오늘 한눈에 앞에 따로 칸, 오늘 한눈에 순서는 그대로', () => {
+  it('메일: 오늘을 한눈에 앞에 따로 칸, 오늘을 한눈에 순서는 그대로', () => {
     const plain = composeEdition(sources, null, [1, 2], DATE)!;
     const withTags = composeEdition(sources, null, [1, 2], DATE, {
       picks: [],
@@ -232,7 +232,7 @@ describe('팔로우한 태그 칸', () => {
     expect(mail).toContain('#반도체');
     expect(mail).toContain('href="https://n.news/1"');
     expect(mail.indexOf('팔로우한 태그')).toBeLessThan(
-      mail.indexOf('오늘 한눈에'),
+      mail.indexOf('오늘을 한눈에'),
     );
   });
 });
