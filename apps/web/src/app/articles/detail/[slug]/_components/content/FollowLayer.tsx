@@ -1,11 +1,12 @@
 'use client';
 
-import { RefObject, useEffect, useState } from 'react';
+import { RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Link from 'next/link';
 import styled from 'styled-components';
 import { useAuth } from '@/hooks/useAuth';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
-import { useFollowMutations, useNewsletterFollows } from '@/hooks/useFollows';
+import { useFollowMutations, useNewsletterFollowUpdates, useNewsletterFollows } from '@/hooks/useFollows';
 import { BellGlyph } from '@/components/common/icons/Glyphs';
 
 interface Props {
@@ -19,14 +20,23 @@ interface Props {
  * 후속 지켜보기: 소식마다 끝에 단추 하나. 다 읽은 직후가 '그래서 어떻게 되는데?'가 남는 때라서.
  * '지켜볼 일'(p.next)이 있으면 그 줄 오른쪽 끝에 (무엇을 기다리는지 바로 옆에), 없으면(예전 뉴스레터) 출처 위에 한 줄로.
  * 켜 두면 이어지는 새 소식이 나왔을 때 마이페이지 '지켜보기'와 머리글에 알린다 (판정은 하루 한 번, 서버).
+ * 거꾸로 이 소식이 내가 지켜보던 소식의 후속이면 소식 맨 위에 '지켜보던 소식의 후속'과 원래 소식을 보여 주고, 본 것으로 한다.
  * 본문은 React 밖 HTML이라, 소식마다 자리(span)를 만들어 그 안에 단추를 그린다
  */
+/** '10월 31일' (한국 시각) */
+const day = (iso: string) =>
+	new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(iso));
+
 export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 	const { user } = useAuth();
 	const openLogin = useOpenLogin();
 	const { data: follows = [] } = useNewsletterFollows(newsletterId);
-	const { follow, unfollow } = useFollowMutations();
+	const { data: updates = [] } = useNewsletterFollowUpdates(newsletterId);
+	const { follow, unfollow, markSeen } = useFollowMutations();
 	const [slots, setSlots] = useState<HTMLElement[]>([]);
+	// 소식 맨 위: 지켜보던 소식의 후속 표시 자리
+	const [tops, setTops] = useState<HTMLElement[]>([]);
+	const marked = useRef<number | null>(null);
 	// 방금 눌러 켠 소식: 그 종만 한 번 울린다
 	const [rung, setRung] = useState<number | null>(null);
 
@@ -37,17 +47,34 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 		return () => window.clearTimeout(timer);
 	}, [rung]);
 
+	// 여기서 본 후속은 본 것으로 (머리글 표시가 꺼짐), 뉴스레터마다 한 번
+	useEffect(() => {
+		if (marked.current === newsletterId || !updates.some((u) => !u.seenAt)) return;
+		marked.current = newsletterId;
+		markSeen.mutate(newsletterId);
+	}, [updates, newsletterId, markSeen]);
+
 	useEffect(() => {
 		const root = rootRef.current;
 		if (!root) return;
 		let made: HTMLElement[] = [];
 		// 예전 뉴스레터(지켜볼 일 없음)는 따로 만든 줄
 		let rows: HTMLElement[] = [];
+		let heads: HTMLElement[] = [];
 		const build = () => {
 			made.forEach((slot) => slot.remove());
 			rows.forEach((row) => row.remove());
+			heads.forEach((head) => head.remove());
 			rows = [];
-			made = [...root.querySelectorAll('article.story')].map((story) => {
+			const stories = [...root.querySelectorAll('article.story')];
+			heads = stories.map((story) => {
+				const head = document.createElement('div');
+				head.className = 'follow-from';
+				story.prepend(head);
+				return head;
+			});
+			setTops(heads);
+			made = stories.map((story) => {
 				const slot = document.createElement('span');
 				slot.className = 'follow-slot';
 				const next = story.querySelector('p.next');
@@ -72,11 +99,32 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 			observer.disconnect();
 			made.forEach((slot) => slot.remove());
 			rows.forEach((row) => row.remove());
+			heads.forEach((head) => head.remove());
 		};
 	}, [rootRef, content]);
 
 	return (
 		<>
+			{tops.map((top, i) => {
+				const from = updates.filter((u) => u.storyIndex === i + 1);
+				if (!from.length) return null;
+				return createPortal(
+					<FollowFrom>
+						<span className="label">
+							<BellGlyph on />
+							지켜보던 소식의 후속
+						</span>
+						{from.map((u) => (
+							<Link key={u.id} href={`/articles/detail/${u.follow.newsletter.id}`} className="origin">
+								<span className="date">{day(u.follow.newsletter.createdAt)}</span>
+								{u.follow.heading}
+							</Link>
+						))}
+					</FollowFrom>,
+					top,
+					`follow-from-${i + 1}`,
+				);
+			})}
 			{slots.map((slot, i) => {
 				const storyIndex = i + 1;
 				const current = follows.find((f) => f.storyIndex === storyIndex);
@@ -166,5 +214,54 @@ const FollowButton = styled.button`
 	.count {
 		margin: 0 0 0 0.125rem;
 		font-weight: ${({ theme }) => theme.fontWeight.bold};
+	}
+`;
+
+/* 소식 맨 위: 이 소식이 이어 가는, 내가 지켜보던 원래 소식 (실선 대신 연한 바탕) */
+const FollowFrom = styled.div`
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.75rem;
+	margin: 0 0 1rem;
+	padding: 0.5rem 0.875rem;
+	border-radius: ${({ theme }) => theme.radius.surface};
+	background: ${({ theme }) => theme.color.tertiary};
+	font-size: 0.8125rem;
+	line-height: 1.5;
+
+	* {
+		margin: 0;
+	}
+
+	.label {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
+		white-space: nowrap;
+
+		svg {
+			display: block;
+			width: 0.875rem;
+			height: 0.875rem;
+		}
+	}
+
+	.origin {
+		color: ${({ theme }) => theme.color.text};
+		text-decoration: none;
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+			text-decoration: underline;
+			text-underline-offset: 0.2em;
+		}
+	}
+
+	.date {
+		margin-right: 0.375rem;
+		color: ${({ theme }) => theme.color.subText};
 	}
 `;

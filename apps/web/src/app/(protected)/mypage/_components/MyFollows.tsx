@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import styled from 'styled-components';
 import { LuBellPlus } from 'react-icons/lu';
+import Button from '@/components/common/Button';
 import EmptyState from '@/components/common/EmptyState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { StoryFollow, useFollowMutations, useFollows } from '@/hooks/useFollows';
@@ -14,11 +15,12 @@ const day = (iso: string) =>
 
 /**
  * 마이페이지 > 지켜보기: 지켜보는 소식마다 이어진 새 소식을 시간순으로 (처음 소식 → 후속들).
- * 이 탭을 열면 새 후속을 본 것으로 한다(머리글 표시가 꺼짐). 이번 화면에서는 '새' 표시를 그대로 둔다
+ * 이 탭을 열면 새 후속을 본 것으로 한다(머리글 표시가 꺼짐). 이번 화면에서는 '새' 표시를 그대로 둔다.
+ * 30일 넘게 후속이 없는 소식은 카드 안에서 정리할지 묻는다 (사건은 끝나기 마련이라, 목록이 쌓이기만 하지 않게)
  */
 export default function MyFollows() {
 	const { data: follows, isPending } = useFollows();
-	const { unfollow, markSeen } = useFollowMutations();
+	const { unfollow, markSeen, keep } = useFollowMutations();
 	// 처음 불러왔을 때의 안 본 후속 (본 것으로 바꾼 뒤에도 이번 화면에서는 '새'로 보이게)
 	const [fresh, setFresh] = useState<Set<number>>(new Set());
 	const marked = useRef(false);
@@ -28,7 +30,7 @@ export default function MyFollows() {
 		const unseen = follows.flatMap((f) => f.updates.filter((u) => !u.seenAt).map((u) => u.id));
 		marked.current = true;
 		setFresh(new Set(unseen));
-		if (unseen.length) markSeen.mutate();
+		if (unseen.length) markSeen.mutate(undefined);
 	}, [follows, markSeen]);
 
 	if (isPending) return <Skeleton />;
@@ -48,7 +50,13 @@ export default function MyFollows() {
 			<p className="intro">지켜보는 소식 {follows.length}개 · 이어지는 새 소식은 하루 한 번 찾습니다.</p>
 			<ul className="follows">
 				{follows.map((f) => (
-					<FollowCard key={f.id} follow={f} fresh={fresh} onUnfollow={() => unfollow.mutate(f.id)} />
+					<FollowCard
+						key={f.id}
+						follow={f}
+						fresh={fresh}
+						onUnfollow={() => unfollow.mutate(f.id)}
+						onKeep={() => keep.mutate(f.id)}
+					/>
 				))}
 			</ul>
 		</StyledFollows>
@@ -59,10 +67,12 @@ function FollowCard({
 	follow,
 	fresh,
 	onUnfollow,
+	onKeep,
 }: {
 	follow: StoryFollow;
 	fresh: Set<number>;
 	onUnfollow: () => void;
+	onKeep: () => void;
 }) {
 	return (
 		<li className="follow">
@@ -98,6 +108,20 @@ function FollowCard({
 				</ol>
 			) : (
 				<p className="empty">아직 이어진 소식이 없습니다. 새 소식이 나오면 여기에 쌓입니다.</p>
+			)}
+
+			{follow.quiet && (
+				<div className="quiet">
+					<p>30일 넘게 이어진 소식이 없습니다. 일이 마무리됐다면 정리해 주세요.</p>
+					<div className="quiet-actions">
+						<Button scheme="outline" size="small" onClick={onKeep}>
+							계속 지켜보기
+						</Button>
+						<Button scheme="primary" size="small" onClick={onUnfollow}>
+							정리하기
+						</Button>
+					</div>
+				</div>
 			)}
 		</li>
 	);
@@ -250,6 +274,31 @@ const StyledFollows = styled.div`
 		font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		line-height: 1.6;
 		color: ${({ theme }) => theme.color.mediumGrey};
+	}
+
+	/* 오래 조용한 소식: 정리할지 묻는다 (선 대신 연한 바탕) */
+	.quiet {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem 1rem;
+		margin-top: 0.75rem;
+		padding: 0.75rem 1rem;
+		border-radius: ${({ theme }) => theme.radius.surface};
+		background: ${({ theme }) => theme.color.tertiary};
+
+		p {
+			margin: 0;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			color: ${({ theme }) => theme.color.text};
+		}
+	}
+
+	.quiet-actions {
+		display: flex;
+		gap: 0.5rem;
+		margin-left: auto;
 	}
 
 	.empty {

@@ -410,6 +410,8 @@ model StoryFollow {
   /// 판정용 임베딩 (bge-m3). 처음 판정할 때 한 번 계산해 둔다
   embedding    Json?
   createdAt    DateTime @default(now())
+  /// 오래 조용한 소식에 '계속 지켜보기'를 누른 때. 조용한 날 수와 더 찾을 기간을 이때부터 다시 센다
+  keptAt       DateTime?
 
   user       User           @relation(fields: [userId], references: [id], onDelete: Cascade)
   newsletter Newsletter     @relation(fields: [newsletterId], references: [id], onDelete: Cascade)

@@ -23,6 +23,16 @@ export interface StoryFollow {
 	createdAt: string;
 	newsletter: { id: number; createdAt: string; category: { name: string } };
 	updates: FollowUpdate[];
+	/** 오래(30일) 후속이 없어 정리할지 묻는 것 */
+	quiet: boolean;
+}
+
+/** 뉴스레터 상세: 이 뉴스레터의 소식 가운데 내가 지켜보던 소식의 후속 */
+export interface FollowUpdateIn {
+	id: number;
+	storyIndex: number;
+	seenAt: string | null;
+	follow: { heading: string; newsletter: { id: number; createdAt: string } };
 }
 
 const KEY = 'follows';
@@ -62,6 +72,16 @@ export function useNewsletterFollows(newsletterId: number) {
 	});
 }
 
+/** 뉴스레터 상세: 지켜보던 소식의 후속인 소식 (소식 위 표시) */
+export function useNewsletterFollowUpdates(newsletterId: number) {
+	const { user } = useAuth();
+	return useQuery({
+		queryKey: [KEY, user?.id, 'newsletter', newsletterId, 'updates'],
+		queryFn: () => apiFetch<FollowUpdateIn[]>(API_ENDPOINTS.MY.FOLLOW_UPDATES_IN(newsletterId)),
+		enabled: !!user,
+	});
+}
+
 export function useFollowMutations() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
@@ -80,9 +100,17 @@ export function useFollowMutations() {
 		onError: () => showToast('지켜보기를 끄지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error'),
 		onSettled: refresh,
 	});
+	// newsletterId가 있으면 그 뉴스레터 상세에서 본 후속만
 	const markSeen = useMutation({
-		mutationFn: () => apiFetch(API_ENDPOINTS.MY.FOLLOWS_SEEN(), { method: 'POST' }),
+		mutationFn: (newsletterId?: number) =>
+			apiFetch(API_ENDPOINTS.MY.FOLLOWS_SEEN(), { method: 'POST', body: newsletterId ? { newsletterId } : {} }),
 		onSettled: () => queryClient.invalidateQueries({ queryKey: [KEY] }),
 	});
-	return { follow, unfollow, markSeen };
+	const keep = useMutation({
+		mutationFn: (id: number) => apiFetch(API_ENDPOINTS.MY.FOLLOW_KEEP(id), { method: 'POST' }),
+		onSuccess: () => showToast('계속 지켜봅니다. 30일 뒤에 다시 여쭙겠습니다.', 'success'),
+		onError: () => showToast('잠시 후 다시 시도해 주세요.', 'error'),
+		onSettled: refresh,
+	});
+	return { follow, unfollow, markSeen, keep };
 }

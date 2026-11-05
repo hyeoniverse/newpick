@@ -96,6 +96,7 @@ describe('FollowsService', () => {
         findMany: jest.fn(),
         update: jest.fn().mockResolvedValue({}),
         deleteMany: jest.fn().mockResolvedValue({ count: 1 }),
+        updateMany: jest.fn().mockResolvedValue({ count: 1 }),
       },
       followUpdate: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
     };
@@ -256,5 +257,62 @@ describe('FollowsService', () => {
       updates: 0,
     });
     expect(prisma.followUpdate.createMany).not.toHaveBeenCalled();
+  });
+
+  it(`마이페이지: 지켜보기 시작 · 마지막 후속 · '계속 지켜보기'로부터 ${FOLLOW_LIMITS.quietDays}일 넘게 조용하면 quiet`, async () => {
+    const { prisma, service } = setup();
+    const daysAgo = (n: number) =>
+      new Date(Date.now() - n * 24 * 60 * 60 * 1000);
+    const row = (
+      id: number,
+      createdAt: Date,
+      keptAt: Date | null,
+      updates: Date[],
+    ) => ({
+      id,
+      heading: `소식 ${id}`,
+      storyIndex: 1,
+      createdAt,
+      keptAt,
+      newsletter: { id: 1, createdAt, category: { name: 'IT' } },
+      updates: updates.map((d, i) => ({ id: i, createdAt: d, seenAt: d })),
+    });
+    prisma.storyFollow.findMany.mockResolvedValue([
+      row(1, daysAgo(40), null, []),
+      row(2, daysAgo(40), null, [daysAgo(10)]),
+      row(3, daysAgo(40), daysAgo(5), []),
+      row(4, daysAgo(10), null, []),
+    ]);
+    const list = await service.list(7);
+    expect(list.map((f) => [f.id, f.quiet])).toEqual([
+      [1, true],
+      [2, false],
+      [3, false],
+      [4, false],
+    ]);
+    expect(list[0]).not.toHaveProperty('keptAt');
+  });
+
+  it('계속 지켜보기: 내 것만, 없으면 404', async () => {
+    const { prisma, service } = setup();
+    await service.keep(7, 3);
+    expect(prisma.storyFollow.updateMany).toHaveBeenCalledWith({
+      where: { id: 3, userId: 7 },
+      data: { keptAt: expect.any(Date) },
+    });
+    prisma.storyFollow.updateMany.mockResolvedValueOnce({ count: 0 });
+    await expect(service.keep(7, 99)).rejects.toThrow();
+  });
+
+  it('판정할 지켜보기: 시작 · 계속 지켜보기 · 후속 중 하나라도 최근이면', async () => {
+    const { prisma, service } = setup();
+    prisma.storyFollow.findMany.mockResolvedValue([]);
+    await service.detect('2026-10-31');
+    const { where } = prisma.storyFollow.findMany.mock.calls[0][0];
+    expect(
+      Object.keys(
+        where.OR.reduce((a: object, b: object) => ({ ...a, ...b }), {}),
+      ),
+    ).toEqual(['createdAt', 'keptAt', 'updates']);
   });
 });

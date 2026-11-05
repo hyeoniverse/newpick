@@ -28,6 +28,20 @@ const textOf = (story: ParsedStory) =>
     .filter(Boolean)
     .join('\n');
 
+const DAY = 24 * 60 * 60 * 1000;
+
+/** 마지막으로 무슨 일이 있었던 때: 지켜보기 시작 · '계속 지켜보기' · 가장 최근 후속 중 늦은 것 */
+const lastActive = (f: {
+  createdAt: Date;
+  keptAt: Date | null;
+  updates: { createdAt: Date }[];
+}) =>
+  Math.max(
+    f.createdAt.getTime(),
+    f.keptAt?.getTime() ?? 0,
+    ...f.updates.map((u) => u.createdAt.getTime()),
+  );
+
 const asVector = (value: unknown) =>
   Array.isArray(value) && value.every((v) => typeof v === 'number')
     ? (value as number[])
@@ -94,7 +108,42 @@ export class FollowsService {
     });
   }
 
-  /** 마이페이지: 지켜보는 소식마다 이어진 소식 (새 소식이 있는 것 먼저, 그다음 최근에 지켜본 순) */
+  /**
+   * 뉴스레터 상세: 이 뉴스레터의 소식 가운데 내가 지켜보던 소식의 후속인 것.
+   * 소식 위에 '지켜보던 소식의 후속'과 원래 소식을 보여 준다
+   */
+  updatesIn(userId: number, newsletterId: number) {
+    return this.prisma.followUpdate.findMany({
+      where: { newsletterId, follow: { userId } },
+      orderBy: { createdAt: 'asc' },
+      select: {
+        id: true,
+        storyIndex: true,
+        seenAt: true,
+        follow: {
+          select: {
+            heading: true,
+            newsletter: { select: { id: true, createdAt: true } },
+          },
+        },
+      },
+    });
+  }
+
+  /** 오래 조용한 소식을 그래도 지켜본다: 조용한 날 수를 오늘부터 다시 센다 */
+  async keep(userId: number, followId: number) {
+    const { count } = await this.prisma.storyFollow.updateMany({
+      where: { id: followId, userId },
+      data: { keptAt: new Date() },
+    });
+    if (!count) throw new AppException('NOT_FOUND');
+    return { kept: count };
+  }
+
+  /**
+   * 마이페이지: 지켜보는 소식마다 이어진 소식 (새 소식이 있는 것 먼저, 그다음 최근에 지켜본 순).
+   * quiet: FOLLOW_LIMITS.quietDays 동안 후속이 없어 정리할지 묻는 것
+   */
   async list(userId: number) {
     const follows = await this.prisma.storyFollow.findMany({
       where: { userId },
@@ -104,6 +153,7 @@ export class FollowsService {
         heading: true,
         storyIndex: true,
         createdAt: true,
+        keptAt: true,
         newsletter: {
           select: {
             id: true,
@@ -133,7 +183,13 @@ export class FollowsService {
     });
     const unseen = (f: (typeof follows)[number]) =>
       f.updates.some((u) => !u.seenAt);
-    return follows.sort((a, b) => Number(unseen(b)) - Number(unseen(a)));
+    const quietBefore = Date.now() - FOLLOW_LIMITS.quietDays * DAY;
+    return follows
+      .sort((a, b) => Number(unseen(b)) - Number(unseen(a)))
+      .map(({ keptAt, ...f }) => ({
+        ...f,
+        quiet: lastActive({ ...f, keptAt }) < quietBefore,
+      }));
   }
 
   /** 아직 안 본 후속 소식 수 (머리글 표시) */
@@ -143,10 +199,10 @@ export class FollowsService {
     });
   }
 
-  /** 마이페이지에서 봤으면 모두 본 것으로 */
-  async markSeen(userId: number) {
+  /** 마이페이지에서 봤으면 모두 본 것으로. newsletterId가 있으면 그 뉴스레터 상세에서 본 후속만 */
+  async markSeen(userId: number, newsletterId?: number) {
     const { count } = await this.prisma.followUpdate.updateMany({
-      where: { seenAt: null, follow: { userId } },
+      where: { seenAt: null, newsletterId, follow: { userId } },
       data: { seenAt: new Date() },
     });
     return { seen: count };
@@ -158,12 +214,15 @@ export class FollowsService {
    */
   async detect(date = kstDaysAgo(0)) {
     const { start, end } = kstDayRange(date, date);
-    const since = new Date(
-      Date.now() - FOLLOW_LIMITS.maxAgeDays * 24 * 60 * 60 * 1000,
-    );
+    const since = new Date(Date.now() - FOLLOW_LIMITS.maxAgeDays * DAY);
     const follows = await this.prisma.storyFollow.findMany({
       where: {
-        createdAt: { gte: since },
+        // 최근에 무슨 일이 있었던 것만 (lastActive와 같은 기준)
+        OR: [
+          { createdAt: { gte: since } },
+          { keptAt: { gte: since } },
+          { updates: { some: { createdAt: { gte: since } } } },
+        ],
         newsletter: { createdAt: { lt: start } },
       },
       select: {
