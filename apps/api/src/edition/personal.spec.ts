@@ -248,7 +248,7 @@ describe('맞춤 메일 엮기', () => {
     expect(mail).not.toMatch(/class=/);
   });
 
-  it('지켜보던 소식의 후속은 메일 맨 위(오늘 한눈에 앞)에, 맞춤 계획이 없어도', () => {
+  it('지켜보던 소식의 후속은 메일 맨 위(오늘을 한눈에 앞)에, 맞춤 계획이 없어도', () => {
     const mail = renderEditionMail(
       composeEdition(sources, null, [1, 2], DATE, {
         picks: [],
@@ -272,7 +272,7 @@ describe('맞춤 메일 엮기', () => {
     );
     expect(mail).toContain('href="https://newpick.app/articles/detail/69?');
     expect(mail.indexOf('지켜보던 소식의 후속')).toBeLessThan(
-      mail.indexOf('오늘 한눈에'),
+      mail.indexOf('오늘을 한눈에'),
     );
   });
 

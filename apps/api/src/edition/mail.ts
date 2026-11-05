@@ -161,7 +161,7 @@ export function renderEditionMail(
             )
             .join('')}</div>`
         : '',
-      heading('오늘 한눈에'),
+      heading('오늘을 한눈에'),
       edition.top
         .map(
           (t, i) =>
