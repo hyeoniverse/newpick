@@ -17,7 +17,13 @@ import EmptyState from '@/components/common/EmptyState';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { parseArticles } from '@/utils/parseArticles';
 import { fetchSearchNewsletters } from '@/api/article';
-import { SearchSort, filtersKey, readFilters, toApiQuery, toPageHref } from '@/utils/newsletterSearch';
+import {
+	SearchSort,
+	filtersKey,
+	readFilters,
+	toApiQuery,
+	toPageHref,
+} from '@/utils/newsletterSearch';
 import { useToast } from '@/hooks/useToast';
 
 export default function ListSection() {
