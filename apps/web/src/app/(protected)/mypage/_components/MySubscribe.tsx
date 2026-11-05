@@ -27,7 +27,7 @@ import ListHead, { SortSelect } from './list/ListHead';
 import { newsBlock } from './list/newsBlock';
 import MonthBar, { LoadNewer, MonthIndex, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
 
-/** 작은 화면에서 오늘 한눈에를 몇 개까지 보일지 (나머지는 '외 N개') */
+/** 작은 화면에서 '오늘을 한눈에' 소식을 몇 개까지 보일지 (나머지는 '외 N개') */
 const GLANCE_SMALL = 3;
 
 /** 한 번에 받아 오는 메일 수 (무한 스크롤 한 묶음, 서버는 20통까지) */
@@ -56,7 +56,7 @@ interface Mail {
 
 /** 받은 메일은 사이트 뉴스레터를 그대로 붙인 게 아니라, 그날 편집본으로 고른 분야만 다시 엮은 것 */
 interface MailDigest {
-	/** 오늘 한눈에: 고른 분야 전체에서 중요도 순 */
+	/** 오늘을 한눈에: 고른 분야 전체에서 중요도 순 */
 	top: { category: string; heading: string; line: string }[];
 	/** 분야를 넘는 흐름 (고른 분야끼리만) */
 	threads: { title: string; text: string; categories: string[] }[];
@@ -300,7 +300,7 @@ export default function MySubscribe() {
 											}}
 											onDragEnd={() => setDragging(null)}
 										>
-											{/* 원래 디자인의 뉴스레터 블록 하나에 메일 한 통: 메일 제목 · 그림 | 오늘 한눈에 상자 (메일은 분야를 합쳐 한 통이라 관심사 줄은 없음) */}
+											{/* 원래 디자인의 뉴스레터 블록 하나에 메일 한 통: 메일 제목 · 그림 | 오늘을 한눈에 상자 (메일은 분야를 합쳐 한 통이라 관심사 줄은 없음) */}
 											{(() => {
 												const first = mail.newsletters.find((n) => n.image) ?? mail.newsletters[0];
 												const openMail = () => openModal(<MyMailSheet sentAt={mail.sentAt} />, { size: 'large' });
@@ -368,7 +368,7 @@ export default function MySubscribe() {
 															<div className="news-summary">
 																{mail.digest?.top.length ? (
 																	<>
-																		<strong>오늘 한눈에</strong>
+																		<strong>오늘을 한눈에</strong>
 																		<ol className="glance">
 																			{mail.digest.top.map((t, i) => (
 																				<li key={t.heading}>
@@ -391,10 +391,10 @@ export default function MySubscribe() {
 																	</>
 																)}
 																<p className="summary-more">
-																	{/* 작은 화면에선 오늘 한눈에를 앞 3개만 보여 주고 나머지 수를 (큰 화면에선 숨김) */}
+																	{/* 작은 화면에선 '오늘을 한눈에' 소식을 앞 3개만 보여 주고 나머지 수를 (큰 화면에선 숨김) */}
 																	{(mail.digest?.top.length ?? 0) > GLANCE_SMALL && (
 																		<span className="glance-rest">
-																			오늘 한눈에 외 {(mail.digest?.top.length ?? 0) - GLANCE_SMALL}개
+																			오늘을 한눈에 외 {(mail.digest?.top.length ?? 0) - GLANCE_SMALL}개
 																		</span>
 																	)}
 																	{!!mail.digest?.threads.length && (
@@ -544,7 +544,7 @@ const MySubscribeStyled = styled.div`
 		color: ${({ theme }) => theme.color.mediumGrey};
 	}
 
-	/* 작은 화면에서만 보이는 '오늘 한눈에 외 N개' */
+	/* 작은 화면에서만 보이는 '오늘을 한눈에 외 N개' */
 	.glance-rest {
 		display: none;
 	}
@@ -591,7 +591,7 @@ const MySubscribeStyled = styled.div`
 
 	${newsBlock}
 
-	/* 작은 화면(좁은 블록): 오늘 한눈에 상자도 촘촘하게 */
+	/* 작은 화면(좁은 블록): 오늘을 한눈에 상자도 촘촘하게 */
 	@container news (max-width: 28rem) {
 		.news .news-summary strong {
 			margin-bottom: 0.5rem;
