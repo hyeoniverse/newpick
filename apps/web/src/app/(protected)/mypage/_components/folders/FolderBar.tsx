@@ -5,7 +5,7 @@ import styled from 'styled-components';
 import { LuFolder, LuFolderPlus } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
 import { Folder, useFolderMutations } from '@/hooks/useFolders';
-import { useLiftScrollButtons } from '@/components/common/ScrollButtons';
+import { useHideScrollButtons } from '@/components/common/ScrollButtons';
 import FolderDeleteModal from './FolderDeleteModal';
 
 /** 폴더 거르기 값: 'all' 모두 · 'none' 폴더 없음 · 폴더 번호 */
@@ -51,8 +51,8 @@ export default function FolderBar({
 	const current = typeof value === 'number' ? folders.find((f) => f.id === value) : undefined;
 	// 끄는 중 마우스가 올라간 폴더 (강조)
 	const [over, setOver] = useState<FolderFilter | null>(null);
-	// 폴더 칸이 화면 아래에 뜨는 동안 위로 · 아래로 단추를 그 위로 올린다
-	const liftScrollButtons = useLiftScrollButtons();
+	// 끄는 동안 위로 · 아래로 단추는 숨긴다 (누를 수 없고, 아래에 뜨는 폴더 칸 옆을 가린다)
+	useHideScrollButtons(dragging > 0);
 	// 폴더 칸이 옆으로 넘칠 때 가려진 쪽 끝을 흐리게 (더 있다는 표시)
 	const [more, setMore] = useState({ left: false, right: false });
 	const measure = (el: HTMLElement | null) => {
@@ -112,7 +112,7 @@ export default function FolderBar({
 			{/* 끄는 중: 화면 아래에 폴더 칸을 띄워 멀리 끌고 올라가지 않아도 놓을 수 있게 (스크랩 선택 막대와 같은 자리).
 			    폴더는 한 줄, 넘치면 옆으로: 끄는 채로 칸 양 끝에 가져가면 그쪽으로 넘어간다 */}
 			{dragging > 0 && (
-				<div ref={liftScrollButtons} className="drop-dock" aria-hidden>
+				<div className="drop-dock" aria-hidden>
 					<p>{dragging > 1 ? `${dragging}개를` : '여기에'} 놓을 폴더</p>
 					<div
 						ref={measure}

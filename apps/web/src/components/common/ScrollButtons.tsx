@@ -21,6 +21,19 @@ export function useLiftScrollButtons() {
 	}, []);
 }
 
+/**
+ * 위·아래 스크롤 버튼을 잠깐 숨긴다 (예: 카드를 끄는 동안 — 마우스를 누르고 있어 누를 수 없고, 아래에 뜨는 폴더 칸을 가린다).
+ * active인 동안 <html data-np-hide-float>를 달고, 끝나면 뗀다
+ */
+export function useHideScrollButtons(active: boolean) {
+	useEffect(() => {
+		if (!active) return;
+		const root = document.documentElement;
+		root.setAttribute('data-np-hide-float', '');
+		return () => root.removeAttribute('data-np-hide-float');
+	}, [active]);
+}
+
 function ScrollButtons() {
 	const [showButtons, setShowButtons] = useState(false);
 
@@ -85,11 +98,20 @@ const ScrollButtonsContainer = styled.div`
 	position: fixed;
 	/* 바닥에 붙는 막대가 있으면 그 높이만큼 위로 (useLiftScrollButtons) */
 	bottom: calc(1.5rem + var(--np-float-lift, 0px));
-	transition: bottom 0.2s ease;
+	transition:
+		bottom 0.2s ease,
+		opacity 0.15s ease,
+		visibility 0.15s;
 	right: 1.5rem;
 	display: flex;
 	flex-direction: column;
 	z-index: 999;
+
+	/* 잠깐 숨김 (useHideScrollButtons) */
+	html[data-np-hide-float] & {
+		opacity: 0;
+		visibility: hidden;
+	}
 `;
 
 const ScrollButton = styled.button`
@@ -101,7 +123,9 @@ const ScrollButton = styled.button`
 	border: 0.5px solid ${({ theme }) => theme.color.border};
 	opacity: 0;
 	transform: translateY(10px);
-	transition: opacity 0.3s ease, transform 0.3s ease;
+	transition:
+		opacity 0.3s ease,
+		transform 0.3s ease;
 
 	&:hover {
 		background: ${({ theme }) => theme.color.tertiary};
