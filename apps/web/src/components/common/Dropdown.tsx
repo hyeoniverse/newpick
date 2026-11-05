@@ -225,7 +225,7 @@ const StyledDropdown = styled.div`
 				flex-direction: column;
 			}
 
-			/* 뉴스레터 아래 분야: 들여 쓴 하위 메뉴(왼쪽 안내선), 두 칸 격자의 글자 줄. 지금 분야는 강조색 · 굵게 · 앞에 짧은 막대 */
+			/* 뉴스레터 아래 분야: 들여 쓴 하위 메뉴(왼쪽 안내선), 두 칸 격자의 글자 줄. 지금 분야는 강조색 · 굵게 · 앞에 작은 점 */
 			.categories {
 				display: grid;
 				grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -258,12 +258,13 @@ const StyledDropdown = styled.div`
 					&::before {
 						content: '';
 						position: absolute;
-						left: calc(-0.75rem - 1px);
-						top: 0.75rem;
-						bottom: 0.75rem;
-						width: 2px;
-						border-radius: 1px;
+						left: 0.25rem;
+						top: 50%;
+						width: 0.3125rem;
+						height: 0.3125rem;
+						border-radius: 50%;
 						background: ${({ theme }) => theme.color.primary};
+						transform: translateY(-50%);
 					}
 				}
 			}
