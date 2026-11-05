@@ -120,6 +120,8 @@ export default function ListSection() {
 		: tags.length
 			? tags.map((k) => `#${k}`).join(filters.match === 'all' ? ' + ' : ' · ')
 			: categoryName;
+	// 거르지 않은 분야 목록: 위 배너가 이미 분야 제목이라 목록 머리엔 개수 · 정렬만
+	const bare = !tags.length && !isSearching(filters) && filters.period === 'all';
 	const count = total !== null && (
 		<Text size="small" color="subText" className="count" aria-live="polite">
 			{total.toLocaleString()}건
@@ -140,7 +142,7 @@ export default function ListSection() {
 
 	return (
 		<StyledListSection data-track-section="articles-list">
-			<div className="header">
+			<div className={bare ? 'header bare' : 'header'}>
 				<div className={tags.length ? 'title stack' : 'title'}>
 					{tags.length ? (
 						<>
@@ -194,13 +196,7 @@ export default function ListSection() {
 					) : (
 						<>
 							{/* 거르지 않은 분야 목록이면 위 배너가 이미 분야 제목('경제 뉴스레터')이라 제목은 화면 읽기용으로만, 개수만 보인다 */}
-							<Title
-								as="h2"
-								size="extraSmall"
-								weight="semiBold"
-								color="primary"
-								className={!isSearching(filters) && filters.period === 'all' ? 'sr-only' : 'tag'}
-							>
+							<Title as="h2" size="extraSmall" weight="semiBold" color="primary" className={bare ? 'sr-only' : 'tag'}>
 								{heading}
 							</Title>
 							{count}
@@ -298,6 +294,16 @@ const StyledListSection = styled.section`
 
 			.picked-row .sort-inline {
 				display: none;
+			}
+
+			/* 제목 없이 개수 · 정렬뿐이면 한 줄에 */
+			&.bare {
+				flex-wrap: nowrap;
+
+				.right-section {
+					width: auto;
+					margin-left: auto;
+				}
 			}
 
 			.right-section.sort-row {
