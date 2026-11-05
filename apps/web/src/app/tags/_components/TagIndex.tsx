@@ -36,7 +36,7 @@ const sorters: Record<Sort, (a: KeywordStat, b: KeywordStat) => number> = {
 
 /** 태그를 누르면 그 태그가 붙은 뉴스레터 목록으로 (관심사는 고른 것 그대로) */
 const tagHref = (keyword: string, categoryId: number) =>
-	toPageHref({ ...readFilters(new URLSearchParams()), keyword, categoryId });
+	toPageHref({ ...readFilters(new URLSearchParams()), keywords: [keyword], categoryId });
 
 /**
  * 태그 전체 (#20). 매일 태그가 늘어나므로 세 묶음으로 정돈한다:

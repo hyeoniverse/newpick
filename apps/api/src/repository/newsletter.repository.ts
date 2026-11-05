@@ -78,7 +78,8 @@ export class NewsletterRepo {
    */
   async searchNewsletters(params: {
     booleanQuery: string | null;
-    keyword?: string;
+    /** 고른 태그: 그중 하나라도 붙은 뉴스레터 */
+    keywords?: string[];
     categoryId?: number;
     from?: Date;
     to?: Date;
@@ -92,9 +93,15 @@ export class NewsletterRepo {
         Prisma.sql`MATCH(title, subtitle, content) AGAINST (${params.booleanQuery} IN BOOLEAN MODE)`,
       );
     }
-    if (params.keyword) {
+    if (params.keywords?.length) {
       conditions.push(
-        Prisma.sql`JSON_CONTAINS(keywords, JSON_QUOTE(${params.keyword}))`,
+        Prisma.sql`(${Prisma.join(
+          params.keywords.map(
+            (keyword) =>
+              Prisma.sql`JSON_CONTAINS(keywords, JSON_QUOTE(${keyword}))`,
+          ),
+          ' OR ',
+        )})`,
       );
     }
     if (params.categoryId) {

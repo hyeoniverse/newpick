@@ -16,6 +16,9 @@ import {
 } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 
+/** 목록에서 한 번에 고를 수 있는 태그 수 */
+export const SEARCH_KEYWORD_LIMIT = 5;
+
 export class NewsletterQueryDto {
   @IsDefined({ message: 'offset는 필수 값입니다' })
   @IsNumber({}, { message: 'offset는 숫자여야 합니다' })
@@ -139,11 +142,25 @@ export class NewsletterSearchDto {
   @Length(2, 50, { message: '검색어는 2~50자로 입력해 주세요' })
   q?: string;
 
-  /** 뉴스레터 키워드(태그) 하나와 정확히 같은 것 */
+  /**
+   * 뉴스레터 키워드(태그)와 정확히 같은 것. 여러 개면(?keyword=a&keyword=b) 그중 하나라도 붙은 뉴스레터.
+   * 하나만 오면 문자열이라 늘 배열로 맞춘다
+   */
   @IsOptional()
-  @IsString({ message: 'keyword는 문자열이어야 합니다' })
-  @Length(1, 30, { message: 'keyword는 1~30자여야 합니다' })
-  keyword?: string;
+  @Transform(({ value }) =>
+    [
+      ...new Set(
+        (Array.isArray(value) ? value : [value]).map((v) => String(v).trim()),
+      ),
+    ].filter(Boolean),
+  )
+  @IsArray({ message: 'keyword는 문자열이어야 합니다' })
+  @ArrayMaxSize(SEARCH_KEYWORD_LIMIT, {
+    message: `태그는 ${SEARCH_KEYWORD_LIMIT}개까지 고를 수 있습니다`,
+  })
+  @IsString({ each: true, message: 'keyword는 문자열이어야 합니다' })
+  @Length(1, 30, { each: true, message: 'keyword는 1~30자여야 합니다' })
+  keyword?: string[];
 
   @IsOptional()
   @Type(() => Number)

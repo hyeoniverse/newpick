@@ -123,7 +123,7 @@ export class BasicRepositoryController {
     const offset = query.offset ?? 0;
     const { items, total } = await this.newsletterRepo.searchNewsletters({
       booleanQuery,
-      keyword: query.keyword,
+      keywords: query.keyword ?? [],
       categoryId: query.categoryId,
       from,
       to,

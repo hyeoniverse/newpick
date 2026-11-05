@@ -108,7 +108,7 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 								<span className="keywords">
 									<span className="keywords-label">{' · 자주 나온 키워드 '}</span>
 									{summaryKeywords.map((k) => (
-										<Link key={k} href={toPageHref({ ...filters, keyword: k })} className="keyword">
+										<Link key={k} href={toPageHref({ ...filters, keywords: [k] })} className="keyword">
 											#{k}
 										</Link>
 									))}

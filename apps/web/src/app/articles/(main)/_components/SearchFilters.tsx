@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchPopularKeywords } from '@/api/article';
 import { LuX } from 'react-icons/lu';
 import styled from 'styled-components';
-import { PERIOD_OPTIONS, SearchPeriod, readFilters, toPageHref } from '@/utils/newsletterSearch';
+import { PERIOD_OPTIONS, SearchPeriod, readFilters, toPageHref, toggleKeyword } from '@/utils/newsletterSearch';
 import { kstDate } from '@/utils/formatter';
 import { DateRangePicker } from '@/components/common/DatePicker';
 import TagFollowButton from '@/components/common/tag/TagFollowButton';
@@ -85,29 +85,43 @@ export default function SearchFilters() {
 					</button>
 				)}
 				{/* 고른 태그가 아래 태그 줄에 있으면 거기서 켜짐으로 보이므로 칩은 그 밖의 태그일 때만 */}
-				{filters.keyword && !keywords.some(({ keyword }) => keyword === filters.keyword) && (
-					<button type="button" className="keyword" onClick={() => go({ keyword: '' })}>
-						#{filters.keyword}
-						<LuX aria-label="키워드 조건 지우기" />
+				{filters.keywords
+					.filter((tag) => !keywords.some(({ keyword }) => keyword === tag))
+					.map((tag) => (
+						<button
+							key={tag}
+							type="button"
+							className="keyword"
+							onClick={() => go({ keywords: toggleKeyword(filters.keywords, tag) })}
+						>
+							#{tag}
+							<LuX aria-label={`#${tag} 조건 지우기`} />
+						</button>
+					))}
+				{filters.keywords.length > 1 && (
+					<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
+						태그 모두 지우기
 					</button>
 				)}
 				{/* 태그로 고른 목록에서 그 태그를 팔로우 (#123): 맞춤 메일에서 이 태그의 소식을 앞에 */}
-				{filters.keyword && <TagFollowButton tag={filters.keyword} />}
+				{filters.keywords.map((tag) => (
+					<TagFollowButton key={`follow-${tag}`} tag={tag} />
+				))}
 			</div>
 			{keywords.length > 0 && (
-				<div className="tags" role="group" aria-label="자주 나온 태그 (최근 30일)">
+				<div className="tags" role="group" aria-label="자주 나온 태그 (최근 30일, 여러 개 고를 수 있음)">
 					{/* 이름표는 제자리, 태그만 옆으로 넘긴다 */}
 					<span className="tags-label">태그</span>
 					<div className="tags-list">
 						{keywords.map(({ keyword, count }) => {
-							const active = filters.keyword === keyword;
+							const active = filters.keywords.includes(keyword);
 							return (
 								<button
 									key={keyword}
 									type="button"
 									aria-pressed={active}
 									title={`최근 30일 ${count}편`}
-									onClick={() => go({ keyword: active ? '' : keyword })}
+									onClick={() => go({ keywords: toggleKeyword(filters.keywords, keyword) })}
 								>
 									<span className="hash">#</span>
 									{keyword}
@@ -346,5 +360,19 @@ const StyledSearchFilters = styled.div`
 		font-size: ${({ theme }) => theme.fontSize.small};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		cursor: pointer;
+	}
+
+	/* 여러 태그를 고른 뒤 한 번에 풀기: 글자 단추 */
+	.clear {
+		padding: 0.25rem 0.25rem;
+		border: none;
+		background: transparent;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.subText};
+		cursor: pointer;
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+		}
 	}
 `;

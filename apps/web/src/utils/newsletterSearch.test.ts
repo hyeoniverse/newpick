@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { readFilters, toApiQuery, toPageHref } from '@/utils/newsletterSearch';
+import { KEYWORD_LIMIT, readFilters, toApiQuery, toggleKeyword, toPageHref } from '@/utils/newsletterSearch';
 
 const params = (qs: string) => new URLSearchParams(qs);
 // 2026-10-27 12:00 KST
@@ -9,7 +9,7 @@ describe('newsletterSearch (#20)', () => {
 	it('주소를 필터로 읽고, 모르는 값은 기본값으로', () => {
 		expect(readFilters(params('q= 코스피 &categoryId=3&period=week&sort=popular'))).toEqual({
 			q: '코스피',
-			keyword: '',
+			keywords: [],
 			categoryId: 3,
 			period: 'week',
 			from: '',
@@ -39,5 +39,23 @@ describe('newsletterSearch (#20)', () => {
 		expect(toPageHref(readFilters(params('keyword=코스피&period=all&sort=latest')))).toBe(
 			'/articles?keyword=%EC%BD%94%EC%8A%A4%ED%94%BC',
 		);
+	});
+
+	it('태그 여러 개: 주소에 keyword를 여러 번, API에도 그대로 (예전 태그 하나 주소도 그대로 열림)', () => {
+		const filters = readFilters(params('keyword=룰라&keyword=코스피&keyword=룰라&keyword= '));
+		expect(filters.keywords).toEqual(['룰라', '코스피']);
+		expect(toPageHref(filters)).toBe(
+			`/articles?keyword=${encodeURIComponent('룰라')}&keyword=${encodeURIComponent('코스피')}`,
+		);
+		expect(toApiQuery(filters, 11, 0, NOW)).toBe(
+			`keyword=${encodeURIComponent('룰라')}&keyword=${encodeURIComponent('코스피')}&limit=11&offset=0`,
+		);
+	});
+
+	it('태그 켜고 끄기: 고른 태그를 누르면 빼고, 한도를 넘으면 가장 먼저 고른 것을 뺀다', () => {
+		expect(toggleKeyword(['룰라'], '코스피')).toEqual(['룰라', '코스피']);
+		expect(toggleKeyword(['룰라', '코스피'], '룰라')).toEqual(['코스피']);
+		const full = Array.from({ length: KEYWORD_LIMIT }, (_, i) => `태그${i}`);
+		expect(toggleKeyword(full, '새 태그')).toEqual([...full.slice(1), '새 태그']);
 	});
 });
