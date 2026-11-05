@@ -123,7 +123,7 @@ describe('FollowsService', () => {
     });
   });
 
-  it("지켜보기: '지켜볼 일'이 있으면 판정 글 맨 앞에 둔다", async () => {
+  it("지켜보기: '관전 포인트'가 있으면 판정 글 맨 앞에 둔다", async () => {
     const { prisma, service } = setup();
     prisma.newsletter.findUnique.mockResolvedValue({
       contentAsHTML: renderNewsletterHtml({
@@ -137,7 +137,7 @@ describe('FollowsService', () => {
     await service.follow(7, 10, 1);
     const { create } = prisma.storyFollow.upsert.mock.calls[0][0];
     expect(create.text.split('\n')[0]).toBe(
-      '지켜볼 일: 선거 무효 요청이 받아들여질지',
+      '관전 포인트: 선거 무효 요청이 받아들여질지',
     );
   });
 

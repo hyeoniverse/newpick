@@ -31,7 +31,7 @@ export type ParsedStory = {
   image?: { url: string; alt: string; caption: Link[] };
   blocks: Block[];
   sources: Link[];
-  /** 지켜볼 일 (예전 뉴스레터에는 없다) */
+  /** 관전 포인트 (예전 뉴스레터에는 없다) */
   next?: string;
 };
 
@@ -167,22 +167,30 @@ const sourceLinks = (credit: Element): Link[] =>
           .map((name) => ({ text: name })),
   );
 
+/** 관전 포인트 모음: 소식마다 있으면 그것, 없으면(예전 구조) 맨 끝 목록 */
+const watchOf = (root: Element, stories: ParsedStory[]) => {
+  const own = stories.map((s) => s.next).filter((n): n is string => !!n);
+  if (own.length) return own;
+  return [...root.querySelectorAll('section.watch li')]
+    .map((li) => text(li))
+    .filter(Boolean);
+};
+
 /** 구조가 없는 예전 뉴스레터(#43 이전)는 소식이 빈 채로 돌려준다. 메일은 제목·요약만 쓴다 */
 export function parseNewsletterHtml(html?: string | null): ParsedNewsletter {
   const empty = { briefing: '', stories: [], watch: [] };
   if (!html) return empty;
   const root = new JSDOM(html).window.document.querySelector('.newsletter');
   if (!root) return empty;
+  const stories = [...root.querySelectorAll('article.story')]
+    .map(parseStory)
+    .filter((s) => s.heading);
   const briefing = root.querySelector('section.briefing');
   briefing?.querySelector('h3')?.remove();
   return {
     briefing: text(briefing),
-    stories: [...root.querySelectorAll('article.story')]
-      .map(parseStory)
-      .filter((s) => s.heading),
-    watch: [...root.querySelectorAll('section.watch li')]
-      .map((li) => text(li))
-      .filter(Boolean),
+    stories,
+    watch: watchOf(root, stories),
   };
 }
 

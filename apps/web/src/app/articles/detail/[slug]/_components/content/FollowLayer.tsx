@@ -17,7 +17,7 @@ interface Props {
 
 /**
  * 후속 지켜보기: 소식마다 끝에 단추 하나. 다 읽은 직후가 '그래서 어떻게 되는데?'가 남는 때라서.
- * '지켜볼 일'(p.next)이 있으면 그 줄 오른쪽 끝에 (무엇을 기다리는지 바로 옆에), 없으면(예전 뉴스레터) 출처 위에 한 줄로.
+ * 소식별 '관전 포인트'(p.next)가 있으면 그 줄 오른쪽 끝에 (무엇을 기다리는지 바로 옆에), 없으면(예전 뉴스레터) 출처 위에 한 줄로.
  * 켜 두면 이어지는 새 소식이 나왔을 때 마이페이지 '지켜보기'와 머리글에 알린다 (판정은 하루 한 번, 서버).
  * 본문은 React 밖 HTML이라, 소식마다 자리(span)를 만들어 그 안에 단추를 그린다
  */
@@ -41,7 +41,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 		const root = rootRef.current;
 		if (!root) return;
 		let made: HTMLElement[] = [];
-		// 예전 뉴스레터(지켜볼 일 없음)는 따로 만든 줄
+		// 예전 뉴스레터(소식별 관전 포인트 없음)는 따로 만든 줄
 		let rows: HTMLElement[] = [];
 		const build = () => {
 			made.forEach((slot) => slot.remove());
