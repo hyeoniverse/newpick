@@ -40,9 +40,11 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 interface Props {
 	trends?: IArticleSummary[];
 	stats?: CategoryStats;
+	/** 분야 페이지: 오늘 이 분야 뉴스레터가 없을 때 배너에 대신 띄울 가장 최근 것 */
+	latest?: IArticleSummary;
 }
 
-export default function HotSection({ trends: initiallData = [], stats }: Props) {
+export default function HotSection({ trends: initiallData = [], stats, latest }: Props) {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const filters = readFilters(searchParams);
@@ -56,6 +58,9 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 	if (!isAll) {
 		filteredTrends = filterByCategories(initiallData, [categoryName]);
 	}
+	// 오늘 이 분야 뉴스레터가 없으면 이 분야의 가장 최근 것으로 (분야마다 배너가 있다 없다 하지 않게). 그것도 없으면 배너를 통째로 뺀다
+	const fallback = !isAll && filteredTrends.length === 0 && latest;
+	if (fallback) filteredTrends = [latest];
 
 	// 전체: 오늘 발행본들의 키워드에서, 분야: 서버가 센 최근 7일 키워드
 	const summaryKeywords = isAll ? topKeywords(initiallData) : (stats?.keywords ?? []);
@@ -151,42 +156,46 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 					</div>
 					<hr />
 					{/* 화면 폭 전체의 옅은 강조색 띠(::before) 위에 오늘의 톱 카드(흰 카드·그림자)를 올려 한 단계 떠 보이게 */}
-					<div className="stage">
-						<h2 className="stage-head">
-							<span className="label">TODAY</span>
-							<Text size="small" color="subText" className="today">
-								{todayLabel()} · 오늘의 {isAll ? '톱' : categoryName} 뉴스레터
-							</Text>
-						</h2>
-						<CardSlider
-							className="card-slider"
-							type="main"
-							data={filteredTrends.map((trend) => ({
-								id: trend.id,
-								image: trend.image,
-								// 분야 페이지는 제목에 이미 분야가 있어, 같은 자리에 소식 수를 둔다 (높이 유지)
-								header: isAll ? trend.categoryName : `소식 ${trend.stories?.length || 1}개`,
-								main: {
-									title: trend.title,
-									// 부제목이 있으면 본문 앞부분 대신 (#42)
-									description: trend.subtitle || trend.summary,
-									tags: trend.keywords,
-									// 이 뉴스레터에 담긴 소식 (전체·분야 같은 모양)
-									points: trend.stories,
-								},
-								footer: (
-									<>
-										<Text color="subText">{trend.date}</Text>
-										<Text color="subText">|&nbsp;&nbsp;조회수 {trend.views}</Text>
-										<div className="right">
-											<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
-										</div>
-									</>
-								),
-								url: `/articles/detail/${trend.id}`,
-							}))}
-						/>
-					</div>
+					{filteredTrends.length > 0 && (
+						<div className="stage">
+							<h2 className="stage-head">
+								<span className="label">{fallback ? 'LATEST' : 'TODAY'}</span>
+								<Text size="small" color="subText" className="today">
+									{fallback
+										? `${dayLabel(latest.date)} · 최근 ${categoryName} 뉴스레터`
+										: `${todayLabel()} · 오늘의 ${isAll ? '톱' : categoryName} 뉴스레터`}
+								</Text>
+							</h2>
+							<CardSlider
+								className="card-slider"
+								type="main"
+								data={filteredTrends.map((trend) => ({
+									id: trend.id,
+									image: trend.image,
+									// 분야 페이지는 제목에 이미 분야가 있어, 같은 자리에 소식 수를 둔다 (높이 유지)
+									header: isAll ? trend.categoryName : `소식 ${trend.stories?.length || 1}개`,
+									main: {
+										title: trend.title,
+										// 부제목이 있으면 본문 앞부분 대신 (#42)
+										description: trend.subtitle || trend.summary,
+										tags: trend.keywords,
+										// 이 뉴스레터에 담긴 소식 (전체·분야 같은 모양)
+										points: trend.stories,
+									},
+									footer: (
+										<>
+											<Text color="subText">{trend.date}</Text>
+											<Text color="subText">|&nbsp;&nbsp;조회수 {trend.views}</Text>
+											<div className="right">
+												<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
+											</div>
+										</>
+									),
+									url: `/articles/detail/${trend.id}`,
+								}))}
+							/>
+						</div>
+					)}
 				</>
 			)}
 		</StyledHotSection>
@@ -202,6 +211,12 @@ function topKeywords(trends: IArticleSummary[]) {
 		.slice(0, 3)
 		.map(([k]) => k);
 }
+
+/** 'YYYY-MM-DD' → '10월 27일' (못 읽으면 그대로) */
+const dayLabel = (date: string) => {
+	const [, m, d] = date.match(/^\d{4}-(\d{2})-(\d{2})/) ?? [];
+	return m ? `${Number(m)}월 ${Number(d)}일` : date;
+};
 
 /** "10월 27일 월요일" (KST) */
 const todayLabel = () =>

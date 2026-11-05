@@ -66,20 +66,25 @@ export default async function CategoryPage({ searchParams }: { searchParams: Pro
 async function CategoryContent({ categoryId }: { categoryId: number }) {
 	let parsedTrends: IArticleSummary[] = [];
 	let stats: CategoryStats | undefined;
+	// 오늘(가장 최근 발행일)에 이 분야 뉴스레터가 없을 때 배너에 대신 띄울 이 분야의 가장 최근 것
+	let latest: IArticleSummary | undefined;
 	try {
 		const [trends, category] = await Promise.all([
 			fetchTrendList(),
 			categoryId ? fetchArticleByCategory(categoryId, 30, 0) : Promise.resolve(null),
 		]);
 		parsedTrends = parseArticles(trends);
-		if (category) stats = summarize(category.data ?? []);
+		if (category) {
+			stats = summarize(category.data ?? []);
+			latest = parseArticles((category.data ?? []).slice(0, 1))[0];
+		}
 	} catch (error) {
 		console.error(error);
 	}
 
 	return (
 		<div className={styles.categoryPage}>
-			<HotSection trends={parsedTrends} stats={stats} />
+			<HotSection trends={parsedTrends} stats={stats} latest={latest} />
 			{/* 목록은 배너(TODAY)에 띄운 글도 빼지 않고 다 보여 준다 (건수와 보이는 수가 같게) */}
 			<ListSection />
 		</div>
