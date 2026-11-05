@@ -245,6 +245,15 @@ const StyledHotSection = styled.section<StyledProps>`
 		padding: 0;
 	}
 
+	/* 휴대폰: 제목 · 구분선 · 배너 사이를 촘촘하게 */
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		gap: 0.75rem;
+
+		hr {
+			margin: 0;
+		}
+	}
+
 	/* ② 띠: 헤더 바로 아래부터 배너 아래까지 화면 폭 전체. 아래로 갈수록 페이지 바탕으로 옅어진다.
 	   100vw 요소를 쓰면 스크롤바 폭만큼 가로로 넘쳐, 섹션 뒤에 깔리는 ::before로 그린다 */
 	position: relative;
@@ -398,10 +407,9 @@ const StyledHotSection = styled.section<StyledProps>`
 			}
 		}
 
-		/* 태블릿 이하 배너: 아이콘은 제목 오른쪽 위로 작게(글자와 겹치지 않게), 설명은 두 줄까지, 키워드는 아래 줄에서 옆으로 넘김 */
+		/* 태블릿 이하 배너: 아이콘은 자리를 차지하지 않고 오른쪽 위에 옅게 깔림(absolute, 글 뒤), 설명은 두 줄까지, 키워드는 아래 줄에서 옆으로 넘김 */
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			gap: 0.25rem;
-			padding-right: 3.25rem;
 
 			h1,
 			h2 {
@@ -423,7 +431,6 @@ const StyledHotSection = styled.section<StyledProps>`
 			.stats {
 				overflow: visible;
 				white-space: normal;
-				margin-right: -3.25rem;
 			}
 
 			.keywords {

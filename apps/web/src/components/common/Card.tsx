@@ -674,6 +674,51 @@ const listCardStyles = css`
 				-webkit-line-clamp: 2;
 			}
 		}
+
+		/* 휴대폰: 글(제목 · 설명 · 태그) | 작은 썸네일, 그 아래 날짜 · 조회수 · 북마크 줄은 카드 폭 가득 (북마크가 오른쪽 끝에) */
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			.content {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) 6.5rem;
+				column-gap: 0.875rem;
+				row-gap: 0.25rem;
+				align-items: start;
+
+				.left {
+					display: contents;
+				}
+
+				.left > * {
+					grid-column: 1;
+				}
+
+				.image-placeholder {
+					grid-column: 2;
+					grid-row: 1 / span 3;
+					width: 6.5rem;
+				}
+
+				.card-footer {
+					grid-column: 1 / -1;
+					margin-top: 0.375rem;
+				}
+			}
+
+			.title {
+				font-size: ${({ theme }) => theme.fontSize.small};
+				line-height: 1.4;
+			}
+
+			.description {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.subText};
+			}
+
+			.card-footer p,
+			.card-footer span {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
 	}
 `;
 
