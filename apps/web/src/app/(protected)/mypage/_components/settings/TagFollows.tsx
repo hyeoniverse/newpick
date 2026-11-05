@@ -45,7 +45,8 @@ export default function TagFollows() {
 					팔로우한 태그
 				</Title>
 				<Text size="small" color="subText">
-					매일 메일의 '팔로우한 태그' 칸에 태그마다 그날 소식과 관련 기사를 모아 드립니다. 20개까지 팔로우할 수 있습니다.
+					매일 메일의 '팔로우한 태그' 칸에 태그마다 그날 소식과 관련 기사를 모아 드립니다. 20개까지 팔로우할 수
+					있습니다.
 				</Text>
 			</div>
 			<form
