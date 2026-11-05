@@ -225,6 +225,38 @@ const StyledDropdown = styled.div`
 				flex-direction: column;
 			}
 
+			/* 뉴스레터 아래 분야 칩 (지금 분야는 채움) */
+			.categories {
+				display: flex;
+				flex-wrap: wrap;
+				gap: 0.5rem;
+				margin: 0;
+				padding: 0.25rem 0.75rem 0.75rem;
+				list-style: none;
+			}
+
+			.category {
+				display: inline-flex;
+				align-items: center;
+				min-height: 2.25rem;
+				padding: 0 0.875rem;
+				border: 1px solid ${({ theme }) => theme.color.border};
+				border-radius: ${({ theme }) => theme.radius.chip};
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				color: ${({ theme }) => theme.color.text};
+
+				&:hover {
+					border-color: ${({ theme }) => theme.color.primary};
+					color: ${({ theme }) => theme.color.primary};
+				}
+
+				&[aria-current='page'] {
+					border-color: ${({ theme }) => theme.color.primary};
+					background: ${({ theme }) => theme.color.primary};
+					color: ${({ theme }) => theme.color.background};
+				}
+			}
+
 			/* 메뉴 한 줄: 누르는 칸 넉넉히, 오른쪽 끝에 작은 화살표 */
 			.item {
 				display: flex;

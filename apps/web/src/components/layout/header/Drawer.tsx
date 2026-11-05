@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { LuChevronRight } from 'react-icons/lu';
 import { NAVIGATION } from '@/constants/navigation';
+import { CATEGORIES } from '@/constants/categories';
+import { useDropdown } from '@/hooks/useDropdown';
 
 import styled from 'styled-components';
 import Dropdown from '@/components/common/Dropdown';
@@ -39,20 +41,51 @@ const Drawer = () => {
 		>
 			<nav aria-label="메뉴">
 				{NAVIGATION.map((item) => (
-					<Link
-						key={item.id}
-						href={item.link}
-						className="item"
-						aria-current={pathname.startsWith(item.link) ? 'page' : undefined}
-					>
-						{item.title}
-						<LuChevronRight aria-hidden />
-					</Link>
+					<div key={item.id}>
+						<Link href={item.link} className="item" aria-current={pathname.startsWith(item.link) ? 'page' : undefined}>
+							{item.title}
+							<LuChevronRight aria-hidden />
+						</Link>
+						{/* 뉴스레터 아래 분야: 메뉴에서 바로 그 분야 목록으로 (주소의 분야를 읽어서 Suspense 안에) */}
+						{item.link === '/articles' && (
+							<Suspense fallback={<DrawerCategories active={null} />}>
+								<CurrentCategory />
+							</Suspense>
+						)}
+					</div>
 				))}
 			</nav>
 		</Dropdown>
 	);
 };
+
+/** 지금 보는 분야 (뉴스레터 목록에 있을 때만) */
+function CurrentCategory() {
+	const pathname = usePathname();
+	const searchParams = useSearchParams();
+	return <DrawerCategories active={pathname === '/articles' ? Number(searchParams.get('categoryId')) || 0 : null} />;
+}
+
+/** 분야 칩: 누르면 그 분야 목록으로 가며 메뉴를 닫는다 (같은 /articles 안에서 옮기면 주소 경로가 같아 저절로 닫히지 않는다) */
+function DrawerCategories({ active }: { active: number | null }) {
+	const { closeDropdown } = useDropdown('drawer');
+	return (
+		<ul className="categories" aria-label="분야">
+			{CATEGORIES.map((c) => (
+				<li key={c.id}>
+					<Link
+						href={c.id ? `/articles?categoryId=${c.id}` : '/articles'}
+						className="category"
+						aria-current={active === c.id ? 'page' : undefined}
+						onClick={closeDropdown}
+					>
+						{c.name}
+					</Link>
+				</li>
+			))}
+		</ul>
+	);
+}
 
 const StyledDrawerButton = styled.div`
 	width: 0;
