@@ -128,7 +128,7 @@ export default function ListSection() {
 	return (
 		<StyledListSection data-track-section="articles-list">
 			<div className="header">
-				<div className="title">
+				<div className={tags.length > 1 ? 'title stack' : 'title'}>
 					{tags.length ? (
 						<>
 							<Title as="h2" className="sr-only">
@@ -151,6 +151,27 @@ export default function ListSection() {
 								))}
 							</ul>
 							{tags.length === 1 && count}
+							{/* 태그 여러 개: 조건을 한 문장으로 — 고른 태그가 [하나라도 ▾] 들어간 뉴스레터 N건 */}
+							{tags.length > 1 && (
+								<div className="match">
+									<label>
+										고른 태그가{' '}
+										<select
+											value={filters.match}
+											aria-label="고른 태그 조건"
+											onChange={(e) => go({ match: e.target.value === 'all' ? 'all' : 'any' })}
+										>
+											<option value="any">하나라도</option>
+											<option value="all">모두</option>
+										</select>{' '}
+										들어간 뉴스레터
+									</label>
+									{count}
+									<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
+										지우기
+									</button>
+								</div>
+							)}
 						</>
 					) : (
 						<>
@@ -170,27 +191,6 @@ export default function ListSection() {
 					</Button>
 				</div>
 			</div>
-			{/* 태그 여러 개: 조건을 한 문장으로 — 고른 태그가 [하나라도 ▾] 들어간 뉴스레터 N건 */}
-			{tags.length > 1 && (
-				<div className="match">
-					<label>
-						고른 태그가{' '}
-						<select
-							value={filters.match}
-							aria-label="고른 태그 조건"
-							onChange={(e) => go({ match: e.target.value === 'all' ? 'all' : 'any' })}
-						>
-							<option value="any">하나라도</option>
-							<option value="all">모두</option>
-						</select>{' '}
-						들어간 뉴스레터
-					</label>
-					{count}
-					<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
-						지우기
-					</button>
-				</div>
-			)}
 			{total === 0 && !isLoading ? (
 				<EmptyState
 					icon={LuSearchX}
@@ -262,6 +262,15 @@ const StyledListSection = styled.section`
 		justify-content: space-between;
 		align-items: center;
 
+		/* 두 줄(칩 · 조건 문장)이면 정렬 단추는 칩 줄 높이에 */
+		&:has(.stack) {
+			align-items: flex-start;
+
+			.right-section {
+				margin-top: 0.375rem;
+			}
+		}
+
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
 			flex-wrap: wrap;
 
@@ -279,6 +288,13 @@ const StyledListSection = styled.section`
 
 			h1 {
 				white-space: nowrap;
+			}
+
+			/* 태그 여러 개: 칩 줄 아래에 조건 문장 (휴대폰에서도 정렬 단추보다 먼저) */
+			&.stack {
+				flex-direction: column;
+				align-items: flex-start;
+				gap: 0.75rem;
 			}
 
 			.count {
