@@ -19,6 +19,7 @@ import { parseArticles } from '@/utils/parseArticles';
 import { fetchSearchNewsletters } from '@/api/article';
 import { SearchSort, filtersKey, readFilters, toApiQuery, toPageHref, toggleKeyword } from '@/utils/newsletterSearch';
 import TagFollowButton from '@/components/common/tag/TagFollowButton';
+import InputSelect from '@/components/common/InputSelect';
 import { useToast } from '@/hooks/useToast';
 
 export default function ListSection() {
@@ -128,50 +129,61 @@ export default function ListSection() {
 	return (
 		<StyledListSection data-track-section="articles-list">
 			<div className="header">
-				<div className={tags.length > 1 ? 'title stack' : 'title'}>
+				<div className={tags.length ? 'title stack' : 'title'}>
 					{tags.length ? (
 						<>
 							<Title as="h2" className="sr-only">
 								{heading}
 							</Title>
-							<ul className="picked" aria-label="고른 태그">
-								{tags.map((tag) => (
-									<li key={tag} className="pick">
-										<span className="name">#{tag}</span>
-										<TagFollowButton tag={tag} short className="follow" />
-										<button
-											type="button"
-											className="remove"
-											aria-label={`#${tag} 빼기`}
-											onClick={() => go({ keywords: toggleKeyword(tags, tag) })}
-										>
-											<LuX aria-hidden />
-										</button>
-									</li>
-								))}
-							</ul>
-							{tags.length === 1 && count}
+							<div className="picked-row">
+								{/* 태그마다 따로 제목 모양 칩, 칩마다 빼기(×) */}
+								<ul className="picked" aria-label="고른 태그">
+									{tags.map((tag) => (
+										<li key={tag} className="pick">
+											#{tag}
+											<button
+												type="button"
+												className="remove"
+												aria-label={`#${tag} 빼기`}
+												onClick={() => go({ keywords: toggleKeyword(tags, tag) })}
+											>
+												<LuX aria-hidden />
+											</button>
+										</li>
+									))}
+								</ul>
+								{tags.length === 1 && count}
+							</div>
 							{/* 태그 여러 개: 조건을 한 문장으로 — 고른 태그가 [하나라도 ▾] 들어간 뉴스레터 N건 */}
 							{tags.length > 1 && (
 								<div className="match">
-									<label>
-										고른 태그가{' '}
-										<select
-											value={filters.match}
-											aria-label="고른 태그 조건"
-											onChange={(e) => go({ match: e.target.value === 'all' ? 'all' : 'any' })}
-										>
-											<option value="any">하나라도</option>
-											<option value="all">모두</option>
-										</select>{' '}
-										들어간 뉴스레터
-									</label>
+									고른 태그가{' '}
+									<InputSelect
+										name="match"
+										size="small"
+										ariaLabel="고른 태그 조건"
+										value={filters.match}
+										options={[
+											{ value: 'any', label: '하나라도' },
+											{ value: 'all', label: '모두' },
+										]}
+										onChange={(value) => go({ match: value === 'all' ? 'all' : 'any' })}
+										className="condition"
+									/>{' '}
+									들어간 뉴스레터
 									{count}
 									<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
 										지우기
 									</button>
 								</div>
 							)}
+							{/* 팔로우는 한 줄로 모은다: 메일의 '팔로우한 태그' 칸 (#123) */}
+							<div className="follows">
+								<span className="follows-label">팔로우</span>
+								{tags.map((tag) => (
+									<TagFollowButton key={tag} tag={tag} tagOnly />
+								))}
+							</div>
 						</>
 					) : (
 						<>
@@ -339,7 +351,7 @@ const StyledListSection = styled.section`
 		white-space: nowrap;
 	}
 
-	/* 고른 태그 칩: 연한 강조색 바탕에 태그 이름, 안에 팔로우 · 빼기 */
+	/* 고른 태그: 태그마다 따로, 분야 제목과 같은 모양(연한 강조색 바탕 · 강조색 글자), 안에 빼기 */
 	.picked {
 		display: flex;
 		flex-wrap: wrap;
@@ -353,45 +365,57 @@ const StyledListSection = styled.section`
 	.pick {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.375rem;
-		padding: 0.3125rem 0.375rem 0.3125rem 1rem;
+		gap: 0.25rem;
+		margin: 0;
+		padding: 0.25rem 0.5rem 0.25rem 1rem;
 		border-radius: ${({ theme }) => theme.radius.chip};
 		background: ${({ theme }) => theme.color.tertiary};
-
-		.name {
-			margin-right: 0.25rem;
-			font-size: ${({ theme }) => theme.fontSize.medium};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.primary};
-			white-space: nowrap;
-		}
-
-		.follow {
-			padding: 0.1875rem 0.5rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		}
+		font-size: 1.5rem;
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
+		white-space: nowrap;
 
 		.remove {
 			display: inline-flex;
 			align-items: center;
 			justify-content: center;
-			width: 1.625rem;
-			height: 1.625rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
+			width: 1.75rem;
+			height: 1.75rem;
+			border: none;
 			border-radius: 50%;
-			background: ${({ theme }) => theme.color.background};
-			color: ${({ theme }) => theme.color.subText};
+			background: transparent;
+			color: ${({ theme }) => theme.color.primary};
+			opacity: 0.6;
 			cursor: pointer;
 
 			svg {
-				width: 0.875rem;
-				height: 0.875rem;
+				width: 1rem;
+				height: 1rem;
 			}
 
 			&:hover {
-				border-color: ${({ theme }) => theme.color.primary};
-				color: ${({ theme }) => theme.color.primary};
+				opacity: 1;
+				background: ${({ theme }) => theme.color.background};
 			}
+		}
+	}
+
+	.picked-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 1rem;
+	}
+
+	.follows {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+
+		.follows-label {
+			font-size: ${({ theme }) => theme.fontSize.small};
+			color: ${({ theme }) => theme.color.subText};
 		}
 	}
 
@@ -404,19 +428,10 @@ const StyledListSection = styled.section`
 		font-size: ${({ theme }) => theme.fontSize.medium};
 		color: ${({ theme }) => theme.color.text};
 
-		select {
-			margin: 0 0.125rem;
-			padding: 0.25rem 1.75rem 0.25rem 0.75rem;
-			border: 1px solid ${({ theme }) => theme.color.primary};
-			border-radius: 0.5rem;
-			background: ${({ theme }) => theme.color.background}
-				url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0h10L5 6z' fill='%233610e1'/%3E%3C/svg%3E")
-				no-repeat right 0.625rem center;
-			appearance: none;
-			font: inherit;
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			color: ${({ theme }) => theme.color.primary};
-			cursor: pointer;
+		/* 문장 안의 고르기 칸: 공통 선택 목록(작은 칸). 펼친 목록은 칸 왼쪽에 맞춘다 */
+		.condition .options-list {
+			left: 0;
+			right: auto;
 		}
 
 		.count {
