@@ -122,6 +122,7 @@ function MyBookmark() {
 					{shown.map((bookmark) => (
 						<li
 							key={bookmark.id}
+							className={dragging === bookmark.id ? 'dragging' : undefined}
 							draggable
 							onDragStart={(event) => {
 								event.dataTransfer.effectAllowed = 'move';
@@ -178,6 +179,11 @@ function MyBookmark() {
 }
 
 const MyBookmarkStyled = styled.div`
+	/* 끄는 중인 것: 흐리게 (세 탭 같은 모양) */
+	.grid > li.dragging {
+		opacity: 0.4;
+	}
+
 	display: flex;
 	flex-direction: column;
 	gap: 1.25rem;

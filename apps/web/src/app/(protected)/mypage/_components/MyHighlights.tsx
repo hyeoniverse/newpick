@@ -389,6 +389,7 @@ export default function MyHighlights() {
 																				/>
 																			}
 																			focused={highlight.id === focused}
+																			dragged={!!dragging?.includes(highlight.id)}
 																			selecting={selecting}
 																			checked={selected.has(highlight.id)}
 																			onToggle={() => toggle(highlight.id)}
@@ -500,6 +501,7 @@ function HighlightItem({
 	highlight,
 	source,
 	focused,
+	dragged,
 	selecting,
 	checked,
 	onToggle,
@@ -511,6 +513,8 @@ function HighlightItem({
 	/** 문장 위 출처 한 줄 (소식 번호 · 제목 · 폴더). 별은 이 줄 오른쪽 끝 */
 	source: ReactNode;
 	focused: boolean;
+	/** 끄는 중 (흐리게) */
+	dragged: boolean;
 	selecting: boolean;
 	checked: boolean;
 	onToggle: () => void;
@@ -525,7 +529,7 @@ function HighlightItem({
 	return (
 		<article
 			id={`hl-${highlight.id}`}
-			className={`item ${focused ? 'focused' : ''} ${selecting ? 'selecting' : ''} ${checked ? 'checked' : ''}`}
+			className={`item ${focused ? 'focused' : ''} ${selecting ? 'selecting' : ''} ${checked ? 'checked' : ''} ${dragged ? 'dragging' : ''}`}
 			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
 			// 고르는 중에는 문장 어디를 눌러도 고르기
 			onClick={selecting ? onToggle : undefined}
@@ -802,6 +806,11 @@ const StyledHighlights = styled.div`
 			color: ${({ theme }) => theme.color.primary};
 			font-variant-numeric: tabular-nums;
 		}
+	}
+
+	/* 끄는 중인 것: 흐리게 (세 탭 같은 모양) */
+	.item.dragging {
+		opacity: 0.4;
 	}
 
 	.item {

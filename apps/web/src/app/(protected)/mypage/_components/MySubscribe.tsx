@@ -289,7 +289,7 @@ export default function MySubscribe() {
 									{items.map((mail) => (
 										<li
 											key={mail.sentAt}
-											className="issue"
+											className={dragging === mail.sentAt ? 'issue dragging' : 'issue'}
 											id={`mail-${mail.sentAt}`}
 											title={sentText(mail.sentAt)}
 											// 메일 블록을 끌어 폴더 칸에 놓으면 그 폴더로
@@ -477,6 +477,11 @@ const MySubscribeStyled = styled.div`
 	}
 
 	/* 날짜 바로가기로 왔을 때 헤더 · 달 막대에 가리지 않게 */
+	/* 끄는 중인 것: 흐리게 (세 탭 같은 모양) */
+	.issue.dragging {
+		opacity: 0.4;
+	}
+
 	.issue {
 		scroll-margin-top: calc(var(--bar-h, 7rem) + 3rem);
 	}
