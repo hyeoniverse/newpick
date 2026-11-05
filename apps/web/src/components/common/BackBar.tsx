@@ -12,6 +12,8 @@ interface Props {
 	/** 옆에 한 줄로 띄울 제목. showTitle일 때만 보인다 (화면 읽기에서는 빼 둔다) */
 	title?: string;
 	showTitle?: boolean;
+	/** 제목 칸을 누르면 (예: 기사 제목으로 올라가기). 주면 제목 칸이 단추가 된다 */
+	onTitleClick?: () => void;
 	className?: string;
 }
 
@@ -19,16 +21,22 @@ interface Props {
  * 뒤로 가기 막대 (공통, 기사 상세에서 시작). 페이지 흐름에선 제자리를 지키고, 스크롤하면 위에 붙는다.
  * 헤더가 펼쳐져 있으면 헤더(3rem) 아래, 접히면 맨 위로 같이 올라가며 글자를 접어 화살표만 남긴다
  */
-export default function BackBar({ text, onClick, title, showTitle = false, className }: Props) {
+export default function BackBar({ text, onClick, title, showTitle = false, onTitleClick, className }: Props) {
 	const { isHeaderOpen } = useHeader();
 	return (
 		<BackBarStyled className={className} $folded={!isHeaderOpen} $withTitle={!!title && showTitle}>
 			<MoveButton className="back" onClick={onClick} text={text} frontIcon={<IoArrowBack aria-hidden />} />
-			{title && (
-				<p className="bar-title" aria-hidden>
-					<span>{title}</span>
-				</p>
-			)}
+			{title &&
+				(onTitleClick ? (
+					// 숨어 있을 때(showTitle 아님)는 visibility: hidden이라 누를 수도, 탭으로 갈 수도 없다
+					<button type="button" className="bar-title" onClick={onTitleClick} aria-label={`제목으로 이동: ${title}`}>
+						<span>{title}</span>
+					</button>
+				) : (
+					<p className="bar-title" aria-hidden>
+						<span>{title}</span>
+					</p>
+				))}
 		</BackBarStyled>
 	);
 }
@@ -56,6 +64,21 @@ const BackBarStyled = styled.div<{ $folded: boolean; $withTitle: boolean }>`
 		font-size: ${({ theme }) => theme.fontSize.small};
 		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 		color: ${({ theme }) => theme.color.text};
+
+		/* 단추일 때 (onTitleClick) */
+		&:is(button) {
+			margin: 0;
+			cursor: pointer;
+
+			&:hover {
+				border-color: ${({ theme }) => theme.color.lightGrey};
+			}
+
+			&:focus-visible {
+				outline: 2px solid ${({ theme }) => theme.color.primary};
+				outline-offset: 2px;
+			}
+		}
 
 		span {
 			white-space: nowrap;
