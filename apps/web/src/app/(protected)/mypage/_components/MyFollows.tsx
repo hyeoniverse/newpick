@@ -7,13 +7,16 @@ import { LuBellPlus } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { StoryFollow, useFollowMutations, useFollows } from '@/hooks/useFollows';
+import ListHead from '@/app/(protected)/mypage/_components/list/ListHead';
+import TagFollows from '@/app/(protected)/mypage/_components/follows/TagFollows';
 
 /** '10월 31일' (한국 시각) */
 const day = (iso: string) =>
 	new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(iso));
 
 /**
- * 마이페이지 > 지켜보기: 지켜보는 소식마다 이어진 새 소식을 시간순으로 (처음 소식 → 후속들).
+ * 마이페이지 > 지켜보기: 지켜보는 소식마다 이어진 새 소식을 시간순으로 (처음 소식 → 후속들), 그 위에 팔로우한 태그(#123, 짧아서 먼저).
+ * 둘 다 '직접 고른 것을 메일로 받는' 기능이라 한 탭에 둔다.
  * 이 탭을 열면 새 후속을 본 것으로 한다(머리글 표시가 꺼짐). 이번 화면에서는 '새' 표시를 그대로 둔다
  */
 export default function MyFollows() {
@@ -31,26 +34,31 @@ export default function MyFollows() {
 		if (unseen.length) markSeen.mutate();
 	}, [follows, markSeen]);
 
-	if (isPending) return <Skeleton />;
-	if (!follows?.length) {
-		return (
-			<EmptyState
-				icon={LuBellPlus}
-				title="지켜보는 소식이 없어요"
-				description="뉴스레터의 소식마다 있는 '후속 지켜보기'를 누르면, 이어지는 새 소식이 나올 때 여기에 쌓이고 머리글에 알려 드립니다."
-				action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
-			/>
-		);
-	}
-
 	return (
 		<StyledFollows>
-			<p className="intro">지켜보는 소식 {follows.length}개 · 이어지는 새 소식은 하루 한 번 찾습니다.</p>
-			<ul className="follows">
-				{follows.map((f) => (
-					<FollowCard key={f.id} follow={f} fresh={fresh} onUnfollow={() => unfollow.mutate(f.id)} />
-				))}
-			</ul>
+			<TagFollows />
+			<section className="stories">
+				<ListHead title="지켜보는 소식" count={follows?.length ?? 0} />
+				{isPending ? (
+					<Skeleton />
+				) : follows?.length ? (
+					<>
+						<p className="intro">이어지는 새 소식은 하루 한 번 확인해 메일과 이 목록에 표시합니다.</p>
+						<ul className="follows">
+							{follows.map((f) => (
+								<FollowCard key={f.id} follow={f} fresh={fresh} onUnfollow={() => unfollow.mutate(f.id)} />
+							))}
+						</ul>
+					</>
+				) : (
+					<EmptyState
+						icon={LuBellPlus}
+						title="지켜보는 소식이 없어요"
+						description="뉴스레터의 소식마다 있는 '후속 지켜보기'를 누르면, 이어지는 새 소식이 나올 때 여기에 쌓이고 머리글에 알려 드립니다."
+						action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+					/>
+				)}
+			</section>
 		</StyledFollows>
 	);
 }
@@ -66,7 +74,7 @@ function FollowCard({
 }) {
 	return (
 		<li className="follow">
-			<div className="head">
+			<div className="follow-head">
 				<p className="meta">
 					<span className="category">{follow.newsletter.category.name}</span>
 					<span className="nowrap">{day(follow.newsletter.createdAt)} 소식</span>
@@ -110,6 +118,16 @@ const StyledFollows = styled.div`
 	padding: 0 0 2rem;
 	word-break: keep-all;
 
+	/* 팔로우한 태그 아래: 줄로 나눈다 */
+	.stories {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin-top: 2.5rem;
+		padding-top: 2rem;
+		border-top: 1px solid ${({ theme }) => theme.color.border};
+	}
+
 	.intro {
 		margin: 0;
 		font-size: ${({ theme }) => theme.fontSize.small};
@@ -138,7 +156,7 @@ const StyledFollows = styled.div`
 		}
 	}
 
-	.head {
+	.follow-head {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;

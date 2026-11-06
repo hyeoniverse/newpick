@@ -5,7 +5,8 @@ import { embeddingText } from '../ai-summary/articlePrep';
 import { CrawlingRepository } from '../crawling/crawling.repository';
 import type { TasteSignal } from '../edition/personalize';
 import { SIGNAL_TEXT_LIMITS } from '../taste/taste.service';
-import { ArticlePick, Candidate, pickArticles } from './pick';
+import { ArticlePick, Candidate, pickArticles, tagArticles } from './pick';
+import { TAG_LIMITS } from '../edition/personalize';
 
 /** 임베딩은 한 번에 이만큼씩 */
 const BATCH = 50;
@@ -64,6 +65,53 @@ export class RecommendService {
     } catch (error) {
       this.logger.warn(
         `추천 기사 실패, 추천 없이 보냄: ${(error as Error).message}`,
+      );
+    }
+    return result;
+  }
+
+  /**
+   * 팔로우한 태그 칸의 기사 (#123 5단계): 창 안에 모았고 그날 뉴스레터 · 그 사람이 북마크한 뉴스레터에 안 쓴 기사 중
+   * 제목에 태그가 나온 것. 글자로만 비교해 AI를 부르지 않는다. 실패하면 기사 없이
+   */
+  async forTags(
+    users: { userId: number; tags: { name: string; key: string }[] }[],
+    window: { start: Date; end: Date },
+    newsletterIds: number[],
+  ): Promise<Map<number, Map<string, ArticlePick[]>>> {
+    const result = new Map<number, Map<string, ArticlePick[]>>();
+    const withTags = users.filter((u) => u.tags.length);
+    if (!withTags.length) return result;
+    try {
+      const articles = await this.crawling.findForRecommend(
+        window.start,
+        window.end,
+      );
+      const candidates = articles.map((a) => ({
+        title: a.title,
+        link: a.link,
+        source: a.source,
+        category: a.category.join(' · '),
+      }));
+      const used = links(
+        await this.prisma.newsletter.findMany({
+          where: { id: { in: newsletterIds } },
+          select: { usedNews: true },
+        }),
+      );
+      const seen = await this.seenLinks(withTags.map((u) => u.userId));
+      for (const user of withTags) {
+        const byTag = tagArticles(
+          candidates,
+          user.tags,
+          new Set([...used, ...(seen.get(user.userId) ?? [])]),
+          TAG_LIMITS.articles,
+        );
+        if (byTag.size) result.set(user.userId, byTag);
+      }
+    } catch (error) {
+      this.logger.warn(
+        `태그 기사 실패, 기사 없이 보냄: ${(error as Error).message}`,
       );
     }
     return result;

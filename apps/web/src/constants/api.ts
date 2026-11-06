@@ -56,6 +56,9 @@ export const API_ENDPOINTS = {
 	},
 	MY: {
 		PROFILE: () => `${API_URL}/mypage/profile`,
+		/** 태그 팔로우 (#123): 목록 (GET) · 팔로우 (POST { tag }) · 끊기 (DELETE 태그) */
+		TAG_FOLLOWS: () => `${API_URL}/mypage/tag-follows`,
+		TAG_FOLLOW: (tag: string) => `${API_URL}/mypage/tag-follows/${encodeURIComponent(tag)}`,
 		/** 맞춤 메일 켜짐 여부 (GET) · 켜기 · 끄기 (PUT { enabled }) */
 		PERSONAL_MAIL: () => `${API_URL}/mypage/personal-mail`,
 		BOOKMARKS: () => `${API_URL}/mypage/bookmarks`,

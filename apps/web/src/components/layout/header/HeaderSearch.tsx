@@ -43,7 +43,7 @@ export default function HeaderSearch() {
 		if (value.startsWith('#')) {
 			const keyword = value.replace(/^#+/, '').trim();
 			if (keyword) {
-				router.push(toPageHref({ ...base, q: '', keyword }));
+				router.push(toPageHref({ ...base, q: '', keywords: [keyword] }));
 				inputRef.current?.blur();
 				return;
 			}

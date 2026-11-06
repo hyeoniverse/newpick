@@ -1,5 +1,6 @@
 import { cosine, SAME_EVENT_EMBEDDING } from '../ai-summary/articlePrep';
 import type { TasteSignal } from '../edition/personalize';
+import { tagKey } from '../tags/tags';
 
 /**
  * 추천 기사: 북마크 · 스크랩한 소식과 뜻이 가까운 오늘 기사를 원문 그대로 권한다.
@@ -28,6 +29,41 @@ export type ArticlePick = {
   category: string;
   score: number;
 };
+
+/**
+ * 팔로우한 태그마다 제목에 그 태그가 나온 기사 (임베딩 없이 글자로, 이미 뉴스레터에 쓴 기사는 뺀다).
+ * 같은 기사는 먼저 나온 태그에만
+ */
+export function tagArticles(
+  candidates: Omit<Candidate, 'vector'>[],
+  tags: { name: string; key: string }[],
+  exclude: Set<string>,
+  limit: number,
+): Map<string, ArticlePick[]> {
+  const result = new Map<string, ArticlePick[]>();
+  const taken = new Set<string>();
+  for (const tag of tags) {
+    if (tag.key.length < 2) continue;
+    const picks = candidates
+      .filter(
+        (c) =>
+          !exclude.has(c.link) &&
+          !taken.has(c.link) &&
+          tagKey(c.title).includes(tag.key),
+      )
+      .slice(0, limit)
+      .map((c) => ({
+        title: c.title,
+        link: c.link,
+        source: c.source,
+        category: c.category,
+        score: 1,
+      }));
+    picks.forEach((p) => taken.add(p.link));
+    if (picks.length) result.set(tag.name, picks);
+  }
+  return result;
+}
 
 /**
  * 기사마다 가장 가까운 신호와의 코사인으로 매기고, 기준을 넘는 것 중 가까운 순으로.

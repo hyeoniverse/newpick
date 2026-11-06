@@ -48,17 +48,20 @@ const StyledLayout = styled.div<StyledProps>`
 	padding-top: ${({ $headerHeight }) => $headerHeight};
 	transition: padding-top 0.3s ease;
 
+	/* 좌우 여백: 내용 폭(1024px)보다 좁은 화면에서는 노트북 · 태블릿 2.5rem, 휴대폰 1rem */
 	@media ${({ theme }) => theme.mediaQuery.desktop} {
-		header {
-			padding: 0 1rem;
+		header,
+		main,
+		footer .footer {
+			padding: 0 2.5rem;
 		}
-		main {
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		header,
+		main,
+		footer .footer {
 			padding: 0 1rem;
-		}
-		footer {
-			.footer {
-				padding: 0 1rem;
-			}
 		}
 	}
 `;
