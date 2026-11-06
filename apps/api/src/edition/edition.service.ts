@@ -312,7 +312,13 @@ export class EditionService {
       ),
       newsletterIds: composed.newsletterIds,
       // 실제로 맞춤으로 엮었거나 추천 기사가 있을 때만 남긴다
-      plan: composed.personal || composed.articles.length ? plan : null,
+      plan:
+        composed.personal ||
+        composed.articles.length ||
+        composed.tags.length ||
+        composed.follows.length
+          ? plan
+          : null,
       ...(token && {
         headers: {
           'List-Unsubscribe': `<${base}/api/subscribers/unsubscribe?token=${token}>`,

@@ -16,6 +16,7 @@ import { useFolders } from '@/hooks/useFolders';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
+import { setFolderDragGhost } from './folders/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 import LoadMore from './list/LoadMore';
@@ -121,9 +122,11 @@ function MyBookmark() {
 					{shown.map((bookmark) => (
 						<li
 							key={bookmark.id}
+							className={dragging === bookmark.id ? 'dragging' : undefined}
 							draggable
 							onDragStart={(event) => {
 								event.dataTransfer.effectAllowed = 'move';
+								setFolderDragGhost(event, bookmark.newsTitle);
 								setDragging(bookmark.id);
 							}}
 							onDragEnd={() => setDragging(null)}
@@ -176,6 +179,11 @@ function MyBookmark() {
 }
 
 const MyBookmarkStyled = styled.div`
+	/* 끄는 중인 것: 흐리게 (세 탭 같은 모양) */
+	.grid > li.dragging {
+		opacity: 0.4;
+	}
+
 	display: flex;
 	flex-direction: column;
 	gap: 1.25rem;

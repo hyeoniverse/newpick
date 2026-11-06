@@ -1,5 +1,10 @@
 import { FollowsService } from 'src/follows/follows.service';
-import { MailPlan, planMail } from 'src/edition/personalize';
+import {
+  MailPlan,
+  planMail,
+  TAG_LIMITS,
+  tagStories,
+} from 'src/edition/personalize';
 import { TasteService } from 'src/taste/taste.service';
 import { RecommendService } from 'src/recommend/recommend.service';
 import { storyRef } from 'src/edition/editor';
@@ -533,6 +538,55 @@ export class SchedulerService implements OnApplicationBootstrap {
     );
     for (const [userId, articles] of recommended)
       plans.set(userId, { ...(plans.get(userId) ?? { picks: [] }), articles });
+
+    // 지켜보던 소식의 후속 (메일 맨 위): 직접 고른 지켜보기라 맞춤을 꺼도 싣는다. 지난 메일 이후(24시간)에 생긴 것.
+    // 읽기에 실패하면 후속 칸 없이 보낸다
+    const followUps = await this.followsService
+      .forMail(
+        validSubscribers
+          .map((s) => s.userId)
+          .filter((id): id is number => typeof id === 'number'),
+        new Date(Date.now() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000),
+      )
+      .catch((error) => {
+        this.logger.warn(`후속 읽기 실패, 후속 칸 없이 보냄: ${error.message}`);
+        return new Map();
+      });
+    for (const [userId, follows] of followUps)
+      plans.set(userId, { ...(plans.get(userId) ?? { picks: [] }), follows });
+    // 팔로우한 태그 칸 (#123 5단계): 직접 고른 것이라 맞춤을 꺼도 싣는다. 태그마다 그날 소식 · 뉴스레터에 안 실린 기사.
+    // 맞춤 순서(오늘을 한눈에)에는 섞지 않는다. 읽기에 실패하면 이 칸 없이
+    const accountIds = validSubscribers
+      .map((s) => s.userId)
+      .filter((id): id is number => typeof id === 'number');
+    const followedTags = await this.tasteService
+      .tagFollows(accountIds)
+      .catch(() => new Map<number, { name: string; key: string }[]>());
+    const tagArticleMap = await this.recommendService.forTags(
+      [...followedTags].map(([userId, tags]) => ({ userId, tags })),
+      {
+        start: new Date(now.getTime() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000),
+        end: now,
+      },
+      edition.sources.map((s) => s.newsletterId),
+    );
+    for (const [userId, tags] of followedTags) {
+      const stories = tagStories(edition.sources, tags);
+      const articles = tagArticleMap.get(userId);
+      const news = tags
+        .map((t) => ({
+          tag: t.name,
+          stories: stories.get(t.name) ?? [],
+          articles: articles?.get(t.name) ?? [],
+        }))
+        .filter((t) => t.stories.length || t.articles.length)
+        .slice(0, TAG_LIMITS.tags);
+      if (news.length)
+        plans.set(userId, {
+          ...(plans.get(userId) ?? { picks: [] }),
+          tags: news,
+        });
+    }
 
     const result = await this.mailService.sendBulkMail(
       validSubscribers.map((subscriber) => ({

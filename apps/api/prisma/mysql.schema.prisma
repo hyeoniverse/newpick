@@ -27,6 +27,7 @@ model User {
   bookmarks   Bookmark[]
   highlights  Highlight[]
   follows     StoryFollow[]
+  tagFollows  TagFollow[]
   folders     Folder[]
   mailMarks   MailMark[]
   interests   UserInterest[]
@@ -418,6 +419,20 @@ model StoryFollow {
   @@unique([userId, newsletterId, storyIndex])
   @@index([newsletterId])
   @@map("story_follows")
+}
+
+/// 태그 팔로우 (#123 5단계): 사용자가 직접 고른 관심 태그 (뉴스레터 태그 표기 그대로).
+/// 맞춤 메일에서 이 태그가 나온 소식을 앞에, 추천 기사에서 제목에 나온 기사를 챙긴다
+model TagFollow {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  tag       String   @db.VarChar(64)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tag])
+  @@map("tag_follows")
 }
 
 /// 지켜보는 소식에 이어진 새 소식 (하루 한 번 판정)

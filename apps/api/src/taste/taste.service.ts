@@ -170,6 +170,25 @@ export class TasteService {
     return result;
   }
 
+  /** 팔로우한 태그 (#123 5단계): 사람마다 팔로우한 순 (이름 · 비교 열쇠) */
+  async tagFollows(
+    userIds: number[],
+  ): Promise<Map<number, { name: string; key: string }[]>> {
+    const result = new Map<number, { name: string; key: string }[]>();
+    if (!userIds.length) return result;
+    const rows = await this.prisma.tagFollow.findMany({
+      where: { userId: { in: userIds } },
+      orderBy: { createdAt: 'asc' },
+      select: { userId: true, tag: true },
+    });
+    for (const { userId, tag } of rows)
+      result.set(userId, [
+        ...(result.get(userId) ?? []),
+        { name: tag, key: tagKey(tag) },
+      ]);
+    return result;
+  }
+
   /** 마이페이지: 내 취향 (태그 20개까지, 관심사, 신호 수) */
   async forUser(userId: number) {
     const { byUser, rules, names } = await this.signals([userId]);

@@ -1,7 +1,7 @@
 import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
 import type { ParsedStory } from './parse';
-import type { MailPlan } from './personalize';
+import type { MailFollow, MailPlan, TagNews } from './personalize';
 import type { ArticlePick } from '../recommend/pick';
 
 /**
@@ -59,6 +59,10 @@ export type ComposedEdition = {
   newsletterIds: number[];
   /** 추천 기사: 뉴스레터에 쓰지 않은 오늘 기사 원문 (맞춤 계획에서). 분야별 메일에도 붙는다 */
   articles: ArticlePick[];
+  /** 팔로우한 태그 칸 (맞춤과 상관없이, 팔로우한 사람에게) */
+  tags: TagNews[];
+  /** 지켜보던 소식의 후속 (맞춤과 상관없이, 지켜본 사람에게) */
+  follows: MailFollow[];
 };
 
 export const COMPOSE_LIMITS = { top: 5, watch: 5 };
@@ -233,6 +237,8 @@ export function composeEdition(
     watch,
     newsletterIds: sections.map((s) => s.newsletterId),
     articles: plan?.articles ?? [],
+    tags: plan?.tags ?? [],
+    follows: plan?.follows ?? [],
   };
 }
 
@@ -302,6 +308,8 @@ function composePersonal(
     personal: true,
     newsletterIds: used.map((s) => s.newsletterId),
     articles: plan.articles ?? [],
+    tags: plan.tags ?? [],
+    follows: plan.follows ?? [],
   };
 }
 

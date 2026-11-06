@@ -39,9 +39,15 @@ function setup(failingCategoryId: number, edition: unknown = null) {
   const tasteService = {
     profiles: jest.fn().mockResolvedValue(new Map()),
     signalTexts: jest.fn().mockResolvedValue(new Map()),
+    tagFollows: jest.fn().mockResolvedValue(new Map()),
+  };
+  const followsService = {
+    detect: jest.fn().mockResolvedValue({}),
+    forMail: jest.fn().mockResolvedValue(new Map()),
   };
   const recommendService = {
     forUsers: jest.fn().mockResolvedValue(new Map()),
+    forTags: jest.fn().mockResolvedValue(new Map()),
   };
   const mailService = {
     sendHtmlMail: jest.fn(),
@@ -87,7 +93,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     registry as never,
     prisma as never,
     editionService as never,
-    { detect: jest.fn().mockResolvedValue({}) } as never,
+    followsService as never,
     tasteService as never,
     recommendService as never,
     siteCache as never,
@@ -102,6 +108,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     editionService,
     tasteService,
     recommendService,
+    followsService,
     mailService,
     siteCache,
     prisma,
@@ -305,6 +312,103 @@ describe('구독 메일 (#55)', () => {
     expect(
       (editionService.composeMail.mock.calls[0] as unknown[])[3],
     ).toBeFalsy();
+  });
+
+  it('팔로우한 태그 칸: 맞춤을 꺼도, 태그마다 그날 소식(모든 분야) · 기사, 소식 · 기사가 없는 태그는 뺀다', async () => {
+    const edition = {
+      date: '2026-10-27',
+      editorial: null,
+      sources: [
+        {
+          newsletterId: 30,
+          categoryId: 3,
+          category: '세계',
+          title: '세계',
+          stories: [
+            {
+              kicker: '',
+              heading: '룰라 4선',
+              lead: '',
+              blocks: [],
+              sources: [],
+            },
+          ],
+        },
+      ],
+    };
+    const { service, editionService, tasteService, recommendService, prisma } =
+      setup(0, edition);
+    prisma.optedOut.add(7);
+    tasteService.tagFollows.mockResolvedValue(
+      new Map([
+        [
+          7,
+          [
+            { name: '룰라', key: '룰라' },
+            { name: '야구', key: '야구' },
+          ],
+        ],
+      ]),
+    );
+    const article = {
+      title: '룰라 여파',
+      link: 'https://n.news/1',
+      source: '한경',
+      category: '경제',
+      score: 1,
+    };
+    recommendService.forTags.mockResolvedValue(
+      new Map([[7, new Map([['룰라', [article]]])]]),
+    );
+    await service.sendEmailSummary();
+    expect(tasteService.tagFollows).toHaveBeenCalledWith([7]);
+    expect((editionService.composeMail.mock.calls[0] as unknown[])[3]).toEqual({
+      picks: [],
+      tags: [
+        {
+          tag: '룰라',
+          stories: [
+            {
+              ref: '30-1',
+              newsletterId: 30,
+              category: '세계',
+              heading: '룰라 4선',
+            },
+          ],
+          articles: [article],
+        },
+      ],
+    });
+  });
+
+  it('지켜보던 소식의 후속: 맞춤을 꺼도(취향 없음) 계정 있는 구독자 모두에게, 지난 메일 이후 것만', async () => {
+    const edition = { date: '2026-10-27', sources: [], editorial: null };
+    const { service, editionService, followsService, prisma } = setup(
+      0,
+      edition,
+    );
+    prisma.optedOut.add(7);
+    const follows = [
+      {
+        followed: '룰라 4선',
+        followedNewsletterId: 63,
+        heading: '보우소나루 불복',
+        reason: '선거 무효 요청',
+        newsletterId: 69,
+        category: '세계',
+      },
+    ];
+    followsService.forMail.mockResolvedValue(new Map([[7, follows]]));
+    await service.sendEmailSummary();
+    const [ids, since] = followsService.forMail.mock.calls[0];
+    expect(ids).toEqual([7]);
+    expect(Date.now() - since.getTime()).toBeGreaterThanOrEqual(
+      SUMMARY_WINDOW_HOURS * 60 * 60 * 1000 - 1000,
+    );
+    expect((editionService.composeMail.mock.calls[0] as unknown[])[3]).toEqual({
+      picks: [],
+      follows,
+    });
   });
 
   it('오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)', async () => {

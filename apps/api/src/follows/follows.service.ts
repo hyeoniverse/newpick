@@ -3,6 +3,7 @@ import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AiService, AiUnavailable } from '../ai/ai.service';
 import { AppException } from '../common/errors/app.exception';
 import { kstDayRange, kstDaysAgo } from '../common/kst';
+import type { MailFollow } from '../edition/personalize';
 import { parseNewsletterHtml, ParsedStory, storyText } from '../edition/parse';
 import {
   acceptedFrom,
@@ -14,9 +15,19 @@ import {
   NewStory,
 } from './detect';
 
-/** 판정 · 임베딩에 쓰는 소식 글 (제목 · 리드 · 본문 앞부분) */
+/**
+ * 판정 · 임베딩에 쓰는 소식 글 (제목 · 리드 · 본문 앞부분).
+ * '관전 포인트'가 있으면 앞에 둔다: 후속 판정이 독자가 기다리는 그 일을 기준으로 찾게
+ */
 const textOf = (story: ParsedStory) =>
-  [story.heading, story.lead, storyText(story, 600)].filter(Boolean).join('\n');
+  [
+    story.next && `관전 포인트: ${story.next}`,
+    story.heading,
+    story.lead,
+    storyText(story, 600),
+  ]
+    .filter(Boolean)
+    .join('\n');
 
 const asVector = (value: unknown) =>
   Array.isArray(value) && value.every((v) => typeof v === 'number')
@@ -35,6 +46,43 @@ export class FollowsService {
     private readonly prisma: MysqlPrismaService,
     private readonly ai: AiService,
   ) {}
+
+  /**
+   * 메일에 실을 후속 (사람마다): since 이후 새로 이어진 소식, 최근 것부터 FOLLOW_LIMITS.mail개.
+   * 하루 한 번 판정이 메일 전에 끝나므로, 지난 메일 이후(24시간)에 생긴 것이 오늘 메일에 한 번씩 실린다
+   */
+  async forMail(
+    userIds: number[],
+    since: Date,
+  ): Promise<Map<number, MailFollow[]>> {
+    const result = new Map<number, MailFollow[]>();
+    if (!userIds.length) return result;
+    const rows = await this.prisma.followUpdate.findMany({
+      where: { createdAt: { gte: since }, follow: { userId: { in: userIds } } },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        heading: true,
+        reason: true,
+        newsletterId: true,
+        follow: { select: { userId: true, heading: true, newsletterId: true } },
+        newsletter: { select: { category: { select: { name: true } } } },
+      },
+    });
+    for (const row of rows) {
+      const list = result.get(row.follow.userId) ?? [];
+      if (list.length >= FOLLOW_LIMITS.mail) continue;
+      list.push({
+        followed: row.follow.heading,
+        followedNewsletterId: row.follow.newsletterId,
+        heading: row.heading,
+        reason: row.reason,
+        newsletterId: row.newsletterId,
+        category: row.newsletter.category.name,
+      });
+      result.set(row.follow.userId, list);
+    }
+    return result;
+  }
 
   /** 지켜보기 시작: 그 소식의 제목 · 글을 그때 그대로 남긴다 */
   async follow(userId: number, newsletterId: number, storyIndex: number) {

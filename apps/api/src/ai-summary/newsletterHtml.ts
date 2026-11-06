@@ -143,7 +143,7 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
  * 뉴스레터 본문 HTML. 예전에는 모델이 인라인 스타일까지 매번 다르게 만들었습니다 (#43).
  * 구조와 class만 만들고, 모양은 웹이 사이트 테마(색·글꼴·다크 모드)로 입힙니다.
  *
- * 에디터 브리핑 → 소식(템플릿별) → 관전 포인트
+ * 에디터 브리핑 → 소식(템플릿별, 끝에 관전 포인트) → 관전 포인트 모음(예전 구조만)
  *
  * articles: 원래 기사 목록. 소식의 sources(1부터)로 출처 언론사와 원문 링크를 찾는다
  */
@@ -160,6 +160,10 @@ export function renderNewsletterHtml(
       story.lead ? `<p class="lead">${escapeHtml(story.lead)}</p>` : '',
       figure(story),
       ...TEMPLATE_PARTS[story.template](story),
+      // 관전 포인트: 소식 끝, 출처 위. 화면은 이 옆에 '후속 지켜보기' 단추를 둔다
+      story.next
+        ? `<p class="next"><strong>관전 포인트</strong><span>${escapeHtml(story.next)}</span></p>`
+        : '',
       credit(story, articles),
       '</article>',
     ].join('');
@@ -170,7 +174,8 @@ export function renderNewsletterHtml(
       ? `<section class="briefing"><h3>에디터 브리핑</h3>${paragraphs(newsletter.briefing)}</section>`
       : '',
     stories.join(''),
-    newsletter.watch.length
+    // 맨 끝 관전 포인트 모음: 소식마다 관전 포인트가 있으면 같은 내용이라 두지 않는다 (예전 구조만)
+    newsletter.watch.length && !newsletter.stories.some((s) => s.next)
       ? `<section class="watch"><h3>관전 포인트</h3><ul>${items(newsletter.watch)}</ul></section>`
       : '',
     '</div>',

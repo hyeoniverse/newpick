@@ -152,6 +152,33 @@ export function renderEditionMail(
       edition.briefing
         ? `<div style="margin:0 0 22px;padding:14px 16px;background:${C.tint};border-radius:8px;"><p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${C.primary};">오늘의 맞춤 브리핑</p><p style="margin:0;font-size:14px;line-height:1.7;color:${C.text};">${esc(edition.briefing)}</p></div>`
         : '',
+      // 지켜보던 소식의 후속: 메일 맨 위 (지켜보기는 직접 고른 것이라 가장 먼저)
+      edition.follows.length
+        ? `<div style="margin:0 0 22px;padding:14px 16px;border:1px solid ${C.primary};border-radius:8px;"><p style="margin:0 0 10px;font-size:12px;font-weight:700;color:${C.primary};">🔔 지켜보던 소식의 후속</p>${edition.follows
+            .map(
+              (f, i) =>
+                `<div style="${i ? `margin-top:12px;padding-top:12px;border-top:1px solid ${C.border};` : ''}"><p style="margin:0 0 3px;font-size:12px;color:${C.muted};">지켜보던 소식 · <a href="${esc(`${base}/articles/detail/${f.followedNewsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="color:${C.muted};text-decoration:underline;">${esc(f.followed)}</a></p><a href="${esc(`${base}/articles/detail/${f.newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:15px;font-weight:700;line-height:1.5;color:${C.text};text-decoration:none;">${tag(f.category)}${esc(f.heading)}</a>${f.reason ? `<p style="margin:3px 0 0;font-size:14px;line-height:1.6;color:${C.sub};">${esc(f.reason)}</p>` : ''}</div>`,
+            )
+            .join('')}</div>`
+        : '',
+      // 팔로우한 태그: 태그마다 그날 소식(뉴스레터로) · 뉴스레터에 안 실린 기사(원문으로). 오늘을 한눈에 순서와는 따로
+      edition.tags.length
+        ? `<div style="margin:0 0 22px;padding:14px 16px;border:1px solid ${C.border};border-radius:8px;"><p style="margin:0 0 10px;font-size:12px;font-weight:700;color:${C.primary};">팔로우한 태그</p>${edition.tags
+            .map(
+              (t, i) =>
+                `<div style="${i ? `margin-top:12px;padding-top:12px;border-top:1px solid ${C.border};` : ''}"><p style="margin:0 0 6px;font-size:13px;font-weight:800;color:${C.primary};">#${esc(t.tag)}</p>${[
+                  ...t.stories.map(
+                    (s) =>
+                      `<p style="margin:0 0 4px;font-size:14px;line-height:1.5;">${tag(s.category)}<a href="${esc(`${base}/articles/detail/${s.newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-weight:700;color:${C.text};text-decoration:none;">${esc(s.heading)}</a></p>`,
+                  ),
+                  ...t.articles.map(
+                    (a) =>
+                      `<p style="margin:0 0 4px;font-size:14px;line-height:1.5;"><span style="display:inline-block;margin-right:6px;font-size:12px;color:${C.muted};">${esc(a.source || '기사')}</span><a href="${esc(a.link)}" target="_blank" rel="noopener noreferrer" style="color:${C.text};text-decoration:underline;">${esc(a.title)}</a></p>`,
+                  ),
+                ].join('')}</div>`,
+            )
+            .join('')}</div>`
+        : '',
       heading('오늘을 한눈에'),
       edition.top
         .map(
