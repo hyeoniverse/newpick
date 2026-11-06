@@ -38,7 +38,8 @@ const WORD_COUNT = LINES.flat().filter((token) => !('space' in token)).length;
  */
 export default function WhyNewpickSection() {
 	const designRef = useScrollProgress<HTMLDivElement>('enter');
-	const valuesRef = useScrollProgress<HTMLDivElement>('through');
+	// 낱말이 많아 through 구간으로는 너무 빨리 지나가서, 두 배쯤 긴 slow 구간에 걸쳐 밝아진다
+	const valuesRef = useScrollProgress<HTMLDivElement>('slow');
 
 	return (
 		<StyledWhy data-track-section="about-why-newpick" aria-label="WHY NEWPICK">
@@ -125,7 +126,7 @@ const StyledWhy = styled.section`
 		}
 
 		.word {
-			opacity: clamp(0.2, calc(var(--progress) * var(--n) * 1.2 - var(--i)), 1);
+			opacity: clamp(0.2, calc(var(--progress) * var(--n) * 1.05 - var(--i)), 1);
 		}
 	}
 

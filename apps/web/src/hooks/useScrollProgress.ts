@@ -5,15 +5,17 @@ import { useEffect, useRef } from 'react';
 /**
  * - enter: 요소 윗변이 화면 아래에 닿을 때 0, 화면 위에서 20% 지점에 닿을 때 1 (나타나며 커지는 장면)
  * - through: 요소 윗변이 화면 아래 15% 지점에 닿을 때 0, 아랫변이 화면 가운데를 지날 때 1 (글자가 차례로 밝아지는 장면)
+ * - slow: 요소 윗변이 화면 아래 10% 지점에 닿을 때 0, 아랫변이 화면 맨 위에 닿을 때 1 (through보다 두 배쯤 긴 구간, 낱말이 많은 문장)
  * - pinned: 요소가 화면 위에 닿아 붙기 시작할 때 0, 붙은 채 다 지나갈 때 1 (sticky로 고정된 장면)
  */
-export type ScrollProgressMode = 'enter' | 'through' | 'pinned';
+export type ScrollProgressMode = 'enter' | 'through' | 'slow' | 'pinned';
 
 const clamp = (value: number) => Math.min(1, Math.max(0, value));
 
 function progressOf(rect: DOMRect, vh: number, mode: ScrollProgressMode) {
 	if (mode === 'enter') return clamp((vh - rect.top) / (vh * 0.8));
 	if (mode === 'through') return clamp((vh * 0.85 - rect.top) / (rect.height + vh * 0.35));
+	if (mode === 'slow') return clamp((vh * 0.9 - rect.top) / (rect.height + vh * 0.9));
 	const distance = rect.height - vh;
 	return distance > 0 ? clamp(-rect.top / distance) : rect.top <= 0 ? 1 : 0;
 }

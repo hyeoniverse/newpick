@@ -17,7 +17,8 @@ const WORDS = STATEMENT.split(' ').map((word) => ({
  * 글자는 처음부터 모두 들어 있어 화면 낭독기는 그대로 읽는다
  */
 export default function StatementSection() {
-	const ref = useScrollProgress<HTMLParagraphElement>('through');
+	// 낱말이 많아 through 구간으로는 너무 빨리 지나가서, 두 배쯤 긴 slow 구간에 걸쳐 밝아진다
+	const ref = useScrollProgress<HTMLParagraphElement>('slow');
 
 	return (
 		<StyledStatement data-track-section="about-statement" aria-label="NEWPICK 소개">
@@ -46,7 +47,7 @@ const StyledStatement = styled.section`
 		color: ${({ theme }) => theme.color.text};
 
 		.word {
-			opacity: clamp(0.18, calc(var(--progress) * var(--n) * 1.15 - var(--i)), 1);
+			opacity: clamp(0.18, calc(var(--progress) * var(--n) * 1.05 - var(--i)), 1);
 		}
 
 		.strong {

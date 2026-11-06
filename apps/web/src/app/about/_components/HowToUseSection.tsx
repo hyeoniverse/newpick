@@ -37,6 +37,24 @@ const STEPS: Step[] = [
 		image: '/img/about_newsletter-mail.jpg',
 		alt: '메일로 받은 뉴스레터',
 	},
+	{
+		title: '후속 지켜보기',
+		text: "소식마다 붙은 관전 포인트 옆의 '후속 지켜보기'를 누르면, 이어지는 새 소식이 나왔을 때 메일 맨 위와 마이페이지에서 알려 드립니다.",
+		image: '/img/about_follow.jpg',
+		alt: "소식 끝의 관전 포인트와 '후속 지켜보기' 단추",
+	},
+	{
+		title: '스크랩 · 메모',
+		text: '읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남깁니다. 스크랩은 마이페이지에 모이고, 폴더로 정리할 수 있습니다.',
+		image: '/img/about_scrap.jpg',
+		alt: '마이페이지의 스크랩 목록과 폴더',
+	},
+	{
+		title: '태그 팔로우 · 지켜보기',
+		text: '관심 있는 태그를 팔로우하면 매일 메일에 그 태그의 소식이 따로 모입니다. 지켜보는 소식의 후속도 마이페이지 한곳에서 봅니다.',
+		image: '/img/about_follows-tab.jpg',
+		alt: '마이페이지의 팔로우한 태그와 지켜보는 소식',
+	},
 ];
 
 /** 로그인 단계는 캡처가 없어 로그인 창 모양을 그린다 (장식) */
@@ -86,7 +104,7 @@ export default function HowToUseSection() {
 			<SectionHeading
 				label="HOW TO USE"
 				title="시작은 세 번의 클릭."
-				sub="로그인하고 관심사만 고르면, 매일 아침 뉴스레터가 옵니다."
+				sub="로그인하고 관심사만 고르면, 매일 아침 뉴스레터가 옵니다. 읽은 뒤에는 지켜보기 · 스크랩 · 태그 팔로우로 이어 갑니다."
 			/>
 			<ol className="rows">
 				{STEPS.map((step, i) => (

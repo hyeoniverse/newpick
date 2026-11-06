@@ -40,7 +40,10 @@ export class NewsletterRepo {
       },
       skip: offset,
       take: limit,
-      ...(trend && { orderBy: { viewcount: trend ? 'desc' : 'asc' } }),
+      // 인기순이 아니면 최신순 (예전에는 정렬이 없어 DB 순서대로 = 오래된 것부터 나왔다: 상세 아래 '최신 뉴스레터' 띠)
+      orderBy: trend
+        ? { viewcount: 'desc' }
+        : [{ createdAt: 'desc' }, { id: 'desc' }],
       ...(categoryId && { where: { categoryId } }),
     });
 
@@ -67,6 +70,7 @@ export class NewsletterRepo {
       return this.prisma.newsletter.findMany({
         skip: offset,
         take: limit,
+        orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
         ...(categoryId && { where: { categoryId } }),
       });
     }
