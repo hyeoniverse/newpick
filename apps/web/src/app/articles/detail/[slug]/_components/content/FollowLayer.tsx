@@ -16,7 +16,8 @@ interface Props {
 }
 
 /**
- * 후속 지켜보기: 본문의 소식(article.story)마다 머리줄 오른쪽에 단추.
+ * 후속 지켜보기: 소식마다 끝에 단추 하나. 다 읽은 직후가 '그래서 어떻게 되는데?'가 남는 때라서.
+ * 소식별 '관전 포인트'(p.next)가 있으면 그 줄 오른쪽 끝에 (무엇을 기다리는지 바로 옆에), 없으면(예전 뉴스레터) 출처 위에 한 줄로.
  * 켜 두면 이어지는 새 소식이 나왔을 때 마이페이지 '지켜보기'와 머리글에 알린다 (판정은 하루 한 번, 서버).
  * 본문은 React 밖 HTML이라, 소식마다 자리(span)를 만들어 그 안에 단추를 그린다
  */
@@ -40,13 +41,25 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 		const root = rootRef.current;
 		if (!root) return;
 		let made: HTMLElement[] = [];
+		// 예전 뉴스레터(소식별 관전 포인트 없음)는 따로 만든 줄
+		let rows: HTMLElement[] = [];
 		const build = () => {
 			made.forEach((slot) => slot.remove());
+			rows.forEach((row) => row.remove());
+			rows = [];
 			made = [...root.querySelectorAll('article.story')].map((story) => {
-				const head = story.querySelector('.kicker') ?? story;
 				const slot = document.createElement('span');
 				slot.className = 'follow-slot';
-				head.appendChild(slot);
+				const next = story.querySelector('p.next');
+				if (next) {
+					next.appendChild(slot);
+				} else {
+					const row = document.createElement('div');
+					row.className = 'follow-row';
+					row.appendChild(slot);
+					story.insertBefore(row, story.querySelector('p.credit'));
+					rows.push(row);
+				}
 				return slot;
 			});
 			setSlots(made);
@@ -58,6 +71,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 		return () => {
 			observer.disconnect();
 			made.forEach((slot) => slot.remove());
+			rows.forEach((row) => row.remove());
 		};
 	}, [rootRef, content]);
 
@@ -104,18 +118,19 @@ const FollowButton = styled.button`
 	gap: 0.25rem;
 	margin: 0;
 	padding: 0.25rem 0.625rem;
-	border: 1px solid ${({ theme }) => theme.color.border};
+	/* 눈에 띄게: 강조색 테두리 · 글자 (지켜보는 중이면 강조색으로 채운다) */
+	border: 1px solid ${({ theme }) => theme.color.primary};
 	border-radius: ${({ theme }) => theme.radius.chip};
 	background: ${({ theme }) => theme.color.background};
 	font-size: 0.75rem;
-	font-weight: ${({ theme }) => theme.fontWeight.medium};
+	font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 	letter-spacing: 0;
-	color: ${({ theme }) => theme.color.subText};
+	color: ${({ theme }) => theme.color.primary};
 	white-space: nowrap;
 	cursor: pointer;
 	transition:
 		color 0.15s ease,
-		border-color 0.15s ease;
+		background 0.15s ease;
 
 	line-height: 1.25;
 
@@ -128,14 +143,19 @@ const FollowButton = styled.button`
 		height: 0.875rem;
 	}
 
-	&:hover:not(:disabled),
-	&.on {
-		border-color: ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.primary};
+	&:hover:not(:disabled) {
+		background: ${({ theme }) => theme.color.tertiary};
 	}
 
 	&.on {
-		background: ${({ theme }) => theme.color.tertiary};
+		background: ${({ theme }) => theme.color.primary};
+		color: ${({ theme }) => theme.color.background};
+	}
+
+	/* 켜진 단추를 가리켜도 채운 바탕 그대로 (연한 바탕이 덮이면 흰 글자가 안 보인다), 조금 옅게만 */
+	&.on:hover:not(:disabled) {
+		background: ${({ theme }) => theme.color.primary};
+		opacity: 0.85;
 	}
 
 	&:disabled {

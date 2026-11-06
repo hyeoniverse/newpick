@@ -1,7 +1,7 @@
 import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
 import type { ParsedStory } from './parse';
-import type { MailPlan, TagNews } from './personalize';
+import type { MailFollow, MailPlan, TagNews } from './personalize';
 import type { ArticlePick } from '../recommend/pick';
 
 /**
@@ -61,6 +61,8 @@ export type ComposedEdition = {
   articles: ArticlePick[];
   /** 팔로우한 태그 칸 (맞춤과 상관없이, 팔로우한 사람에게) */
   tags: TagNews[];
+  /** 지켜보던 소식의 후속 (맞춤과 상관없이, 지켜본 사람에게) */
+  follows: MailFollow[];
 };
 
 export const COMPOSE_LIMITS = { top: 5, watch: 5 };
@@ -236,6 +238,7 @@ export function composeEdition(
     newsletterIds: sections.map((s) => s.newsletterId),
     articles: plan?.articles ?? [],
     tags: plan?.tags ?? [],
+    follows: plan?.follows ?? [],
   };
 }
 
@@ -306,6 +309,7 @@ function composePersonal(
     newsletterIds: used.map((s) => s.newsletterId),
     articles: plan.articles ?? [],
     tags: plan.tags ?? [],
+    follows: plan.follows ?? [],
   };
 }
 

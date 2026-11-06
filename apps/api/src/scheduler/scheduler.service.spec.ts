@@ -41,6 +41,10 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     signalTexts: jest.fn().mockResolvedValue(new Map()),
     tagFollows: jest.fn().mockResolvedValue(new Map()),
   };
+  const followsService = {
+    detect: jest.fn().mockResolvedValue({}),
+    forMail: jest.fn().mockResolvedValue(new Map()),
+  };
   const recommendService = {
     forUsers: jest.fn().mockResolvedValue(new Map()),
     forTags: jest.fn().mockResolvedValue(new Map()),
@@ -89,7 +93,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     registry as never,
     prisma as never,
     editionService as never,
-    { detect: jest.fn().mockResolvedValue({}) } as never,
+    followsService as never,
     tasteService as never,
     recommendService as never,
     siteCache as never,
@@ -104,6 +108,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     editionService,
     tasteService,
     recommendService,
+    followsService,
     mailService,
     siteCache,
     prisma,
@@ -373,6 +378,36 @@ describe('구독 메일 (#55)', () => {
           articles: [article],
         },
       ],
+    });
+  });
+
+  it('지켜보던 소식의 후속: 맞춤을 꺼도(취향 없음) 계정 있는 구독자 모두에게, 지난 메일 이후 것만', async () => {
+    const edition = { date: '2026-10-27', sources: [], editorial: null };
+    const { service, editionService, followsService, prisma } = setup(
+      0,
+      edition,
+    );
+    prisma.optedOut.add(7);
+    const follows = [
+      {
+        followed: '룰라 4선',
+        followedNewsletterId: 63,
+        heading: '보우소나루 불복',
+        reason: '선거 무효 요청',
+        newsletterId: 69,
+        category: '세계',
+      },
+    ];
+    followsService.forMail.mockResolvedValue(new Map([[7, follows]]));
+    await service.sendEmailSummary();
+    const [ids, since] = followsService.forMail.mock.calls[0];
+    expect(ids).toEqual([7]);
+    expect(Date.now() - since.getTime()).toBeGreaterThanOrEqual(
+      SUMMARY_WINDOW_HOURS * 60 * 60 * 1000 - 1000,
+    );
+    expect((editionService.composeMail.mock.calls[0] as unknown[])[3]).toEqual({
+      picks: [],
+      follows,
     });
   });
 
