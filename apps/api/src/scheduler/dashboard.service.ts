@@ -58,6 +58,9 @@ export function kstRange(from: string, to: string) {
   return { start, end, inRange: { gte: start, lte: end } };
 }
 
+/** 같은 분야 요약 시도를 한 묶음(다시 시도)으로 잇는 범위: 12시간 안 */
+const RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -313,6 +316,7 @@ export class DashboardService {
           inputTokens: true,
           outputTokens: true,
           costUsd: true,
+          categoryId: true,
         },
       }),
       this.prisma.aiProcessLog.count({ where }),
@@ -322,11 +326,20 @@ export class DashboardService {
         _count: { costUsd: true },
       }),
     ]);
+    const [attempts, categories] = await Promise.all([
+      this.attempts(items),
+      this.categoryNames(items.map((log) => log.categoryId)),
+    ]);
     return {
       items: items.map((log) => ({
         ...log,
         result: clip(log.result, 400),
         error: clip(log.error, 600),
+        category:
+          log.categoryId == null
+            ? null
+            : (categories.get(log.categoryId) ?? null),
+        attempt: attempts.get(log.id) ?? null,
       })),
       total,
       cost: {
@@ -334,6 +347,77 @@ export class DashboardService {
         unknown: total - cost._count.costUsd,
       },
     };
+  }
+
+  /**
+   * 같은 분야 요약 시도를 묶음으로 잇는다: 12시간 안에 이어진 시도는 한 묶음, 성공하면 그 묶음은 끝.
+   * 기록마다 몇 번째 시도인지(n), 묶음의 시도 수(total), 묶음이 어떻게 끝났는지(outcome), 묶음 열쇠(chain = 첫 시도 id).
+   * 분야를 남기지 않은 이전 기록은 묶지 않는다
+   */
+  private async attempts(
+    items: {
+      id: number;
+      processType: string;
+      categoryId: number | null;
+      createdAt: Date;
+    }[],
+  ) {
+    const result = new Map<
+      number,
+      { n: number; total: number; outcome: string; chain: number }
+    >();
+    const logs = items.filter(
+      (log) => log.processType === 'summarization' && log.categoryId != null,
+    );
+    if (!logs.length) return result;
+    const times = logs.map((log) => log.createdAt.getTime());
+    const around = await this.prisma.aiProcessLog.findMany({
+      where: {
+        processType: 'summarization',
+        categoryId: { in: [...new Set(logs.map((log) => log.categoryId!))] },
+        createdAt: {
+          gte: new Date(Math.min(...times) - RETRY_WINDOW_MS),
+          lte: new Date(Math.max(...times) + RETRY_WINDOW_MS),
+        },
+      },
+      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+      select: { id: true, status: true, categoryId: true, createdAt: true },
+    });
+    const chains: (typeof around)[] = [];
+    const open = new Map<number, typeof around>();
+    for (const log of around) {
+      const current = open.get(log.categoryId!);
+      const last = current?.at(-1);
+      if (
+        !current ||
+        last!.status === 'success' ||
+        log.createdAt.getTime() - last!.createdAt.getTime() > RETRY_WINDOW_MS
+      ) {
+        const chain = [log];
+        chains.push(chain);
+        open.set(log.categoryId!, chain);
+      } else current.push(log);
+    }
+    for (const chain of chains)
+      chain.forEach((log, i) =>
+        result.set(log.id, {
+          n: i + 1,
+          total: chain.length,
+          outcome: chain.at(-1)!.status,
+          chain: chain[0].id,
+        }),
+      );
+    return result;
+  }
+
+  private async categoryNames(ids: (number | null)[]) {
+    const wanted = [...new Set(ids.filter((id): id is number => id != null))];
+    if (!wanted.length) return new Map<number, string>();
+    const rows = await this.prisma.newsCategory.findMany({
+      where: { id: { in: wanted } },
+      select: { id: true, name: true },
+    });
+    return new Map(rows.map((row) => [row.id, row.name]));
   }
 
   async getMailRecipients(date: string) {

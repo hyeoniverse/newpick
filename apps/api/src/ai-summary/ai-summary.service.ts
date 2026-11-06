@@ -150,6 +150,7 @@ export class AiSummaryService {
         data: {
           newsId: test ? 'test' : newslinks,
           processType: 'summarization',
+          categoryId,
           // 고르기 점수도 함께 남겨, 어떤 소식이 왜 빠졌는지 관리자 AI 기록에서 본다
           result: `${title} | ${subtitle}\n${summary}${selection ? `\n\n[고르기]\n${selection}` : ''}`,
           duration: (Date.now() - startTime) / 1000,
@@ -197,6 +198,7 @@ export class AiSummaryService {
         data: {
           newsId: test ? 'test' : newsIds,
           processType: 'summarization',
+          categoryId,
           result: error.message,
           duration: duration,
           status: 'error',

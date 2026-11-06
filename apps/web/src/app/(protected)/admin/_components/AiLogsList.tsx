@@ -1,6 +1,8 @@
 'use client';
 
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import styled from 'styled-components';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import Pagination from '@/components/common/Pagination';
@@ -13,6 +15,9 @@ import { PROCESS_LABEL, usd, when } from './format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 
 const PAGE_SIZE = 20;
+
+/** 가로로 넘겨도 왼쪽에 고정하는 칸 폭: 시각 · 분야 · 결과 (무엇이 언제 어떻게 됐는지) */
+const PINNED = ['9rem', '3.5rem', '7.5rem'];
 
 interface Row {
 	id: number;
@@ -27,6 +32,10 @@ interface Row {
 	inputTokens: number;
 	outputTokens: number;
 	costUsd: number | null;
+	/** 요약한 분야 (이전 기록은 없음) */
+	category: string | null;
+	/** 같은 분야 시도 묶음 (12시간 안에 이어진 다시 시도): n번째 시도 / 모두 total번, 묶음이 어떻게 끝났는지, 묶음 열쇠 */
+	attempt: { n: number; total: number; outcome: string; chain: number } | null;
 }
 
 const TYPES = [
@@ -61,6 +70,33 @@ export default function AiLogsList() {
 		placeholderData: (previous) => previous,
 	});
 
+	// 기본 정렬(최신순)일 때 같은 묶음의 시도를 붙여 놓는다 (묶음 자리는 가장 최근 시도 자리)
+	// 내용은 두 줄까지만, 누르면 펼친다 (펼친 기록 id)
+	const [open, setOpen] = useState<Set<number>>(new Set());
+	const toggle = (id: number) =>
+		setOpen((prev) => {
+			const next = new Set(prev);
+			if (next.has(id)) next.delete(id);
+			else next.add(id);
+			return next;
+		});
+	const rows = useMemo(
+		() => (data ? (Object.keys(sortQuery).length ? data.items : groupAttempts(data.items)) : []),
+		[data, sortQuery],
+	);
+
+	// 카드 목록(휴대폰)용: 이어진 같은 묶음을 [마지막 시도, ...앞선 시도]로
+	const groups = useMemo(() => {
+		const out: Row[][] = [];
+		for (const log of rows) {
+			const last = out.at(-1);
+			const chain = log.attempt && log.attempt.total > 1 ? log.attempt.chain : null;
+			if (chain !== null && last && last[0].attempt?.chain === chain) last.push(log);
+			else out.push([log]);
+		}
+		return out;
+	}, [rows]);
+
 	return (
 		<AdminSubPage
 			title="AI 기록"
@@ -82,18 +118,18 @@ export default function AiLogsList() {
 			) : data.items.length === 0 ? (
 				<p className="state">이 조건의 기록이 없어요.</p>
 			) : (
-				<div className="table-wrap">
+				<Chains className="table-wrap">
 					<table className="wide">
-						<Cols widths={['9.5rem', '4rem', '4.5rem', '6rem', '6.5rem', '8rem', '4.5rem', undefined]} />
+						{/* 칸 폭 = 내용 · 머리글(정렬 아이콘 포함) + 오른쪽 여백 1rem. 좁으면 옆 칸에 붙는다.
+						    앞 세 칸(시각 · 분야 · 결과)은 가로로 넘겨도 왼쪽에 고정 (PINNED) */}
+						<Cols widths={[...PINNED, '5rem', '6.5rem', '6.5rem', '8.5rem', '5rem', undefined]} />
 						<thead>
 							<tr>
 								{/* 위 거르기와 같은 조건을 표 머리에서도 */}
 								<th scope="col">
 									<PeriodHeaderFilter label="시각" />
 								</th>
-								<th scope="col">
-									<HeaderSelect label="종류" value={type} options={TYPES} onChange={(v) => set({ type: v || null })} />
-								</th>
+								<th scope="col">분야</th>
 								<th scope="col">
 									<HeaderSelect
 										label="결과"
@@ -101,6 +137,9 @@ export default function AiLogsList() {
 										options={STATUSES}
 										onChange={(v) => set({ status: v || null })}
 									/>
+								</th>
+								<th scope="col">
+									<HeaderSelect label="종류" value={type} options={TYPES} onChange={(v) => set({ type: v || null })} />
 								</th>
 								<th scope="col">모델</th>
 								<th scope="col">
@@ -116,27 +155,77 @@ export default function AiLogsList() {
 							</tr>
 						</thead>
 						<tbody>
-							{data.items.map((log) => (
-								<tr key={log.id}>
-									<td className="nowrap num">{when(log.createdAt, today)}</td>
-									<td className="nowrap">{PROCESS_LABEL[log.processType] ?? log.processType}</td>
-									<td className="nowrap">
-										<StatusBadge tone={toneOf(log.status)}>{log.status === 'success' ? '성공' : '실패'}</StatusBadge>
-									</td>
-									<td className="nowrap">{log.model?.replace(/claude-/g, '') ?? '-'}</td>
-									<td className="nowrap num">{log.duration.toFixed(1)}초</td>
-									<td className="nowrap num">
-										{log.inputTokens || log.outputTokens
-											? `${log.inputTokens.toLocaleString()} / ${log.outputTokens.toLocaleString()}`
-											: log.token.toLocaleString()}
-									</td>
-									<td className="nowrap num">{usd(log.costUsd)}</td>
-									<td className="content">{log.error ?? log.result}</td>
-								</tr>
-							))}
+							{rows.map((log, i) => {
+								const chained = !!log.attempt && log.attempt.total > 1;
+								// 스레드: 묶음 첫 줄(가장 최근 시도)이 위, 앞선 시도는 그 아래 들여 쓴 답글처럼
+								const child = chained && rows[i - 1]?.attempt?.chain === log.attempt!.chain;
+								const continues = chained && rows[i + 1]?.attempt?.chain === log.attempt!.chain;
+								const text = log.error ?? log.result ?? '';
+								return (
+									<tr
+										key={log.id}
+										className={[chained && 'chain', child && 'reply', continues ? 'continues' : chained && 'chain-end']
+											.filter(Boolean)
+											.join(' ')}
+									>
+										<td className="nowrap num">{when(log.createdAt, today)}</td>
+										<td className="nowrap">{log.category ?? '-'}</td>
+										<td>
+											<Result log={log} />
+										</td>
+										<td className="nowrap">{PROCESS_LABEL[log.processType] ?? log.processType}</td>
+										<td className="model">
+											{log.model
+												? log.model.split(',').map((name) => (
+														<span key={name} className="name">
+															{name.trim().replace(/^claude-/, '')}
+														</span>
+													))
+												: '-'}
+										</td>
+										<td className="nowrap num">{log.duration.toFixed(1)}초</td>
+										<td className="nowrap num">
+											{log.inputTokens || log.outputTokens
+												? `${log.inputTokens.toLocaleString()} / ${log.outputTokens.toLocaleString()}`
+												: log.token.toLocaleString()}
+										</td>
+										<td className="nowrap num">{usd(log.costUsd)}</td>
+										<td className="content">
+											<button
+												type="button"
+												className={open.has(log.id) ? 'text open' : 'text'}
+												aria-expanded={open.has(log.id)}
+												onClick={() => toggle(log.id)}
+											>
+												{text}
+											</button>
+										</td>
+									</tr>
+								);
+							})}
 						</tbody>
 					</table>
-				</div>
+				</Chains>
+			)}
+			{data && data.items.length > 0 && (
+				<CardList aria-label="AI 기록">
+					{groups.map((group) => (
+						<li key={group[0].id}>
+							<ol className="timeline">
+								{group.map((log, i) => (
+									<LogEntry
+										key={log.id}
+										log={log}
+										today={today}
+										earlier={i > 0}
+										open={open.has(log.id)}
+										onToggle={() => toggle(log.id)}
+									/>
+								))}
+							</ol>
+						</li>
+					))}
+				</CardList>
 			)}
 			{data && (
 				<Pagination
@@ -150,3 +239,462 @@ export default function AiLogsList() {
 		</AdminSubPage>
 	);
 }
+
+/** 같은 묶음(다시 시도)의 기록을 붙여 놓는다. 묶음 자리는 가장 최근 시도가 있던 자리, 묶음 안은 최신순 그대로 */
+function groupAttempts(items: Row[]) {
+	const placed = new Set<number>();
+	const out: Row[] = [];
+	for (const item of items) {
+		const chain = item.attempt && item.attempt.total > 1 ? item.attempt.chain : null;
+		if (chain === null) {
+			out.push(item);
+			continue;
+		}
+		if (placed.has(chain)) continue;
+		placed.add(chain);
+		out.push(...items.filter((other) => other.attempt?.chain === chain));
+	}
+	return out;
+}
+
+/** 결과 칸: 성공 · 실패 배지, 다시 시도 묶음이면 옆에 '시도 n/total' (묶음 결과는 붙어 있는 맨 위 줄에서 보인다) */
+function Result({ log }: { log: Row }) {
+	const attempt = log.attempt;
+	return (
+		<Badges>
+			<StatusBadge tone={toneOf(log.status)}>{log.status === 'success' ? '성공' : '실패'}</StatusBadge>
+			{attempt && attempt.total > 1 && (
+				<span className="step">
+					시도 {attempt.n}/{attempt.total}
+				</span>
+			)}
+		</Badges>
+	);
+}
+
+/** 줄 수만큼 접힌 글을 펼치고 접는다: 높이를 재서 움직이고, 다 접힌 뒤에만 말줄임('…')을 붙인다 */
+function useExpand(open: boolean) {
+	const ref = useRef<HTMLSpanElement>(null);
+	const [clamped, setClamped] = useState(!open);
+	const mounted = useRef(false);
+	useLayoutEffect(() => {
+		const el = ref.current;
+		if (!el) return;
+		if (!mounted.current) {
+			mounted.current = true;
+			return;
+		}
+		const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+		if (open) {
+			setClamped(false);
+			if (still) {
+				el.style.maxHeight = 'none';
+				return;
+			}
+			// 말줄임을 걷은 다음 프레임에 전체 높이를 재서 그만큼 늘린다
+			requestAnimationFrame(() => {
+				el.style.maxHeight = `${el.scrollHeight}px`;
+			});
+		} else {
+			if (still) {
+				el.style.maxHeight = '';
+				setClamped(true);
+				return;
+			}
+			// 지금 높이에서 시작해 접힌 높이(CSS)로 줄인다
+			el.style.maxHeight = `${el.scrollHeight}px`;
+			void el.offsetHeight;
+			el.style.maxHeight = '';
+		}
+	}, [open]);
+	const onTransitionEnd = (event: React.TransitionEvent) => {
+		if (event.propertyName !== 'max-height' || !ref.current) return;
+		if (open) ref.current.style.maxHeight = 'none';
+		else setClamped(true);
+	};
+	return { ref, clamped, onTransitionEnd };
+}
+
+/**
+ * 휴대폰 활동 목록 한 줄: 왼쪽 상태 점(성공 · 실패), 분야 · 종류와 시각, 내용 두 줄, 결과 · 걸린 시간 · 비용.
+ * 누르면 내용 전체와 모델 · 토큰. 같은 묶음의 앞선 시도(earlier)는 점을 세로선으로 이어 타임라인처럼
+ */
+function LogEntry({
+	log,
+	today,
+	earlier,
+	open,
+	onToggle,
+}: {
+	log: Row;
+	today: string;
+	earlier: boolean;
+	open: boolean;
+	onToggle: () => void;
+}) {
+	const ok = log.status === 'success';
+	const attempt = log.attempt && log.attempt.total > 1 ? log.attempt : null;
+	const text = useExpand(open);
+	const model = log.model
+		?.split(',')
+		.map((name) => name.trim().replace(/^claude-/, ''))
+		.join(', ');
+	const tokens =
+		log.inputTokens || log.outputTokens
+			? `${log.inputTokens.toLocaleString()} / ${log.outputTokens.toLocaleString()}`
+			: log.token
+				? log.token.toLocaleString()
+				: null;
+	return (
+		<li className={[earlier && 'earlier', ok ? 'ok' : 'failed'].filter(Boolean).join(' ')}>
+			<span className="dot" aria-hidden />
+			<button type="button" className="entry" aria-expanded={open} onClick={onToggle}>
+				<span className="line">
+					<span className="what">
+						{log.category && <strong>{log.category}</strong>}
+						{PROCESS_LABEL[log.processType] ?? log.processType}
+					</span>
+					<time className="when">{when(log.createdAt, today)}</time>
+				</span>
+				<span ref={text.ref} className={text.clamped ? 'text clamped' : 'text'} onTransitionEnd={text.onTransitionEnd}>
+					{log.error ?? log.result ?? ''}
+				</span>
+				<span className="foot">
+					<span className="status">
+						{ok ? '성공' : '실패'}
+						{attempt && ` · 시도 ${attempt.n}/${attempt.total}`}
+					</span>
+					<span>{log.duration.toFixed(1)}초</span>
+					{log.costUsd != null && <span>{usd(log.costUsd)}</span>}
+				</span>
+				{(model || tokens) && (
+					<span className={open ? 'more-panel open' : 'more-panel'} aria-hidden={!open}>
+						<span className="more">
+							{model && <span>모델 {model}</span>}
+							{tokens && <span>토큰 {tokens}</span>}
+						</span>
+					</span>
+				)}
+			</button>
+		</li>
+	);
+}
+
+/** 휴대폰 폭에서만 보이는 활동 목록 (표 대신): 묶음마다 구분선, 묶음 안은 상태 점을 세로선으로 잇는다 */
+const CardList = styled.ul`
+	display: none;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	border-top: 2px solid ${({ theme }) => theme.color.text};
+
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
+		display: block;
+	}
+
+	> li {
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+	}
+
+	.timeline {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		> li {
+			position: relative;
+			display: grid;
+			grid-template-columns: 1.25rem minmax(0, 1fr);
+			column-gap: 0.5rem;
+			padding: 1rem 0;
+		}
+
+		> li.earlier {
+			padding-top: 0.25rem;
+		}
+
+		> li.earlier:not(:last-child)::after {
+			top: 1.45rem;
+		}
+
+		/* 다음 시도로 이어지는 세로선: 이 점 바로 아래에서 다음 점 바로 위까지 (점과 겹치지 않게) */
+		> li:not(:last-child)::after {
+			content: '';
+			position: absolute;
+			top: 2.2rem;
+			bottom: -0.5rem;
+			left: calc(0.625rem - 0.5px);
+			border-left: 1px solid ${({ theme }) => theme.color.border};
+		}
+	}
+
+	.dot {
+		width: 0.625rem;
+		height: 0.625rem;
+		margin: 0.4rem auto 0;
+		border-radius: 50%;
+		background: ${({ theme }) => theme.color.primary};
+	}
+
+	.failed .dot {
+		background: ${({ theme }) => theme.color.error};
+	}
+
+	.entry {
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		min-width: 0;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		font: inherit;
+		text-align: left;
+		color: inherit;
+		background: none;
+		cursor: pointer;
+	}
+
+	.line {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.75rem;
+	}
+
+	.what {
+		display: inline-flex;
+		align-items: baseline;
+		gap: 0.375rem;
+		font-size: ${({ theme }) => theme.fontSize.small};
+		color: ${({ theme }) => theme.color.subText};
+
+		strong {
+			font-size: ${({ theme }) => theme.fontSize.medium};
+			font-weight: ${({ theme }) => theme.fontWeight.bold};
+			color: ${({ theme }) => theme.color.text};
+		}
+	}
+
+	.when {
+		flex-shrink: 0;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		font-variant-numeric: tabular-nums;
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	/* 내용: 접힌 높이 = 줄 수 × 줄 높이. 펼치기 · 접기는 자주 묻는 질문 아코디언과 같은 움직임 */
+	.text {
+		--lines: 2;
+		display: block;
+		overflow: hidden;
+		max-height: calc(1.6em * var(--lines));
+		font-size: ${({ theme }) => theme.fontSize.small};
+		line-height: 1.6;
+		color: ${({ theme }) => theme.color.text};
+		word-break: keep-all;
+		transition: max-height 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+
+		&.clamped {
+			display: -webkit-box;
+			-webkit-box-orient: vertical;
+			-webkit-line-clamp: var(--lines);
+		}
+	}
+
+	/* 모델 · 토큰: 높이가 열리며 살짝 내려와 나타난다 */
+	.more-panel {
+		display: grid;
+		grid-template-rows: 0fr;
+		transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+
+		> .more {
+			min-height: 0;
+			overflow: hidden;
+			opacity: 0;
+			transform: translateY(-0.25rem);
+			transition:
+				opacity 0.4s ease 0.1s,
+				transform 0.4s ease 0.1s;
+		}
+
+		&.open {
+			grid-template-rows: 1fr;
+
+			> .more {
+				opacity: 1;
+				transform: none;
+			}
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.text,
+		.more-panel,
+		.more-panel > .more {
+			transition: none;
+		}
+	}
+
+	.foot,
+	.more {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.75rem;
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		font-variant-numeric: tabular-nums;
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	.status {
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.primary};
+	}
+
+	.failed .status {
+		color: ${({ theme }) => theme.color.error};
+	}
+
+	/* 앞선 시도: 한 단계 옅게 */
+	.earlier .what strong {
+		font-size: ${({ theme }) => theme.fontSize.small};
+	}
+
+	.earlier .text {
+		--lines: 1;
+		color: ${({ theme }) => theme.color.subText};
+	}
+`;
+
+const Badges = styled.span`
+	display: inline-flex;
+	align-items: center;
+	gap: 0.375rem;
+	white-space: nowrap;
+
+	.step {
+		font-size: ${({ theme }) => theme.fontSize.extraSmall};
+		font-variant-numeric: tabular-nums;
+		color: ${({ theme }) => theme.color.subText};
+	}
+`;
+
+/** 스레드: 묶음 안 줄은 구분선 없이 이어 쓰고, 앞선 시도(reply)는 들여 써서 연결선(└)으로 잇는다. 내용은 두 줄까지 */
+const Chains = styled.div`
+	/* 휴대폰 폭에서는 표 대신 카드 목록 */
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
+		display: none;
+	}
+
+	/* 고정 칸이 많아 내용 칸이 좁아지지 않게: 본문 폭(64rem)보다 좁은 화면에서는 표 안에서 가로 스크롤 */
+	table.wide {
+		min-width: 64rem;
+	}
+
+	/* 모델이 여럿이면 한 줄에 하나씩, 이름 중간에서 끊지 않는다 */
+	td.model .name {
+		display: block;
+		white-space: nowrap;
+	}
+
+	tr.continues > td {
+		border-bottom-color: transparent;
+	}
+
+	tr.reply > td {
+		padding-top: 0.25rem;
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	tr.reply > td:first-child {
+		padding-left: 1.5rem;
+	}
+
+	/* 위 줄에서 내려와 꺾이는 선 */
+	tr.reply > td:first-child::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0.5rem;
+		width: 0.625rem;
+		height: 1.1rem;
+		border-left: 1px solid ${({ theme }) => theme.color.border};
+		border-bottom: 1px solid ${({ theme }) => theme.color.border};
+		border-bottom-left-radius: 0.25rem;
+	}
+
+	/* 아래에 답글이 더 있으면 세로선을 이어 내린다 */
+	tr.reply.continues > td:first-child::after {
+		content: '';
+		position: absolute;
+		top: 1.1rem;
+		bottom: 0;
+		left: 0.5rem;
+		border-left: 1px solid ${({ theme }) => theme.color.border};
+	}
+
+	/* 묶음 첫 줄 아래로 첫 답글까지 선을 잇는다 */
+	tr.chain.continues:not(.reply) > td:first-child::after {
+		content: '';
+		position: absolute;
+		top: 2.25rem;
+		bottom: 0;
+		left: 0.5rem;
+		border-left: 1px solid ${({ theme }) => theme.color.border};
+	}
+
+	/* 앞 세 칸 고정: 가로로 넘기면 나머지 칸이 그 뒤로 지나간다. 경계는 실선 */
+	th:nth-child(-n + 3),
+	td:nth-child(-n + 3) {
+		position: sticky;
+		z-index: 1;
+		background: ${({ theme }) => theme.color.background};
+	}
+
+	th:nth-child(1),
+	td:nth-child(1) {
+		left: 0;
+	}
+
+	th:nth-child(2),
+	td:nth-child(2) {
+		left: ${PINNED[0]};
+	}
+
+	th:nth-child(3),
+	td:nth-child(3) {
+		left: calc(${PINNED[0]} + ${PINNED[1]});
+		box-shadow: inset -1px 0 0 ${({ theme }) => theme.color.border};
+	}
+
+	/* 고정 칸 경계선 바로 옆 칸은 선에서 띄운다 */
+	th:nth-child(4),
+	td:nth-child(4) {
+		padding-left: 1rem;
+	}
+
+	/* 머리글의 거르기 메뉴가 고정 칸 아래 줄들 위로 펼쳐지게 */
+	th:nth-child(-n + 3) {
+		z-index: 2;
+	}
+
+	td.content .text {
+		display: -webkit-box;
+		overflow: hidden;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 2;
+		margin: 0;
+		padding: 0;
+		border: 0;
+		font: inherit;
+		color: inherit;
+		text-align: left;
+		background: none;
+		cursor: pointer;
+
+		&.open {
+			display: block;
+			-webkit-line-clamp: unset;
+		}
+	}
+`;
