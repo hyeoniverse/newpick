@@ -1,3 +1,4 @@
+import { UsageError } from './pricing';
 import {
   clean,
   keywords,
@@ -562,6 +563,67 @@ describe('NewsletterWriterService.write', () => {
     expect(claude.generate).toHaveBeenCalledTimes(1);
   });
 
+  it('쓰기에서 실패해도 끝난 고르기와 끊긴 쓰기의 사용량을 실어 던진다', async () => {
+    const claude = claudeWith([2]);
+    claude.generate.mockReset();
+    claude.generate
+      .mockResolvedValueOnce({
+        text: JSON.stringify({
+          scores: [2].map((n) => ({
+            n,
+            impact: 5,
+            novelty: 5,
+            relevance: 5,
+            followup: 5,
+            excluded: false,
+            reason: '',
+          })),
+        }),
+        usage: usage(CLAUDE_FAST_MODEL),
+      })
+      .mockRejectedValueOnce(
+        new UsageError('Request timed out.', [
+          {
+            model: 'claude-sonnet-5-5',
+            input: 5000,
+            output: 300,
+            partial: true,
+          },
+        ]),
+      );
+    const error = await new NewsletterWriterService(
+      claude as never,
+      noOpen as never,
+    )
+      .write(articles, '경제')
+      .catch((e) => e);
+    expect(error).toBeInstanceOf(UsageError);
+    expect(error.message).toBe('Request timed out.');
+    expect(error.usage).toEqual([
+      { ...usage(CLAUDE_FAST_MODEL), stage: 'select' },
+      {
+        model: 'claude-sonnet-5-5',
+        input: 5000,
+        output: 300,
+        partial: true,
+        stage: 'write',
+      },
+    ]);
+  });
+
+  it('고른 소식이 없어 실패해도 고르기 사용량은 싣는다', async () => {
+    const error = await new NewsletterWriterService(
+      claudeWith([]) as never,
+      noOpen as never,
+    )
+      .write(articles)
+      .catch((e) => e);
+    expect(error).toBeInstanceOf(UsageError);
+    expect(error.usage).toEqual([
+      { ...usage(CLAUDE_FAST_MODEL), stage: 'select' },
+    ]);
+  });
+
   it('묶음이 하나뿐이면 고르기를 건너뛴다', async () => {
     const claude = {
       generate: jest.fn().mockResolvedValue({
@@ -709,5 +771,56 @@ describe('파이프라인', () => {
     expect(saveEmbeddings).toHaveBeenCalledWith([
       { link: 'l2', embedding: [0.1, 0.2] },
     ]);
+  });
+
+  it('요약이 실패해도 그때까지 쓴 토큰 · 비용을 실패 기록에 남긴다', async () => {
+    const create = jest.fn();
+    const write = jest.fn().mockRejectedValue(
+      new UsageError('Request timed out.', [
+        {
+          model: 'claude-haiku-5-5',
+          input: 1000,
+          output: 100,
+          stage: 'select',
+        },
+        {
+          model: 'claude-sonnet-5-5',
+          input: 5000,
+          output: 300,
+          stage: 'write',
+          partial: true,
+        },
+      ]),
+    );
+    const service = new AiSummaryService(
+      {
+        aiProcessLog: { create },
+        newsCategory: {
+          findUnique: jest.fn().mockResolvedValue({ name: 'IT' }),
+        },
+        newsletter: { findMany: jest.fn().mockResolvedValue([]) },
+      } as never,
+      {} as never,
+      {} as never,
+      { write } as never,
+      {} as never,
+      { recentTags: jest.fn().mockResolvedValue([]) } as never,
+      {} as never,
+    );
+
+    await expect(
+      service.summarizeText(news as never, 1, false),
+    ).rejects.toThrow('Summarization failed.');
+    const { data } = create.mock.calls[0][0];
+    expect(data).toMatchObject({
+      status: 'error',
+      error: 'Request timed out.',
+      token: 6400,
+      inputTokens: 6000,
+      outputTokens: 400,
+      model: 'claude-haiku-5-5, claude-sonnet-5-5',
+    });
+    expect(data.costUsd).toBeGreaterThan(0);
+    expect(data.calls[1]).toMatchObject({ stage: 'write', partial: true });
   });
 });
