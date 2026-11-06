@@ -3,7 +3,12 @@ import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AiService, AiUnavailable } from '../ai/ai.service';
 import { AppException } from '../common/errors/app.exception';
 import { kstDayRange, kstDaysAgo } from '../common/kst';
-import { parseNewsletterHtml, ParsedStory, storyText } from '../edition/parse';
+import {
+  ParsedNewsletter,
+  parseNewsletterHtml,
+  ParsedStory,
+  storyText,
+} from '../edition/parse';
 import {
   acceptedFrom,
   candidatesFor,
@@ -27,6 +32,12 @@ const textOf = (story: ParsedStory) =>
   ]
     .filter(Boolean)
     .join('\n');
+
+/** 화면의 소식 순서: 아침 속보 다음 본문 소식 (후속 지켜보기 소식 번호의 기준) */
+const allStories = (parsed: ParsedNewsletter) => [
+  ...parsed.morning,
+  ...parsed.stories,
+];
 
 const asVector = (value: unknown) =>
   Array.isArray(value) && value.every((v) => typeof v === 'number')
@@ -53,7 +64,8 @@ export class FollowsService {
       select: { contentAsHTML: true },
     });
     if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
-    const story = parseNewsletterHtml(newsletter.contentAsHTML).stories[
+    // 화면의 소식 순서 = 아침 속보 다음 본문 소식
+    const story = allStories(parseNewsletterHtml(newsletter.contentAsHTML))[
       storyIndex - 1
     ];
     if (!story) throw new AppException('NOT_FOUND', '그 소식이 없습니다.');
@@ -185,7 +197,7 @@ export class FollowsService {
       },
     });
     const fresh = newsletters.flatMap((n) =>
-      parseNewsletterHtml(n.contentAsHTML).stories.map((story, i) => ({
+      allStories(parseNewsletterHtml(n.contentAsHTML)).map((story, i) => ({
         newsletterId: n.id,
         storyIndex: i + 1,
         category: n.category.name,

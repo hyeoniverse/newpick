@@ -152,6 +152,15 @@ export function renderEditionMail(
       edition.briefing
         ? `<div style="margin:0 0 22px;padding:14px 16px;background:${C.tint};border-radius:8px;"><p style="margin:0 0 6px;font-size:12px;font-weight:700;color:${C.primary};">오늘의 맞춤 브리핑</p><p style="margin:0;font-size:14px;line-height:1.7;color:${C.text};">${esc(edition.briefing)}</p></div>`
         : '',
+      // 오늘 아침 속보 (05시 이후 보도): 날짜 줄 바로 아래, 분야 꼬리표 · 제목(뉴스레터 링크) · 한두 문장
+      edition.morning?.length
+        ? `<div style="margin:0 0 22px;padding:14px 16px;background:${C.tint};border-radius:8px;"><p style="margin:0 0 8px;font-size:12px;font-weight:700;color:${C.primary};">오늘 아침 속보</p>${edition.morning
+            .map(
+              (m, i) =>
+                `<div style="${i ? 'margin-top:12px;' : ''}">${tag(m.category)}<a href="${esc(`${base}/articles/detail/${m.newsletterId}?${utm}`)}" target="_blank" rel="noopener noreferrer" style="font-size:15px;font-weight:800;color:${C.text};text-decoration:none;">${esc(m.heading)}</a><p style="margin:4px 0 0;font-size:14px;line-height:1.7;color:${C.text};">${esc(m.line)}</p></div>`,
+            )
+            .join('')}</div>`
+        : '',
       heading('오늘을 한눈에'),
       edition.top
         .map(

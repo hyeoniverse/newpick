@@ -57,6 +57,8 @@ export class AiSummaryService {
     news: CrawledNews[],
     categoryId: number,
     test: boolean,
+    /** 이 시각 이후 보도는 '오늘 아침 속보'로 따로 (스케줄러가 오늘 05:00 KST를 준다) */
+    morningSince?: Date,
   ): Promise<{
     summary: string;
     categoryId: number;
@@ -92,8 +94,9 @@ export class AiSummaryService {
         // 같은 주제면 이미 쓰는 태그를 다시 쓰게 (#20 태그 정돈)
         existingTags: await this.tagsService.recentTags(),
         recentTopics,
+        morningSince,
       });
-      const { title, subtitle, summary, stories } = written;
+      const { title, subtitle, summary, stories, morning = [] } = written;
       // 같은 사건 묶기로 계산한 임베딩을 남긴다 (추천 기사에서 다시 계산하지 않게). 실패해도 뉴스레터는 계속
       if (!test && embeddings.length)
         await this.crawlingRepository
@@ -109,10 +112,11 @@ export class AiSummaryService {
       // 저장 전에 합치기 · 지우기 규칙과 기존 표기로 맞춘다 (띄어쓰기 · 대소문자만 다른 태그가 갈라지지 않게)
       const keywords = await this.tagsService.canonicalize(written.keywords);
 
-      const used = usedArticles(
-        news,
-        stories.flatMap((s) => s.sources),
-      );
+      // 아침 속보에 쓴 기사도 '쓴 기사'로 남겨 다음 뉴스레터에 다시 실리지 않게
+      const used = usedArticles(news, [
+        ...stories.flatMap((s) => s.sources),
+        ...morning.flatMap((m) => m.sources),
+      ]);
       const newslinks = used.map((item) => item.link).toString();
       const imageUrl = used.map((item) => item.images).toString();
       // 상세 화면 맨 위 대표 이미지와 같은 사진은 소식에 다시 쓰지 않는다 (#49)
@@ -127,7 +131,7 @@ export class AiSummaryService {
         news,
       );
       this.logger.debug(
-        `뉴스레터 작성 완료: 소식 ${stories.length}개, 기사 ${news.length}건 중 ${used.length}건 사용`,
+        `뉴스레터 작성 완료: 소식 ${stories.length}개, 아침 속보 ${morning.length}개, 기사 ${news.length}건 중 ${used.length}건 사용`,
       );
 
       await this.prisma.aiProcessLog.create({
