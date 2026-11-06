@@ -123,6 +123,46 @@ describe('FollowsService', () => {
     });
   });
 
+  it('메일에 실을 후속: 사람마다 최근 것부터 최대 개수까지, since 이후만', async () => {
+    const { prisma, service } = setup();
+    const row = (userId: number, heading: string) => ({
+      heading,
+      reason: '이어짐',
+      newsletterId: 69,
+      follow: { userId, heading: '룰라 4선', newsletterId: 63 },
+      newsletter: { category: { name: '세계' } },
+    });
+    (
+      prisma as never as { followUpdate: { findMany: jest.Mock } }
+    ).followUpdate.findMany = jest
+      .fn()
+      .mockResolvedValue([
+        ...Array.from({ length: FOLLOW_LIMITS.mail + 2 }, (_, i) =>
+          row(7, `후속 ${i}`),
+        ),
+        row(8, '다른 사람 후속'),
+      ]);
+    const since = new Date('2026-10-26T21:00:00Z');
+    const result = await service.forMail([7, 8], since);
+    expect(result.get(7)).toHaveLength(FOLLOW_LIMITS.mail);
+    expect(result.get(7)![0]).toEqual({
+      followed: '룰라 4선',
+      followedNewsletterId: 63,
+      heading: '후속 0',
+      reason: '이어짐',
+      newsletterId: 69,
+      category: '세계',
+    });
+    expect(result.get(8)!.map((f) => f.heading)).toEqual(['다른 사람 후속']);
+    const { where } = (
+      prisma as never as { followUpdate: { findMany: jest.Mock } }
+    ).followUpdate.findMany.mock.calls[0][0];
+    expect(where).toEqual({
+      createdAt: { gte: since },
+      follow: { userId: { in: [7, 8] } },
+    });
+  });
+
   it("지켜보기: '관전 포인트'가 있으면 판정 글 맨 앞에 둔다", async () => {
     const { prisma, service } = setup();
     prisma.newsletter.findUnique.mockResolvedValue({

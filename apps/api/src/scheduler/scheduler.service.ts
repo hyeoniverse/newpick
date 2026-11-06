@@ -534,6 +534,22 @@ export class SchedulerService implements OnApplicationBootstrap {
     for (const [userId, articles] of recommended)
       plans.set(userId, { ...(plans.get(userId) ?? { picks: [] }), articles });
 
+    // 지켜보던 소식의 후속 (메일 맨 위): 직접 고른 지켜보기라 맞춤을 꺼도 싣는다. 지난 메일 이후(24시간)에 생긴 것.
+    // 읽기에 실패하면 후속 칸 없이 보낸다
+    const followUps = await this.followsService
+      .forMail(
+        validSubscribers
+          .map((s) => s.userId)
+          .filter((id): id is number => typeof id === 'number'),
+        new Date(Date.now() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000),
+      )
+      .catch((error) => {
+        this.logger.warn(`후속 읽기 실패, 후속 칸 없이 보냄: ${error.message}`);
+        return new Map();
+      });
+    for (const [userId, follows] of followUps)
+      plans.set(userId, { ...(plans.get(userId) ?? { picks: [] }), follows });
+
     const result = await this.mailService.sendBulkMail(
       validSubscribers.map((subscriber) => ({
         email: subscriber.email,

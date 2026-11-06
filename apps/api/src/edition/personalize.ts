@@ -39,6 +39,22 @@ export type MailPlan = {
   note?: PersonalNote | null;
   /** 뉴스레터에 쓰지 않은 오늘 기사 중 관심과 가까운 원문 (recommend) */
   articles?: ArticlePick[];
+  /** 지켜보던 소식의 후속 (지난 메일 이후 새로 이어진 것, FollowsService.forMail) */
+  follows?: MailFollow[];
+};
+
+/** 메일에 싣는 후속 하나 */
+export type MailFollow = {
+  /** 지켜보던 소식 제목 */
+  followed: string;
+  /** 지켜보던 소식이 실린 뉴스레터 (원문 링크) */
+  followedNewsletterId: number;
+  /** 이어진 새 소식 제목 */
+  heading: string;
+  /** 어떻게 이어지는지 한 줄 (없으면 빈 문자열) */
+  reason: string;
+  newsletterId: number;
+  category: string;
 };
 
 export const PERSONAL_LIMITS = {
