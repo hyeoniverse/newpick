@@ -7,16 +7,16 @@ import { useScrollProgress } from '@/hooks/useScrollProgress';
 /** 맞춤 메일이 사람마다 달라지는 세 가지 (edition/personalize.ts · personalNote.ts · 메일 칸) */
 const POINTS = [
 	{
-		title: '내 관심 점수로 고른 순서',
-		text: '그날 모든 분야의 소식에 북마크 · 스크랩한 글과 얼마나 가까운지 점수를 매겨 높은 순으로 엮습니다. 구독한 분야의 큰 소식은 늘 챙깁니다.',
+		title: '관심 있는 소식부터',
+		text: '북마크 · 스크랩한 글과 가까운 소식일수록 앞에 배치됩니다. 구독한 분야의 주요 소식은 빠짐없이 전해드립니다.',
 	},
 	{
-		title: '나에게 쓴 브리핑',
-		text: '요즘 북마크 · 스크랩한 주제를 바탕으로 메일 제목과 짧은 브리핑을 사람마다 따로 씁니다.',
+		title: '나를 위한 브리핑',
+		text: '최근 북마크 · 스크랩한 주제를 바탕으로 메일 제목과 짧은 브리핑을 따로 작성합니다.',
 	},
 	{
-		title: '내가 고른 칸',
-		text: '지켜보던 소식의 후속, 팔로우한 태그의 소식, 뉴스레터에 안 실린 관련 기사까지 한 통에 담습니다.',
+		title: '놓치기 쉬운 소식까지',
+		text: '지켜보는 소식의 후속, 팔로우한 태그의 새 소식, 뉴스레터에 실리지 않은 관련 기사까지 함께 담습니다.',
 	},
 ];
 
@@ -75,8 +75,8 @@ export default function PersonalSection() {
 		<StyledPersonal data-track-section="about-personal" aria-label="맞춤 뉴스레터">
 			<SectionHeading
 				label="PERSONAL"
-				title="같은 아침, 나에게 맞춘 한 통."
-				sub="관심사 · 북마크 · 스크랩 · 팔로우한 태그 · 지켜보는 소식을 읽어, 사람마다 다른 순서와 칸으로 엮습니다."
+				title="매일 같은 아침, 나만을 위한 뉴스레터."
+				sub="관심사와 북마크 · 스크랩, 팔로우한 태그와 지켜보는 소식을 바탕으로 나에게 맞는 소식을 골라 담습니다."
 			/>
 			<div ref={ref} className="body">
 				<ol className="points">
@@ -92,7 +92,9 @@ export default function PersonalSection() {
 					<MailDemo />
 				</div>
 			</div>
-			<p className="note">맞춤 메일은 마이페이지 설정에서 끄고 켤 수 있습니다. 끄면 분야별 뉴스레터로 옵니다.</p>
+			<p className="note">
+				맞춤 메일은 마이페이지 구독 설정에서 해제할 수 있습니다. 해제하면 공통 뉴스만 전해드립니다.
+			</p>
 		</StyledPersonal>
 	);
 }

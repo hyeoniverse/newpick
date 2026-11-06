@@ -14,6 +14,15 @@ interface Step {
 	alt?: string;
 	/** 원본 크기: 그림이 늦게 로드돼도 자리를 미리 잡아 줄이 밀리지 않게 (스크롤 진행도가 어긋나지 않는다) */
 	size?: [number, number];
+	/** 공개 화면과 마이페이지를 함께 보여 줄 때: 이름표를 단 사진 두 장을 따로 놓는다 (image 대신) */
+	pair?: Shot[];
+}
+
+interface Shot {
+	label: string;
+	image: string;
+	alt: string;
+	size: [number, number];
 }
 
 const STEPS: Step[] = [
@@ -35,38 +44,72 @@ const STEPS: Step[] = [
 		size: [1534, 756],
 		alt: '구독 설정이 완료되었다는 안내',
 	},
+	// 4~7: 같은 예시(기준금리 동결 → 예금금리 인하 → 연내 인하 신호)로 이어지는 화면
 	{
-		title: '뉴스레터 받기',
-		text: '매일 아침 8시 40분, 출근 길에 메일함을 열면 오늘 꼭 알아야 할 소식이 메일 한 통으로 정리돼 있어요. 지나간 소식은 마이페이지에서 언제든 다시 확인할 수 있어요.',
-		image: '/img/about_mail-user.jpg',
-		size: [1200, 1700],
-		alt: '메일로 받은 뉴스레터',
+		title: '북마크 · 스크랩',
+		text: '다시 보고 싶은 소식은 북마크하고, 중요한 문장은 드래그해 스크랩하거나 메모를 남겨요. 모두 마이페이지에 모이고, 스크랩은 폴더로 정리할 수 있어요.',
+		pair: [
+			{
+				label: '뉴스레터',
+				image: '/img/about_how-4-public.jpg',
+				size: [2240, 1048],
+				alt: '본문 문장을 골라 스크랩 · 메모 도구가 뜬 화면',
+			},
+			{
+				label: '마이페이지 스크랩',
+				image: '/img/about_how-4-mypage.jpg',
+				size: [2080, 1336],
+				alt: '마이페이지 스크랩에 소식별로 모인 문장 · 메모 · 폴더',
+			},
+		],
 	},
 	{
 		title: '후속 지켜보기',
-		text: "각 소식의 관전 포인트에서 '후속 지켜보기'를 활성화하면, 이어지는 새 소식이 나왔을 때 메일 상단에 알려드려요. 마이페이지에서 같은 내용을 확인하고 관리할 수 있어요.",
-		image: '/img/about_follow.jpg',
-		size: [2144, 354],
-		alt: "소식 끝의 관전 포인트와 '후속 지켜보기' 단추",
+		text: "각 소식의 관전 포인트에서 '후속 지켜보기'를 활성화하시면, 이어지는 새 소식을 메일로 알려드릴게요. 마이페이지에서 같은 내용을 확인하고 관리할 수 있어요.",
+		pair: [
+			{
+				label: '뉴스레터',
+				image: '/img/about_how-5-public.jpg',
+				size: [2240, 780],
+				alt: "관전 포인트 옆 '지켜보는 중' 단추",
+			},
+			{
+				label: '마이페이지 지켜보기',
+				image: '/img/about_how-5-mypage.jpg',
+				size: [2080, 870],
+				alt: '지켜보는 소식과 이어진 새 소식',
+			},
+		],
 	},
 	{
-		title: '스크랩 · 메모',
-		text: '읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남겨요. 스크랩은 마이페이지에 모이고, 폴더로 정리할 수 있어요.',
-		image: '/img/about_scrap-card.jpg',
-		size: [2048, 600],
-		alt: '마이페이지에 모인 스크랩한 문장',
+		title: '태그 팔로우',
+		text: '관심 있는 태그를 팔로우하면 메일로 그 태그의 새 소식을 따로 모아 보내드려요. 이 모든 소식들은 마이페이지에서 시간순으로 쌓여요.',
+		pair: [
+			{
+				label: '태그 목록',
+				image: '/img/about_how-6-public.jpg',
+				size: [2080, 978],
+				alt: '태그로 거른 뉴스레터 목록과 팔로우한 태그',
+			},
+			{
+				label: '마이페이지 지켜보기',
+				image: '/img/about_how-6-mypage.jpg',
+				size: [2080, 1144],
+				alt: '팔로우한 태그의 소식이 시간순으로 쌓인 카드',
+			},
+		],
 	},
 	{
-		title: '태그 팔로우 · 지켜보기',
-		text: "관심 있는 태그를 팔로우하면 메일로 그 태그의 새 소식을 따로 모아 보내드려요. 지켜보는 소식에 이어진 새 소식이 발견되면 메일로 알려드려요. 이 모든 소식들은 마이페이지 '지켜보기'에서 시간순으로 쌓여요.",
-		image: '/img/about_follows-tab.jpg',
-		size: [2048, 952],
-		alt: '마이페이지의 팔로우한 태그와 지켜보는 소식',
+		title: '맞춤형 뉴스레터 받기',
+		text: '매일 아침 8시 40분, 출근 길에 메일함을 열면 오늘 꼭 알아야 할 소식이 메일 한 통으로 정리돼 있어요. 북마크 · 스크랩, 지켜보는 소식, 팔로우한 태그를 엮어 맞춤 브리핑부터 후속 소식까지 나에게 맞춰 작성돼요. 지나간 소식은 마이페이지에서 언제든 다시 확인할 수 있어요.',
+		image: '/img/about_how-7-mail.jpg',
+		size: [1280, 2000],
+		alt: '맞춤 브리핑 · 지켜보던 소식의 후속 · 팔로우한 태그가 담긴 맞춤 메일',
 	},
 ];
 
-/** 앞 네 단계(시작)와 뒤 세 단계(읽은 뒤의 흐름) 사이에 두 번째 제목을 둔다 */
-const FIRST_PART = 4;
+/** 앞 세 단계(시작: 세 번의 클릭)와 뒤 네 단계(읽은 뒤의 흐름: 저장 → 후속 지켜보기 → 태그 팔로우 → 맞춤형 뉴스레터 받기) 사이에 두 번째 제목을 둔다 */
+const FIRST_PART = 3;
 
 /** 로그인 단계는 캡처가 없어 로그인 창 모양을 그린다 (장식) */
 function LoginMock() {
@@ -93,19 +136,36 @@ function StepRow({ step, index }: { step: Step; index: number }) {
 				<h3>{step.title}</h3>
 				<p>{step.text}</p>
 			</div>
-			<div className="shot">
-				{step.image ? (
-					<Img
-						src={step.image}
-						alt={step.alt ?? ''}
-						width={step.size?.[0] ?? 0}
-						height={step.size?.[1] ?? 0}
-						sizes="(max-width: 768px) 100vw, 60vw"
-					/>
-				) : (
-					<LoginMock />
-				)}
-			</div>
+			{step.pair ? (
+				<div className="shots">
+					{step.pair.map((shot) => (
+						<figure key={shot.image} className="shot">
+							<figcaption>{shot.label}</figcaption>
+							<Img
+								src={shot.image}
+								alt={shot.alt}
+								width={shot.size[0]}
+								height={shot.size[1]}
+								sizes="(max-width: 768px) 100vw, 60vw"
+							/>
+						</figure>
+					))}
+				</div>
+			) : (
+				<div className="shot">
+					{step.image ? (
+						<Img
+							src={step.image}
+							alt={step.alt ?? ''}
+							width={step.size?.[0] ?? 0}
+							height={step.size?.[1] ?? 0}
+							sizes="(max-width: 768px) 100vw, 60vw"
+						/>
+					) : (
+						<LoginMock />
+					)}
+				</div>
+			)}
 		</li>
 	);
 }
@@ -128,7 +188,7 @@ export default function HowToUseSection() {
 					<StepRow key={step.title} step={step} index={i} />
 				))}
 			</ol>
-			{/* 받은 뒤의 흐름: 뒤 세 단계 앞에 두 번째 제목 */}
+			{/* 받은 뒤의 흐름: 뒤 네 단계 앞에 두 번째 제목 */}
 			<div className="mid">
 				<h3 className="mid-title">유기적으로 이어지는 흐름.</h3>
 				<p className="mid-sub">
@@ -223,6 +283,22 @@ const StyledHowToUse = styled.section`
 				padding-right: 0;
 				padding-left: var(--gutter);
 			}
+
+			.shots {
+				order: 0;
+
+				.shot + .shot {
+					margin-left: 0;
+					margin-right: 12%;
+					border-right: 1px solid ${({ theme }) => theme.color.border};
+				}
+
+				@media ${({ theme }) => theme.mediaQuery.tablet} {
+					.shot + .shot {
+						margin: 0;
+					}
+				}
+			}
 		}
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
@@ -300,11 +376,47 @@ const StyledHowToUse = styled.section`
 			object-position: top;
 		}
 
+		figcaption {
+			padding: 0.5rem 1rem;
+			border-bottom: 1px solid ${({ theme }) => theme.color.border};
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.subText};
+			background: ${({ theme }) => theme.color.background};
+		}
+
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			border: 1px solid ${({ theme }) => theme.color.border};
 			border-radius: ${({ theme }) => theme.radius.surface};
 			opacity: 1;
 			transform: none;
+		}
+	}
+
+	/* 공개 화면 · 마이페이지 두 장: 따로 놓는다. 첫 장은 화면 끝에 붙고, 둘째 장은 안쪽으로 들여 엇갈리게 */
+	.shots {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+		order: -1;
+
+		.shot {
+			margin: 0;
+		}
+
+		.shot + .shot {
+			margin-left: 12%;
+			border-left: 1px solid ${({ theme }) => theme.color.border};
+			border-radius: ${({ theme }) => theme.radius.surface};
+		}
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			order: 0;
+			gap: 1rem;
+
+			.shot + .shot {
+				margin: 0;
+			}
 		}
 	}
 
