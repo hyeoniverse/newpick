@@ -538,9 +538,6 @@ export function limitMarks(
 /** 모델이 지시와 달리 붙인 글머리 기호를 걷어 냅니다 */
 const unbullet = (value: string) => plain(value).replace(/^[-•·*]\s*/, '');
 
-const list = (items: string[], max: number) =>
-  items.map(unbullet).filter(Boolean).slice(0, max);
-
 /** '#'·공백 정리, 너무 긴 것 버리기, 대소문자 무시 중복 제거, 최대 6개 */
 export const keywords = (items: string[]) => {
   const seen = new Set<string>();
