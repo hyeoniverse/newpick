@@ -447,7 +447,7 @@ export const writerPrompt = (
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     ...(morning.length
       ? [
-          `- morning: 오늘 아침 속보 ${Math.min(morning.length, LIMITS.morning.max)}개. 속보 기사(${articles.length + 1}번부터)마다 소식 하나, stories와 같은 항목으로 쓰되 template은 brief(body ${LIMITS.briefBody.min}~${LIMITS.briefBody.max}자, analysis 빈 문자열). 막 알려진 일이라 사실 위주로 쓰고, next(관전 포인트)는 이어질 발표 · 결과를 씁니다. 본문 기사로 쓴 사건은 넣지 않습니다.`,
+          `- morning: 오늘 아침 속보 ${Math.min(morning.length, LIMITS.morning.max)}개. 속보 기사(${articles.length + 1}번부터)마다 소식 하나, 짧은 속보 형식이라 kicker · heading · lead · body(${LIMITS.briefBody.min}~${LIMITS.briefBody.max}자) · next · tags · sources · imageQuery만 씁니다. 막 알려진 일이라 사실 위주로 쓰고, next(관전 포인트)는 이어질 발표 · 결과를 씁니다. 본문 기사로 쓴 사건은 넣지 않습니다.`,
         ]
       : ['- morning: 빈 배열로 둡니다.']),
     `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개 (소식 tags 중 중요한 것 포함), 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
@@ -524,6 +524,55 @@ const STORY_SCHEMA = {
   additionalProperties: false,
 };
 
+/**
+ * 아침 속보 하나: 정리 단계에서 brief로 고정되니 brief에 쓰는 칸만 받는다.
+ * 본문 소식과 같은 STORY_SCHEMA를 두 번 넣으면 구조화 출력 문법이 한도를 넘어 요청이 400으로 거절된다
+ * ('The compiled grammar is too large'). 빠진 칸은 normalize에서 빈 값으로 채운다
+ */
+const MORNING_STORY_SCHEMA = {
+  type: 'object',
+  properties: {
+    kicker: { type: 'string' },
+    heading: { type: 'string' },
+    lead: { type: 'string' },
+    body: { type: 'string' },
+    next: { type: 'string' },
+    tags: { type: 'array', items: { type: 'string' } },
+    sources: { type: 'array', items: { type: 'integer' } },
+    imageQuery: { type: 'string' },
+  },
+  required: [
+    'kicker',
+    'heading',
+    'lead',
+    'body',
+    'next',
+    'tags',
+    'sources',
+    'imageQuery',
+  ],
+  additionalProperties: false,
+};
+
+/** 아침 속보 응답(brief 칸만)을 소식 모양으로: 쓰지 않는 칸은 빈 값 */
+const asBrief = (s: Partial<Story>): Story => ({
+  template: 'brief',
+  kicker: s.kicker ?? '',
+  heading: s.heading ?? '',
+  lead: s.lead ?? '',
+  body: s.body ?? '',
+  analysis: '',
+  stats: [],
+  timeline: [],
+  qa: [],
+  quote: { text: '', by: '' },
+  debate: [],
+  next: s.next ?? '',
+  tags: s.tags ?? [],
+  sources: s.sources ?? [],
+  imageQuery: s.imageQuery ?? '',
+});
+
 export const WRITER_SCHEMA = {
   type: 'object',
   properties: {
@@ -532,7 +581,7 @@ export const WRITER_SCHEMA = {
     summary: { type: 'string' },
     briefing: { type: 'string' },
     stories: { type: 'array', items: STORY_SCHEMA },
-    morning: { type: 'array', items: STORY_SCHEMA },
+    morning: { type: 'array', items: MORNING_STORY_SCHEMA },
     keywords: { type: 'array', items: { type: 'string' } },
   },
   required: [
@@ -732,7 +781,7 @@ export function normalize(
   const stories = normalizeStories(raw.stories, toOriginal, LIMITS.stories);
   // 아침 속보는 짧게: 템플릿은 brief로 고정
   const morning = normalizeStories(
-    raw.morning,
+    (raw.morning ?? []).map(asBrief),
     toOriginal,
     LIMITS.morning.max,
   ).map((s) => ({ ...s, template: 'brief' as const, analysis: '' }));
