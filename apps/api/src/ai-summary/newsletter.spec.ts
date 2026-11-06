@@ -270,7 +270,7 @@ describe('2단계: 쓰기', () => {
     expect(prompt).not.toContain('해요체');
   });
 
-  it('요약은 짧게, 소식은 리드·본문·핵심 사실·시사점, 끝에 관전 포인트', () => {
+  it('요약은 짧게, 소식은 리드·본문·핵심 사실·시사점, 소식마다 관전 포인트', () => {
     const prompt = writerPrompt(articles);
     expect(prompt).toContain(`2~3문장, ${LIMITS.summary}자 이내`);
     for (const key of [
@@ -280,7 +280,7 @@ describe('2단계: 쓰기', () => {
       'body',
       'template',
       'analysis',
-      'watch',
+      'next',
       'keywords',
     ]) {
       expect(prompt).toContain(`- ${key}:`);
@@ -299,13 +299,14 @@ describe('응답 정리', () => {
     expect(clean('"A" 그리고 "B"')).toBe('"A" 그리고 "B"');
   });
 
-  it('근거 번호를 원래 기사 번호로 바꾸고, 소식·사실·관전 포인트 개수를 제한한다', () => {
+  it('근거 번호를 원래 기사 번호로 바꾸고, 소식·사실 개수를 제한하며, 관전 포인트 모음은 소식에서 모은다', () => {
     const toOriginal = (n: number) => ({ 1: 5, 2: 8 })[n];
     const result = normalize(
       written({
         stories: Array.from({ length: 4 }, (_, i) => ({
           ...written().stories[0],
           heading: `소식 ${i}`,
+          next: i % 2 ? `소식 ${i}의 관전 포인트` : '',
           template: 'numbers' as const,
           stats: [
             { label: '- 코스피', value: '5,469.47', note: '-1.46%' },
@@ -326,7 +327,8 @@ describe('응답 정리', () => {
     // 글머리는 걷어 내고, 값이 빈 줄은 버리고, 지표는 최대 4개
     expect(result.stories[0].stats).toHaveLength(4);
     expect(result.stories[0].stats[0].label).toBe('코스피');
-    expect(result.watch).toHaveLength(3);
+    // 모델이 준 watch는 쓰지 않고, 남은 소식 3개 중 관전 포인트가 있는 것만
+    expect(result.watch).toEqual(['소식 1의 관전 포인트']);
   });
 
   it('키워드: # 제거, 너무 긴 것 버리기, 대소문자 무시 중복 제거, 최대 6개 (#50)', () => {

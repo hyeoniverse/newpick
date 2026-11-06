@@ -6,6 +6,7 @@ import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import OpenGraphCard from '@/components/common/article/OpenGraphCard';
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
+import { linkDebateSources } from '@/utils/debateSources';
 import HighlightLayer from './HighlightLayer';
 import FollowLayer from './FollowLayer';
 
@@ -29,7 +30,11 @@ function ArticleContent({ content, flex, className, articleImage, newsId, relate
 			)}
 			<NewsletterContentStyled>
 				{/* 방문 통계 (#131): 본문의 브리핑 · 소식을 구역으로 센다 */}
-				<div ref={bodyRef} data-track-content dangerouslySetInnerHTML={{ __html: sanitizeHtml(content) }} />
+				<div
+					ref={bodyRef}
+					data-track-content
+					dangerouslySetInnerHTML={{ __html: sanitizeHtml(linkDebateSources(content)) }}
+				/>
 				{/* 스크랩 · 메모 (#123): 뉴스레터 상세에서만 (관리자 미리보기 등은 newsId 없음) */}
 				{newsId && <HighlightLayer newsletterId={newsId} rootRef={bodyRef} />}
 				{/* 후속 지켜보기: 소식마다 단추 */}
@@ -38,7 +43,6 @@ function ArticleContent({ content, flex, className, articleImage, newsId, relate
 			</NewsletterContentStyled>
 			{/* 본문을 다 읽은 자리에서 바로 구독 권유, 그 아래 출처(관련 뉴스) */}
 			<SubscribeInduce className="subscribe" />
-			<hr />
 			<OpenGraphCardContainer data-track-section="detail-sources">
 				<OpenGraphCard urls={related} />
 			</OpenGraphCardContainer>
@@ -52,13 +56,6 @@ const ContainerStyled = styled.div<Omit<NewsletterContentProps, 'content'>>`
 	flex-direction: column;
 	height: 100%;
 	max-width: 100%;
-
-	hr {
-		width: 100%;
-		margin: 2.5rem 0 0;
-		border: none;
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-	}
 `;
 
 const OpenGraphCardContainer = styled.div`
@@ -187,7 +184,7 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
-		/* 소식 머리줄: 번호 · 꼬리표, 오른쪽 끝에 후속 지켜보기 단추 (FollowLayer) */
+		/* 소식 머리줄: 번호 · 꼬리표 */
 		.kicker {
 			display: flex;
 			align-items: center;
@@ -201,12 +198,6 @@ const NewsletterContentStyled = styled.article`
 			.index {
 				margin: 0;
 				color: ${({ theme }) => theme.color.subText};
-			}
-
-			/* FollowLayer가 만드는 자리: 머리줄 오른쪽 끝 */
-			.follow-slot {
-				display: flex;
-				margin: 0 0 0 auto;
 			}
 		}
 
@@ -406,10 +397,20 @@ const NewsletterContentStyled = styled.article`
 				color: ${({ theme }) => theme.color.mediumGrey};
 			}
 
-			/* 그 주장이 실린 기사의 언론사 */
+			/* 그 주장이 실린 기사의 언론사: 출처 줄에 그 기사가 있으면 원문 링크 (utils/debateSources) */
 			.source {
 				font-size: ${({ theme }) => theme.fontSize.extraSmall};
 				color: ${({ theme }) => theme.color.subText};
+			}
+
+			a.source {
+				text-decoration: underline;
+				text-decoration-thickness: 1px;
+				text-underline-offset: 2px;
+
+				&:hover {
+					color: ${({ theme }) => theme.color.primary};
+				}
 			}
 		}
 
@@ -463,6 +464,54 @@ const NewsletterContentStyled = styled.article`
 			p:last-child {
 				margin-bottom: 0;
 			}
+		}
+
+		/* 관전 포인트: 소식 끝 한 줄, 오른쪽 끝에 후속 지켜보기 단추 (FollowLayer) */
+		.next {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			margin: 1.5rem 0 0;
+			padding: 0.75rem 0.75rem 0.75rem 1rem;
+			border-left: 3px solid ${({ theme }) => theme.color.primary};
+			background: ${({ theme }) => theme.color.tertiary};
+			font-size: ${({ theme }) => theme.fontSize.small};
+			line-height: 1.5;
+			color: ${({ theme }) => theme.color.text};
+
+			strong {
+				flex-shrink: 0;
+				margin: 0;
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			span {
+				margin: 0;
+				word-break: keep-all;
+			}
+
+			.follow-slot {
+				display: inline-flex;
+				flex-shrink: 0;
+				margin: 0 0 0 auto;
+			}
+
+			@media ${({ theme }) => theme.mediaQuery.mobile} {
+				flex-wrap: wrap;
+				gap: 0.375rem 0.75rem;
+
+				span {
+					flex-basis: 100%;
+				}
+			}
+		}
+
+		/* 예전 뉴스레터(소식별 관전 포인트 없음): 출처 위에 단추만 오른쪽 끝에 */
+		.follow-row {
+			display: flex;
+			justify-content: flex-end;
+			margin: 1.25rem 0 0;
 		}
 
 		.credit {

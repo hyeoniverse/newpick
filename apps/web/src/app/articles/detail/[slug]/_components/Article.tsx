@@ -74,12 +74,19 @@ function Article({ initial }: Props) {
   return (
     <>
       {/* 목록으로: 스크롤해도 따라온다. 헤더처럼 내릴 땐 화살표만 남기고 접고, 올릴 땐 펼친다.
-          제목을 지나 읽는 중이면 옆에 제목을 한 줄로 (본문 h1이 따로 있어 화면 읽기에서는 빼 둔다) */}
+          제목을 지나 읽는 중이면 옆에 제목을 한 줄로, 누르면 맨 위 제목으로 올라간다 */}
       <ArticleBackBar
         text="목록으로"
         onClick={() => router.push(`/articles?categoryId=${newsletterContent.categoryId}`)}
         title={newsletterContent.title}
         showTitle={titlePassed}
+        // 따라오는 제목을 누르면 맨 위 제목으로 (움직임 줄이기 설정이면 바로)
+        onTitleClick={() =>
+          window.scrollTo({
+            top: 0,
+            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+          })
+        }
       />
       <TitleSectionStyled data-track-section="detail-title">
         <div className="title-section">

@@ -15,9 +15,19 @@ import {
   NewStory,
 } from './detect';
 
-/** 판정 · 임베딩에 쓰는 소식 글 (제목 · 리드 · 본문 앞부분) */
+/**
+ * 판정 · 임베딩에 쓰는 소식 글 (제목 · 리드 · 본문 앞부분).
+ * '관전 포인트'가 있으면 앞에 둔다: 후속 판정이 독자가 기다리는 그 일을 기준으로 찾게
+ */
 const textOf = (story: ParsedStory) =>
-  [story.heading, story.lead, storyText(story, 600)].filter(Boolean).join('\n');
+  [
+    story.next && `관전 포인트: ${story.next}`,
+    story.heading,
+    story.lead,
+    storyText(story, 600),
+  ]
+    .filter(Boolean)
+    .join('\n');
 
 const asVector = (value: unknown) =>
   Array.isArray(value) && value.every((v) => typeof v === 'number')

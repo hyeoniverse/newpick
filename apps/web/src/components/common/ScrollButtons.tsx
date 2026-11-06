@@ -3,6 +3,7 @@
 import styled from 'styled-components';
 import { FaChevronUp, FaChevronDown } from 'react-icons/fa6';
 import { useCallback, useEffect, useState } from 'react';
+import { useFloatStore } from '@/stores/useFloatStore';
 
 /**
  * 바닥에 붙는 막대(예: 스크랩 고르기 막대)가 나타나면 위·아래 스크롤 버튼을 그 높이만큼 위로 올린다.
@@ -22,7 +23,10 @@ export function useLiftScrollButtons() {
 }
 
 function ScrollButtons() {
-	const [showButtons, setShowButtons] = useState(false);
+	const [scrolled, setScrolled] = useState(false);
+	// 휴대폰 아래 시트가 열려 있으면 잠깐 숨긴다
+	const sheetOpen = useFloatStore((s) => s.sheetOpen);
+	const showButtons = scrolled && !sheetOpen;
 
 	const handleScrollToTop = () => {
 		window.scrollTo({
@@ -47,7 +51,7 @@ function ScrollButtons() {
 			const scrollBottom = window.scrollY + window.innerHeight;
 			const isNearBottom = scrollBottom > footerTop;
 
-			setShowButtons(window.scrollY > 100 && !isNearBottom);
+			setScrolled(window.scrollY > 100 && !isNearBottom);
 		};
 
 		window.addEventListener('scroll', handleScroll);
@@ -101,7 +105,9 @@ const ScrollButton = styled.button`
 	border: 0.5px solid ${({ theme }) => theme.color.border};
 	opacity: 0;
 	transform: translateY(10px);
-	transition: opacity 0.3s ease, transform 0.3s ease;
+	transition:
+		opacity 0.3s ease,
+		transform 0.3s ease;
 
 	&:hover {
 		background: ${({ theme }) => theme.color.tertiary};
