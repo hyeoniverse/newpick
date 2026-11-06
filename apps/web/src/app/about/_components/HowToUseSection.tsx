@@ -44,26 +44,38 @@ const STEPS: Step[] = [
 		size: [1534, 756],
 		alt: '구독 설정이 완료되었다는 안내',
 	},
-	// 4~7: 같은 예시(기준금리 동결 → 예금금리 인하 → 연내 인하 신호)로 이어지는 화면
+	// 4~8: 같은 예시(기준금리 동결 → 예금금리 인하 → 연내 인하 신호)로 이어지는 화면
 	{
-		title: '북마크 · 스크랩',
-		text: '다시 보고 싶은 소식은 북마크하고, 중요한 문장은 드래그해 스크랩하거나 메모를 남겨요. 모두 마이페이지에 모이고, 스크랩은 폴더로 정리할 수 있어요.',
+		title: '북마크',
+		text: '다시 보고 싶은 뉴스레터는 북마크로 저장해요. 북마크한 뉴스레터는 마이페이지에 모이고, 폴더로 정리할 수 있어요.',
 		pair: [
 			{
 				label: '뉴스레터',
-				image: '/img/about_how-4-news.jpg',
-				size: [2240, 1500],
-				alt: '제목 옆 북마크를 켜고, 본문 문장을 골라 스크랩 · 메모 도구가 뜬 화면',
+				image: '/img/about_how-bookmark-news.jpg',
+				size: [2240, 600],
+				alt: '뉴스레터 제목 옆 북마크 단추가 켜진 화면',
 			},
 			{
 				label: '마이페이지 북마크',
-				image: '/img/about_how-4-bookmark.jpg',
+				image: '/img/about_how-bookmark-mypage.jpg',
 				size: [2080, 808],
 				alt: '마이페이지 북마크를 금리 폴더로 거른 화면',
 			},
+		],
+	},
+	{
+		title: '스크랩 · 메모',
+		text: '읽다가 중요한 문장은 드래그해 스크랩하거나 메모를 남겨요. 스크랩한 문장은 마이페이지에 차곡차곡 쌓이고, 폴더로 정리할 수 있어요.',
+		pair: [
+			{
+				label: '뉴스레터',
+				image: '/img/about_how-scrap-news.jpg',
+				size: [2240, 1048],
+				alt: '본문 문장을 골라 스크랩 · 메모 도구가 뜬 화면',
+			},
 			{
 				label: '마이페이지 스크랩',
-				image: '/img/about_how-4-mypage.jpg',
+				image: '/img/about_how-scrap-mypage.jpg',
 				size: [2080, 1336],
 				alt: '마이페이지 스크랩에 소식별로 모인 문장 · 메모 · 폴더',
 			},
@@ -114,7 +126,7 @@ const STEPS: Step[] = [
 	},
 ];
 
-/** 앞 세 단계(시작: 세 번의 클릭)와 뒤 네 단계(읽은 뒤의 흐름: 저장 → 후속 지켜보기 → 태그 팔로우 → 맞춤형 뉴스레터 받기) 사이에 두 번째 제목을 둔다 */
+/** 앞 세 단계(시작: 세 번의 클릭)와 뒤 다섯 단계(읽은 뒤의 흐름: 북마크 → 스크랩 · 메모 → 후속 지켜보기 → 태그 팔로우 → 맞춤형 뉴스레터 받기) 사이에 두 번째 제목을 둔다 */
 const FIRST_PART = 3;
 
 /** 로그인 단계는 캡처가 없어 로그인 창 모양을 그린다 (장식) */
@@ -194,7 +206,7 @@ export default function HowToUseSection() {
 					<StepRow key={step.title} step={step} index={i} />
 				))}
 			</ol>
-			{/* 받은 뒤의 흐름: 뒤 네 단계 앞에 두 번째 제목 */}
+			{/* 받은 뒤의 흐름: 뒤 다섯 단계 앞에 두 번째 제목 */}
 			<div className="mid">
 				<h3 className="mid-title">유기적으로 이어지는 흐름.</h3>
 				<p className="mid-sub">
