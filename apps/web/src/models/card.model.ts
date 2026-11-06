@@ -11,6 +11,9 @@ export interface Card {
 		points?: { kicker: string; heading: string }[];
 	};
 	footer?: string | React.ReactNode;
+	/** 휴대폰 목록 카드: 분야 옆 날짜, 아래 줄 오른쪽 단추(북마크) */
+	date?: string;
+	action?: React.ReactNode;
 	url?: string;
 	target?: string;
 }

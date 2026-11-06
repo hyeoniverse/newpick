@@ -231,10 +231,14 @@ export default function ListSection() {
 									description: article.subtitle || article.summary,
 									tags: article.keywords,
 								},
+								date: article.date,
+								action: <BookmarkIcon newsId={article.id} newsletterId={article.id} />,
 								footer: (
 									<>
 										<Text color="subText">{article.date}</Text>
-										<Text color="subText">|&nbsp;&nbsp;조회수 {article.views}</Text>
+										<Text color="subText" className="views">
+											조회수 {article.views}
+										</Text>
 										<div className="right">
 											<BookmarkIcon newsId={article.id} newsletterId={article.id} />
 										</div>

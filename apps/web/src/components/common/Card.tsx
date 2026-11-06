@@ -44,7 +44,7 @@ function CardLink({
 }
 
 const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data, newTab = false, highlight }, ref) => {
-	const { image, header, main, footer, url } = data;
+	const { image, header, main, footer, url, date, action } = data;
 
 	return (
 		<StyledCard ref={ref} className={className} $type={type}>
@@ -131,7 +131,7 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 				{type === 'list' && (
 					<>
 						{/* 제목 링크를 카드 전체로 늘려(::after) 어디를 눌러도 상세로. 태그 · 북마크는 그 위에 따로 눌린다 (#20) */}
-						<div className="card-stretch">
+						<div className="card-stretch wide">
 							<div className="card-main">
 								<div className="card-header">
 									{header && (
@@ -163,6 +163,38 @@ const Card = forwardRef<HTMLDivElement, Props>(({ type = 'sub', className, data,
 									</div>
 								</div>
 							</div>
+						</div>
+						{/* 휴대폰 카드: 분야 · 날짜 / 제목 · 설명 | 작은 썸네일 / 태그 · 북마크 */}
+						<div className="card-stretch narrow">
+							<div className="top">
+								{header && <span className="category">{header}</span>}
+								{date && <span className="date">{date}</span>}
+							</div>
+							<div className="row">
+								<div className="text">
+									{main.title && (
+										<CardLink href={url || '/not-found'} newTab={newTab} className="stretched-link">
+											<Text className="title" size="medium" weight="semiBold">
+												<Highlight text={main.title} query={highlight} />
+											</Text>
+										</CardLink>
+									)}
+									{main.description && (
+										<Text className="description" size="small">
+											<Highlight text={main.description} query={highlight} />
+										</Text>
+									)}
+								</div>
+								<div className="image-placeholder">
+									<Image src={image || `${DEFAULT_IMAGES.MONO}`} alt={main.title || 'card'} />
+								</div>
+							</div>
+							{(!!main.tags?.length || action) && (
+								<div className="bottom">
+									<Tags tags={main.tags} max={2} className="tags" linkable />
+									{action && <div className="action">{action}</div>}
+								</div>
+							)}
 						</div>
 					</>
 				)}
@@ -324,6 +356,12 @@ const StyledCard = styled.div<StyledProps>`
 			font-size: ${({ theme }) => theme.fontSize.small};
 			/* 좁은 화면(360px)에서 날짜 · 조회수가 '2026-10- / 27'처럼 끊기지 않게 (#17) */
 			white-space: nowrap;
+		}
+
+		/* 날짜 | 조회수 (휴대폰은 · ) */
+		.views::before {
+			content: '|';
+			margin-right: 0.5rem;
 		}
 
 		.rounded-icon-button {
@@ -672,6 +710,127 @@ const listCardStyles = css`
 			@media ${({ theme }) => theme.mediaQuery.mobile} {
 				height: auto;
 				-webkit-line-clamp: 2;
+			}
+		}
+	}
+
+	/* 휴대폰 카드(.narrow)는 휴대폰에서만, PC 카드(.wide)는 그 밖에서만 */
+	.narrow {
+		display: none;
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.card-body {
+			padding: 1rem 0;
+		}
+
+		.wide {
+			display: none;
+		}
+
+		.narrow {
+			display: flex;
+			flex-direction: column;
+			gap: 0.25rem;
+		}
+	}
+
+	/* 휴대폰 카드: 분야 · 날짜 / 제목 · 설명 | 작은 정사각 썸네일 / 태그 · 북마크 */
+	.narrow {
+		.top {
+			display: flex;
+			align-items: baseline;
+			gap: 0.5rem;
+			font-size: 0.75rem;
+		}
+
+		.category {
+			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		.date {
+			color: ${({ theme }) => theme.color.subText};
+		}
+
+		.row {
+			display: flex;
+			align-items: flex-start;
+			gap: 0.75rem;
+		}
+
+		.text {
+			flex: 1;
+			min-width: 0;
+		}
+
+		.title {
+			font-size: 0.9375rem;
+			line-height: 1.4;
+			-webkit-line-clamp: 2;
+		}
+
+		.description {
+			margin-top: 0.125rem;
+			font-size: 0.8125rem;
+			line-height: 1.5;
+			color: ${({ theme }) => theme.color.subText};
+		}
+
+		.image-placeholder {
+			flex: 0 0 4rem;
+			width: 4rem;
+			height: 4rem;
+			aspect-ratio: 1;
+			border-radius: ${({ theme }) => theme.radius.control};
+
+			> div,
+			img {
+				height: 100%;
+				aspect-ratio: auto;
+			}
+		}
+
+		/* 태그(글자만) | 북마크. 북마크의 누르는 칸(40px)은 1.5rem 줄 밖으로 넘친다 */
+		.bottom {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			gap: 0.5rem;
+			height: 1.5rem;
+			margin-top: 0.25rem;
+		}
+
+		.tags {
+			flex-wrap: nowrap;
+			gap: 0.5rem;
+			min-width: 0;
+			overflow: hidden;
+
+			li {
+				padding: 0;
+				border: none;
+				font-size: 0.75rem;
+			}
+		}
+
+		/* 북마크는 PC와 같은 24px, 누르는 칸은 44px(손가락 최소 크기). 아이콘 오른쪽 끝을 썸네일 끝에 맞춘다(단추 안쪽 여백만큼 밖으로) */
+		.action {
+			position: relative;
+			z-index: 1;
+			margin-left: auto;
+			margin-right: -0.625rem;
+			display: flex;
+			align-items: center;
+
+			button {
+				width: 2.75rem;
+				height: 2.75rem;
+			}
+
+			svg {
+				width: 1.5rem;
+				height: 1.5rem;
 			}
 		}
 	}
