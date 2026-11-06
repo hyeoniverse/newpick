@@ -21,9 +21,14 @@ const STEPS = [
 		from: 30,
 		to: 40,
 		title: '뉴스레터 쓰기',
-		text: '고른 소식만 다시 읽고 요약 · 시사점 · 문답을 씁니다.',
+		text: '선별된 소식만 다시 읽고 요약 · 시사점 · Q&A를 작성합니다.',
 	},
-	{ from: 40, to: 40, title: '내 메일 한 통', text: '내 관심사를 엮어 한 통으로. 출근길에 한 번 읽으면 끝.' },
+	{
+		from: 40,
+		to: 40,
+		title: '내 메일 한 통',
+		text: '내 관심사를 엮어 메일 한 통으로. 출근길에 뉴픽만 읽어도 그날의 소식은 끝.',
+	},
 ];
 
 const CATEGORIES = ['IT', '정치', '경제', '사회', '생활', '세계'];
@@ -81,7 +86,11 @@ export default function MorningSection() {
 	const { active, minute } = state;
 
 	return (
-		<StyledMorning data-track-section="about-morning" aria-label="뉴스레터가 만들어지는 아침" style={{ '--steps': STEPS.length } as React.CSSProperties}>
+		<StyledMorning
+			data-track-section="about-morning"
+			aria-label="뉴스레터가 만들어지는 아침"
+			style={{ '--steps': STEPS.length } as React.CSSProperties}
+		>
 			<SectionHeading
 				label="08:00 → 08:40"
 				title="뉴스레터가 만들어지는 아침 40분."

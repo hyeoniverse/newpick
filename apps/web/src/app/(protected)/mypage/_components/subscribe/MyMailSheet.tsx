@@ -20,7 +20,10 @@ export default function MyMailSheet({ sentAt }: { sentAt: string }) {
 	return (
 		<StyledSheet aria-busy={isPending}>
 			{isPending ? (
-				<Skeleton />
+				// 불러오는 동안의 자리 표시는 시트 높이 안에만 (넘치면 시트가 단추 너머로 스크롤됐다)
+				<div className="loading" aria-hidden>
+					<Skeleton />
+				</div>
 			) : isError ? (
 				<ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />
 			) : (
@@ -36,4 +39,11 @@ const StyledSheet = styled.div`
 	height: min(46rem, calc(85vh - 4rem));
 	display: flex;
 	flex-direction: column;
+	overflow: hidden;
+
+	.loading {
+		flex: 1;
+		min-height: 0;
+		overflow: hidden;
+	}
 `;

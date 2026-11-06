@@ -1,8 +1,9 @@
 'use client';
 
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import StarToggle from '@/components/common/icons/StarToggle';
+import Tags from '@/components/common/Tags';
 import { useLiftScrollButtons } from '@/components/common/ScrollButtons';
 import styled from 'styled-components';
 import { LuHighlighter, LuNewspaper } from 'react-icons/lu';
@@ -26,7 +27,7 @@ import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
 import { newsBlock } from './list/newsBlock';
-import { folderTag, sourceLine, textTools } from './list/styles';
+import { folderTag, textTools } from './list/styles';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -34,24 +35,6 @@ function sectionName(highlight: Highlight) {
 	const story = highlight.section?.match(/^story-(\d+)$/);
 	if (!story) return { index: null, name: null };
 	return { index: story[1].padStart(2, '0'), name: highlight.sectionTitle || `소식 ${story[1]}` };
-}
-
-/** 문장 위 한 줄: 뉴스레터 안 어느 소식인지(번호 · 제목) · 폴더. 뉴스레터 제목 · 관심사는 블록 머리에 */
-function Source({ highlight, folder }: { highlight: Highlight; folder?: string }) {
-	const { index, name } = sectionName(highlight);
-	if (!name && !folder) return null;
-	return (
-		<p className="source">
-			{name && (
-				<span className="section">
-					{index && <span className="index">{index}</span>}
-					{name}
-				</span>
-			)}
-			{/* '모든 스크랩'에서 볼 때 어느 폴더인지 */}
-			{folder && <span className="folder">{folder}</span>}
-		</p>
-	);
 }
 
 /** 고른 스크랩을 글로 복사: 문장 · 출처 · 메모 */
@@ -103,13 +86,17 @@ function byDay(items: Highlight[]) {
 /** 작은 화면에서 블록마다 처음에 보일 문장 수 (나머지는 '문장 N개 더 보기') */
 const QUOTES_SMALL = 2;
 
-/** 하루 안에서 이어진 같은 뉴스레터 스크랩을 한 블록으로 */
-function byNewsletter(items: Highlight[]) {
-	const blocks: { newsletterId: number; items: Highlight[] }[] = [];
+/** 뉴스레터가 나온 날: '10월 28일' (한국 시각) */
+const issuedLabel = (iso: string) =>
+	new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(iso));
+
+/** 하루 안에서 이어진 같은 소식(뉴스레터 · 구역)의 스크랩을 한 블록으로: 스크랩은 소식 단위로 하므로 블록도 소식 단위 */
+function byStory(items: Highlight[]) {
+	const blocks: { newsletterId: number; section: string | null; items: Highlight[] }[] = [];
 	for (const item of items) {
 		const last = blocks[blocks.length - 1];
-		if (last?.newsletterId === item.newsletterId) last.items.push(item);
-		else blocks.push({ newsletterId: item.newsletterId, items: [item] });
+		if (last?.newsletterId === item.newsletterId && last.section === item.section) last.items.push(item);
+		else blocks.push({ newsletterId: item.newsletterId, section: item.section, items: [item] });
 	}
 	return blocks;
 }
@@ -330,57 +317,55 @@ export default function MyHighlights() {
 							<section key={month} id={`month-${month}`} className="month" aria-label={monthLabel(month)}>
 								{days.map(({ day, items }) => (
 									<div key={day} id={`hl-day-${day}`} className="scrap-day">
-										{byNewsletter(items).map((block) => {
+										{byStory(items).map((block) => {
 											const newsletter = block.items[0].newsletter;
 											const href = `/articles/detail/${block.newsletterId}`;
+											// 블록 제목 · 사진은 그 소식 것 (브리핑 · 구역 모름이면 뉴스레터 것), 어느 뉴스레터인지는 위에 작게
+											const { index, name } = sectionName(block.items[0]);
+											const title = name ?? newsletter?.title ?? `뉴스레터 #${block.newsletterId}`;
+											const image = block.items[0].sectionImage ?? newsletter?.image;
+											const tags = block.items[0].sectionTags ?? [];
 											return (
-												<article
-													key={block.items[0].id}
-													className={
-														dragging && block.items.every((h) => dragging.includes(h.id)) ? 'news dragging' : 'news'
-													}
-													// 뉴스레터 묶음(그림 · 제목 · 상자)을 끌면 그 안의 스크랩 전부를 폴더로 (내 뉴스레터처럼).
-													// 문장 하나를 끌면 그 문장만 (문장 쪽에서 멈춘다)
-													draggable={!selecting}
-													onDragStart={(event) => {
-														const ids = block.items.map((h) => h.id);
-														event.dataTransfer.effectAllowed = 'move';
-														setFolderDragGhost(event, `${newsletter?.title ?? '스크랩'} · ${ids.length}개`);
-														setDragging(ids);
-													}}
-													onDragEnd={() => setDragging(null)}
-												>
-													{/* 스크랩한 날 (제목에 날짜가 없어 위에 작게) */}
-													<p className="news-date">{dayLabel(day)}</p>
+												// 폴더는 문장마다 정하므로 끌기도 문장 하나씩 (블록째 끌지 않는다)
+												<article key={block.items[0].id} className="news">
+													{/* 스크랩한 날 · 어느 뉴스레터의 소식인지 (제목은 소식 제목이라 위에 작게) */}
+													<p className="news-date">
+														{dayLabel(day)}
+														{name && newsletter && (
+															<Link href={href} className="news-from">
+																{newsletter.title}
+															</Link>
+														)}
+													</p>
 													<Link href={href} className="news-title">
-														<h3>{newsletter?.title ?? `뉴스레터 #${block.newsletterId}`}</h3>
+														<h3>
+															{index && <span className="story-index">{index}</span>}
+															{title}
+														</h3>
 													</Link>
 													<div className="news-body">
 														<div className="news-media">
 															<Link href={href} className="news-image" tabIndex={-1} aria-hidden>
-																{newsletter?.image ? (
-																	<Image
-																		src={newsletter.image}
-																		alt=""
-																		ratio="wide"
-																		borderRadius="medium"
-																		priority={false}
-																	/>
+																{image ? (
+																	<Image src={image} alt="" ratio="wide" borderRadius="medium" priority={false} />
 																) : (
 																	<LuNewspaper />
 																)}
 															</Link>
 															{newsletter && (
-																<ul className="news-cats" aria-label="관심사">
-																	<li>{newsletter.category.name}</li>
-																</ul>
+																<>
+																	<ul className="news-cats" aria-label="관심사">
+																		<li>{newsletter.category.name}</li>
+																	</ul>
+																	{/* 이 소식이 실린 뉴스레터가 나온 날 (위 날짜는 스크랩한 날) */}
+																	<p className="news-issued">{issuedLabel(newsletter.createdAt)} 뉴스레터</p>
+																	{/* 그 소식의 태그 (누르면 그 태그의 뉴스레터 목록) */}
+																	{tags.length > 0 && <Tags tags={tags} max={4} className="news-tags" linkable />}
+																</>
 															)}
 														</div>
 														{/* 오른쪽 상자: 이 뉴스레터에서 그날 스크랩한 문장들 */}
 														<div className="news-summary">
-															<strong>
-																스크랩한 문장 <span className="count">{block.items.length}</span>
-															</strong>
 															<ul
 																className={`quotes ${
 																	openBlocks.has(block.items[0].id) ||
@@ -393,15 +378,12 @@ export default function MyHighlights() {
 																	<li key={highlight.id} className={i >= QUOTES_SMALL ? 'extra' : undefined}>
 																		<HighlightItem
 																			highlight={highlight}
-																			source={
-																				<Source
-																					highlight={highlight}
-																					folder={
-																						folder === 'all' && highlight.folderId
-																							? folderName.get(highlight.folderId)
-																							: undefined
-																					}
-																				/>
+																			index={i + 1}
+																			// '모든 스크랩'에서 볼 때 어느 폴더인지
+																			folder={
+																				folder === 'all' && highlight.folderId
+																					? folderName.get(highlight.folderId)
+																					: undefined
 																			}
 																			focused={highlight.id === focused}
 																			dragged={!!dragging?.includes(highlight.id)}
@@ -514,7 +496,8 @@ export default function MyHighlights() {
 
 function HighlightItem({
 	highlight,
-	source,
+	index,
+	folder,
 	focused,
 	dragged,
 	selecting,
@@ -525,8 +508,10 @@ function HighlightItem({
 	onDragEnd,
 }: {
 	highlight: Highlight;
-	/** 문장 위 출처 한 줄 (소식 번호 · 제목 · 폴더). 별은 이 줄 오른쪽 끝 */
-	source: ReactNode;
+	/** 블록 안 몇 번째 문장인지 (1부터) */
+	index: number;
+	/** 들어 있는 폴더 이름 ('모든 스크랩'에서만) */
+	folder?: string;
 	focused: boolean;
 	/** 끄는 중 (흐리게) */
 	dragged: boolean;
@@ -553,41 +538,45 @@ function HighlightItem({
 			onDragStart={(event) => {
 				event.dataTransfer.effectAllowed = 'move';
 				event.dataTransfer.setData('text/plain', highlight.text);
-				// 묶음(article)의 끌기로 번지지 않게: 이 문장만
 				event.stopPropagation();
 				onDragStart(event);
 			}}
 			onDragEnd={onDragEnd}
 		>
-			{source}
-			{selecting ? (
-				// 상자를 누른 것이 문장 누르기(고르기)로 한 번 더 번지지 않게
-				<span className="pick" onClick={(e) => e.stopPropagation()}>
-					<InputCheck
-						name={`highlight-pick-${highlight.id}`}
-						size="small"
-						checked={checked}
-						onCheckedChange={onToggle}
-						aria-label={`${highlight.text.slice(0, 20)} 선택`}
+			{/* 머리 줄: 스크랩한 문장 N | 폴더 ……… 중요 표시 */}
+			<div className="item-head">
+				<span className="item-label">
+					스크랩한 문장 <span className="count">{index}</span>
+				</span>
+				{folder && <span className="folder">{folder}</span>}
+				{!selecting && (
+					<StarToggle
+						className="star-toggle"
+						pressed={highlight.starred}
+						onToggle={() => update.mutate({ id: highlight.id, starred: !highlight.starred })}
 					/>
-				</span>
-			) : (
-				/* 스크랩한 문장만 따옴표 칸만큼 들여 쓴다 */
-				<span className="quote-mark" aria-hidden>
-					“
-				</span>
-			)}
+				)}
+			</div>
 			<p className="quote">
+				{selecting ? (
+					// 상자를 누른 것이 문장 누르기(고르기)로 한 번 더 번지지 않게
+					<span className="pick" onClick={(e) => e.stopPropagation()}>
+						<InputCheck
+							name={`highlight-pick-${highlight.id}`}
+							size="small"
+							checked={checked}
+							onCheckedChange={onToggle}
+							aria-label={`${highlight.text.slice(0, 20)} 선택`}
+						/>
+					</span>
+				) : (
+					/* 따옴표는 자리를 차지하지 않고 문장 첫 글자 뒤에 겹쳐 그린다 (문장은 다른 줄과 같은 왼쪽 끝) */
+					<span className="quote-mark" aria-hidden>
+						“
+					</span>
+				)}
 				<span>{highlight.text}</span>
 			</p>
-			{/* 중요 표시: 출처 줄 오른쪽 끝 별 아이콘 버튼 (켜면 기본색 별) */}
-			{!selecting && (
-				<StarToggle
-					className="star-toggle"
-					pressed={highlight.starred}
-					onToggle={() => update.mutate({ id: highlight.id, starred: !highlight.starred })}
-				/>
-			)}
 			<div className="tools" hidden={selecting}>
 				<Link href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}>원문에서 보기</Link>
 				{!editing && (
@@ -722,21 +711,66 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.subText};
 	}
 
-	/* 오른쪽 상자: '스크랩한 문장 N' + 문장들 (사이 가는 줄) */
-	.news-summary {
-		> strong {
-			display: block;
-			margin-bottom: 0.875rem;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
+	/* 썸네일 아래: 발행일 밑에 그 소식의 태그. 칩 대신 글자만 작게 (분야 칩 · 제목보다 가볍게), 가운데 정렬 */
+	.news-tags {
+		justify-content: center;
+		gap: 0.125rem 0.5rem;
+		margin: 0.25rem 0 0;
 
-			.count {
-				margin-left: 0.125rem;
+		li {
+			padding: 0;
+			border: 0;
+			font-size: 0.75rem;
+			font-weight: ${({ theme }) => theme.fontWeight.regular};
+			color: ${({ theme }) => theme.color.subText};
+
+			.hash {
+				color: inherit;
+			}
+
+			&:has(a):hover {
 				color: ${({ theme }) => theme.color.primary};
-				font-variant-numeric: tabular-nums;
 			}
 		}
 	}
+
+	/* 스크랩 상자는 내용만큼 (왼쪽 썸네일 · 분야 · 태그 열이 더 길어도 늘어나지 않게) */
+	.news-summary {
+		align-self: flex-start;
+	}
+
+	/* 썸네일 아래: 분야 칩 밑에 뉴스레터가 나온 날 */
+	.news-issued {
+		margin: 0.375rem 0 0;
+		font-size: 0.75rem;
+		font-variant-numeric: tabular-nums;
+		text-align: center;
+		color: ${({ theme }) => theme.color.subText};
+	}
+
+	/* 날짜 옆: 이 소식이 실린 뉴스레터 (작게, 그 뉴스레터로 가는 링크) */
+	.news-from {
+		margin-left: 0.5rem;
+		padding-left: 0.5rem;
+		border-left: 1px solid ${({ theme }) => theme.color.border};
+		color: ${({ theme }) => theme.color.subText};
+		text-decoration: none;
+
+		&:hover {
+			color: ${({ theme }) => theme.color.primary};
+			text-decoration: underline;
+			text-underline-offset: 0.2em;
+		}
+	}
+
+	/* 소식 번호 (뉴스레터 본문처럼 01 · 02) */
+	.story-index {
+		margin-right: 0.5rem;
+		color: ${({ theme }) => theme.color.primary};
+		font-variant-numeric: tabular-nums;
+	}
+
+	/* 오른쪽 상자: '스크랩한 문장 N' + 문장들 (사이 가는 줄) */
 
 	/* 접어 둔 문장 펼치기: 작은 화면에서만 */
 	.more-quotes {
@@ -755,8 +789,7 @@ const StyledHighlights = styled.div`
 
 	/* 작은 화면(좁은 블록): 스크랩 상자도 촘촘하게 */
 	@container news (max-width: 28rem) {
-		.news .news-summary > strong {
-			margin-bottom: 0.5rem;
+		.news .item-label {
 			font-size: ${({ theme }) => theme.fontSize.extraSmall};
 		}
 
@@ -799,30 +832,48 @@ const StyledHighlights = styled.div`
 	}
 
 	/* 문장 위 출처 한 줄: 관심사 · 뉴스레터 제목 › 01 소식 제목 */
-	.source {
-		${sourceLine}
-		grid-area: source;
-		margin: 0;
+	/* 문장마다 머리 줄: '스크랩한 문장 N' | 폴더 ……… 중요 표시 별 */
+	.item-head {
+		grid-area: head;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		min-height: 1.5rem;
+	}
 
-		.section {
-			display: inline-flex;
-			align-items: baseline;
-			gap: 0.375rem;
-		}
+	.item-label {
+		font-size: ${({ theme }) => theme.fontSize.small};
+		font-weight: ${({ theme }) => theme.fontWeight.bold};
+		color: ${({ theme }) => theme.color.text};
 
-		/* '모든 스크랩'에서 어느 폴더인지 */
-		.folder {
-			${folderTag}
-			margin-left: 0.25rem;
-		}
-
-		/* 뉴스레터 본문의 소식 번호와 같은 모양 */
-		.index {
-			font-size: 0.75rem;
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
+		.count {
+			margin-left: 0.125rem;
 			color: ${({ theme }) => theme.color.primary};
 			font-variant-numeric: tabular-nums;
 		}
+	}
+
+	/* 이름표 | 폴더: 사이 가는 세로줄 */
+	.item-head .folder {
+		${folderTag}
+		position: relative;
+		margin-left: 0.5rem;
+
+		&::before {
+			position: absolute;
+			top: 50%;
+			left: -0.5rem;
+			width: 1px;
+			height: 0.75rem;
+			background: ${({ theme }) => theme.color.border};
+			transform: translateY(-50%);
+			content: '';
+		}
+	}
+
+	/* 별은 오른쪽 끝 */
+	.item-head .star-toggle {
+		margin-left: auto;
 	}
 
 	/* 끄는 중인 것: 흐리게 (세 탭 같은 모양) */
@@ -833,13 +884,13 @@ const StyledHighlights = styled.div`
 
 	.item {
 		display: grid;
-		grid-template-columns: 1.5rem minmax(0, 1fr) auto;
-		/* 별은 출처 줄 오른쪽 끝: 문장은 폭 가득 */
+		grid-template-columns: minmax(0, 1fr) auto;
+		/* 머리 줄(스크랩한 문장 N | 폴더 … 별) 아래 문장 · 메모 · 동작, 모두 같은 왼쪽 끝 */
 		grid-template-areas:
-			'source source star'
-			'mark quote quote'
-			'note note note'
-			'tools tools tools';
+			'head head'
+			'quote quote'
+			'note note'
+			'tools tools';
 		gap: 0.375rem 0.25rem;
 		scroll-margin-top: calc(var(--bar-h, 7rem) + 3rem);
 
@@ -854,10 +905,17 @@ const StyledHighlights = styled.div`
 	/* 고르는 중: 따옴표 자리에 체크칸, 문장 어디를 눌러도 고르기 */
 	/* 체크칸: 문장 첫 줄 높이(줄 높이 1.75 × 글자 1rem) 안에서 세로 가운데 */
 	.pick {
-		grid-area: mark;
+		position: absolute;
+		top: 0;
+		left: 0;
 		display: flex;
 		align-items: center;
 		height: 1.75rem;
+	}
+
+	/* 고르는 중: 체크칸 자리만큼 문장을 민다 (체크칸은 문장 왼쪽에 겹쳐 그린다) */
+	.item.selecting .quote {
+		padding-left: 1.75rem;
 	}
 
 	.item.selecting {
@@ -874,9 +932,8 @@ const StyledHighlights = styled.div`
 		color: ${({ theme }) => theme.color.primary};
 	}
 
-	/* 중요 표시 별 (공통 StarToggle): 출처 줄 끝, 그 줄 높이 가운데에. 누르는 칸은 넓게, 줄 높이는 그대로 */
+	/* 중요 표시 별 (공통 StarToggle): 머리 줄 끝, 그 줄 높이 가운데에. 누르는 칸은 넓게, 줄 높이는 그대로 */
 	.star-toggle {
-		grid-area: star;
 		align-self: center;
 		width: 2.25rem;
 		height: 2.25rem;
@@ -969,19 +1026,18 @@ const StyledHighlights = styled.div`
 	}
 
 	/* 문장 첫머리에 살짝 걸치는 장식 따옴표: 세리프 글꼴의 가는 곡선 모양, 옅게 글자 뒤에 */
+	/* 따옴표: 문장 왼쪽 위에 겹쳐 그린다 (자리를 차지하지 않음). 글자 뒤에 옅게 */
 	.quote-mark {
-		grid-area: mark;
-		z-index: 0;
-		/* 위아래로 넘친 만큼 빼서 줄 높이에 영향을 주지 않게 */
-		height: 0;
-		margin-top: -0.375rem;
+		position: absolute;
+		top: -0.625rem;
+		left: -0.375rem;
+		text-indent: 0;
+		z-index: -1;
 		font-family: Georgia, 'Times New Roman', serif;
 		font-size: 3.25rem;
 		line-height: 1;
 		color: ${({ theme }) => theme.color.primary};
 		opacity: 0.28;
-		/* 칸에서 문장 쪽으로 밀어 첫 글자에 살짝 걸치게 */
-		transform: translateX(0.5rem);
 		user-select: none;
 		pointer-events: none;
 	}
@@ -991,6 +1047,8 @@ const StyledHighlights = styled.div`
 		z-index: 1;
 		grid-area: quote;
 		margin: 0;
+		/* 문단 첫 글자 들여쓰기 (따옴표는 들여 쓴 자리 앞에 겹쳐 그린다) */
+		text-indent: 1em;
 		font-weight: ${({ theme }) => theme.fontWeight.regular};
 		line-height: 1.75;
 		color: ${({ theme }) => theme.color.text};

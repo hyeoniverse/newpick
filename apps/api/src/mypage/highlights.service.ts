@@ -1,7 +1,9 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { JSDOM } from 'jsdom';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AppException } from '../common/errors/app.exception';
+import { tagKey } from '../tags/tags';
 import { assertOwnFolder } from './folders.service';
 import { monthIndex } from './mypage.service';
 import { BulkHighlightsDto, CreateHighlightDto } from './dto/highlight.dto';
@@ -24,6 +26,43 @@ export function sectionTitles(html: string | null) {
   );
 }
 
+/** 본문 HTML에서 소식마다 사진 주소 (.story 차례, 사진이 없으면 null). 마이페이지 스크랩 블록을 소식 사진으로 */
+export function sectionImages(html: string | null) {
+  if (!html) return [];
+  const { document } = new JSDOM(html).window;
+  return Array.from(document.querySelectorAll('.story')).map((story) => {
+    const src = story.querySelector('figure img')?.getAttribute('src') ?? '';
+    return /^https?:\/\//.test(src) ? src : null;
+  });
+}
+
+/** 뉴스레터 태그 배열 (JSON) → 문자열만 */
+const keywordList = (value: Prisma.JsonValue | null | undefined) =>
+  Array.isArray(value)
+    ? value.filter((k): k is string => typeof k === 'string')
+    : [];
+
+/**
+ * 소식마다 태그 (.story 차례): 소식 태그(data-tags)가 있으면 그것, 없으면(예전 뉴스레터)
+ * 뉴스레터 태그 중 그 소식 글(제목 · 본문)에 나오는 것. 메일 '팔로우한 태그' 칸이 소식을 고를 때와 같은 기준
+ */
+export function sectionTags(html: string | null, keywords: string[]) {
+  if (!html) return [];
+  const { document } = new JSDOM(html).window;
+  return Array.from(document.querySelectorAll('.story')).map((story) => {
+    const own = story.getAttribute('data-tags');
+    if (own)
+      return own
+        .split('|')
+        .map((t) => t.trim())
+        .filter(Boolean);
+    const text = tagKey(story.textContent ?? '');
+    return keywords.filter(
+      (k) => tagKey(k).length >= 2 && text.includes(tagKey(k)),
+    );
+  });
+}
+
 export function sectionTitle(
   titles: (string | null)[],
   section: string | null,
@@ -37,6 +76,8 @@ const SELECT = {
   newsletterId: true,
   section: true,
   sectionTitle: true,
+  sectionImage: true,
+  sectionTags: true,
   text: true,
   note: true,
   starred: true,
@@ -75,7 +116,7 @@ export class HighlightsService {
       const filled = await this.fillSectionTitles(missing);
       return highlights.map((h) => ({
         ...h,
-        sectionTitle: filled.get(h.id) ?? h.sectionTitle,
+        sectionTitle: filled.get(h.id)?.title ?? h.sectionTitle,
       }));
     }
     return highlights;
@@ -138,14 +179,23 @@ export class HighlightsService {
         this.prisma.highlight.count({ where: starred }),
         this.prisma.highlight.count({ where: memo }),
       ]);
-    const missing = rows.filter((h) => h.sectionTitle === null);
+    // 소식 제목 · 사진은 꺼내 둔 것을 쓴다. 아직 없는 것(예전 스크랩 · 본문을 고친 뒤)만 본문을 읽어 채워 둔다
+    const missing = rows.filter(
+      (h) =>
+        h.sectionTitle === null ||
+        h.sectionImage === null ||
+        h.sectionTags === null,
+    );
     const filled = missing.length
       ? await this.fillSectionTitles(missing)
-      : new Map<number, string>();
+      : new Map<number, { title: string; image: string; tags: string[] }>();
     return {
       items: rows.map(({ newsletter, ...h }) => ({
         ...h,
-        sectionTitle: filled.get(h.id) ?? h.sectionTitle,
+        sectionTitle: filled.get(h.id)?.title ?? h.sectionTitle,
+        // '' = 사진 없음 → 화면은 뉴스레터 대표 사진
+        sectionImage: (filled.get(h.id)?.image ?? h.sectionImage) || null,
+        sectionTags: filled.get(h.id)?.tags ?? keywordList(h.sectionTags),
         // 썸네일: 그림 주소 여러 개 중 첫 것
         newsletter: newsletter && {
           title: newsletter.title,
@@ -164,34 +214,54 @@ export class HighlightsService {
     };
   }
 
-  /** 소식 제목을 본문에서 꺼내 저장 (뉴스레터마다 본문은 한 번만 읽음). id → 제목('' = 없음) */
+  /** 소식 제목 · 사진을 본문에서 꺼내 저장 (뉴스레터마다 본문은 한 번만 읽음). id → { 제목, 사진 } ('' = 없음) */
   private async fillSectionTitles(
     rows: { id: number; newsletterId: number; section: string | null }[],
   ) {
     const ids = [...new Set(rows.map((h) => h.newsletterId))];
     const bodies = await this.prisma.newsletter.findMany({
       where: { id: { in: ids } },
-      select: { id: true, contentAsHTML: true },
+      select: { id: true, contentAsHTML: true, keywords: true },
     });
-    const titles = new Map(
-      bodies.map((b) => [b.id, sectionTitles(b.contentAsHTML)]),
-    );
-    const filled = new Map(
-      rows.map((h) => [
-        h.id,
-        sectionTitle(titles.get(h.newsletterId) ?? [], h.section) ?? '',
+    const parsed = new Map(
+      bodies.map((b) => [
+        b.id,
+        {
+          titles: sectionTitles(b.contentAsHTML),
+          images: sectionImages(b.contentAsHTML),
+          tags: sectionTags(b.contentAsHTML, keywordList(b.keywords)),
+        },
       ]),
     );
-    // 같은 제목끼리 묶어 한 번에 저장
-    const byTitle = new Map<string, number[]>();
-    filled.forEach((title, id) =>
-      byTitle.set(title, [...(byTitle.get(title) ?? []), id]),
+    const filled = new Map(
+      rows.map((h) => {
+        const body = parsed.get(h.newsletterId);
+        const title = sectionTitle(body?.titles ?? [], h.section) ?? '';
+        const image = sectionTitle(body?.images ?? [], h.section) ?? '';
+        const story = h.section?.match(/^story-(\d+)$/);
+        const tags = story ? (body?.tags[Number(story[1]) - 1] ?? []) : [];
+        return [
+          h.id,
+          { title: title.slice(0, 200), image: image.slice(0, 500), tags },
+        ];
+      }),
     );
+    // 같은 제목 · 사진끼리 묶어 한 번에 저장
+    const groups = new Map<
+      string,
+      { title: string; image: string; tags: string[]; ids: number[] }
+    >();
+    filled.forEach((value, id) => {
+      const key = JSON.stringify([value.title, value.image, value.tags]);
+      const group = groups.get(key) ?? { ...value, ids: [] };
+      group.ids.push(id);
+      groups.set(key, group);
+    });
     await this.prisma.$transaction(
-      [...byTitle].map(([title, ids]) =>
+      [...groups.values()].map(({ title, image, tags, ids }) =>
         this.prisma.highlight.updateMany({
           where: { id: { in: ids } },
-          data: { sectionTitle: title.slice(0, 200) },
+          data: { sectionTitle: title, sectionImage: image, sectionTags: tags },
         }),
       ),
     );
@@ -205,7 +275,7 @@ export class HighlightsService {
     }
     const newsletter = await this.prisma.newsletter.findUnique({
       where: { id: dto.newsletterId },
-      select: { id: true, contentAsHTML: true },
+      select: { id: true, contentAsHTML: true, keywords: true },
     });
     if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
     // 소식 제목은 지금 한 번 꺼내 둔다 (목록에서 본문을 다시 읽지 않게)
@@ -213,6 +283,16 @@ export class HighlightsService {
     const title = (
       sectionTitle(sectionTitles(newsletter.contentAsHTML), section) ?? ''
     ).slice(0, 200);
+    const image = (
+      sectionTitle(sectionImages(newsletter.contentAsHTML), section) ?? ''
+    ).slice(0, 500);
+    const storyNo = section?.match(/^story-(\d+)$/);
+    const tags = storyNo
+      ? (sectionTags(
+          newsletter.contentAsHTML,
+          keywordList(newsletter.keywords),
+        )[Number(storyNo[1]) - 1] ?? [])
+      : [];
 
     const note = dto.note?.trim() || undefined;
     return this.prisma.highlight.upsert({
@@ -228,6 +308,8 @@ export class HighlightsService {
         newsletterId: dto.newsletterId,
         section,
         sectionTitle: title,
+        sectionImage: image,
+        sectionTags: tags,
         text,
         note: note ?? null,
       },

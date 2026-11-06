@@ -1,6 +1,8 @@
 import {
   HighlightsService,
   normalizeText,
+  sectionImages,
+  sectionTags,
   sectionTitle,
   sectionTitles,
 } from './highlights.service';
@@ -240,13 +242,14 @@ describe('스크랩 · 메모 (#123)', () => {
       '새 제목',
       '',
     ]);
+    // 사진도 같이 꺼내 둔다 (소식에 사진이 없으면 '')
     expect(prisma.highlight.updateMany).toHaveBeenCalledWith({
       where: { id: { in: [3] } },
-      data: { sectionTitle: '새 제목' },
+      data: { sectionTitle: '새 제목', sectionImage: '', sectionTags: [] },
     });
     expect(prisma.highlight.updateMany).toHaveBeenCalledWith({
       where: { id: { in: [4] } },
-      data: { sectionTitle: '' },
+      data: { sectionTitle: '', sectionImage: '', sectionTags: [] },
     });
   });
 
@@ -317,5 +320,29 @@ describe('스크랩 · 메모 (#123)', () => {
         orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
       }),
     );
+  });
+
+  it('소식 사진: 본문 소식마다 첫 사진 주소, 사진이 없거나 http(s)가 아니면 null', () => {
+    expect(
+      sectionImages(
+        '<article class="story"><h2>가</h2><figure class="story-image"><img src="https://img/1.jpg"></figure></article>' +
+          '<article class="story"><h2>나</h2></article>' +
+          '<article class="story"><h2>다</h2><figure><img src="javascript:x"></figure></article>',
+      ),
+    ).toEqual(['https://img/1.jpg', null, null]);
+    expect(sectionImages(null)).toEqual([]);
+  });
+
+  it('소식 태그: 뉴스레터 태그 중 그 소식 글에 나오는 것 (띄어쓰기 · 대소문자 무시, 한 글자 태그는 뺀다)', () => {
+    expect(
+      sectionTags(
+        '<article class="story"><h2>룰라 4선</h2><p>브라질 대선 결선에서 이겼다</p></article>' +
+          '<article class="story"><h2>코스피 급락</h2><p>NVIDIA 실적 우려</p></article>',
+        ['룰라', '브라질대선', 'nvidia', '코스피', '금'],
+      ),
+    ).toEqual([
+      ['룰라', '브라질대선'],
+      ['nvidia', '코스피'],
+    ]);
   });
 });

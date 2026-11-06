@@ -5,6 +5,8 @@ import { apiFetch } from '@/api/client';
 export interface TagFollow {
 	tag: string;
 	createdAt: string;
+	/** 이 태그가 붙은 최근 뉴스레터 (오래된 것 → 새것). 마이페이지 지켜보기에서 시간순 줄로 */
+	news?: { id: number; title: string; createdAt: string; category: string }[];
 }
 
 export const fetchTagFollows = () => apiFetch<TagFollow[]>(API_ENDPOINTS.MY.TAG_FOLLOWS());

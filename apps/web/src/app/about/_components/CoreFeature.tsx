@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import styled, { keyframes } from 'styled-components';
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
@@ -126,10 +126,92 @@ function FeaturePanel({
 	);
 }
 
+/** 장마다 멈추는 지점: 진행도 0.08 → 0.92 사이를 장 수로 나눈 값 (.rail의 --moved와 같은 식) */
+const STOPS = FEATURES.map((_, i) => 0.08 + (0.84 * i) / (FEATURES.length - 1));
+
+/** 사용자의 스크롤 입력이 멈춘 뒤 이만큼 지나면 장에 맞춘다 */
+const SNAP_IDLE_MS = 150;
+
+/**
+ * 장 단위 스크롤: 붙는 구간 안에서 사용자의 스크롤(휠 · 터치 · 키)이 멈추면 장에 맞춰 부드럽게 움직인다 (한 장씩 넘기는 느낌).
+ * - 조금만 굴려도 한 장이 넘어간다: 입력 방향으로 지금 장을 지났으면 다음 장, 아니면 가까운 장
+ * - scroll 이벤트가 아니라 입력 이벤트를 본다: 맞추는 동안 머리글이 접히고 펴지며 본문이 밀려 scroll이 계속 울리는데,
+ *   그때마다 다시 맞추면 목표가 흔들려 제자리에 못 선다. 입력이 끝났을 때 한 번만 움직이고, 멈춘 뒤 남은 차이만 바로 맞춘다
+ */
+function useSnapToPanels(track: React.RefObject<HTMLDivElement | null>) {
+	useEffect(() => {
+		const el = track.current;
+		if (!el) return;
+		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+		let timer = 0;
+		let settle = 0;
+		// 이번 입력 묶음의 방향 (아래 +, 위 -). 휠은 deltaY, 터치는 손가락이 움직인 거리, 키는 방향키 · 페이지 키
+		let direction = 0;
+		let touchY = 0;
+		const measure = () => {
+			const rect = el.getBoundingClientRect();
+			const distance = rect.height - window.innerHeight;
+			if (distance <= 0) return null;
+			return { progress: -rect.top / distance, distance };
+		};
+		const nearestIndex = (progress: number) =>
+			STOPS.reduce((best, s, i) => (Math.abs(s - progress) < Math.abs(STOPS[best] - progress) ? i : best), 0);
+		const offset = (dir: number) => {
+			const m = measure();
+			if (!m) return null;
+			const { progress, distance } = m;
+			// 붙는 구간 밖(앞뒤 멈춤 구간 포함)이면 그대로 둔다
+			if (progress < 0 || progress > 1) return null;
+			let index = nearestIndex(progress);
+			// 입력 방향으로 가까운 장을 이미 지났으면 그다음 장으로
+			if (dir > 0 && progress > STOPS[index] + 0.01) index = Math.min(STOPS.length - 1, index + 1);
+			if (dir < 0 && progress < STOPS[index] - 0.01) index = Math.max(0, index - 1);
+			return (STOPS[index] - progress) * distance;
+		};
+		const snap = () => {
+			const delta = offset(Math.sign(direction));
+			direction = 0;
+			if (delta === null || Math.abs(delta) < 2) return;
+			window.scrollBy({ top: delta, behavior: 'smooth' });
+			window.clearTimeout(settle);
+			settle = window.setTimeout(() => {
+				const rest = offset(0);
+				if (rest !== null && Math.abs(rest) >= 2) window.scrollBy({ top: rest, behavior: 'auto' });
+			}, 700);
+		};
+		const input = (dy: number) => {
+			direction += dy;
+			window.clearTimeout(timer);
+			timer = window.setTimeout(snap, SNAP_IDLE_MS);
+		};
+		const onWheel = (e: WheelEvent) => input(e.deltaY);
+		const onTouchStart = (e: TouchEvent) => {
+			touchY = e.touches[0]?.clientY ?? 0;
+		};
+		const onTouchEnd = (e: TouchEvent) => input(touchY - (e.changedTouches[0]?.clientY ?? touchY));
+		const onKey = (e: KeyboardEvent) => {
+			if (['ArrowDown', 'PageDown', ' '].includes(e.key)) input(1);
+			else if (['ArrowUp', 'PageUp'].includes(e.key)) input(-1);
+		};
+		window.addEventListener('wheel', onWheel, { passive: true });
+		window.addEventListener('touchstart', onTouchStart, { passive: true });
+		window.addEventListener('touchend', onTouchEnd, { passive: true });
+		window.addEventListener('keyup', onKey);
+		return () => {
+			window.removeEventListener('wheel', onWheel);
+			window.removeEventListener('touchstart', onTouchStart);
+			window.removeEventListener('touchend', onTouchEnd);
+			window.removeEventListener('keyup', onKey);
+			window.clearTimeout(timer);
+			window.clearTimeout(settle);
+		};
+	}, [track]);
+}
+
 /**
  * 핵심 기능: 화면 폭 회색 띠 + 붙는 가로 스크롤.
  * 섹션이 화면에 붙어 있는 동안 아래로 스크롤하면 기능 세 장이 옆으로 넘어간다
- * (track 높이 = 장 수 × 100vh, 처음 · 끝 8%는 멈춰 있는 구간)
+ * (track 높이 = 장 수 × 100vh, 처음 · 끝 8%는 멈춰 있는 구간). 스크롤이 멈추면 가까운 장으로 맞춘다 (useSnapToPanels)
  */
 export default function CoreFeature() {
 	const [active, setActive] = useState(0);
@@ -140,6 +222,7 @@ export default function CoreFeature() {
 		setActive((prev) => (prev === index ? prev : index));
 		setSeen((prev) => Math.max(prev, index + 1));
 	});
+	useSnapToPanels(trackRef);
 
 	return (
 		<StyledCore data-track-section="about-core-feature" style={{ '--n': FEATURES.length } as React.CSSProperties}>

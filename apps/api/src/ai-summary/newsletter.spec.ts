@@ -679,8 +679,10 @@ describe('파이프라인', () => {
       // 태그 정돈: 최근 태그를 쓰기 단계에 넘기고, 저장 전에 'AI해킹' → 'AI 해킹'처럼 기존 표기로 맞춘다
       {
         recentTags: jest.fn().mockResolvedValue(['AI 해킹']),
-        canonicalize: jest.fn(async (tags: string[]) =>
-          tags.map((t) => (t === 'AI해킹' ? 'AI 해킹' : t)),
+        canonicalizeMany: jest.fn(async (lists: string[][]) =>
+          lists.map((tags) =>
+            tags.map((t) => (t === 'AI해킹' ? 'AI 해킹' : t)),
+          ),
         ),
       } as never,
       { saveEmbeddings } as never,

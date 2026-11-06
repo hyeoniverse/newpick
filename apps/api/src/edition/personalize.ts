@@ -94,7 +94,12 @@ export function tagStories(
       .flatMap((source) =>
         source.stories.map((story, i) => ({ source, story, i })),
       )
-      .filter(({ story }) => storyKey(story).includes(tag.key))
+      // 소식 태그가 있으면 그것으로 (새 뉴스레터), 없으면 소식 글에 태그가 나오는지로 (예전 뉴스레터)
+      .filter(({ story }) =>
+        story.tags?.length
+          ? story.tags.some((t) => tagKey(t) === tag.key)
+          : storyKey(story).includes(tag.key),
+      )
       .slice(0, TAG_LIMITS.stories)
       .map(({ source, story, i }) => ({
         ref: storyRef(source.newsletterId, i),

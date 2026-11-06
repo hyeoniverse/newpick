@@ -17,6 +17,7 @@ const WORDS = STATEMENT.split(' ').map((word) => ({
  * 글자는 처음부터 모두 들어 있어 화면 낭독기는 그대로 읽는다
  */
 export default function StatementSection() {
+	// 긴 문장이라 through 구간(화면 아래에서 가운데까지)에 낱말이 밝아진다. 마지막 낱말은 구간 끝에서 (계수 1.05)
 	const ref = useScrollProgress<HTMLParagraphElement>('through');
 
 	return (
@@ -46,7 +47,7 @@ const StyledStatement = styled.section`
 		color: ${({ theme }) => theme.color.text};
 
 		.word {
-			opacity: clamp(0.18, calc(var(--progress) * var(--n) * 1.15 - var(--i)), 1);
+			opacity: clamp(0.18, calc(var(--progress) * var(--n) * 1.05 - var(--i)), 1);
 		}
 
 		.strong {

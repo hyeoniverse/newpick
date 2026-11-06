@@ -38,15 +38,19 @@ export class TagsService {
 
   /** 새 뉴스레터의 태그를 규칙 · 기존 표기에 맞춘다 */
   async canonicalize(tags: string[]) {
+    const [list] = await this.canonicalizeMany([tags]);
+    return list;
+  }
+
+  /** 여러 목록을 한 번에 (규칙 · 기존 표기는 한 번만 읽음): 뉴스레터 태그와 소식마다의 태그 */
+  async canonicalizeMany(lists: string[][]) {
     const [rules, existing] = await Promise.all([
       this.prisma.tagRule.findMany(),
       this.tagCounts(5000),
     ]);
-    return canonicalTags(
-      tags,
-      toRules(rules),
-      existing.map((t) => t.keyword),
-    );
+    const parsed = toRules(rules);
+    const names = existing.map((t) => t.keyword);
+    return lists.map((tags) => canonicalTags(tags, parsed, names));
   }
 
   /** 관리자 태그 화면: 규칙 목록 */

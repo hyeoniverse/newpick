@@ -159,7 +159,8 @@ export function renderNewsletterHtml(
   const render = (story: Story, i: number) => {
     const index = String(i + 1).padStart(2, '0');
     return [
-      `<article class="story story-${story.template}">`,
+      // 소식 태그는 화면에 그리지 않고 속성으로 남긴다 (마이페이지 스크랩 · 메일 '팔로우한 태그'가 소식 단위로 읽는다)
+      `<article class="story story-${story.template}"${story.tags?.length ? ` data-tags="${escapeHtml(story.tags.join('|'))}"` : ''}>`,
       `<p class="kicker"><span class="index">${index}</span>${escapeHtml(story.kicker)}</p>`,
       `<h2>${escapeHtml(story.heading)}</h2>`,
       story.lead ? `<p class="lead">${escapeHtml(story.lead)}</p>` : '',
