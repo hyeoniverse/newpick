@@ -14,7 +14,7 @@ interface Step {
 	alt?: string;
 	/** 원본 크기: 그림이 늦게 로드돼도 자리를 미리 잡아 줄이 밀리지 않게 (스크롤 진행도가 어긋나지 않는다) */
 	size?: [number, number];
-	/** 공개 화면과 마이페이지를 함께 보여 줄 때: 이름표를 단 사진 두 장을 따로 놓는다 (image 대신) */
+	/** 공개 화면과 마이페이지를 함께 보여 줄 때: 이름표를 단 사진 여러 장을 따로 놓는다 (image 대신) */
 	pair?: Shot[];
 }
 
@@ -51,9 +51,15 @@ const STEPS: Step[] = [
 		pair: [
 			{
 				label: '뉴스레터',
-				image: '/img/about_how-4-public.jpg',
-				size: [2240, 1048],
-				alt: '본문 문장을 골라 스크랩 · 메모 도구가 뜬 화면',
+				image: '/img/about_how-4-news.jpg',
+				size: [2240, 1500],
+				alt: '제목 옆 북마크를 켜고, 본문 문장을 골라 스크랩 · 메모 도구가 뜬 화면',
+			},
+			{
+				label: '마이페이지 북마크',
+				image: '/img/about_how-4-bookmark.jpg',
+				size: [2080, 808],
+				alt: '마이페이지 북마크를 금리 폴더로 거른 화면',
 			},
 			{
 				label: '마이페이지 스크랩',
@@ -393,7 +399,7 @@ const StyledHowToUse = styled.section`
 		}
 	}
 
-	/* 공개 화면 · 마이페이지 두 장: 따로 놓는다. 첫 장은 화면 끝에 붙고, 둘째 장은 안쪽으로 들여 엇갈리게 */
+	/* 공개 화면 · 마이페이지 여러 장: 따로 놓는다. 첫 장은 화면 끝에 붙고, 다음 장들은 안쪽으로 들여 엇갈리게 */
 	.shots {
 		display: flex;
 		flex-direction: column;
