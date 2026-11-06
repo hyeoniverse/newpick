@@ -1,4 +1,4 @@
-import React, { Suspense, useEffect } from 'react';
+import React, { Fragment, Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { NAVIGATION } from '@/constants/navigation';
@@ -12,6 +12,10 @@ import Dropdown from '@/components/common/Dropdown';
  * 태블릿 · 휴대폰 메뉴: 머리글 아래로 펼쳐지는 목록, 뒤는 어둡게.
  * 지금 보는 메뉴는 강조색. 화면 모드 단추는 로그인 전에도 머리글에 있어 여기엔 두지 않는다
  */
+/** 분야 줄은 '뉴스레터' 바로 아래 끼어들므로, 그 뒤 메뉴의 화면 순서는 분야 수만큼 밀린다 */
+const SUB_AT = NAVIGATION.findIndex((item) => item.link === '/articles');
+const lineOf = (i: number) => (i > SUB_AT ? i + CATEGORIES.length : i);
+
 const Drawer = () => {
 	const pathname = usePathname();
 
@@ -38,26 +42,28 @@ const Drawer = () => {
 				</StyledDrawerButton>
 			}
 		>
-			{/* 줄마다 --i(순서) · nav에 --n(개수): 펼칠 때는 위부터, 접을 때는 아래부터 하나씩 (Dropdown의 drawer 스타일) */}
-			<nav aria-label="메뉴" style={{ '--n': NAVIGATION.length } as React.CSSProperties}>
+			{/* 줄(메뉴 · 분야)마다 --i(화면 순서) · nav에 --n(줄 수): 펼칠 때는 위부터, 접을 때는 아래부터 한 줄씩 (Dropdown의 drawer 스타일) */}
+			<nav aria-label="메뉴" style={{ '--n': NAVIGATION.length + CATEGORIES.length } as React.CSSProperties}>
 				{NAVIGATION.map((item, i) => (
-					<div key={item.id} className="row" style={{ '--i': i } as React.CSSProperties}>
-						<div className="row-body">
-							<Link
-								href={item.link}
-								className="item"
-								aria-current={pathname.startsWith(item.link) ? 'page' : undefined}
-							>
-								{item.title}
-							</Link>
-							{/* 뉴스레터 아래 분야: 메뉴에서 바로 그 분야 목록으로 (주소의 분야를 읽어서 Suspense 안에) */}
-							{item.link === '/articles' && (
-								<Suspense fallback={<DrawerCategories active={null} />}>
-									<CurrentCategory />
-								</Suspense>
-							)}
+					<Fragment key={item.id}>
+						<div className="row" style={{ '--i': lineOf(i) } as React.CSSProperties}>
+							<div className="row-body">
+								<Link
+									href={item.link}
+									className="item"
+									aria-current={pathname.startsWith(item.link) ? 'page' : undefined}
+								>
+									{item.title}
+								</Link>
+							</div>
 						</div>
-					</div>
+						{/* 뉴스레터 아래 분야: 메뉴에서 바로 그 분야 목록으로 (주소의 분야를 읽어서 Suspense 안에) */}
+						{item.link === '/articles' && (
+							<Suspense fallback={<DrawerCategories active={null} base={lineOf(i) + 1} />}>
+								<CurrentCategory base={lineOf(i) + 1} />
+							</Suspense>
+						)}
+					</Fragment>
 				))}
 			</nav>
 		</Dropdown>
@@ -65,27 +71,34 @@ const Drawer = () => {
 };
 
 /** 지금 보는 분야 (뉴스레터 목록에 있을 때만) */
-function CurrentCategory() {
+function CurrentCategory({ base }: { base: number }) {
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-	return <DrawerCategories active={pathname === '/articles' ? Number(searchParams.get('categoryId')) || 0 : null} />;
+	return (
+		<DrawerCategories
+			active={pathname === '/articles' ? Number(searchParams.get('categoryId')) || 0 : null}
+			base={base}
+		/>
+	);
 }
 
 /** 분야 칩: 누르면 그 분야 목록으로 가며 메뉴를 닫는다 (같은 /articles 안에서 옮기면 주소 경로가 같아 저절로 닫히지 않는다) */
-function DrawerCategories({ active }: { active: number | null }) {
+function DrawerCategories({ active, base }: { active: number | null; base: number }) {
 	const { closeDropdown } = useDropdown('drawer');
 	return (
 		<ul className="categories" aria-label="분야">
-			{CATEGORIES.map((c) => (
-				<li key={c.id}>
-					<Link
-						href={c.id ? `/articles?categoryId=${c.id}` : '/articles'}
-						className="category"
-						aria-current={active === c.id ? 'page' : undefined}
-						onClick={closeDropdown}
-					>
-						{c.name}
-					</Link>
+			{CATEGORIES.map((c, i) => (
+				<li key={c.id} className="row" style={{ '--i': base + i } as React.CSSProperties}>
+					<div className="row-body">
+						<Link
+							href={c.id ? `/articles?categoryId=${c.id}` : '/articles'}
+							className="category"
+							aria-current={active === c.id ? 'page' : undefined}
+							onClick={closeDropdown}
+						>
+							{c.name}
+						</Link>
+					</div>
 				</li>
 			))}
 		</ul>

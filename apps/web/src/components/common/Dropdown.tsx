@@ -200,9 +200,9 @@ const StyledDropdown = styled.div`
 				clip-path: inset(0 -100vmax -100vmax -100vmax);
 				cursor: default;
 
-				/* 아코디언: 메뉴 줄이 하나씩 펼쳐지고(위부터) 접힌다(아래부터). 줄 하나 0.25초, 줄 사이 0.07초 */
-				--np-row-time: 0.25s;
-				--np-row-gap: 0.07s;
+				/* 아코디언: 메뉴 · 분야 줄이 한 줄씩 펼쳐지고(위부터) 접힌다(아래부터). 줄 하나 0.2초, 줄 사이 0.06초 */
+				--np-row-time: 0.2s;
+				--np-row-gap: 0.06s;
 				--np-rows-total: calc(var(--np-row-time) + var(--np-row-gap) * (var(--n, 5) - 1));
 
 				visibility: hidden;
@@ -221,28 +221,39 @@ const StyledDropdown = styled.div`
 						visibility 0s;
 				}
 
-				/* 줄 하나: 높이 0에서 내용 높이까지 (grid 0fr → 1fr). 접을 때는 순서를 뒤집어 아래 줄부터 */
+				/* 줄 하나: 높이 0에서 내용 높이까지(grid 0fr → 1fr) 펼쳐지며 글자는 살짝 내려오며 나타난다. 접을 때는 순서를 뒤집어 아래 줄부터 */
 				.row {
+					--np-row-delay: calc((var(--n, 5) - 1 - var(--i, 0)) * var(--np-row-gap));
 					display: grid;
 					grid-template-rows: 0fr;
-					transition: grid-template-rows var(--np-row-time) ease
-						calc((var(--n, 5) - 1 - var(--i, 0)) * var(--np-row-gap));
+					transition: grid-template-rows var(--np-row-time) ease var(--np-row-delay);
 				}
 
 				.row-body {
 					min-height: 0;
 					overflow: hidden;
+					opacity: 0;
+					transform: translateY(-0.375rem);
+					transition:
+						opacity var(--np-row-time) ease var(--np-row-delay),
+						transform var(--np-row-time) ease var(--np-row-delay);
 				}
 
 				&.open .row {
+					--np-row-delay: calc(var(--i, 0) * var(--np-row-gap));
 					grid-template-rows: 1fr;
-					transition-delay: calc(var(--i, 0) * var(--np-row-gap));
+				}
+
+				&.open .row-body {
+					opacity: 1;
+					transform: none;
 				}
 
 				@media (prefers-reduced-motion: reduce) {
 					transition: none;
 
 					.row,
+					.row-body,
 					&.open .row {
 						transition: none;
 					}
@@ -276,6 +287,11 @@ const StyledDropdown = styled.div`
 				margin: 0 0 0.5rem;
 				padding: 0;
 				list-style: none;
+
+				/* 공통 li::before(빈 칸)가 줄의 grid 칸을 하나 더 만들어 접히지 않게 하므로 없앤다 */
+				li::before {
+					content: none;
+				}
 			}
 
 			.category {
