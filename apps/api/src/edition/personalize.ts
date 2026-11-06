@@ -39,6 +39,8 @@ export type MailPlan = {
   note?: PersonalNote | null;
   /** 뉴스레터에 쓰지 않은 오늘 기사 중 관심과 가까운 원문 (recommend) */
   articles?: ArticlePick[];
+  /** 팔로우한 태그 칸 (#123 5단계): 태그마다 그날 소식 · 뉴스레터에 안 실린 기사 */
+  tags?: TagNews[];
   /** 지켜보던 소식의 후속 (지난 메일 이후 새로 이어진 것, FollowsService.forMail) */
   follows?: MailFollow[];
 };
@@ -56,6 +58,54 @@ export type MailFollow = {
   newsletterId: number;
   category: string;
 };
+
+/** 팔로우한 태그 하나의 그날 소식 */
+export type TagNews = {
+  tag: string;
+  stories: {
+    ref: string;
+    newsletterId: number;
+    category: string;
+    heading: string;
+  }[];
+  articles: ArticlePick[];
+};
+
+export const TAG_LIMITS = {
+  /** 메일에 싣는 태그 수 (소식이 있는 것만, 팔로우한 순) */
+  tags: 5,
+  /** 태그 하나에 싣는 뉴스레터 소식 · 기사 수 */
+  stories: 3,
+  articles: 2,
+};
+
+/**
+ * 팔로우한 태그마다 그날 소식 (모든 분야): 소식 글(제목 · 리드 · 본문 앞부분)에 태그가 나오는 것.
+ * 맞춤 순서(오늘을 한눈에)에는 섞지 않고 따로 칸으로 보여 준다 (직접 고른 것과 추측한 취향을 나눈다)
+ */
+export function tagStories(
+  sources: EditionSource[],
+  tags: { name: string; key: string }[],
+): Map<string, TagNews['stories']> {
+  const result = new Map<string, TagNews['stories']>();
+  for (const tag of tags) {
+    if (tag.key.length < 2) continue;
+    const stories = sources
+      .flatMap((source) =>
+        source.stories.map((story, i) => ({ source, story, i })),
+      )
+      .filter(({ story }) => storyKey(story).includes(tag.key))
+      .slice(0, TAG_LIMITS.stories)
+      .map(({ source, story, i }) => ({
+        ref: storyRef(source.newsletterId, i),
+        newsletterId: source.newsletterId,
+        category: source.category,
+        heading: story.heading,
+      }));
+    if (stories.length) result.set(tag.name, stories);
+  }
+  return result;
+}
 
 export const PERSONAL_LIMITS = {
   /** 메일에 싣는 소식 수 */
