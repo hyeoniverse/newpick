@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { CATEGORIES } from '@/constants/categories';
 
@@ -13,15 +13,15 @@ import CardSlider from '@/components/common/slider/CardSlider';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { filterByCategories } from '@/utils/queryNewsletters';
-import { isSearching, readFilters, toPageHref } from '@/utils/newsletterSearch';
+import { PERIOD_OPTIONS, isSearching, readFilters, toPageHref } from '@/utils/newsletterSearch';
+import { kstDate } from '@/utils/formatter';
+import InputSelect from '@/components/common/InputSelect';
 import SearchFilters from '@/app/articles/(main)/_components/SearchFilters';
 
 /** 분야 페이지 배너 요약 (page.tsx가 서버에서 계산) */
 export interface CategoryStats {
 	/** 최근 7일 발행 편 수 */
 	weekCount: number;
-	/** 최근 7일 자주 나온 키워드 */
-	keywords: string[];
 }
 
 /** 띠 오른쪽에 크게·옅게 까는 분야 아이콘 */
@@ -38,9 +38,12 @@ const CATEGORY_ICONS: Record<string, React.ReactNode> = {
 interface Props {
 	trends?: IArticleSummary[];
 	stats?: CategoryStats;
+	/** 분야 페이지: 오늘 이 분야 뉴스레터가 없을 때 배너에 대신 띄울 가장 최근 것 */
+	latest?: IArticleSummary;
 }
 
-export default function HotSection({ trends: initiallData = [], stats }: Props) {
+export default function HotSection({ trends: initiallData = [], stats, latest }: Props) {
+	const router = useRouter();
 	const searchParams = useSearchParams();
 	const filters = readFilters(searchParams);
 	const categoryName = mapIdToTitle([filters.categoryId])[0]; // Query Parameter를 카테고리 이름으로 변환
@@ -53,9 +56,9 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 	if (!isAll) {
 		filteredTrends = filterByCategories(initiallData, [categoryName]);
 	}
-
-	// 전체: 오늘 발행본들의 키워드에서, 분야: 서버가 센 최근 7일 키워드
-	const summaryKeywords = isAll ? topKeywords(initiallData) : (stats?.keywords ?? []);
+	// 오늘 이 분야 뉴스레터가 없으면 이 분야의 가장 최근 것으로 (분야마다 배너가 있다 없다 하지 않게). 그것도 없으면 배너를 통째로 뺀다
+	const fallback = !isAll && filteredTrends.length === 0 && latest;
+	if (fallback) filteredTrends = [latest];
 
 	return (
 		<StyledHotSection data-track-section="articles-hot" $isAll={isAll}>
@@ -73,6 +76,36 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 					</Link>
 				))}
 			</nav>
+
+			{/* 태블릿 · 휴대폰: 분야 칩 두 줄 · 기간 줄 대신 고르기 칸 두 개 한 줄 (위쪽을 가볍게). 직접 지정의 날짜 칸은 아래 기간 줄에 */}
+			<div className="compact-filters" role="group" aria-label="분야 · 기간">
+				<InputSelect
+					name="category"
+					size="small"
+					ariaLabel="분야"
+					value={String(filters.categoryId)}
+					options={CATEGORIES.map((c) => ({ value: String(c.id), label: c.name }))}
+					onChange={(value) => router.push(toPageHref({ ...filters, categoryId: Number(value) }), { scroll: false })}
+				/>
+				<InputSelect
+					name="period"
+					size="small"
+					ariaLabel="기간"
+					value={filters.period}
+					options={PERIOD_OPTIONS}
+					onChange={(value) => {
+						const period = PERIOD_OPTIONS.find((o) => o.value === value)?.value ?? 'all';
+						router.replace(
+							toPageHref(
+								period === 'custom'
+									? { ...filters, period, from: filters.from || kstDate(29), to: filters.to || kstDate(0) }
+									: { ...filters, period },
+							),
+							{ scroll: false },
+						);
+					}}
+				/>
+			</div>
 
 			<SearchFilters />
 
@@ -103,72 +136,61 @@ export default function HotSection({ trends: initiallData = [], stats }: Props) 
 									</>
 								)}
 							</span>
-							{summaryKeywords.length > 0 && (
-								// 태블릿 이하에서는 키워드만 아래 줄로 내려 옆으로 넘긴다 (…로 잘리지 않게)
-								<span className="keywords">
-									<span className="keywords-label">{' · 자주 나온 키워드 '}</span>
-									{summaryKeywords.map((k) => (
-										<Link key={k} href={toPageHref({ ...filters, keyword: k })} className="keyword">
-											#{k}
-										</Link>
-									))}
-								</span>
-							)}
 						</p>
 					</div>
 					<hr />
 					{/* 화면 폭 전체의 옅은 강조색 띠(::before) 위에 오늘의 톱 카드(흰 카드·그림자)를 올려 한 단계 떠 보이게 */}
-					<div className="stage">
-						<h2 className="stage-head">
-							<span className="label">TODAY</span>
-							<Text size="small" color="subText" className="today">
-								{todayLabel()} · 오늘의 {isAll ? '톱' : categoryName} 뉴스레터
-							</Text>
-						</h2>
-						<CardSlider
-							className="card-slider"
-							type="main"
-							data={filteredTrends.map((trend) => ({
-								id: trend.id,
-								image: trend.image,
-								// 분야 페이지는 제목에 이미 분야가 있어, 같은 자리에 소식 수를 둔다 (높이 유지)
-								header: isAll ? trend.categoryName : `소식 ${trend.stories?.length || 1}개`,
-								main: {
-									title: trend.title,
-									// 부제목이 있으면 본문 앞부분 대신 (#42)
-									description: trend.subtitle || trend.summary,
-									tags: trend.keywords,
-									// 이 뉴스레터에 담긴 소식 (전체·분야 같은 모양)
-									points: trend.stories,
-								},
-								footer: (
-									<>
-										<Text color="subText">{trend.date}</Text>
-										<Text color="subText">|&nbsp;&nbsp;조회수 {trend.views}</Text>
-										<div className="right">
-											<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
-										</div>
-									</>
-								),
-								url: `/articles/detail/${trend.id}`,
-							}))}
-						/>
-					</div>
+					{filteredTrends.length > 0 && (
+						<div className="stage">
+							<h2 className="stage-head">
+								<span className="label">{fallback ? 'LATEST' : 'TODAY'}</span>
+								<Text size="small" color="subText" className="today">
+									{fallback
+										? `${dayLabel(latest.date)} · 최근 ${categoryName} 뉴스레터`
+										: `${todayLabel()} · 오늘의 ${isAll ? '톱' : categoryName} 뉴스레터`}
+								</Text>
+							</h2>
+							<CardSlider
+								className="card-slider"
+								type="main"
+								data={filteredTrends.map((trend) => ({
+									id: trend.id,
+									image: trend.image,
+									// 분야 페이지는 제목에 이미 분야가 있어, 같은 자리에 소식 수를 둔다 (높이 유지)
+									header: isAll ? trend.categoryName : `소식 ${trend.stories?.length || 1}개`,
+									main: {
+										title: trend.title,
+										// 부제목이 있으면 본문 앞부분 대신 (#42)
+										description: trend.subtitle || trend.summary,
+										tags: trend.keywords,
+										// 이 뉴스레터에 담긴 소식 (전체·분야 같은 모양)
+										points: trend.stories,
+									},
+									footer: (
+										<>
+											<Text color="subText">{trend.date}</Text>
+											<Text color="subText">|&nbsp;&nbsp;조회수 {trend.views}</Text>
+											<div className="right">
+												<BookmarkIcon newsId={trend.id} newsletterId={trend.id} />
+											</div>
+										</>
+									),
+									url: `/articles/detail/${trend.id}`,
+								}))}
+							/>
+						</div>
+					)}
 				</>
 			)}
 		</StyledHotSection>
 	);
 }
 
-/** 여러 뉴스레터에서 자주 나온 키워드 3개 */
-function topKeywords(trends: IArticleSummary[]) {
-	const counts = new Map<string, number>();
-	for (const t of trends) for (const k of t.keywords ?? []) counts.set(k, (counts.get(k) ?? 0) + 1);
-	return [...counts.entries()]
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, 3)
-		.map(([k]) => k);
-}
+/** 'YYYY-MM-DD' → '10월 27일' (못 읽으면 그대로) */
+const dayLabel = (date: string) => {
+	const [, m, d] = date.match(/^\d{4}-(\d{2})-(\d{2})/) ?? [];
+	return m ? `${Number(m)}월 ${Number(d)}일` : date;
+};
 
 /** "10월 27일 월요일" (KST) */
 const todayLabel = () =>
@@ -197,11 +219,33 @@ const StyledHotSection = styled.section<StyledProps>`
 		padding: 0;
 	}
 
+	/* 휴대폰: 제목 · 구분선 · 배너 사이를 촘촘하게 */
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		gap: 0.75rem;
+
+		hr {
+			margin: 0;
+		}
+	}
+
 	/* ② 띠: 헤더 바로 아래부터 배너 아래까지 화면 폭 전체. 아래로 갈수록 페이지 바탕으로 옅어진다.
 	   100vw 요소를 쓰면 스크롤바 폭만큼 가로로 넘쳐, 섹션 뒤에 깔리는 ::before로 그린다 */
 	position: relative;
 	isolation: isolate;
-	padding-bottom: 2.5rem;
+	padding-bottom: 1.5rem;
+
+	/* 배너 다음 목록까지 (목록의 위 여백도 여기서 줄인다) */
+	& + [data-track-section='articles-list'] {
+		margin-top: 1.5rem;
+	}
+
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		padding-bottom: 0.75rem;
+
+		& + [data-track-section='articles-list'] {
+			margin-top: 1rem;
+		}
+	}
 
 	&::before {
 		content: '';
@@ -223,6 +267,22 @@ const StyledHotSection = styled.section<StyledProps>`
 
 	.stage {
 		width: 100%;
+	}
+
+	/* 분야 · 기간 고르기 칸: 태블릿 · 휴대폰에서만 (데스크톱은 분야 칩 · 기간 줄) */
+	.compact-filters {
+		display: none;
+		gap: 0.5rem;
+
+		/* 펼친 목록은 칸 왼쪽에 맞춘다 (화면 왼쪽 끝에서 잘리지 않게) */
+		.options-list {
+			left: 0;
+			right: auto;
+		}
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			display: flex;
+		}
 	}
 
 	/* 분야 칩: 지금 분야는 강조색으로 채움 */
@@ -256,6 +316,26 @@ const StyledHotSection = styled.section<StyledProps>`
 		}
 	}
 
+	@media ${({ theme }) => theme.mediaQuery.tablet} {
+		.category-chips {
+			display: none;
+		}
+
+		/* 기간 단추 줄은 숨기고, 직접 지정일 때 날짜 칸만 남긴다 */
+		.filters .periods > button {
+			display: none;
+		}
+
+		.filters .periods:not(.custom) {
+			display: none;
+		}
+
+		/* 날짜 칸 · 검색어 칩도 없으면 빈 줄 자리도 남기지 않는다 */
+		.filters:not(:has(.periods.custom, .keyword)) {
+			display: none;
+		}
+	}
+
 	/* 분야 소개: 제목 · 한 줄 설명 · 최근 7일 요약. 오른쪽에 분야 아이콘을 크고 옅게 */
 	.intro {
 		position: relative;
@@ -280,12 +360,6 @@ const StyledHotSection = styled.section<StyledProps>`
 
 			strong {
 				color: ${({ theme }) => theme.color.text};
-			}
-
-			.keyword {
-				margin-left: 0.375rem;
-				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-				color: ${({ theme }) => theme.color.primary};
 			}
 		}
 
@@ -314,10 +388,9 @@ const StyledHotSection = styled.section<StyledProps>`
 			}
 		}
 
-		/* 태블릿 이하 배너: 아이콘은 제목 오른쪽 위로 작게(글자와 겹치지 않게), 설명은 두 줄까지, 키워드는 아래 줄에서 옆으로 넘김 */
+		/* 태블릿 이하 배너: 아이콘은 자리를 차지하지 않고 오른쪽 위에 옅게 깔림(absolute, 글 뒤), 설명은 두 줄까지, 키워드는 아래 줄에서 옆으로 넘김 */
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			gap: 0.25rem;
-			padding-right: 3.25rem;
 
 			h1,
 			h2 {
@@ -328,8 +401,6 @@ const StyledHotSection = styled.section<StyledProps>`
 				display: -webkit-box;
 				-webkit-box-orient: vertical;
 				-webkit-line-clamp: 2;
-				/* 분야마다 줄 수가 달라도 높이가 같게 두 줄 자리 */
-				min-height: 3em;
 				white-space: normal;
 				word-break: keep-all;
 				font-size: ${({ theme }) => theme.fontSize.small};
@@ -339,54 +410,24 @@ const StyledHotSection = styled.section<StyledProps>`
 			.stats {
 				overflow: visible;
 				white-space: normal;
-				margin-right: -3.25rem;
 			}
 
-			.keywords {
-				display: flex;
-				gap: 0.375rem;
-				margin-top: 0.375rem;
-				overflow-x: auto;
-				scrollbar-width: none;
-
-				&::-webkit-scrollbar {
-					display: none;
-				}
-			}
-
-			.keywords-label {
-				display: none;
-			}
-
-			.keyword {
-				flex-shrink: 0;
-				margin-left: 0;
-				padding: 0.125rem 0.5rem;
-				border: 1px solid ${({ theme }) => theme.color.border};
-				border-radius: ${({ theme }) => theme.radius.chip};
-				background: ${({ theme }) => theme.color.background};
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			}
-
+			/* 아이콘은 자리를 차지하지 않고(absolute) 크게, 글 뒤 오른쪽에 옅게 */
 			.watermark {
-				top: 0.25rem;
-				transform: none;
+				right: -0.25rem;
+				opacity: 0.08;
 
 				svg {
-					width: 3rem;
-					height: 3rem;
+					width: 6.5rem;
+					height: 6.5rem;
 				}
 			}
 		}
 
-		/* 휴대폰은 더 짧게: 설명 · 요약(발행 수) 줄은 빼고 제목 · 키워드만 */
+		/* 휴대폰은 더 짧게: 설명 · 요약(발행 수) 줄은 빼고 제목만 */
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			.count {
+			.stats {
 				display: none;
-			}
-
-			.keywords {
-				margin-top: 0.125rem;
 			}
 
 			h1,
@@ -398,9 +439,10 @@ const StyledHotSection = styled.section<StyledProps>`
 				display: none;
 			}
 
+			/* 제목 한 줄뿐이라 제목 줄 안에 들어가는 크기로 (위 태그 줄을 덮지 않게) */
 			.watermark svg {
-				width: 2.5rem;
-				height: 2.5rem;
+				width: 3.5rem;
+				height: 3.5rem;
 			}
 		}
 	}
@@ -556,6 +598,49 @@ const StyledHotSection = styled.section<StyledProps>`
 		.card .card-body:hover .title,
 		.card .card-body:focus-within .title {
 			text-decoration-color: ${({ theme }) => theme.color.primary};
+		}
+
+		/* 휴대폰: 사진은 카드 가장자리까지(위 모서리만 둥글게), 글은 안쪽 여백.
+		   제목 두 줄 자리를 비워 두지 않고, 날짜 줄은 북마크 단추가 줄을 높이지 않게 */
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			.card .card-body {
+				padding: 0 0 0.625rem;
+				overflow: hidden;
+			}
+
+			.image-placeholder {
+				margin-bottom: 0.375rem;
+				border-radius: 0;
+
+				img {
+					border-radius: 0;
+				}
+			}
+
+			.card-main {
+				padding-right: 0;
+
+				.category,
+				.title,
+				.tags,
+				.card-footer {
+					margin-inline: 1rem;
+					width: auto;
+				}
+
+				.title {
+					min-height: 0;
+					line-height: 1.4;
+				}
+
+				.card-footer {
+					height: 2rem;
+					margin-top: 0.375rem;
+					padding-top: 0.5rem;
+					align-items: center;
+					font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				}
+			}
 		}
 
 		/* 점·화살표는 띠 아래 오른쪽 한 줄. 분야 페이지(카드 하나)에서도 자리는 남겨 높이를 맞춘다 */

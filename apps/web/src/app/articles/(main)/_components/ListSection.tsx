@@ -17,13 +17,9 @@ import EmptyState from '@/components/common/EmptyState';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { parseArticles } from '@/utils/parseArticles';
 import { fetchSearchNewsletters } from '@/api/article';
-import {
-	SearchSort,
-	filtersKey,
-	readFilters,
-	toApiQuery,
-	toPageHref,
-} from '@/utils/newsletterSearch';
+import { SearchSort, filtersKey, isSearching, readFilters, toApiQuery, toPageHref } from '@/utils/newsletterSearch';
+import TagFollowButton from '@/components/common/tag/TagFollowButton';
+import InputSelect from '@/components/common/InputSelect';
 import { useToast } from '@/hooks/useToast';
 
 export default function ListSection() {
@@ -114,31 +110,101 @@ export default function ListSection() {
 		};
 	}, [isLoading, hasMore, articles.length, loadMoreArticles]);
 
-	const setSort = (sort: SearchSort) => router.replace(toPageHref({ ...filters, sort }), { scroll: false });
+	const go = (next: Partial<typeof filters>) => router.replace(toPageHref({ ...filters, ...next }), { scroll: false });
+	const setSort = (sort: SearchSort) => go({ sort });
 
-	const heading = filters.q ? `‘${filters.q}’ 검색 결과` : filters.keyword ? `#${filters.keyword}` : categoryName;
+	// 태그로 고른 목록: 제목 자리에 고른 태그 칩 (칩마다 팔로우 · 빼기)
+	const tags = filters.q ? [] : filters.keywords;
+	const heading = filters.q
+		? `‘${filters.q}’ 검색 결과`
+		: tags.length
+			? tags.map((k) => `#${k}`).join(filters.match === 'all' ? ' + ' : ' · ')
+			: categoryName;
+	// 거르지 않은 분야 목록: 위 배너가 이미 분야 제목이라 목록 머리엔 개수 · 정렬만
+	const bare = !tags.length && !isSearching(filters) && filters.period === 'all';
+	const count = total !== null && (
+		<Text size="small" color="subText" className="count" aria-live="polite">
+			{total.toLocaleString()}건
+		</Text>
+	);
+
+	// 정렬: 데스크톱은 머리 줄 오른쪽 끝(태그로 고른 목록이면 태그 줄 끝), 휴대폰은 머리 맨 아래 따로 한 줄(오른쪽 끝)
+	const sortButtons = (where: 'inline' | 'row') => (
+		<div className={`right-section sort-${where}`}>
+			<Button data-active={filters.sort === 'latest'} onClick={() => setSort('latest')}>
+				최신순
+			</Button>
+			<Button data-active={filters.sort === 'popular'} onClick={() => setSort('popular')}>
+				인기순
+			</Button>
+		</div>
+	);
 
 	return (
 		<StyledListSection data-track-section="articles-list">
-			<div className="header">
-				<div className="title">
-					<Title as="h2" size="extraSmall" weight="semiBold" color="primary" className="tag">
-						{heading}
-					</Title>
-					{total !== null && (
-						<Text size="small" color="subText" className="count" aria-live="polite">
-							{total.toLocaleString()}건
-						</Text>
+			<div className={bare ? 'header bare' : 'header'}>
+				<div className={tags.length ? 'title stack' : 'title'}>
+					{tags.length ? (
+						<>
+							<Title as="h2" className="sr-only">
+								{heading}
+							</Title>
+							<div className="picked-row">
+								{/* 제목: 태그마다 따로 분야 제목과 같은 모양. 켜고 끄기는 위 태그 줄에서 */}
+								<ul className="picked" aria-hidden>
+									{tags.map((tag) => (
+										<li key={tag} className="pick">
+											<span className="hash">#</span>
+											{tag}
+										</li>
+									))}
+								</ul>
+								{tags.length === 1 && count}
+								{sortButtons('inline')}
+							</div>
+							{/* 태그 여러 개: 조건을 한 문장으로 — 고른 태그가 [하나라도 ▾] 들어간 뉴스레터 N건 */}
+							{tags.length > 1 && (
+								<div className="match">
+									고른 태그가{' '}
+									<InputSelect
+										name="match"
+										size="small"
+										ariaLabel="고른 태그 조건"
+										value={filters.match}
+										options={[
+											{ value: 'any', label: '하나라도' },
+											{ value: 'all', label: '모두' },
+										]}
+										onChange={(value) => go({ match: value === 'all' ? 'all' : 'any' })}
+										className="condition"
+									/>{' '}
+									들어간 뉴스레터
+									{count}
+									<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
+										지우기
+									</button>
+								</div>
+							)}
+							{/* 팔로우는 한 줄로 모은다: 메일의 '팔로우한 태그' 칸 (#123) */}
+							<div className="follows">
+								<span className="follows-label">팔로우</span>
+								{tags.map((tag) => (
+									<TagFollowButton key={tag} tag={tag} tagOnly />
+								))}
+							</div>
+						</>
+					) : (
+						<>
+							{/* 거르지 않은 분야 목록이면 위 배너가 이미 분야 제목('경제 뉴스레터')이라 제목은 화면 읽기용으로만, 개수만 보인다 */}
+							<Title as="h2" size="extraSmall" weight="semiBold" color="primary" className={bare ? 'sr-only' : 'tag'}>
+								{heading}
+							</Title>
+							{count}
+						</>
 					)}
 				</div>
-				<div className="right-section">
-					<Button data-active={filters.sort === 'latest'} onClick={() => setSort('latest')}>
-						최신순
-					</Button>
-					<Button data-active={filters.sort === 'popular'} onClick={() => setSort('popular')}>
-						인기순
-					</Button>
-				</div>
+				{!tags.length && sortButtons('inline')}
+				{tags.length > 0 && sortButtons('row')}
 			</div>
 			{total === 0 && !isLoading ? (
 				<EmptyState
@@ -165,10 +231,14 @@ export default function ListSection() {
 									description: article.subtitle || article.summary,
 									tags: article.keywords,
 								},
+								date: article.date,
+								action: <BookmarkIcon newsId={article.id} newsletterId={article.id} />,
 								footer: (
 									<>
 										<Text color="subText">{article.date}</Text>
-										<Text color="subText">|&nbsp;&nbsp;조회수 {article.views}</Text>
+										<Text color="subText" className="views">
+											조회수 {article.views}
+										</Text>
 										<div className="right">
 											<BookmarkIcon newsId={article.id} newsletterId={article.id} />
 										</div>
@@ -211,11 +281,37 @@ const StyledListSection = styled.section`
 		justify-content: space-between;
 		align-items: center;
 
+		/* 태그로 고른 목록의 휴대폰용 정렬 줄은 데스크톱에선 숨긴다 */
+		.right-section.sort-row {
+			display: none;
+		}
+
+		/* 휴대폰: 정렬은 따로 한 줄, 오른쪽 끝 */
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
 			flex-wrap: wrap;
+			gap: 0.75rem;
 
 			.right-section {
-				margin-top: 1rem;
+				width: 100%;
+				justify-content: flex-end;
+			}
+
+			.picked-row .sort-inline {
+				display: none;
+			}
+
+			/* 제목 없이 개수 · 정렬뿐이면 한 줄에 */
+			&.bare {
+				flex-wrap: nowrap;
+
+				.right-section {
+					width: auto;
+					margin-left: auto;
+				}
+			}
+
+			.right-section.sort-row {
+				display: flex;
 			}
 		}
 
@@ -228,6 +324,19 @@ const StyledListSection = styled.section`
 
 			h1 {
 				white-space: nowrap;
+			}
+
+			/* 태그 여러 개: 칩 줄 아래에 조건 문장 (휴대폰에서도 정렬 단추보다 먼저) */
+			&.stack {
+				flex: 1;
+				min-width: 0;
+				flex-direction: column;
+				align-items: stretch;
+				gap: 0.75rem;
+
+				@media ${({ theme }) => theme.mediaQuery.mobile} {
+					gap: 0.5rem;
+				}
 			}
 
 			.count {
@@ -262,6 +371,107 @@ const StyledListSection = styled.section`
 		}
 	}
 
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+
+	/* 고른 태그 제목: 바탕 없이 글자만, #만 강조색 (카드 태그처럼 가볍게) */
+	.picked {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.25rem 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.pick {
+		margin: 0;
+		font-size: ${({ theme }) => theme.fontSize.large};
+		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
+		color: ${({ theme }) => theme.color.text};
+		white-space: nowrap;
+
+		.hash {
+			margin-right: 0.0625rem;
+			color: ${({ theme }) => theme.color.primary};
+		}
+
+		@media ${({ theme }) => theme.mediaQuery.mobile} {
+			font-size: ${({ theme }) => theme.fontSize.medium};
+		}
+	}
+
+	/* 고른 태그 · (태그 하나면) 개수 · 정렬(오른쪽 끝) */
+	.picked-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem 1rem;
+
+		.picked {
+			flex: 1;
+			min-width: 0;
+		}
+
+		.right-section {
+			flex-shrink: 0;
+			margin-left: auto;
+		}
+	}
+
+	.follows {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+
+		.follows-label {
+			font-size: ${({ theme }) => theme.fontSize.small};
+			color: ${({ theme }) => theme.color.subText};
+		}
+	}
+
+	/* 조건 문장: 고른 쪽만 강조색 테두리 칸 */
+	.match {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 0.5rem;
+		font-size: ${({ theme }) => theme.fontSize.medium};
+		color: ${({ theme }) => theme.color.text};
+
+		/* 문장 안의 고르기 칸: 공통 선택 목록(작은 칸). 펼친 목록은 칸 왼쪽에 맞춘다 */
+		.condition .options-list {
+			left: 0;
+			right: auto;
+		}
+
+		.count {
+			margin-left: -0.25rem;
+		}
+
+		.clear {
+			margin-left: 0.25rem;
+			padding: 0.25rem;
+			border: none;
+			background: transparent;
+			font-size: ${({ theme }) => theme.fontSize.small};
+			color: ${({ theme }) => theme.color.subText};
+			cursor: pointer;
+
+			&:hover {
+				color: ${({ theme }) => theme.color.primary};
+			}
+		}
+	}
+
 	.newsletter-cards {
 		width: 100%;
 		display: flex;
@@ -276,5 +486,39 @@ const StyledListSection = styled.section`
 		justify-content: center;
 		align-items: center;
 		margin-top: 1rem;
+	}
+
+	/* 휴대폰: 위쪽을 가볍게 — 조건 문장 · 팔로우 · 정렬을 한 단계 작게 */
+	@media ${({ theme }) => theme.mediaQuery.mobile} {
+		.match {
+			gap: 0.25rem 0.375rem;
+			font-size: ${({ theme }) => theme.fontSize.extraSmall};
+
+			.clear {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
+
+		.follows {
+			gap: 0.375rem;
+
+			.follows-label {
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+
+			button {
+				padding: 0.125rem 0.5rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
+
+		.right-section {
+			gap: 0.25rem;
+
+			button {
+				padding: 0.375rem 0.625rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+			}
+		}
 	}
 `;

@@ -73,3 +73,47 @@ describe('오늘의 트렌드', () => {
     expect(prisma.newsletter.findMany).not.toHaveBeenCalled();
   });
 });
+
+describe('뉴스레터 검색 · 태그 여러 개', () => {
+  it('고른 태그 중 하나라도 붙은 뉴스레터 (OR)', async () => {
+    const queryRaw = jest
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ total: BigInt(0) }]);
+    const repo = new NewsletterRepo({ $queryRaw: queryRaw } as never);
+    await repo.searchNewsletters({
+      booleanQuery: null,
+      keywords: ['룰라', '코스피'],
+      sort: 'latest',
+      limit: 10,
+      offset: 0,
+    });
+    // 목록 쿼리의 조건 (Prisma.sql 조각: 문자열과 값)
+    const query = JSON.stringify(queryRaw.mock.calls[0]);
+    expect(query).toMatch(/JSON_CONTAINS[\s\S]*OR[\s\S]*JSON_CONTAINS/);
+    expect(query).toContain('룰라');
+    expect(query).toContain('코스피');
+  });
+});
+
+describe('뉴스레터 검색 · 태그 모두', () => {
+  it('matchAll이면 고른 태그가 모두 붙은 뉴스레터 (AND)', async () => {
+    const queryRaw = jest
+      .fn()
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([{ total: BigInt(0) }]);
+    await new NewsletterRepo({
+      $queryRaw: queryRaw,
+    } as never).searchNewsletters({
+      booleanQuery: null,
+      keywords: ['룰라', '코스피'],
+      matchAll: true,
+      sort: 'latest',
+      limit: 10,
+      offset: 0,
+    });
+    const query = JSON.stringify(queryRaw.mock.calls[0]);
+    expect(query).toMatch(/JSON_CONTAINS[\s\S]*AND[\s\S]*JSON_CONTAINS/);
+    expect(query).not.toMatch(/JSON_CONTAINS[^]*? OR [^]*?JSON_CONTAINS/);
+  });
+});

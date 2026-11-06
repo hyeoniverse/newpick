@@ -13,17 +13,10 @@ import ArticlesLoading from '@/app/articles/(main)/_components/ArticlesLoading';
 
 const WEEK = 7 * 24 * 60 * 60 * 1000;
 
-/** 분야 페이지 배너의 요약: 최근 7일 편 수와 자주 나온 키워드 3개 */
+/** 분야 페이지 배너의 요약: 최근 7일 편 수 */
 function summarize(newsletters: IArticleDetail[]): CategoryStats {
 	const since = Date.now() - WEEK;
-	const recent = newsletters.filter((n) => new Date(n.createdAt).getTime() >= since);
-	const counts = new Map<string, number>();
-	for (const n of recent) for (const k of n.keywords ?? []) counts.set(k, (counts.get(k) ?? 0) + 1);
-	const keywords = [...counts.entries()]
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, 3)
-		.map(([k]) => k);
-	return { weekCount: recent.length, keywords };
+	return { weekCount: newsletters.filter((n) => new Date(n.createdAt).getTime() >= since).length };
 }
 
 /**
@@ -66,20 +59,25 @@ export default async function CategoryPage({ searchParams }: { searchParams: Pro
 async function CategoryContent({ categoryId }: { categoryId: number }) {
 	let parsedTrends: IArticleSummary[] = [];
 	let stats: CategoryStats | undefined;
+	// 오늘(가장 최근 발행일)에 이 분야 뉴스레터가 없을 때 배너에 대신 띄울 이 분야의 가장 최근 것
+	let latest: IArticleSummary | undefined;
 	try {
 		const [trends, category] = await Promise.all([
 			fetchTrendList(),
 			categoryId ? fetchArticleByCategory(categoryId, 30, 0) : Promise.resolve(null),
 		]);
 		parsedTrends = parseArticles(trends);
-		if (category) stats = summarize(category.data ?? []);
+		if (category) {
+			stats = summarize(category.data ?? []);
+			latest = parseArticles((category.data ?? []).slice(0, 1))[0];
+		}
 	} catch (error) {
 		console.error(error);
 	}
 
 	return (
 		<div className={styles.categoryPage}>
-			<HotSection trends={parsedTrends} stats={stats} />
+			<HotSection trends={parsedTrends} stats={stats} latest={latest} />
 			{/* 목록은 배너(TODAY)에 띄운 글도 빼지 않고 다 보여 준다 (건수와 보이는 수가 같게) */}
 			<ListSection />
 		</div>

@@ -1,13 +1,13 @@
 import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
 import type { ParsedStory } from './parse';
-import type { MailPlan } from './personalize';
+import type { MailFollow, MailPlan, TagNews } from './personalize';
 import type { ArticlePick } from '../recommend/pick';
 
 /**
  * 구독자가 고른 분야로 그날의 메일 한 통을 엮는다 (#55). 호출 없음.
  *
- * 1. 오늘 한눈에: 고른 분야 전체에서 중요도 순
+ * 1. 오늘을 한눈에: 고른 분야 전체에서 중요도 순
  * 2. 분야를 넘는 흐름: 고른 분야끼리만 잇는 흐름
  * 3. 분야별: 같은 사건은 중요도가 높은 쪽 한 번만 ("경제에도 실림")
  * 4. 관전 포인트: 합쳐서 중복 제거
@@ -59,6 +59,10 @@ export type ComposedEdition = {
   newsletterIds: number[];
   /** 추천 기사: 뉴스레터에 쓰지 않은 오늘 기사 원문 (맞춤 계획에서). 분야별 메일에도 붙는다 */
   articles: ArticlePick[];
+  /** 팔로우한 태그 칸 (맞춤과 상관없이, 팔로우한 사람에게) */
+  tags: TagNews[];
+  /** 지켜보던 소식의 후속 (맞춤과 상관없이, 지켜본 사람에게) */
+  follows: MailFollow[];
 };
 
 export const COMPOSE_LIMITS = { top: 5, watch: 5 };
@@ -233,11 +237,13 @@ export function composeEdition(
     watch,
     newsletterIds: sections.map((s) => s.newsletterId),
     articles: plan?.articles ?? [],
+    tags: plan?.tags ?? [],
+    follows: plan?.follows ?? [],
   };
 }
 
 /**
- * 맞춤 메일: 계획(plan.picks)의 소식을 점수 순 그대로. 오늘 한눈에 = 실린 소식 전부,
+ * 맞춤 메일: 계획(plan.picks)의 소식을 점수 순 그대로. 오늘을 한눈에 = 실린 소식 전부,
  * 흐름은 양쪽 소식이 모두 실렸을 때만, 관전 포인트는 실린 분야에서.
  * 계획의 소식이 하나도 없으면(그날 뉴스레터가 바뀜 등) null — 분야별 메일로
  */
@@ -302,6 +308,8 @@ function composePersonal(
     personal: true,
     newsletterIds: used.map((s) => s.newsletterId),
     articles: plan.articles ?? [],
+    tags: plan.tags ?? [],
+    follows: plan.follows ?? [],
   };
 }
 

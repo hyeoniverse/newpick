@@ -21,6 +21,7 @@ import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
+import { setFolderDragGhost } from './folders/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
@@ -333,7 +334,22 @@ export default function MyHighlights() {
 											const newsletter = block.items[0].newsletter;
 											const href = `/articles/detail/${block.newsletterId}`;
 											return (
-												<article key={block.items[0].id} className="news">
+												<article
+													key={block.items[0].id}
+													className={
+														dragging && block.items.every((h) => dragging.includes(h.id)) ? 'news dragging' : 'news'
+													}
+													// 뉴스레터 묶음(그림 · 제목 · 상자)을 끌면 그 안의 스크랩 전부를 폴더로 (내 뉴스레터처럼).
+													// 문장 하나를 끌면 그 문장만 (문장 쪽에서 멈춘다)
+													draggable={!selecting}
+													onDragStart={(event) => {
+														const ids = block.items.map((h) => h.id);
+														event.dataTransfer.effectAllowed = 'move';
+														setFolderDragGhost(event, `${newsletter?.title ?? '스크랩'} · ${ids.length}개`);
+														setDragging(ids);
+													}}
+													onDragEnd={() => setDragging(null)}
+												>
 													{/* 스크랩한 날 (제목에 날짜가 없어 위에 작게) */}
 													<p className="news-date">{dayLabel(day)}</p>
 													<Link href={href} className="news-title">
@@ -375,29 +391,31 @@ export default function MyHighlights() {
 															>
 																{block.items.map((highlight, i) => (
 																	<li key={highlight.id} className={i >= QUOTES_SMALL ? 'extra' : undefined}>
-																																			<HighlightItem
+																		<HighlightItem
 																			highlight={highlight}
 																			source={
 																				<Source
-																				highlight={highlight}
-																				folder={
-																					folder === 'all' && highlight.folderId
-																						? folderName.get(highlight.folderId)
-																						: undefined
-																				}
-																			/>
+																					highlight={highlight}
+																					folder={
+																						folder === 'all' && highlight.folderId
+																							? folderName.get(highlight.folderId)
+																							: undefined
+																					}
+																				/>
 																			}
 																			focused={highlight.id === focused}
+																			dragged={!!dragging?.includes(highlight.id)}
 																			selecting={selecting}
 																			checked={selected.has(highlight.id)}
 																			onToggle={() => toggle(highlight.id)}
 																			onRemove={() => confirmRemove([highlight])}
 																			// 고르는 중에 고른 것 하나를 끌면 고른 것 전부, 아니면 이것 하나
-																			onDragStart={() =>
-																				setDragging(
-																					selecting && selected.has(highlight.id) ? [...selected] : [highlight.id],
-																				)
-																			}
+																			onDragStart={(event) => {
+																				const ids =
+																					selecting && selected.has(highlight.id) ? [...selected] : [highlight.id];
+																				setFolderDragGhost(event, highlight.text, ids.length);
+																				setDragging(ids);
+																			}}
 																			onDragEnd={() => setDragging(null)}
 																		/>
 																	</li>
@@ -498,6 +516,7 @@ function HighlightItem({
 	highlight,
 	source,
 	focused,
+	dragged,
 	selecting,
 	checked,
 	onToggle,
@@ -509,11 +528,13 @@ function HighlightItem({
 	/** 문장 위 출처 한 줄 (소식 번호 · 제목 · 폴더). 별은 이 줄 오른쪽 끝 */
 	source: ReactNode;
 	focused: boolean;
+	/** 끄는 중 (흐리게) */
+	dragged: boolean;
 	selecting: boolean;
 	checked: boolean;
 	onToggle: () => void;
 	onRemove: () => void;
-	onDragStart: () => void;
+	onDragStart: (event: React.DragEvent) => void;
 	onDragEnd: () => void;
 }) {
 	const { update, bulk } = useHighlightMutations();
@@ -523,7 +544,7 @@ function HighlightItem({
 	return (
 		<article
 			id={`hl-${highlight.id}`}
-			className={`item ${focused ? 'focused' : ''} ${selecting ? 'selecting' : ''} ${checked ? 'checked' : ''}`}
+			className={`item ${focused ? 'focused' : ''} ${selecting ? 'selecting' : ''} ${checked ? 'checked' : ''} ${dragged ? 'dragging' : ''}`}
 			title={`${dateFormatter(highlight.createdAt)} 스크랩`}
 			// 고르는 중에는 문장 어디를 눌러도 고르기
 			onClick={selecting ? onToggle : undefined}
@@ -532,7 +553,9 @@ function HighlightItem({
 			onDragStart={(event) => {
 				event.dataTransfer.effectAllowed = 'move';
 				event.dataTransfer.setData('text/plain', highlight.text);
-				onDragStart();
+				// 묶음(article)의 끌기로 번지지 않게: 이 문장만
+				event.stopPropagation();
+				onDragStart(event);
 			}}
 			onDragEnd={onDragEnd}
 		>
@@ -800,6 +823,12 @@ const StyledHighlights = styled.div`
 			color: ${({ theme }) => theme.color.primary};
 			font-variant-numeric: tabular-nums;
 		}
+	}
+
+	/* 끄는 중인 것: 흐리게 (세 탭 같은 모양) */
+	.news.dragging,
+	.item.dragging {
+		opacity: 0.4;
 	}
 
 	.item {

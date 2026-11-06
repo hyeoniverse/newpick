@@ -6,6 +6,7 @@ import {
   PERSONAL_LIMITS,
   planMail,
   relevance,
+  tagStories,
   TasteProfile,
 } from './personalize';
 import { normalizeNote, notePrompt } from './personalNote';
@@ -185,10 +186,61 @@ describe('맞춤 계획 (planMail): 분야를 나누지 않고 점수 순', () =
   });
 });
 
+describe('팔로우한 태그 칸', () => {
+  it('태그마다 그날 소식 (모든 분야, 소식 글에 나온 것), 없는 태그는 뺀다', () => {
+    const result = tagStories(sources, [
+      { name: '반도체', key: '반도체' },
+      { name: '야구', key: '야구' },
+    ]);
+    expect(result.get('반도체')!.map((s) => [s.ref, s.category])).toEqual([
+      ['10-2', '경제'],
+      ['30-1', '세계'],
+    ]);
+    expect(result.has('야구')).toBe(false);
+  });
+
+  it('메일: 오늘을 한눈에 앞에 따로 칸, 오늘을 한눈에 순서는 그대로', () => {
+    const plain = composeEdition(sources, null, [1, 2], DATE)!;
+    const withTags = composeEdition(sources, null, [1, 2], DATE, {
+      picks: [],
+      tags: [
+        {
+          tag: '반도체',
+          stories: [
+            {
+              ref: '30-1',
+              newsletterId: 30,
+              category: '세계',
+              heading: '미국 반도체 수출 규제 강화',
+            },
+          ],
+          articles: [
+            {
+              title: '반도체 기사',
+              link: 'https://n.news/1',
+              source: '한경',
+              category: '경제',
+              score: 1,
+            },
+          ],
+        },
+      ],
+    })!;
+    expect(withTags.top).toEqual(plain.top);
+    const mail = renderEditionMail(withTags, 'https://newpick.app');
+    expect(mail).toContain('팔로우한 태그');
+    expect(mail).toContain('#반도체');
+    expect(mail).toContain('href="https://n.news/1"');
+    expect(mail.indexOf('팔로우한 태그')).toBeLessThan(
+      mail.indexOf('오늘을 한눈에'),
+    );
+  });
+});
+
 describe('맞춤 메일 엮기', () => {
   const plan = planMail(sources, [1, 2], profile)!;
 
-  it('계획의 소식을 점수 순 그대로: 오늘 한눈에 · 본문 순서가 같고, 분야는 실린 것만', () => {
+  it('계획의 소식을 점수 순 그대로: 오늘을 한눈에 · 본문 순서가 같고, 분야는 실린 것만', () => {
     const mine = composeEdition(sources, null, [1, 2], DATE, plan)!;
     expect(mine.personal).toBe(true);
     expect(mine.top.map((t) => t.ref)).toEqual(refs(plan));
@@ -246,6 +298,34 @@ describe('맞춤 메일 엮기', () => {
     expect(mail).not.toContain('관심 ·');
     expect(mail).not.toContain('이어져요');
     expect(mail).not.toMatch(/class=/);
+  });
+
+  it('지켜보던 소식의 후속은 메일 맨 위(오늘을 한눈에 앞)에, 맞춤 계획이 없어도', () => {
+    const mail = renderEditionMail(
+      composeEdition(sources, null, [1, 2], DATE, {
+        picks: [],
+        follows: [
+          {
+            followed: '룰라 4선',
+            followedNewsletterId: 63,
+            heading: '보우소나루 불복 선언',
+            reason: '선거 무효 요청이 나왔다',
+            newsletterId: 69,
+            category: '세계',
+          },
+        ],
+      })!,
+      'https://newpick.app',
+    );
+    expect(mail).toContain('지켜보던 소식의 후속');
+    // 지켜보던 소식도 그 원래 뉴스레터로
+    expect(mail).toMatch(
+      /지켜보던 소식 · <a href="https:\/\/newpick\.app\/articles\/detail\/63\?[^"]*"[^>]*>룰라 4선<\/a>/,
+    );
+    expect(mail).toContain('href="https://newpick.app/articles/detail/69?');
+    expect(mail.indexOf('지켜보던 소식의 후속')).toBeLessThan(
+      mail.indexOf('오늘을 한눈에'),
+    );
   });
 
   it('맞춤이 없으면 메일은 지금과 같다 (분야별, 브리핑 없음)', () => {

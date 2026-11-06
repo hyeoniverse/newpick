@@ -1,6 +1,6 @@
 import { renderEditionMail } from '../edition/mail';
 import { composeEdition } from '../edition/compose';
-import { pickArticles, RECOMMEND_LIMITS } from './pick';
+import { pickArticles, RECOMMEND_LIMITS, tagArticles } from './pick';
 import { RecommendService } from './recommend.service';
 
 const signal = (vector: number[]) => ({ vector });
@@ -63,6 +63,40 @@ describe('추천 기사 고르기', () => {
         (p) => p.title,
       ),
     ).toEqual(['후속 기사']);
+  });
+
+  it('팔로우한 태그 칸: 제목에 태그가 나온 기사, 뉴스레터에 쓴 기사는 빼고, 같은 기사는 먼저 나온 태그에만', () => {
+    const candidates = [
+      {
+        title: '엔비디아 실적 발표',
+        link: 'a',
+        source: '한경',
+        category: 'IT',
+      },
+      {
+        title: '엔비디아 · AI 반도체 수출',
+        link: 'b',
+        source: '연합',
+        category: 'IT',
+      },
+      {
+        title: '쓴 기사 엔비디아',
+        link: 'used',
+        source: 'KBS',
+        category: 'IT',
+      },
+    ];
+    const result = tagArticles(
+      candidates,
+      [
+        { name: '엔비디아', key: '엔비디아' },
+        { name: 'AI 반도체', key: 'ai반도체' },
+      ],
+      new Set(['used']),
+      2,
+    );
+    expect(result.get('엔비디아')!.map((a) => a.link)).toEqual(['a', 'b']);
+    expect(result.has('AI 반도체')).toBe(false);
   });
 
   it('신호가 없으면 아무것도 권하지 않는다', () => {

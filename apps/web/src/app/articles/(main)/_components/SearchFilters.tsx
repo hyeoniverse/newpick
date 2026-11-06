@@ -6,13 +6,13 @@ import { useQuery } from '@tanstack/react-query';
 import { fetchPopularKeywords } from '@/api/article';
 import { LuX } from 'react-icons/lu';
 import styled from 'styled-components';
-import { PERIOD_OPTIONS, SearchPeriod, readFilters, toPageHref } from '@/utils/newsletterSearch';
+import { PERIOD_OPTIONS, SearchPeriod, readFilters, toPageHref, toggleKeyword } from '@/utils/newsletterSearch';
 import { kstDate } from '@/utils/formatter';
 import { DateRangePicker } from '@/components/common/DatePicker';
 
 /**
- * 뉴스레터 목록 위 필터 줄 (#20): 기간 · 키워드(태그에서 들어옴).
- * 검색어는 헤더 검색칸, 정렬은 목록 머리의 최신순 · 인기순, 관심사는 위 칩. 모두 주소에 남는다
+ * 뉴스레터 목록 위 필터 줄 (#20): 기간 · 자주 나온 태그(여러 개 고르기).
+ * 검색어는 헤더 검색칸, 고른 태그 · 조건 · 정렬은 목록 머리(ListSection), 관심사는 위 칩. 모두 주소에 남는다
  */
 export default function SearchFilters() {
 	const router = useRouter();
@@ -83,28 +83,27 @@ export default function SearchFilters() {
 						<LuX aria-label="검색어 지우기" />
 					</button>
 				)}
-				{/* 고른 태그가 아래 태그 줄에 있으면 거기서 켜짐으로 보이므로 칩은 그 밖의 태그일 때만 */}
-				{filters.keyword && !keywords.some(({ keyword }) => keyword === filters.keyword) && (
-					<button type="button" className="keyword" onClick={() => go({ keyword: '' })}>
-						#{filters.keyword}
-						<LuX aria-label="키워드 조건 지우기" />
-					</button>
-				)}
 			</div>
-			{keywords.length > 0 && (
-				<div className="tags" role="group" aria-label="자주 나온 태그 (최근 30일)">
+			{(keywords.length > 0 || filters.keywords.length > 0) && (
+				<div className="tags" role="group" aria-label="자주 나온 태그 (최근 30일, 여러 개 고를 수 있음)">
 					{/* 이름표는 제자리, 태그만 옆으로 넘긴다 */}
 					<span className="tags-label">태그</span>
 					<div className="tags-list">
-						{keywords.map(({ keyword, count }) => {
-							const active = filters.keyword === keyword;
+						{/* 고른 태그가 자주 나온 태그에 없으면(상세 · 태그 전체 화면에서 들어옴) 맨 앞에 켜진 채로: 여기서 끈다 */}
+						{[
+							...filters.keywords
+								.filter((tag) => !keywords.some(({ keyword }) => keyword === tag))
+								.map((keyword) => ({ keyword, count: 0 })),
+							...keywords,
+						].map(({ keyword, count }) => {
+							const active = filters.keywords.includes(keyword);
 							return (
 								<button
 									key={keyword}
 									type="button"
 									aria-pressed={active}
-									title={`최근 30일 ${count}편`}
-									onClick={() => go({ keyword: active ? '' : keyword })}
+									title={count ? `최근 30일 ${count}편` : undefined}
+									onClick={() => go({ keywords: toggleKeyword(filters.keywords, keyword) })}
 								>
 									<span className="hash">#</span>
 									{keyword}
