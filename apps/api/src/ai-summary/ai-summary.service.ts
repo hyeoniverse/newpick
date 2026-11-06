@@ -109,8 +109,20 @@ export class AiSummaryService {
           .catch((error) =>
             this.logger.warn(`기사 임베딩 저장 실패: ${error.message}`),
           );
-      // 저장 전에 합치기 · 지우기 규칙과 기존 표기로 맞춘다 (띄어쓰기 · 대소문자만 다른 태그가 갈라지지 않게)
-      const keywords = await this.tagsService.canonicalize(written.keywords);
+      // 저장 전에 합치기 · 지우기 규칙과 기존 표기로 맞춘다 (띄어쓰기 · 대소문자만 다른 태그가 갈라지지 않게).
+      // 소식마다의 태그도 같이 맞추고, 뉴스레터 태그에 빠짐없이 넣는다 (태그 화면 · 팔로우가 뉴스레터 태그로 찾으므로)
+      const [newsletterTags, ...storyTagLists] =
+        await this.tagsService.canonicalizeMany([
+          written.keywords,
+          ...[...morning, ...stories].map((s) => s.tags ?? []),
+        ]);
+      const tagged = [...morning, ...stories].map((s, i) => ({
+        ...s,
+        tags: storyTagLists[i],
+      }));
+      const taggedMorning = tagged.slice(0, morning.length);
+      const taggedStories = tagged.slice(morning.length);
+      const keywords = mergeTags(newsletterTags, storyTagLists.flat());
 
       // 아침 속보에 쓴 기사도 '쓴 기사'로 남겨 다음 뉴스레터에 다시 실리지 않게
       const used = usedArticles(news, [
@@ -122,12 +134,12 @@ export class AiSummaryService {
       // 상세 화면 맨 위 대표 이미지와 같은 사진은 소식에 다시 쓰지 않는다 (#49)
       const hero = used.flatMap((item) => item.images ?? []).find(Boolean);
       const withImages = await this.storyImageService.attach(
-        stories,
+        taggedStories,
         news,
         hero,
       );
       const html = renderNewsletterHtml(
-        { ...written, stories: withImages },
+        { ...written, morning: taggedMorning, stories: withImages },
         news,
       );
       this.logger.debug(
@@ -197,4 +209,18 @@ export class AiSummaryService {
       throw new Error('Summarization failed.');
     }
   }
+}
+
+/** 뉴스레터 태그 + 소식 태그 (중복 · 대소문자 무시, 뉴스레터 태그 먼저, 최대 NEWSLETTER_TAG_MAX개) */
+const NEWSLETTER_TAG_MAX = 10;
+export function mergeTags(newsletterTags: string[], storyTags: string[]) {
+  const seen = new Set<string>();
+  return [...newsletterTags, ...storyTags]
+    .filter((t) => {
+      const key = t.replace(/\s+/g, '').toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, NEWSLETTER_TAG_MAX);
 }

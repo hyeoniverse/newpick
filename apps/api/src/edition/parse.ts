@@ -33,6 +33,8 @@ export type ParsedStory = {
   sources: Link[];
   /** 관전 포인트 (예전 뉴스레터에는 없다) */
   next?: string;
+  /** 소식 태그 (article data-tags, 예전 뉴스레터에는 없다) */
+  tags?: string[];
 };
 
 export type ParsedNewsletter = {
@@ -153,6 +155,13 @@ function parseStory(article: Element): ParsedStory {
     sources: credit ? sourceLinks(credit) : [],
     ...(article.querySelector('p.next span') && {
       next: text(article.querySelector('p.next span')),
+    }),
+    ...(article.getAttribute('data-tags') && {
+      tags: article
+        .getAttribute('data-tags')!
+        .split('|')
+        .map((t) => t.trim())
+        .filter(Boolean),
     }),
   };
 }

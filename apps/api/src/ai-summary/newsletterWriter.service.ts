@@ -55,6 +55,8 @@ export type Story = {
   debate: Claim[];
   /** 관전 포인트: 이 소식에서 앞으로 지켜볼 일정 · 결정 · 변수 한 줄. 후속 지켜보기가 이것을 기다린다 */
   next?: string;
+  /** 이 소식의 태그 1~3개 (#20 태그 표기). 뉴스레터 태그(keywords)는 소식 태그를 모아 만든다 */
+  tags?: string[];
   /** 원래 기사 목록에서의 번호 (1부터) */
   sources: number[];
   /** 원출처 사진이 없을 때 Pexels·Unsplash에서 찾을 영어 검색어 */
@@ -122,6 +124,8 @@ export const LIMITS = {
   timeline: { min: 3, max: 5 },
   qa: { min: 2, max: 3 },
   keywords: { min: 3, max: 6, length: 12 },
+  /** 소식 하나의 태그 수 */
+  storyTags: { max: 3 },
   /** 형광펜 강조 (#51): 소식마다 최대 개수, 한 곳 최대 길이 */
   marks: { max: 3, length: 30 },
   /** 쓰기 단계에 소식 하나당 보내는 기사 수 (같은 사건의 대표 기사, 다른 언론사 먼저) */
@@ -438,6 +442,7 @@ export const writerPrompt = (
     `  - analysis: 시사점 ${LIMITS.analysis.min}~${LIMITS.analysis.max}자. 파급 효과, 이해관계자, 쟁점, 전망. 기사에 근거가 없는 예측은 하지 않습니다.`,
     `  - debate: 엇갈린 주장. 같은 사안을 두고 기사에 **서로 반대되는 주장**이 있을 때만 (한쪽은 A라고 하고 다른 쪽은 A가 아니라고 하거나, 같은 일을 정반대로 평가할 때. 예: 여당은 "적법한 절차" · 야당은 "권한 남용"). 주장하는 쪽마다 하나씩 2~${LIMITS.debate.max}개 (side: 주장하는 쪽 — 정당 · 기관 · 인물, 사설이나 칼럼이면 그 언론사 / claim: 그쪽 주장 ${LIMITS.debate.claim}자 이내 / source: 그 주장이 실린 기사의 언론사 이름 그대로). 강조점만 다르거나, 같은 사실을 다르게 전할 뿐이거나, 한쪽 주장만 있으면 빈 배열. 양쪽을 같은 길이 · 같은 어조로 쓰고 어느 편도 들지 않으며, 기사에 없는 주장은 지어내지 않습니다.`,
     `  - next: 관전 포인트. 이 소식에서 앞으로 지켜볼 일정 · 결정 · 변수 하나를 ${LIMITS.next}자 이내의 물음이나 명사구로 (예: "보우소나루 측 선거 무효 요청이 받아들여질지", "공모가와 공모 주식 수 확정"). 기사에 나온 일정 · 변수만 쓰고, 마땅한 일정이 없으면 이 일의 다음 진전이 나올 지점을 씁니다. 독자는 이것을 보고 후속 소식을 받을지 정합니다.`,
+    `  - tags: 이 소식의 태그 1~${LIMITS.storyTags.max}개, 하나에 ${LIMITS.keywords.length}자 이내. 이 소식을 찾을 때 쓸 고유명사·주제어(예: 룰라, 브라질 대선). # 기호와 분야 이름은 넣지 않습니다. 아래 keywords와 같은 표기를 씁니다.`,
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     ...(morning.length
@@ -445,7 +450,7 @@ export const writerPrompt = (
           `- morning: 오늘 아침 속보 ${Math.min(morning.length, LIMITS.morning.max)}개. 속보 기사(${articles.length + 1}번부터)마다 소식 하나, stories와 같은 항목으로 쓰되 template은 brief(body ${LIMITS.briefBody.min}~${LIMITS.briefBody.max}자, analysis 빈 문자열). 막 알려진 일이라 사실 위주로 쓰고, next(관전 포인트)는 이어질 발표 · 결과를 씁니다. 본문 기사로 쓴 사건은 넣지 않습니다.`,
         ]
       : ['- morning: 빈 배열로 둡니다.']),
-    `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개, 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
+    `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개 (소식 tags 중 중요한 것 포함), 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
     ...(category && DEBATE_CATEGORIES.includes(category)
       ? [
           `- ${category} 분야는 같은 사안을 두고 주장이 맞서는 경우가 많습니다. 여러 기사(언론사)를 비교해 서로 반대되는 주장이 있으면 debate를 채우고, body · analysis도 한쪽 주장만 따르지 않게 씁니다.`,
@@ -495,6 +500,7 @@ const STORY_SCHEMA = {
     quote: pairs(['text', 'by']),
     debate: { type: 'array', items: pairs(['side', 'claim', 'source']) },
     next: { type: 'string' },
+    tags: { type: 'array', items: { type: 'string' } },
     sources: { type: 'array', items: { type: 'integer' } },
     imageQuery: { type: 'string' },
   },
@@ -511,6 +517,7 @@ const STORY_SCHEMA = {
     'quote',
     'debate',
     'next',
+    'tags',
     'sources',
     'imageQuery',
   ],
@@ -702,6 +709,7 @@ const normalizeStories = (
         quote: { text: clean(plain(s.quote.text)), by: plain(s.quote.by) },
         debate: debateOf(s.debate),
         next: plain(s.next ?? '').slice(0, LIMITS.next * 2),
+        tags: keywords(s.tags ?? []).slice(0, LIMITS.storyTags.max),
         imageQuery: s.imageQuery.trim(),
         sources: [
           ...new Set(

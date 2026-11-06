@@ -43,13 +43,19 @@ const keywordList = (value: Prisma.JsonValue | null | undefined) =>
     : [];
 
 /**
- * 소식마다 태그: 뉴스레터 태그 중 그 소식 글(제목 · 본문)에 나오는 것 (.story 차례).
- * 메일 '팔로우한 태그' 칸이 소식을 고를 때와 같은 기준 (띄어쓰기 · 대소문자 무시)
+ * 소식마다 태그 (.story 차례): 소식 태그(data-tags)가 있으면 그것, 없으면(예전 뉴스레터)
+ * 뉴스레터 태그 중 그 소식 글(제목 · 본문)에 나오는 것. 메일 '팔로우한 태그' 칸이 소식을 고를 때와 같은 기준
  */
 export function sectionTags(html: string | null, keywords: string[]) {
   if (!html) return [];
   const { document } = new JSDOM(html).window;
   return Array.from(document.querySelectorAll('.story')).map((story) => {
+    const own = story.getAttribute('data-tags');
+    if (own)
+      return own
+        .split('|')
+        .map((t) => t.trim())
+        .filter(Boolean);
     const text = tagKey(story.textContent ?? '');
     return keywords.filter(
       (k) => tagKey(k).length >= 2 && text.includes(tagKey(k)),
