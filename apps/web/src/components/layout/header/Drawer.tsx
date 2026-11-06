@@ -12,10 +12,6 @@ import Dropdown from '@/components/common/Dropdown';
  * 태블릿 · 휴대폰 메뉴: 머리글 아래로 펼쳐지는 목록, 뒤는 어둡게.
  * 지금 보는 메뉴는 강조색. 화면 모드 단추는 로그인 전에도 머리글에 있어 여기엔 두지 않는다
  */
-/** 분야 줄은 '뉴스레터' 바로 아래 끼어들므로, 그 뒤 메뉴의 화면 순서는 분야 수만큼 밀린다 */
-const SUB_AT = NAVIGATION.findIndex((item) => item.link === '/articles');
-const lineOf = (i: number) => (i > SUB_AT ? i + CATEGORIES.length : i);
-
 const Drawer = () => {
 	const pathname = usePathname();
 
@@ -34,6 +30,8 @@ const Drawer = () => {
 			type="drawer"
 			className="drawer"
 			label="메뉴"
+			// 줄 수(--n): 패널이 접히는 전체 시간(마지막 줄까지)을 계산해 그때까지 보이게 둔다
+			style={{ '--n': NAVIGATION.length + CATEGORIES.length } as React.CSSProperties}
 			toggleButton={
 				<StyledDrawerButton>
 					<span></span>
@@ -42,11 +40,11 @@ const Drawer = () => {
 				</StyledDrawerButton>
 			}
 		>
-			{/* 줄(메뉴 · 분야)마다 --i(화면 순서) · nav에 --n(줄 수): 펼칠 때는 위부터, 접을 때는 아래부터 한 줄씩 (Dropdown의 drawer 스타일) */}
-			<nav aria-label="메뉴" style={{ '--n': NAVIGATION.length + CATEGORIES.length } as React.CSSProperties}>
+			{/* 줄마다 --i(순서), 분야 줄은 --phase 1: 상위 메뉴가 위부터 한 줄씩 다 펼쳐진 뒤 분야가 한 줄씩. 접을 때는 거꾸로 (Dropdown의 drawer 스타일) */}
+			<nav aria-label="메뉴">
 				{NAVIGATION.map((item, i) => (
 					<Fragment key={item.id}>
-						<div className="row" style={{ '--i': lineOf(i) } as React.CSSProperties}>
+						<div className="row" style={{ '--i': i } as React.CSSProperties}>
 							<div className="row-body">
 								<Link
 									href={item.link}
@@ -59,8 +57,8 @@ const Drawer = () => {
 						</div>
 						{/* 뉴스레터 아래 분야: 메뉴에서 바로 그 분야 목록으로 (주소의 분야를 읽어서 Suspense 안에) */}
 						{item.link === '/articles' && (
-							<Suspense fallback={<DrawerCategories active={null} base={lineOf(i) + 1} />}>
-								<CurrentCategory base={lineOf(i) + 1} />
+							<Suspense fallback={<DrawerCategories active={null} base={NAVIGATION.length} />}>
+								<CurrentCategory base={NAVIGATION.length} />
 							</Suspense>
 						)}
 					</Fragment>
@@ -88,7 +86,7 @@ function DrawerCategories({ active, base }: { active: number | null; base: numbe
 	return (
 		<ul className="categories" aria-label="분야">
 			{CATEGORIES.map((c, i) => (
-				<li key={c.id} className="row" style={{ '--i': base + i } as React.CSSProperties}>
+				<li key={c.id} className="row" style={{ '--i': base + i, '--phase': 1 } as React.CSSProperties}>
 					<div className="row-body">
 						<Link
 							href={c.id ? `/articles?categoryId=${c.id}` : '/articles'}

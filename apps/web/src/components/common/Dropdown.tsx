@@ -10,12 +10,14 @@ interface Props {
 	type: string | string[];
 	children: React.ReactNode;
 	toggleButton?: React.ReactNode;
+	/** 바깥 틀에 줄 인라인 스타일 (drawer의 줄 수 --n처럼 패널이 읽을 CSS 변수) */
+	style?: React.CSSProperties;
 	/** 여닫는 버튼의 이름 (화면 읽기 프로그램용). 버튼 안이 그림뿐이라 꼭 준다 */
 	label: string;
 }
 
 /** 버튼으로 여닫는 메뉴. 키보드로도 열고(Enter · Space) Esc로 닫으면 버튼으로 포커스를 돌린다 (#16) */
-const Dropdown = ({ type, children, toggleButton, className, label }: Props) => {
+const Dropdown = ({ type, children, toggleButton, className, label, style }: Props) => {
 	const pathname = usePathname();
 	const { isDropdownOpen, closeDropdown, toggleDropdown } = useDropdown(type);
 	const dropdownRef = useRef<HTMLDivElement>(null);
@@ -54,7 +56,7 @@ const Dropdown = ({ type, children, toggleButton, className, label }: Props) => 
 	}, [isDropdownOpen, closeDropdown]);
 
 	return (
-		<StyledDropdown ref={dropdownRef} className={`${className}`}>
+		<StyledDropdown ref={dropdownRef} className={`${className}`} style={style}>
 			<button
 				ref={buttonRef}
 				type="button"
@@ -195,38 +197,58 @@ const StyledDropdown = styled.div`
 				right: 0;
 				display: block;
 				border-bottom: 1px solid transparent;
-				background: ${({ theme }) => theme.color.background};
-				box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0);
-				clip-path: inset(0 -100vmax -100vmax -100vmax);
 				cursor: default;
+				/* 뒤 화면 어둡게: 패널 뒤에 고정 덮개(::before, z-index -1)를 두고 투명도만 바꾼다 (그림자 100vmax를 매 프레임 다시 그리면 버벅인다).
+				   덮개는 패널 바탕보다 위에 그려지므로, 메뉴 바탕색은 안쪽 nav에 준다 */
+				isolation: isolate;
 
-				/* 아코디언: 메뉴 · 분야 줄이 한 줄씩 펼쳐지고(위부터) 접힌다(아래부터). 줄 하나 0.2초, 줄 사이 0.06초 */
+				&::before {
+					content: '';
+					position: fixed;
+					top: var(--np-header-h, 3.5rem);
+					right: 0;
+					bottom: 0;
+					left: 0;
+					z-index: -1;
+					background: rgba(0, 0, 0, 0.32);
+					opacity: 0;
+					pointer-events: none;
+					transition: opacity 0.3s ease;
+				}
+
+				/* 아코디언: 상위 메뉴가 한 줄씩 다 펼쳐진 뒤(1단계) 분야가 한 줄씩(2단계, --phase 1). 접을 때는 거꾸로. 줄 하나 0.2초, 줄 사이 0.07초 */
 				--np-row-time: 0.2s;
-				--np-row-gap: 0.06s;
-				--np-rows-total: calc(var(--np-row-time) + var(--np-row-gap) * (var(--n, 5) - 1));
+				--np-row-gap: 0.07s;
+				--np-rows-total: calc(var(--np-row-time) * 2 + var(--np-row-gap) * (var(--n, 5) - 1));
 
 				visibility: hidden;
 				transition:
-					box-shadow 0.3s ease,
 					border-color 0.3s ease,
 					visibility 0s linear var(--np-rows-total);
 
 				&.open {
 					visibility: visible;
 					border-bottom-color: ${({ theme }) => theme.color.border};
-					box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.32);
 					transition:
-						box-shadow 0.3s ease,
 						border-color 0.3s ease,
 						visibility 0s;
+
+					&::before {
+						opacity: 1;
+					}
 				}
 
 				/* 줄 하나: 높이 0에서 내용 높이까지(grid 0fr → 1fr) 펼쳐지며 글자는 살짝 내려오며 나타난다. 접을 때는 순서를 뒤집어 아래 줄부터 */
 				.row {
-					--np-row-delay: calc((var(--n, 5) - 1 - var(--i, 0)) * var(--np-row-gap));
+					/* 접기: 2단계 줄(분야)이 먼저, 1단계 줄은 분야가 다 접힌(줄 하나 시간) 뒤 */
+					--np-row-delay: calc(
+						(var(--n, 5) - 1 - var(--i, 0)) * var(--np-row-gap) + (1 - var(--phase, 0)) * var(--np-row-time)
+					);
 					display: grid;
 					grid-template-rows: 0fr;
-					transition: grid-template-rows var(--np-row-time) ease var(--np-row-delay);
+					/* 줄 안 배치가 바뀌어도 바깥을 다시 계산하지 않게 */
+					contain: layout paint;
+					transition: grid-template-rows var(--np-row-time) ease-in var(--np-row-delay);
 				}
 
 				.row-body {
@@ -235,18 +257,21 @@ const StyledDropdown = styled.div`
 					opacity: 0;
 					transform: translateY(-0.375rem);
 					transition:
-						opacity var(--np-row-time) ease var(--np-row-delay),
-						transform var(--np-row-time) ease var(--np-row-delay);
+						opacity var(--np-row-time) ease-in var(--np-row-delay),
+						transform var(--np-row-time) ease-in var(--np-row-delay);
 				}
 
 				&.open .row {
-					--np-row-delay: calc(var(--i, 0) * var(--np-row-gap));
+					/* 펼치기: 1단계 줄이 순서대로, 2단계 줄은 1단계가 다 펼쳐진(줄 하나 시간) 뒤 순서대로 */
+					--np-row-delay: calc(var(--i, 0) * var(--np-row-gap) + var(--phase, 0) * var(--np-row-time));
 					grid-template-rows: 1fr;
+					transition-timing-function: ease-out;
 				}
 
 				&.open .row-body {
 					opacity: 1;
 					transform: none;
+					transition-timing-function: ease-out;
 				}
 
 				@media (prefers-reduced-motion: reduce) {
@@ -264,6 +289,7 @@ const StyledDropdown = styled.div`
 				display: flex;
 				flex-direction: column;
 				padding: 0 1rem;
+				background: ${({ theme }) => theme.color.background};
 
 				/* 위아래 여백은 안쪽 끝 요소의 margin으로 (접히면 overflow hidden 안에서 여백까지 0이 되게. padding은 남는다) */
 				> :first-child .row-body > :first-child {
@@ -275,8 +301,8 @@ const StyledDropdown = styled.div`
 				}
 			}
 
-			/* 분야가 강조되면 위 '뉴스레터' 줄은 글자색만 (바탕이 두 줄 겹치지 않게) */
-			.item[aria-current='page']:has(~ .categories [aria-current='page']) {
+			/* 분야가 강조되면 위 '뉴스레터' 줄은 글자색만: 상위 · 하위가 같은 바탕으로 붙어 보이지 않게 (줄 틀 .row 다음의 분야 목록을 본다) */
+			.row:has(+ .categories [aria-current='page']) .item[aria-current='page'] {
 				background: transparent;
 			}
 
@@ -284,7 +310,7 @@ const StyledDropdown = styled.div`
 			.categories {
 				display: flex;
 				flex-direction: column;
-				margin: 0 0 0.5rem;
+				margin: 0.25rem 0 0.5rem;
 				padding: 0;
 				list-style: none;
 
