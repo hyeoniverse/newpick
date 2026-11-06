@@ -90,10 +90,10 @@ const STATUS_LABEL: Record<Exclude<RunStatus, null>, string> = {
 	skipped: '건너뜀',
 };
 
-/** 작업마다 언제 도는지: '08:00부터 3시간마다' · '매일 08:30' · '매주 월요일 08:40' */
+/** 작업마다 언제 도는지: '매시 00분' · '매일 08:30' · '매주 월요일 08:40' */
 const scheduleText = (job: JobKey, schedule: Schedule) =>
 	job === 'crawling'
-		? `${clock(schedule.crawl)}부터 3시간마다`
+		? `매시 ${String(schedule.crawl.minute).padStart(2, '0')}분`
 		: job === 'summary'
 			? describe(schedule.summary)
 			: describe(schedule.mail, schedule.mail.day);

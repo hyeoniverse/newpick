@@ -10,7 +10,7 @@ import { AiSummaryService } from 'src/ai-summary/ai-summary.service';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
-import { KST } from 'src/common/kst';
+import { KST, kstTimeOf } from 'src/common/kst';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { CategoryRepository } from 'src/category/category.repository';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
@@ -47,10 +47,10 @@ export const DEFAULT_SCHEDULE: Schedule = {
 
 const dailyCron = ({ hour, minute }: ClockTime) => `0 ${minute} ${hour} * * *`;
 
-/** 기사 수집 간격 (시간). 섹션 헤드라인은 그 순간 것만 보여 주므로, 하루 여러 번 모아 '그날의 뉴스'를 채운다 */
-export const CRAWL_EVERY_HOURS = 3;
+/** 기사 수집 간격 (시간). 섹션 헤드라인은 그 순간 것만 보여 주므로, 매시간 모아 '그날의 뉴스'를 빠짐없이 채운다 (요약 전 마지막 수집은 08:00) */
+export const CRAWL_EVERY_HOURS = 1;
 
-/** 수집 시각부터 CRAWL_EVERY_HOURS마다 (예: 08:00 → 08 · 11 · 14 · 17 · 20 · 23 · 02 · 05시) */
+/** 수집 시각부터 CRAWL_EVERY_HOURS마다 (1시간이면 매시 정각, 수집 분은 그대로) */
 export const crawlCron = ({ hour, minute }: ClockTime) => {
   const hours = Array.from(
     { length: 24 / CRAWL_EVERY_HOURS },
@@ -64,8 +64,20 @@ export const SUMMARY_RETRIES = 2;
 const SUMMARY_RETRY_DELAY_MS = 60 * 1000;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-/** AI 요약에 쓰는 기사: 요약 시각 전 이 시간 안에 처음 모은 것 (전날 수집 시각 ~ 오늘 요약 시각) */
+/** 추천 기사 등에서 '오늘 기사'로 보는 범위 (시간) */
 export const SUMMARY_WINDOW_HOURS = 24;
+/** 오늘 아침 속보의 시작 시각 (KST). 이 시각부터 마지막 수집(08:00)까지 보도된 기사는 뉴스레터 맨 위에 따로 싣는다 */
+export const MORNING_START_HOUR = 5;
+
+/**
+ * AI 요약에 쓰는 기사 범위: 어제 수집 시각(08:00)부터 지금까지 처음 모은 것.
+ * 그 가운데 오늘 MORNING_START_HOUR 이후 보도는 '오늘 아침 속보', 나머지(어제 낮~밤)는 본문 소식
+ */
+export const summaryWindow = (crawl: ClockTime, now = new Date()) => ({
+  start: kstTimeOf(crawl.hour, crawl.minute, now, 1),
+  end: now,
+  morningSince: kstTimeOf(MORNING_START_HOUR, 0, now),
+});
 const minutesOf = ({ hour, minute }: ClockTime) => hour * 60 + minute;
 
 export type JobName = 'crawling' | 'summary' | 'mail';
@@ -262,11 +274,12 @@ export class SchedulerService implements OnApplicationBootstrap {
     try {
       const categoryList = await this.categoryRepository.findAll();
       const generatedNewsletter = [];
-      // 그날의 뉴스만: 요약 시각 전 24시간 안에 처음 모은 기사 (예전엔 지난 7일 전부라 지난 소식이 다시 실렸다)
-      const endDate = new Date();
-      const startDate = new Date(
-        endDate.getTime() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000,
-      );
+      // 그날의 뉴스만: 어제 수집 시각부터 지금까지 처음 모은 기사 (예전엔 지난 7일 전부라 지난 소식이 다시 실렸다)
+      const {
+        start: startDate,
+        end: endDate,
+        morningSince,
+      } = summaryWindow(this.schedule.crawl);
 
       // 관심사 하나 요약: 만들었으면 true, 요약할 뉴스가 없으면 null, 실패하면 오류를 던진다
       const summarize = async (category: { id: number; name: string }) => {
@@ -283,6 +296,7 @@ export class SchedulerService implements OnApplicationBootstrap {
           news,
           category.id,
           false,
+          morningSince,
         );
         if (newsletter.newsletter?.length > 0) {
           generatedNewsletter.push(...newsletter.newsletter);

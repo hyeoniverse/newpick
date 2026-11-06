@@ -1,8 +1,11 @@
+import { kstDaysAgo, kstStamp } from 'src/common/kst';
 import { Logger } from '@nestjs/common';
 import {
   SchedulerService,
   SUMMARY_WINDOW_HOURS,
   crawlCron,
+  summaryWindow,
+  MORNING_START_HOUR,
 } from './scheduler.service';
 import { setTimeofCycle } from 'src/common/helpers';
 
@@ -133,23 +136,34 @@ describe('SchedulerService.makeAiSummary', () => {
     expect(finished.message).toContain('다시 시도로 1편');
   });
 
-  it('그날의 뉴스만: 요약 시각 전 24시간 안에 모은 기사로 (예전 지난 7일 전부가 아니라)', async () => {
-    const { service, crawlingRepository } = setup(0);
+  it('그날의 뉴스만: 어제 수집 시각부터 지금까지 모은 기사로, 오늘 05시 이후 보도는 아침 속보 (예전 지난 7일 전부가 아니라)', async () => {
+    const { service, crawlingRepository, aiSummaryService } = setup(0);
     await service.makeAiSummary();
     const [start, end] = crawlingRepository.getCrawledNewsBetween.mock.calls[0];
-    expect(end.getTime() - start.getTime()).toBe(
-      SUMMARY_WINDOW_HOURS * 60 * 60 * 1000,
-    );
+    const kst = (d: Date) => kstStamp(d);
+    // 기본 수집 시각 08:00 → 어제 08:00:00 KST부터
+    expect(kst(start)).toBe(`${kstDaysAgo(1)} 08:00:00`);
     expect(Date.now() - end.getTime()).toBeLessThan(5000);
+    const morningSince = (
+      aiSummaryService.summarizeText.mock.calls[0] as unknown[]
+    )[3] as Date;
+    expect(kst(morningSince)).toBe(`${kstDaysAgo(0)} 05:00:00`);
   });
 
-  it('수집은 수집 시각부터 3시간마다 하루 8번', () => {
-    expect(crawlCron({ hour: 8, minute: 0 })).toBe(
-      '0 0 2,5,8,11,14,17,20,23 * * *',
+  it('요약 범위: 어제 수집 시각 ~ 지금, 아침 속보는 오늘 MORNING_START_HOUR시부터', () => {
+    const now = new Date('2026-11-06T08:30:00+09:00');
+    const window = summaryWindow({ hour: 8, minute: 0 }, now);
+    expect(kstStamp(window.start)).toBe('2026-11-05 08:00:00');
+    expect(window.end).toBe(now);
+    expect(kstStamp(window.morningSince)).toBe(
+      `2026-11-06 ${String(MORNING_START_HOUR).padStart(2, '0')}:00:00`,
     );
-    expect(crawlCron({ hour: 0, minute: 30 })).toBe(
-      '0 30 0,3,6,9,12,15,18,21 * * *',
-    );
+  });
+
+  it('수집은 매시간 하루 24번 (수집 분은 그대로)', () => {
+    const hours = Array.from({ length: 24 }, (_, i) => i).join(',');
+    expect(crawlCron({ hour: 8, minute: 0 })).toBe(`0 0 ${hours} * * *`);
+    expect(crawlCron({ hour: 0, minute: 30 })).toBe(`0 30 ${hours} * * *`);
   });
 });
 

@@ -208,7 +208,7 @@ export default function ArticlesList() {
 								<th scope="col">
 									<PeriodHeaderFilter label="수집" />
 								</th>
-								{/* 기사가 실제로 쓰인 시각 (네이버 기사 날짜). 수집은 3시간마다라 수집 시각보다 이를 수 있다 */}
+								{/* 기사가 실제로 쓰인 시각 (네이버 기사 날짜). 수집은 매시간이라 수집 시각보다 이를 수 있다 */}
 								<th scope="col">기사 작성</th>
 								<th scope="col">
 									<HeaderSelect
