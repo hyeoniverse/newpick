@@ -1,7 +1,6 @@
-import { Suspense, useEffect } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
-import { LuChevronRight } from 'react-icons/lu';
 import { NAVIGATION } from '@/constants/navigation';
 import { CATEGORIES } from '@/constants/categories';
 import { useDropdown } from '@/hooks/useDropdown';
@@ -39,23 +38,25 @@ const Drawer = () => {
 				</StyledDrawerButton>
 			}
 		>
-			<nav aria-label="메뉴">
-				{NAVIGATION.map((item) => (
-					<div key={item.id}>
-						<Link
-							href={item.link}
-							className={item.link === '/articles' ? 'item has-sub' : 'item'}
-							aria-current={pathname.startsWith(item.link) ? 'page' : undefined}
-						>
-							{item.title}
-							<LuChevronRight aria-hidden />
-						</Link>
-						{/* 뉴스레터 아래 분야: 메뉴에서 바로 그 분야 목록으로 (주소의 분야를 읽어서 Suspense 안에) */}
-						{item.link === '/articles' && (
-							<Suspense fallback={<DrawerCategories active={null} />}>
-								<CurrentCategory />
-							</Suspense>
-						)}
+			{/* 줄마다 --i(순서) · nav에 --n(개수): 펼칠 때는 위부터, 접을 때는 아래부터 하나씩 (Dropdown의 drawer 스타일) */}
+			<nav aria-label="메뉴" style={{ '--n': NAVIGATION.length } as React.CSSProperties}>
+				{NAVIGATION.map((item, i) => (
+					<div key={item.id} className="row" style={{ '--i': i } as React.CSSProperties}>
+						<div className="row-body">
+							<Link
+								href={item.link}
+								className="item"
+								aria-current={pathname.startsWith(item.link) ? 'page' : undefined}
+							>
+								{item.title}
+							</Link>
+							{/* 뉴스레터 아래 분야: 메뉴에서 바로 그 분야 목록으로 (주소의 분야를 읽어서 Suspense 안에) */}
+							{item.link === '/articles' && (
+								<Suspense fallback={<DrawerCategories active={null} />}>
+									<CurrentCategory />
+								</Suspense>
+							)}
+						</div>
 					</div>
 				))}
 			</nav>

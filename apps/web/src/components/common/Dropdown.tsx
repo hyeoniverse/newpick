@@ -193,47 +193,73 @@ const StyledDropdown = styled.div`
 				top: var(--np-header-h, 3.5rem);
 				left: 0;
 				right: 0;
-				/* 아코디언: 높이 0에서 내용 높이까지 펼쳐진다 (grid 0fr → 1fr) */
-				display: grid;
-				grid-template-rows: 0fr;
+				display: block;
 				border-bottom: 1px solid transparent;
 				background: ${({ theme }) => theme.color.background};
 				box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0);
 				clip-path: inset(0 -100vmax -100vmax -100vmax);
 				cursor: default;
 
+				/* 아코디언: 메뉴 줄이 하나씩 펼쳐지고(위부터) 접힌다(아래부터). 줄 하나 0.25초, 줄 사이 0.07초 */
+				--np-row-time: 0.25s;
+				--np-row-gap: 0.07s;
+				--np-rows-total: calc(var(--np-row-time) + var(--np-row-gap) * (var(--n, 5) - 1));
+
 				visibility: hidden;
 				transition:
-					grid-template-rows 0.3s ease,
 					box-shadow 0.3s ease,
 					border-color 0.3s ease,
-					visibility 0.3s;
+					visibility 0s linear var(--np-rows-total);
 
 				&.open {
 					visibility: visible;
-					grid-template-rows: 1fr;
 					border-bottom-color: ${({ theme }) => theme.color.border};
 					box-shadow: 0 0 0 100vmax rgba(0, 0, 0, 0.32);
+					transition:
+						box-shadow 0.3s ease,
+						border-color 0.3s ease,
+						visibility 0s;
+				}
+
+				/* 줄 하나: 높이 0에서 내용 높이까지 (grid 0fr → 1fr). 접을 때는 순서를 뒤집어 아래 줄부터 */
+				.row {
+					display: grid;
+					grid-template-rows: 0fr;
+					transition: grid-template-rows var(--np-row-time) ease
+						calc((var(--n, 5) - 1 - var(--i, 0)) * var(--np-row-gap));
+				}
+
+				.row-body {
+					min-height: 0;
+					overflow: hidden;
+				}
+
+				&.open .row {
+					grid-template-rows: 1fr;
+					transition-delay: calc(var(--i, 0) * var(--np-row-gap));
 				}
 
 				@media (prefers-reduced-motion: reduce) {
 					transition: none;
+
+					.row,
+					&.open .row {
+						transition: none;
+					}
 				}
 			}
 
 			nav {
 				display: flex;
 				flex-direction: column;
-				min-height: 0;
-				overflow: hidden;
 				padding: 0 1rem;
 
-				/* 위아래 여백은 안쪽 끝 요소에 (접히면 여백까지 0이 되게) */
-				> :first-child {
+				/* 위아래 여백은 안쪽 끝 요소의 margin으로 (접히면 overflow hidden 안에서 여백까지 0이 되게. padding은 남는다) */
+				> :first-child .row-body > :first-child {
 					margin-top: 0.5rem;
 				}
 
-				> :last-child {
+				> :last-child .row-body > :last-child {
 					margin-bottom: 1rem;
 				}
 			}
@@ -272,29 +298,16 @@ const StyledDropdown = styled.div`
 				}
 			}
 
-			/* 메뉴 한 줄: 누르는 칸 넉넉히, 오른쪽 끝에 작은 화살표 */
+			/* 메뉴 한 줄: 누르는 칸 넉넉히 */
 			.item {
 				display: flex;
 				align-items: center;
-				justify-content: space-between;
 				min-height: 3.25rem;
 				padding: 0 0.75rem;
 				border-radius: ${({ theme }) => theme.radius.control};
 				font-size: ${({ theme }) => theme.fontSize.medium};
 				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
 				color: ${({ theme }) => theme.color.text};
-
-				svg {
-					width: 1.125rem;
-					height: 1.125rem;
-					color: ${({ theme }) => theme.color.subText};
-					transition: transform 0.2s ease;
-				}
-
-				/* 아래에 분야가 펼쳐져 있는 '뉴스레터'는 화살표가 아래로 */
-				&.has-sub svg {
-					transform: rotate(90deg);
-				}
 
 				&:hover {
 					background: ${({ theme }) => theme.color.surface};
