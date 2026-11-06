@@ -69,7 +69,7 @@ describe('DashboardService 기간 (#21)', () => {
   });
 });
 
-describe('DashboardService AI 기록: 실패 뒤 다시 시도', () => {
+describe('DashboardService AI 기록: 분야별 시도 묶음', () => {
   const log = (
     id: number,
     status: string,
@@ -91,36 +91,64 @@ describe('DashboardService AI 기록: 실패 뒤 다시 시도', () => {
     costUsd: null,
   });
 
-  it('같은 분야 실패 뒤 성공을 잇고, 분야 이름을 붙인다', async () => {
+  it('같은 분야 실패 → 실패 → 성공은 한 묶음 1 · 2 · 3차, 성공 뒤 시도는 새 묶음', async () => {
     const { service, prisma } = setup();
-    const failed = log(1, 'error', '2026-10-28T23:31:00Z');
-    const ok = log(2, 'success', '2026-10-28T23:40:00Z');
+    const a = log(1, 'error', '2026-10-28T23:31:00Z');
+    const b = log(2, 'error', '2026-10-28T23:40:00Z');
+    const c = log(3, 'success', '2026-10-28T23:50:00Z');
+    const next = log(4, 'success', '2026-10-29T23:31:00Z');
     prisma.aiProcessLog.findMany
-      .mockResolvedValueOnce([ok, failed])
-      .mockResolvedValueOnce([failed, ok]);
-    const { items } = await service.listAiLogs({
-      from: '2026-10-29',
-      to: '2026-10-29',
-    });
-    const byId = new Map(items.map((item) => [item.id, item]));
-    expect(byId.get(1)?.retry).toEqual({ kind: 'recovered', at: ok.createdAt });
-    expect(byId.get(2)?.retry).toEqual({ kind: 'retry', at: failed.createdAt });
-    expect(byId.get(1)?.category).toBe('경제');
-  });
-
-  it('다시 성공하지 못한 실패, 12시간 넘게 지난 성공, 분야 없는 이전 기록은 잇지 않는다', async () => {
-    const { service, prisma } = setup();
-    const failed = log(1, 'error', '2026-10-28T23:31:00Z');
-    const late = log(2, 'success', '2026-10-29T23:31:00Z');
-    const old = log(3, 'error', '2026-10-28T23:32:00Z', null);
-    prisma.aiProcessLog.findMany
-      .mockResolvedValueOnce([late, old, failed])
-      .mockResolvedValueOnce([failed, late]);
+      .mockResolvedValueOnce([next, c, b, a])
+      .mockResolvedValueOnce([a, b, c, next]);
     const { items } = await service.listAiLogs({
       from: '2026-10-29',
       to: '2026-10-30',
     });
-    expect(items.every((item) => item.retry === null)).toBe(true);
-    expect(items.find((item) => item.id === 3)?.category).toBeNull();
+    const byId = new Map(items.map((item) => [item.id, item.attempt]));
+    expect(byId.get(1)).toEqual({
+      n: 1,
+      total: 3,
+      outcome: 'success',
+      chain: 1,
+    });
+    expect(byId.get(2)).toEqual({
+      n: 2,
+      total: 3,
+      outcome: 'success',
+      chain: 1,
+    });
+    expect(byId.get(3)).toEqual({
+      n: 3,
+      total: 3,
+      outcome: 'success',
+      chain: 1,
+    });
+    expect(byId.get(4)).toEqual({
+      n: 1,
+      total: 1,
+      outcome: 'success',
+      chain: 4,
+    });
+    expect(items[0].category).toBe('경제');
+  });
+
+  it('12시간 넘게 떨어진 실패는 따로, 다른 분야 · 분야 없는 이전 기록은 묶지 않는다', async () => {
+    const { service, prisma } = setup();
+    const a = log(1, 'error', '2026-10-28T23:31:00Z');
+    const late = log(2, 'error', '2026-10-29T23:31:00Z');
+    const other = log(3, 'success', '2026-10-28T23:35:00Z', 6);
+    const old = log(4, 'error', '2026-10-28T23:32:00Z', null);
+    prisma.aiProcessLog.findMany
+      .mockResolvedValueOnce([late, old, other, a])
+      .mockResolvedValueOnce([a, other, late]);
+    const { items } = await service.listAiLogs({
+      from: '2026-10-29',
+      to: '2026-10-30',
+    });
+    const byId = new Map(items.map((item) => [item.id, item.attempt]));
+    expect(byId.get(1)).toMatchObject({ n: 1, total: 1, outcome: 'error' });
+    expect(byId.get(2)).toMatchObject({ n: 1, total: 1, outcome: 'error' });
+    expect(byId.get(3)).toMatchObject({ n: 1, total: 1, outcome: 'success' });
+    expect(byId.get(4)).toBeNull();
   });
 });
