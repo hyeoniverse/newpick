@@ -108,9 +108,68 @@ describe('오늘 아침 속보 (05시 이후 보도는 뉴스레터 맨 위에 �
     ]);
     expect(prompt).toContain('기사 1건(2~2번)은 오늘 아침');
     expect(prompt).toContain('- morning: 오늘 아침 속보 1개');
-    expect(prompt).toContain('template은 brief');
+    expect(prompt).toContain('kicker · heading · lead · body');
     expect(writerPrompt([prepared[0]])).toContain('- morning: 빈 배열');
     expect((WRITER_SCHEMA.required as string[]).includes('morning')).toBe(true);
+  });
+
+  it('스키마: 아침 속보는 brief 칸만 받는다 (본문 소식 스키마를 두 번 넣으면 문법 한도를 넘는다)', () => {
+    const props = WRITER_SCHEMA.properties as unknown as Record<
+      string,
+      { items: { properties: object } }
+    >;
+    const morning = Object.keys(props.morning.items.properties);
+    expect(morning).toEqual([
+      'kicker',
+      'heading',
+      'lead',
+      'body',
+      'next',
+      'tags',
+      'sources',
+      'imageQuery',
+    ]);
+    expect(Object.keys(props.stories.items.properties)).toContain('stats');
+    // 스키마 전체 크기: 본문 소식 스키마를 두 번 넣던 때보다 작다
+    expect(JSON.stringify(WRITER_SCHEMA).length).toBeLessThan(
+      2 * JSON.stringify(props.stories.items).length + 600,
+    );
+  });
+
+  it('정리: brief 칸만 온 아침 속보도 소식 모양으로 채운다', () => {
+    const written = normalize(
+      {
+        title: '제목',
+        subtitle: '',
+        summary: '요약',
+        briefing: '',
+        stories: [story('어젯밤 소식')],
+        morning: [
+          {
+            kicker: '속보',
+            heading: '아침 속보 B',
+            lead: '리드',
+            body: '본문',
+            next: '다음',
+            tags: ['태그'],
+            sources: [2],
+            imageQuery: 'q',
+          } as never,
+        ],
+        watch: [],
+        keywords: [],
+      },
+      (n) => n,
+    );
+    expect(written.morning![0]).toMatchObject({
+      template: 'brief',
+      heading: '아침 속보 B',
+      analysis: '',
+      stats: [],
+      qa: [],
+      quote: { text: '', by: '' },
+      sources: [2],
+    });
   });
 
   it('정리 · HTML · 파싱 · 메일: 별도 소식으로 맨 위 묶음에, 번호는 아침부터, 메일 맨 위 상자', () => {
