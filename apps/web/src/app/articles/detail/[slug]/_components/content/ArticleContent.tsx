@@ -549,6 +549,11 @@ const NewsletterContentStyled = styled.article`
 			}
 		}
 
+		/* 소식 맨 위 '지켜보던 소식의 후속' 자리 (FollowLayer): 후속이 아니면 비어 있으니 자리도 차지하지 않게 */
+		.follow-from:empty {
+			display: none;
+		}
+
 		/* 예전 뉴스레터(소식별 관전 포인트 없음): 출처 위에 단추만 오른쪽 끝에 */
 		.follow-row {
 			display: flex;

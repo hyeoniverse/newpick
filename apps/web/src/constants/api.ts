@@ -74,7 +74,9 @@ export const API_ENDPOINTS = {
 		FOLLOWS_UNSEEN: () => `${API_URL}/mypage/follows/unseen`,
 		FOLLOWS_SEEN: () => `${API_URL}/mypage/follows/seen`,
 		FOLLOWS_OF: (newsletterId: number) => `${API_URL}/mypage/follows/newsletter/${newsletterId}`,
+		FOLLOW_UPDATES_IN: (newsletterId: number) => `${API_URL}/mypage/follows/newsletter/${newsletterId}/updates`,
 		FOLLOW: (id: number) => `${API_URL}/mypage/follows/${id}`,
+		FOLLOW_KEEP: (id: number) => `${API_URL}/mypage/follows/${id}/keep`,
 		/** 이메일 바꾸기: 새 주소로 인증 코드 → 코드 확인 */
 		EMAIL_CODE: () => `${API_URL}/mypage/email/code`,
 		EMAIL_VERIFY: () => `${API_URL}/mypage/email/verify`,
