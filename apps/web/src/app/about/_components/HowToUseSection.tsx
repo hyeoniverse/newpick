@@ -12,50 +12,61 @@ interface Step {
 	/** 없으면 화면 모양을 그린 LoginMock을 보여 준다 */
 	image?: string;
 	alt?: string;
+	/** 원본 크기: 그림이 늦게 로드돼도 자리를 미리 잡아 줄이 밀리지 않게 (스크롤 진행도가 어긋나지 않는다) */
+	size?: [number, number];
 }
 
 const STEPS: Step[] = [
 	{
 		title: '구글로 로그인',
-		text: '구글 계정으로 바로 시작합니다. 따로 가입 양식을 채울 필요가 없습니다.',
+		text: '구글 계정으로 바로 시작해요. 따로 가입 양식을 채울 필요가 없어요.',
 	},
 	{
 		title: '관심사 고르기',
-		text: '받고 싶은 관심사만 고릅니다. 여러 개를 골라도 메일은 한 통으로 옵니다.',
+		text: 'IT · 정치 · 경제 · 사회 · 생활 · 세계 다양한 분야의 뉴스를 정리해 중요한 것만 보내드려요. 놓치고 싶지 않은 소식을 매일 아침, 한 통으로 압축해 받아보세요.',
 		image: '/img/about_categories.jpg',
+		size: [1390, 334],
 		alt: '관심사를 고르는 화면',
 	},
 	{
 		title: '구독 완료',
-		text: '고른 관심사로 구독이 시작됩니다. 관심사는 마이페이지에서 언제든 바꿀 수 있습니다.',
+		text: '다음 날 아침부터 뉴스레터가 도착해요. 관심사는 마이페이지에서 언제든 바꿀 수 있어요.',
 		image: '/img/about_sns-login.jpg',
+		size: [1534, 756],
 		alt: '구독 설정이 완료되었다는 안내',
 	},
 	{
 		title: '뉴스레터 받기',
-		text: '매일 아침 메일함에서 읽고, 지난 뉴스레터는 사이트에서 다시 봅니다.',
-		image: '/img/about_newsletter-mail.jpg',
+		text: '매일 아침 8시 40분, 출근 길에 메일함을 열면 오늘 꼭 알아야 할 소식이 메일 한 통으로 정리돼 있어요. 지나간 소식은 마이페이지에서 언제든 다시 확인할 수 있어요.',
+		image: '/img/about_mail-user.jpg',
+		size: [1200, 1700],
 		alt: '메일로 받은 뉴스레터',
 	},
 	{
 		title: '후속 지켜보기',
-		text: "소식마다 붙은 관전 포인트 옆의 '후속 지켜보기'를 누르면, 이어지는 새 소식이 나왔을 때 메일 맨 위와 마이페이지에서 알려 드립니다.",
+		text: "각 소식의 관전 포인트에서 '후속 지켜보기'를 활성화하면, 이어지는 새 소식이 나왔을 때 메일 상단에 알려드려요. 마이페이지에서 같은 내용을 확인하고 관리할 수 있어요.",
 		image: '/img/about_follow.jpg',
+		size: [2144, 354],
 		alt: "소식 끝의 관전 포인트와 '후속 지켜보기' 단추",
 	},
 	{
 		title: '스크랩 · 메모',
-		text: '읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남깁니다. 스크랩은 마이페이지에 모이고, 폴더로 정리할 수 있습니다.',
-		image: '/img/about_scrap.jpg',
-		alt: '마이페이지의 스크랩 목록과 폴더',
+		text: '읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남겨요. 스크랩은 마이페이지에 모이고, 폴더로 정리할 수 있어요.',
+		image: '/img/about_scrap-card.jpg',
+		size: [2048, 600],
+		alt: '마이페이지에 모인 스크랩한 문장',
 	},
 	{
 		title: '태그 팔로우 · 지켜보기',
-		text: '관심 있는 태그를 팔로우하면 매일 메일에 그 태그의 소식이 따로 모입니다. 지켜보는 소식의 후속도 마이페이지 한곳에서 봅니다.',
+		text: "관심 있는 태그를 팔로우하면 메일로 그 태그의 새 소식을 따로 모아 보내드려요. 지켜보는 소식에 이어진 새 소식이 발견되면 메일로 알려드려요. 이 모든 소식들은 마이페이지 '지켜보기'에서 시간순으로 쌓여요.",
 		image: '/img/about_follows-tab.jpg',
+		size: [2048, 952],
 		alt: '마이페이지의 팔로우한 태그와 지켜보는 소식',
 	},
 ];
+
+/** 앞 네 단계(시작)와 뒤 세 단계(읽은 뒤의 흐름) 사이에 두 번째 제목을 둔다 */
+const FIRST_PART = 4;
 
 /** 로그인 단계는 캡처가 없어 로그인 창 모양을 그린다 (장식) */
 function LoginMock() {
@@ -71,9 +82,9 @@ function LoginMock() {
 	);
 }
 
-/** 한 단계: 그림은 화면 끝까지 닿고, 스크롤하면 자기 쪽 끝에서 밀려 들어온다 (--progress 0 → 1) */
+/** 한 단계: 그림은 화면 끝까지 닿고, 스크롤하면 자기 쪽 끝에서 밀려 들어온다 (--progress 0 → 1). 줄 높이가 달라도 가운데에 왔을 때 끝나게 center */
 function StepRow({ step, index }: { step: Step; index: number }) {
-	const ref = useScrollProgress<HTMLLIElement>('enter');
+	const ref = useScrollProgress<HTMLLIElement>('center');
 
 	return (
 		<li ref={ref} className={index % 2 === 0 ? 'row' : 'row reverse'}>
@@ -84,7 +95,13 @@ function StepRow({ step, index }: { step: Step; index: number }) {
 			</div>
 			<div className="shot">
 				{step.image ? (
-					<Img src={step.image} alt={step.alt ?? ''} width={0} height={0} sizes="(max-width: 768px) 100vw, 60vw" />
+					<Img
+						src={step.image}
+						alt={step.alt ?? ''}
+						width={step.size?.[0] ?? 0}
+						height={step.size?.[1] ?? 0}
+						sizes="(max-width: 768px) 100vw, 60vw"
+					/>
 				) : (
 					<LoginMock />
 				)}
@@ -103,12 +120,25 @@ export default function HowToUseSection() {
 		<StyledHowToUse data-track-section="about-how-to-use">
 			<SectionHeading
 				label="HOW TO USE"
-				title="시작은 세 번의 클릭."
-				sub="로그인하고 관심사만 고르면, 매일 아침 뉴스레터가 옵니다. 읽은 뒤에는 지켜보기 · 스크랩 · 태그 팔로우로 이어 갑니다."
+				title="세 번의 클릭으로, 간단하게 시작."
+				sub="간편하게 로그인하고 원하는 분야를 자유롭게 선택하세요. 매일 아침 출근 전, 간밤에 놓친 중요한 소식들과 아침 속보까지 한 통으로 받아볼 수 있어요."
 			/>
 			<ol className="rows">
-				{STEPS.map((step, i) => (
+				{STEPS.slice(0, FIRST_PART).map((step, i) => (
 					<StepRow key={step.title} step={step} index={i} />
+				))}
+			</ol>
+			{/* 받은 뒤의 흐름: 뒤 세 단계 앞에 두 번째 제목 */}
+			<div className="mid">
+				<h3 className="mid-title">유기적으로 이어지는 흐름.</h3>
+				<p className="mid-sub">
+					한 번 읽고 끝내지 마세요. 북마크와 스크랩으로 중요한 내용을 저장하고, 후속 뉴스 지켜보기, 태그 팔로우로 맞춤형
+					뉴스레터를 받아보세요.
+				</p>
+			</div>
+			<ol className="rows">
+				{STEPS.slice(FIRST_PART).map((step, i) => (
+					<StepRow key={step.title} step={step} index={FIRST_PART + i} />
 				))}
 			</ol>
 		</StyledHowToUse>
@@ -116,6 +146,33 @@ export default function HowToUseSection() {
 }
 
 const StyledHowToUse = styled.section`
+	/* 두 번째 제목: 섹션 제목과 같은 꼴을 한 단계 작게, 위아래로 단계 사이 간격만큼 */
+	.mid {
+		margin: 8rem 0 3.5rem;
+		word-break: keep-all;
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			margin: 5rem 0 2.5rem;
+		}
+	}
+
+	.mid-title {
+		margin: 0;
+		font-size: clamp(1.75rem, 4vw, 2.75rem);
+		font-weight: 800;
+		line-height: 1.2;
+		letter-spacing: -0.02em;
+		color: ${({ theme }) => theme.color.text};
+	}
+
+	.mid-sub {
+		max-width: 40rem;
+		margin: 1rem 0 0;
+		font-size: ${({ theme }) => theme.fontSize.medium};
+		line-height: 1.7;
+		color: ${({ theme }) => theme.color.subText};
+	}
+
 	.rows {
 		display: flex;
 		flex-direction: column;

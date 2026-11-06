@@ -159,7 +159,7 @@ export class MyPageController {
   /** 팔로우한 태그 (#123 5단계) */
   @Get('tag-follows')
   async getTagFollows(@Req() req) {
-    return this.tagFollowsService.list(this.userIdOf(req));
+    return this.tagFollowsService.listWithNews(this.userIdOf(req));
   }
 
   /** 태그 팔로우: 뉴스레터 태그 표기에 맞춰 저장 (20개까지) */

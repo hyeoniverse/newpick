@@ -11,6 +11,10 @@ export interface Highlight {
 	section: string | null;
 	/** 소식(story-N)이면 그 소식의 제목 (스크랩할 때 꺼내 둔 것, 빈 글이면 제목 없음) */
 	sectionTitle?: string | null;
+	/** 소식(story-N)이면 그 소식의 사진 (마이페이지 쪽 목록에만, 없으면 null) */
+	sectionImage?: string | null;
+	/** 그 소식의 태그 (뉴스레터 태그 중 소식 글에 나오는 것, 마이페이지 쪽 목록에만) */
+	sectionTags?: string[];
 	text: string;
 	note: string | null;
 	/** 중요 표시 (별) */

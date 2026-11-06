@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { NewsletterRepo } from './newsletter.repository';
 
 describe('뉴스레터 고치기', () => {
@@ -6,14 +7,18 @@ describe('뉴스레터 고치기', () => {
     highlight: { updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
   });
 
-  it('본문을 고치면 스크랩에 꺼내 둔 소식 제목을 비운다 (다음 목록에서 새 본문으로 다시 꺼냄)', async () => {
+  it('본문을 고치면 스크랩에 꺼내 둔 소식 제목 · 사진 · 태그를 비운다 (다음 목록에서 새 본문으로 다시 꺼냄)', async () => {
     const prisma = fakePrisma();
     await new NewsletterRepo(prisma as never).updateNewsletter(66, {
       contentAsHTML: '<p>새 본문</p>',
     });
     expect(prisma.highlight.updateMany).toHaveBeenCalledWith({
       where: { newsletterId: 66 },
-      data: { sectionTitle: null },
+      data: {
+        sectionTitle: null,
+        sectionImage: null,
+        sectionTags: Prisma.DbNull,
+      },
     });
   });
 

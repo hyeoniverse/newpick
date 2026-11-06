@@ -6,6 +6,7 @@ import NumbersSection from '@/app/about/_components/NumbersSection';
 import StatementSection from '@/app/about/_components/StatementSection';
 import WhyNewpickSection from '@/app/about/_components/WhyNewpickSection';
 import MorningSection from '@/app/about/_components/MorningSection';
+import PersonalSection from '@/app/about/_components/PersonalSection';
 import FaqSection from '@/app/about/_components/FaqSection';
 import CoreFeature from '@/app/about/_components/CoreFeature';
 import ExploreSection from '@/app/about/_components/ExploreSection';
@@ -32,6 +33,7 @@ async function AboutPage() {
 			<NumbersSection />
 			<CoreFeature />
 			<MorningSection />
+			<PersonalSection />
 			<HowToUseSection />
 			<Logos />
 			<FaqSection />

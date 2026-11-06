@@ -27,6 +27,17 @@ const nextConfig: NextConfig = {
 				hostname: 'avatars.githubusercontent.com',
 				pathname: '/**',
 			},
+			// 소식 사진 (#49): 원출처가 없으면 Pexels · Unsplash에서 찾은 사진. 마이페이지 스크랩 블록이 next/image로 보여 준다
+			{
+				protocol: 'https',
+				hostname: 'images.pexels.com',
+				pathname: '/**',
+			},
+			{
+				protocol: 'https',
+				hostname: 'images.unsplash.com',
+				pathname: '/**',
+			},
 		],
 	},
 	compiler: {

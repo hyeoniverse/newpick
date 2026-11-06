@@ -37,9 +37,9 @@ const WORD_COUNT = LINES.flat().filter((token) => !('space' in token)).length;
  * - 가치 문장: 스크롤하는 동안 낱말 단위로 차례로 밝아진다 (첫 화면 다음 큰 문장과 같은 효과)
  */
 export default function WhyNewpickSection() {
-	const designRef = useScrollProgress<HTMLDivElement>('enter');
-	// 낱말이 많아 through 구간으로는 너무 빨리 지나가서, 두 배쯤 긴 slow 구간에 걸쳐 밝아진다
-	const valuesRef = useScrollProgress<HTMLDivElement>('slow');
+	// 화면 아래에서 시작해 요소가 화면 가운데에 왔을 때 끝난다(center): 글자가 모이고 낱말이 밝아지는 것을 보면서 읽는 자리에서 멈춘다
+	const designRef = useScrollProgress<HTMLDivElement>('center');
+	const valuesRef = useScrollProgress<HTMLDivElement>('center');
 
 	return (
 		<StyledWhy data-track-section="about-why-newpick" aria-label="WHY NEWPICK">

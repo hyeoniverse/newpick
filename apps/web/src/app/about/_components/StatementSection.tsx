@@ -17,8 +17,8 @@ const WORDS = STATEMENT.split(' ').map((word) => ({
  * 글자는 처음부터 모두 들어 있어 화면 낭독기는 그대로 읽는다
  */
 export default function StatementSection() {
-	// 낱말이 많아 through 구간으로는 너무 빨리 지나가서, 두 배쯤 긴 slow 구간에 걸쳐 밝아진다
-	const ref = useScrollProgress<HTMLParagraphElement>('slow');
+	// 긴 문장이라 through 구간(화면 아래에서 가운데까지)에 낱말이 밝아진다. 마지막 낱말은 구간 끝에서 (계수 1.05)
+	const ref = useScrollProgress<HTMLParagraphElement>('through');
 
 	return (
 		<StyledStatement data-track-section="about-statement" aria-label="NEWPICK 소개">

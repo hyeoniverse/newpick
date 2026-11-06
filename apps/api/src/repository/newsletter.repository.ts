@@ -268,11 +268,15 @@ export class NewsletterRepo {
       where: { id },
       data,
     });
-    // 본문을 고치면 스크랩에 꺼내 둔 소식 제목을 비워, 다음에 목록을 볼 때 새 본문에서 다시 꺼낸다
-    if (data.contentAsHTML !== undefined) {
+    // 본문 · 태그를 고치면 스크랩에 꺼내 둔 소식 제목 · 사진 · 태그를 비워, 다음에 목록을 볼 때 새로 꺼낸다
+    if (data.contentAsHTML !== undefined || data.keywords !== undefined) {
       await this.prisma.highlight.updateMany({
         where: { newsletterId: id },
-        data: { sectionTitle: null },
+        data: {
+          sectionTitle: null,
+          sectionImage: null,
+          sectionTags: Prisma.DbNull,
+        },
       });
     }
     return updated;
