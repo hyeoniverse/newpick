@@ -155,7 +155,7 @@ describe('저장된 본문 HTML 다시 읽기 (#55)', () => {
 
   it('구조가 없는 예전 뉴스레터는 빈 소식', () => {
     expect(parseNewsletterHtml('<div style="color:red">옛날 글</div>')).toEqual(
-      { briefing: '', stories: [], watch: [] },
+      { briefing: '', stories: [], watch: [], morning: [] },
     );
     expect(parseNewsletterHtml(null).stories).toEqual([]);
   });

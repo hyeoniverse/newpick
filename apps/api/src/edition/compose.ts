@@ -21,7 +21,28 @@ export type EditionNewsletter = EditionSource & {
   subtitle: string | null;
   summary: string;
   watch: string[];
+  /** 오늘 아침 속보: 별도 소식 (예전 뉴스레터 · 없는 날은 비어 있다) */
+  morning?: ParsedStory[];
 };
+
+/** 메일 맨 위 '오늘 아침 속보' 한 건: 제목 · 리드와 분야 · 그 뉴스레터 */
+export type ComposedMorning = {
+  heading: string;
+  line: string;
+  category: string;
+  newsletterId: number;
+};
+
+/** 받는 분야의 아침 속보를 뉴스레터 순서대로 모은다 */
+const morningOf = (sources: EditionNewsletter[]): ComposedMorning[] =>
+  sources.flatMap((s) =>
+    (s.morning ?? []).map((m) => ({
+      heading: m.heading,
+      line: shorten(m.lead || m.heading),
+      category: s.category,
+      newsletterId: s.newsletterId,
+    })),
+  );
 
 export type ComposedStory = {
   ref: string;
@@ -51,6 +72,8 @@ export type ComposedEdition = {
   threads: { title: string; text: string; categories: string[] }[];
   sections: ComposedSection[];
   watch: string[];
+  /** 오늘 아침 속보 (받는 분야 것만, 메일 맨 위) */
+  morning: ComposedMorning[];
   /** 맞춤 메일: 분야를 나누지 않고 점수 순 (sections는 소식 하나씩) */
   personal?: boolean;
   /** 맞춤: 사람마다 쓴 브리핑 (메일 맨 위) */
@@ -235,6 +258,7 @@ export function composeEdition(
     threads,
     sections,
     watch,
+    morning: morningOf(chosen),
     newsletterIds: sections.map((s) => s.newsletterId),
     articles: plan?.articles ?? [],
     tags: plan?.tags ?? [],
@@ -304,6 +328,7 @@ function composePersonal(
     top,
     threads,
     sections,
+    morning: morningOf(used),
     watch: mergeWatch(used.map((s) => s.watch)),
     personal: true,
     newsletterIds: used.map((s) => s.newsletterId),

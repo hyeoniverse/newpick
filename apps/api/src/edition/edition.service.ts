@@ -359,6 +359,7 @@ export class EditionService {
           summary: n.content,
           stories: parsed.stories,
           watch: parsed.watch,
+          morning: parsed.morning,
         };
       });
   }
