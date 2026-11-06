@@ -29,6 +29,23 @@ export function kstStamp(input: Date): string {
   return dayjs(input).tz(KST).format('YYYY-MM-DD HH:mm:ss');
 }
 
+/** KST로 오늘(daysAgo일 전) hour:minute 시각 */
+export function kstTimeOf(
+  hour: number,
+  minute: number,
+  now: Date = new Date(),
+  daysAgo = 0,
+): Date {
+  return dayjs(now)
+    .tz(KST)
+    .subtract(daysAgo, 'day')
+    .hour(hour)
+    .minute(minute)
+    .second(0)
+    .millisecond(0)
+    .toDate();
+}
+
 /** KST 날짜를 '10월 31일'로 */
 export function kstDayLabel(input: Date = new Date()): string {
   const day = dayjs(input).tz(KST);

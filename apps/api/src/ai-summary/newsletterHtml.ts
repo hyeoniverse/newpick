@@ -143,15 +143,20 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
  * 뉴스레터 본문 HTML. 예전에는 모델이 인라인 스타일까지 매번 다르게 만들었습니다 (#43).
  * 구조와 class만 만들고, 모양은 웹이 사이트 테마(색·글꼴·다크 모드)로 입힙니다.
  *
- * 에디터 브리핑 → 소식(템플릿별, 끝에 관전 포인트) → 관전 포인트 모음(예전 구조만)
+ * 오늘 아침 속보(있으면) → 에디터 브리핑 → 소식(템플릿별, 끝에 관전 포인트) → 관전 포인트 모음(예전 구조만)
  *
  * articles: 원래 기사 목록. 소식의 sources(1부터)로 출처 언론사와 원문 링크를 찾는다
  */
 export function renderNewsletterHtml(
-  newsletter: Pick<WrittenNewsletter, 'briefing' | 'stories' | 'watch'>,
+  newsletter: Pick<
+    WrittenNewsletter,
+    'briefing' | 'stories' | 'watch' | 'morning'
+  >,
   articles: SourceRef[] = [],
 ): string {
-  const stories = newsletter.stories.map((story, i) => {
+  const morning = newsletter.morning ?? [];
+  // 아침 속보가 먼저(01부터), 본문 소식은 그 다음 번호
+  const render = (story: Story, i: number) => {
     const index = String(i + 1).padStart(2, '0');
     return [
       `<article class="story story-${story.template}">`,
@@ -167,15 +172,23 @@ export function renderNewsletterHtml(
       credit(story, articles),
       '</article>',
     ].join('');
-  });
+  };
+  const stories = newsletter.stories.map((story, i) =>
+    render(story, morning.length + i),
+  );
   return [
     '<div class="newsletter">',
+    // 오늘 아침 속보: 별도 소식으로 맨 위 (화면 · 메일은 이 묶음을 따로 보여 준다)
+    morning.length
+      ? `<section class="morning"><h3>오늘 아침 속보</h3>${morning.map(render).join('')}</section>`
+      : '',
     newsletter.briefing
       ? `<section class="briefing"><h3>에디터 브리핑</h3>${paragraphs(newsletter.briefing)}</section>`
       : '',
     stories.join(''),
     // 맨 끝 관전 포인트 모음: 소식마다 관전 포인트가 있으면 같은 내용이라 두지 않는다 (예전 구조만)
-    newsletter.watch.length && !newsletter.stories.some((s) => s.next)
+    newsletter.watch.length &&
+    ![...morning, ...newsletter.stories].some((s) => s.next)
       ? `<section class="watch"><h3>관전 포인트</h3><ul>${items(newsletter.watch)}</ul></section>`
       : '',
     '</div>',

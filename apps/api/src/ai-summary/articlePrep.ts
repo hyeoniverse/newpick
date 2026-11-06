@@ -14,6 +14,8 @@ export type PrepArticle = {
   source?: string;
   /** 보도 시각 'YYYY-MM-DD HH:mm:ss' (KST, 네이버 기사) */
   publishedAt?: string;
+  /** 오늘 아침(05:00 이후) 보도: 뉴스레터 맨 위 '오늘 아침 속보'에 따로 싣는다 */
+  morning?: boolean;
   content: string;
 };
 
@@ -153,12 +155,21 @@ export function prepare(
     source?: string;
     publishedAt?: string;
   }[],
+  /** 이 시각(KST 문자열 'YYYY-MM-DD HH:mm:ss') 이후 보도면 오늘 아침 속보 */
+  morningSince?: string,
 ): PrepArticle[] {
   return articles.map((a, index) => ({
     index,
     title: a.title.trim(),
     source: a.source,
     ...(a.publishedAt && { publishedAt: a.publishedAt }),
+    ...(morningSince &&
+      a.publishedAt &&
+      a.publishedAt >= morningSince && { morning: true }),
     content: truncate(cleanText(a.content), MAX_ARTICLE_CHARS),
   }));
 }
+
+/** 묶음이 오늘 아침 속보인가: 하나라도 아침 보도면 (어젯밤 보도에 오늘 아침 후속이 붙은 묶음도 아침) */
+export const isMorning = (cluster: Cluster) =>
+  cluster.articles.some((a) => a.morning);

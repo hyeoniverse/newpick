@@ -37,8 +37,11 @@ export type ParsedStory = {
 
 export type ParsedNewsletter = {
   briefing: string;
+  /** 본문 소식 (아침 속보는 뺀 것). 후속 지켜보기의 소식 번호는 아침 속보를 포함한 화면 순서라 stories 위치와 다르다 */
   stories: ParsedStory[];
   watch: string[];
+  /** 오늘 아침 속보: 별도 소식 (없는 날 · 예전 뉴스레터는 빈 배열) */
+  morning: ParsedStory[];
 };
 
 const isWebUrl = (url?: string | null) => !!url && /^https?:\/\//i.test(url);
@@ -178,19 +181,25 @@ const watchOf = (root: Element, stories: ParsedStory[]) => {
 
 /** 구조가 없는 예전 뉴스레터(#43 이전)는 소식이 빈 채로 돌려준다. 메일은 제목·요약만 쓴다 */
 export function parseNewsletterHtml(html?: string | null): ParsedNewsletter {
-  const empty = { briefing: '', stories: [], watch: [] };
+  const empty = { briefing: '', stories: [], watch: [], morning: [] };
   if (!html) return empty;
   const root = new JSDOM(html).window.document.querySelector('.newsletter');
   if (!root) return empty;
-  const stories = [...root.querySelectorAll('article.story')]
-    .map(parseStory)
-    .filter((s) => s.heading);
+  const all = [...root.querySelectorAll('article.story')]
+    .map((el) => ({
+      story: parseStory(el),
+      morning: !!el.closest('section.morning'),
+    }))
+    .filter(({ story }) => story.heading);
+  const stories = all.filter((s) => !s.morning).map((s) => s.story);
+  const morning = all.filter((s) => s.morning).map((s) => s.story);
   const briefing = root.querySelector('section.briefing');
   briefing?.querySelector('h3')?.remove();
   return {
     briefing: text(briefing),
     stories,
-    watch: watchOf(root, stories),
+    watch: watchOf(root, [...morning, ...stories]),
+    morning,
   };
 }
 

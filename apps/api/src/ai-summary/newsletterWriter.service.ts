@@ -10,8 +10,9 @@ import {
   prepare,
   PrepArticle,
   publishedLabel,
+  isMorning,
 } from './articlePrep';
-import { kstDayLabel } from '../common/kst';
+import { kstDayLabel, kstStamp } from '../common/kst';
 
 /**
  * 소식마다 내용에 맞는 템플릿 (#48). 모두 꼬리표·헤드라인·리드·본문을 갖고, 템플릿마다 고유 요소가 하나씩 있다
@@ -83,6 +84,8 @@ export type WrittenNewsletter = {
   summary: string;
   briefing: string;
   stories: Story[];
+  /** 오늘 아침 속보 (05:00 이후 보도): 별도 소식으로 맨 위에, 최대 LIMITS.morning.max개. 예전 뉴스레터에는 없다 */
+  morning?: Story[];
   /** 관전 포인트 모음: 소식마다의 next를 모은 것 (모델이 따로 쓰지 않는다). 메일 '관전 포인트' 칸이 쓴다 */
   watch: string[];
   /** 키워드 3~6개 (#50). 상세·목록의 태그, 지난 뉴스레터 검색(#20)에 쓴다 */
@@ -128,6 +131,8 @@ export const LIMITS = {
   /** 엇갈린 주장: 최대 개수, 주장 하나 최대 길이 */
   debate: { max: 3, claim: 80 },
   next: 60,
+  /** 오늘 아침 속보: 최대 개수 (소식은 brief 템플릿으로 짧게) */
+  morning: { max: 2 },
 } as const;
 
 /** 같은 사안을 두고 주장이 엇갈리기 쉬운 분야: 기사를 더 보내고 반대 주장을 더 챙긴다 */
@@ -203,7 +208,7 @@ export const describeClusters = (clusters: Cluster[]) =>
       ];
       const at = publishedLabel(top.publishedAt);
       return [
-        `[${i + 1}] 보도 ${c.articles.length}건${outlets.length ? ` (${outlets.join(', ')})` : ''}${at ? ` · ${at}` : ''}`,
+        `[${i + 1}]${isMorning(c) ? ' [오늘 아침]' : ''} 보도 ${c.articles.length}건${outlets.length ? ` (${outlets.join(', ')})` : ''}${at ? ` · ${at}` : ''}`,
         ...c.articles.map((a) => `제목: ${a.title}`),
         `첫 부분: ${top.content.slice(0, LEAD_CHARS)}`,
       ].join('\n');
@@ -226,7 +231,12 @@ export const selectPrompt = (
     ...dateRules(today),
     '- 며칠 전 일을 새 진전 없이 다시 다룬 기사는 새로움 1점입니다.',
     '',
-    `오늘 수집한 ${category ? `${category} 분야 ` : ''}소식 ${clusters.length}개입니다. 뉴스레터에는 이 가운데 정말 주요한 소식 최대 ${LIMITS.stories}개만 싣습니다. 고르는 건 점수 합계로 하므로, 모든 소식(1~${clusters.length}번)에 아래 점수표대로 점수를 매겨 주세요.`,
+    `어제 아침부터 오늘 아침까지 수집한 ${category ? `${category} 분야 ` : ''}소식 ${clusters.length}개입니다. 뉴스레터에는 이 가운데 정말 주요한 소식 최대 ${LIMITS.stories}개만 싣습니다. 고르는 건 점수 합계로 하므로, 모든 소식(1~${clusters.length}번)에 아래 점수표대로 점수를 매겨 주세요.`,
+    ...(clusters.some(isMorning)
+      ? [
+          `[오늘 아침]이 붙은 소식은 오늘 아침(05시 이후) 보도된 속보입니다. 이 소식들은 본문 소식과 따로, 뉴스레터 맨 위 '오늘 아침 속보'에 최대 ${LIMITS.morning.max}개 짧게 싣습니다. 점수는 같은 점수표로 매기되, 아침 속보끼리 견줍니다.`,
+        ]
+      : []),
     '',
     ...SCORING_RULES,
     ...(category
@@ -285,7 +295,13 @@ export const totalScore = (s: ClusterScore) =>
  * 점수 → 실을 묶음 번호 (중요한 순서). 빼는 소식 · 없는 번호 · 중복은 버리고,
  * 합계 높은 순 → 같으면 보도 많은 순 → 앞 번호 순. MIN_TOTAL 아래는 싣지 않되, 다 모자라면 1등 하나만
  */
-export function rankClusters(clusters: Cluster[], scores: ClusterScore[]) {
+export function rankClusters(
+  clusters: Cluster[],
+  scores: ClusterScore[],
+  limit: number = LIMITS.stories,
+  /** 주요 소식이 하나도 없을 때 가장 높은 하나라도 싣는가 */
+  fallback = true,
+) {
   const seen = new Set<number>();
   const ranked = scores
     .filter((s) => {
@@ -307,9 +323,30 @@ export function rankClusters(clusters: Cluster[], scores: ClusterScore[]) {
         a.n - b.n,
     );
   const major = ranked.filter((s) => s.total >= MIN_TOTAL);
-  return (major.length ? major : ranked.slice(0, 1))
-    .slice(0, LIMITS.stories)
+  return (major.length || !fallback ? major : ranked.slice(0, 1))
+    .slice(0, limit)
     .map((s) => s.n);
+}
+
+/**
+ * 오늘 아침 속보와 본문 소식을 따로 고른다: 아침 묶음은 '오늘 아침 속보'에 최대 LIMITS.morning.max개(주요한 것만),
+ * 나머지 묶음은 지금처럼 최대 LIMITS.stories개. 아침 묶음뿐인 날은 예전처럼 본문 소식으로 고른다
+ */
+export function splitPicks(clusters: Cluster[], scores: ClusterScore[]) {
+  const morningOf = (n: number) =>
+    !!clusters[n - 1] && isMorning(clusters[n - 1]);
+  const rest = scores.filter((s) => !morningOf(s.n));
+  if (!rest.length || rest.length === scores.length)
+    return { morning: [] as number[], stories: rankClusters(clusters, scores) };
+  return {
+    morning: rankClusters(
+      clusters,
+      scores.filter((s) => morningOf(s.n)),
+      LIMITS.morning.max,
+      false,
+    ),
+    stories: rankClusters(clusters, rest),
+  };
 }
 
 /** AI 기록에 남길 고르기 결과: 합계 높은 순 5개까지, 실은 소식엔 ✓ */
@@ -358,11 +395,18 @@ export const writerPrompt = (
   existingTags: string[] = [],
   recentTopics: string[] = [],
   today: Date = new Date(),
+  /** 오늘 아침 속보로 고른 기사 (번호는 본문 기사 다음에 이어진다) */
+  morning: PrepArticle[] = [],
 ) =>
   [
     ...dateRules(today),
     '',
     `아래 ${category ? `${category} 분야 ` : ''}기사 ${articles.length}건은 오늘 뉴스레터에 실을 소식으로 이미 고른 것입니다. 이걸로 전문가용 뉴스 브리핑 한 편을 써 주세요. 같은 사건을 다룬 기사는 한 소식으로 합칩니다.`,
+    ...(morning.length
+      ? [
+          `그 뒤의 기사 ${morning.length}건(${articles.length + 1}~${articles.length + morning.length}번)은 오늘 아침(05시 이후) 보도된 속보입니다. stories에는 넣지 않고 morning에 별도 소식으로 씁니다.`,
+        ]
+      : []),
     '',
     '## 문체',
     '- 증권사·연구소 애널리스트 브리핑처럼 간결한 평서체(~다)로 씁니다. 감탄, 과장, 구어체, 이모지는 쓰지 않습니다.',
@@ -396,6 +440,11 @@ export const writerPrompt = (
     `  - next: 관전 포인트. 이 소식에서 앞으로 지켜볼 일정 · 결정 · 변수 하나를 ${LIMITS.next}자 이내의 물음이나 명사구로 (예: "보우소나루 측 선거 무효 요청이 받아들여질지", "공모가와 공모 주식 수 확정"). 기사에 나온 일정 · 변수만 쓰고, 마땅한 일정이 없으면 이 일의 다음 진전이 나올 지점을 씁니다. 독자는 이것을 보고 후속 소식을 받을지 정합니다.`,
     '  - sources: 이 소식의 근거 기사 번호 (가장 대표적인 기사를 먼저).',
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
+    ...(morning.length
+      ? [
+          `- morning: 오늘 아침 속보 ${Math.min(morning.length, LIMITS.morning.max)}개. 속보 기사(${articles.length + 1}번부터)마다 소식 하나, stories와 같은 항목으로 쓰되 template은 brief(body ${LIMITS.briefBody.min}~${LIMITS.briefBody.max}자, analysis 빈 문자열). 막 알려진 일이라 사실 위주로 쓰고, next(관전 포인트)는 이어질 발표 · 결과를 씁니다. 본문 기사로 쓴 사건은 넣지 않습니다.`,
+        ]
+      : ['- morning: 빈 배열로 둡니다.']),
     `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개, 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
     ...(category && DEBATE_CATEGORIES.includes(category)
       ? [
@@ -416,7 +465,7 @@ export const writerPrompt = (
     '- 마크다운, HTML, 글머리 기호 문자(-, •)는 쓰지 않습니다. 따옴표로 제목을 감싸지 않습니다.',
     '',
     '## 기사',
-    numberArticles(articles),
+    numberArticles([...articles, ...morning]),
   ].join('\n');
 
 /** 문자열 필드만 가진 객체 스키마 */
@@ -427,6 +476,47 @@ const pairs = (keys: string[]) => ({
   additionalProperties: false,
 });
 
+/** 소식 하나 (본문 소식 · 아침 속보 공통) */
+const STORY_SCHEMA = {
+  type: 'object',
+  properties: {
+    template: { type: 'string', enum: [...TEMPLATES] },
+    kicker: { type: 'string' },
+    heading: { type: 'string' },
+    lead: { type: 'string' },
+    body: { type: 'string' },
+    analysis: { type: 'string' },
+    stats: {
+      type: 'array',
+      items: pairs(['label', 'value', 'note']),
+    },
+    timeline: { type: 'array', items: pairs(['when', 'what']) },
+    qa: { type: 'array', items: pairs(['q', 'a']) },
+    quote: pairs(['text', 'by']),
+    debate: { type: 'array', items: pairs(['side', 'claim', 'source']) },
+    next: { type: 'string' },
+    sources: { type: 'array', items: { type: 'integer' } },
+    imageQuery: { type: 'string' },
+  },
+  required: [
+    'template',
+    'kicker',
+    'heading',
+    'lead',
+    'body',
+    'analysis',
+    'stats',
+    'timeline',
+    'qa',
+    'quote',
+    'debate',
+    'next',
+    'sources',
+    'imageQuery',
+  ],
+  additionalProperties: false,
+};
+
 export const WRITER_SCHEMA = {
   type: 'object',
   properties: {
@@ -434,51 +524,19 @@ export const WRITER_SCHEMA = {
     subtitle: { type: 'string' },
     summary: { type: 'string' },
     briefing: { type: 'string' },
-    stories: {
-      type: 'array',
-      items: {
-        type: 'object',
-        properties: {
-          template: { type: 'string', enum: [...TEMPLATES] },
-          kicker: { type: 'string' },
-          heading: { type: 'string' },
-          lead: { type: 'string' },
-          body: { type: 'string' },
-          analysis: { type: 'string' },
-          stats: {
-            type: 'array',
-            items: pairs(['label', 'value', 'note']),
-          },
-          timeline: { type: 'array', items: pairs(['when', 'what']) },
-          qa: { type: 'array', items: pairs(['q', 'a']) },
-          quote: pairs(['text', 'by']),
-          debate: { type: 'array', items: pairs(['side', 'claim', 'source']) },
-          next: { type: 'string' },
-          sources: { type: 'array', items: { type: 'integer' } },
-          imageQuery: { type: 'string' },
-        },
-        required: [
-          'template',
-          'kicker',
-          'heading',
-          'lead',
-          'body',
-          'analysis',
-          'stats',
-          'timeline',
-          'qa',
-          'quote',
-          'debate',
-          'next',
-          'sources',
-          'imageQuery',
-        ],
-        additionalProperties: false,
-      },
-    },
+    stories: { type: 'array', items: STORY_SCHEMA },
+    morning: { type: 'array', items: STORY_SCHEMA },
     keywords: { type: 'array', items: { type: 'string' } },
   },
-  required: ['title', 'subtitle', 'summary', 'briefing', 'stories', 'keywords'],
+  required: [
+    'title',
+    'subtitle',
+    'summary',
+    'briefing',
+    'stories',
+    'morning',
+    'keywords',
+  ],
   additionalProperties: false,
 };
 
@@ -613,11 +671,13 @@ export function debateOf(list: Claim[] = []): Claim[] {
   return claims.length >= 2 ? claims : [];
 }
 
-export function normalize(
-  raw: WrittenNewsletter,
+/** 소식 하나 정리: 글머리 · 따옴표 · 강조 개수 · 항목 수 제한, 기사 번호를 원래 번호로 */
+const normalizeStories = (
+  list: Story[] = [],
   toOriginal: (n: number) => number | undefined,
-): WrittenNewsletter {
-  const stories = raw.stories
+  max: number,
+) =>
+  list
     .map((s) => {
       const qa = s.qa
         .map((x) => ({ q: unbullet(x.q), a: x.a.trim() }))
@@ -655,7 +715,19 @@ export function normalize(
     })
     .map(settleTemplate)
     .filter((s) => s.heading && (s.lead || s.body))
-    .slice(0, LIMITS.stories);
+    .slice(0, max);
+
+export function normalize(
+  raw: WrittenNewsletter,
+  toOriginal: (n: number) => number | undefined,
+): WrittenNewsletter {
+  const stories = normalizeStories(raw.stories, toOriginal, LIMITS.stories);
+  // 아침 속보는 짧게: 템플릿은 brief로 고정
+  const morning = normalizeStories(
+    raw.morning,
+    toOriginal,
+    LIMITS.morning.max,
+  ).map((s) => ({ ...s, template: 'brief' as const, analysis: '' }));
 
   const result = {
     title: clean(plain(raw.title)),
@@ -663,8 +735,11 @@ export function normalize(
     summary: plain(raw.summary),
     briefing: plain(raw.briefing),
     stories,
+    ...(morning.length && { morning }),
     // 관전 포인트 모음 = 소식마다의 next. 같은 내용을 모델이 두 번 쓰지 않게
-    watch: stories.map((s) => s.next).filter((n): n is string => !!n),
+    watch: [...morning, ...stories]
+      .map((s) => s.next)
+      .filter((n): n is string => !!n),
     keywords: keywords(raw.keywords),
   };
   if (!result.title) throw new Error('빈 제목');
@@ -693,11 +768,14 @@ export function pickArticles(
   clusters: Cluster[],
   picks: number[],
   category?: string,
+  /** 묶음마다 보낼 기사 수 (아침 속보는 짧게 쓰므로 1건) */
+  perCluster?: number,
 ) {
   const perStory =
-    category && DEBATE_CATEGORIES.includes(category)
+    perCluster ??
+    (category && DEBATE_CATEGORIES.includes(category)
       ? LIMITS.articlesPerStoryWide
-      : LIMITS.articlesPerStory;
+      : LIMITS.articlesPerStory);
   return [...new Set(picks)]
     .filter((n) => Number.isInteger(n) && n >= 1 && n <= clusters.length)
     .slice(0, LIMITS.stories)
@@ -751,15 +829,27 @@ export class NewsletterWriterService {
       recentTopics?: string[];
       /** 뉴스레터 날짜 (프롬프트의 '오늘') */
       today?: Date;
+      /** 이 시각 이후 보도는 '오늘 아침 속보'로 따로 (없으면 나누지 않는다) */
+      morningSince?: Date;
     } = {},
   ) {
-    const { existingTags = [], recentTopics = [], today = new Date() } = hints;
-    const prepared = prepare(articles);
+    const {
+      existingTags = [],
+      recentTopics = [],
+      today = new Date(),
+      morningSince,
+    } = hints;
+    const prepared = prepare(
+      articles,
+      morningSince ? kstStamp(morningSince) : undefined,
+    );
     const vectors = await this.embeddings(prepared);
     const clusters = clusterArticles(prepared, vectors ?? undefined);
     const usage: Usage[] = [];
 
     let chosen = clusters.length === 1 ? clusters[0].articles : [];
+    // 오늘 아침 속보로 고른 기사 (묶음마다 1건). 본문 소식과 따로 쓴다
+    let morning: PrepArticle[] = [];
     // 고르기 점수 요약 (AI 기록에 남긴다). 묶음이 하나면 고르지 않아 비어 있다
     let selection = '';
     if (!chosen.length) {
@@ -776,25 +866,38 @@ export class NewsletterWriterService {
       const { scores } = JSON.parse(selected.text) as {
         scores: ClusterScore[];
       };
-      const picks = rankClusters(clusters, scores);
-      selection = describeScores(clusters, scores, picks);
-      chosen = pickArticles(clusters, picks, category);
+      const picks = splitPicks(clusters, scores);
+      selection = describeScores(clusters, scores, [
+        ...picks.stories,
+        ...picks.morning,
+      ]);
+      chosen = pickArticles(clusters, picks.stories, category);
+      morning = pickArticles(clusters, picks.morning, category, 1);
       if (!chosen.length) throw new Error('고른 소식이 없음');
     }
 
     // 뉴스레터 본문이 되는 호출이라 effort를 높입니다.
     const written = await this.claude.generate({
       system: WRITER_SYSTEM,
-      prompt: writerPrompt(chosen, category, existingTags, recentTopics, today),
+      prompt: writerPrompt(
+        chosen,
+        category,
+        existingTags,
+        recentTopics,
+        today,
+        morning,
+      ),
       schema: WRITER_SCHEMA,
       effort: 'medium',
       maxTokens: 12000,
     });
     usage.push({ ...written.usage, stage: 'write' });
 
+    // 기사 번호: 본문 기사 다음에 아침 속보 기사가 이어진다
+    const numbered = [...chosen, ...morning];
     const newsletter = normalize(
       JSON.parse(written.text) as WrittenNewsletter,
-      (n) => (chosen[n - 1] ? chosen[n - 1].index + 1 : undefined),
+      (n) => (numbered[n - 1] ? numbered[n - 1].index + 1 : undefined),
     );
     const tokens = usage.reduce((sum, u) => sum + u.input + u.output, 0);
     return {

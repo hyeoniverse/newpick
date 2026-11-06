@@ -164,6 +164,48 @@ const NewsletterContentStyled = styled.article`
 			list-style: none;
 		}
 
+		/* 오늘 아침 속보 (05시 이후 보도): 별도 소식들을 맨 위 연한 상자에. 소식 모양은 본문과 같되 조금 작게 */
+		.morning {
+			margin-bottom: 2.5rem;
+			padding: 1.25rem 1.5rem 0.5rem;
+			border-radius: ${({ theme }) => theme.radius.surface};
+			background: ${({ theme }) => theme.color.tertiary};
+
+			> h3 {
+				margin: 0 0 1rem;
+				font-size: ${({ theme }) => theme.fontSize.extraSmall};
+				font-weight: ${({ theme }) => theme.fontWeight.bold};
+				letter-spacing: 0.02em;
+				color: ${({ theme }) => theme.color.primary};
+			}
+
+			.story {
+				margin-bottom: 1.25rem;
+				padding-top: 0;
+				border-top: 0;
+
+				& + .story {
+					margin-top: 1.5rem;
+					padding-top: 1.5rem;
+					border-top: 1px solid ${({ theme }) => theme.color.border};
+				}
+
+				h2 {
+					font-size: ${({ theme }) => theme.fontSize.large};
+				}
+
+				.lead {
+					font-size: ${({ theme }) => theme.fontSize.medium};
+				}
+
+				/* 상자 안이라 관전 포인트 줄은 바탕색 대신 흰 바탕 */
+				.next {
+					margin-top: 1rem;
+					background: ${({ theme }) => theme.color.background};
+				}
+			}
+		}
+
 		.briefing {
 			margin-bottom: 3rem;
 			padding: 1.25rem 0;
