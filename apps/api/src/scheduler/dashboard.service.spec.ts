@@ -14,6 +14,9 @@ function setup() {
         .fn()
         .mockResolvedValue({ _sum: { costUsd: 0.12 }, _count: { costUsd: 4 } }),
     },
+    newsCategory: {
+      findMany: jest.fn().mockResolvedValue([{ id: 3, name: '경제' }]),
+    },
     subscriber: { count: jest.fn().mockResolvedValue(2) },
     jobRun: { findFirst: jest.fn().mockResolvedValue(null) },
     $queryRaw: jest.fn().mockResolvedValue([]),
@@ -63,5 +66,61 @@ describe('DashboardService 기간 (#21)', () => {
     await expect(
       service.getDashboard('2026-01-01', '2026-10-01'),
     ).rejects.toThrow('92일');
+  });
+});
+
+describe('DashboardService AI 기록: 실패 뒤 다시 시도', () => {
+  const log = (
+    id: number,
+    status: string,
+    at: string,
+    categoryId: number | null = 3,
+  ) => ({
+    id,
+    processType: 'summarization',
+    status,
+    categoryId,
+    createdAt: new Date(at),
+    duration: 1,
+    token: 0,
+    result: '',
+    error: null,
+    model: null,
+    inputTokens: 0,
+    outputTokens: 0,
+    costUsd: null,
+  });
+
+  it('같은 분야 실패 뒤 성공을 잇고, 분야 이름을 붙인다', async () => {
+    const { service, prisma } = setup();
+    const failed = log(1, 'error', '2026-10-28T23:31:00Z');
+    const ok = log(2, 'success', '2026-10-28T23:40:00Z');
+    prisma.aiProcessLog.findMany
+      .mockResolvedValueOnce([ok, failed])
+      .mockResolvedValueOnce([failed, ok]);
+    const { items } = await service.listAiLogs({
+      from: '2026-10-29',
+      to: '2026-10-29',
+    });
+    const byId = new Map(items.map((item) => [item.id, item]));
+    expect(byId.get(1)?.retry).toEqual({ kind: 'recovered', at: ok.createdAt });
+    expect(byId.get(2)?.retry).toEqual({ kind: 'retry', at: failed.createdAt });
+    expect(byId.get(1)?.category).toBe('경제');
+  });
+
+  it('다시 성공하지 못한 실패, 12시간 넘게 지난 성공, 분야 없는 이전 기록은 잇지 않는다', async () => {
+    const { service, prisma } = setup();
+    const failed = log(1, 'error', '2026-10-28T23:31:00Z');
+    const late = log(2, 'success', '2026-10-29T23:31:00Z');
+    const old = log(3, 'error', '2026-10-28T23:32:00Z', null);
+    prisma.aiProcessLog.findMany
+      .mockResolvedValueOnce([late, old, failed])
+      .mockResolvedValueOnce([failed, late]);
+    const { items } = await service.listAiLogs({
+      from: '2026-10-29',
+      to: '2026-10-30',
+    });
+    expect(items.every((item) => item.retry === null)).toBe(true);
+    expect(items.find((item) => item.id === 3)?.category).toBeNull();
   });
 });

@@ -1,6 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import styled from 'styled-components';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import Pagination from '@/components/common/Pagination';
@@ -27,6 +28,10 @@ interface Row {
 	inputTokens: number;
 	outputTokens: number;
 	costUsd: number | null;
+	/** 요약한 분야 (이전 기록은 없음) */
+	category: string | null;
+	/** 실패 뒤 같은 분야를 다시 시도해 성공했는지: 실패 기록은 recovered(성공 시각), 그 성공 기록은 retry(앞 실패 시각) */
+	retry: { kind: 'recovered' | 'retry'; at: string } | null;
 }
 
 const TYPES = [
@@ -84,7 +89,7 @@ export default function AiLogsList() {
 			) : (
 				<div className="table-wrap">
 					<table className="wide">
-						<Cols widths={['9.5rem', '4rem', '4.5rem', '6rem', '6.5rem', '8rem', '4.5rem', undefined]} />
+						<Cols widths={['9.5rem', '4rem', '10.5rem', '6rem', '6.5rem', '8rem', '4.5rem', undefined]} />
 						<thead>
 							<tr>
 								{/* 위 거르기와 같은 조건을 표 머리에서도 */}
@@ -121,7 +126,21 @@ export default function AiLogsList() {
 									<td className="nowrap num">{when(log.createdAt, today)}</td>
 									<td className="nowrap">{PROCESS_LABEL[log.processType] ?? log.processType}</td>
 									<td className="nowrap">
-										<StatusBadge tone={toneOf(log.status)}>{log.status === 'success' ? '성공' : '실패'}</StatusBadge>
+										<Badges>
+											<StatusBadge tone={toneOf(log.status)}>{log.status === 'success' ? '성공' : '실패'}</StatusBadge>
+											{log.retry?.kind === 'recovered' && (
+												<StatusBadge tone="success">
+													<span title="같은 분야를 다시 시도해 성공한 시각">
+														다시 시도 성공 {when(log.retry.at, today)}
+													</span>
+												</StatusBadge>
+											)}
+											{log.retry?.kind === 'retry' && (
+												<StatusBadge tone="neutral">
+													<span title="앞서 실패한 시각">다시 시도 · 실패 {when(log.retry.at, today)}</span>
+												</StatusBadge>
+											)}
+										</Badges>
 									</td>
 									<td className="nowrap">{log.model?.replace(/claude-/g, '') ?? '-'}</td>
 									<td className="nowrap num">{log.duration.toFixed(1)}초</td>
@@ -131,7 +150,10 @@ export default function AiLogsList() {
 											: log.token.toLocaleString()}
 									</td>
 									<td className="nowrap num">{usd(log.costUsd)}</td>
-									<td className="content">{log.error ?? log.result}</td>
+									<td className="content">
+										{log.category && <strong>{log.category} · </strong>}
+										{log.error ?? log.result}
+									</td>
 								</tr>
 							))}
 						</tbody>
@@ -150,3 +172,11 @@ export default function AiLogsList() {
 		</AdminSubPage>
 	);
 }
+
+/** 결과 칸: 성공 · 실패 배지 아래에 다시 시도 표시를 쌓는다 */
+const Badges = styled.span`
+	display: inline-flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.25rem;
+`;

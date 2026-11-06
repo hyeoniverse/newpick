@@ -58,6 +58,9 @@ export function kstRange(from: string, to: string) {
   return { start, end, inRange: { gte: start, lte: end } };
 }
 
+/** 실패한 요약을 다시 시도해 성공한 것으로 잇는 범위: 같은 분야, 12시간 안 */
+const RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
+
 @Injectable()
 export class DashboardService {
   constructor(
@@ -313,6 +316,7 @@ export class DashboardService {
           inputTokens: true,
           outputTokens: true,
           costUsd: true,
+          categoryId: true,
         },
       }),
       this.prisma.aiProcessLog.count({ where }),
@@ -322,11 +326,20 @@ export class DashboardService {
         _count: { costUsd: true },
       }),
     ]);
+    const [retries, categories] = await Promise.all([
+      this.retryLinks(items),
+      this.categoryNames(items.map((log) => log.categoryId)),
+    ]);
     return {
       items: items.map((log) => ({
         ...log,
         result: clip(log.result, 400),
         error: clip(log.error, 600),
+        category:
+          log.categoryId == null
+            ? null
+            : (categories.get(log.categoryId) ?? null),
+        retry: retries.get(log.id) ?? null,
       })),
       total,
       cost: {
@@ -334,6 +347,75 @@ export class DashboardService {
         unknown: total - cost._count.costUsd,
       },
     };
+  }
+
+  /**
+   * 요약 실패와 그 뒤 같은 분야를 다시 시도해 성공한 기록을 잇는다 (12시간 안).
+   * - 실패 기록: 뒤에 성공했으면 recovered (그 성공 시각)
+   * - 성공 기록: 바로 앞(그 사이 다른 성공 없이)이 실패였으면 retry (그 실패 시각)
+   * 분야를 남기지 않은 이전 기록은 잇지 않는다
+   */
+  private async retryLinks(
+    items: {
+      id: number;
+      processType: string;
+      status: string;
+      categoryId: number | null;
+      createdAt: Date;
+    }[],
+  ) {
+    const links = new Map<number, { kind: 'recovered' | 'retry'; at: Date }>();
+    const logs = items.filter(
+      (log) => log.processType === 'summarization' && log.categoryId != null,
+    );
+    if (!logs.length) return links;
+    const times = logs.map((log) => log.createdAt.getTime());
+    const around = await this.prisma.aiProcessLog.findMany({
+      where: {
+        processType: 'summarization',
+        categoryId: { in: [...new Set(logs.map((log) => log.categoryId!))] },
+        createdAt: {
+          gte: new Date(Math.min(...times) - RETRY_WINDOW_MS),
+          lte: new Date(Math.max(...times) + RETRY_WINDOW_MS),
+        },
+      },
+      orderBy: { createdAt: 'asc' },
+      select: { id: true, status: true, categoryId: true, createdAt: true },
+    });
+    for (const log of logs) {
+      const t = log.createdAt.getTime();
+      const same = around.filter((o) => o.categoryId === log.categoryId);
+      if (log.status === 'error') {
+        const ok = same.find(
+          (o) =>
+            o.status === 'success' &&
+            o.createdAt.getTime() > t &&
+            o.createdAt.getTime() - t <= RETRY_WINDOW_MS,
+        );
+        if (ok) links.set(log.id, { kind: 'recovered', at: ok.createdAt });
+      } else if (log.status === 'success') {
+        const before = same.filter(
+          (o) => o.id !== log.id && o.createdAt.getTime() <= t,
+        );
+        const previous = before.at(-1);
+        if (
+          previous?.status === 'error' &&
+          t - previous.createdAt.getTime() <= RETRY_WINDOW_MS
+        )
+          links.set(log.id, { kind: 'retry', at: previous.createdAt });
+      }
+    }
+    return links;
+  }
+
+  private async categoryNames(ids: (number | null)[]) {
+    const wanted = [...new Set(ids.filter((id): id is number => id != null))];
+    if (!wanted.length) return new Map<number, string>();
+    const rows = await this.prisma.newsCategory.findMany({
+      where: { id: { in: wanted } },
+      select: { id: true, name: true },
+    });
+    return new Map(rows.map((row) => [row.id, row.name]));
   }
 
   async getMailRecipients(date: string) {
