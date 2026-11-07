@@ -11,6 +11,8 @@
 @import 'tailwindcss/utilities.css' layer(utilities);
 @import 'sanitize.css' layer(base);
 @import '../styles/tokens.css';
+/* 공통 버튼: 층 밖 (styles/button.css 머리말) */
+@import '../styles/button.css';
 
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
