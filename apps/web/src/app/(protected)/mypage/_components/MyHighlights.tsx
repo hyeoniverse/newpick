@@ -433,7 +433,7 @@ export default function MyHighlights() {
 				<div ref={liftScrollButtons} className="select-bar" role="region" aria-label="선택한 문장 한꺼번에">
 					<InputCheck
 						name="highlights-select-all"
-						className="select-all"
+						className="pick-all"
 						size="small"
 						label={allShownSelected ? '전체 해제' : `전체 선택 (${shown.length})`}
 						checked={allShownSelected}
@@ -965,7 +965,7 @@ const StyledHighlights = styled.div`
 		background: ${({ theme }) => theme.color.background};
 		font-size: ${({ theme }) => theme.fontSize.small};
 
-		.select-all .text {
+		.pick-all .text {
 			font-size: ${({ theme }) => theme.fontSize.small};
 		}
 

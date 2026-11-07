@@ -165,7 +165,7 @@ export default function LegalDocument({ doc, title, effectiveDate, intro, summar
 										))}
 									</ul>
 								) : (
-									<div key={j} className="table" role="region" aria-label={`${s.title} 표`} tabIndex={0}>
+									<div key={j} className="table-wrap" role="region" aria-label={`${s.title} 표`} tabIndex={0}>
 										<table className={block.table.head.length >= 4 ? 'wide' : undefined}>
 											<thead>
 												<tr>
@@ -514,7 +514,7 @@ const StyledLegal = styled.article`
 	}
 
 	/* 표: 가로선만, 머리는 옅은 면, 첫 칸 굵게. 좁으면 표만 가로로 넘긴다 */
-	.table {
+	.table-wrap {
 		margin: 0.25rem 0 1.25rem;
 		overflow-x: auto;
 		border-top: 2px solid ${({ theme }) => theme.color.text};

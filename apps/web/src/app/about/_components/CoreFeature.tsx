@@ -230,7 +230,7 @@ export default function CoreFeature() {
 				<SectionHeading label="CORE FEATURE" />
 			</div>
 			<div ref={trackRef} className="track">
-				<div className="sticky">
+				<div className="sticky-pane">
 					<ol className="rail">
 						{FEATURES.map((feature, i) => (
 							<FeaturePanel key={feature.name} {...feature} index={i} seen={i < seen} />
@@ -305,7 +305,7 @@ const StyledCore = styled.section`
 		height: calc(var(--n) * 100vh);
 	}
 
-	.sticky {
+	.sticky-pane {
 		position: sticky;
 		top: 4rem;
 		display: flex;

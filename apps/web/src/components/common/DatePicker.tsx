@@ -116,7 +116,7 @@ function CalendarHeader({
 							<LuChevronRight aria-hidden />
 						</button>
 					</div>
-					<div className="grid">
+					<div className="cell-grid">
 						{Array.from({ length: 12 }, (_, m) => (
 							<button
 								key={m}
@@ -148,7 +148,7 @@ function CalendarHeader({
 						>
 							<LuChevronLeft aria-hidden />
 						</button>
-						<span className="title static">
+						<span className="title is-static">
 							{yearPageStart} – {yearPageStart + YEARS_PER_PAGE - 1}
 						</span>
 						<button
@@ -161,7 +161,7 @@ function CalendarHeader({
 							<LuChevronRight aria-hidden />
 						</button>
 					</div>
-					<div className="grid">
+					<div className="cell-grid">
 						{Array.from({ length: YEARS_PER_PAGE }, (_, i) => yearPageStart + i).map((y) => (
 							<button
 								key={y}
@@ -568,11 +568,11 @@ const calendar = css`
 			color: ${({ theme }) => theme.color.text};
 			cursor: pointer;
 
-			&:hover:not(.static) {
+			&:hover:not(.is-static) {
 				background: ${({ theme }) => theme.color.neutral};
 			}
 
-			&.static {
+			&.is-static {
 				cursor: default;
 				font-variant-numeric: tabular-nums;
 			}
@@ -604,7 +604,7 @@ const calendar = css`
 			background: ${({ theme }) => theme.color.background};
 		}
 
-		.grid {
+		.cell-grid {
 			display: grid;
 			grid-template-columns: repeat(3, 1fr);
 			gap: 0.25rem;
