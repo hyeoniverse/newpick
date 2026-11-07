@@ -41,6 +41,7 @@
 	--color-medium-grey: var(--np-color-medium-grey);
 	--color-border: var(--np-color-border);
 	--color-mono: var(--np-color-mono);
+	--color-white: var(--np-color-white);
 
 	--text-extra-small: var(--np-font-size-extra-small);
 	--text-small: var(--np-font-size-small);
@@ -68,6 +69,18 @@
 	--shadow-light: var(--np-shadow-light);
 	--shadow-medium: var(--np-shadow-medium);
 	--shadow-heavy: var(--np-shadow-heavy);
+
+	/* 불러오는 동안 자리 막대가 반짝이는 움직임 (SkeletonBlock) */
+	--animate-shimmer: shimmer 1.5s infinite linear;
+
+	@keyframes shimmer {
+		0% {
+			background-position: 100% 0;
+		}
+		100% {
+			background-position: -100% 0;
+		}
+	}
 }
 
 @layer base {

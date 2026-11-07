@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	tags?: string[] | null;
@@ -10,65 +10,34 @@ interface Props {
 	linkable?: boolean;
 }
 
+/*
+ * 채우지 않고 얇은 테두리 + 진한 회색 글자: 관심사 · 제목(강조색)과 다투지 않으면서 또렷하게.
+ * #만 강조색으로 남겨 태그라는 표시. 링크면 올렸을 때 테두리 · 글자를 강조색으로
+ */
+const ITEM =
+	'm-0 whitespace-nowrap rounded-chip border border-solid border-border bg-transparent px-2 py-px text-extra-small font-medium leading-[1.6] text-medium-grey has-[a]:hover:border-primary has-[a]:hover:text-primary';
+
 /** 뉴스레터 키워드 (#50) */
 export default function Tags({ tags, max, className, linkable = false }: Props) {
 	const shown = (tags ?? []).slice(0, max);
 	if (!shown.length) return null;
 	return (
-		<StyledTags className={className} aria-label="키워드">
+		<ul className={cx('m-0 flex list-none flex-wrap gap-1.5 p-0', className)} aria-label="키워드">
 			{shown.map((tag) => (
-				<li key={tag}>
+				<li key={tag} className={ITEM}>
 					{linkable ? (
-						<Link href={`/articles?keyword=${encodeURIComponent(tag)}`}>
-							<span className="hash">#</span>
+						<Link href={`/articles?keyword=${encodeURIComponent(tag)}`} className="text-inherit">
+							<span className="hash mr-px text-primary">#</span>
 							{tag}
 						</Link>
 					) : (
 						<>
-							<span className="hash">#</span>
+							<span className="hash mr-px text-primary">#</span>
 							{tag}
 						</>
 					)}
 				</li>
 			))}
-		</StyledTags>
+		</ul>
 	);
 }
-
-const StyledTags = styled.ul`
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.375rem;
-	margin: 0;
-	padding: 0;
-	list-style: none;
-
-	li {
-		margin: 0;
-		padding: 0.0625rem 0.5rem;
-		/* 채우지 않고 얇은 테두리 + 진한 회색 글자: 관심사 · 제목(강조색)과 다투지 않으면서 또렷하게.
-		   #만 강조색으로 남겨 태그라는 표시 */
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: transparent;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-weight: ${({ theme }) => theme.fontWeight.medium};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.mediumGrey};
-		white-space: nowrap;
-
-		.hash {
-			margin-right: 0.0625rem;
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		a {
-			color: inherit;
-		}
-
-		&:has(a):hover {
-			border-color: ${({ theme }) => theme.color.primary};
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-`;

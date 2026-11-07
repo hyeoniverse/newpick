@@ -1,36 +1,20 @@
-'use client';
-
-import styled from 'styled-components';
 import { FaSpinner } from 'react-icons/fa';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	size?: string;
 }
 
+/** 도는 아이콘. 크기를 주지 않으면 4rem에 위아래 여백 */
 function Spinner({ size }: Props) {
 	return (
-		<StyledSpinner $size={size}>
-			<FaSpinner />
-		</StyledSpinner>
+		<div
+			className={cx('text-center', size ? 'py-0' : 'py-8')}
+			style={size ? ({ '--spinner-size': size } as React.CSSProperties) : undefined}
+		>
+			<FaSpinner className="size-[var(--spinner-size,4rem)] animate-spin fill-secondary" />
+		</div>
 	);
 }
-
-const StyledSpinner = styled.div<{ $size?: string }>`
-	padding: ${({ $size }) => ($size ? '0' : '2rem')} 0;
-	text-align: center;
-
-	svg {
-		width: ${({ $size }) => $size ?? '4rem'};
-		height: ${({ $size }) => $size ?? '4rem'};
-		fill: ${({ theme }) => theme.color.secondary};
-		animation: rotate 1s linear infinite;
-	}
-
-	@keyframes rotate {
-		100% {
-			transform: rotate(360deg);
-		}
-	}
-`;
 
 export default Spinner;

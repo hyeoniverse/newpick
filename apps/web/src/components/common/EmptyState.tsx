@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import type { IconType } from 'react-icons';
-
-import styled from 'styled-components';
 import Button from '@/components/common/Button';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	icon: IconType;
@@ -21,80 +20,34 @@ interface Props {
  */
 export default function EmptyState({ icon: Icon, title, description, action, className }: Props) {
 	return (
-		<StyledEmptyState className={className}>
-			<span className="badge" aria-hidden>
+		<section
+			className={cx(
+				'mx-auto flex w-full max-w-md flex-col items-center gap-2.5 py-16 text-center [word-break:keep-all]',
+				className,
+			)}
+		>
+			<span
+				className="badge mb-2 flex size-14 items-center justify-center rounded-full border border-solid border-border text-sub-text [&_svg]:size-6"
+				aria-hidden
+			>
 				<Icon />
 			</span>
-			<h2 className="title">{title}</h2>
-			{description && <p className="description">{description}</p>}
+			<h2 className="title m-0 text-medium font-bold leading-[1.4] text-text">{title}</h2>
+			{description && (
+				<p className="description m-0 whitespace-pre-line text-small leading-[1.6] text-sub-text">{description}</p>
+			)}
 			{action &&
 				(action.href ? (
-					<Link href={action.href} className="action">
+					<Link href={action.href} className="action mt-4 [&>span]:min-w-40 [&>span]:justify-center">
 						<Button as="span" scheme="primary" size="medium">
 							{action.label}
 						</Button>
 					</Link>
 				) : (
-					<Button className="action" scheme="primary" size="medium" onClick={action.onClick}>
+					<Button className="action mt-4" scheme="primary" size="medium" onClick={action.onClick}>
 						{action.label}
 					</Button>
 				))}
-		</StyledEmptyState>
+		</section>
 	);
 }
-
-const StyledEmptyState = styled.section`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.625rem;
-	width: 100%;
-	max-width: 28rem;
-	margin: 0 auto;
-	padding: 4rem 0;
-	text-align: center;
-	word-break: keep-all;
-
-	.badge {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 3.5rem;
-		height: 3.5rem;
-		margin-bottom: 0.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		color: ${({ theme }) => theme.color.subText};
-
-		svg {
-			width: 1.5rem;
-			height: 1.5rem;
-		}
-	}
-
-	.title {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		line-height: 1.4;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	.description {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.subText};
-		white-space: pre-line;
-	}
-
-	.action {
-		margin-top: 1rem;
-
-		> span,
-		&button {
-			min-width: 10rem;
-			justify-content: center;
-		}
-	}
-`;
