@@ -382,7 +382,7 @@ export const getTheme = (themeName: ThemeName): Theme => {
  * 라이트·다크에 따라 바뀌는 값(색·버튼 색·그림자)을 CSS 변수로 바꾼다.
  * 서버는 페이지를 저장된 테마를 모른 채 미리 만들어 두므로, 컴포넌트가 테마마다 다른 값을 쓰면
  * 브라우저에서 다크로 그릴 때 서버가 만든 화면과 class가 달라진다(하이드레이션 불일치).
- * 컴포넌트에는 늘 같은 var(--…)를 주고, 실제 색은 <html data-theme>에 따라 GlobalStyle이 정한다
+ * 컴포넌트에는 늘 같은 var(--…)를 주고, 실제 색은 <html data-theme>에 따라 styles/tokens.css가 정한다
  */
 type ThemedPart = Pick<Theme, 'color' | 'buttonScheme' | 'shadow'>;
 
@@ -406,7 +406,7 @@ export const themeVars = (theme: Theme) => toVarDeclarations(themedPart(theme), 
 
 /**
  * 글자 크기: 화면이 좁아지면 한 단계씩 줄인다. 색과 같은 방식으로 컴포넌트에는 var(--np-…)를 주고,
- * 실제 크기는 GlobalStyle이 화면 폭(tablet·mobile)에 따라 정한다. 컴포넌트마다 @media로 줄이지 않아도 된다
+ * 실제 크기는 styles/tokens.css가 화면 폭(tablet·mobile)에 따라 정한다. 컴포넌트마다 @media로 줄이지 않아도 된다
  */
 type FontPart = Pick<Theme, 'fontSize' | 'heading'>;
 
@@ -436,6 +436,35 @@ const fontSteps: Record<'tablet' | 'mobile', FontPart> = {
 };
 
 export const fontVars = (step?: keyof typeof fontSteps) => toVarDeclarations(step ? fontSteps[step] : fontPart(lightTheme), []).join('\n');
+
+/**
+ * styles/tokens.css 내용: 라이트 · 다크 색, 화면 폭별 글자 크기. 예전에는 styled-components 전역 스타일이
+ * 브라우저에서 실행하며 넣었는데, Tailwind(#10)와 함께 쓰려고 정적 CSS 파일로 둔다.
+ * 이 함수가 원본이고, 파일은 `npm run tokens`로 다시 만든다 (tokens.test.ts가 둘이 어긋나면 실패)
+ */
+export const tokensCss = () => {
+	const block = (selector: string, body: string, indent = '') =>
+		`${indent}${selector} {\n${body
+			.split('\n')
+			.map((line) => `${indent}\t${line}`)
+			.join('\n')}\n${indent}}`;
+	return [
+		'/* 자동 생성: src/styles/theme.ts의 tokensCss(). 직접 고치지 말고 `npm run tokens` */',
+		'',
+		'/* 테마 색: <html data-theme>(머리의 스크립트가 그리기 전에 정한다)에 따라 바뀐다 */',
+		block(':root', themeVars(lightTheme)),
+		'',
+		block(":root[data-theme='dark']", `${themeVars(darkTheme)}\ncolor-scheme: dark;`),
+		'',
+		'/* 글자 크기: 화면이 좁아지면 한 단계씩 줄어든다 (theme.fontSize · theme.heading) */',
+		block(':root', fontVars()),
+		'',
+		`@media ${lightTheme.mediaQuery.tablet} {\n${block(':root', fontVars('tablet'), '\t')}\n}`,
+		'',
+		`@media ${lightTheme.mediaQuery.mobile} {\n${block(':root', fontVars('mobile'), '\t')}\n}`,
+		'',
+	].join('\n');
+};
 
 /** 컴포넌트가 쓰는 테마: 간격 등은 그대로, 바뀌는 색과 글자 크기는 CSS 변수. 라이트·다크 어느 쪽이든 같다 */
 export const cssVarTheme: Theme = {
