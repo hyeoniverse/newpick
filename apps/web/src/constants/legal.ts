@@ -7,6 +7,8 @@ import type { LegalSection, LegalSummary } from '@/components/common/legal/Legal
  * 바꿀 때는 시행일을 고치고, 시행 7일 전(이용자에게 불리하면 30일 전)부터 알린다
  */
 export const LEGAL_EFFECTIVE_DATE = '2026년 10월 28일';
+/** 개인정보 처리방침 시행일 (약관과 따로 바뀐다). 2026-11-14: 국외 이전에 Sentry(오류 기록) 추가 */
+export const PRIVACY_EFFECTIVE_DATE = '2026년 11월 14일';
 
 /** 개인정보 보호책임자·고충처리 부서 (법 제30조 제1항 제6호: 성명 또는 부서 명칭과 연락처) */
 const OFFICER = '뉴픽 운영팀';
@@ -144,7 +146,7 @@ export const privacySummary: LegalSummary[] = [
 	{ icon: 'purpose', title: '쓰는 곳', text: '로그인, 고른 분야 뉴스레터 메일 발송, 북마크·스크랩' },
 	{ icon: 'period', title: '보관 기간', text: '회원 탈퇴 시까지, 탈퇴하면 바로 파기' },
 	{ icon: 'share', title: '제3자 제공', text: '하지 않습니다' },
-	{ icon: 'global', title: '국외 이전', text: '서버(일본)·로그인·메일 발송(미국) 등 운영을 위해 맡김' },
+	{ icon: 'global', title: '국외 이전', text: '서버(일본)·로그인·메일 발송·오류 기록(미국) 등 운영을 위해 맡김' },
 	{ icon: 'contact', title: '문의', text: '개인정보 보호책임자: 뉴픽 운영팀' },
 ];
 
@@ -234,6 +236,13 @@ export const privacySections = (email: string | null): LegalSection[] => [
 							'접속 기록, 로그인 쿠키',
 							'접속 시 네트워크로 전송',
 							'웹사이트 호스팅·성능 측정 / 업체 보관 기간',
+						],
+						[
+							'Functional Software, Inc. (Sentry) sentry.io/privacy',
+							'미국',
+							'오류 기록(요청 주소, 오류 내용, 회원 번호), 접속 기록 일부',
+							'서버 오류가 나거나 성능을 잴 때 네트워크로 전송',
+							'서비스 오류 분석·성능 측정 / 최대 90일',
 						],
 					],
 				},
@@ -343,7 +352,7 @@ export const privacySections = (email: string | null): LegalSection[] => [
 	{
 		title: '개인정보 처리방침의 변경',
 		blocks: [
-			`이 처리방침은 ${LEGAL_EFFECTIVE_DATE}부터 적용됩니다. 내용을 바꿀 때는 시행 7일 전부터 사이트에 알리고, 수집 항목·이용 목적·제3자 제공처럼 중요한 변경은 30일 전부터 알립니다.`,
+			`이 처리방침은 ${PRIVACY_EFFECTIVE_DATE}부터 적용됩니다. 내용을 바꿀 때는 시행 7일 전부터 사이트에 알리고, 수집 항목·이용 목적·제3자 제공처럼 중요한 변경은 30일 전부터 알립니다.`,
 		],
 	},
 ];
