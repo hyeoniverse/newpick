@@ -4,6 +4,35 @@ import { CrawlingRepository } from './crawling.repository';
 import { CrawledNews } from './schema/crawling.schema';
 import { FindCategoryService } from 'src/ai-summary/findCategory.service';
 
+/**
+ * 분야 첫 화면에서 한 번에 가져오는 '최신 기사' 목록 수 (시간순, 헤드라인 아래).
+ * 헤드라인(네이버 편집, 5건 안팎)은 새벽 · 주말에 몇 시간씩 그대로라 매시간 모아도 새 기사가 거의 없었다.
+ * 최신 기사 목록은 보도 순으로 계속 바뀌어 새벽 속보도 들어온다. 이미 모은 기사는 건너뛰므로 실제로 받는 건 새로 올라온 것만
+ */
+export const LATEST_LIMIT = 20;
+
+/** 분야 첫 화면의 기사 링크: 헤드라인 먼저, 그 뒤 최신 기사 LATEST_LIMIT건. 같은 기사는 한 번만 */
+export function sectionLinks(document: Document) {
+  const read = (selector: string) =>
+    Array.from(document.querySelectorAll<HTMLAnchorElement>(selector))
+      .map((news) => ({
+        title: news.textContent?.trim() ?? '',
+        link: news.href || null,
+      }))
+      .filter((news): news is { title: string; link: string } => !!news.link);
+  const headlines = read('.sa_item._SECTION_HEADLINE .sa_text_title');
+  const latest = read('.sa_item._LAZY_LOADING_WRAP .sa_text_title').slice(
+    0,
+    LATEST_LIMIT,
+  );
+  const seen = new Set<string>();
+  return [...headlines, ...latest].filter((news) => {
+    if (seen.has(news.link)) return false;
+    seen.add(news.link);
+    return true;
+  });
+}
+
 @Injectable()
 export class CrawlingService {
   constructor(
@@ -55,25 +84,16 @@ export class CrawlingService {
     const crawlingResultData = [];
     try {
       for (const link of this.links) {
-        // 섹션 페이지의 헤드라인 목록
+        // 섹션 페이지의 헤드라인 + 최신 기사 목록
         const document = await this.crawlerService.fetchDocument(link);
-        const crawlingNews = Array.from(
-          document.querySelectorAll<HTMLAnchorElement>(
-            '.sa_item._SECTION_HEADLINE .sa_text_title',
-          ),
-        )
-          .map((news) => ({
-            title: news.textContent?.trim(),
-            link: news.href || null,
-          }))
-          .filter((news) => news.link);
+        const crawlingNews = sectionLinks(document);
         // 하루 여러 번 모으므로 이미 모은 기사는 건너뛴다 (상세 요청 · 분야 분류 호출을 아낀다)
         const existing = await this.crawlingRepository.findExistingLinks(
           crawlingNews.map((news) => news.link),
         );
         const fresh = crawlingNews.filter((news) => !existing.has(news.link));
         this.logger.log(
-          `${link}: 헤드라인 ${crawlingNews.length}건 중 새 기사 ${fresh.length}건`,
+          `${link}: 헤드라인 · 최신 ${crawlingNews.length}건 중 새 기사 ${fresh.length}건`,
         );
         await this.crawlerService.setDelay();
         // 상세 페이지 크롤링
