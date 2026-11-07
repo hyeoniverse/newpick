@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
+import { UsageError } from './pricing';
 
 /**
  * 기본 모델 (뉴스레터 쓰기, 무료 체험). 같은 기사로 비교했을 때 Opus 5.5와 품질이 거의 같고 가격은 절반 (#48).
@@ -44,43 +45,74 @@ export class ClaudeService {
   }> {
     // 스트리밍으로 받는다: 긴 응답(뉴스레터 한 편 1만 토큰 안팎)을 한 번에 기다리면 SDK 대기 시간(10분)을 넘겨
     // 'Request timed out'으로 실패했다 (재시도까지 30분). 스트리밍은 조각이 계속 와서 끊기지 않고, 끝나면 finalMessage로 한 번에 받는다
-    const response = await this.client.beta.messages
-      .stream({
-        model,
-        max_tokens: maxTokens,
-        // 안전 분류기가 요청을 거절하면 서버가 권장 모델로 다시 실행합니다.
-        ...(supportsFallback(model) && {
-          betas: ['server-side-fallback-2026-07-01'],
-          fallbacks: 'default' as const,
-        }),
-        output_config: {
-          effort,
-          ...(schema && { format: { type: 'json_schema', schema } }),
-        },
-        system,
-        messages: [{ role: 'user', content: prompt }],
-      })
-      .finalMessage();
+    const stream = this.client.beta.messages.stream({
+      model,
+      max_tokens: maxTokens,
+      // 안전 분류기가 요청을 거절하면 서버가 권장 모델로 다시 실행합니다.
+      ...(supportsFallback(model) && {
+        betas: ['server-side-fallback-2026-07-01'],
+        fallbacks: 'default' as const,
+      }),
+      output_config: {
+        effort,
+        ...(schema && { format: { type: 'json_schema', schema } }),
+      },
+      system,
+      messages: [{ role: 'user', content: prompt }],
+    });
+    // 받은 데까지의 사용량: 도중에 끊겨도 그만큼은 청구되므로 실패 기록에 남긴다
+    let seen: { model: string; input: number; output: number } | null = null;
+    stream.on('streamEvent', (_event, snapshot) => {
+      seen = {
+        model: snapshot.model ?? model,
+        input: snapshot.usage?.input_tokens ?? 0,
+        output: snapshot.usage?.output_tokens ?? 0,
+      };
+    });
+    let response: Awaited<ReturnType<typeof stream.finalMessage>>;
+    try {
+      response = await stream.finalMessage();
+    } catch (error) {
+      const partial = seen as {
+        model: string;
+        input: number;
+        output: number;
+      } | null;
+      throw new UsageError(
+        (error as Error).message,
+        partial && (partial.input || partial.output)
+          ? [{ ...partial, partial: true }]
+          : [],
+        { cause: error },
+      );
+    }
+    const usage = {
+      model: response.model ?? model,
+      input: response.usage.input_tokens,
+      output: response.usage.output_tokens,
+    };
 
     if (response.stop_reason === 'refusal') {
-      throw new Error(
+      throw new UsageError(
         `요청이 거절되었습니다 (${response.stop_details?.category ?? 'unknown'})`,
+        [usage],
       );
     }
     // 잘린 요약이 뉴스레터로 저장되지 않도록 실패로 처리합니다.
     if (response.stop_reason === 'max_tokens') {
-      throw new Error(`응답이 max_tokens(${maxTokens})에서 잘렸습니다`);
+      throw new UsageError(`응답이 max_tokens(${maxTokens})에서 잘렸습니다`, [
+        usage,
+      ]);
     }
 
     const text = response.content
       .map((block) => (block.type === 'text' ? block.text : ''))
       .join('')
       .trim();
-    const { input_tokens: input, output_tokens: output } = response.usage;
     return {
       text,
-      tokens: input + output,
-      usage: { model: response.model ?? model, input, output },
+      tokens: usage.input + usage.output,
+      usage,
     };
   }
 }

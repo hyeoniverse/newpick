@@ -1,5 +1,5 @@
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
-import { usageLog } from './pricing';
+import { usageLog, usageOf } from './pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { FindCategoryService } from './findCategory.service';
@@ -194,6 +194,8 @@ export class AiSummaryService {
     } catch (error) {
       const duration = (Date.now() - startTime) / 1000;
       const newsIds = news.map((item) => item._id).toString();
+      // 실패해도 그때까지 쓴 사용량은 청구된다: 끝난 고르기 + 실패한 호출에서 받은 데까지 (없으면 0)
+      const usage = usageOf(error);
       await this.prisma.aiProcessLog.create({
         data: {
           newsId: test ? 'test' : newsIds,
@@ -203,7 +205,8 @@ export class AiSummaryService {
           duration: duration,
           status: 'error',
           error: error.message,
-          token: 0,
+          token: usage.reduce((sum, u) => sum + u.input + u.output, 0),
+          ...usageLog(usage),
         },
       });
 

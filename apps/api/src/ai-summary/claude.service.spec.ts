@@ -1,5 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { ClaudeService } from './claude.service';
+import { UsageError } from './pricing';
 
 function reply(overrides: Record<string, unknown> = {}) {
   return {
@@ -172,5 +173,79 @@ describe('ClaudeService.generate', () => {
     await expect(
       service.generate({ system: 's', prompt: 'p' }),
     ).rejects.toThrow('max_tokens');
+  });
+
+  // 실패해도 청구되는 만큼은 오류에 실어 AI 기록에 남긴다
+  it('스트리밍이 도중에 끊기면 받은 데까지의 사용량(partial)을 실어 던진다', async () => {
+    const start = `event: message_start\ndata: ${JSON.stringify({
+      type: 'message_start',
+      message: {
+        ...reply(),
+        content: [],
+        stop_reason: null,
+        usage: { input_tokens: 900, output_tokens: 0 },
+      },
+    })}\n\n`;
+    const delta = `event: message_delta\ndata: ${JSON.stringify({
+      type: 'message_delta',
+      delta: { stop_reason: null, stop_sequence: null },
+      usage: { output_tokens: 40 },
+    })}\n\n`;
+    const failure = `event: error\ndata: ${JSON.stringify({ type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } })}\n\n`;
+    const fetch = jest.fn(
+      async () =>
+        new Response(start + delta + failure, {
+          status: 200,
+          headers: { 'content-type': 'text/event-stream' },
+        }),
+    );
+    const service = new ClaudeService(
+      new Anthropic({ apiKey: 'test', fetch, maxRetries: 0 }),
+    );
+    const error = await service
+      .generate({ system: 's', prompt: 'p' })
+      .catch((e) => e);
+    expect(error).toBeInstanceOf(UsageError);
+    expect(error.usage).toEqual([
+      { model: 'claude-sonnet-5-5', input: 900, output: 40, partial: true },
+    ]);
+  });
+
+  it('요청 단계에서 거절(400)되면 사용량 없이 던진다 (청구되지 않음)', async () => {
+    const fetch = jest.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            type: 'error',
+            error: {
+              type: 'invalid_request_error',
+              message: 'grammar too large',
+            },
+          }),
+          {
+            status: 400,
+            headers: { 'content-type': 'application/json' },
+          },
+        ),
+    );
+    const service = new ClaudeService(
+      new Anthropic({ apiKey: 'test', fetch, maxRetries: 0 }),
+    );
+    const error = await service
+      .generate({ system: 's', prompt: 'p' })
+      .catch((e) => e);
+    expect(error).toBeInstanceOf(UsageError);
+    expect(error.usage).toEqual([]);
+  });
+
+  it('max_tokens에서 잘려 실패해도 다 받은 사용량을 싣는다', async () => {
+    const { service } = setup(reply({ stop_reason: 'max_tokens' }));
+    const error = await service
+      .generate({ system: 's', prompt: 'p' })
+      .catch((e) => e);
+    expect(error).toBeInstanceOf(UsageError);
+    expect(error.usage).toEqual([
+      { model: 'claude-sonnet-5-5', input: 100, output: 20 },
+    ]);
   });
 });
