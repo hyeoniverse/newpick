@@ -118,7 +118,7 @@ function MyBookmark() {
 				<p className="empty">이 조건의 북마크가 없어요.</p>
 			) : (
 				/* 북마크: 그림이 위에 오는 작은 카드 격자 (줄 목록인 내 뉴스레터와 다르게 모아 둔 기사 모음처럼, 한 줄에 4장 · 휴대폰 2장). 카드를 끌면 폴더로 */
-				<ul className="grid">
+				<ul className="card-grid">
 					{shown.map((bookmark) => (
 						<li
 							key={bookmark.id}
@@ -180,7 +180,7 @@ function MyBookmark() {
 
 const MyBookmarkStyled = styled.div`
 	/* 끄는 중인 것: 흐리게 (세 탭 같은 모양) */
-	.grid > li.dragging {
+	.card-grid > li.dragging {
 		opacity: 0.4;
 	}
 
@@ -206,7 +206,7 @@ const MyBookmarkStyled = styled.div`
 	/* 북마크 카드 격자: 칸 수는 화면이 아니라 '목록이 실제로 차지하는 너비'로 정한다 (컨테이너 쿼리, 아래) */
 	container-type: inline-size;
 
-	.grid {
+	.card-grid {
 		display: grid;
 		grid-template-columns: minmax(0, 1fr);
 		gap: 0.75rem;
@@ -360,13 +360,13 @@ const MyBookmarkStyled = styled.div`
 
 	/* 한 줄 칸 수 (목록 너비 기준): 1000px 이상 3장 · 680px 이상 2장 · 그 아래 1장 */
 	@container (min-width: 680px) {
-		.grid {
+		.card-grid {
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 		}
 	}
 
 	@container (min-width: 1000px) {
-		.grid {
+		.card-grid {
 			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 	}

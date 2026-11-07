@@ -74,7 +74,7 @@ export default function ErrorState({ code, icon, title, description, action, onR
 	};
 
 	return (
-		<StyledErrorState className={`${className ?? ''}${inline ? ' inline' : ''}`} role="alert">
+		<StyledErrorState className={`${className ?? ''}${inline ? ' is-inline' : ''}`} role="alert">
 			<span className="badge" aria-hidden>
 				<Icon />
 			</span>
@@ -112,7 +112,7 @@ const StyledErrorState = styled.section`
 		padding: 4rem 0;
 	}
 
-	&.inline {
+	&.is-inline {
 		padding: 3rem 0;
 
 		.title {

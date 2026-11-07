@@ -304,7 +304,7 @@ function DesignSystemBody() {
 				title="입력"
 				note="InputText · InputCheck · InputRadio · InputSelect · DatePicker · DateRangePicker"
 			>
-				<div className="grid">
+				<div className="demo-grid">
 					<InputText label="이메일" placeholder="name@example.com" inputType="email" />
 					<InputSelect
 						name="ds-select"
@@ -412,7 +412,7 @@ function DesignSystemBody() {
 
 			<Section id="card" title="카드" note="Card type: main · list · sub, SummaryTextBox (예시 데이터, API 호출 없음)">
 				<Card type="main" data={SAMPLE_CARD} />
-				<div className="grid">
+				<div className="demo-grid">
 					<Card type="list" data={SAMPLE_CARD} />
 					<Card type="sub" data={SAMPLE_CARD} />
 				</div>
@@ -812,7 +812,7 @@ const StyledPage = styled.div`
 		width: 8rem;
 	}
 
-	.grid {
+	.demo-grid {
 		display: grid;
 		grid-template-columns: repeat(2, minmax(0, 1fr));
 		gap: 1rem;
