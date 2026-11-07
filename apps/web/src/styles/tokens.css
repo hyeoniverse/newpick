@@ -1,0 +1,181 @@
+/* 자동 생성: src/styles/theme.ts의 tokensCss(). 직접 고치지 말고 `npm run tokens` */
+
+/* 테마 색: <html data-theme>(머리의 스크립트가 그리기 전에 정한다)에 따라 바뀐다 */
+:root {
+	--np-color-primary: #3610e1;
+	--np-color-secondary: #5564F1;
+	--np-color-tertiary: #f4f1ff;
+	--np-color-background: #FFFFFF;
+	--np-color-surface: #F9F9F9;
+	--np-color-disabled: #BDBDBD;
+	--np-color-success: #8BC34A;
+	--np-color-error: #D32F2F;
+	--np-color-warning: #FFB300;
+	--np-color-text: #000000;
+	--np-color-sub-text: #6B6B6B;
+	--np-color-neutral: #F0F0F0;
+	--np-color-medium-grey: #444444;
+	--np-color-light-grey: #737373;
+	--np-color-border: #d9d9d9;
+	--np-color-white: #FFFFFF;
+	--np-color-mono: #111111;
+	--np-button-scheme-primary-color: #ffffff;
+	--np-button-scheme-primary-background: #3610e1;
+	--np-button-scheme-primary-border: 1px solid #3610e1;
+	--np-button-scheme-primary-font-weight: 500;
+	--np-button-scheme-primary-hover-color: #f4f1ff;
+	--np-button-scheme-primary-hover-background: #2001af;
+	--np-button-scheme-secondary-color: #3610e1;
+	--np-button-scheme-secondary-background: #F4F1FF;
+	--np-button-scheme-secondary-border: 1px solid transparent;
+	--np-button-scheme-secondary-font-weight: 600;
+	--np-button-scheme-secondary-hover-color: #3610e1;
+	--np-button-scheme-secondary-hover-background: #E6DFFF;
+	--np-button-scheme-outline-color: #3610e1;
+	--np-button-scheme-outline-background: transparent;
+	--np-button-scheme-outline-border: 1px solid #3610e1;
+	--np-button-scheme-outline-font-weight: 500;
+	--np-button-scheme-outline-hover-color: #3610e1;
+	--np-button-scheme-outline-hover-background: #f4f1ff;
+	--np-button-scheme-mono-color: #ffffff;
+	--np-button-scheme-mono-background: #222222;
+	--np-button-scheme-mono-border: 1px solid transparent;
+	--np-button-scheme-mono-font-weight: 500;
+	--np-button-scheme-mono-hover-color: #f1f1f1;
+	--np-button-scheme-mono-hover-background: #111111;
+	--np-button-scheme-mono-outline-color: #444444;
+	--np-button-scheme-mono-outline-background: transparent;
+	--np-button-scheme-mono-outline-border: 1px solid #999999;
+	--np-button-scheme-mono-outline-font-weight: 500;
+	--np-button-scheme-mono-outline-hover-color: #444444;
+	--np-button-scheme-mono-outline-hover-background: #f1f1f1;
+	--np-button-scheme-mono-outline-hover-border: 1px solid #444444;
+	--np-button-scheme-danger-color: #FFFFFF;
+	--np-button-scheme-danger-background: #E57373;
+	--np-button-scheme-danger-border: 1px solid #E57373;
+	--np-button-scheme-danger-font-weight: 500;
+	--np-button-scheme-danger-hover-color: #ffffff;
+	--np-button-scheme-danger-hover-background: #D32F2F;
+	--np-button-scheme-danger-hover-border: 1px solid #D32F2F;
+	--np-button-scheme-default-color: #000000;
+	--np-button-scheme-default-background: transparent;
+	--np-button-scheme-default-border: 1px solid transparent;
+	--np-button-scheme-default-font-weight: 500;
+	--np-button-scheme-default-hover-color: #3610e1;
+	--np-button-scheme-default-hover-font-weight: 700;
+	--np-shadow-light: 0px 1px 3px rgba(0, 0, 0, 0.1);
+	--np-shadow-medium: 0px 4px 6px rgba(0, 0, 0, 0.1);
+	--np-shadow-heavy: 0px 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+:root[data-theme='dark'] {
+	--np-color-primary: #9ca9ff;
+	--np-color-secondary: #6980ff;
+	--np-color-background: #121212;
+	--np-color-tertiary: #0f1d7a;
+	--np-color-surface: #1E1E1E;
+	--np-color-disabled: #555555;
+	--np-color-success: #66BB6A;
+	--np-color-error: #EF5350;
+	--np-color-warning: #FFB300;
+	--np-color-text: #f1f1f1;
+	--np-color-sub-text: #c1c1c1;
+	--np-color-neutral: #2D2D2D;
+	--np-color-medium-grey: #a3a3a3;
+	--np-color-light-grey: #8A8A8A;
+	--np-color-border: #333333;
+	--np-color-white: #FFFFFF;
+	--np-color-mono: #111111;
+	--np-button-scheme-primary-color: #121212;
+	--np-button-scheme-primary-background: #8C9EFF;
+	--np-button-scheme-primary-border: 1px solid transparent;
+	--np-button-scheme-primary-font-weight: 500;
+	--np-button-scheme-primary-hover-color: #000000;
+	--np-button-scheme-primary-hover-background: #6c80ed;
+	--np-button-scheme-secondary-color: #c9d0ff;
+	--np-button-scheme-secondary-background: #1b2357;
+	--np-button-scheme-secondary-border: 1px solid transparent;
+	--np-button-scheme-secondary-font-weight: 600;
+	--np-button-scheme-secondary-hover-color: #ffffff;
+	--np-button-scheme-secondary-hover-background: #0f1d7a;
+	--np-button-scheme-outline-color: #9ca9ff;
+	--np-button-scheme-outline-background: transparent;
+	--np-button-scheme-outline-border: 1px solid #9ca9ff;
+	--np-button-scheme-outline-font-weight: 500;
+	--np-button-scheme-outline-hover-color: #121212;
+	--np-button-scheme-outline-hover-background: #9ca9ff;
+	--np-button-scheme-mono-color: #121212;
+	--np-button-scheme-mono-background: #f1f1f1;
+	--np-button-scheme-mono-border: 1px solid transparent;
+	--np-button-scheme-mono-font-weight: 500;
+	--np-button-scheme-mono-hover-color: #121212;
+	--np-button-scheme-mono-hover-background: #d9d9d9;
+	--np-button-scheme-mono-outline-color: #f1f1f1;
+	--np-button-scheme-mono-outline-background: transparent;
+	--np-button-scheme-mono-outline-border: 1px solid #808080;
+	--np-button-scheme-mono-outline-font-weight: 500;
+	--np-button-scheme-mono-outline-hover-color: #f1f1f1;
+	--np-button-scheme-mono-outline-hover-background: #191919;
+	--np-button-scheme-mono-outline-hover-border: 1px solid #999999;
+	--np-button-scheme-danger-color: #FFFFFF;
+	--np-button-scheme-danger-background: #EF5350;
+	--np-button-scheme-danger-border: 1px solid #EF5350;
+	--np-button-scheme-danger-font-weight: 500;
+	--np-button-scheme-danger-hover-color: #FFFFFF;
+	--np-button-scheme-danger-hover-background: #D32F2F;
+	--np-button-scheme-danger-hover-border: 1px solid #D32F2F;
+	--np-button-scheme-default-color: #f1f1f1;
+	--np-button-scheme-default-background: transparent;
+	--np-button-scheme-default-border: 1px solid transparent;
+	--np-button-scheme-default-font-weight: 500;
+	--np-button-scheme-default-hover-color: #9ca9ff;
+	--np-button-scheme-default-hover-font-weight: 700;
+	--np-shadow-light: 0px 1px 3px rgba(0, 0, 0, 0.1);
+	--np-shadow-medium: 0px 4px 6px rgba(0, 0, 0, 0.1);
+	--np-shadow-heavy: 0px 10px 15px rgba(0, 0, 0, 0.1);
+	color-scheme: dark;
+}
+
+/* 글자 크기: 화면이 좁아지면 한 단계씩 줄어든다 (theme.fontSize · theme.heading) */
+:root {
+	--np-font-size-extra-small: 0.875rem;
+	--np-font-size-small: 1rem;
+	--np-font-size-medium: 1.125rem;
+	--np-font-size-large: 1.375rem;
+	--np-font-size-extra-large: 1.75rem;
+	--np-heading-extra-small-font-size: 1.5rem;
+	--np-heading-small-font-size: 1.75rem;
+	--np-heading-medium-font-size: 2rem;
+	--np-heading-large-font-size: 2.25rem;
+	--np-heading-extra-large-font-size: 3rem;
+}
+
+@media (max-width: 768px) {
+	:root {
+		--np-font-size-extra-small: 0.875rem;
+		--np-font-size-small: 1rem;
+		--np-font-size-medium: 1.0625rem;
+		--np-font-size-large: 1.25rem;
+		--np-font-size-extra-large: 1.5rem;
+		--np-heading-extra-small-font-size: 1.375rem;
+		--np-heading-small-font-size: 1.5rem;
+		--np-heading-medium-font-size: 1.75rem;
+		--np-heading-large-font-size: 2rem;
+		--np-heading-extra-large-font-size: 2.5rem;
+	}
+}
+
+@media (max-width: 425px) {
+	:root {
+		--np-font-size-extra-small: 0.8125rem;
+		--np-font-size-small: 0.9375rem;
+		--np-font-size-medium: 1rem;
+		--np-font-size-large: 1.125rem;
+		--np-font-size-extra-large: 1.375rem;
+		--np-heading-extra-small-font-size: 1.25rem;
+		--np-heading-small-font-size: 1.375rem;
+		--np-heading-medium-font-size: 1.5rem;
+		--np-heading-large-font-size: 1.75rem;
+		--np-heading-extra-large-font-size: 2rem;
+	}
+}

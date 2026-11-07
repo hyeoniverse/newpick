@@ -1,50 +1,165 @@
-/* 기본 테마 (Light Mode) */
-:root {
-	--primary: #3610e1;
-	--secondary: #5564f1;
-	--tertiary: #f4f1ff;
-	--background: #ffffff;
-	--surface: #f9f9f9;
-	--disabled: #bdbdbd;
-	--success: #8bc34a;
-	--error: #d32f2f;
-	--warning: #ffb300;
-	--text: #000000;
-	--subText: #6b6b6b;
-	--neutral: #f0f0f0;
-	--mediumGrey: #444444;
-	--lightGrey: #737373;
-	--border: #d9d9d9;
+/*
+ * 전역 스타일 + Tailwind v4 (#10).
+ * styled-components에서 Tailwind로 단계별로 옮기는 동안 둘을 함께 쓴다.
+ * - 기본 초기화는 지금처럼 sanitize.css. Tailwind preflight는 styled-components를 다 걷어 낸 뒤 켠다 (화면이 한꺼번에 바뀌지 않게)
+ * - 층 순서 theme → base → components → utilities: 유틸리티가 전역 기본값을 이긴다
+ * - 색 · 글자 크기는 styles/tokens.css의 var(--np-…)를 그대로 쓴다. 라이트 · 다크 · 화면 폭에 따라 바뀌는 값이 한 곳에서 나온다
+ */
+@layer theme, base, components, utilities;
+
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import 'sanitize.css' layer(base);
+@import '../styles/tokens.css';
+
+/* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* 화면 폭: theme.mediaQuery와 같이 '이하' 기준 (데스크톱 먼저 만들고 좁은 화면에서 고친다) */
+@custom-variant desktop (@media (max-width: 1024px));
+@custom-variant tablet (@media (max-width: 768px));
+@custom-variant mobile (@media (max-width: 425px));
+
+/* theme.ts의 이름 그대로: bg-primary · text-sub-text · text-small · font-semi-bold · rounded-surface · shadow-medium … */
+@theme inline {
+	--font-sans:
+		'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif;
+
+	--color-primary: var(--np-color-primary);
+	--color-secondary: var(--np-color-secondary);
+	--color-tertiary: var(--np-color-tertiary);
+	--color-background: var(--np-color-background);
+	--color-surface: var(--np-color-surface);
+	--color-disabled: var(--np-color-disabled);
+	--color-success: var(--np-color-success);
+	--color-error: var(--np-color-error);
+	--color-warning: var(--np-color-warning);
+	--color-text: var(--np-color-text);
+	--color-sub-text: var(--np-color-sub-text);
+	--color-neutral: var(--np-color-neutral);
+	--color-light-grey: var(--np-color-light-grey);
+	--color-medium-grey: var(--np-color-medium-grey);
+	--color-border: var(--np-color-border);
+	--color-mono: var(--np-color-mono);
+
+	--text-extra-small: var(--np-font-size-extra-small);
+	--text-small: var(--np-font-size-small);
+	--text-medium: var(--np-font-size-medium);
+	--text-large: var(--np-font-size-large);
+	--text-extra-large: var(--np-font-size-extra-large);
+	--text-heading-extra-small: var(--np-heading-extra-small-font-size);
+	--text-heading-small: var(--np-heading-small-font-size);
+	--text-heading-medium: var(--np-heading-medium-font-size);
+	--text-heading-large: var(--np-heading-large-font-size);
+	--text-heading-extra-large: var(--np-heading-extra-large-font-size);
+
+	--font-weight-light: 400;
+	--font-weight-regular: 500;
+	--font-weight-medium: 600;
+	--font-weight-semi-bold: 700;
+	--font-weight-bold: 800;
+	--font-weight-extra-bold: 900;
+
+	--radius-control: 0;
+	--radius-chip: 9999px;
+	--radius-surface: 8px;
+	--radius-floating: 16px;
+
+	--shadow-light: var(--np-shadow-light);
+	--shadow-medium: var(--np-shadow-medium);
+	--shadow-heavy: var(--np-shadow-heavy);
 }
 
-/* 다크 모드 */
-[data-theme='dark'] {
-	--primary: #9ca9ff;
-	--secondary: #6980ff;
-	--tertiary: #0f1d7a;
-	--background: #121212;
-	--surface: #1e1e1e;
-	--disabled: #555555;
-	--success: #66bb6a;
-	--error: #ef5350;
-	--warning: #ffb300;
-	--text: #f1f1f1;
-	--subText: #a3a3a3;
-	--neutral: #2d2d2d;
-	--mediumGrey: #a3a3a3;
-	--lightGrey: #8a8a8a;
-	--border: #606060;
-}
+@layer base {
+	/* 글꼴: Pretendard 다이나믹 서브셋 (styles/pretendard.css, #14). 받는 동안은 시스템 글꼴 */
+	* {
+		font-family: var(--font-sans);
+	}
 
-/* 반응형 (하드코딩 없이 CSS 변수 사용) */
-:root {
-	--breakpoint-mobile: 425px;
-	--breakpoint-tablet: 768px;
-	--breakpoint-desktop: 1024px;
-}
-
-@media (max-width: var(--breakpoint-tablet)) {
+	html,
 	body {
+		margin: 0;
+		padding: 0;
+		color: var(--np-color-text);
+		background: var(--np-color-background);
+		scroll-behavior: smooth;
 		font-size: 16px;
+
+		@media (max-width: 425px) {
+			/* 스크롤바 숨김 (Firefox · Webkit · 예전 Edge) */
+			scrollbar-width: none;
+			-ms-overflow-style: none;
+
+			&::-webkit-scrollbar {
+				display: none;
+			}
+		}
+
+		a {
+			text-decoration: none;
+			color: var(--np-color-text);
+		}
+
+		input {
+			outline: none;
+		}
+
+		ul,
+		li {
+			list-style: none;
+			margin: 0;
+			padding: 0;
+		}
+
+		h1,
+		h2,
+		h3,
+		h4,
+		h5,
+		h6,
+		p {
+			margin: 0;
+			white-space: pre-line;
+		}
+
+		button {
+			border: none;
+			background-color: transparent;
+		}
+	}
+
+	/* 키보드로 옮겨 다닐 때만 보이는 포커스 테두리 (#16). 마우스로 누를 때는 보이지 않는다 */
+	:focus-visible {
+		outline: 2px solid var(--np-color-primary);
+		outline-offset: 2px;
+	}
+
+	:focus:not(:focus-visible) {
+		outline: none;
+	}
+}
+
+@layer components {
+	/* 본문 바로가기: 평소엔 숨기고 Tab을 처음 누르면 왼쪽 위에 보인다.
+	   위로 밀어 두기만 하면 맥에서 맨 위를 더 끌어올릴 때(튕김) 드러나서, 투명하게 · 누를 수 없게도 둔다 */
+	.skip-link {
+		position: absolute;
+		top: 0.5rem;
+		left: 0.5rem;
+		z-index: 10000;
+		padding: 0.625rem 1rem;
+		border-radius: 8px;
+		background: var(--np-color-primary);
+		color: #ffffff;
+		font-weight: 600;
+		transform: translateY(-200%);
+		opacity: 0;
+		pointer-events: none;
+
+		&:focus-visible {
+			transform: none;
+			opacity: 1;
+			pointer-events: auto;
+		}
 	}
 }
