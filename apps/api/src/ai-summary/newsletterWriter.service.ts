@@ -13,6 +13,7 @@ import {
   isMorning,
 } from './articlePrep';
 import { kstDayLabel, kstStamp } from '../common/kst';
+import { UsageError, usageOf } from './pricing';
 
 /**
  * 소식마다 내용에 맞는 템플릿 (#48). 모두 꼬리표·헤드라인·리드·본문을 갖고, 템플릿마다 고유 요소가 하나씩 있다
@@ -903,72 +904,94 @@ export class NewsletterWriterService {
     const vectors = await this.embeddings(prepared);
     const clusters = clusterArticles(prepared, vectors ?? undefined);
     const usage: Usage[] = [];
-
-    let chosen = clusters.length === 1 ? clusters[0].articles : [];
-    // 오늘 아침 속보로 고른 기사 (묶음마다 1건). 본문 소식과 따로 쓴다
-    let morning: PrepArticle[] = [];
-    // 고르기 점수 요약 (AI 기록에 남긴다). 묶음이 하나면 고르지 않아 비어 있다
-    let selection = '';
-    if (!chosen.length) {
-      const selected = await this.claude.generate({
-        model: CLAUDE_FAST_MODEL,
-        system: SELECT_SYSTEM,
-        prompt: selectPrompt(clusters, category, recentTopics, today),
-        schema: SELECT_SCHEMA,
-        effort: 'low',
-        // 묶음마다 점수 한 줄씩 (30묶음이면 2천 토큰 남짓)
-        maxTokens: 6000,
-      });
-      usage.push({ ...selected.usage, stage: 'select' });
-      const { scores } = JSON.parse(selected.text) as {
-        scores: ClusterScore[];
-      };
-      const picks = splitPicks(clusters, scores);
-      selection = describeScores(clusters, scores, [
-        ...picks.stories,
-        ...picks.morning,
-      ]);
-      chosen = pickArticles(clusters, picks.stories, category);
-      morning = pickArticles(clusters, picks.morning, category, 1);
-      if (!chosen.length) throw new Error('고른 소식이 없음');
-    }
-
-    // 뉴스레터 본문이 되는 호출이라 effort를 높입니다.
-    const written = await this.claude.generate({
-      system: WRITER_SYSTEM,
-      prompt: writerPrompt(
-        chosen,
-        category,
-        existingTags,
-        recentTopics,
-        today,
-        morning,
-      ),
-      schema: WRITER_SCHEMA,
-      effort: 'medium',
-      maxTokens: 12000,
-    });
-    usage.push({ ...written.usage, stage: 'write' });
-
-    // 기사 번호: 본문 기사 다음에 아침 속보 기사가 이어진다
-    const numbered = [...chosen, ...morning];
-    const newsletter = normalize(
-      JSON.parse(written.text) as WrittenNewsletter,
-      (n) => (numbered[n - 1] ? numbered[n - 1].index + 1 : undefined),
-    );
-    const tokens = usage.reduce((sum, u) => sum + u.input + u.output, 0);
-    return {
-      newsletter,
-      tokens,
-      usage,
-      selection,
-      // 원래 기사 목록의 위치(index)마다 임베딩: 부른 쪽이 남겨 추천 기사에 다시 쓴다
-      embeddings: vectors
-        ? prepared.map((article, i) => ({
-            index: article.index,
-            vector: vectors[i],
-          }))
-        : [],
+    // 실패해도 그때까지 쓴 사용량(끝난 호출 + 실패한 호출에서 받은 데까지)을 오류에 실어 보낸다
+    const call = async (
+      stage: string,
+      options: Parameters<ClaudeService['generate']>[0],
+    ) => {
+      try {
+        return await this.claude.generate(options);
+      } catch (error) {
+        throw new UsageError(
+          (error as Error).message,
+          [...usage, ...usageOf(error).map((u) => ({ ...u, stage }))],
+          { cause: error },
+        );
+      }
     };
+    try {
+      let chosen = clusters.length === 1 ? clusters[0].articles : [];
+      // 오늘 아침 속보로 고른 기사 (묶음마다 1건). 본문 소식과 따로 쓴다
+      let morning: PrepArticle[] = [];
+      // 고르기 점수 요약 (AI 기록에 남긴다). 묶음이 하나면 고르지 않아 비어 있다
+      let selection = '';
+      if (!chosen.length) {
+        const selected = await call('select', {
+          model: CLAUDE_FAST_MODEL,
+          system: SELECT_SYSTEM,
+          prompt: selectPrompt(clusters, category, recentTopics, today),
+          schema: SELECT_SCHEMA,
+          effort: 'low',
+          // 묶음마다 점수 한 줄씩 (30묶음이면 2천 토큰 남짓)
+          maxTokens: 6000,
+        });
+        usage.push({ ...selected.usage, stage: 'select' });
+        const { scores } = JSON.parse(selected.text) as {
+          scores: ClusterScore[];
+        };
+        const picks = splitPicks(clusters, scores);
+        selection = describeScores(clusters, scores, [
+          ...picks.stories,
+          ...picks.morning,
+        ]);
+        chosen = pickArticles(clusters, picks.stories, category);
+        morning = pickArticles(clusters, picks.morning, category, 1);
+        if (!chosen.length) throw new Error('고른 소식이 없음');
+      }
+
+      // 뉴스레터 본문이 되는 호출이라 effort를 높입니다.
+      const written = await call('write', {
+        system: WRITER_SYSTEM,
+        prompt: writerPrompt(
+          chosen,
+          category,
+          existingTags,
+          recentTopics,
+          today,
+          morning,
+        ),
+        schema: WRITER_SCHEMA,
+        effort: 'medium',
+        maxTokens: 12000,
+      });
+      usage.push({ ...written.usage, stage: 'write' });
+
+      // 기사 번호: 본문 기사 다음에 아침 속보 기사가 이어진다
+      const numbered = [...chosen, ...morning];
+      const newsletter = normalize(
+        JSON.parse(written.text) as WrittenNewsletter,
+        (n) => (numbered[n - 1] ? numbered[n - 1].index + 1 : undefined),
+      );
+      const tokens = usage.reduce((sum, u) => sum + u.input + u.output, 0);
+      return {
+        newsletter,
+        tokens,
+        usage,
+        selection,
+        // 원래 기사 목록의 위치(index)마다 임베딩: 부른 쪽이 남겨 추천 기사에 다시 쓴다
+        embeddings: vectors
+          ? prepared.map((article, i) => ({
+              index: article.index,
+              vector: vectors[i],
+            }))
+          : [],
+      };
+    } catch (error) {
+      // 호출이 끝난 뒤의 실패(응답 읽기 · 고른 소식 없음 등)도 쓴 사용량은 남긴다
+      if (error instanceof UsageError) throw error;
+      throw new UsageError((error as Error).message, [...usage], {
+        cause: error,
+      });
+    }
   }
 }

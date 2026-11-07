@@ -4,7 +4,32 @@ export interface ClaudeUsage {
   input: number;
   output: number;
   stage?: string;
+  /** 도중에 실패해 끝까지 받지 못한 호출: 받은 데까지의 사용량 (실제 청구는 이보다 같거나 많다) */
+  partial?: boolean;
 }
+
+/**
+ * 사용량을 실어 보내는 오류: 실패한 요약도 그때까지 쓴 토큰 · 비용을 AI 기록에 남기게.
+ * 앞 단계(고르기)가 끝난 뒤 쓰기에서 실패해도, 끊긴 스트리밍도 청구는 된다
+ */
+export class UsageError extends Error {
+  /** 원래 오류 (SDK 오류 등) */
+  readonly origin?: unknown;
+
+  constructor(
+    message: string,
+    readonly usage: ClaudeUsage[],
+    options?: { cause?: unknown },
+  ) {
+    super(message);
+    this.name = 'UsageError';
+    this.origin = options?.cause;
+  }
+}
+
+/** 오류에 실린 사용량 (없으면 빈 배열) */
+export const usageOf = (error: unknown): ClaudeUsage[] =>
+  error instanceof UsageError ? error.usage : [];
 
 /**
  * 모델별 단가 (USD / 100만 토큰). 2026-10 기준 Claude API 공개 가격.
@@ -61,6 +86,7 @@ export function usageLog(usage: ClaudeUsage[], stage?: string) {
       input: u.input,
       output: u.output,
       costUsd: costUsd([u]),
+      ...(u.partial && { partial: true }),
     })),
     model: [...new Set(usage.map((u) => u.model))].join(', ') || null,
     inputTokens: usage.reduce((sum, u) => sum + u.input, 0),
