@@ -45,9 +45,9 @@ function MobileLikeLinkButton({ className, newsId }: Props) {
 			<BookmarkIcon
 				newsId={newsId}
 				newsletterId={newsId}
-				className={`mobile-icon blur ${showButton ? 'fade-in ' : 'fade-out'}`}
+				className={`mobile-icon ${showButton ? 'fade-in ' : 'fade-out'}`}
 			/>
-			<LinkCopyIcon id={crypto.randomUUID()} className={`mobile-icon blur ${showButton ? 'fade-in ' : 'fade-out'}`} />
+			<LinkCopyIcon id={crypto.randomUUID()} className={`mobile-icon ${showButton ? 'fade-in ' : 'fade-out'}`} />
 		</MobileLikeLinkButtonStyled>
 	);
 }

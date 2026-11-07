@@ -109,7 +109,7 @@ export default function TrendChart({ dates, series, kind, label, format = compac
 						{ticks.map((t) => (
 							<g key={t}>
 								<line
-									className={t === 0 ? 'baseline' : 'grid'}
+									className={t === 0 ? 'baseline' : 'gridline'}
 									x1={PAD.left}
 									x2={width - PAD.right}
 									y1={y(t)}
@@ -256,7 +256,7 @@ const StyledChart = styled.div`
 		overflow: visible;
 	}
 
-	.grid {
+	.gridline {
 		stroke: ${({ theme }) => theme.color.neutral};
 		stroke-width: 1;
 	}
