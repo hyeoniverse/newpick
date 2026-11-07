@@ -158,6 +158,8 @@ export type ScoreAxis = keyof typeof SCORE_AXES;
 export type ClusterScore = Record<ScoreAxis, number> & {
   /** 묶음 번호 (1부터) */
   n: number;
+  /** 그 번호 묶음의 첫 제목 앞부분. 번호와 점수가 어긋나지 않았는지 맞춰 본다 (alignScores) */
+  title?: string;
   /** 빼는 소식(행사·홍보·연예 등)이면 점수와 상관없이 고르지 않는다 */
   excluded: boolean;
   /** 최근 뉴스레터에서 이미 다룬 사건이고 새 진전이 없음 → 고르지 않는다 (새 진전이 있으면 false, 후속으로 다룸) */
@@ -243,6 +245,7 @@ export const selectPrompt = (
       : []),
     '',
     ...SCORING_RULES,
+    '- 점수마다 title에 그 번호 소식의 첫 제목 앞부분(15자 안팎)을 그대로 옮겨 적습니다. 번호 · 제목 · 점수 · 이유가 같은 소식을 가리키게 합니다.',
     ...(category
       ? [`- ${category} 분야가 아닌 소식은 관심사 1점으로 매깁니다.`]
       : []),
@@ -260,6 +263,7 @@ const SELECT_SCHEMA = {
         type: 'object',
         properties: {
           n: { type: 'integer' },
+          title: { type: 'string' },
           impact: { type: 'integer' },
           novelty: { type: 'integer' },
           relevance: { type: 'integer' },
@@ -270,6 +274,7 @@ const SELECT_SCHEMA = {
         },
         required: [
           'n',
+          'title',
           'impact',
           'novelty',
           'relevance',
@@ -351,6 +356,53 @@ export function splitPicks(clusters: Cluster[], scores: ClusterScore[]) {
     ),
     stories: rankClusters(clusters, rest),
   };
+}
+
+/** 제목 비교용: 띄어쓰기 · 따옴표 · 기호를 빼고 소문자로 */
+const titleKey = (text: string) =>
+  text
+    .toLowerCase()
+    .replace(/&[a-z]+;|&#\d+;/g, '')
+    .replace(/[\s"'“”‘’「」『』\[\]()<>…·,.:;!?~\-–—|/]/g, '');
+
+/** 이 묶음의 제목 가운데 하나가 모델이 적은 제목 앞부분과 맞는가 */
+const matchesCluster = (cluster: Cluster, title: string) => {
+  const key = titleKey(title);
+  if (key.length < 4) return false;
+  return cluster.articles.some((a) => {
+    const head = titleKey(a.title);
+    return head.includes(key) || key.includes(head.slice(0, 12));
+  });
+};
+
+/**
+ * 고르기 응답의 번호가 적어 온 제목과 어긋나면 바로잡는다. 묶음이 많은 날 가벼운 모델이
+ * 번호와 이유를 한 칸씩 밀려 써서 엉뚱한 소식이 뽑힌 적이 있다 (2026-11-07 세계: '아우디' 번호에 '미국 고용' 점수).
+ * - 그 번호 묶음과 맞으면 그대로
+ * - 다른 묶음 하나와만 맞으면 그 번호로 바꾼다
+ * - 어디와도 맞지 않거나 여럿과 맞으면 버린다 (잘못 뽑기보다 빼는 쪽)
+ * 제목을 적지 않은 응답(예전 형식)은 그대로 둔다
+ */
+export function alignScores(clusters: Cluster[], scores: ClusterScore[]) {
+  let fixed = 0;
+  let dropped = 0;
+  const aligned: ClusterScore[] = [];
+  for (const score of scores) {
+    const title = score.title?.trim();
+    const own = clusters[score.n - 1];
+    if (!title || (own && matchesCluster(own, title))) {
+      aligned.push(score);
+      continue;
+    }
+    const others = clusters
+      .map((cluster, i) => ({ cluster, n: i + 1 }))
+      .filter(({ cluster }) => matchesCluster(cluster, title));
+    if (others.length === 1) {
+      aligned.push({ ...score, n: others[0].n });
+      fixed++;
+    } else dropped++;
+  }
+  return { scores: aligned, fixed, dropped };
 }
 
 /** AI 기록에 남길 고르기 결과: 합계 높은 순 5개까지, 실은 소식엔 ✓ */
@@ -920,14 +972,17 @@ export class NewsletterWriterService {
         maxTokens: 6000,
       });
       usage.push({ ...selected.usage, stage: 'select' });
-      const { scores } = JSON.parse(selected.text) as {
+      const raw = JSON.parse(selected.text) as {
         scores: ClusterScore[];
       };
+      // 번호와 제목이 어긋난 점수는 바로잡거나 버린다
+      const { scores, fixed, dropped } = alignScores(clusters, raw.scores);
       const picks = splitPicks(clusters, scores);
-      selection = describeScores(clusters, scores, [
-        ...picks.stories,
-        ...picks.morning,
-      ]);
+      selection =
+        describeScores(clusters, scores, [...picks.stories, ...picks.morning]) +
+        (fixed || dropped
+          ? `\n(번호와 제목이 어긋난 점수: 바로잡음 ${fixed} · 버림 ${dropped})`
+          : '');
       chosen = pickArticles(clusters, picks.stories, category);
       morning = pickArticles(clusters, picks.morning, category, 1);
       if (!chosen.length) throw new Error('고른 소식이 없음');
