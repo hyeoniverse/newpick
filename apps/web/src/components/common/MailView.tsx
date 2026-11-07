@@ -1,7 +1,5 @@
-'use client';
-
-import styled from 'styled-components';
 import BrandAvatar from '@/components/common/BrandAvatar';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	subject: string;
@@ -14,59 +12,27 @@ interface Props {
 
 /**
  * 받은편지함에서 연 메일 모양 (공통, 체험하기에서 시작): 보낸 사람 · 제목 줄 + 메일 본문.
- * 본문은 실제 메일 HTML을 iframe에 넣어 사이트 스타일과 섞이지 않게. 스크립트는 막고, 링크는 새 탭으로 연다
+ * 본문은 실제 메일 HTML을 iframe에 넣어 사이트 스타일과 섞이지 않게. 스크립트는 막고, 링크는 새 탭으로 연다.
+ * 메일 앱처럼 본문은 라이트 그대로 (메일 HTML이 배경색을 갖고 있다)
  */
 export default function MailView({ subject, html, title = '메일 본문', className }: Props) {
 	return (
-		<StyledMailView className={className}>
-			<header className="mail-head">
+		<article className={cx('flex min-h-0 flex-1 flex-col gap-3', className)}>
+			<header className="mail-head flex shrink-0 items-center gap-3">
 				<BrandAvatar />
 				<div>
-					<p className="from">뉴픽 NewPick</p>
-					<h3 className="subject">{subject}</h3>
+					<p className="from m-0 text-extra-small text-sub-text">뉴픽 NewPick</p>
+					<h3 className="subject mx-0 mt-0.5 mb-0 text-medium font-bold leading-[1.4] text-text [word-break:keep-all]">
+						{subject}
+					</h3>
 				</div>
 			</header>
-			<iframe className="mail-body" title={title} srcDoc={html} sandbox="allow-popups allow-popups-to-escape-sandbox" />
-		</StyledMailView>
+			<iframe
+				className="mail-body min-h-0 w-full flex-1 rounded-[8px] border-none"
+				title={title}
+				srcDoc={html}
+				sandbox="allow-popups allow-popups-to-escape-sandbox"
+			/>
+		</article>
 	);
 }
-
-const StyledMailView = styled.article`
-	flex: 1;
-	min-height: 0;
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-
-	/* 받은편지함의 보낸 사람·제목 줄 */
-	.mail-head {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		gap: 0.75rem;
-
-		.from {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		.subject {
-			margin: 0.125rem 0 0;
-			font-size: ${({ theme }) => theme.fontSize.medium};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			line-height: 1.4;
-			color: ${({ theme }) => theme.color.text};
-			word-break: keep-all;
-		}
-	}
-
-	/* 메일 앱처럼 본문은 라이트 그대로 (메일 HTML이 배경색을 갖고 있다) */
-	.mail-body {
-		flex: 1;
-		width: 100%;
-		min-height: 0;
-		border: none;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
-	}
-`;

@@ -51,7 +51,7 @@ function classNameTokens(code: string): string[] {
 /** styled`…` · css`…` 안에서 선택자로 쓴 이름 (.name, &.name) */
 function selectorTokens(code: string): string[] {
 	const out: string[] = [];
-	for (const m of code.matchAll(/(?:styled(?:\.\w+|\([^)]*\))(?:\.attrs\([^`]*?\))?|css|keyframes|createGlobalStyle)`([^`]*)`/g)) {
+	for (const m of code.matchAll(/(?:styled(?:\.\w+|\([^)]*\))(?:\.(?:attrs|withConfig)\([^`]*?\))?|css|keyframes|createGlobalStyle)(?:<[^`]*?>)?`([^`]*)`/g)) {
 		for (const s of m[1].matchAll(/(?<![\w$.\-)\]])\.([a-zA-Z][\w-]*)/g)) out.push(s[1]);
 	}
 	return out;

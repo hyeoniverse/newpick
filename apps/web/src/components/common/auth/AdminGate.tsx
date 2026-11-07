@@ -1,6 +1,5 @@
 'use client';
 
-import styled from 'styled-components';
 import { useAuth } from '@/hooks/useAuth';
 import { ERROR_STATES } from '@/constants/errors';
 import ErrorState from '@/components/common/ErrorState';
@@ -17,9 +16,9 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
 		return session === 'out' ? (
 			<ErrorState code={401} {...ERROR_STATES[401]} />
 		) : (
-			<StyledGate>
+			<div className="flex justify-center px-4 py-24">
 				<Spinner />
-			</StyledGate>
+			</div>
 		);
 	}
 	if (user.role !== 'admin') {
@@ -27,9 +26,3 @@ export default function AdminGate({ children }: { children: React.ReactNode }) {
 	}
 	return <>{children}</>;
 }
-
-const StyledGate = styled.div`
-	display: flex;
-	justify-content: center;
-	padding: 6rem 1rem;
-`;

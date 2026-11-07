@@ -1,6 +1,6 @@
 'use client';
 
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	checked: boolean;
@@ -14,62 +14,27 @@ interface Props {
 /** 켜고 끄는 스위치: 누르면 바로 바뀐다 (저장 단추 없이). 키보드는 Space · Enter */
 export default function Switch({ checked, onChange, label, labelledBy, disabled }: Props) {
 	return (
-		<StyledSwitch
+		<button
 			type="button"
 			role="switch"
 			aria-checked={checked}
 			aria-label={label}
 			aria-labelledby={labelledBy}
 			disabled={disabled}
-			$checked={checked}
 			onClick={() => onChange(!checked)}
+			className={cx(
+				'relative m-0 h-6 w-11 shrink-0 cursor-pointer rounded-[999px] border-none p-0 [transition:background_0.2s_ease] motion-reduce:transition-none',
+				'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-default disabled:opacity-50',
+				checked ? 'bg-primary' : 'bg-border',
+			)}
 		>
-			<span className="knob" aria-hidden />
-		</StyledSwitch>
+			<span
+				className={cx(
+					'knob absolute top-[0.1875rem] left-[0.1875rem] m-0 size-[1.125rem] rounded-full bg-[#ffffff] shadow-[0_1px_2px_rgba(0,0,0,0.2)] [transition:transform_0.2s_ease] motion-reduce:transition-none',
+					checked ? '[transform:translateX(1.25rem)]' : '[transform:translateX(0)]',
+				)}
+				aria-hidden
+			/>
+		</button>
 	);
 }
-
-const StyledSwitch = styled.button<{ $checked: boolean }>`
-	position: relative;
-	flex-shrink: 0;
-	width: 2.75rem;
-	height: 1.5rem;
-	margin: 0;
-	padding: 0;
-	border: none;
-	border-radius: 999px;
-	background: ${({ theme, $checked }) => ($checked ? theme.color.primary : theme.color.border)};
-	cursor: pointer;
-	transition: background 0.2s ease;
-
-	.knob {
-		position: absolute;
-		top: 0.1875rem;
-		left: 0.1875rem;
-		width: 1.125rem;
-		height: 1.125rem;
-		margin: 0;
-		border-radius: 50%;
-		background: #ffffff;
-		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-		transform: translateX(${({ $checked }) => ($checked ? '1.25rem' : '0')});
-		transition: transform 0.2s ease;
-	}
-
-	&:focus-visible {
-		outline: 2px solid ${({ theme }) => theme.color.primary};
-		outline-offset: 2px;
-	}
-
-	&:disabled {
-		cursor: default;
-		opacity: 0.5;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		&,
-		.knob {
-			transition: none;
-		}
-	}
-`;

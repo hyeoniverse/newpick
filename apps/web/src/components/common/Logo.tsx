@@ -1,63 +1,31 @@
-'use client';
-
 import Link from 'next/link';
-import styled from 'styled-components';
 import { PCLogo, MoLogo } from '@/components/common/svg/LogoSVG';
 
 interface Props {
 	logoType?: 'footer-logo'; // 허용 가능한 값 명시
 }
 
+/** 뉴픽 로고. 태블릿 이하는 정사각 로고, 바닥글은 회색으로 크게 */
 const Logo = ({ logoType }: Props) => {
+	const footer = logoType === 'footer-logo';
 	return (
 		<Link href="/" aria-label="뉴픽 홈">
-			<StyledLogo aria-hidden>
-				<PCLogo className={logoType === 'footer-logo' ? 'footer-desktop-logo' : 'desktop-logo'} />
-				<MoLogo className={logoType === 'footer-logo' ? 'footer-mobile-logo' : 'mobile-logo'} />
-			</StyledLogo>
+			<div className="flex cursor-pointer justify-center text-large font-bold text-primary" aria-hidden>
+				<PCLogo
+					className={
+						footer ? 'footer-desktop-logo h-8 text-medium-grey tablet:hidden' : 'desktop-logo h-[22px] tablet:hidden'
+					}
+				/>
+				<MoLogo
+					className={
+						footer
+							? 'footer-mobile-logo hidden h-12 text-medium-grey tablet:block'
+							: 'mobile-logo hidden h-8 tablet:block'
+					}
+				/>
+			</div>
 		</Link>
 	);
 };
-
-const StyledLogo = styled.div`
-	color: ${({ theme }) => theme.color.primary};
-	font-size: ${({ theme }) => theme.fontSize.large};
-	font-weight: ${({ theme }) => theme.fontWeight.bold};
-	cursor: pointer;
-	display: flex;
-	justify-content: center;
-
-	.mobile-logo,
-	.footer-mobile-logo {
-		display: none;
-	}
-
-	.desktop-logo {
-		height: 22px;
-	}
-
-	.footer-desktop-logo {
-		color: ${({ theme }) => theme.color.mediumGrey};
-		height: 32px;
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.tablet} {
-		.desktop-logo,
-		.footer-desktop-logo {
-			display: none;
-		}
-
-		.mobile-logo {
-			display: block;
-			height: 32px;
-		}
-
-		.footer-mobile-logo {
-			display: block;
-			color: ${({ theme }) => theme.color.mediumGrey};
-			height: 48px;
-		}
-	}
-`;
 
 export default Logo;

@@ -245,13 +245,6 @@ const StyledHeader = styled.header<StyledProps>`
 		display: none;
 	}
 
-	.hidden {
-		width: 0;
-		height: 0;
-		visibility: hidden;
-		transform: scaleX(0);
-	}
-
 	.mobile-hidden {
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
 			width: 0;

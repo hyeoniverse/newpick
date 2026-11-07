@@ -1,8 +1,6 @@
-'use client';
-
 import React from 'react';
-import styled from 'styled-components';
-import { ColorKey } from '@/styles/theme';
+import type { ColorKey } from '@/styles/theme';
+import { BG_COLOR, BORDER_COLOR, cx, TEXT_COLOR } from '@/styles/tw';
 
 interface Props {
 	children?: React.ReactNode;
@@ -12,38 +10,27 @@ interface Props {
 	color?: ColorKey;
 }
 
-const FullWidthPanel: React.FC<Props> = ({ children, className, border, background, color }) => {
+/** 본문 폭을 벗어나 화면 끝까지 닿는 띠. 테두리는 따로 주지 않으면 바탕색과 같게 */
+const FullWidthPanel: React.FC<Props> = ({
+	children,
+	className,
+	border,
+	background = 'primary',
+	color = 'subText',
+}) => {
 	return (
-		<StyledPanel className={className} $border={border} $background={background} $color={color}>
+		<section
+			className={cx(
+				'relative left-1/2 mx-0 my-16 flex h-fit w-screen -translate-x-1/2 flex-col items-center justify-center border border-solid px-4 py-12',
+				BORDER_COLOR[border ?? background],
+				TEXT_COLOR[color],
+				BG_COLOR[background],
+				className,
+			)}
+		>
 			{children}
-		</StyledPanel>
+		</section>
 	);
 };
 
 export default FullWidthPanel;
-
-interface StyledProps {
-	$border?: ColorKey;
-	$background?: ColorKey;
-	$color?: ColorKey;
-}
-
-const StyledPanel = styled.section<StyledProps>`
-	position: relative;
-	width: 100vw;
-	height: fit-content;
-
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-
-	margin: 4rem 0;
-	padding: 3rem 1rem;
-	transform: translateX(-50%);
-	left: 50%;
-
-	border: 1px solid ${({ theme, $border, $background }) => theme.color[$border || $background || 'border']};
-	color: ${({ theme, $color }) => theme.color[$color || 'subText']};
-	background: ${({ theme, $background }) => theme.color[$background || 'primary']};
-`;

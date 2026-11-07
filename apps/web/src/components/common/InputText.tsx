@@ -1,5 +1,4 @@
 import React, { useId } from 'react';
-import styled from 'styled-components';
 
 interface Props extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onBlur'> {
 	label?: string;
@@ -22,12 +21,13 @@ const InputText = React.forwardRef<HTMLInputElement, Props>(
 		};
 
 		return (
-			<StyledInputText className="input-text">
+			<div className="input-text flex w-full flex-col">
 				{label && (
 					<label htmlFor={inputId} className="np-field-label">
 						{label}
 					</label>
 				)}
+				{/* 이름표는 칸 위에 (다른 입력칸과 같게). 예전에는 옆에 붙어 좁으면 글자가 세로로 꺾였다 */}
 				<input
 					id={inputId}
 					className="np-field-control"
@@ -38,17 +38,10 @@ const InputText = React.forwardRef<HTMLInputElement, Props>(
 					onChange={onChange}
 					{...props}
 				/>
-			</StyledInputText>
+			</div>
 		);
 	},
 );
-
-/** 이름표는 칸 위에 (다른 입력칸과 같게). 예전에는 옆에 붙어 좁으면 글자가 세로로 꺾였다 */
-const StyledInputText = styled.div`
-	display: flex;
-	flex-direction: column;
-	width: 100%;
-`;
 
 InputText.displayName = 'InputText'; // Next.js에서 유용한 컴포넌트 이름 설정
 export default InputText;

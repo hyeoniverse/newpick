@@ -74,6 +74,18 @@
 	--shadow-medium: var(--np-shadow-medium);
 	--shadow-heavy: var(--np-shadow-heavy);
 
+	/* 프로필 사진 자리를 지나가는 옅은 빛 (AvatarPlaceholder) */
+	--animate-avatar-shimmer: avatar-shimmer 1.2s ease-in-out infinite;
+
+	@keyframes avatar-shimmer {
+		from {
+			transform: translateX(-100%);
+		}
+		to {
+			transform: translateX(100%);
+		}
+	}
+
 	/* 불러오는 동안 자리 막대가 반짝이는 움직임 (SkeletonBlock) */
 	--animate-shimmer: shimmer 1.5s infinite linear;
 
