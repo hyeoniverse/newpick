@@ -1,6 +1,6 @@
 'use client';
 
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 
 export interface ChipOption {
 	label: string;
@@ -26,56 +26,22 @@ interface Props {
 export default function FilterChips({ label, ariaLabel, options, value, onChange, className }: Props) {
 	const hasAll = options.some((option) => option.value === '');
 	return (
-		<StyledFilterChips role="group" aria-label={ariaLabel ?? label} className={className}>
-			<span className="chips-label">{label}</span>
+		<div role="group" aria-label={ariaLabel ?? label} className={cx('flex flex-wrap items-center gap-1.5', className)}>
+			<span className="chips-label w-14 shrink-0 text-extra-small font-semi-bold text-sub-text mobile:basis-full">
+				{label}
+			</span>
 			{options.map((option) => (
 				<button
 					key={option.value}
 					type="button"
 					aria-pressed={value === option.value}
+					className="inline-flex h-8 cursor-pointer items-center rounded-chip border border-solid border-border px-3 text-extra-small text-medium-grey aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-[#ffffff]"
 					// 고른 칩을 다시 누르면 해제하고 '전체'('')로
 					onClick={() => onChange(value === option.value && hasAll ? '' : option.value)}
 				>
 					{option.label}
 				</button>
 			))}
-		</StyledFilterChips>
+		</div>
 	);
 }
-
-const StyledFilterChips = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.375rem;
-
-	.chips-label {
-		flex-shrink: 0;
-		width: 3.5rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.subText};
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			flex-basis: 100%;
-		}
-	}
-
-	button {
-		display: inline-flex;
-		align-items: center;
-		height: 2rem;
-		padding: 0 0.75rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.mediumGrey};
-		cursor: pointer;
-
-		&[aria-pressed='true'] {
-			border-color: ${({ theme }) => theme.color.primary};
-			background: ${({ theme }) => theme.color.primary};
-			color: #ffffff;
-		}
-	}
-`;

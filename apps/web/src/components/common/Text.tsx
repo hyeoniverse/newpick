@@ -1,7 +1,5 @@
-'use client';
-
-import styled, { CSSProp } from 'styled-components';
-import { ColorKey, FontWeight, FontSize } from '@/styles/theme';
+import type { FontSize, FontWeight, ColorKey } from '@/styles/theme';
+import { cx, FONT_WEIGHT, TEXT_COLOR, TEXT_SIZE } from '@/styles/tw';
 
 interface Props {
 	as?: 'span' | 'p';
@@ -12,29 +10,21 @@ interface Props {
 	color?: ColorKey;
 }
 
-const Text = ({ as = 'span', className, children, size = 'medium', weight = 'light', color = 'text' }: Props) => {
+/** 본문 글자. 크기 · 굵기 · 색은 theme.ts 이름으로 받는다 (Tailwind, #10) */
+const Text = ({ as: Tag = 'span', className, children, size = 'medium', weight = 'light', color = 'text' }: Props) => {
 	return (
-		<StyledText as={as} className={className} $size={size} $weight={weight} $color={color}>
+		<Tag
+			className={cx(
+				TEXT_SIZE[size],
+				FONT_WEIGHT[weight],
+				TEXT_COLOR[color],
+				'm-0 [transition:color_0.3s_ease]',
+				className,
+			)}
+		>
 			{children}
-		</StyledText>
+		</Tag>
 	);
 };
-
-interface StyleProps {
-	$size: FontSize;
-	$weight: FontWeight;
-	$color: ColorKey;
-	$styles?: string | CSSProp;
-}
-
-const StyledText = styled.span<StyleProps>`
-	font-size: ${({ theme, $size }) => theme.fontSize[$size]};
-	font-weight: ${({ theme, $weight }) => theme.fontWeight[$weight]};
-	color: ${({ theme, $color }) => theme.color[$color]};
-	transition: color 0.3s ease;
-	margin: 0;
-
-	${({ $styles }) => $styles || ''}
-`;
 
 export default Text;

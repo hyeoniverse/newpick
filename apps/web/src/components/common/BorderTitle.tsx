@@ -1,6 +1,6 @@
 import Title from '@/components/common/Title';
-import { styled } from 'styled-components';
-import { ColorKey } from '@/styles/theme';
+import type { ColorKey } from '@/styles/theme';
+import { cx, TEXT_COLOR } from '@/styles/tw';
 
 interface Props {
 	className?: string;
@@ -10,38 +10,14 @@ interface Props {
 	as?: 'h2' | 'p';
 }
 
-export default function BorderTitle({ className, text, color, as = 'h2' }: Props) {
+/** 글자 뒤로 실선이 이어지는 섹션 제목. 선은 글자색(currentColor)을 따른다 */
+export default function BorderTitle({ className, text, color = 'text', as = 'h2' }: Props) {
 	return (
-		<StyledBorderTitle $color={color} className={className}>
-			<Title as={as} size="small" weight="semiBold" className="title">
+		<div className={cx('mb-12 flex w-full items-center text-center', className)}>
+			<Title as={as} size="small" weight="semiBold" color={color} className="title mr-4 whitespace-nowrap">
 				{text}
 			</Title>
-			<div className="bar" />
-		</StyledBorderTitle>
+			<div className={cx('bar h-fit w-full [border-bottom:1px_solid_currentColor]', TEXT_COLOR[color])} />
+		</div>
 	);
 }
-
-interface StyledProps {
-	$color?: ColorKey;
-}
-
-const StyledBorderTitle = styled.div<StyledProps>`
-	width: 100%;
-	display: flex;
-	align-items: center;
-	margin-bottom: 3rem;
-	text-align: center;
-
-	.title {
-		white-space: nowrap;
-		margin-right: 1rem;
-		color: ${({ theme, $color }) => ($color ? theme.color[$color] : theme.color.text)};
-	}
-
-	.bar {
-		border-bottom: 1px solid ${({ theme, $color }) => ($color ? theme.color[$color] : theme.color.text)};
-		color: ${({ theme, $color }) => ($color ? theme.color[$color] : theme.color.text)};
-		width: 100%;
-		height: fit-content;
-	}
-`;

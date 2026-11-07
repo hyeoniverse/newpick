@@ -1,7 +1,5 @@
-'use client';
-
-import styled, { CSSProp } from 'styled-components';
-import { ColorKey, HeadingSize, FontWeight } from '@/styles/theme';
+import type { ColorKey, FontWeight, HeadingSize } from '@/styles/theme';
+import { cx, FONT_WEIGHT, HEADING_SIZE, TEXT_COLOR } from '@/styles/tw';
 
 interface Props {
 	children: React.ReactNode;
@@ -14,29 +12,30 @@ interface Props {
 	ref?: React.Ref<HTMLHeadingElement>;
 }
 
-const Title = ({ children, className, size = 'medium', weight, color, as, ref }: Props) => {
+/** 제목 글자. 크기 · 굵기 · 색은 theme.ts 이름으로 받는다 (Tailwind, #10) */
+const Title = ({
+	children,
+	className,
+	size = 'medium',
+	weight = 'regular',
+	color = 'text',
+	as: Tag = 'h1',
+	ref,
+}: Props) => {
 	return (
-		<StyledTitle ref={ref} as={as} className={`${className}`} $size={size} $weight={weight} $color={color}>
+		<Tag
+			ref={ref}
+			className={cx(
+				HEADING_SIZE[size],
+				FONT_WEIGHT[weight],
+				TEXT_COLOR[color],
+				'm-0 [transition:color_0.3s_ease]',
+				className,
+			)}
+		>
 			{children}
-		</StyledTitle>
+		</Tag>
 	);
 };
-
-interface StyledProps {
-	$size: HeadingSize;
-	$weight?: FontWeight;
-	$color?: ColorKey;
-	$styles?: string | CSSProp;
-}
-
-const StyledTitle = styled.h1<StyledProps>`
-	font-size: ${({ theme, $size }) => theme.heading[$size].fontSize};
-	font-weight: ${({ theme, $weight }) => theme.fontWeight[$weight || 'regular']};
-	color: ${({ theme, $color }) => theme.color[$color || 'text']};
-	transition: color 0.3s ease;
-	margin: 0;
-
-	${({ $styles }) => $styles || ''}
-`;
 
 export default Title;
