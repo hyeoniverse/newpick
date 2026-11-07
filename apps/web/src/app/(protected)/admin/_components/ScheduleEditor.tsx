@@ -5,7 +5,6 @@ import styled from 'styled-components';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import Button from '@/components/common/Button';
-import { fieldControl } from '@/components/common/field';
 import TimePicker from '@/components/common/TimePicker';
 
 export interface ClockTime {
@@ -91,7 +90,12 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 			</div>
 			<div className="row">
 				<span className="name">구독 메일</span>
-				<select className="when" value={day} onChange={(e) => setDay(Number(e.target.value))} aria-label="메일 요일">
+				<select
+					className="np-field-control when"
+					value={day}
+					onChange={(e) => setDay(Number(e.target.value))}
+					aria-label="메일 요일"
+				>
 					<option value={7}>매일</option>
 					{DAYS.map((d, i) => (
 						<option key={d} value={i}>
@@ -153,7 +157,6 @@ const StyledEditor = styled.form`
 	}
 
 	select.when {
-		${fieldControl}
 		height: 2.5rem;
 		color: ${({ theme }) => theme.color.text};
 	}

@@ -3,7 +3,6 @@
 import React, { useState, useRef, useCallback, useEffect, useId } from 'react';
 import styled from 'styled-components';
 import { LuChevronDown, LuCheck } from 'react-icons/lu';
-import { fieldControl, fieldLabel } from '@/components/common/field';
 
 interface Props {
 	id?: string;
@@ -107,12 +106,16 @@ const InputSelect: React.FC<Props> = ({
 
 	return (
 		<StyledInputSelect ref={selectRef} $open={isOpen} className={`${size} ${className ?? ''}`}>
-			{label && <label htmlFor={buttonId}>{label}</label>}
+			{label && (
+				<label htmlFor={buttonId} className="np-field-label">
+					{label}
+				</label>
+			)}
 			<button
 				id={buttonId}
 				type="button"
 				name={name}
-				className={`select-display ${selected ? '' : 'placeholder'}`}
+				className={`np-field-control select-display ${selected ? '' : 'placeholder'}`}
 				aria-haspopup="listbox"
 				aria-expanded={isOpen}
 				aria-controls={listId}
@@ -153,12 +156,7 @@ const StyledInputSelect = styled.div<StyleProps>`
 	position: relative;
 	width: 100%;
 
-	label {
-		${fieldLabel}
-	}
-
 	.select-display {
-		${fieldControl}
 		display: flex;
 		align-items: center;
 		justify-content: space-between;

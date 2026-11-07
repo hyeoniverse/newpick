@@ -3,7 +3,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import styled, { css } from 'styled-components';
 import { LuClock } from 'react-icons/lu';
-import { fieldControl, fieldLabel } from '@/components/common/field';
 
 type Size = 'medium' | 'small';
 
@@ -68,11 +67,15 @@ export default function TimePicker({ value, onChange, label, minuteStep = 5, siz
 
 	return (
 		<StyledTimePicker ref={rootRef} $size={size} className={className}>
-			{label && <label htmlFor={id}>{label}</label>}
+			{label && (
+				<label htmlFor={id} className="np-field-label">
+					{label}
+				</label>
+			)}
 			<button
 				id={id}
 				type="button"
-				className="time-input"
+				className="np-field-control time-input"
 				aria-haspopup="listbox"
 				aria-expanded={open}
 				onClick={(event) => {
@@ -128,12 +131,7 @@ const StyledTimePicker = styled.div<{ $size: Size }>`
 	display: flex;
 	flex-direction: column;
 
-	label {
-		${fieldLabel}
-	}
-
 	.time-input {
-		${fieldControl}
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;

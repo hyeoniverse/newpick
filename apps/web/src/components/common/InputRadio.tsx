@@ -2,7 +2,6 @@
 
 import React from 'react';
 import styled from 'styled-components';
-import { fieldLabel } from '@/components/common/field';
 
 interface Props<T extends string> {
 	name: string;
@@ -21,7 +20,7 @@ interface Props<T extends string> {
 export default function InputRadio<T extends string>({ name, label, value, options, onChange, className }: Props<T>) {
 	return (
 		<StyledInputRadio className={className}>
-			{label && <legend>{label}</legend>}
+			{label && <legend className="np-field-label">{label}</legend>}
 			<div className="options">
 				{options.map((option) => (
 					<label key={option.value} className="option">
@@ -47,7 +46,6 @@ const StyledInputRadio = styled.fieldset`
 	min-width: 0;
 
 	legend {
-		${fieldLabel}
 		padding: 0;
 	}
 
