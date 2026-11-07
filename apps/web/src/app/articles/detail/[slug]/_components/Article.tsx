@@ -145,7 +145,6 @@ function Article({ initial }: Props) {
             next={articleContent.nextNewsletter}
           />
         </Suspense>
-        {/*<CommentsSection className="comments-section"/>*/}
         <Suspense fallback={<Skeleton />}>
           <LatestArticle className="latest" />
         </Suspense>
@@ -182,10 +181,6 @@ const ArticleStyled = styled.div`
             flex: 1;
             margin-top: 2rem;
         }
-    }
-
-    .comments-section {
-        margin: 4rem 0;
     }
 
     @media screen and ${({ theme }) => theme.mediaQuery.tablet} {
