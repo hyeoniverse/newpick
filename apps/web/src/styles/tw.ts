@@ -55,3 +55,43 @@ export const TEXT_COLOR: Record<ColorKey, string> = {
 	white: 'text-white',
 	mono: 'text-mono',
 };
+
+export const BG_COLOR: Record<ColorKey, string> = {
+	primary: 'bg-primary',
+	secondary: 'bg-secondary',
+	tertiary: 'bg-tertiary',
+	background: 'bg-background',
+	surface: 'bg-surface',
+	disabled: 'bg-disabled',
+	success: 'bg-success',
+	error: 'bg-error',
+	warning: 'bg-warning',
+	text: 'bg-text',
+	subText: 'bg-sub-text',
+	neutral: 'bg-neutral',
+	lightGrey: 'bg-light-grey',
+	mediumGrey: 'bg-medium-grey',
+	border: 'bg-border',
+	white: 'bg-white',
+	mono: 'bg-mono',
+};
+
+export const BORDER_COLOR: Record<ColorKey, string> = {
+	primary: 'border-primary',
+	secondary: 'border-secondary',
+	tertiary: 'border-tertiary',
+	background: 'border-background',
+	surface: 'border-surface',
+	disabled: 'border-disabled',
+	success: 'border-success',
+	error: 'border-error',
+	warning: 'border-warning',
+	text: 'border-text',
+	subText: 'border-sub-text',
+	neutral: 'border-neutral',
+	lightGrey: 'border-light-grey',
+	mediumGrey: 'border-medium-grey',
+	border: 'border-border',
+	white: 'border-white',
+	mono: 'border-mono',
+};

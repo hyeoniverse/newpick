@@ -12,7 +12,8 @@
 	justify-content: center;
 	flex-shrink: 0;
 	line-height: 1;
-	width: fit-content;
+	/* 쓰는 쪽이 폭을 정할 때(MoveButton width)는 --btn-width */
+	width: var(--btn-width, fit-content);
 	height: fit-content;
 
 	font-size: var(--btn-font-size);

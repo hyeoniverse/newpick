@@ -13,7 +13,8 @@ const renderLink = (props: Parameters<typeof ExternalLink>[0]) =>
 describe('ExternalLink (#59)', () => {
 	it('새 탭 + noopener noreferrer, 화면 읽기 프로그램에 새 창임을 알린다', () => {
 		renderLink({ href: 'https://kopico.go.kr', children: 'kopico.go.kr' });
-		const link = screen.getByRole('link', { name: 'kopico.go.kr (새 창에서 열림)' });
+		// 띄어쓰기는 화살표가 inline-block인지(CSS)에 달려 있어, 시험 환경(CSS 없음)에서는 보지 않는다
+		const link = screen.getByRole('link', { name: /^kopico\.go\.kr\s*\(새 창에서 열림\)$/ });
 		expect(link.getAttribute('target')).toBe('_blank');
 		expect(link.getAttribute('rel')).toBe('noopener noreferrer');
 		expect(link.querySelector('.external-icon')).not.toBeNull();

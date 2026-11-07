@@ -1,4 +1,4 @@
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	width?: string;
@@ -6,20 +6,17 @@ interface Props {
 	className?: string;
 }
 
+/** 가로 구분선. 폭 · 위아래 여백은 CSS 변수로 (기본 100% · 5rem) */
 function BarWidth({ width, margin, className }: Props) {
-	return <BarStyled className={className} $width={width} $margin={margin} />;
+	return (
+		<div
+			className={cx(
+				'my-[var(--bar-margin,5rem)] w-[var(--bar-width,100%)] [border-bottom:1px_solid_var(--color-border)]',
+				className,
+			)}
+			style={{ '--bar-width': width, '--bar-margin': margin } as React.CSSProperties}
+		/>
+	);
 }
-
-interface StyledProps {
-	$width?: string;
-	$margin?: string;
-}
-
-const BarStyled = styled.div<StyledProps>`
-	border-bottom: 1px solid ${({ theme }) => theme.color.border};
-	width: ${({ $width }) => $width || '100%'};
-	margin-top: ${({ $margin }) => $margin || '5rem'};
-	margin-bottom: ${({ $margin }) => $margin || '5rem'};
-`;
 
 export default BarWidth;
