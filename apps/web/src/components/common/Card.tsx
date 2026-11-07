@@ -692,9 +692,10 @@ const listCardStyles = css`
 				gap: 0.25rem;
 			}
 
+			/* 목록 폭의 28%, 9~15rem: PC는 그대로 15rem, 태블릿 세로에서는 글 칸이 넉넉하게 줄어든다 */
 			.image-placeholder {
-				flex: 0 0 15rem;
-				width: 15rem;
+				flex: 0 0 clamp(9rem, 28%, 15rem);
+				width: clamp(9rem, 28%, 15rem);
 
 				@media ${({ theme }) => theme.mediaQuery.mobile} {
 					flex-basis: 7.5rem;
@@ -710,7 +711,13 @@ const listCardStyles = css`
 		.tags {
 			margin-top: 0.25rem;
 
-			/* 모바일은 한 줄에 들어가는 2개까지 */
+			/* 태블릿은 한 줄에 들어가는 3개까지, 모바일은 2개까지 */
+			@media ${({ theme }) => theme.mediaQuery.tablet} {
+				li:nth-child(n + 4) {
+					display: none;
+				}
+			}
+
 			@media ${({ theme }) => theme.mediaQuery.mobile} {
 				li:nth-child(n + 3) {
 					display: none;
@@ -723,7 +730,7 @@ const listCardStyles = css`
 			height: calc(${({ theme }) => theme.fontSize.small} * 1.5 * 3);
 			-webkit-line-clamp: 3;
 
-			@media ${({ theme }) => theme.mediaQuery.mobile} {
+			@media ${({ theme }) => theme.mediaQuery.tablet} {
 				height: auto;
 				-webkit-line-clamp: 2;
 			}
