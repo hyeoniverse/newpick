@@ -19,7 +19,6 @@ import Button from '@/components/common/Button';
 import ModalContents from '@/components/common/modal/ModalContent';
 import ArticleContent from '@/app/articles/detail/[slug]/_components/content/ArticleContent';
 import InputSelect from '@/components/common/InputSelect';
-import { fieldControl, fieldLabel } from '@/components/common/field';
 import HtmlCodeEditor from './HtmlCodeEditor';
 import { compactHtml, formatHtml } from './htmlFormat';
 
@@ -188,24 +187,37 @@ export default function NewsletterEdit({ id }: { id: number }) {
 									/>
 								</div>
 								<label className="field">
-									<span>제목</span>
-									<input value={form.title} onChange={change('title')} maxLength={100} />
+									<span className="np-field-label">제목</span>
+									<input className="np-field-control" value={form.title} onChange={change('title')} maxLength={100} />
 								</label>
 								<label className="field">
-									<span>부제</span>
-									<input value={form.subtitle} onChange={change('subtitle')} maxLength={200} />
+									<span className="np-field-label">부제</span>
+									<input
+										className="np-field-control"
+										value={form.subtitle}
+										onChange={change('subtitle')}
+										maxLength={200}
+									/>
 								</label>
 								<label className="field">
-									<span>요약 (목록 · 카드 설명)</span>
-									<textarea value={form.content} onChange={change('content')} rows={4} maxLength={2000} />
+									<span className="np-field-label">요약 (목록 · 카드 설명)</span>
+									<textarea
+										className="np-field-control"
+										value={form.content}
+										onChange={change('content')}
+										rows={4}
+										maxLength={2000}
+									/>
 								</label>
 								<label className="field">
-									<span>키워드 (쉼표로 구분, 10개까지)</span>
-									<input value={form.keywords} onChange={change('keywords')} />
+									<span className="np-field-label">키워드 (쉼표로 구분, 10개까지)</span>
+									<input className="np-field-control" value={form.keywords} onChange={change('keywords')} />
 								</label>
 								<div className="field">
 									<div className="code-head">
-										<label htmlFor="newsletter-html">본문 HTML</label>
+										<label htmlFor="newsletter-html" className="np-field-label">
+											본문 HTML
+										</label>
 										<button type="button" onClick={() => set('html')(formatHtml(form.html))}>
 											줄 정리
 										</button>
@@ -307,15 +319,6 @@ const StyledEdit = styled.div`
 		display: flex;
 		flex-direction: column;
 
-		> span {
-			${fieldLabel}
-		}
-
-		> input,
-		> textarea {
-			${fieldControl}
-		}
-
 		> textarea {
 			height: auto;
 			padding: 0.625rem 0.75rem;
@@ -327,10 +330,6 @@ const StyledEdit = styled.div`
 			display: flex;
 			align-items: baseline;
 			justify-content: space-between;
-
-			label {
-				${fieldLabel}
-			}
 
 			button {
 				font-size: ${({ theme }) => theme.fontSize.extraSmall};

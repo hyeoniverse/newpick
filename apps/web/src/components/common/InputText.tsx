@@ -1,6 +1,5 @@
 import React, { useId } from 'react';
 import styled from 'styled-components';
-import { fieldControl, fieldLabel } from '@/components/common/field';
 
 interface Props extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onBlur'> {
 	label?: string;
@@ -24,9 +23,14 @@ const InputText = React.forwardRef<HTMLInputElement, Props>(
 
 		return (
 			<StyledInputText className="input-text">
-				{label && <label htmlFor={inputId}>{label}</label>}
+				{label && (
+					<label htmlFor={inputId} className="np-field-label">
+						{label}
+					</label>
+				)}
 				<input
 					id={inputId}
+					className="np-field-control"
 					placeholder={placeholder}
 					ref={ref}
 					type={inputType}
@@ -44,14 +48,6 @@ const StyledInputText = styled.div`
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-
-	label {
-		${fieldLabel}
-	}
-
-	input {
-		${fieldControl}
-	}
 `;
 
 InputText.displayName = 'InputText'; // Next.js에서 유용한 컴포넌트 이름 설정

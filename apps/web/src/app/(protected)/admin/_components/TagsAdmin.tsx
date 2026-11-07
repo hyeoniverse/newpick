@@ -16,7 +16,6 @@ import FilterChips from '@/components/common/FilterChips';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
 import ModalContents from '@/components/common/modal/ModalContent';
-import { fieldControl, fieldLabel } from '@/components/common/field';
 import AdminSubPage, { Cols } from './AdminSubPage';
 import { when } from './format';
 import { kstDate } from '@/utils/formatter';
@@ -74,8 +73,14 @@ function MergeSheet({
 				뉴스레터에 같은 태그가 나와도 새 이름으로 바꿔 저장해요.
 			</p>
 			<label className="field">
-				<span>새 이름</span>
-				<input value={to} onChange={(event) => setTo(event.target.value)} maxLength={30} autoFocus />
+				<span className="np-field-label">새 이름</span>
+				<input
+					className="np-field-control"
+					value={to}
+					onChange={(event) => setTo(event.target.value)}
+					maxLength={30}
+					autoFocus
+				/>
 			</label>
 			{error && <p className="error">{error}</p>}
 			<div className="actions">
@@ -490,14 +495,6 @@ const StyledSheet = styled.form`
 	.field {
 		display: flex;
 		flex-direction: column;
-
-		span {
-			${fieldLabel}
-		}
-
-		input {
-			${fieldControl}
-		}
 	}
 
 	.error {

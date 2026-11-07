@@ -8,7 +8,6 @@ import { ko } from 'date-fns/locale';
 import { format } from 'date-fns';
 import { LuCalendar, LuChevronDown, LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 import 'react-datepicker/dist/react-datepicker.css';
-import { fieldControl, fieldLabel } from '@/components/common/field';
 import { kstDate } from '@/utils/formatter';
 
 registerLocale('ko', ko);
@@ -284,14 +283,18 @@ export function DatePicker({
 	const pickerRef = useRef<ReactDatePicker>(null);
 	return (
 		<StyledDatePicker $size={size} className={className}>
-			{label && <label htmlFor={inputId}>{label}</label>}
+			{label && (
+				<label htmlFor={inputId} className="np-field-label">
+					{label}
+				</label>
+			)}
 			<div className="control">
 				<LuCalendar className="calendar-icon" aria-hidden />
 				<ReactDatePicker
 					ref={pickerRef}
 					id={inputId}
 					locale="ko"
-					className="date-input"
+					className="np-field-control date-input"
 					calendarClassName="np-calendar"
 					popperContainer={CalendarLayer}
 					selected={toDate(value)}
@@ -419,7 +422,7 @@ export function DateRangePicker({
 
 	const common = {
 		locale: 'ko',
-		className: 'date-input',
+		className: 'np-field-control date-input',
 		calendarClassName: 'np-calendar',
 		popperContainer: CalendarLayer,
 		startDate: toDate(range.start),
@@ -435,7 +438,7 @@ export function DateRangePicker({
 
 	return (
 		<StyledDatePicker $size={size} $range className={className}>
-			{label && <span className="group-label">{label}</span>}
+			{label && <span className="np-field-label group-label">{label}</span>}
 			<div className="range" role="group" aria-label={label ?? '기간'}>
 				<div className="control">
 					<label htmlFor={startId} className="sr-only">
@@ -778,11 +781,6 @@ const StyledDatePicker = styled.div<{ $size: Size; $range?: boolean }>`
 	width: ${({ $size, $range }) => ($size === 'small' ? ($range ? 'fit-content' : '9.5rem') : '100%')};
 	max-width: 100%;
 
-	> label,
-	.group-label {
-		${fieldLabel}
-	}
-
 	.sr-only {
 		position: absolute;
 		width: 1px;
@@ -841,7 +839,6 @@ const StyledDatePicker = styled.div<{ $size: Size; $range?: boolean }>`
 	}
 
 	.date-input {
-		${fieldControl}
 		padding-left: 2.25rem;
 		font-variant-numeric: tabular-nums;
 		${({ $size }) =>

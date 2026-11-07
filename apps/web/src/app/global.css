@@ -13,6 +13,8 @@
 @import '../styles/tokens.css';
 /* 공통 버튼: 층 밖 (styles/button.css 머리말) */
 @import '../styles/button.css';
+/* 입력칸 공통: 층 밖 (styles/field.css 머리말) */
+@import '../styles/field.css';
 
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
