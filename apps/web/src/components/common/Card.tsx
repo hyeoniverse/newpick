@@ -704,6 +704,48 @@ const listCardStyles = css`
 			}
 		}
 
+		/* 태블릿: 제목 · 요약 | 사진, 그 아래 전체 폭으로 태그 한 줄, 날짜 · 북마크 한 줄 */
+		@media ${({ theme }) => theme.mediaQuery.desktop} {
+			.content {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) clamp(9rem, 28%, 15rem);
+				grid-template-rows: auto 1fr auto auto;
+				grid-template-areas:
+					'title img'
+					'desc img'
+					'tags tags'
+					'footer footer';
+				column-gap: 1.5rem;
+				row-gap: 0.25rem;
+
+				.left {
+					display: contents;
+				}
+
+				.left > .stretched-link {
+					grid-area: title;
+				}
+
+				.description {
+					grid-area: desc;
+				}
+
+				.tags {
+					grid-area: tags;
+					margin-top: 0.75rem;
+				}
+
+				.card-footer {
+					grid-area: footer;
+				}
+
+				.image-placeholder {
+					grid-area: img;
+					width: 100%;
+				}
+			}
+		}
+
 		.title {
 			-webkit-line-clamp: 2;
 		}
