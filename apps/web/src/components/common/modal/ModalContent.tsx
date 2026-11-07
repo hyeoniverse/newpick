@@ -27,7 +27,7 @@ function ModalContents({
 }: ModalProps) {
 	return (
 		<ModalContentsStyled>
-			<div className="modal-body">
+			<div className="modal-message">
 				{icon && <span className="icon">{icon}</span>}
 				<Title size="extraSmall" weight="bold">
 					{title}
@@ -60,7 +60,7 @@ const ModalContentsStyled = styled.div`
 	padding-top: 0.5rem;
 	white-space: pre-line;
 
-	.modal-body {
+	.modal-message {
 		display: flex;
 		flex-direction: column;
 		align-items: center;

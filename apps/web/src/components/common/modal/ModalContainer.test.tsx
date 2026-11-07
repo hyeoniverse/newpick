@@ -4,6 +4,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { lightTheme } from '@/styles/theme';
 import { useModalStore } from '@/stores/useModalStore';
 import Modal from '@/components/common/modal/ModalContainer';
+import ModalContent from '@/components/common/modal/ModalContent';
 
 beforeAll(() => {
 	// jsdom에는 포인터 캡처가 없다
@@ -33,6 +34,19 @@ const drag = (dy: number, ms = 1000) => {
 const closing = () => dialog().parentElement!.classList.contains('fade-out');
 
 describe('시트 (#52)', () => {
+	it('안에 넣는 확인 창(ModalContent)은 시트의 클래스(.modal-body)를 쓰지 않는다: 시트 모양(위치 · 테두리 · 그림자)이 안쪽에도 걸려 겹쳐 보였다', () => {
+		render(
+			<ThemeProvider theme={lightTheme}>
+				<Modal />
+			</ThemeProvider>,
+		);
+		act(() =>
+			useModalStore.getState().openModal(<ModalContent title="구독 완료" content="설명" filledButton="확인" />),
+		);
+		expect(document.querySelectorAll('.modal-body')).toHaveLength(1);
+		expect(screen.getByText('구독 완료')).toBeTruthy();
+	});
+
 	it('모든 모달은 X 버튼 없이 핸들이 있는 시트, large는 넓은 시트', () => {
 		open();
 		expect(screen.queryByRole('button', { name: 'Close modal' })).toBeNull();
