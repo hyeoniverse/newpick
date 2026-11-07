@@ -555,6 +555,11 @@ const StyledHotSection = styled.section<StyledProps>`
 				text-underline-offset: 0.25em;
 				text-decoration-color: transparent;
 				transition: text-decoration-color 0.25s ease;
+
+				/* 태블릿 이하는 사진 아래 한 칸이라 제목이 한 줄이면 두 줄 자리를 비워 두지 않는다 */
+				@media ${({ theme }) => theme.mediaQuery.tablet} {
+					min-height: 0;
+				}
 			}
 
 			.description {
