@@ -18,7 +18,7 @@
 /* 화면 폭: theme.mediaQuery와 같이 '이하' 기준 (데스크톱 먼저 만들고 좁은 화면에서 고친다) */
 @custom-variant desktop (@media (max-width: 1024px));
 @custom-variant tablet (@media (max-width: 768px));
-@custom-variant mobile (@media (max-width: 425px));
+@custom-variant mobile (@media (max-width: 480px));
 
 /* theme.ts의 이름 그대로: bg-primary · text-sub-text · text-small · font-semi-bold · rounded-surface · shadow-medium … */
 @theme inline {
@@ -85,7 +85,7 @@
 		scroll-behavior: smooth;
 		font-size: 16px;
 
-		@media (max-width: 425px) {
+		@media (max-width: 480px) {
 			/* 스크롤바 숨김 (Firefox · Webkit · 예전 Edge) */
 			scrollbar-width: none;
 			-ms-overflow-style: none;

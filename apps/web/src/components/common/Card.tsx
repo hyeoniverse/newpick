@@ -401,8 +401,9 @@ const mainCardStyles = css`
 
 	/*
 	 * PC · 노트북: 사진 | 분야 · 제목 · 설명 · 소식, 아래 카드 전체 폭으로 태그 · 날짜
-	 * 태블릿: 위는 사진 | 분야 · 제목 · 설명, 아래 카드 전체 폭으로 소식 · 태그 · 날짜
-	 * 휴대폰: 모두 한 줄씩
+	 *   (1024px 이하는 글이 사진보다 길어지므로 사진이 글 높이만큼 채운다)
+	 * 태블릿 세로(768px 이하): 위에 사진을 크게, 아래로 분야 · 제목 · 설명 · 소식 · 태그 · 날짜
+	 * 휴대폰: 태블릿과 같되 설명 · 소식은 뺀다
 	 */
 	a {
 		display: grid;
@@ -421,16 +422,9 @@ const mainCardStyles = css`
 		width: 100%;
 
 		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			grid-template-rows: 1fr auto auto auto 1fr auto auto auto;
-			grid-template-areas:
-				'img .'
-				'img category'
-				'img title'
-				'img desc'
-				'img .'
-				'points points'
-				'tags tags'
-				'footer footer';
+			grid-template-columns: 1fr;
+			grid-template-rows: none;
+			grid-template-areas: 'img' 'category' 'title' 'desc' 'points' 'tags' 'footer';
 		}
 
 		@media ${({ theme }) => theme.mediaQuery.mobile} {
@@ -448,8 +442,30 @@ const mainCardStyles = css`
 		margin: 0;
 		aspect-ratio: 16 / 9;
 
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
+		/* 1024px 이하 나란히 놓일 때: 사진이 글 높이만큼 채워 아래가 비지 않게 (사진은 칸에 맞춰 잘림) */
+		@media ${({ theme }) => theme.mediaQuery.desktop} {
+			align-self: stretch;
+			aspect-ratio: auto;
+			min-height: 14rem;
+
+			> div {
+				position: absolute;
+				inset: 0;
+				height: 100%;
+				aspect-ratio: auto;
+			}
+		}
+
+		@media ${({ theme }) => theme.mediaQuery.tablet} {
+			align-self: start;
+			aspect-ratio: 16 / 9;
+			min-height: 0;
 			margin-bottom: 0.5rem;
+
+			> div {
+				position: static;
+				aspect-ratio: 16 / 9;
+			}
 		}
 	}
 
@@ -676,13 +692,56 @@ const listCardStyles = css`
 				gap: 0.25rem;
 			}
 
+			/* 목록 폭의 28%, 9~15rem: PC는 그대로 15rem, 태블릿 세로에서는 글 칸이 넉넉하게 줄어든다 */
 			.image-placeholder {
-				flex: 0 0 15rem;
-				width: 15rem;
+				flex: 0 0 clamp(9rem, 28%, 15rem);
+				width: clamp(9rem, 28%, 15rem);
 
 				@media ${({ theme }) => theme.mediaQuery.mobile} {
 					flex-basis: 7.5rem;
 					width: 7.5rem;
+				}
+			}
+		}
+
+		/* 태블릿: 제목 · 요약 | 사진, 그 아래 전체 폭으로 태그 한 줄, 날짜 · 북마크 한 줄 */
+		@media ${({ theme }) => theme.mediaQuery.desktop} {
+			.content {
+				display: grid;
+				grid-template-columns: minmax(0, 1fr) clamp(9rem, 28%, 15rem);
+				grid-template-rows: auto 1fr auto auto;
+				grid-template-areas:
+					'title img'
+					'desc img'
+					'tags tags'
+					'footer footer';
+				column-gap: 1.5rem;
+				row-gap: 0.25rem;
+
+				.left {
+					display: contents;
+				}
+
+				.left > .stretched-link {
+					grid-area: title;
+				}
+
+				.description {
+					grid-area: desc;
+				}
+
+				.tags {
+					grid-area: tags;
+					margin-top: 0.75rem;
+				}
+
+				.card-footer {
+					grid-area: footer;
+				}
+
+				.image-placeholder {
+					grid-area: img;
+					width: 100%;
 				}
 			}
 		}
@@ -694,7 +753,13 @@ const listCardStyles = css`
 		.tags {
 			margin-top: 0.25rem;
 
-			/* 모바일은 한 줄에 들어가는 2개까지 */
+			/* 태블릿은 한 줄에 들어가는 3개까지, 모바일은 2개까지 */
+			@media ${({ theme }) => theme.mediaQuery.tablet} {
+				li:nth-child(n + 4) {
+					display: none;
+				}
+			}
+
 			@media ${({ theme }) => theme.mediaQuery.mobile} {
 				li:nth-child(n + 3) {
 					display: none;
@@ -707,7 +772,7 @@ const listCardStyles = css`
 			height: calc(${({ theme }) => theme.fontSize.small} * 1.5 * 3);
 			-webkit-line-clamp: 3;
 
-			@media ${({ theme }) => theme.mediaQuery.mobile} {
+			@media ${({ theme }) => theme.mediaQuery.tablet} {
 				height: auto;
 				-webkit-line-clamp: 2;
 			}
