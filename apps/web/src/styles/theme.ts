@@ -272,7 +272,7 @@ export const lightTheme: Theme = {
 	mediaQuery: {
 		desktop: '(max-width: 1024px)',
 		tablet: '(max-width: 768px)',
-		mobile: '(max-width: 425px)',
+		mobile: '(max-width: 480px)',
 	},
 };
 

@@ -165,7 +165,7 @@
 	}
 }
 
-@media (max-width: 425px) {
+@media (max-width: 480px) {
 	:root {
 		--np-font-size-extra-small: 0.8125rem;
 		--np-font-size-small: 0.9375rem;
