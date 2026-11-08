@@ -14,7 +14,8 @@
 	line-height: 1;
 	/* 쓰는 쪽이 폭을 정할 때(MoveButton width)는 --btn-width */
 	width: var(--btn-width, fit-content);
-	height: fit-content;
+	/* 쓰는 쪽이 높이를 정할 때(확인 창 · 구독 권유)는 --btn-height */
+	height: var(--btn-height, fit-content);
 
 	font-size: var(--btn-font-size);
 	padding: var(--btn-padding);

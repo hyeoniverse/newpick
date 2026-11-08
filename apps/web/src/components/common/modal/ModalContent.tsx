@@ -1,4 +1,3 @@
-import styled from 'styled-components';
 import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
@@ -15,6 +14,10 @@ interface ModalProps {
 	children?: React.ReactNode;
 }
 
+/* 버튼은 폭을 나눠 꽉 채운다. 높이는 Button의 변수로 (Button 모양 규칙이 층 밖이라 클래스로는 덮어쓰지 못한다) */
+const SPLIT = { flex: 1, minWidth: 0, '--btn-height': '2.75rem' } as React.CSSProperties;
+
+/** 확인 창 내용: 아이콘 · 제목 · 설명, 그 아래 단추 한두 개 (시트 ModalContainer 안에 넣는다) */
 function ModalContents({
 	icon,
 	title,
@@ -26,84 +29,39 @@ function ModalContents({
 	children,
 }: ModalProps) {
 	return (
-		<ModalContentsStyled>
-			<div className="modal-message">
-				{icon && <span className="icon">{icon}</span>}
+		<div className="flex w-full flex-col items-center gap-6 whitespace-pre-line pt-2">
+			{/* 시트(ModalContainer)의 .modal-body와 다른 이름 (같으면 시트 모양이 안쪽에도 걸린다, #176) */}
+			<div className="modal-message flex flex-col items-center gap-2 text-center">
+				{icon && (
+					// 아이콘은 연한 강조색 원 안에
+					<span className="icon mb-2 flex size-[3.25rem] items-center justify-center rounded-full bg-tertiary leading-[1.6] text-primary [&_svg]:size-[1.625rem]">
+						{icon}
+					</span>
+				)}
 				<Title size="extraSmall" weight="bold">
 					{title}
 				</Title>
-				{content && <Text size="small">{content}</Text>}
+				{content && (
+					<Text size="small" color="subText" className="leading-[1.6]">
+						{content}
+					</Text>
+				)}
 			</div>
 			{children}
-			<div className="btn-section">
+			<div className="btn-section flex w-full gap-2">
 				{outlineButton && (
-					<Button scheme="outline" size="medium" onClick={onCancelClick}>
+					<Button scheme="outline" size="medium" onClick={onCancelClick} style={SPLIT}>
 						{outlineButton}
 					</Button>
 				)}
 				{filledButton && (
-					<Button scheme="primary" size="medium" onClick={onConfirmClick}>
+					<Button scheme="primary" size="medium" onClick={onConfirmClick} style={SPLIT}>
 						{filledButton}
 					</Button>
 				)}
 			</div>
-		</ModalContentsStyled>
+		</div>
 	);
 }
-
-const ModalContentsStyled = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 1.5rem;
-	width: 100%;
-	padding-top: 0.5rem;
-	white-space: pre-line;
-
-	.modal-message {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.5rem;
-		text-align: center;
-
-		/* 아이콘은 연한 강조색 원 안에 */
-		.icon {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 3.25rem;
-			height: 3.25rem;
-			margin-bottom: 0.5rem;
-			border-radius: ${({ theme }) => theme.borderRadius.circle};
-			background: ${({ theme }) => theme.color.tertiary};
-			color: ${({ theme }) => theme.color.primary};
-
-			svg {
-				width: 1.625rem;
-				height: 1.625rem;
-			}
-		}
-
-		span {
-			line-height: 1.6;
-			color: ${({ theme }) => theme.color.subText};
-		}
-	}
-
-	/* 버튼은 폭을 나눠 꽉 채운다 */
-	.btn-section {
-		display: flex;
-		width: 100%;
-		gap: 0.5rem;
-
-		button {
-			flex: 1;
-			min-width: 0;
-			height: 2.75rem;
-			border-radius: ${({ theme }) => theme.radius.control};
-		}
-	}
-`;
 
 export default ModalContents;

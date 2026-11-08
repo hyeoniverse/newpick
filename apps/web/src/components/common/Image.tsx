@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import Img from 'next/image';
-import styled from 'styled-components';
-import { ColorKey, BorderRadius } from '@/styles/theme';
+import type { BorderRadius, ColorKey } from '@/styles/theme';
+import { BG_COLOR, cx } from '@/styles/tw';
 
 interface Props {
 	src: string;
@@ -18,6 +18,17 @@ interface Props {
 	className?: string;
 }
 
+const RATIO = { square: 'aspect-square', wide: 'aspect-video', tall: 'aspect-[9/16]' } as const;
+const RADIUS: Record<BorderRadius, string> = {
+	flat: 'rounded-none',
+	soft: 'rounded-[4px]',
+	medium: 'rounded-[8px]',
+	rounded: 'rounded-[16px]',
+	capsule: 'rounded-[9999px]',
+	circle: 'rounded-[50%]',
+};
+
+/** 비율 상자 안의 사진. 불러오는 동안은 단색 바탕, 다 불러오면 서서히 나타난다 */
 export default function Image({
 	src,
 	alt,
@@ -33,12 +44,16 @@ export default function Image({
 	const [isLoaded, setIsLoaded] = useState(false);
 
 	return (
-		<StyledImage
-			className={`${className}`}
-			$ratio={ratio}
-			$borderRadius={borderRadius}
-			$placeholder={placeholder}
-			$isLoaded={isLoaded}
+		<div
+			className={cx(
+				'flex h-fit w-full items-center justify-center overflow-hidden',
+				RATIO[ratio],
+				RADIUS[borderRadius],
+				isLoaded ? 'bg-transparent' : BG_COLOR[placeholder],
+				'[&_img]:size-full [&_img]:[transition:opacity_0.3s_ease-in-out]',
+				isLoaded ? '[&_img]:opacity-100' : '[&_img]:opacity-0',
+				className,
+			)}
 		>
 			<Img
 				src={src}
@@ -49,45 +64,6 @@ export default function Image({
 				style={{ objectFit }}
 				onLoad={() => setIsLoaded(true)}
 			/>
-		</StyledImage>
+		</div>
 	);
 }
-
-interface StyledProps {
-	$ratio: 'square' | 'wide' | 'tall';
-	$borderRadius: BorderRadius;
-	$placeholder: ColorKey;
-	$isLoaded: boolean;
-}
-
-const StyledImage = styled.div<StyledProps>`
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	width: 100%;
-	height: fit-content;
-	overflow: hidden;
-	border-radius: ${({ $borderRadius, theme }) => theme.borderRadius[$borderRadius || 'medium']};
-	aspect-ratio: ${({ $ratio }) => {
-		switch ($ratio) {
-			case 'square':
-				return '1 / 1';
-			case 'wide':
-				return '16 / 9';
-			case 'tall':
-				return '9 / 16';
-			default:
-				return '16 / 9';
-		}
-	}};
-
-	/* 기본적으로 단색 배경을 적용하고, 이미지가 로드되면 숨김 */
-	background: ${({ theme, $placeholder, $isLoaded }) => ($isLoaded ? 'transparent' : theme.color[$placeholder])};
-
-	img {
-		width: 100%;
-		height: 100%;
-		opacity: ${({ $isLoaded }) => ($isLoaded ? 1 : 0)}; /* 로드되기 전까지 투명 처리 */
-		transition: opacity 0.3s ease-in-out;
-	}
-`;

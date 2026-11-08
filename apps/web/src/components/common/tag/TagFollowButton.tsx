@@ -1,10 +1,10 @@
 'use client';
 
-import styled from 'styled-components';
 import { LuCheck, LuPlus } from 'react-icons/lu';
 import { useAuth } from '@/hooks/useAuth';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 import { useTagFollows } from '@/hooks/useTagFollows';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	tag: string;
@@ -22,9 +22,18 @@ export default function TagFollowButton({ tag, className, tagOnly }: Props) {
 	const busy = follow.isPending || unfollow.isPending;
 
 	return (
-		<StyledTagFollowButton
+		<button
 			type="button"
-			className={[className, on ? 'on' : ''].filter(Boolean).join(' ')}
+			className={cx(
+				'm-0 inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-chip border border-solid px-2.5 py-1 text-small font-medium leading-[1.25] [transition:color_0.15s_ease,border-color_0.15s_ease]',
+				'[&_svg]:block [&_svg]:size-3.5 [&_svg]:shrink-0',
+				'disabled:cursor-progress disabled:opacity-60',
+				// 같은 속성 클래스가 둘 붙으면 순서로 갈리므로 켜짐 · 꺼짐 중 하나만
+				on
+					? 'on border-primary bg-tertiary text-primary'
+					: 'border-border bg-background text-sub-text hover:enabled:border-primary hover:enabled:text-primary',
+				className,
+			)}
 			aria-pressed={on}
 			aria-label={tagOnly ? `#${tag} 팔로우` : undefined}
 			disabled={busy}
@@ -39,48 +48,6 @@ export default function TagFollowButton({ tag, className, tagOnly }: Props) {
 		>
 			{on ? <LuCheck aria-hidden /> : <LuPlus aria-hidden />}
 			{tagOnly ? `#${tag}` : on ? `#${tag} 팔로우 중` : `#${tag} 팔로우`}
-		</StyledTagFollowButton>
+		</button>
 	);
 }
-
-const StyledTagFollowButton = styled.button`
-	display: inline-flex;
-	align-items: center;
-	gap: 0.25rem;
-	margin: 0;
-	padding: 0.25rem 0.625rem;
-	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.radius.chip};
-	background: ${({ theme }) => theme.color.background};
-	font-size: ${({ theme }) => theme.fontSize.small};
-	font-weight: ${({ theme }) => theme.fontWeight.medium};
-	line-height: 1.25;
-	color: ${({ theme }) => theme.color.subText};
-	white-space: nowrap;
-	cursor: pointer;
-	transition:
-		color 0.15s ease,
-		border-color 0.15s ease;
-
-	svg {
-		display: block;
-		flex-shrink: 0;
-		width: 0.875rem;
-		height: 0.875rem;
-	}
-
-	&:hover:not(:disabled),
-	&.on {
-		border-color: ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.primary};
-	}
-
-	&.on {
-		background: ${({ theme }) => theme.color.tertiary};
-	}
-
-	&:disabled {
-		cursor: progress;
-		opacity: 0.6;
-	}
-`;

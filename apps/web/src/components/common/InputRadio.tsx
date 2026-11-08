@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 
 interface Props<T extends string> {
 	name: string;
@@ -13,103 +13,33 @@ interface Props<T extends string> {
 	className?: string;
 }
 
+/* 고른 표시는 가운데 점(::before). 초점은 옅은 강조색 띠 */
+const RADIO =
+	"m-0 grid size-5 shrink-0 cursor-pointer appearance-none place-content-center rounded-full border-[1.5px] border-solid border-light-grey bg-background [transition:border-color_0.15s_ease,box-shadow_0.15s_ease] before:size-2.5 before:[transform:scale(0)] before:rounded-full before:bg-primary before:[transition:transform_0.15s_ease] before:content-[''] hover:border-primary checked:border-primary checked:before:[transform:scale(1)] focus-visible:shadow-[0_0_0_3px_color-mix(in_srgb,var(--color-primary)_25%,transparent)] focus-visible:outline-none";
+
 /**
  * 라디오 버튼 묶음: 여러 개 중 하나만 고른다. 체크 상자(InputCheck)와 같은 모양·크기.
  * 진짜 <input type="radio">라 ←→↑↓로 옮겨 고를 수 있다
  */
 export default function InputRadio<T extends string>({ name, label, value, options, onChange, className }: Props<T>) {
 	return (
-		<StyledInputRadio className={className}>
-			{label && <legend className="np-field-label">{label}</legend>}
-			<div className="options">
+		<fieldset className={cx('m-0 min-w-0 border-none p-0', className)}>
+			{label && <legend className="np-field-label p-0">{label}</legend>}
+			<div className="options flex flex-wrap gap-x-5 gap-y-2">
 				{options.map((option) => (
-					<label key={option.value} className="option">
+					<label key={option.value} className="option inline-flex cursor-pointer items-center gap-2 select-none">
 						<input
 							type="radio"
 							name={name}
 							value={option.value}
 							checked={option.value === value}
 							onChange={() => onChange(option.value)}
+							className={RADIO}
 						/>
-						<span className="text">{option.label}</span>
+						<span className="text text-small text-text">{option.label}</span>
 					</label>
 				))}
 			</div>
-		</StyledInputRadio>
+		</fieldset>
 	);
 }
-
-const StyledInputRadio = styled.fieldset`
-	margin: 0;
-	padding: 0;
-	border: none;
-	min-width: 0;
-
-	legend {
-		padding: 0;
-	}
-
-	.options {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem 1.25rem;
-	}
-
-	.option {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.5rem;
-		cursor: pointer;
-		user-select: none;
-	}
-
-	.text {
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	input {
-		flex-shrink: 0;
-		display: grid;
-		place-content: center;
-		width: 1.25rem;
-		height: 1.25rem;
-		margin: 0;
-		appearance: none;
-		cursor: pointer;
-		border: 1.5px solid ${({ theme }) => theme.color.lightGrey};
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		background: ${({ theme }) => theme.color.background};
-		transition:
-			border-color 0.15s ease,
-			box-shadow 0.15s ease;
-
-		/* 고른 표시: 가운데 점 */
-		&::before {
-			content: '';
-			width: 0.625rem;
-			height: 0.625rem;
-			border-radius: ${({ theme }) => theme.borderRadius.circle};
-			background: ${({ theme }) => theme.color.primary};
-			transform: scale(0);
-			transition: transform 0.15s ease;
-		}
-
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-
-		&:checked {
-			border-color: ${({ theme }) => theme.color.primary};
-
-			&::before {
-				transform: scale(1);
-			}
-		}
-
-		&:focus-visible {
-			outline: none;
-			box-shadow: 0 0 0 3px color-mix(in srgb, ${({ theme }) => theme.color.primary} 25%, transparent);
-		}
-	}
-`;
