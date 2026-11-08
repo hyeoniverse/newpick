@@ -1,0 +1,352 @@
+/*
+ * 약관 · 개인정보 처리방침 문서 (components/common/legal/LegalDocument.tsx). styled-components 규칙을 그대로 옮기며
+ * button.css처럼 Tailwind 층 밖에 두고 선택자 우선순위를 전과 같게 둔다
+ */
+.np-legal {
+	--sticky-top: 5rem;
+	max-width: 1024px;
+	margin: 0 auto;
+	padding: 3rem 0 6rem;
+	color: var(--np-color-text);
+	word-break: keep-all;
+
+	/* ---------- 머리 ---------- */
+	.doc-head {
+		max-width: 44rem;
+		margin-bottom: 2.5rem;
+	}
+
+	.tabs {
+		display: flex;
+		gap: 1.5rem;
+		margin-bottom: 2rem;
+		border-bottom: 1px solid var(--np-color-border);
+
+		a {
+			margin-bottom: -1px;
+			padding: 0 0 0.75rem;
+			border-bottom: 2px solid transparent;
+			font-size: var(--np-font-size-small);
+			font-weight: 600;
+			color: var(--np-color-sub-text);
+
+			&:hover {
+				color: var(--np-color-text);
+			}
+
+			&[aria-current='page'] {
+				border-bottom-color: var(--np-color-primary);
+				color: var(--np-color-text);
+				font-weight: 800;
+			}
+		}
+	}
+
+	h1 {
+		margin: 0 0 0.5rem;
+		font-size: 2rem;
+		font-weight: 900;
+		letter-spacing: -0.02em;
+	}
+
+	.meta {
+		margin: 0 0 1.25rem;
+		font-size: var(--np-font-size-extra-small);
+		color: var(--np-color-sub-text);
+	}
+
+	.intro {
+		margin: 0;
+		font-size: var(--np-font-size-medium);
+		line-height: 1.75;
+		color: var(--np-color-medium-grey);
+	}
+
+	/* ---------- 한눈에 보기 ---------- */
+	.summary {
+		margin-bottom: 3.5rem;
+
+		h2 {
+			margin: 0 0 1rem;
+			font-size: var(--np-font-size-extra-small);
+			font-weight: 800;
+			letter-spacing: 0.04em;
+			color: var(--np-color-sub-text);
+		}
+
+		ul {
+			display: grid;
+			grid-template-columns: repeat(3, minmax(0, 1fr));
+			gap: 0.75rem;
+			margin: 0;
+			padding: 0;
+			list-style: none;
+
+			@media (max-width: 768px) {
+				grid-template-columns: repeat(2, minmax(0, 1fr));
+			}
+
+			@media (max-width: 480px) {
+				grid-template-columns: 1fr;
+			}
+		}
+
+		li {
+			display: flex;
+			gap: 0.875rem;
+			padding: 1.125rem 1.25rem;
+			border: 1px solid var(--np-color-border);
+			border-radius: 8px;
+			background: var(--np-color-background);
+		}
+
+		.icon {
+			flex-shrink: 0;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 2.25rem;
+			height: 2.25rem;
+			border-radius: 50%;
+			background: var(--np-color-tertiary);
+			color: var(--np-color-primary);
+
+			svg {
+				width: 1.125rem;
+				height: 1.125rem;
+			}
+		}
+
+		strong {
+			display: block;
+			margin-bottom: 0.25rem;
+			font-size: var(--np-font-size-small);
+		}
+
+		p {
+			margin: 0;
+			font-size: var(--np-font-size-extra-small);
+			line-height: 1.6;
+			color: var(--np-color-sub-text);
+		}
+	}
+
+	/* ---------- 본문 + 목차 ---------- */
+	.layout {
+		display: grid;
+		grid-template-columns: 15rem minmax(0, 44rem);
+		gap: 4rem;
+
+		@media (max-width: 768px) {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 0;
+		}
+	}
+
+	.toc {
+		position: sticky;
+		top: var(--sticky-top);
+		align-self: start;
+		max-height: calc(100vh - var(--sticky-top) - 2rem);
+		overflow-y: auto;
+
+		@media (max-width: 768px) {
+			display: none;
+		}
+	}
+
+	.toc-title {
+		margin: 0 0 0.75rem;
+		font-size: var(--np-font-size-extra-small);
+		font-weight: 800;
+		letter-spacing: 0.04em;
+		color: var(--np-color-sub-text);
+	}
+
+	.toc ol,
+	.toc-mobile ol {
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		border-left: 1px solid var(--np-color-border);
+
+		li a {
+			display: flex;
+			gap: 0.625rem;
+			margin-left: -1px;
+			padding: 0.4rem 0 0.4rem 0.875rem;
+			border-left: 2px solid transparent;
+			font-size: var(--np-font-size-extra-small);
+			line-height: 1.5;
+			color: var(--np-color-sub-text);
+
+			&:hover {
+				color: var(--np-color-text);
+			}
+		}
+
+		.no {
+			flex-shrink: 0;
+			min-width: 1.25rem;
+			font-variant-numeric: tabular-nums;
+			color: var(--np-color-light-grey);
+		}
+
+		li.active a {
+			border-left-color: var(--np-color-primary);
+			color: var(--np-color-primary);
+			font-weight: 700;
+
+			.no {
+				color: var(--np-color-primary);
+			}
+		}
+	}
+
+	.toc-mobile {
+		display: none;
+		margin-bottom: 2rem;
+		padding: 0.875rem 1rem;
+		border: 1px solid var(--np-color-border);
+		border-radius: 8px;
+
+		summary {
+			font-size: var(--np-font-size-small);
+			font-weight: 700;
+			cursor: pointer;
+		}
+
+		ol {
+			margin-top: 0.75rem;
+		}
+
+		@media (max-width: 768px) {
+			display: block;
+		}
+	}
+
+	/* ---------- 조항 ---------- */
+	.article {
+		padding: 2.25rem 0;
+		border-top: 1px solid var(--np-color-border);
+		scroll-margin-top: var(--sticky-top);
+
+		&:first-child {
+			padding-top: 0;
+			border-top: none;
+		}
+	}
+
+	/* .article p보다 구체적이어야 강조색이 먹는다 */
+	.article .article-no {
+		margin: 0 0 0.375rem;
+		font-size: var(--np-font-size-extra-small);
+		font-weight: 800;
+		color: var(--np-color-primary);
+	}
+
+	.article h2 {
+		margin: 0 0 1rem;
+		font-size: 1.25rem;
+		font-weight: 800;
+		line-height: 1.45;
+	}
+
+	.article p,
+	.article ul {
+		margin: 0 0 0.875rem;
+		font-size: var(--np-font-size-small);
+		line-height: 1.85;
+		color: var(--np-color-medium-grey);
+	}
+
+	.article ul {
+		padding-left: 1.125rem;
+
+		li {
+			margin-bottom: 0.375rem;
+
+			&::marker {
+				color: var(--np-color-primary);
+			}
+		}
+	}
+
+	/* 글 속 링크 (이메일·주소) */
+	/* 밑줄은 옅게 두었다가 마우스를 올리면 진하고 두껍게 (화살표 움직임은 ExternalLink) */
+	.article a {
+		color: var(--np-color-primary);
+		text-decoration: underline;
+		text-decoration-color: color-mix(in srgb, var(--np-color-primary) 35%, transparent);
+		text-underline-offset: 3px;
+		word-break: break-all;
+		transition:
+			text-decoration-color 0.2s ease,
+			text-underline-offset 0.2s ease;
+
+		&:hover,
+		&:focus-visible {
+			text-decoration-color: var(--np-color-primary);
+			text-underline-offset: 2px;
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			transition: none;
+		}
+	}
+
+	/* 표: 가로선만, 머리는 옅은 면, 첫 칸 굵게. 좁으면 표만 가로로 넘긴다 */
+	.table-wrap {
+		margin: 0.25rem 0 1.25rem;
+		overflow-x: auto;
+		border-top: 2px solid var(--np-color-text);
+
+		&:focus-visible {
+			outline: 2px solid var(--np-color-primary);
+		}
+	}
+
+	table {
+		width: 100%;
+		border-collapse: collapse;
+
+		/* 열이 많은 표만 좁은 화면에서 가로로 넘긴다 */
+		&.wide {
+			min-width: 44rem;
+		}
+		font-size: var(--np-font-size-extra-small);
+		line-height: 1.65;
+
+		th,
+		td {
+			padding: 0.75rem 0.875rem;
+			border-bottom: 1px solid var(--np-color-border);
+			text-align: left;
+			vertical-align: top;
+		}
+
+		th {
+			background: var(--np-color-surface);
+			font-weight: 800;
+			white-space: nowrap;
+		}
+
+		td {
+			color: var(--np-color-medium-grey);
+		}
+
+		td:first-child {
+			font-weight: 700;
+			color: var(--np-color-text);
+		}
+
+		/* 표 속 주소는 이름 아래 줄에 한 줄로 (짧은 주소라 꺾지 않는다. 좁으면 표가 가로로 넘어간다) */
+		td a {
+			display: block;
+			margin-top: 0.125rem;
+			font-weight: 500;
+			white-space: nowrap;
+			word-break: normal;
+		}
+	}
+}
