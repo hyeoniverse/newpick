@@ -1,7 +1,7 @@
 'use client';
 
-import styled from 'styled-components';
 import BorderTitle from '@/components/common/BorderTitle';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	/** 구분선 제목 (HOW TO USE 등). 다른 섹션(EXPLORE · WHO WE ARE)과 같은 BorderTitle */
@@ -23,31 +23,6 @@ export default function SectionHeading({ label, title, sub, className }: Props) 
 }
 
 // header 태그는 레이아웃이 1024px 이하에서 좌우 여백을 넣으므로(MainLayout) div로
-const StyledHeading = styled.div`
-	margin-bottom: 3.5rem;
-	word-break: keep-all;
-
-	@media ${({ theme }) => theme.mediaQuery.tablet} {
-		margin-bottom: 2.5rem;
-	}
-
-	.border-title {
-		margin-bottom: 2.5rem;
-	}
-
-	.heading {
-		margin: 0;
-		font-size: clamp(2rem, 5vw, 3.5rem);
-		font-weight: 800;
-		line-height: 1.2;
-		letter-spacing: -0.02em;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	.sub {
-		margin: 1rem 0 0;
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		line-height: 1.7;
-		color: ${({ theme }) => theme.color.subText};
-	}
-`;
+const StyledHeading = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-about-section-heading-heading', className)} {...props} />
+);

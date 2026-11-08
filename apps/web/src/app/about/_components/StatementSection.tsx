@@ -1,7 +1,7 @@
 'use client';
 
-import styled from 'styled-components';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
+import { cx } from '@/styles/tw';
 
 /** 강조할 낱말은 ** 로 감싼다 */
 const STATEMENT =
@@ -33,31 +33,6 @@ export default function StatementSection() {
 	);
 }
 
-const StyledStatement = styled.section`
-	word-break: keep-all;
-
-	.statement {
-		--progress: 0;
-		max-width: 56rem;
-		margin: 0;
-		font-size: clamp(1.75rem, 4.2vw, 3.25rem);
-		font-weight: 800;
-		line-height: 1.4;
-		letter-spacing: -0.02em;
-		color: ${({ theme }) => theme.color.text};
-
-		.word {
-			opacity: clamp(0.18, calc(var(--progress) * var(--n) * 1.05 - var(--i)), 1);
-		}
-
-		.strong {
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.statement .word {
-			opacity: 1;
-		}
-	}
-`;
+const StyledStatement = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-about-statement-section-statement', className)} {...props} />
+);

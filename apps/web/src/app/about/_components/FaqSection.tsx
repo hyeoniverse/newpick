@@ -1,9 +1,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
 import { LuPlus } from 'react-icons/lu';
 import SectionHeading from '@/app/about/_components/SectionHeading';
+import { cx } from '@/styles/tw';
 
 /** 답은 실제 동작 기준 (이용약관 요약·발송 예약·탈퇴 처리와 같은 내용) */
 const FAQ = [
@@ -97,99 +97,6 @@ export default function FaqSection() {
 	);
 }
 
-const StyledFaq = styled.section`
-	.list {
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		border-top: 1px solid ${({ theme }) => theme.color.text};
-	}
-
-	.item {
-		border-bottom: 1px solid ${({ theme }) => theme.color.border};
-	}
-
-	.question {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		width: 100%;
-		padding: 1.375rem 0.25rem;
-		border: none;
-		background: none;
-		cursor: pointer;
-		text-align: left;
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.text};
-		word-break: keep-all;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		&:focus-visible {
-			outline: 2px solid ${({ theme }) => theme.color.primary};
-			outline-offset: 2px;
-		}
-	}
-
-	.icon {
-		flex-shrink: 0;
-		width: 1.25rem;
-		height: 1.25rem;
-		color: ${({ theme }) => theme.color.subText};
-		transition:
-			transform 0.4s ease,
-			color 0.3s ease;
-	}
-
-	.panel {
-		display: grid;
-		grid-template-rows: 0fr;
-		transition: grid-template-rows 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-	}
-
-	.panel-inner {
-		min-height: 0;
-		overflow: hidden;
-	}
-
-	.answer {
-		margin: 0;
-		padding: 0 0.25rem 1.5rem;
-		line-height: 1.8;
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
-		opacity: 0;
-		transform: translateY(-0.5rem);
-		transition:
-			opacity 0.4s ease 0.1s,
-			transform 0.4s ease 0.1s;
-	}
-
-	.item[data-open='true'] {
-		.icon {
-			transform: rotate(45deg);
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		.panel {
-			grid-template-rows: 1fr;
-		}
-
-		.answer {
-			opacity: 1;
-			transform: none;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.icon,
-		.panel,
-		.answer {
-			transition: none;
-		}
-	}
-`;
+const StyledFaq = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-about-faq-section-faq', className)} {...props} />
+);
