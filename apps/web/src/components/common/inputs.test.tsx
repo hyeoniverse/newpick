@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { ThemeProvider } from 'styled-components';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { lightTheme } from '@/styles/theme';
 import { useInputCheckStore } from '@/stores/useInputCheckStore';
 import Button from '@/components/common/Button';
 import InputCheck from '@/components/common/InputCheck';
@@ -13,7 +11,7 @@ import InputText from '@/components/common/InputText';
 afterEach(cleanup);
 beforeEach(() => useInputCheckStore.setState({ values: {} }));
 
-const withTheme = (node: React.ReactNode) => render(<ThemeProvider theme={lightTheme}>{node}</ThemeProvider>);
+const withTheme = (node: React.ReactElement) => render(node);
 
 function Select() {
 	const [value, setValue] = useState('');

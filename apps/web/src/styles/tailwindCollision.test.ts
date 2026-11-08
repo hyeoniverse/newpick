@@ -6,7 +6,7 @@ import { compile } from 'tailwindcss';
 import { describe, expect, it } from 'vitest';
 
 /**
- * styled-components에서 쓰던 클래스 이름이 Tailwind 유틸리티 이름과 겹치지 않는지 본다 (#10 전환 중).
+ * CSS 파일(styles 폴더 아래 .css)에서 쓰는 클래스 이름이 Tailwind 유틸리티 이름과 겹치지 않는지 본다 (#10).
  * 겹치면 Tailwind가 그 이름으로 스타일을 만들어 엉뚱한 효과가 붙는다.
  * 예: 떠 있는 북마크 단추의 'blur' → filter: blur(8px)로 흐릿, 약관 표 상자의 'table' → display: table로 가로 스크롤이 막힘
  */
@@ -17,44 +17,19 @@ const require = createRequire(import.meta.url);
 // Tailwind와 뜻이 같아 일부러 같은 이름을 쓰는 것
 const ALLOWED = new Set(['sr-only']);
 
-function files(dir: string): string[] {
+/** styles/ 아래 CSS 파일 (토큰 파일 제외) */
+function cssFiles(dir: string): string[] {
 	return readdirSync(dir).flatMap((name) => {
 		const path = join(dir, name);
-		if (statSync(path).isDirectory()) return files(path);
-		return /\.tsx?$/.test(name) && !/\.test\.tsx?$/.test(name) ? [path] : [];
+		if (statSync(path).isDirectory()) return cssFiles(path);
+		return name.endsWith('.css') && name !== 'tokens.css' ? [path] : [];
 	});
 }
 
-/** className={…} · className="…" 안의 문자열에 든 이름 */
-function classNameTokens(code: string): string[] {
-	const out: string[] = [];
-	for (const m of code.matchAll(/className=/g)) {
-		let i = m.index + 'className='.length;
-		let expr: string;
-		if (code[i] === '"') expr = code.slice(i, code.indexOf('"', i + 1) + 1);
-		else if (code[i] === '{') {
-			let depth = 0;
-			const start = i;
-			for (; i < code.length; i++) {
-				if (code[i] === '{') depth++;
-				else if (code[i] === '}' && --depth === 0) break;
-			}
-			expr = code.slice(start, i + 1);
-		} else continue;
-		for (const s of expr.matchAll(/(["'`])((?:(?!\1)[^\\]|\\.)*)\1/g)) {
-			out.push(...s[2].replace(/\$\{[^}]*\}/g, ' ').split(/\s+/));
-		}
-	}
-	return out;
-}
-
-/** styled`…` · css`…` 안에서 선택자로 쓴 이름 (.name, &.name) */
-function selectorTokens(code: string): string[] {
-	const out: string[] = [];
-	for (const m of code.matchAll(/(?:styled(?:\.\w+|\([^)]*\))(?:\.(?:attrs|withConfig)\([^`]*?\))?|css|keyframes|createGlobalStyle)(?:<[^`]*?>)?`([^`]*)`/g)) {
-		for (const s of m[1].matchAll(/(?<![\w$.\-)\]])\.([a-zA-Z][\w-]*)/g)) out.push(s[1]);
-	}
-	return out;
+/** CSS 선택자에 쓴 클래스 이름 (.name). 주석 · 0.5rem 같은 숫자는 뺀다 */
+function selectorTokens(css: string): string[] {
+	const code = css.replace(/\/\*[\s\S]*?\*\//g, '');
+	return [...code.matchAll(/(?<![\w$.\-)\]])\.([a-zA-Z][\w-]*)/g)].map((m) => m[1]);
 }
 
 async function tailwind() {
@@ -69,15 +44,14 @@ async function tailwind() {
 }
 
 describe('Tailwind 유틸리티와 겹치는 클래스 이름', () => {
-	it('styled-components를 쓰는 파일의 클래스 이름은 Tailwind가 스타일을 만들지 않는다', async () => {
+	it('CSS 파일에서 쓰는 클래스 이름은 Tailwind가 스타일을 만들지 않는다', async () => {
 		const tokens = new Map<string, string>();
-		for (const file of files(SRC)) {
-			const code = readFileSync(file, 'utf8');
-			if (!code.includes("from 'styled-components'")) continue;
-			for (const t of [...classNameTokens(code), ...selectorTokens(code)]) {
+		for (const file of cssFiles(SRC)) {
+			for (const t of selectorTokens(readFileSync(file, 'utf8'))) {
 				if (/^[a-z][\w-]*$/.test(t) && !ALLOWED.has(t) && !tokens.has(t)) tokens.set(t, file.slice(SRC.length + 1));
 			}
 		}
+		expect(tokens.size).toBeGreaterThan(100);
 
 		const tw = await tailwind();
 		let size = tw.build([]).length;

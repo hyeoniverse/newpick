@@ -1,8 +1,6 @@
 import { createElement, type ReactNode } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { ThemeProvider } from 'styled-components';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { lightTheme } from '@/styles/theme';
 import { User } from '@/models/user.model';
 import SubscribeSheet from '@/components/common/article/SubscribeSheet';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
@@ -21,7 +19,7 @@ vi.mock('@/hooks/useSubscribe', () => ({
 }));
 vi.mock('next/link', () => ({ default: ({ children }: { children: ReactNode }) => children }));
 
-const renderWithTheme = (node: ReactNode) => render(createElement(ThemeProvider, { theme: lightTheme }, node));
+const renderWithTheme = (node: ReactNode) => render(node);
 const chip = (name: string) => screen.getByRole('button', { name }) as HTMLButtonElement;
 const submit = () => screen.getByRole('button', { name: /구독하기|분야를 골라/ }) as HTMLButtonElement;
 

@@ -1,7 +1,5 @@
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
-import { ThemeProvider } from 'styled-components';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
-import { lightTheme } from '@/styles/theme';
 import { useModalStore } from '@/stores/useModalStore';
 import Modal from '@/components/common/modal/ModalContainer';
 import ModalContent from '@/components/common/modal/ModalContent';
@@ -14,11 +12,7 @@ afterEach(cleanup);
 beforeEach(() => useModalStore.setState({ isOpen: false, content: null, size: 'small' }));
 
 const open = (size: 'small' | 'large' = 'small') => {
-	render(
-		<ThemeProvider theme={lightTheme}>
-			<Modal />
-		</ThemeProvider>,
-	);
+	render(<Modal />);
 	act(() => useModalStore.getState().openModal(<p>내용</p>, { size }));
 };
 const handle = () => screen.getByRole('button', { name: /닫기/ });
@@ -35,11 +29,7 @@ const closing = () => dialog().parentElement!.classList.contains('fade-out');
 
 describe('시트 (#52)', () => {
 	it('안에 넣는 확인 창(ModalContent)은 시트의 클래스(.modal-body)를 쓰지 않는다: 시트 모양(위치 · 테두리 · 그림자)이 안쪽에도 걸려 겹쳐 보였다', () => {
-		render(
-			<ThemeProvider theme={lightTheme}>
-				<Modal />
-			</ThemeProvider>,
-		);
+		render(<Modal />);
 		act(() =>
 			useModalStore.getState().openModal(<ModalContent title="구독 완료" content="설명" filledButton="확인" />),
 		);
