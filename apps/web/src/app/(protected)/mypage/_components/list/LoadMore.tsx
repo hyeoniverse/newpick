@@ -1,7 +1,7 @@
 'use client';
 
-import styled from 'styled-components';
 import { LuChevronDown, LuLoaderCircle } from 'react-icons/lu';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	/** 아직 안 불러온 수 */
@@ -21,45 +21,6 @@ export default function LoadMore({ remaining, loading, onClick }: Props) {
 	);
 }
 
-const StyledLoadMore = styled.button`
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.375rem;
-	width: 100%;
-	height: 2.75rem;
-	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.radius.surface};
-	font: inherit;
-	font-size: ${({ theme }) => theme.fontSize.extraSmall};
-	color: ${({ theme }) => theme.color.text};
-	cursor: pointer;
-
-	.left {
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	svg {
-		width: 1rem;
-		height: 1rem;
-	}
-
-	.spin {
-		animation: load-more-spin 0.8s linear infinite;
-	}
-
-	@keyframes load-more-spin {
-		to {
-			transform: rotate(360deg);
-		}
-	}
-
-	&:hover:not(:disabled) {
-		border-color: ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.primary};
-	}
-
-	&:disabled {
-		cursor: progress;
-	}
-`;
+const StyledLoadMore = ({ className, ...props }: React.ComponentProps<'button'>) => (
+	<button className={cx('np-mypage-load-more-load-more', className)} {...props} />
+);

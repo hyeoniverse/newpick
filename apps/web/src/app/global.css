@@ -43,6 +43,7 @@
 @import '../styles/pages/articles.css';
 @import '../styles/pages/tags.css';
 @import '../styles/pages/unsubscribe.css';
+@import '../styles/pages/mypage.css';
 
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

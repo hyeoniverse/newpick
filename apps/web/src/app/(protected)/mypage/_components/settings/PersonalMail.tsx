@@ -1,13 +1,13 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { fetchPersonalMail, savePersonalMail } from '@/api/subscription';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import Switch from '@/components/common/Switch';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
+import { cx } from '@/styles/tw';
 
 const PERSONAL_MAIL_KEY = ['personal-mail'];
 
@@ -76,30 +76,6 @@ export default function PersonalMail() {
 	);
 }
 
-const StyledPersonalMail = styled.section`
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-	margin-top: 4rem;
-	padding-top: 2rem;
-	border-top: 1px solid ${({ theme }) => theme.color.border};
-	word-break: keep-all;
-
-	.head {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-	}
-
-	.control {
-		display: flex;
-		align-items: center;
-		gap: 0.625rem;
-
-		span {
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.text};
-		}
-	}
-`;
+const StyledPersonalMail = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-mypage-personal-mail-personal-mail', className)} {...props} />
+);

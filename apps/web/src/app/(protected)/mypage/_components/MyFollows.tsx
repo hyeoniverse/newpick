@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
-import styled from 'styled-components';
 import { LuBellPlus } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import EmptyState from '@/components/common/EmptyState';
@@ -10,6 +9,7 @@ import Skeleton from '@/components/common/loader/Skeleton';
 import { StoryFollow, useFollowMutations, useFollows } from '@/hooks/useFollows';
 import ListHead from '@/app/(protected)/mypage/_components/list/ListHead';
 import TagFollows from '@/app/(protected)/mypage/_components/follows/TagFollows';
+import { cx } from '@/styles/tw';
 
 /** '10월 31일' (한국 시각) */
 const day = (iso: string) =>
@@ -135,193 +135,6 @@ function FollowCard({
 	);
 }
 
-const StyledFollows = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-	padding: 0 0 2rem;
-	word-break: keep-all;
-
-	/* 팔로우한 태그 아래: 줄로 나눈다 */
-	.stories {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		margin-top: 2.5rem;
-		padding-top: 2rem;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
-	}
-
-	.intro {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.follows {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.follow {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-		padding: 1.25rem 1.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			padding: 1rem;
-		}
-	}
-
-	.follow-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-	}
-
-	.meta {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.25rem 0.5rem;
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-
-		.nowrap {
-			white-space: nowrap;
-		}
-	}
-
-	.category {
-		padding: 0 0.5rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.tertiary};
-		font-size: 0.75rem;
-		font-weight: ${({ theme }) => theme.fontWeight.medium};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.primary};
-	}
-
-	.stop {
-		flex-shrink: 0;
-		padding: 0;
-		border: 0;
-		background: none;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-		cursor: pointer;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.text};
-			text-decoration: underline;
-			text-underline-offset: 0.2em;
-		}
-	}
-
-	.origin {
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		line-height: 1.45;
-		color: ${({ theme }) => theme.color.text};
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	/* 처음 소식 아래로 이어진 소식: 왼쪽 실선 하나로 잇는다 */
-	.timeline {
-		display: flex;
-		flex-direction: column;
-		gap: 0.875rem;
-		margin: 0.5rem 0 0;
-		padding: 0 0 0 1rem;
-		list-style: none;
-		border-left: 2px solid ${({ theme }) => theme.color.tertiary};
-
-		li {
-			display: flex;
-			flex-direction: column;
-			gap: 0.125rem;
-		}
-	}
-
-	.when {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.375rem;
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-variant-numeric: tabular-nums;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.new {
-		padding: 0 0.5rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.primary};
-		font-size: 0.75rem;
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.background};
-	}
-
-	.heading {
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		line-height: 1.5;
-		color: ${({ theme }) => theme.color.text};
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.reason {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.mediumGrey};
-	}
-
-	/* 오래 조용한 소식: 정리할지 묻는다 (선 대신 연한 바탕) */
-	.quiet {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem 1rem;
-		margin-top: 0.75rem;
-		padding: 0.75rem 1rem;
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.tertiary};
-
-		p {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.text};
-		}
-	}
-
-	.quiet-actions {
-		display: flex;
-		gap: 0.5rem;
-		margin-left: auto;
-	}
-
-	.empty {
-		margin: 0.25rem 0 0;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-	}
-`;
+const StyledFollows = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-my-follows-follows', className)} {...props} />
+);

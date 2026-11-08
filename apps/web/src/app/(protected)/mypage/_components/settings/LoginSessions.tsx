@@ -1,7 +1,6 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { LuMonitor, LuSmartphone } from 'react-icons/lu';
 import { fetchSessions, LoginSession, logoutOtherSessions, logoutSession } from '@/api/auth';
 import { useToast } from '@/hooks/useToast';
@@ -9,6 +8,7 @@ import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 import { describeUserAgent } from '@/utils/userAgent';
+import { cx } from '@/styles/tw';
 
 const SESSIONS_KEY = ['login-sessions'];
 
@@ -21,7 +21,7 @@ function ago(iso: string) {
 	const days = Math.floor(hours / 24);
 	if (days < 7) return `${days}일 전`;
 	return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(
-		new Date(iso)
+		new Date(iso),
 	);
 }
 
@@ -32,11 +32,7 @@ function ago(iso: string) {
 export default function LoginSessions() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
-	const {
-		data: sessions = [],
-		isPending,
-		isError,
-	} = useQuery({ queryKey: SESSIONS_KEY, queryFn: fetchSessions });
+	const { data: sessions = [], isPending, isError } = useQuery({ queryKey: SESSIONS_KEY, queryFn: fetchSessions });
 
 	const refresh = () => queryClient.invalidateQueries({ queryKey: SESSIONS_KEY });
 	const removeOne = useMutation({
@@ -121,102 +117,6 @@ export default function LoginSessions() {
 	);
 }
 
-const StyledLoginSessions = styled.section`
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-	margin-top: 4rem;
-	padding-top: 2rem;
-	border-top: 1px solid ${({ theme }) => theme.color.border};
-	word-break: keep-all;
-
-	.head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1.5rem;
-
-		> div {
-			display: flex;
-			flex-direction: column;
-			gap: 0.375rem;
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			flex-direction: column;
-			align-items: flex-start;
-		}
-	}
-
-	.status {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	ul {
-		display: flex;
-		flex-direction: column;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-	}
-
-	li {
-		display: flex;
-		align-items: center;
-		gap: 0.875rem;
-		padding: 0.875rem 1rem;
-
-		& + li {
-			border-top: 1px solid ${({ theme }) => theme.color.border};
-		}
-	}
-
-	.icon {
-		display: flex;
-		flex-shrink: 0;
-		color: ${({ theme }) => theme.color.subText};
-
-		svg {
-			width: 1.375rem;
-			height: 1.375rem;
-		}
-	}
-
-	.info {
-		flex: 1;
-		min-width: 0;
-
-		p {
-			margin: 0;
-		}
-	}
-
-	.name {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-	}
-
-	.here {
-		padding: 0 0.5rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.tertiary};
-		font-size: 0.75rem;
-		font-weight: ${({ theme }) => theme.fontWeight.medium};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.primary};
-	}
-
-	.meta {
-		margin-top: 0.125rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-	}
-`;
+const StyledLoginSessions = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-mypage-login-sessions-login-sessions', className)} {...props} />
+);
