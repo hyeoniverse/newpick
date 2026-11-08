@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 import { LuArrowDown, LuArrowUp, LuArrowUpDown, LuChevronDown } from 'react-icons/lu';
 
 interface Option {
@@ -20,9 +20,17 @@ interface Props {
 	highlight?: boolean;
 }
 
+/* 표 머리 글자 단추: 글꼴 · 색은 표 머리를 따르고, 고른 · 정렬 중이면 글자 · 아이콘이 강조색 */
+const trigger = (active: boolean) =>
+	cx(
+		'trigger inline-flex cursor-pointer items-center gap-1 p-0 [font:inherit] [&_svg]:size-3.5',
+		active ? 'active text-primary [&_svg]:text-primary' : 'text-inherit [&_svg]:text-sub-text',
+	);
+
 /**
  * 표 머리에서 고르기 (공통, 관리자 표에서 시작). 머리 글자를 누르면 고를 목록이 열린다. 고른 값이 있으면 글자가 강조색.
- * 표는 좁은 화면에서 옆으로 넘기느라(overflow) 안쪽 목록이 잘리므로, 목록은 화면 기준(fixed)으로 띄운다
+ * 표는 좁은 화면에서 옆으로 넘기느라(overflow) 안쪽 목록이 잘리므로, 목록은 화면 기준(fixed)으로 띄운다.
+ * 목록은 달력 · 시각 고르기와 같은 얇은 테두리 · 8px 모서리 · 그림자 없음
  */
 export function HeaderSelect({ label, options, value, onChange, highlight = true }: Props) {
 	const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
@@ -54,10 +62,10 @@ export function HeaderSelect({ label, options, value, onChange, highlight = true
 	}, [open]);
 
 	return (
-		<StyledTableHeader ref={rootRef}>
+		<span ref={rootRef}>
 			<button
 				type="button"
-				className={value && highlight ? 'trigger active' : 'trigger'}
+				className={trigger(!!value && highlight)}
 				aria-haspopup="true"
 				aria-label={`${label} 거르기${value ? ` (${options.find((o) => o.value === value)?.label ?? value})` : ''}`}
 				aria-expanded={open}
@@ -71,12 +79,24 @@ export function HeaderSelect({ label, options, value, onChange, highlight = true
 				<LuChevronDown aria-hidden />
 			</button>
 			{pos && (
-				<div className="menu" role="group" aria-label={`${label}로 거르기`} style={{ top: pos.top, left: pos.left }}>
+				<div
+					className="menu fixed z-[950] flex max-h-64 min-w-36 flex-col overflow-y-auto overscroll-contain rounded-surface border border-solid border-border bg-background p-1.5 [scrollbar-width:thin]"
+					role="group"
+					aria-label={`${label}로 거르기`}
+					style={{ top: pos.top, left: pos.left }}
+				>
 					{options.map((option) => (
 						<button
 							key={option.value}
 							type="button"
 							aria-pressed={option.value === value}
+							className={cx(
+								'cursor-pointer whitespace-nowrap rounded-[6px] px-2.5 py-[0.4375rem] text-left text-small',
+								// 고른 항목 · 나머지 중 하나만 (같은 속성 클래스가 둘 붙지 않게)
+								option.value === value
+									? 'bg-tertiary font-semi-bold text-primary'
+									: 'font-regular text-text hover:bg-neutral',
+							)}
 							onClick={() => {
 								// 고른 항목을 다시 누르면 해제하고 '전체'('')로 (전체 항목이 있을 때)
 								onChange(option.value === value && options.some((o) => o.value === '') ? '' : option.value);
@@ -88,7 +108,7 @@ export function HeaderSelect({ label, options, value, onChange, highlight = true
 					))}
 				</div>
 			)}
-		</StyledTableHeader>
+		</span>
 	);
 }
 
@@ -116,77 +136,16 @@ export function SortButton({
 		first === 'asc' ? { asc: '가나다순', desc: '가나다 역순' } : { asc: '작은 순', desc: '큰 순' };
 	const Icon = order === 'desc' ? LuArrowDown : order === 'asc' ? LuArrowUp : LuArrowUpDown;
 	return (
-		<StyledTableHeader>
+		<span>
 			<button
 				type="button"
-				className={order ? 'trigger active' : 'trigger'}
+				className={trigger(!!order)}
 				aria-label={`${label} ${words[order] ?? ''} 정렬, 누르면 ${words[next] ?? '기본 순서'}`}
 				onClick={() => onChange(next)}
 			>
 				{label}
 				<Icon aria-hidden />
 			</button>
-		</StyledTableHeader>
+		</span>
 	);
 }
-
-const StyledTableHeader = styled.span`
-	.trigger {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		padding: 0;
-		font: inherit;
-		color: inherit;
-		cursor: pointer;
-
-		svg {
-			width: 0.875rem;
-			height: 0.875rem;
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		&.active,
-		&.active svg {
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	/* 달력 · 시각 고르기와 같은 얇은 테두리 · 8px 모서리 · 그림자 없음 */
-	.menu {
-		position: fixed;
-		z-index: 950;
-		display: flex;
-		flex-direction: column;
-		min-width: 9rem;
-		max-height: 16rem;
-		padding: 0.375rem;
-		overflow-y: auto;
-		overscroll-behavior: contain;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.background};
-		scrollbar-width: thin;
-
-		button {
-			padding: 0.4375rem 0.625rem;
-			border-radius: 6px;
-			text-align: left;
-			white-space: nowrap;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.regular};
-			color: ${({ theme }) => theme.color.text};
-			cursor: pointer;
-
-			&:hover {
-				background: ${({ theme }) => theme.color.neutral};
-			}
-
-			&[aria-pressed='true'] {
-				background: ${({ theme }) => theme.color.tertiary};
-				color: ${({ theme }) => theme.color.primary};
-				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			}
-		}
-	}
-`;

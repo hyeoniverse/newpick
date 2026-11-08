@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
+import { cx as cls } from '@/styles/tw';
 
 export interface TrendSeries {
 	key: string;
@@ -23,6 +23,13 @@ interface Props {
 	format?: (value: number) => string;
 	height?: number;
 }
+
+/* 계열 색은 global.css의 --tone-a(보라) · --tone-b(주황), 어두운 테마는 같은 색상의 다른 단계 */
+const tone = (t?: 'a' | 'b') => (t === 'b' ? 'tone-b [--tone:var(--tone-b)]' : 'tone-a [--tone:var(--tone-a)]');
+const swatch = (t?: 'a' | 'b') =>
+	cls('swatch inline-block size-2.5 rounded-[2px]', t === 'b' ? 'tone-b bg-[var(--tone-b)]' : 'bg-[var(--tone-a)]');
+const TICK = 'tick fill-sub-text text-[0.6875rem] tabular-nums';
+const DOT = 'dot fill-[var(--tone)] stroke-background stroke-2';
 
 const PAD = { top: 16, right: 44, bottom: 24, left: 44 };
 
@@ -92,30 +99,30 @@ export default function TrendChart({ dates, series, kind, label, format = compac
 	const tooltipLeft = hover === null ? 0 : Math.min(Math.max(cx(hover), 80), Math.max(80, width - 80));
 
 	return (
-		<StyledChart>
+		<div className="flex flex-col gap-2">
 			{series.length > 1 && (
-				<ul className="legend">
+				<ul className="legend flex flex-wrap gap-x-4 gap-y-1 text-extra-small text-sub-text">
 					{series.map((s) => (
-						<li key={s.key}>
-							<span className={`swatch tone-${s.tone ?? 'a'}`} aria-hidden />
+						<li key={s.key} className="flex items-center gap-1.5">
+							<span className={swatch(s.tone)} aria-hidden />
 							{s.label}
 						</li>
 					))}
 				</ul>
 			)}
-			<div ref={boxRef} className="plot" onMouseLeave={() => setHover(null)}>
+			<div ref={boxRef} className="plot relative min-h-px w-full" onMouseLeave={() => setHover(null)}>
 				{width > 0 && (
-					<svg width={width} height={height} role="img" aria-label={label}>
+					<svg width={width} height={height} role="img" aria-label={label} className="block overflow-visible">
 						{ticks.map((t) => (
 							<g key={t}>
 								<line
-									className={t === 0 ? 'baseline' : 'gridline'}
+									className={cls('stroke-1', t === 0 ? 'baseline stroke-border' : 'gridline stroke-neutral')}
 									x1={PAD.left}
 									x2={width - PAD.right}
 									y1={y(t)}
 									y2={y(t)}
 								/>
-								<text className="tick" x={PAD.left - 8} y={y(t)} dy="0.32em" textAnchor="end">
+								<text className={TICK} x={PAD.left - 8} y={y(t)} dy="0.32em" textAnchor="end">
 									{format(Math.abs(t))}
 								</text>
 							</g>
@@ -123,13 +130,19 @@ export default function TrendChart({ dates, series, kind, label, format = compac
 						{dates.map((date, i) =>
 							// 마지막 날짜는 앞 눈금과 겹치지 않을 만큼 떨어져 있을 때만
 							i % every === 0 || (i === dates.length - 1 && (i % every) * slot >= 44) ? (
-								<text key={date} className="tick" x={cx(i)} y={height - 6} textAnchor="middle">
+								<text key={date} className={TICK} x={cx(i)} y={height - 6} textAnchor="middle">
 									{date.slice(5).replace('-', '/')}
 								</text>
 							) : null,
 						)}
 						{hover !== null && kind === 'line' && (
-							<line className="crosshair" x1={cx(hover)} x2={cx(hover)} y1={PAD.top} y2={PAD.top + plotH} />
+							<line
+								className="crosshair stroke-border stroke-1"
+								x1={cx(hover)}
+								x2={cx(hover)}
+								y1={PAD.top}
+								y2={PAD.top + plotH}
+							/>
 						)}
 
 						{kind === 'bar' &&
@@ -138,12 +151,13 @@ export default function TrendChart({ dates, series, kind, label, format = compac
 								const group = s.below ? down : up;
 								const offset = group.indexOf(s) * w - (w * group.length) / 2;
 								return (
-									<g key={s.key} className={`tone-${s.tone ?? 'a'}`}>
+									<g key={s.key} className={tone(s.tone)}>
 										{s.values.map((v, i) => (
 											<path
 												key={i}
 												d={barPath(cx(i) + offset, w - (group.length > 1 ? 2 : 0), y(0), y(s.below ? -v : v))}
 												opacity={hover === null || hover === i ? 1 : 0.45}
+												className="fill-[var(--tone)] [transition:opacity_0.1s]"
 											/>
 										))}
 									</g>
@@ -155,19 +169,30 @@ export default function TrendChart({ dates, series, kind, label, format = compac
 								const points = s.values.map((v, i) => `${cx(i)},${y(v)}`);
 								const last = s.values.length - 1;
 								return (
-									<g key={s.key} className={`tone-${s.tone ?? 'a'}`}>
-										<path className="area" d={`M${cx(0)},${y(0)}L${points.join('L')}L${cx(last)},${y(0)}Z`} />
-										<path className="line" d={`M${points.join('L')}`} />
+									<g key={s.key} className={tone(s.tone)}>
+										<path
+											className="area fill-[var(--tone)] opacity-10 [transition:opacity_0.1s]"
+											d={`M${cx(0)},${y(0)}L${points.join('L')}L${cx(last)},${y(0)}Z`}
+										/>
+										<path
+											className="line fill-none stroke-[var(--tone)] stroke-2 [stroke-linecap:round] [stroke-linejoin:round] [transition:opacity_0.1s]"
+											d={`M${points.join('L')}`}
+										/>
 										{last >= 0 && (
 											<>
-												<circle className="dot" cx={cx(last)} cy={y(s.values[last])} r={4} />
+												<circle className={DOT} cx={cx(last)} cy={y(s.values[last])} r={4} />
 												{/* 끝값만 바로 적는다 (나머지는 말풍선 · 표) */}
-												<text className="end" x={cx(last) + 8} y={y(s.values[last])} dy="0.32em">
+												<text
+													className="end fill-text text-[0.6875rem] font-semi-bold tabular-nums"
+													x={cx(last) + 8}
+													y={y(s.values[last])}
+													dy="0.32em"
+												>
 													{format(s.values[last])}
 												</text>
 											</>
 										)}
-										{hover !== null && <circle className="dot" cx={cx(hover)} cy={y(s.values[hover])} r={4} />}
+										{hover !== null && <circle className={DOT} cx={cx(hover)} cy={y(s.values[hover])} r={4} />}
 									</g>
 								);
 							})}
@@ -176,7 +201,7 @@ export default function TrendChart({ dates, series, kind, label, format = compac
 						{dates.map((date, i) => (
 							<rect
 								key={date}
-								className="hit"
+								className="hit fill-transparent"
 								x={PAD.left + slot * i}
 								y={PAD.top}
 								width={slot}
@@ -187,164 +212,21 @@ export default function TrendChart({ dates, series, kind, label, format = compac
 					</svg>
 				)}
 				{hover !== null && (
-					<div className="tooltip" style={{ left: tooltipLeft }} role="status">
+					<div
+						className="tooltip pointer-events-none absolute top-0 flex -translate-x-1/2 flex-col gap-0.5 whitespace-nowrap rounded-none border border-solid border-border bg-background px-2.5 py-2 text-extra-small text-text [&_b]:ml-auto [&_b]:pl-3 [&_b]:tabular-nums [&_span]:flex [&_span]:items-center [&_span]:gap-1.5"
+						style={{ left: tooltipLeft }}
+						role="status"
+					>
 						<strong>{dates[hover]}</strong>
 						{series.map((s) => (
 							<span key={s.key}>
-								<i className={`swatch tone-${s.tone ?? 'a'}`} aria-hidden />
+								<i className={swatch(s.tone)} aria-hidden />
 								{s.label} <b>{format(s.values[hover] ?? 0)}</b>
 							</span>
 						))}
 					</div>
 				)}
 			</div>
-		</StyledChart>
+		</div>
 	);
 }
-
-/** 계열 색: 주 색(보라) · 주황. 어두운 테마는 같은 색상의 다른 단계 (색맹 · 대비 검사를 통과한 값) */
-export const chartTones = `
-	--tone-a: #3610e1;
-	--tone-b: #d9480f;
-
-	:root[data-theme='dark'] & {
-		--tone-a: #7b86eb;
-		--tone-b: #d9652a;
-	}
-`;
-
-const StyledChart = styled.div`
-	${chartTones}
-	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-
-	.legend {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.25rem 1rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-
-		li {
-			display: flex;
-			align-items: center;
-			gap: 0.375rem;
-		}
-	}
-
-	.swatch {
-		display: inline-block;
-		width: 0.625rem;
-		height: 0.625rem;
-		border-radius: 2px;
-		background: var(--tone-a);
-
-		&.tone-b {
-			background: var(--tone-b);
-		}
-	}
-
-	.plot {
-		position: relative;
-		width: 100%;
-		min-height: 1px;
-	}
-
-	svg {
-		display: block;
-		overflow: visible;
-	}
-
-	.gridline {
-		stroke: ${({ theme }) => theme.color.neutral};
-		stroke-width: 1;
-	}
-
-	.baseline {
-		stroke: ${({ theme }) => theme.color.border};
-		stroke-width: 1;
-	}
-
-	.crosshair {
-		stroke: ${({ theme }) => theme.color.border};
-		stroke-width: 1;
-	}
-
-	.tick,
-	.end {
-		font-size: 0.6875rem;
-		fill: ${({ theme }) => theme.color.subText};
-		font-variant-numeric: tabular-nums;
-	}
-
-	.end {
-		fill: ${({ theme }) => theme.color.text};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-	}
-
-	.tone-a {
-		--tone: var(--tone-a);
-	}
-
-	.tone-b {
-		--tone: var(--tone-b);
-	}
-
-	g path {
-		fill: var(--tone);
-		transition: opacity 0.1s;
-	}
-
-	g .line {
-		fill: none;
-		stroke: var(--tone);
-		stroke-width: 2;
-		stroke-linejoin: round;
-		stroke-linecap: round;
-	}
-
-	g .area {
-		fill: var(--tone);
-		opacity: 0.1;
-	}
-
-	.dot {
-		fill: var(--tone);
-		stroke: ${({ theme }) => theme.color.background};
-		stroke-width: 2;
-	}
-
-	.hit {
-		fill: transparent;
-	}
-
-	.tooltip {
-		position: absolute;
-		top: 0;
-		transform: translateX(-50%);
-		display: flex;
-		flex-direction: column;
-		gap: 0.125rem;
-		padding: 0.5rem 0.625rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.control};
-		background: ${({ theme }) => theme.color.background};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.text};
-		white-space: nowrap;
-		pointer-events: none;
-
-		span {
-			display: flex;
-			align-items: center;
-			gap: 0.375rem;
-		}
-
-		b {
-			margin-left: auto;
-			padding-left: 0.75rem;
-			font-variant-numeric: tabular-nums;
-		}
-	}
-`;

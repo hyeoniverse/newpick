@@ -133,6 +133,17 @@
 }
 
 @layer base {
+	/* 차트 계열 색 (TrendChart · BarList · 관리자 히트맵): 주 색(보라) · 주황. 어두운 테마는 같은 색상의 다른 단계 (색맹 · 대비 검사를 통과한 값) */
+	:root {
+		--tone-a: #3610e1;
+		--tone-b: #d9480f;
+	}
+
+	:root[data-theme='dark'] {
+		--tone-a: #7b86eb;
+		--tone-b: #d9652a;
+	}
+
 	/* 글꼴: Pretendard 다이나믹 서브셋 (styles/pretendard.css, #14). 받는 동안은 시스템 글꼴 */
 	* {
 		font-family: var(--font-sans);
