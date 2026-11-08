@@ -1,7 +1,6 @@
 'use client';
 
 import { useModal } from '@/hooks/useModal';
-import styled from 'styled-components';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 
@@ -15,7 +14,8 @@ const DRAG_CLOSE_MIN = 80;
 const DRAG_CLOSE_VELOCITY = 0.5; // px/ms
 
 /** 시트 안에서 Tab으로 옮겨 다닐 수 있는 것들 */
-const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+const FOCUSABLE =
+	'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 /**
  * 모든 모달은 화면 아래에서 올라오는 시트다 (#52).
@@ -152,8 +152,8 @@ function Modal({ onClose }: Props) {
 	if (!isOpen && !isAnimating) return null;
 
 	return createPortal(
-		<StyledModal
-			className={isAnimating ? 'fade-out' : 'fade-in'}
+		<div
+			className={`np-modal ${isAnimating ? 'fade-out' : 'fade-in'}`}
 			onClick={handleOverlayClick}
 			onAnimationEnd={handleAnimationEnd}
 		>
@@ -170,134 +170,9 @@ function Modal({ onClose }: Props) {
 				/>
 				<div className="modal-contents">{content}</div>
 			</div>
-		</StyledModal>,
+		</div>,
 		document.body,
 	);
 }
-
-const StyledModal = styled.div`
-	@keyframes fade-in {
-		from {
-			opacity: 0;
-		}
-		to {
-			opacity: 1;
-		}
-	}
-
-	@keyframes fade-out {
-		from {
-			opacity: 1;
-		}
-		to {
-			opacity: 0;
-		}
-	}
-
-	&.fade-in {
-		animation: fade-in 0.2s ease-out forwards;
-	}
-
-	&.fade-out {
-		animation: fade-out 0.25s ease-in forwards;
-	}
-
-	/* 바깥: 뒤 화면을 아주 약간만 어둡게 + 살짝 흐리게. 누르면 닫힌다 */
-	position: fixed;
-	inset: 0;
-	z-index: 1000;
-	background: rgba(0, 0, 0, 0.08);
-	backdrop-filter: blur(4px);
-	-webkit-backdrop-filter: blur(4px);
-
-	/* 시트: 화면 아래에 붙어 올라온다. 기본 30rem, large는 42rem(메일 폭 600px + 여백, #55), 모바일은 화면 폭 전체 */
-	.modal-body {
-		@keyframes sheet-up {
-			from {
-				transform: translateY(100%);
-			}
-			to {
-				transform: translateY(0);
-			}
-		}
-
-		--modal-pad: 1.5rem;
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		right: 0;
-		width: min(30rem, 100%);
-		max-height: 85vh;
-		margin: 0 auto;
-		overflow-y: auto;
-		overscroll-behavior: contain;
-		padding: 1.75rem var(--modal-pad) calc(var(--modal-pad) + env(safe-area-inset-bottom));
-
-		display: flex;
-		flex-direction: column;
-
-		border-radius: ${({ theme }) => theme.radius.floating} ${({ theme }) => theme.radius.floating} 0 0;
-		/* 바깥이 어둡지 않으니 위쪽 그림자와 테두리로 뒤 화면과 구분 */
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-bottom: none;
-		box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.14);
-		background: ${({ theme }) => theme.color.background};
-		animation: sheet-up 0.3s ease-out;
-
-		&.large {
-			width: min(42rem, 100%);
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			--modal-pad: 1.25rem;
-			width: 100%;
-
-			&.large {
-				width: 100%;
-			}
-		}
-	}
-
-	.modal-contents {
-		display: flex;
-		flex-direction: column;
-		width: 100%;
-	}
-
-	/* 핸들: 끌어 내리면 닫힘. 누르기 쉽게 영역은 넓게, 막대는 작게 */
-	.sheet-handle {
-		position: absolute;
-		top: 0;
-		left: 50%;
-		width: 6rem;
-		height: 1.75rem;
-		margin-left: -3rem;
-		padding: 0;
-		border: none;
-		background: transparent;
-		cursor: grab;
-		touch-action: none;
-
-		&::before {
-			content: '';
-			position: absolute;
-			top: 0.625rem;
-			left: 50%;
-			width: 2.5rem;
-			height: 4px;
-			margin-left: -1.25rem;
-			border-radius: 2px;
-			background: ${({ theme }) => theme.color.border};
-		}
-
-		&:active {
-			cursor: grabbing;
-		}
-
-		&:focus-visible::before {
-			background: ${({ theme }) => theme.color.primary};
-		}
-	}
-`;
 
 export default Modal;

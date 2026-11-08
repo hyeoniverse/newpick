@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState, useRef, useCallback, useEffect, useId } from 'react';
-import styled from 'styled-components';
 import { LuChevronDown, LuCheck } from 'react-icons/lu';
 
 interface Props {
@@ -105,7 +104,7 @@ const InputSelect: React.FC<Props> = ({
 	}, [handleClickOutside]);
 
 	return (
-		<StyledInputSelect ref={selectRef} $open={isOpen} className={`${size} ${className ?? ''}`}>
+		<div ref={selectRef} data-open={isOpen || undefined} className={`np-select ${size} ${className ?? ''}`}>
 			{label && (
 				<label htmlFor={buttonId} className="np-field-label">
 					{label}
@@ -144,137 +143,8 @@ const InputSelect: React.FC<Props> = ({
 				))}
 			</ul>
 			{children}
-		</StyledInputSelect>
+		</div>
 	);
 };
-
-interface StyleProps {
-	$open: boolean;
-}
-
-const StyledInputSelect = styled.div<StyleProps>`
-	position: relative;
-	width: 100%;
-
-	.select-display {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.5rem;
-		text-align: left;
-		cursor: pointer;
-
-		&.placeholder span {
-			color: ${({ theme }) => theme.color.lightGrey};
-		}
-
-		${({ $open, theme }) =>
-			$open &&
-			`border-color: ${theme.color.primary};
-			box-shadow: 0 0 0 3px color-mix(in srgb, ${theme.color.primary} 18%, transparent);`}
-
-		.select-arrow {
-			flex-shrink: 0;
-			width: 1.125rem;
-			height: 1.125rem;
-			color: ${({ theme }) => theme.color.subText};
-			transition: transform 0.2s ease;
-			transform: rotate(${({ $open }) => ($open ? '180deg' : '0deg')});
-		}
-	}
-
-	.options-list {
-		position: absolute;
-		top: calc(100% + 0.375rem);
-		left: 0;
-		z-index: 20;
-		width: 100%;
-		max-height: 16rem;
-		margin: 0;
-		padding: 0.375rem;
-		overflow-y: auto;
-		list-style: none;
-
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.background};
-		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-
-		visibility: ${({ $open }) => ($open ? 'visible' : 'hidden')};
-		opacity: ${({ $open }) => ($open ? 1 : 0)};
-		transform: translateY(${({ $open }) => ($open ? '0' : '-0.25rem')});
-		transition:
-			opacity 0.15s ease,
-			transform 0.15s ease,
-			visibility 0.15s;
-	}
-
-	/* 작은 칸: 거르기 칩과 같은 높이 · 둥근 모서리, 글자 폭만큼. 펼친 목록은 오른쪽 끝에 맞춘다 */
-	&.small {
-		width: auto;
-
-		.select-display {
-			height: 2rem;
-			padding: 0 0.625rem 0 0.875rem;
-			border-radius: ${({ theme }) => theme.radius.chip};
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			line-height: 1;
-
-			.select-arrow {
-				width: 0.875rem;
-				height: 0.875rem;
-			}
-		}
-
-		.options-list {
-			left: auto;
-			right: 0;
-			width: max-content;
-			min-width: 100%;
-		}
-
-		.option-item {
-			gap: 1rem;
-			padding: 0.5rem 0.625rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		}
-	}
-
-	/* 항목 모양은 이 컴포넌트가 다 정한다: 쓰는 화면에 넓은 li 스타일(밑줄 · hover 바탕 등)이 있어도 새어 들지 않게 */
-	.option-item {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-		margin: 0;
-		border: none;
-		background: transparent;
-		padding: 0.625rem 0.75rem;
-		border-radius: ${({ theme }) => theme.radius.control};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.text};
-		white-space: nowrap;
-		cursor: pointer;
-
-		svg {
-			width: 1rem;
-			height: 1rem;
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		&.active {
-			background: ${({ theme }) => theme.color.surface};
-		}
-
-		&:hover:not(.active):not(.selected) {
-			background: transparent;
-		}
-
-		&.selected {
-			background: ${({ theme }) => theme.color.tertiary};
-			color: ${({ theme }) => theme.color.primary};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		}
-	}
-`;
 
 export default InputSelect;

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useId, useRef, useState } from 'react';
-import styled, { css } from 'styled-components';
 import { LuClock } from 'react-icons/lu';
 
 type Size = 'medium' | 'small';
@@ -66,7 +65,7 @@ export default function TimePicker({ value, onChange, label, minuteStep = 5, siz
 	}, [open]);
 
 	return (
-		<StyledTimePicker ref={rootRef} $size={size} className={className}>
+		<div ref={rootRef} data-size={size} className={`np-time-picker ${className ?? ''}`}>
 			{label && (
 				<label htmlFor={id} className="np-field-label">
 					{label}
@@ -122,94 +121,6 @@ export default function TimePicker({ value, onChange, label, minuteStep = 5, siz
 					</ul>
 				</div>
 			)}
-		</StyledTimePicker>
+		</div>
 	);
 }
-
-const StyledTimePicker = styled.div<{ $size: Size }>`
-	position: relative;
-	display: flex;
-	flex-direction: column;
-
-	.time-input {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding-left: 0.75rem;
-		text-align: left;
-		font-variant-numeric: tabular-nums;
-		cursor: pointer;
-		${({ $size }) =>
-			$size === 'small' &&
-			css`
-				height: 2.5rem;
-			`}
-
-		&[aria-expanded='true'] {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.clock-icon {
-		flex-shrink: 0;
-		width: 1rem;
-		height: 1rem;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	/* 시 · 분 두 줄: 달력과 같은 얇은 테두리 · 8px 모서리 · 그림자 없음 */
-	.panel {
-		position: absolute;
-		top: calc(100% + 0.25rem);
-		left: 0;
-		z-index: 30;
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.25rem;
-		width: 100%;
-		min-width: 8.5rem;
-		padding: 0.375rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.background};
-
-		&.upward {
-			top: auto;
-			bottom: calc(100% + 0.25rem);
-		}
-	}
-
-	ul {
-		max-height: 12rem;
-		margin: 0;
-		padding: 0;
-		overflow-y: auto;
-		list-style: none;
-		scrollbar-width: thin;
-
-		& + ul {
-			border-left: 1px solid ${({ theme }) => theme.color.border};
-			padding-left: 0.25rem;
-		}
-	}
-
-	[role='option'] {
-		width: 100%;
-		padding: 0.375rem 0;
-		border-radius: 6px;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-variant-numeric: tabular-nums;
-		color: ${({ theme }) => theme.color.text};
-		cursor: pointer;
-
-		&:hover {
-			background: ${({ theme }) => theme.color.neutral};
-		}
-
-		&[aria-selected='true'] {
-			background: ${({ theme }) => theme.color.primary};
-			color: #ffffff;
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		}
-	}
-`;

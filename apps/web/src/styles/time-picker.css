@@ -1,0 +1,91 @@
+/*
+ * 시각 고르기 (components/common/TimePicker.tsx). 아직 styled-components로 모양을 덮어쓰는 화면이 있어 button.css처럼 Tailwind 층 밖에 두고
+ * 선택자 우선순위를 전과 같게 둔다. 상태는 data 속성을 :where()로 골라 우선순위를 올리지 않는다
+ */
+.np-time-picker {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+
+	.time-input {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding-left: 0.75rem;
+		text-align: left;
+		font-variant-numeric: tabular-nums;
+		cursor: pointer;
+
+		&[aria-expanded='true'] {
+			border-color: var(--np-color-primary);
+		}
+	}
+
+	.clock-icon {
+		flex-shrink: 0;
+		width: 1rem;
+		height: 1rem;
+		color: var(--np-color-sub-text);
+	}
+
+	/* 시 · 분 두 줄: 달력과 같은 얇은 테두리 · 8px 모서리 · 그림자 없음 */
+	.panel {
+		position: absolute;
+		top: calc(100% + 0.25rem);
+		left: 0;
+		z-index: 30;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.25rem;
+		width: 100%;
+		min-width: 8.5rem;
+		padding: 0.375rem;
+		border: 1px solid var(--np-color-border);
+		border-radius: 8px;
+		background: var(--np-color-background);
+
+		&.upward {
+			top: auto;
+			bottom: calc(100% + 0.25rem);
+		}
+	}
+
+	ul {
+		max-height: 12rem;
+		margin: 0;
+		padding: 0;
+		overflow-y: auto;
+		list-style: none;
+		scrollbar-width: thin;
+
+		& + ul {
+			border-left: 1px solid var(--np-color-border);
+			padding-left: 0.25rem;
+		}
+	}
+
+	[role='option'] {
+		width: 100%;
+		padding: 0.375rem 0;
+		border-radius: 6px;
+		font-size: var(--np-font-size-small);
+		font-variant-numeric: tabular-nums;
+		color: var(--np-color-text);
+		cursor: pointer;
+
+		&:hover {
+			background: var(--np-color-neutral);
+		}
+
+		&[aria-selected='true'] {
+			background: var(--np-color-primary);
+			color: #ffffff;
+			font-weight: 700;
+		}
+	}
+
+	/* 작은 칸 (data-size=small) */
+	&:where([data-size='small']) .time-input {
+		height: 2.5rem;
+	}
+}
