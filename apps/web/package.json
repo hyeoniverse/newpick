@@ -27,7 +27,6 @@
     "react-datepicker": "^7.6.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.4.0",
-    "sanitize.css": "^13.0.0",
     "server-only": "^0.0.1",
     "swiper": "^14.3.0",
     "zustand": "^5.0.2"
