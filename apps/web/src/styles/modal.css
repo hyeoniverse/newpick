@@ -1,0 +1,129 @@
+/*
+ * 아래에서 올라오는 시트 (components/common/modal/ModalContainer.tsx). 아직 styled-components로 모양을 덮어쓰는 화면이 있어 button.css처럼 Tailwind 층 밖에 두고
+ * 선택자 우선순위를 전과 같게 둔다. 상태는 data 속성을 :where()로 골라 우선순위를 올리지 않는다
+ */
+.np-modal {
+	&.fade-in {
+		animation: fade-in 0.2s ease-out forwards;
+	}
+
+	&.fade-out {
+		animation: fade-out 0.25s ease-in forwards;
+	}
+
+	/* 바깥: 뒤 화면을 아주 약간만 어둡게 + 살짝 흐리게. 누르면 닫힌다 */
+	position: fixed;
+	inset: 0;
+	z-index: 1000;
+	background: rgba(0, 0, 0, 0.08);
+	/* 접두어(-webkit-)는 빌드가 붙인다. 둘 다 적으면 빌드가 합치며 접두어 쪽만 남겨 크롬에서 흐림이 사라진다 */
+	backdrop-filter: blur(4px);
+
+	/* 시트: 화면 아래에 붙어 올라온다. 기본 30rem, large는 42rem(메일 폭 600px + 여백, #55), 모바일은 화면 폭 전체 */
+	.modal-body {
+		--modal-pad: 1.5rem;
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		width: min(30rem, 100%);
+		max-height: 85vh;
+		margin: 0 auto;
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		padding: 1.75rem var(--modal-pad) calc(var(--modal-pad) + env(safe-area-inset-bottom));
+
+		display: flex;
+		flex-direction: column;
+
+		border-radius: 16px 16px 0 0;
+		/* 바깥이 어둡지 않으니 위쪽 그림자와 테두리로 뒤 화면과 구분 */
+		border: 1px solid var(--np-color-border);
+		border-bottom: none;
+		box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.14);
+		background: var(--np-color-background);
+		animation: sheet-up 0.3s ease-out;
+
+		&.large {
+			width: min(42rem, 100%);
+		}
+
+		@media (max-width: 480px) {
+			--modal-pad: 1.25rem;
+			width: 100%;
+
+			&.large {
+				width: 100%;
+			}
+		}
+	}
+
+	.modal-contents {
+		display: flex;
+		flex-direction: column;
+		width: 100%;
+	}
+
+	/* 핸들: 끌어 내리면 닫힘. 누르기 쉽게 영역은 넓게, 막대는 작게 */
+	.sheet-handle {
+		position: absolute;
+		top: 0;
+		left: 50%;
+		width: 6rem;
+		height: 1.75rem;
+		margin-left: -3rem;
+		padding: 0;
+		border: none;
+		background: transparent;
+		cursor: grab;
+		touch-action: none;
+
+		&::before {
+			content: '';
+			position: absolute;
+			top: 0.625rem;
+			left: 50%;
+			width: 2.5rem;
+			height: 4px;
+			margin-left: -1.25rem;
+			border-radius: 2px;
+			background: var(--np-color-border);
+		}
+
+		&:active {
+			cursor: grabbing;
+		}
+
+		&:focus-visible::before {
+			background: var(--np-color-primary);
+		}
+	}
+}
+
+/* 움직임 (styled-components는 규칙 안의 @keyframes를 밖으로 꺼냈다. 일반 CSS는 최상위에만 둘 수 있다) */
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes sheet-up {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}
+
+@keyframes fade-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
