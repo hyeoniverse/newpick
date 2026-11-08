@@ -6,7 +6,6 @@ import { useModal } from '@/hooks/useModal';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSelectInterests } from '@/hooks/useInterests';
 
-import styled from 'styled-components';
 import { LuMailCheck, LuMailX } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
@@ -15,6 +14,7 @@ import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
+import { cx } from '@/styles/tw';
 
 export default function StartSubscription() {
 	const { user } = useAuth();
@@ -41,7 +41,7 @@ export default function StartSubscription() {
 					content={`내일부터 새로운 뉴스레터를 보내드려요.`}
 					filledButton="확인"
 					onConfirmClick={closeModal}
-				/>
+				/>,
 			);
 			setChecked(false);
 		}
@@ -76,7 +76,7 @@ export default function StartSubscription() {
 										onCancelClick={handleCancel}
 										filledButton="취소"
 										onConfirmClick={closeModal}
-									/>
+									/>,
 								)
 							}
 							disabled={isChangingSubscription}
@@ -98,9 +98,7 @@ export default function StartSubscription() {
 						<Button
 							type="button"
 							scheme="default"
-							className={
-								selectedInterests.length === CATEGORIES.length ? 'active category-btn' : 'category-btn'
-							}
+							className={selectedInterests.length === CATEGORIES.length ? 'active category-btn' : 'category-btn'}
 							onClick={() => handleSelectInterests(CATEGORIES[0])}
 						>
 							전체
@@ -115,9 +113,7 @@ export default function StartSubscription() {
 								onClick={() => {
 									handleSelectInterests(category);
 								}}
-								className={
-									selectedInterests.includes(category.name) ? 'category-btn active' : 'category-btn'
-								}
+								className={selectedInterests.includes(category.name) ? 'category-btn active' : 'category-btn'}
 							>
 								{category.name}
 							</Button>
@@ -141,107 +137,6 @@ export default function StartSubscription() {
 	);
 }
 
-const StyeldStartSubscription = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 2rem;
-
-	.description {
-		display: flex;
-		flex-direction: column;
-
-		.title {
-			display: flex;
-			justify-content: space-between;
-			align-items: center;
-			margin: 0;
-			margin-bottom: 0.5rem;
-			padding: 0;
-		}
-	}
-
-	.category-section {
-		display: flex;
-		flex-direction: row;
-		gap: 0.875rem;
-		background-color: ${({ theme }) => theme.color.surface};
-		padding: 2rem;
-		border-top: 1px solid ${({ theme }) => theme.color.text};
-		border-bottom: 1px solid ${({ theme }) => theme.color.text};
-
-		.categories {
-			display: flex;
-			flex-direction: row;
-			flex-wrap: wrap;
-			gap: 0.5rem;
-			margin: 0;
-			padding: 0;
-			list-style: none;
-		}
-
-		/* 전체와 관심사 사이 세로줄: 그 줄 높이만큼 */
-		.bar {
-			align-self: stretch;
-			width: 1px;
-			margin: 0 0.1875rem;
-			background: ${({ theme }) => theme.color.lightGrey};
-		}
-
-		.category-btn {
-			width: max-content;
-			color: ${({ theme }) => theme.color.primary};
-			border-radius: ${({ theme }) => theme.radius.chip};
-			border: 1px solid ${({ theme }) => theme.color.primary};
-		}
-
-		.active {
-			color: ${({ theme }) => theme.color.background};
-			background-color: ${({ theme }) => theme.color.primary};
-			border-radius: ${({ theme }) => theme.radius.chip};
-		}
-	}
-
-	.btn {
-		display: flex;
-		justify-content: center;
-		align-items: center;
-
-		button {
-			width: 14rem;
-		}
-	}
-
-	.subscription-agreement {
-		width: 100%;
-		display: inline-flex;
-		align-items: top;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-		line-height: 1.5;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-		text-align: left;
-
-		input {
-			display: inline-flex;
-			vertical-align: middle;
-		}
-
-		span {
-			display: inline-flex;
-			vertical-align: middle;
-			span {
-				white-space: nowrap;
-			}
-		}
-
-		a {
-			color: ${({ theme }) => theme.color.primary};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-
-			&:hover {
-				text-decoration: underline;
-			}
-		}
-	}
-`;
+const StyeldStartSubscription = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-start-subscription-styeld-start-subscription', className)} {...props} />
+);

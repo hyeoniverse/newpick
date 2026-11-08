@@ -1,7 +1,6 @@
 'use client';
 
 import { AnimationEvent, FormEvent, useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
 import { linkGoogleAccount, sendEmailCode, verifyEmailCode } from '@/api/auth';
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,11 +9,10 @@ import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 import CodeInput from './CodeInput';
+import { cx } from '@/styles/tw';
 
 type Step =
-	| { kind: 'idle' }
-	| { kind: 'enter' }
-	| { kind: 'code'; email: string; resendAfter: number; expiresAt: number };
+	{ kind: 'idle' } | { kind: 'enter' } | { kind: 'code'; email: string; resendAfter: number; expiresAt: number };
 
 /** 남은 시간 '9:41' */
 const clock = (ms: number) => {
@@ -185,29 +183,29 @@ export default function AccountEmail() {
 
 			{step.kind === 'enter' && (
 				<div {...revealProps}>
-				<form className="form" onSubmit={onSend}>
-					<label htmlFor="new-email">새 수신 이메일</label>
-					<div className="row">
-						<input
-							id="new-email"
-							type="email"
-							inputMode="email"
-							autoComplete="email"
-							required
-							maxLength={191}
-							value={email}
-							onChange={(e) => setEmail(e.target.value)}
-							placeholder="name@example.com"
-							autoFocus
-						/>
-						<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={!email}>
-							인증 코드 요청
-						</Button>
-						<Button type="button" scheme="outline" size="small" onClick={close}>
-							취소
-						</Button>
-					</div>
-				</form>
+					<form className="form" onSubmit={onSend}>
+						<label htmlFor="new-email">새 수신 이메일</label>
+						<div className="row">
+							<input
+								id="new-email"
+								type="email"
+								inputMode="email"
+								autoComplete="email"
+								required
+								maxLength={191}
+								value={email}
+								onChange={(e) => setEmail(e.target.value)}
+								placeholder="name@example.com"
+								autoFocus
+							/>
+							<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={!email}>
+								인증 코드 요청
+							</Button>
+							<Button type="button" scheme="outline" size="small" onClick={close}>
+								취소
+							</Button>
+						</div>
+					</form>
 				</div>
 			)}
 
@@ -275,190 +273,6 @@ export default function AccountEmail() {
 	);
 }
 
-const StyledAccountEmail = styled.section`
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-	margin-top: 4rem;
-	padding-top: 2rem;
-	border-top: 1px solid ${({ theme }) => theme.color.border};
-	word-break: keep-all;
-
-	.head > div {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-	}
-
-	.current {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		font-weight: ${({ theme }) => theme.fontWeight.medium};
-		overflow-wrap: anywhere;
-	}
-
-	/* 현재 이메일 + 오른쪽 끝 변경 버튼 (좁으면 버튼이 다음 줄로) */
-	.current-row {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem 1.5rem;
-	}
-
-	/* 폼이 닫힌 뒤 다시 나타날 때 튀지 않게 */
-	.actions {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		animation: email-actions-in 0.2s ease-out;
-	}
-
-	/* 입력 폼(새 수신 이메일 · 인증 코드)이 열릴 때: 실제 높이만큼 펼쳐지며(아래 내용도 같이 밀려남) 위에서 내려오고 선명해진다 */
-	.reveal {
-		display: grid;
-		grid-template-rows: 1fr;
-		/* 펼쳐지는 동안 칸 밖으로 넘친 부분은 가린다 */
-		overflow: hidden;
-		animation: email-form-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1);
-
-		> .form {
-			min-height: 0;
-		}
-
-		/* 닫힐 때: 반대로 접히며 흐려진다 */
-		&.closing {
-			animation: email-form-out 0.25s cubic-bezier(0.4, 0, 0.6, 1) forwards;
-		}
-	}
-
-	.form {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-
-		label {
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: ${({ theme }) => theme.color.subText};
-			overflow-wrap: anywhere;
-
-			b {
-				color: ${({ theme }) => theme.color.text};
-			}
-		}
-	}
-
-	/* 입력칸과 버튼은 같은 높이 (좁은 화면에서 버튼이 다음 줄로 내려가도) */
-	.row {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem;
-
-		> input,
-		> button {
-			height: 2.5rem;
-		}
-
-		/* 인증 코드의 확인 · 취소는 오른쪽 끝 */
-		&.end {
-			justify-content: flex-end;
-		}
-	}
-
-	/* 새 수신 이메일 입력 (인증 코드는 CodeInput이 따로 그린다) */
-	.row > input {
-		flex: 1 1 16rem;
-		min-width: 0;
-		padding: 0 0.75rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.control};
-		background: ${({ theme }) => theme.color.background};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.text};
-
-		&:focus-visible {
-			outline: none;
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	@keyframes email-form-in {
-		from {
-			grid-template-rows: 0fr;
-			opacity: 0;
-			transform: translateY(-0.75rem);
-		}
-		to {
-			grid-template-rows: 1fr;
-			opacity: 1;
-			transform: translateY(0);
-		}
-	}
-
-	@keyframes email-form-out {
-		from {
-			grid-template-rows: 1fr;
-			opacity: 1;
-			transform: translateY(0);
-		}
-		to {
-			grid-template-rows: 0fr;
-			opacity: 0;
-			transform: translateY(-0.5rem);
-		}
-	}
-
-	@keyframes email-actions-in {
-		from {
-			opacity: 0;
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.reveal,
-		.reveal.closing,
-		.actions {
-			animation: none;
-		}
-	}
-
-	/* 남은 시간 · 재전송 */
-	.code-meta {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.25rem 0.75rem;
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-
-		.clock {
-			font-variant-numeric: tabular-nums;
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.resend {
-		padding: 0;
-		border: 0;
-		background: none;
-		font: inherit;
-		color: ${({ theme }) => theme.color.text};
-		text-decoration: underline;
-		text-underline-offset: 0.2em;
-		cursor: pointer;
-
-		&:disabled {
-			color: ${({ theme }) => theme.color.subText};
-			text-decoration: none;
-			cursor: default;
-		}
-	}
-
-	.error {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.error};
-	}
-`;
+const StyledAccountEmail = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-mypage-account-email-account-email', className)} {...props} />
+);

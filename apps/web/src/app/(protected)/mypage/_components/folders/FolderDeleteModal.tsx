@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import styled from 'styled-components';
 import { LuTriangleAlert } from 'react-icons/lu';
 import ModalContents from '@/components/common/modal/ModalContent';
 import InputRadio from '@/components/common/InputRadio';
 import InputSelect from '@/components/common/InputSelect';
 import { Folder, FolderContents } from '@/hooks/useFolders';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	folder: Folder;
@@ -88,21 +88,6 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 	);
 }
 
-const StyledChoices = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
-	width: 100%;
-	text-align: left;
-
-	.options {
-		flex-direction: column;
-		align-items: flex-start;
-	}
-
-	.warn {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.error};
-	}
-`;
+const StyledChoices = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-folder-delete-modal-choices', className)} {...props} />
+);

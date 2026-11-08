@@ -5,10 +5,10 @@ import { useSubscribe } from '@/hooks/useSubscribe';
 import { useModal } from '@/hooks/useModal';
 import { useTab } from '@/hooks/useTab';
 
-import styled from 'styled-components';
 import { LuBell, LuBellOff } from 'react-icons/lu';
 import { ToggleIcon } from '@/components/common/svg/ToggleSVG';
 import ModalContents from '@/components/common/modal/ModalContent';
+import { cx } from '@/styles/tw';
 
 function SubscribeToggle() {
 	const { user } = useAuth();
@@ -43,7 +43,7 @@ function SubscribeToggle() {
 									filledButton="확인"
 									onCancelClick={closeModal}
 									onConfirmClick={handleConfirm}
-								/>
+								/>,
 							)
 						}
 					>
@@ -69,69 +69,8 @@ function SubscribeToggle() {
 	);
 }
 
-const SubscribeToggleStyled = styled.div`
-	.subscribe-on,
-	.subscribe-off,
-	.not-subscribe {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		gap: 0.725rem;
-		padding: 1.25rem;
-		border-radius: ${({ theme }) => theme.radius.surface};
-		height: 3.875rem;
-		width: 14rem;
-		font-size: inherit;
-		text-align: left;
-		font-weight: ${({ theme }) => theme.fontWeight.medium};
-		cursor: pointer;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-			border: 1px solid ${({ theme }) => theme.color.primary};
-			transition: background-color 0.5s, border-color 0.5s, color 0.5s;
-		}
-
-		.svg {
-			height: 2rem;
-			width: 3.25rem;
-		}
-
-		/* 휴대폰: 프로필 아래 한 줄을 다 채운다 */
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			width: 100%;
-		}
-	}
-
-	.subscribe-on {
-		border: 1px solid ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.primary};
-		background-color: ${({ theme }) => theme.color.tertiary};
-	}
-
-	.subscribe-off {
-		border: 1px solid ${({ theme }) => theme.color.border};
-		color: ${({ theme }) => theme.color.text};
-		background-color: ${({ theme }) => theme.color.surface};
-	}
-
-	.not-subscribe {
-		border: 1px solid ${({ theme }) => theme.color.border};
-		color: ${({ theme }) => theme.color.text};
-		background-color: ${({ theme }) => theme.color.surface};
-
-		svg {
-			width: 1.25rem;
-			height: 1.25rem;
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-			color: ${({ theme }) => theme.color.primary};
-			background-color: ${({ theme }) => theme.color.tertiary};
-		}
-	}
-`;
+const SubscribeToggleStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-subscribe-toggle-subscribe-toggle', className)} {...props} />
+);
 
 export default SubscribeToggle;

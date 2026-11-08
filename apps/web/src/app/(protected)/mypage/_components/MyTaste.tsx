@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import styled from 'styled-components';
 import { useTaste } from '@/hooks/useHighlights';
+import { cx } from '@/styles/tw';
 
 /** 보여 줄 주제 수 */
 const SHOWN = 10;
@@ -40,73 +40,6 @@ export default function MyTaste() {
 	);
 }
 
-const StyledTaste = styled.section`
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-	padding: 1.125rem 1.25rem;
-	border-radius: ${({ theme }) => theme.radius.surface};
-	background: ${({ theme }) => theme.color.surface};
-
-	.head {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: baseline;
-		gap: 0.25rem 0.75rem;
-
-		h3 {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-		}
-
-		p {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
-			word-break: keep-all;
-		}
-	}
-
-	ol {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-
-		/* 모바일은 두어 줄만: 앞 6개 */
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			li:nth-child(n + 7) {
-				display: none;
-			}
-		}
-	}
-
-	/* 태그 칩: 앞 3개는 주 색 바탕, 나머지는 테두리만 */
-	.chip {
-		display: inline-flex;
-		align-items: center;
-		height: 2rem;
-		padding: 0 0.75rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.background};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.text};
-		white-space: nowrap;
-
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		&.top {
-			border-color: transparent;
-			background: ${({ theme }) => theme.color.tertiary};
-			color: ${({ theme }) => theme.color.primary};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		}
-	}
-`;
+const StyledTaste = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-mypage-my-taste-taste', className)} {...props} />
+);

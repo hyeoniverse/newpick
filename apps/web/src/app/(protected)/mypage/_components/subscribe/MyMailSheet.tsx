@@ -1,13 +1,13 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import MailView from '@/components/common/MailView';
 import Skeleton from '@/components/common/loader/Skeleton';
 import ErrorState from '@/components/common/ErrorState';
 import { errorStateFor, statusOf } from '@/constants/errors';
+import { cx } from '@/styles/tw';
 
 /** 내 뉴스레터에서 메일 한 통을 연 시트: 받은 그대로의 메일 (체험하기와 같은 모양) */
 export default function MyMailSheet({ sentAt }: { sentAt: string }) {
@@ -34,16 +34,6 @@ export default function MyMailSheet({ sentAt }: { sentAt: string }) {
 }
 
 /** 체험하기 시트와 같은 높이 (넓은 시트 안을 채운다) */
-const StyledSheet = styled.div`
-	width: 100%;
-	height: min(46rem, calc(85vh - 4rem));
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-
-	.loading {
-		flex: 1;
-		min-height: 0;
-		overflow: hidden;
-	}
-`;
+const StyledSheet = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-my-mail-sheet-sheet', className)} {...props} />
+);

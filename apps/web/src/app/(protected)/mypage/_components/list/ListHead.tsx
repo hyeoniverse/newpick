@@ -1,7 +1,7 @@
 'use client';
 
-import styled from 'styled-components';
 import InputSelect from '@/components/common/InputSelect';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	/** 목록 이름 (예: '받은 메일', '북마크', '스크랩한 문장') */
@@ -46,61 +46,13 @@ export function SortSelect<T extends string>({ value, options, onChange }: SortP
 	);
 }
 
-const StyledListHead = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	justify-content: space-between;
-	gap: 0.75rem 1rem;
-	margin-top: 0.5rem;
-
-	h3 {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-	}
-
-	.count {
-		margin-left: 0.25rem;
-		color: ${({ theme }) => theme.color.primary};
-	}
-
-	.list-tools {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem 0.75rem;
-	}
-
-	.list-tools [role='group'] .chips-label {
-		display: none;
-	}
-`;
+const StyledListHead = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-list-head-list-head', className)} {...props} />
+);
 
 /**
  * 목록 머리 아래 거르기 줄 (예: '관심사 [전체] [IT] …'). 휴대폰에서는 이름표 옆에 칩을 한 줄로 두고 옆으로 밀어 본다
  */
-export const FilterRow = styled.div`
-	margin-top: -0.25rem;
-
-	[role='group'] .chips-label {
-		width: auto;
-		margin-right: 0.25rem;
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		[role='group'] {
-			flex-wrap: nowrap;
-			overflow-x: auto;
-			scrollbar-width: none;
-
-			.chips-label {
-				flex-basis: auto;
-			}
-
-			button {
-				flex-shrink: 0;
-			}
-		}
-	}
-`;
+export const FilterRow = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-list-head-filter-row', className)} {...props} />
+);

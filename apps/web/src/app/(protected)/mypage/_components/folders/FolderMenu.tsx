@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import styled from 'styled-components';
 import { LuCheck, LuFolder, LuFolderPlus } from 'react-icons/lu';
 import { useFolderMutations, useFolders } from '@/hooks/useFolders';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	/** 단추 글 (예: '폴더 옮기기', '폴더로 옮기기') */
@@ -136,112 +136,11 @@ export default function FolderMenu({ label, current, onPick, up = false, classNa
 	);
 }
 
-const StyledFolderMenu = styled.div`
-	position: relative;
-	display: inline-flex;
-`;
+const StyledFolderMenu = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-folder-menu-folder-menu', className)} {...props} />
+);
 
 /** body에 띄우는 메뉴 (자리는 style로) */
-const StyledMenu = styled.div`
-	position: fixed;
-	z-index: 1000;
-	display: flex;
-	flex-direction: column;
-	min-width: 13rem;
-	max-height: 18rem;
-	overflow-y: auto;
-	padding: 0.375rem;
-	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.radius.surface};
-	background: ${({ theme }) => theme.color.background};
-
-	/* 모바일: 화면 아래에 붙여 띄운다 (단추 옆 자리를 정한 인라인 위치보다 앞서게) */
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		top: auto !important;
-		right: 1rem !important;
-		bottom: 6.5rem !important;
-		left: 1rem !important;
-		min-width: 0;
-	}
-
-	> button {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0.625rem;
-		border-radius: ${({ theme }) => theme.radius.control};
-		font: inherit;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.text};
-		text-align: left;
-		white-space: nowrap;
-		cursor: pointer;
-
-		svg {
-			flex-shrink: 0;
-			width: 1rem;
-			height: 1rem;
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		.muted {
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		.check {
-			margin-left: auto;
-		}
-
-		&:hover {
-			background: ${({ theme }) => theme.color.tertiary};
-		}
-
-		&.new {
-			margin-top: 0.25rem;
-			border-top: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: 0 0 ${({ theme }) => theme.radius.control} ${({ theme }) => theme.radius.control};
-			padding-top: 0.625rem;
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.add {
-		display: flex;
-		gap: 0.375rem;
-		margin-top: 0.25rem;
-		padding-top: 0.5rem;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
-
-		input {
-			flex: 1;
-			min-width: 0;
-			padding: 0.375rem 0.5rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.control};
-			background: ${({ theme }) => theme.color.background};
-			color: ${({ theme }) => theme.color.text};
-			font: inherit;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-
-			&:focus {
-				outline: none;
-				border-color: ${({ theme }) => theme.color.primary};
-			}
-		}
-
-		button {
-			padding: 0.375rem 0.625rem;
-			border-radius: ${({ theme }) => theme.radius.control};
-			background: ${({ theme }) => theme.color.primary};
-			color: ${({ theme }) => theme.color.white};
-			font: inherit;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			cursor: pointer;
-
-			&:disabled {
-				opacity: 0.4;
-				cursor: default;
-			}
-		}
-	}
-`;
+const StyledMenu = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-folder-menu-menu', className)} {...props} />
+);

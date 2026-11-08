@@ -7,12 +7,12 @@ import { useModal } from '@/hooks/useModal';
 import { useToast } from '@/hooks/useToast';
 import { useInputCheck } from '@/hooks/useInputCheck';
 
-import styled from 'styled-components';
 import { LuTriangleAlert } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 import InputCheck from '@/components/common/InputCheck';
+import { cx } from '@/styles/tw';
 
 const CONFIRM_NAME = 'delete-account-confirm';
 
@@ -105,73 +105,10 @@ export function DeleteAccountSheet() {
 	);
 }
 
-const StyledDeleteAccount = styled.section`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 1.5rem;
-	margin-top: 4rem;
-	padding-top: 2rem;
-	border-top: 1px solid ${({ theme }) => theme.color.border};
+const StyledDeleteAccount = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-mypage-delete-account-delete-account', className)} {...props} />
+);
 
-	> div {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-		word-break: keep-all;
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		flex-direction: column;
-		align-items: flex-start;
-	}
-`;
-
-const StyledSheet = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.75rem;
-	text-align: center;
-	word-break: keep-all;
-
-	.icon {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 3rem;
-		height: 3rem;
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		background: color-mix(in srgb, ${({ theme }) => theme.color.error} 15%, transparent);
-		color: ${({ theme }) => theme.color.error};
-
-		svg {
-			width: 1.5rem;
-			height: 1.5rem;
-		}
-	}
-
-	ul {
-		width: 100%;
-		margin: 0.25rem 0;
-		padding: 1rem 1rem 1rem 2rem;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
-		background: ${({ theme }) => theme.color.surface};
-		text-align: left;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		line-height: 1.8;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	.buttons {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		gap: 0.5rem;
-		width: 100%;
-		margin-top: 0.5rem;
-
-		button {
-			width: 100%;
-		}
-	}
-`;
+const StyledSheet = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-mypage-delete-account-sheet', className)} {...props} />
+);
