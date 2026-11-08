@@ -11,7 +11,6 @@ import API_ENDPOINTS from '@/constants/api';
 import { CATEGORIES } from '@/constants/categories';
 import { useToast } from '@/hooks/useToast';
 import { useModal } from '@/hooks/useModal';
-import styles from '@/app/(protected)/protected.module.css';
 import AdminGate from '@/components/common/auth/AdminGate';
 import BackBar from '@/components/common/BackBar';
 import Title from '@/components/common/Title';
@@ -149,7 +148,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 
 	return (
 		<AdminGate>
-			<div className={styles.page}>
+			<div className="np-protected-page">
 				<StyledEdit>
 					<BackBar text="발행한 뉴스레터" onClick={() => router.push('/admin/newsletters')} />
 					<div className="head">

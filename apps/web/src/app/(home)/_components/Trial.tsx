@@ -5,13 +5,13 @@ import { CATEGORIES } from '@/constants/categories';
 import { fetchEditionPreview } from '@/api/edition';
 import { useOpenSubscribe } from '@/hooks/useOpenSubscribe';
 
-import styled from 'styled-components';
 import { LuCircleAlert, LuMailOpen } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Skeleton from '@/components/common/loader/Skeleton';
 import MailView from '@/components/common/MailView';
+import { cx } from '@/styles/tw';
 
 const INTERESTS = CATEGORIES.slice(1);
 
@@ -127,95 +127,11 @@ export default function Trial() {
 	);
 }
 
-const StyledTrial = styled.div`
-	/* 넓은 시트(large) 안을 채운다. 시트 최대 높이 85vh에서 위아래 여백을 뺀 만큼 */
-	width: 100%;
-	height: min(46rem, calc(85vh - 4rem));
-	display: flex;
-	flex-direction: column;
-	gap: 1.25rem;
-
-	.header {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.chips {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-	}
-
-	.chip {
-		padding: 0.375rem 0.875rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.capsule};
-		background: ${({ theme }) => theme.color.background};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.text};
-		cursor: pointer;
-
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-
-		&.selected {
-			border-color: ${({ theme }) => theme.color.primary};
-			background: ${({ theme }) => theme.color.primary};
-			color: ${({ theme }) => theme.color.background};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		}
-	}
-
-	.subscribe {
-		flex-shrink: 0;
-		width: 100%;
-		height: 3rem;
-		border-radius: ${({ theme }) => theme.borderRadius.flat};
-	}
-`;
+const StyledTrial = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-home-trial-trial', className)} {...props} />
+);
 
 /** 받은편지함에서 연 메일 모양. 시트 폭이 메일 폭(600px)에 맞춰져 있어 본문(iframe)이 꽉 찬다 */
-const StyledMail = styled.div`
-	flex: 1;
-	min-height: 0;
-	display: flex;
-	flex-direction: column;
-
-	.info {
-		height: 100%;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		padding: 1.25rem;
-		border-radius: ${({ theme }) => theme.borderRadius.medium};
-		background: ${({ theme }) => theme.color.surface};
-		text-align: center;
-		word-break: keep-all;
-
-		.badge {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 3.5rem;
-			height: 3.5rem;
-			margin-bottom: 0.5rem;
-			border-radius: ${({ theme }) => theme.borderRadius.circle};
-			background: ${({ theme }) => theme.color.tertiary};
-			color: ${({ theme }) => theme.color.primary};
-
-			svg {
-				width: 1.75rem;
-				height: 1.75rem;
-			}
-
-			&.error {
-				color: ${({ theme }) => theme.color.error};
-			}
-		}
-	}
-`;
+const StyledMail = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-home-trial-mail', className)} {...props} />
+);

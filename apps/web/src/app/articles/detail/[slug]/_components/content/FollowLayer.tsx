@@ -3,11 +3,11 @@
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import styled from 'styled-components';
 import { useAuth } from '@/hooks/useAuth';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 import { useFollowMutations, useNewsletterFollowUpdates, useNewsletterFollows } from '@/hooks/useFollows';
 import { BellGlyph } from '@/components/common/icons/Glyphs';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	newsletterId: number;
@@ -159,103 +159,11 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 	);
 }
 
-const FollowButton = styled.button`
-	display: inline-flex;
-	align-items: center;
-	gap: 0.25rem;
-	margin: 0;
-	padding: 0.25rem 0.625rem;
-	/* 눈에 띄게: 강조색 테두리 · 글자 (지켜보는 중이면 강조색으로 채운다) */
-	border: 1px solid ${({ theme }) => theme.color.primary};
-	border-radius: ${({ theme }) => theme.radius.chip};
-	background: ${({ theme }) => theme.color.background};
-	font-size: 0.75rem;
-	font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-	letter-spacing: 0;
-	color: ${({ theme }) => theme.color.primary};
-	white-space: nowrap;
-	cursor: pointer;
-	transition:
-		color 0.15s ease,
-		background 0.15s ease;
-
-	line-height: 1.25;
-
-	/* 본문 공통 * { margin-bottom }이 아이콘을 위로 밀지 않게 · inline 기준선 대신 단추 가운데에 */
-	svg {
-		display: block;
-		flex-shrink: 0;
-		margin: 0;
-		width: 0.875rem;
-		height: 0.875rem;
-	}
-
-	&:hover:not(:disabled) {
-		background: ${({ theme }) => theme.color.tertiary};
-	}
-
-	&.on {
-		background: ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.background};
-	}
-
-	/* 켜진 단추를 가리켜도 채운 바탕 그대로 (연한 바탕이 덮이면 흰 글자가 안 보인다), 조금 옅게만 */
-	&.on:hover:not(:disabled) {
-		background: ${({ theme }) => theme.color.primary};
-		opacity: 0.85;
-	}
-
-	&:disabled {
-		cursor: progress;
-		opacity: 0.6;
-	}
-`;
+const FollowButton = ({ className, ...props }: React.ComponentProps<'button'>) => (
+	<button className={cx('np-articles-follow-layer-follow-button', className)} {...props} />
+);
 
 /* 소식 맨 위: 이 소식이 이어 가는, 내가 지켜보던 원래 소식 (실선 대신 연한 바탕) */
-const FollowFrom = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.25rem 0.75rem;
-	margin: 0 0 1rem;
-	padding: 0.5rem 0.875rem;
-	border-radius: ${({ theme }) => theme.radius.surface};
-	background: ${({ theme }) => theme.color.tertiary};
-	font-size: 0.8125rem;
-	line-height: 1.5;
-
-	* {
-		margin: 0;
-	}
-
-	.label {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.25rem;
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.primary};
-		white-space: nowrap;
-
-		svg {
-			display: block;
-			width: 0.875rem;
-			height: 0.875rem;
-		}
-	}
-
-	.origin {
-		color: ${({ theme }) => theme.color.text};
-		text-decoration: none;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-			text-decoration: underline;
-			text-underline-offset: 0.2em;
-		}
-	}
-
-	.date {
-		margin-right: 0.375rem;
-		color: ${({ theme }) => theme.color.subText};
-	}
-`;
+const FollowFrom = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-articles-follow-layer-follow-from', className)} {...props} />
+);

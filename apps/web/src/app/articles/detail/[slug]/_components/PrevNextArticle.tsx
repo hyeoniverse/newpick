@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import styled from 'styled-components';
 import { IoArrowUp, IoArrowDown } from 'react-icons/io5';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import Link from 'next/link';
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	className?: string;
@@ -36,12 +36,7 @@ function PrevNextArticle({ className, prev, next }: Props) {
 		if (!isDisabled) {
 			return (
 				<li className={`prev-next ${type} ${isActive ? 'active' : ''}`}>
-					<Link
-						href={href}
-						className="link"
-						onMouseEnter={handleMouseEnter(type)}
-						onMouseLeave={handleMouseLeave}
-					>
+					<Link href={href} className="link" onMouseEnter={handleMouseEnter(type)} onMouseLeave={handleMouseLeave}>
 						<span className="tag">
 							{text}
 							{icon}
@@ -84,112 +79,8 @@ function PrevNextArticle({ className, prev, next }: Props) {
 	);
 }
 
-const PrevNextArticleStyled = styled.section`
-	border-top: 1px solid ${({ theme }) => theme.color.border};
-
-	/* 두 줄 높이를 늘 같게: 글이 없는 줄도 글이 있는 줄만큼 */
-	ul {
-		display: grid;
-		grid-auto-rows: 1fr;
-
-		li.prev-next {
-			display: flex;
-			flex-direction: row;
-			gap: 1.5rem;
-			align-items: center;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-			padding: 2.5rem 0;
-
-			.link {
-				display: contents;
-
-				/* 이전글 ↑ · 다음글 ↓: 테두리 없는 글자 꼬리표 */
-				.tag {
-					display: inline-flex;
-					align-items: center;
-					gap: 0.25rem;
-					flex-shrink: 0;
-					width: 4.5rem;
-					font-size: ${({ theme }) => theme.fontSize.small};
-					font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-					color: ${({ theme }) => theme.color.primary};
-				}
-
-				/* 사진: 가로형(16:9) 작은 칸 */
-				.img {
-					flex-shrink: 0;
-					width: 9rem;
-					margin: 0;
-					overflow: hidden;
-					border-radius: ${({ theme }) => theme.radius.surface};
-
-				}
-
-				.text-section {
-					flex: 1;
-					min-width: 0;
-
-					.title {
-						color: ${({ theme }) => theme.color.text};
-						font-size: ${({ theme }) => theme.fontSize.medium};
-						font-weight: ${({ theme }) => theme.fontWeight.medium};
-						margin-bottom: 0.5rem;
-
-						overflow: hidden;
-						text-overflow: ellipsis;
-						display: -webkit-box;
-						-webkit-line-clamp: 1;
-						-webkit-box-orient: vertical;
-					}
-
-					.date {
-						color: ${({ theme }) => theme.color.lightGrey};
-						font-size: ${({ theme }) => theme.fontSize.extraSmall};
-					}
-				}
-			}
-
-			&.active {
-				background-color: ${({ theme }) => theme.color.surface};
-			}
-
-			/* 글이 없을 때: 버튼만 흐리게, 안내 문구는 읽을 수 있는 대비로 (#16) */
-			&.disabled {
-				pointer-events: none;
-
-				/* 안내 문구는 세로 가운데, 가로는 왼쪽 */
-				.text-section {
-					align-self: stretch;
-					display: flex;
-					align-items: center;
-				}
-
-				/* 제목 아래 여백(날짜와의 간격)이 남으면 꼬리표보다 4px 위로 뜬다 */
-				.link .text-section .title {
-					margin: 0;
-					color: ${({ theme }) => theme.color.text};
-				}
-
-				.date {
-					display: none;
-				}
-			}
-		}
-	}
-
-	@media screen and ${({ theme }) => theme.mediaQuery.tablet} {
-		ul {
-
-			li.prev-next {
-				padding: 1.5rem 0;
-				gap: 1rem;
-
-				.img {
-					display: none;
-				}
-			}
-		}
-	}
-`;
+const PrevNextArticleStyled = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-articles-prev-next-article-prev-next-article', className)} {...props} />
+);
 
 export default PrevNextArticle;

@@ -6,7 +6,6 @@ import { Suspense, useEffect, useState } from 'react';
 import { dateFormatter } from '@/utils/formatter';
 import { mapIdToTitle } from '@/utils/mapInterests';
 
-import styled from 'styled-components';
 import Text from '@/components/common/Text';
 import SummaryTextBox from '@/components/common/article/SummaryTextBox';
 import PopularArticle from '@/app/articles/detail/[slug]/_components/PopularArticle';
@@ -28,247 +27,143 @@ import { parseUrls } from '@/utils/parseArticles';
 import Skeleton from '@/components/common/loader/Skeleton';
 import ErrorState from '@/components/common/ErrorState';
 import { DELETED_NEWSLETTER, errorStateFor, statusOf } from '@/constants/errors';
-
+import { cx } from '@/styles/tw';
 
 interface Props {
-  /** 서버에서 읽어 둔 뉴스레터. 있으면 불러오는 동안의 빈 화면 없이 바로 그린다 */
-  initial?: IArticleInfo;
+	/** 서버에서 읽어 둔 뉴스레터. 있으면 불러오는 동안의 빈 화면 없이 바로 그린다 */
+	initial?: IArticleInfo;
 }
 
 function Article({ initial }: Props) {
-  const router = useRouter();
-  const { slug } = useParams() as { slug: string };
+	const router = useRouter();
+	const { slug } = useParams() as { slug: string };
 
-  const { data: articleContent, error, refetch } = useArticleContentQuery(slug, initial);
-  const increasedViewCount = useViewCount(Number(slug));
-  // 제목이 화면 위로 지나가면 '목록으로' 옆에 제목을 한 줄로 띄운다
-  const [titleEl, setTitleEl] = useState<HTMLElement | null>(null);
-  const [titlePassed, setTitlePassed] = useState(false);
+	const { data: articleContent, error, refetch } = useArticleContentQuery(slug, initial);
+	const increasedViewCount = useViewCount(Number(slug));
+	// 제목이 화면 위로 지나가면 '목록으로' 옆에 제목을 한 줄로 띄운다
+	const [titleEl, setTitleEl] = useState<HTMLElement | null>(null);
+	const [titlePassed, setTitlePassed] = useState(false);
 
-  useEffect(() => {
-    if (!titleEl) return;
-    const observer = new IntersectionObserver(([entry]) =>
-      setTitlePassed(!entry.isIntersecting && entry.boundingClientRect.top < 0),
-    );
-    observer.observe(titleEl);
-    return () => observer.disconnect();
-  }, [titleEl]);
+	useEffect(() => {
+		if (!titleEl) return;
+		const observer = new IntersectionObserver(([entry]) =>
+			setTitlePassed(!entry.isIntersecting && entry.boundingClientRect.top < 0),
+		);
+		observer.observe(titleEl);
+		return () => observer.disconnect();
+	}, [titleEl]);
 
-  // 서버 확인 뒤에 지워졌거나(404) 서버 오류면 빈 화면 대신 안내
-  if (error) {
-    const status = statusOf(error);
-    return status === 404 ? (
-      <ErrorState code={404} {...DELETED_NEWSLETTER} />
-    ) : (
-      <ErrorState code={status} {...errorStateFor(status)} onRetry={() => refetch()} />
-    );
-  }
+	// 서버 확인 뒤에 지워졌거나(404) 서버 오류면 빈 화면 대신 안내
+	if (error) {
+		const status = statusOf(error);
+		return status === 404 ? (
+			<ErrorState code={404} {...DELETED_NEWSLETTER} />
+		) : (
+			<ErrorState code={status} {...errorStateFor(status)} onRetry={() => refetch()} />
+		);
+	}
 
-  if (!articleContent) {
-    return null;
-  }
-  const newsletterHTML = stripCodeFence(articleContent.newsletter.contentAsHTML, 'html');
-  const newsletterContent = articleContent.newsletter;
-  const relatedNews = parseUrls(articleContent.newsletter.usedNews);
+	if (!articleContent) {
+		return null;
+	}
+	const newsletterHTML = stripCodeFence(articleContent.newsletter.contentAsHTML, 'html');
+	const newsletterContent = articleContent.newsletter;
+	const relatedNews = parseUrls(articleContent.newsletter.usedNews);
 
-  return (
-    <>
-      {/* 목록으로: 스크롤해도 따라온다. 헤더처럼 내릴 땐 화살표만 남기고 접고, 올릴 땐 펼친다.
+	return (
+		<>
+			{/* 목록으로: 스크롤해도 따라온다. 헤더처럼 내릴 땐 화살표만 남기고 접고, 올릴 땐 펼친다.
           제목을 지나 읽는 중이면 옆에 제목을 한 줄로, 누르면 맨 위 제목으로 올라간다 */}
-      <ArticleBackBar
-        text="목록으로"
-        onClick={() => router.push(`/articles?categoryId=${newsletterContent.categoryId}`)}
-        title={newsletterContent.title}
-        showTitle={titlePassed}
-        // 따라오는 제목을 누르면 맨 위 제목으로 (움직임 줄이기 설정이면 바로)
-        onTitleClick={() =>
-          window.scrollTo({
-            top: 0,
-            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
-          })
-        }
-      />
-      <TitleSectionStyled data-track-section="detail-title">
-        <div className="title-section">
-          <Link href={`/articles?categoryId=${newsletterContent.categoryId}`} className="category">
-            {mapIdToTitle([newsletterContent.categoryId])[0] || `#${newsletterContent.categoryId}`}
-          </Link>
-          <Title size="large" weight="semiBold" className="title" ref={setTitleEl}>
-            {newsletterContent.title}
-          </Title>
-          {newsletterContent.subtitle && (
-            <Text size="medium" color="subText" className="subtitle">
-              {newsletterContent.subtitle}
-            </Text>
-          )}
-          <Tags tags={newsletterContent.keywords} className="keywords" linkable />
-          <div className="info">
-            <Text size="small" color="subText">
-              {dateFormatter(newsletterContent.createdAt)}
-            </Text>
-            <Text size="small" color="subText">
-              |&nbsp;&nbsp;조회수 {increasedViewCount ?? newsletterContent.viewcount}
-            </Text>
-          </div>
-          <div className="icons">
-            <BookmarkIcon newsId={newsletterContent.id} newsletterId={newsletterContent.id} />
-            <LinkCopyIcon id={newsletterContent.id} />
-          </div>
-        </div>
-      </TitleSectionStyled>
-      <ArticleStyled>
-        <Suspense fallback={<Skeleton />}>
-          <SummaryTextBox>{newsletterContent.content}</SummaryTextBox>
-        </Suspense>
-        {/* 생성형 AI 결과물 표시 (인공지능 기본법 제31조, 이용약관 제5조) */}
-        <Text as="p" size="extraSmall" color="subText" className="ai-notice">
-          이 뉴스레터는 AI가 여러 언론사 기사를 요약·재구성했습니다. 수치·발언은 각 소식의 출처 기사를 함께 확인하세요.
-        </Text>
-        <div className="content-section">
-          <Suspense fallback={<Skeleton />}>
-            <ArticleContent
-              className="content"
-              content={newsletterHTML}
-              newsId={newsletterContent.id}
-              articleImage={newsletterContent.imageUrl ?? `${DEFAULT_IMAGES.MONO}`}
-              related={relatedNews}
-            />
-          </Suspense>
-          <Suspense fallback={<Skeleton />}>
-            <PopularArticle className="popular" />
-          </Suspense>
-        </div>
-        <Suspense fallback={<Skeleton />}>
-          <PrevNextArticle
-            className="prev-next"
-            prev={articleContent.previousNewsletter}
-            next={articleContent.nextNewsletter}
-          />
-        </Suspense>
-        <Suspense fallback={<Skeleton />}>
-          <LatestArticle className="latest" />
-        </Suspense>
-        <MobileLikeLinkButton className="icons" newsId={newsletterContent.id} />
-      </ArticleStyled>
-    </>
-  );
+			<ArticleBackBar
+				text="목록으로"
+				onClick={() => router.push(`/articles?categoryId=${newsletterContent.categoryId}`)}
+				title={newsletterContent.title}
+				showTitle={titlePassed}
+				// 따라오는 제목을 누르면 맨 위 제목으로 (움직임 줄이기 설정이면 바로)
+				onTitleClick={() =>
+					window.scrollTo({
+						top: 0,
+						behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+					})
+				}
+			/>
+			<TitleSectionStyled data-track-section="detail-title">
+				<div className="title-section">
+					<Link href={`/articles?categoryId=${newsletterContent.categoryId}`} className="category">
+						{mapIdToTitle([newsletterContent.categoryId])[0] || `#${newsletterContent.categoryId}`}
+					</Link>
+					<Title size="large" weight="semiBold" className="title" ref={setTitleEl}>
+						{newsletterContent.title}
+					</Title>
+					{newsletterContent.subtitle && (
+						<Text size="medium" color="subText" className="subtitle">
+							{newsletterContent.subtitle}
+						</Text>
+					)}
+					<Tags tags={newsletterContent.keywords} className="keywords" linkable />
+					<div className="info">
+						<Text size="small" color="subText">
+							{dateFormatter(newsletterContent.createdAt)}
+						</Text>
+						<Text size="small" color="subText">
+							|&nbsp;&nbsp;조회수 {increasedViewCount ?? newsletterContent.viewcount}
+						</Text>
+					</div>
+					<div className="icons">
+						<BookmarkIcon newsId={newsletterContent.id} newsletterId={newsletterContent.id} />
+						<LinkCopyIcon id={newsletterContent.id} />
+					</div>
+				</div>
+			</TitleSectionStyled>
+			<ArticleStyled>
+				<Suspense fallback={<Skeleton />}>
+					<SummaryTextBox>{newsletterContent.content}</SummaryTextBox>
+				</Suspense>
+				{/* 생성형 AI 결과물 표시 (인공지능 기본법 제31조, 이용약관 제5조) */}
+				<Text as="p" size="extraSmall" color="subText" className="ai-notice">
+					이 뉴스레터는 AI가 여러 언론사 기사를 요약·재구성했습니다. 수치·발언은 각 소식의 출처 기사를 함께 확인하세요.
+				</Text>
+				<div className="content-section">
+					<Suspense fallback={<Skeleton />}>
+						<ArticleContent
+							className="content"
+							content={newsletterHTML}
+							newsId={newsletterContent.id}
+							articleImage={newsletterContent.imageUrl ?? `${DEFAULT_IMAGES.MONO}`}
+							related={relatedNews}
+						/>
+					</Suspense>
+					<Suspense fallback={<Skeleton />}>
+						<PopularArticle className="popular" />
+					</Suspense>
+				</div>
+				<Suspense fallback={<Skeleton />}>
+					<PrevNextArticle
+						className="prev-next"
+						prev={articleContent.previousNewsletter}
+						next={articleContent.nextNewsletter}
+					/>
+				</Suspense>
+				<Suspense fallback={<Skeleton />}>
+					<LatestArticle className="latest" />
+				</Suspense>
+				<MobileLikeLinkButton className="icons" newsId={newsletterContent.id} />
+			</ArticleStyled>
+		</>
+	);
 }
 
-const ArticleStyled = styled.div`
-    margin: 4rem 0;
-    position: relative;
-    width: 100%;
-    height: auto;
+const ArticleStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-articles-article-article', className)} {...props} />
+);
 
-    .ai-notice {
-        margin: 0.5rem 0 0;
-        line-height: 1.6;
-        word-break: keep-all;
-    }
+/** 기사 화면에서는 제목 위 여백을 두고 시작 (styles/pages/articles.css) */
+const ArticleBackBar = ({ className, ...props }: React.ComponentProps<typeof BackBar>) => (
+	<BackBar className={cx('np-articles-article-back-bar', className)} {...props} />
+);
 
-    .content-section {
-        display: flex;
-        flex-direction: row;
-        justify-content: flex-start;
-        gap: 2rem;
-        margin: 2rem 0;
-
-        .content {
-            flex: 3;
-        }
-
-        .popular {
-            flex: 1;
-            margin-top: 2rem;
-        }
-    }
-
-    @media screen and ${({ theme }) => theme.mediaQuery.tablet} {
-        display: flex;
-        flex-direction: column;
-
-        .content-section {
-            flex-direction: column;
-
-            .content {
-                border-bottom: 1px solid ${({ theme }) => theme.color.border};
-                margin-bottom: 2rem;
-            }
-
-            .popular {
-                order: 4;
-            }
-        }
-    }
-
-    .induce {
-        order: 1;
-    }
-
-    .prev-next {
-        order: 2;
-    }
-
-    .latest {
-        order: 3;
-    }
-`;
-
-/** 기사 화면에서는 제목 위 여백을 두고 시작 */
-const ArticleBackBar = styled(BackBar)`
-    margin-top: 4rem;
-`;
-
-const TitleSectionStyled = styled.div`
-    display: flex;
-    flex-direction: column;
-    border-bottom: 1px solid ${({ theme }) => theme.color.border};
-
-    .title-section {
-        text-align: center;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        gap: 0.25rem;
-        margin: 1.25rem 0;
-
-        .category {
-            color: ${({ theme }) => theme.color.primary};
-            font-weight: ${({ theme }) => theme.fontWeight.medium};
-        }
-
-        .title {
-            word-break: auto-phrase;
-        }
-
-        .subtitle {
-            word-break: auto-phrase;
-            max-width: 40rem;
-        }
-
-        .keywords {
-            justify-content: center;
-            margin-top: 0.5rem;
-        }
-
-        .icons {
-            display: flex;
-            flex-direction: row;
-            gap: 1rem;
-            justify-content: center;
-            align-items: center;
-            margin-top: 0.75rem;
-        }
-
-        .info {
-            display: flex;
-            flex-direction: row;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-        }
-    }
-`;
+const TitleSectionStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-articles-article-title-section', className)} {...props} />
+);
 
 export default Article;

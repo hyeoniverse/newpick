@@ -2,7 +2,6 @@
 
 import { useRouter } from 'next/navigation';
 import styled from 'styled-components';
-import styles from '@/app/(protected)/protected.module.css';
 import AdminGate from '@/components/common/auth/AdminGate';
 import Title from '@/components/common/Title';
 import BackBar from '@/components/common/BackBar';
@@ -30,7 +29,7 @@ export default function AdminSubPage({ title, summary, filters, period = true, b
 	const { periodQuery } = useAdminQuery();
 	return (
 		<AdminGate>
-			<div className={styles.page}>
+			<div className="np-protected-page">
 				<StyledSubPage>
 					{/* 세 묶음: 머리(뒤로 막대) / 조건(제목 · 기간 한 줄, 거르기) / 결과(건수 · 표 · 쪽) */}
 					{/* 기사 상세의 '목록으로'와 같은 막대: 스크롤하면 위에 붙고, 내릴 땐 화살표만.

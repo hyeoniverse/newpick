@@ -1,10 +1,10 @@
 'use client';
 
-import styled from 'styled-components';
 import { useEffect, useState } from 'react';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { useFloatStore } from '@/stores/useFloatStore';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	className?: string;
@@ -52,50 +52,8 @@ function MobileLikeLinkButton({ className, newsId }: Props) {
 	);
 }
 
-const MobileLikeLinkButtonStyled = styled.div`
-	display: flex;
-	flex-direction: column;
-	height: auto;
-	position: fixed;
-	bottom: 7.25rem;
-	right: 1.5rem;
-	z-index: 999;
-	gap: 0.75rem;
-
-	.mobile-icon {
-		height: 2.5rem;
-		width: 2.5rem;
-		cursor: pointer;
-		color: ${({ theme }) => theme.color.primary};
-		background: ${({ theme }) => theme.color.background};
-		border: 0.5px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.borderRadius.flat};
-
-		opacity: 0;
-		transform: translateY(10px);
-		transition:
-			opacity 0.3s ease,
-			transform 0.3s ease;
-
-		&.fade-in {
-			opacity: 80%;
-			transform: translateY(0);
-		}
-
-		&.fade-out {
-			opacity: 0;
-			transform: translateY(60px);
-		}
-
-		svg {
-			position: absolute;
-			width: 1.25rem;
-			height: 1.25rem;
-			left: 50%;
-			top: 50%;
-			transform: translate(-50%, -50%);
-		}
-	}
-`;
+const MobileLikeLinkButtonStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-articles-mobile-like-link-button-mobile-like-link-button', className)} {...props} />
+);
 
 export default MobileLikeLinkButton;

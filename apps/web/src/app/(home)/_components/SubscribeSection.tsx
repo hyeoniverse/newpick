@@ -7,7 +7,6 @@ import { useSelectInterests } from '@/hooks/useInterests';
 import { useAuth } from '@/hooks/useAuth';
 import { useTrends } from '@/hooks/useTrends';
 
-import { styled } from 'styled-components';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
@@ -20,6 +19,7 @@ import { useModal } from '@/hooks/useModal';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
+import { cx } from '@/styles/tw';
 
 const SubscribeSection = () => {
 	const { user } = useAuth();
@@ -49,7 +49,7 @@ const SubscribeSection = () => {
 					content={`내일부터 새로운 뉴스레터를 보내드려요.`}
 					filledButton="확인"
 					onConfirmClick={closeModal}
-				/>
+				/>,
 			);
 		}
 	};
@@ -73,8 +73,7 @@ const SubscribeSection = () => {
 						const image =
 							category.name === '전체'
 								? '/img/category_all-2.jpg'
-								: trends.find((trend) => trend.categoryName === category.name)?.image ||
-								  '/img/newpick_default_img.jpg';
+								: trends.find((trend) => trend.categoryName === category.name)?.image || '/img/newpick_default_img.jpg';
 
 						return {
 							id: category.id ?? 0,
@@ -129,55 +128,8 @@ const SubscribeSection = () => {
 	);
 };
 
-const StyledSubscribe = styled.section`
-	width: 100%;
-	display: flex;
-	flex-direction: column;
-	margin-top: 6rem;
-	margin-bottom: 4rem;
-
-	.content {
-		display: flex;
-		flex-direction: row;
-		justify-content: space-between;
-		gap: 2rem;
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			flex-wrap: wrap;
-		}
-	}
-
-	.subscription-form {
-		width: fit-content;
-		height: fit-content;
-		display: flex;
-		flex-direction: column;
-		justify-content: space-between;
-
-		.main {
-			display: flex;
-			justify-content: flex-start;
-			align-items: center;
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			width: 100%;
-		}
-	}
-
-	.quick-subscription {
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			.card {
-				min-width: calc(50% - 0.9rem);
-			}
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			.card {
-				min-width: calc(100% - 0.9rem);
-			}
-		}
-	}
-`;
+const StyledSubscribe = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-home-subscribe-section-subscribe', className)} {...props} />
+);
 
 export default SubscribeSection;

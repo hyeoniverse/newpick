@@ -2,12 +2,12 @@
 
 import { Suspense, lazy } from 'react';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
-import { styled } from 'styled-components';
 import Text from '@/components/common/Text';
 import Skeleton from '@/components/common/loader/Skeleton';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import BorderTitle from '@/components/common/BorderTitle';
 import { useTrends } from '@/hooks/useTrends';
+import { cx } from '@/styles/tw';
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
 const TrendSection = () => {
@@ -58,45 +58,8 @@ const TrendSection = () => {
 	);
 };
 
-const StyledTrendSection = styled.section`
-	display: flex;
-	flex-direction: column;
-	justify-content: center;
-	align-items: flex-start;
-	padding: 2rem 0;
-	gap: 2rem;
-
-	.placeholder {
-		width: 100%;
-		display: flex;
-		justify-content: center;
-		align-items: center;
-	}
-
-	.trend-header {
-		width: 100%;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-
-		button {
-			display: flex;
-			align-items: center;
-			gap: 0.5rem;
-		}
-	}
-
-	.trend-cards {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-		gap: 2rem;
-		width: 100%;
-		height: fit-content;
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.tablet} {
-		flex-wrap: wrap;
-	}
-`;
+const StyledTrendSection = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-home-trend-section-trend-section', className)} {...props} />
+);
 
 export default TrendSection;

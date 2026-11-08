@@ -6,7 +6,6 @@ import { fetchArticleByCategory, fetchTrendList } from '@/api/article';
 import { CATEGORIES } from '@/constants/categories';
 import { pageMetadata } from '@/constants/site';
 
-import styles from '@/app/articles/(main)/category.module.css';
 import HotSection, { CategoryStats } from '@/app/articles/(main)/_components/HotSection';
 import ListSection from '@/app/articles/(main)/_components/ListSection';
 import ArticlesLoading from '@/app/articles/(main)/_components/ArticlesLoading';
@@ -76,7 +75,7 @@ async function CategoryContent({ categoryId }: { categoryId: number }) {
 	}
 
 	return (
-		<div className={styles.categoryPage}>
+		<div className="np-category-page">
 			<HotSection trends={parsedTrends} stats={stats} latest={latest} />
 			{/* 목록은 배너(TODAY)에 띄운 글도 빼지 않고 다 보여 준다 (건수와 보이는 수가 같게) */}
 			<ListSection />

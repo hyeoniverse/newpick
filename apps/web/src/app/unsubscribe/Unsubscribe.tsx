@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import styled, { keyframes } from 'styled-components';
 import { LuMailX, LuMailCheck, LuLink2Off, LuX, LuCheck } from 'react-icons/lu';
 import { apiFetch, ApiError } from '@/api/client';
 import { API_ENDPOINTS } from '@/constants/api';
 import Button from '@/components/common/Button';
 import Spinner from '@/components/common/loader/Spinner';
+import { cx } from '@/styles/tw';
 
 type Target = { email: string; subscribed: boolean };
 
@@ -147,171 +147,7 @@ export default function Unsubscribe() {
 	);
 }
 
-const pop = keyframes`
-	0% { transform: scale(0.6); opacity: 0; }
-	70% { transform: scale(1.08); opacity: 1; }
-	100% { transform: none; }
-`;
-
 /** 오류 화면(ErrorState)과 같은 가운데 정렬: 아이콘 → 머리말 → 제목 → 메일 주소 → 설명 → 버튼 */
-const StyledUnsubscribe = styled.section`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.75rem;
-	width: 100%;
-	max-width: 30rem;
-	margin: 0 auto;
-	padding: 6rem 0;
-	text-align: center;
-	word-break: keep-all;
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		padding: 4rem 0;
-	}
-
-	.badge {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 4rem;
-		height: 4rem;
-		margin-bottom: 0.5rem;
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		background: ${({ theme }) => theme.color.tertiary};
-		color: ${({ theme }) => theme.color.primary};
-
-		svg {
-			width: 1.875rem;
-			height: 1.875rem;
-		}
-
-		&.done {
-			animation: ${pop} 0.5s ease both;
-		}
-	}
-
-	.eyebrow {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		letter-spacing: 0.08em;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.title {
-		margin: 0;
-		font-size: ${({ theme }) => theme.heading.extraSmall.fontSize};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		line-height: 1.35;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	/* 가린 메일 주소: 누구의 구독인지 */
-	.email {
-		margin: 0;
-		padding: 0.25rem 0.875rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.surface};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		font-variant-numeric: tabular-nums;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	.description {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	/* 해지하면 멈추는 것(X) · 그대로 남는 것(체크) */
-	.changes {
-		display: grid;
-		grid-template-columns: 1fr 1fr;
-		width: 100%;
-		margin-top: 1rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		text-align: left;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: 1fr;
-		}
-
-		ul {
-			display: flex;
-			flex-direction: column;
-			gap: 0.625rem;
-			margin: 0;
-			padding: 1.125rem 1.25rem;
-			list-style: none;
-
-			& + ul {
-				border-left: 1px solid ${({ theme }) => theme.color.border};
-
-				@media ${({ theme }) => theme.mediaQuery.mobile} {
-					border-left: none;
-					border-top: 1px solid ${({ theme }) => theme.color.border};
-				}
-			}
-		}
-
-		li {
-			display: flex;
-			align-items: flex-start;
-			gap: 0.5rem;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			line-height: 1.5;
-			color: ${({ theme }) => theme.color.text};
-
-			svg {
-				flex-shrink: 0;
-				width: 1rem;
-				height: 1rem;
-				margin-top: 0.125rem;
-			}
-		}
-
-		.stop svg {
-			color: ${({ theme }) => theme.color.error};
-		}
-
-		.keep svg {
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.actions {
-		display: flex;
-		gap: 0.75rem;
-		margin-top: 1.5rem;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			flex-direction: column;
-			width: 100%;
-
-			button {
-				width: 100%;
-			}
-		}
-
-		button {
-			min-width: 10rem;
-			justify-content: center;
-		}
-	}
-
-	.failed {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.error};
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.badge.done {
-			animation: none;
-		}
-	}
-`;
+const StyledUnsubscribe = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-unsubscribe-unsubscribe-unsubscribe', className)} {...props} />
+);

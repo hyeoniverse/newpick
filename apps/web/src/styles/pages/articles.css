@@ -1,0 +1,2520 @@
+/* 화면 (articles): styled-components 규칙을 그대로 옮긴 층 밖 CSS. 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
+
+/* app/articles/(main)/_components/ArticlesLoading.tsx · StyledLoading */
+.np-articles-articles-loading-loading {
+	display: flex;
+	flex-direction: column;
+	gap: 2rem;
+	width: 100%;
+	margin-top: 1.5rem;
+
+	.chips {
+		display: flex;
+		gap: 0.5rem;
+		overflow: hidden;
+	}
+
+	.intro {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+
+		> :last-child {
+			max-width: 100%;
+		}
+	}
+
+	.stage {
+		display: grid;
+		grid-template-columns: 1.4fr 1fr;
+		gap: 2rem;
+		height: 18rem;
+		padding: 1.5rem;
+		border: 1px solid var(--np-color-border);
+		border-radius: 8px;
+
+		@media (max-width: 768px) {
+			grid-template-columns: 1fr;
+			grid-template-rows: 10rem auto;
+			height: auto;
+		}
+	}
+
+	.stage-text {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 0.75rem;
+	}
+
+	.list {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1.5rem;
+
+		@media (max-width: 768px) {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.item {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+}
+
+/* app/articles/(main)/_components/HotSection.tsx · StyledHotSection */
+.np-articles-hot-section-hot-section {
+	width: 100%;
+	height: fit-content;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 1rem;
+	padding: 1rem 0;
+
+	hr {
+		width: 100%;
+		border-bottom: 1px solid var(--np-color-border);
+		margin: 0.25rem 0;
+		padding: 0;
+	}
+
+	/* 휴대폰: 제목 · 구분선 · 배너 사이를 촘촘하게 */
+	@media (max-width: 480px) {
+		gap: 0.75rem;
+
+		hr {
+			margin: 0;
+		}
+	}
+
+	/* ② 띠: 헤더 바로 아래부터 배너 아래까지 화면 폭 전체. 아래로 갈수록 페이지 바탕으로 옅어진다.
+	   100vw 요소를 쓰면 스크롤바 폭만큼 가로로 넘쳐, 섹션 뒤에 깔리는 ::before로 그린다 */
+	position: relative;
+	isolation: isolate;
+	padding-bottom: 1.5rem;
+
+	/* 배너 다음 목록까지 (목록의 위 여백도 여기서 줄인다) */
+	& + [data-track-section='articles-list'] {
+		margin-top: 1.5rem;
+	}
+
+	@media (max-width: 480px) {
+		padding-bottom: 0.75rem;
+
+		& + [data-track-section='articles-list'] {
+			margin-top: 1rem;
+		}
+	}
+
+	&::before {
+		content: '';
+		position: absolute;
+		z-index: -1;
+		top: -2.5rem;
+		bottom: 0;
+		left: 50%;
+		width: 100vw;
+		transform: translateX(-50%);
+		background: linear-gradient(
+			180deg,
+			color-mix(in srgb, var(--np-color-primary) 10%, var(--np-color-background)) 0%,
+			color-mix(in srgb, var(--np-color-primary) 5%, var(--np-color-background)) 70%,
+			var(--np-color-background) 100%
+		);
+		pointer-events: none;
+	}
+
+	.stage {
+		width: 100%;
+	}
+
+	/* 분야 · 기간 고르기 칸: 태블릿 · 휴대폰에서만 (데스크톱은 분야 칩 · 기간 줄) */
+	.compact-filters {
+		display: none;
+		gap: 0.5rem;
+
+		/* 펼친 목록은 칸 왼쪽에 맞춘다 (화면 왼쪽 끝에서 잘리지 않게) */
+		.options-list {
+			left: 0;
+			right: auto;
+		}
+
+		@media (max-width: 768px) {
+			display: flex;
+		}
+	}
+
+	/* 분야 칩: 지금 분야는 강조색으로 채움 */
+	.category-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+
+		.chip {
+			padding: 0.375rem 0.875rem;
+			border: 1px solid var(--np-color-border);
+			border-radius: 9999px;
+			background: var(--np-color-background);
+			font-size: var(--np-font-size-extra-small);
+			font-weight: 600;
+			color: var(--np-color-text);
+			transition:
+				border-color 0.15s ease,
+				color 0.15s ease;
+
+			&:hover {
+				border-color: var(--np-color-primary);
+				color: var(--np-color-primary);
+			}
+
+			&[aria-current='page'] {
+				border-color: var(--np-color-primary);
+				background: var(--np-color-primary);
+				color: var(--np-color-background);
+			}
+		}
+	}
+
+	@media (max-width: 768px) {
+		.category-chips {
+			display: none;
+		}
+
+		/* 기간 단추 줄은 숨기고, 직접 지정일 때 날짜 칸만 남긴다 */
+		.filters .periods > button {
+			display: none;
+		}
+
+		.filters .periods:not(.custom) {
+			display: none;
+		}
+
+		/* 날짜 칸 · 검색어 칩도 없으면 빈 줄 자리도 남기지 않는다 */
+		.filters:not(:has(.periods.custom, .keyword)) {
+			display: none;
+		}
+	}
+
+	/* 분야 소개: 제목 · 한 줄 설명 · 최근 7일 요약. 오른쪽에 분야 아이콘을 크고 옅게 */
+	.intro {
+		position: relative;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+
+		/* 설명·요약은 한 줄로 (넘치면 …), 분야마다 줄 수가 달라 높이가 움직이지 않게 */
+		.description,
+		.stats {
+			overflow: hidden;
+			text-overflow: ellipsis;
+			white-space: nowrap;
+		}
+
+		.stats {
+			min-height: 1.5em;
+			margin: 0.25rem 0 0;
+			font-size: var(--np-font-size-small);
+			color: var(--np-color-sub-text);
+
+			strong {
+				color: var(--np-color-text);
+			}
+		}
+
+		.watermark {
+			position: absolute;
+			z-index: -1;
+			top: 50%;
+			right: 0;
+			transform: translateY(-50%);
+			line-height: 0;
+			color: var(--np-color-primary);
+			opacity: 0.1;
+			pointer-events: none;
+
+			svg {
+				width: 9rem;
+				height: 9rem;
+				stroke-width: 1.25;
+			}
+
+			@media (max-width: 480px) {
+				svg {
+					width: 5.5rem;
+					height: 5.5rem;
+				}
+			}
+		}
+
+		/* 태블릿 이하 배너: 아이콘은 자리를 차지하지 않고 오른쪽 위에 옅게 깔림(absolute, 글 뒤), 설명은 두 줄까지, 키워드는 아래 줄에서 옆으로 넘김 */
+		@media (max-width: 768px) {
+			gap: 0.25rem;
+
+			h1,
+			h2 {
+				font-size: 1.75rem;
+			}
+
+			.description {
+				display: -webkit-box;
+				-webkit-box-orient: vertical;
+				-webkit-line-clamp: 2;
+				white-space: normal;
+				word-break: keep-all;
+				font-size: var(--np-font-size-small);
+				line-height: 1.5;
+			}
+
+			.stats {
+				overflow: visible;
+				white-space: normal;
+			}
+
+			/* 아이콘은 자리를 차지하지 않고(absolute) 크게, 글 뒤 오른쪽에 옅게 */
+			.watermark {
+				right: -0.25rem;
+				opacity: 0.08;
+
+				svg {
+					width: 6.5rem;
+					height: 6.5rem;
+				}
+			}
+		}
+
+		/* 휴대폰은 더 짧게: 설명 · 요약(발행 수) 줄은 빼고 제목만 */
+		@media (max-width: 480px) {
+			.stats {
+				display: none;
+			}
+
+			h1,
+			h2 {
+				font-size: 1.5rem;
+			}
+
+			.description {
+				display: none;
+			}
+
+			/* 제목 한 줄뿐이라 제목 줄 안에 들어가는 크기로 (위 태그 줄을 덮지 않게) */
+			.watermark svg {
+				width: 3.5rem;
+				height: 3.5rem;
+			}
+		}
+	}
+
+	.stage-head {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+		font-size: inherit;
+		font-weight: inherit;
+	}
+
+	/* 지면의 "오늘의 톱" 표시: 강조색 칩 */
+	.label {
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+		background: var(--np-color-primary);
+		color: var(--np-color-background);
+		font-size: 0.75rem;
+		font-weight: 800;
+		letter-spacing: 0.08em;
+	}
+
+	.card-slider {
+		/* 카드 폭은 언제나 한 칸 전체. 슬라이더 기본값(100% - 0.75rem)은 카드가 하나면 늘어나
+		   분야 페이지에서만 사진이 커져 높이가 달라졌다 */
+		.card {
+			flex: 0 0 100%;
+			min-width: 100%;
+		}
+
+		/* ③ 카드: 띠 위에 뜬 카드. 마우스를 올리면 뜨거나 커지지 않고 테두리·제목 밑줄·"기사 읽기"로 알린다 */
+		.card .card-body {
+			padding: 1rem;
+			border: 1px solid transparent;
+			border-radius: 8px;
+			/* 다크 모드에서는 바탕색 카드가 띠보다 어두워 꺼져 보인다. 글자색을 조금 섞어 띠보다 밝게 */
+			background: var(--np-color-background);
+			box-shadow:
+				0 1px 2px rgba(0, 0, 0, 0.04),
+				0 12px 32px color-mix(in srgb, var(--np-color-primary) 12%, transparent);
+			transition: border-color 0.2s ease;
+
+			:root[data-theme='dark'] & {
+				background: color-mix(in srgb, var(--np-color-text) 9%, var(--np-color-background));
+				box-shadow:
+					0 1px 2px rgba(0, 0, 0, 0.4),
+					0 12px 32px rgba(0, 0, 0, 0.45);
+			}
+
+			@media (max-width: 480px) {
+				padding: 0.75rem;
+			}
+		}
+
+		.card .card-body:hover,
+		.card .card-body:focus-within {
+			border-color: color-mix(in srgb, var(--np-color-primary) 40%, transparent);
+		}
+
+		/* 사진: 아래쪽에 "기사 읽기 →"가 올라온다 (사진은 그대로) */
+		.image-placeholder {
+			position: relative;
+			border-radius: 8px;
+			overflow: hidden;
+
+			&::after {
+				content: '기사 읽기 →';
+				position: absolute;
+				left: 0.75rem;
+				bottom: 0.75rem;
+				padding: 0.375rem 0.75rem;
+				border-radius: 9999px;
+				background: rgba(0, 0, 0, 0.65);
+				color: #ffffff;
+				font-size: var(--np-font-size-extra-small);
+				font-weight: 700;
+				opacity: 0;
+				transform: translateY(0.375rem);
+				transition:
+					opacity 0.2s ease,
+					transform 0.2s ease;
+			}
+		}
+
+		.card .card-body:hover .image-placeholder::after,
+		.card .card-body:focus-within .image-placeholder::after {
+			opacity: 1;
+			transform: translateY(0);
+		}
+
+		/* ④ 카드 안. 분야를 바꿔도 카드 높이가 움직이지 않게 줄 수를 고정한다:
+		   위 칸 1줄 · 제목 2줄 · 부제 2줄 · 소식 3줄 */
+		.card-main {
+			padding-right: 0.5rem;
+
+			.category {
+				min-height: 1.5em;
+				font-size: var(--np-font-size-extra-small);
+				letter-spacing: 0.04em;
+			}
+
+			/* 제목: 마우스를 올리면 글자 바로 아래에 강조색 밑줄 (두 줄이면 줄마다).
+			   높이를 고정해 둔 칸 아래가 아니라 글자를 따라가게 text-decoration으로 */
+			.title {
+				min-height: calc(2 * 1.35em);
+				text-decoration: underline;
+				text-decoration-thickness: 2px;
+				text-underline-offset: 0.25em;
+				text-decoration-color: transparent;
+				transition: text-decoration-color 0.25s ease;
+
+				/* 태블릿 이하는 사진 아래 한 칸이라 제목이 한 줄이면 두 줄 자리를 비워 두지 않는다 */
+				@media (max-width: 768px) {
+					min-height: 0;
+				}
+			}
+
+			.description {
+				min-height: calc(2 * 1.6em);
+				margin-bottom: 0.25rem;
+				-webkit-line-clamp: 2;
+			}
+
+			/* 소식은 항상 3칸 높이 (2개뿐이어도 같은 높이). 칸마다 높이를 정하고 구분선은 칸 안쪽에 그린다 */
+			.points ol {
+				height: calc(3 * 2.25em);
+				overflow: hidden;
+
+				li {
+					box-sizing: border-box;
+					height: 2.25em;
+					align-items: center;
+					padding: 0;
+				}
+			}
+
+			/* 키워드는 한 줄 (개수에 따라 줄 수가 바뀌어 카드 높이가 움직이지 않게) */
+			.tags {
+				flex-wrap: nowrap;
+				overflow: hidden;
+
+				li {
+					flex-shrink: 0;
+				}
+			}
+
+			.card-footer {
+				width: 100%;
+				margin-top: 0.75rem;
+				padding-top: 0.75rem;
+				border-top: 1px solid var(--np-color-border);
+				font-size: var(--np-font-size-small);
+			}
+		}
+
+		.card .card-body:hover .title,
+		.card .card-body:focus-within .title {
+			text-decoration-color: var(--np-color-primary);
+		}
+
+		/* 휴대폰: 사진은 카드 가장자리까지(위 모서리만 둥글게), 글은 안쪽 여백.
+		   제목 두 줄 자리를 비워 두지 않고, 날짜 줄은 북마크 단추가 줄을 높이지 않게 */
+		@media (max-width: 480px) {
+			.card .card-body {
+				padding: 0 0 0.625rem;
+				overflow: hidden;
+			}
+
+			.image-placeholder {
+				margin-bottom: 0.375rem;
+				border-radius: 0;
+
+				img {
+					border-radius: 0;
+				}
+			}
+
+			.card-main {
+				padding-right: 0;
+
+				.category,
+				.title,
+				.tags,
+				.card-footer {
+					margin-inline: 1rem;
+					width: auto;
+				}
+
+				.title {
+					min-height: 0;
+					line-height: 1.4;
+				}
+
+				.card-footer {
+					height: 2rem;
+					margin-top: 0.375rem;
+					padding-top: 0.5rem;
+					align-items: center;
+					font-size: var(--np-font-size-extra-small);
+				}
+			}
+		}
+
+		/* 점·화살표는 띠 아래 오른쪽 한 줄. 분야 페이지(카드 하나)에서도 자리는 남겨 높이를 맞춘다 */
+		.controls {
+			display: flex;
+			justify-content: flex-end;
+			margin-top: 0.75rem;
+			visibility: var(--hot-controls-visibility);
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.card-slider .card .card-body,
+		.card-slider .image-placeholder::after,
+		.card-slider .card-main .title {
+			transition: none;
+		}
+	}
+
+	@media (max-width: 480px) {
+		flex-wrap: wrap;
+	}
+}
+
+/* app/articles/(main)/_components/ListSection.tsx · StyledListSection */
+.np-articles-list-section-list-section {
+	width: 100%;
+	height: fit-content;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	align-items: flex-start;
+	gap: 1rem;
+	margin-top: 2rem;
+
+	hr {
+		width: 100%;
+		border: none;
+		margin: 0;
+		padding: 0;
+		border-bottom: 1px solid var(--np-color-border);
+	}
+
+	.header {
+		width: 100%;
+		display: flex;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+
+		/* 태그로 고른 목록의 휴대폰용 정렬 줄은 데스크톱에선 숨긴다 */
+		.right-section.sort-row {
+			display: none;
+		}
+
+		/* 휴대폰: 정렬은 따로 한 줄, 오른쪽 끝 */
+		@media (max-width: 480px) {
+			flex-wrap: wrap;
+			gap: 0.75rem;
+
+			.right-section {
+				width: 100%;
+				justify-content: flex-end;
+			}
+
+			.picked-row .sort-inline {
+				display: none;
+			}
+
+			/* 제목 없이 개수 · 정렬뿐이면 한 줄에 */
+			&.bare {
+				flex-wrap: nowrap;
+
+				.right-section {
+					width: auto;
+					margin-left: auto;
+				}
+			}
+
+			.right-section.sort-row {
+				display: flex;
+			}
+		}
+
+		.title {
+			display: flex;
+			flex-direction: row;
+			justify-content: flex-start;
+			align-items: center;
+			gap: 1rem;
+
+			h1 {
+				white-space: nowrap;
+			}
+
+			/* 태그 여러 개: 칩 줄 아래에 조건 문장 (휴대폰에서도 정렬 단추보다 먼저) */
+			&.stack {
+				flex: 1;
+				min-width: 0;
+				flex-direction: column;
+				align-items: stretch;
+				gap: 0.75rem;
+
+				@media (max-width: 480px) {
+					gap: 0.5rem;
+				}
+			}
+
+			.count {
+				font-variant-numeric: tabular-nums;
+				white-space: nowrap;
+			}
+
+			.tag {
+				max-width: 22rem;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				white-space: nowrap;
+				border-radius: 9999px;
+				background: var(--np-color-tertiary);
+				color: var(--np-color-primary);
+				padding: 0.25rem 1rem;
+			}
+		}
+
+		.right-section {
+			display: flex;
+			flex-direction: row;
+			justify-content: flex-end;
+			align-items: center;
+			gap: 1rem;
+
+			button[data-active='true'] {
+				background: var(--np-color-tertiary);
+				color: var(--np-color-primary);
+				font-weight: 700;
+			}
+		}
+	}
+
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0 0 0 0);
+		white-space: nowrap;
+	}
+
+	/* 고른 태그 제목: 바탕 없이 글자만, #만 강조색 (카드 태그처럼 가볍게) */
+	.picked {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.25rem 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.pick {
+		margin: 0;
+		font-size: var(--np-font-size-large);
+		font-weight: 700;
+		color: var(--np-color-text);
+		white-space: nowrap;
+
+		.hash {
+			margin-right: 0.0625rem;
+			color: var(--np-color-primary);
+		}
+
+		@media (max-width: 480px) {
+			font-size: var(--np-font-size-medium);
+		}
+	}
+
+	/* 고른 태그 · (태그 하나면) 개수 · 정렬(오른쪽 끝) */
+	.picked-row {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem 1rem;
+
+		.picked {
+			flex: 1;
+			min-width: 0;
+		}
+
+		.right-section {
+			flex-shrink: 0;
+			margin-left: auto;
+		}
+	}
+
+	.follows {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem;
+
+		.follows-label {
+			font-size: var(--np-font-size-small);
+			color: var(--np-color-sub-text);
+		}
+	}
+
+	/* 조건 문장: 고른 쪽만 강조색 테두리 칸 */
+	.match {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.25rem 0.5rem;
+		font-size: var(--np-font-size-medium);
+		color: var(--np-color-text);
+
+		/* 문장 안의 고르기 칸: 공통 선택 목록(작은 칸). 펼친 목록은 칸 왼쪽에 맞춘다 */
+		.condition .options-list {
+			left: 0;
+			right: auto;
+		}
+
+		.count {
+			margin-left: -0.25rem;
+		}
+
+		.clear {
+			margin-left: 0.25rem;
+			padding: 0.25rem;
+			border: none;
+			background: transparent;
+			font-size: var(--np-font-size-small);
+			color: var(--np-color-sub-text);
+			cursor: pointer;
+
+			&:hover {
+				color: var(--np-color-primary);
+			}
+		}
+	}
+
+	.newsletter-cards {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+		align-items: center;
+	}
+
+	.observer {
+		width: 100%;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		margin-top: 1rem;
+	}
+
+	/* 휴대폰: 위쪽을 가볍게 — 조건 문장 · 팔로우 · 정렬을 한 단계 작게 */
+	@media (max-width: 480px) {
+		.match {
+			gap: 0.25rem 0.375rem;
+			font-size: var(--np-font-size-extra-small);
+
+			.clear {
+				font-size: var(--np-font-size-extra-small);
+			}
+		}
+
+		.follows {
+			gap: 0.375rem;
+
+			.follows-label {
+				font-size: var(--np-font-size-extra-small);
+			}
+
+			button {
+				padding: 0.125rem 0.5rem;
+				font-size: var(--np-font-size-extra-small);
+			}
+		}
+
+		.right-section {
+			gap: 0.25rem;
+
+			button {
+				padding: 0.375rem 0.625rem;
+				font-size: var(--np-font-size-extra-small);
+			}
+		}
+	}
+}
+
+/* app/articles/(main)/_components/SearchFilters.tsx · StyledSearchFilters */
+.np-articles-search-filters-search-filters {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	width: 100%;
+
+	.filters {
+		/* 기간 줄이 자기 폭을 보고 '전체 기간'까지 접을지 정한다 (아래 @container) */
+		container-type: inline-size;
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.5rem 1rem;
+	}
+
+	/* 기간 버튼 + 직접 지정 날짜 칸. 자리가 모자라면 날짜 칸만 다음 줄로 */
+	/* 기간 버튼 + 직접 지정 날짜 칸. 직접 지정이면 오늘 · 1주 · 1달이 접혀 한 줄에 들어간다 */
+	.periods {
+		display: flex;
+		align-items: center;
+		max-width: 100%;
+		/* 날짜 칸(2.25rem)이 나타나도 줄 높이가 그대로이게 처음부터 그 높이 */
+		min-height: 2.25rem;
+
+		.dates {
+			flex-shrink: 0;
+			margin-left: 0.25rem;
+			animation: datesIn 0.25s ease-out;
+		}
+
+		> button {
+			flex-shrink: 0;
+			max-width: 6rem;
+			margin-right: 0.25rem;
+			overflow: hidden;
+			transition:
+				max-width 0.25s ease,
+				padding 0.25s ease,
+				margin 0.25s ease,
+				opacity 0.2s ease,
+				visibility 0.25s;
+			padding: 0.375rem 0.75rem;
+			border-radius: 9999px;
+			font-size: var(--np-font-size-small);
+			color: var(--np-color-sub-text);
+			cursor: pointer;
+			white-space: nowrap;
+
+			&:hover {
+				color: var(--np-color-text);
+			}
+
+			&[aria-pressed='true'] {
+				background: var(--np-color-tertiary);
+				color: var(--np-color-primary);
+				font-weight: 700;
+			}
+
+			/* 접힘: 폭 · 여백을 0으로 줄이며 사라진다 */
+			&.folded {
+				max-width: 0;
+				margin-right: 0;
+				padding-left: 0;
+				padding-right: 0;
+				opacity: 0;
+				visibility: hidden;
+			}
+		}
+
+		@media (prefers-reduced-motion: reduce) {
+			.dates,
+			> button {
+				animation: none;
+				transition: none;
+			}
+		}
+
+		/* 좁은 화면: 버튼 · 날짜 칸을 줄여(달력 아이콘 빼고) 한 줄에 */
+		@media (max-width: 768px) {
+			> button {
+				padding: 0.375rem 0.5rem;
+			}
+
+			.dates .control {
+				width: 6.5rem;
+			}
+
+			.dates .calendar-icon {
+				display: none;
+			}
+
+			.dates .date-input {
+				padding: 0 0.5rem;
+				font-size: var(--np-font-size-extra-small);
+				text-align: center;
+			}
+		}
+
+		/* 휴대폰: 날짜 칸을 더 줄여 '전체 기간 · 직접 지정 · [시작] ~ [종료]'가 한 줄에 */
+		@media (max-width: 480px) {
+			.dates .control {
+				width: 5.25rem;
+			}
+
+			.dates .date-input {
+				padding: 0 0.25rem;
+				font-size: 0.75rem;
+			}
+		}
+
+		/* 그래도 자리가 모자라면(폭 22rem 미만, 예: 375px 휴대폰) '전체 기간'도 접는다. 직접 지정을 다시 누르면 전체로 돌아간다 */
+		@container (max-width: 22rem) {
+			&.custom > button.all {
+				max-width: 0;
+				margin-right: 0;
+				padding-left: 0;
+				padding-right: 0;
+				opacity: 0;
+				visibility: hidden;
+			}
+		}
+	}
+
+	/* 자주 나온 태그: 카드 태그와 같은 모양(얇은 테두리 · 진한 회색 · #만 강조색), 고르면 강조색 */
+	.tags {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		max-width: 100%;
+
+		.tags-label {
+			flex-shrink: 0;
+			font-size: var(--np-font-size-extra-small);
+			font-weight: 700;
+			color: var(--np-color-sub-text);
+		}
+
+		.tags-all {
+			flex-shrink: 0;
+			font-size: var(--np-font-size-extra-small);
+			font-weight: 700;
+			color: var(--np-color-primary);
+			white-space: nowrap;
+
+			&:hover {
+				text-decoration: underline;
+				text-underline-offset: 0.2em;
+			}
+		}
+
+		/* 옆으로 넘기는 칸. 넘기는 칸은 위아래도 잘라 내므로, 테두리 · 초점 표시가 잘리지 않게 위아래 여유를 둔다 */
+		.tags-list {
+			display: flex;
+			align-items: center;
+			gap: 0.375rem;
+			min-width: 0;
+			padding: 0.25rem 0.125rem;
+			overflow-x: auto;
+			scrollbar-width: none;
+
+			&::-webkit-scrollbar {
+				display: none;
+			}
+		}
+
+		button {
+			flex-shrink: 0;
+			padding: 0.0625rem 0.5rem;
+			border: 1px solid var(--np-color-border);
+			border-radius: 9999px;
+			font-size: var(--np-font-size-extra-small);
+			font-weight: 600;
+			line-height: 1.6;
+			color: var(--np-color-medium-grey);
+			white-space: nowrap;
+			cursor: pointer;
+
+			.hash {
+				margin-right: 0.0625rem;
+				color: var(--np-color-primary);
+			}
+
+			&:hover {
+				border-color: var(--np-color-primary);
+				color: var(--np-color-primary);
+			}
+
+			&[aria-pressed='true'] {
+				border-color: var(--np-color-primary);
+				background: var(--np-color-primary);
+				color: #ffffff;
+
+				.hash {
+					color: inherit;
+				}
+			}
+		}
+	}
+
+	.keyword {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+		border-radius: 9999px;
+		background: var(--np-color-primary);
+		color: #ffffff;
+		font-size: var(--np-font-size-small);
+		font-weight: 700;
+		cursor: pointer;
+	}
+}
+
+/* app/articles/detail/[slug]/_components/Article.tsx · ArticleStyled */
+.np-articles-article-article {
+	margin: 4rem 0;
+	position: relative;
+	width: 100%;
+	height: auto;
+
+	.ai-notice {
+		margin: 0.5rem 0 0;
+		line-height: 1.6;
+		word-break: keep-all;
+	}
+
+	.content-section {
+		display: flex;
+		flex-direction: row;
+		justify-content: flex-start;
+		gap: 2rem;
+		margin: 2rem 0;
+
+		.content {
+			flex: 3;
+		}
+
+		.popular {
+			flex: 1;
+			margin-top: 2rem;
+		}
+	}
+
+	@media screen and (max-width: 768px) {
+		display: flex;
+		flex-direction: column;
+
+		.content-section {
+			flex-direction: column;
+
+			.content {
+				border-bottom: 1px solid var(--np-color-border);
+				margin-bottom: 2rem;
+			}
+
+			.popular {
+				order: 4;
+			}
+		}
+	}
+
+	.induce {
+		order: 1;
+	}
+
+	.prev-next {
+		order: 2;
+	}
+
+	.latest {
+		order: 3;
+	}
+}
+
+/* app/articles/detail/[slug]/_components/Article.tsx · TitleSectionStyled */
+.np-articles-article-title-section {
+	display: flex;
+	flex-direction: column;
+	border-bottom: 1px solid var(--np-color-border);
+
+	.title-section {
+		text-align: center;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: 0.25rem;
+		margin: 1.25rem 0;
+
+		.category {
+			color: var(--np-color-primary);
+			font-weight: 600;
+		}
+
+		.title {
+			word-break: auto-phrase;
+		}
+
+		.subtitle {
+			word-break: auto-phrase;
+			max-width: 40rem;
+		}
+
+		.keywords {
+			justify-content: center;
+			margin-top: 0.5rem;
+		}
+
+		.icons {
+			display: flex;
+			flex-direction: row;
+			gap: 1rem;
+			justify-content: center;
+			align-items: center;
+			margin-top: 0.75rem;
+		}
+
+		.info {
+			display: flex;
+			flex-direction: row;
+			justify-content: center;
+			align-items: center;
+			gap: 0.5rem;
+		}
+	}
+}
+
+/* app/articles/detail/[slug]/_components/LatestArticle.tsx · LatestArticleStyled */
+.np-articles-latest-article-latest-article {
+	position: relative;
+	padding: 3rem 0 5.5rem;
+	margin: 2rem 0 -4.5rem;
+	color: #ffffff;
+
+	/* 화면 폭 전체 어두운 띠 (라이트 · 다크 모드 모두 같은 색) */
+	&::before {
+		position: absolute;
+		left: 50%;
+		bottom: 0;
+		width: 100vw;
+		height: 100%;
+		background-color: #262626;
+		transform: translateX(-50%);
+		content: '';
+		z-index: -1;
+	}
+
+	/* 제목 줄: 아래 옅은 선으로 카드와 나눈다 */
+	.section-title {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1.5rem;
+		padding-bottom: 0.875rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+
+		h3 {
+			font-size: var(--np-font-size-medium);
+			font-weight: 700;
+			color: #ffffff;
+		}
+	}
+
+	.arrow {
+		display: flex;
+		gap: 0.5rem;
+
+		button {
+			width: 2rem;
+			height: 2rem;
+			border: 1px solid rgba(255, 255, 255, 0.5);
+			cursor: pointer;
+			color: #ffffff;
+
+			&::before {
+				display: block;
+				font-size: 1rem;
+				line-height: 1;
+			}
+
+			&:hover {
+				border-color: #ffffff;
+			}
+
+			&.swiper-button-disabled {
+				opacity: 0.3;
+				cursor: default;
+			}
+		}
+
+		.latest-prev::before {
+			content: '‹';
+		}
+
+		.latest-next::before {
+			content: '›';
+		}
+	}
+
+	.skeleton-row {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 24px;
+		opacity: 0.35;
+
+		@media (max-width: 1024px) {
+			grid-template-columns: repeat(2, 1fr);
+
+			> :nth-child(3) {
+				display: none;
+			}
+		}
+	}
+
+	/* 카드: 사진을 카드 전체로, 아래쪽 그라데이션 위에 관심사 · 날짜 → 제목(두 줄까지) */
+	.item {
+		position: relative;
+		display: block;
+		overflow: hidden;
+		border-radius: 8px;
+		color: #ffffff;
+	}
+
+	.photo {
+		display: block;
+
+		img {
+			transition: transform 0.4s ease;
+		}
+	}
+
+	.overlay {
+		position: absolute;
+		inset: auto 0 0 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.375rem;
+		padding: 3rem 1rem 1rem;
+		background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.55) 55%, transparent 100%);
+	}
+
+	.meta {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: var(--np-font-size-extra-small);
+		color: rgba(255, 255, 255, 0.8);
+		font-variant-numeric: tabular-nums;
+	}
+
+	.category {
+		font-weight: 700;
+		color: #ffffff;
+	}
+
+	.title {
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		font-weight: 700;
+		line-height: 1.45;
+		word-break: keep-all;
+		color: #ffffff;
+	}
+
+	.item:hover {
+		.photo img {
+			transform: scale(1.04);
+		}
+
+		.title {
+			text-decoration: underline;
+			text-underline-offset: 3px;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.photo img {
+			transition: none;
+		}
+
+		.item:hover .photo img {
+			transform: none;
+		}
+	}
+}
+
+/* app/articles/detail/[slug]/_components/MobileLikeLinkButton.tsx · MobileLikeLinkButtonStyled */
+.np-articles-mobile-like-link-button-mobile-like-link-button {
+	display: flex;
+	flex-direction: column;
+	height: auto;
+	position: fixed;
+	bottom: 7.25rem;
+	right: 1.5rem;
+	z-index: 999;
+	gap: 0.75rem;
+
+	.mobile-icon {
+		height: 2.5rem;
+		width: 2.5rem;
+		cursor: pointer;
+		color: var(--np-color-primary);
+		background: var(--np-color-background);
+		border: 0.5px solid var(--np-color-border);
+		border-radius: 0;
+
+		opacity: 0;
+		transform: translateY(10px);
+		transition:
+			opacity 0.3s ease,
+			transform 0.3s ease;
+
+		&.fade-in {
+			opacity: 80%;
+			transform: translateY(0);
+		}
+
+		&.fade-out {
+			opacity: 0;
+			transform: translateY(60px);
+		}
+
+		svg {
+			position: absolute;
+			width: 1.25rem;
+			height: 1.25rem;
+			left: 50%;
+			top: 50%;
+			transform: translate(-50%, -50%);
+		}
+	}
+}
+
+/* app/articles/detail/[slug]/_components/PopularArticle.tsx · PopularNewsletterStyled */
+.np-articles-popular-article-popular-newsletter {
+	/* display: flex라 hidden 속성이 안 먹으므로 직접 */
+	.popular-list[hidden] {
+		display: none;
+	}
+
+	.skeleton {
+		align-items: center;
+
+		.skeleton-text {
+			display: flex;
+			flex-direction: column;
+			gap: 0.375rem;
+			flex: 1;
+		}
+	}
+
+	.state {
+		padding: 1rem 0;
+		font-size: var(--np-font-size-small);
+		color: var(--np-color-sub-text);
+
+		.retry {
+			padding: 0;
+			font-size: inherit;
+			color: var(--np-color-primary);
+			text-decoration: underline;
+			cursor: pointer;
+		}
+	}
+
+	position: sticky;
+	overflow: auto;
+	height: 100%;
+	top: 4rem;
+
+	.index {
+		font-weight: 700;
+		color: var(--np-color-primary);
+	}
+
+	.section-title {
+		font-size: var(--np-font-size-medium);
+		font-weight: 700;
+		color: var(--np-color-primary);
+		padding: 0 0 1rem 0;
+		border-bottom: 1px solid var(--np-color-border);
+	}
+
+	.popular-list {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: 1rem 0 1rem 0;
+		border-bottom: 1px solid var(--np-color-border);
+
+		li {
+			overflow: hidden;
+			display: flex;
+			flex-direction: row;
+			gap: 1rem;
+
+			.thum-link {
+				flex: 1;
+				height: fit-content;
+				margin: 0;
+			}
+
+			.text-section {
+				flex: 3;
+				word-break: break-word;
+				height: 4.25rem;
+
+				.category {
+					font-size: var(--np-font-size-extra-small);
+					color: var(--np-color-primary);
+					font-weight: 600;
+				}
+
+				.title {
+					font-size: var(--np-font-size-small);
+					font-weight: 600;
+
+					overflow: hidden;
+					text-overflow: ellipsis;
+
+					display: -webkit-box;
+					-webkit-line-clamp: 2; /* 원하는 라인수 */
+					-webkit-box-orient: vertical;
+				}
+
+				.date {
+					font-size: var(--np-font-size-extra-small);
+					color: var(--np-color-light-grey);
+				}
+			}
+		}
+
+		li:hover .title {
+			color: var(--np-color-primary);
+		}
+	}
+
+	@media screen and (max-width: 768px) {
+		display: flex;
+		flex-direction: column;
+
+		.section-title {
+			border-top: none;
+		}
+
+		.popular-list {
+			display: flex;
+			flex-direction: column;
+			align-items: stretch;
+			gap: 1.5rem;
+			margin-bottom: 0;
+
+			li {
+				display: flex;
+				flex-direction: row;
+				align-items: stretch;
+				flex: fit-content;
+
+				.thum-link {
+					flex: 1;
+				}
+
+				.thum-empty {
+					flex: 1;
+					aspect-ratio: 1;
+					height: auto;
+				}
+
+				.text-section {
+					flex: 5;
+					justify-content: space-between;
+
+					.title {
+						height: 3rem;
+					}
+				}
+			}
+		}
+	}
+
+	@media screen and (max-width: 480px) {
+		.thum-empty {
+			display: none;
+		}
+	}
+}
+
+/* app/articles/detail/[slug]/_components/PrevNextArticle.tsx · PrevNextArticleStyled */
+.np-articles-prev-next-article-prev-next-article {
+	border-top: 1px solid var(--np-color-border);
+
+	/* 두 줄 높이를 늘 같게: 글이 없는 줄도 글이 있는 줄만큼 */
+	ul {
+		display: grid;
+		grid-auto-rows: 1fr;
+
+		li.prev-next {
+			display: flex;
+			flex-direction: row;
+			gap: 1.5rem;
+			align-items: center;
+			border-bottom: 1px solid var(--np-color-border);
+			padding: 2.5rem 0;
+
+			.link {
+				display: contents;
+
+				/* 이전글 ↑ · 다음글 ↓: 테두리 없는 글자 꼬리표 */
+				.tag {
+					display: inline-flex;
+					align-items: center;
+					gap: 0.25rem;
+					flex-shrink: 0;
+					width: 4.5rem;
+					font-size: var(--np-font-size-small);
+					font-weight: 700;
+					color: var(--np-color-primary);
+				}
+
+				/* 사진: 가로형(16:9) 작은 칸 */
+				.img {
+					flex-shrink: 0;
+					width: 9rem;
+					margin: 0;
+					overflow: hidden;
+					border-radius: 8px;
+				}
+
+				.text-section {
+					flex: 1;
+					min-width: 0;
+
+					.title {
+						color: var(--np-color-text);
+						font-size: var(--np-font-size-medium);
+						font-weight: 600;
+						margin-bottom: 0.5rem;
+
+						overflow: hidden;
+						text-overflow: ellipsis;
+						display: -webkit-box;
+						-webkit-line-clamp: 1;
+						-webkit-box-orient: vertical;
+					}
+
+					.date {
+						color: var(--np-color-light-grey);
+						font-size: var(--np-font-size-extra-small);
+					}
+				}
+			}
+
+			&.active {
+				background-color: var(--np-color-surface);
+			}
+
+			/* 글이 없을 때: 버튼만 흐리게, 안내 문구는 읽을 수 있는 대비로 (#16) */
+			&.disabled {
+				pointer-events: none;
+
+				/* 안내 문구는 세로 가운데, 가로는 왼쪽 */
+				.text-section {
+					align-self: stretch;
+					display: flex;
+					align-items: center;
+				}
+
+				/* 제목 아래 여백(날짜와의 간격)이 남으면 꼬리표보다 4px 위로 뜬다 */
+				.link .text-section .title {
+					margin: 0;
+					color: var(--np-color-text);
+				}
+
+				.date {
+					display: none;
+				}
+			}
+		}
+	}
+
+	@media screen and (max-width: 768px) {
+		ul {
+			li.prev-next {
+				padding: 1.5rem 0;
+				gap: 1rem;
+
+				.img {
+					display: none;
+				}
+			}
+		}
+	}
+}
+
+/* app/articles/detail/[slug]/_components/content/ArticleContent.tsx · ContainerStyled */
+.np-articles-article-content-container {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	max-width: 100%;
+}
+
+/* app/articles/detail/[slug]/_components/content/ArticleContent.tsx · OpenGraphCardContainer */
+.np-articles-article-content-open-graph-card-container {
+	position: relative;
+	gap: 0.5rem;
+
+	.content-bottom-margin {
+		padding-bottom: 2rem;
+	}
+
+	* {
+		word-break: break-word;
+		line-height: 1.56;
+	}
+}
+
+/* app/articles/detail/[slug]/_components/content/ArticleContent.tsx · NewsletterContentStyled */
+.np-articles-article-content-newsletter-content {
+	position: relative;
+	/* 스크랩 형광펜 띠(z-index -1)가 본문 글자 뒤 · 이 틀 안에 깔리도록 따로 쌓는다 */
+	isolation: isolate;
+	gap: 0.5rem;
+
+	.content-bottom-margin {
+		padding-bottom: 2rem;
+	}
+
+	* {
+		margin-bottom: 0.5rem;
+		word-break: break-word;
+		line-height: 1.56;
+	}
+
+	h1,
+	h2,
+	h3,
+	h4,
+	h5,
+	h6 {
+		margin-top: 2rem;
+	}
+
+	p {
+		color: var(--np-color-medium-grey);
+	}
+
+	img {
+		border-radius: 8px;
+	}
+
+	figure {
+		margin: 0;
+		width: 100%;
+
+		img {
+			margin-bottom: 0.25rem;
+			width: 100%;
+		}
+
+		figcaption {
+			font-size: var(--np-font-size-extra-small);
+			color: var(--np-color-light-grey);
+		}
+	}
+
+	a {
+		color: var(--np-color-primary);
+		text-decoration: underline var(--np-color-primary);
+		text-decoration-thickness: 2px;
+	}
+
+	/*
+	 * api가 만드는 본문 구조 (#43): 에디터 브리핑 → 소식(꼬리표 · 헤드라인 · 리드 · 템플릿별 요소 · 본문 · 시사점 · 출처) → 관전 포인트.
+	 * 신문 지면처럼 굵은 구분선과 작은 대문자 라벨로 나눈다. 예전 뉴스레터는 모델이 넣은 인라인 스타일 그대로 보인다
+	 */
+	.newsletter {
+		padding-top: 2rem;
+		font-size: var(--np-font-size-medium);
+
+		p {
+			line-height: 1.8;
+			color: var(--np-color-medium-grey);
+		}
+
+		/* 핵심 구절 형광펜 (#51): 글자 아래쪽 절반만 강조색을 옅게 칠한다 */
+		mark {
+			padding: 0 0.1em;
+			background: linear-gradient(transparent 55%, color-mix(in srgb, var(--np-color-primary) 22%, transparent) 55%);
+			color: var(--np-color-text);
+			font-weight: 600;
+		}
+
+		h3 {
+			margin: 0 0 0.75rem;
+			font-size: var(--np-font-size-extra-small);
+			font-weight: 800;
+			letter-spacing: 0.08em;
+			color: var(--np-color-text);
+		}
+
+		ul {
+			margin: 0;
+			padding: 0;
+			list-style: none;
+		}
+
+		/* 오늘 아침 속보 (05시 이후 보도): 별도 소식들을 맨 위 연한 상자에. 소식 모양은 본문과 같되 조금 작게 */
+		.morning {
+			margin-bottom: 2.5rem;
+			padding: 1.25rem 1.5rem 0.5rem;
+			border-radius: 8px;
+			background: var(--np-color-tertiary);
+
+			> h3 {
+				margin: 0 0 1rem;
+				font-size: var(--np-font-size-extra-small);
+				font-weight: 800;
+				letter-spacing: 0.02em;
+				color: var(--np-color-primary);
+			}
+
+			.story {
+				margin-bottom: 1.25rem;
+				padding-top: 0;
+				border-top: 0;
+
+				& + .story {
+					margin-top: 1.5rem;
+					padding-top: 1.5rem;
+					border-top: 1px solid var(--np-color-border);
+				}
+
+				h2 {
+					font-size: var(--np-font-size-large);
+				}
+
+				.lead {
+					font-size: var(--np-font-size-medium);
+				}
+
+				/* 상자 안이라 관전 포인트 줄은 바탕색 대신 흰 바탕 */
+				.next {
+					margin-top: 1rem;
+					background: var(--np-color-background);
+				}
+			}
+		}
+
+		.briefing {
+			margin-bottom: 3rem;
+			padding: 1.25rem 0;
+			border-top: 3px solid var(--np-color-text);
+
+			p {
+				margin-bottom: 0;
+				color: var(--np-color-text);
+			}
+		}
+
+		.story {
+			padding-top: 1.5rem;
+			border-top: 1px solid var(--np-color-text);
+
+			& + .story {
+				margin-top: 3.5rem;
+			}
+		}
+
+		/* 소식 머리줄: 번호 · 꼬리표 */
+		.kicker {
+			display: flex;
+			align-items: center;
+			gap: 0.5rem;
+			margin-bottom: 0.5rem;
+			font-size: var(--np-font-size-extra-small);
+			font-weight: 800;
+			color: var(--np-color-primary);
+
+			/* 본문 공통 * { margin-bottom }이 번호만 위로 밀어 꼬리표와 어긋나지 않게 */
+			.index {
+				margin: 0;
+				color: var(--np-color-sub-text);
+			}
+		}
+
+		h2 {
+			margin: 0 0 1rem;
+			font-size: var(--np-font-size-extra-large);
+			font-weight: 800;
+			line-height: 1.35;
+			color: var(--np-color-text);
+			word-break: keep-all;
+		}
+
+		.lead {
+			margin-bottom: 1.5rem;
+			font-size: var(--np-font-size-large);
+			font-weight: 600;
+			line-height: 1.6;
+			color: var(--np-color-text);
+			word-break: keep-all;
+		}
+
+		.body p {
+			margin-bottom: 1rem;
+		}
+
+		/* 소식 사진 (#49): 원출처 또는 Pexels·Unsplash, 아래에 출처 */
+		.story-image {
+			margin: 0 0 1.5rem;
+
+			img {
+				display: block;
+				width: 100%;
+				aspect-ratio: 16 / 9;
+				object-fit: cover;
+				margin: 0;
+				border-radius: 8px;
+				background: var(--np-color-surface);
+			}
+
+			figcaption {
+				margin-top: 0.5rem;
+				font-size: var(--np-font-size-extra-small);
+				color: var(--np-color-sub-text);
+
+				a {
+					color: inherit;
+					text-decoration: underline;
+					text-decoration-thickness: 1px;
+				}
+			}
+		}
+
+		/* 템플릿별 고유 요소 (#48) */
+
+		/* numbers: 지표 카드 */
+		.stats {
+			display: grid;
+			grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+			gap: 1px;
+			margin: 0 0 1.5rem;
+			border-top: 2px solid var(--np-color-text);
+			border-bottom: 1px solid var(--np-color-border);
+			background: var(--np-color-border);
+
+			.stat {
+				display: flex;
+				flex-direction: column;
+				gap: 0.25rem;
+				/* 본문 공통 * { margin-bottom }이 카드 아래로 회색 띠를 만들지 않게 */
+				margin: 0;
+				padding: 1rem 0.75rem;
+				background: var(--np-color-background);
+			}
+
+			.label {
+				font-size: var(--np-font-size-extra-small);
+				color: var(--np-color-sub-text);
+			}
+
+			.value {
+				font-size: var(--np-font-size-large);
+				word-break: keep-all;
+				font-weight: 800;
+				line-height: 1.2;
+				color: var(--np-color-text);
+				font-variant-numeric: tabular-nums;
+			}
+
+			.note {
+				font-size: var(--np-font-size-extra-small);
+				font-weight: 600;
+				color: var(--np-color-primary);
+			}
+		}
+
+		/* timeline: 날짜별 경과 */
+		.timeline {
+			margin: 0 0 1.5rem;
+			padding: 0 0 0 1.25rem;
+			list-style: none;
+			border-left: 2px solid var(--np-color-border);
+
+			li {
+				position: relative;
+				display: flex;
+				gap: 1rem;
+				padding: 0.5rem 0;
+				line-height: 1.6;
+
+				&::before {
+					content: '';
+					position: absolute;
+					left: calc(-1.25rem - 5px);
+					top: 0.95em;
+					width: 8px;
+					height: 8px;
+					border-radius: 50%;
+					background: var(--np-color-primary);
+				}
+			}
+
+			time {
+				flex: 0 0 5.5rem;
+				font-size: var(--np-font-size-small);
+				font-weight: 800;
+				color: var(--np-color-text);
+			}
+
+			span {
+				color: var(--np-color-medium-grey);
+			}
+		}
+
+		/* qa: 문답 */
+		.qa {
+			margin: 1.5rem 0;
+
+			dt {
+				margin-top: 1.25rem;
+				font-weight: 800;
+				color: var(--np-color-text);
+
+				&::before {
+					content: 'Q. ';
+					color: var(--np-color-primary);
+				}
+			}
+
+			dd {
+				margin: 0.5rem 0 0;
+				padding-bottom: 1.25rem;
+				border-bottom: 1px solid var(--np-color-border);
+				line-height: 1.7;
+				color: var(--np-color-medium-grey);
+			}
+		}
+
+		/* 엇갈린 주장: 같은 사안을 두고 맞서는 주장 (누가 · 무엇을 · 어느 기사에서) */
+		.debate {
+			margin: 1.5rem 0;
+			padding: 1rem 1.25rem;
+			border: 1px solid var(--np-color-border);
+			border-radius: 8px;
+
+			ul {
+				list-style: none;
+			}
+
+			li {
+				display: flex;
+				flex-wrap: wrap;
+				align-items: baseline;
+				gap: 0.25rem 0.75rem;
+				padding: 0.625rem 0;
+				line-height: 1.6;
+
+				& + li {
+					border-top: 1px solid var(--np-color-border);
+				}
+
+				&:last-child {
+					padding-bottom: 0;
+				}
+			}
+
+			.side {
+				flex-shrink: 0;
+				min-width: 5rem;
+				font-weight: 800;
+				color: var(--np-color-primary);
+			}
+
+			.claim {
+				flex: 1 1 16rem;
+				/* 한글 낱말 중간에서 줄이 넘어가지 않게 */
+				word-break: keep-all;
+				color: var(--np-color-medium-grey);
+			}
+
+			/* 그 주장이 실린 기사의 언론사: 출처 줄에 그 기사가 있으면 원문 링크 (utils/debateSources) */
+			.source {
+				font-size: var(--np-font-size-extra-small);
+				color: var(--np-color-sub-text);
+			}
+
+			a.source {
+				text-decoration: underline;
+				text-decoration-thickness: 1px;
+				text-underline-offset: 2px;
+
+				&:hover {
+					color: var(--np-color-primary);
+				}
+			}
+		}
+
+		/* quote: 인용문 */
+		.quote {
+			margin: 0 0 1.5rem;
+			padding: 0.5rem 0 0.5rem 1.25rem;
+			border-left: 4px solid var(--np-color-primary);
+
+			p {
+				margin-bottom: 0.5rem;
+				font-size: var(--np-font-size-large);
+				font-weight: 600;
+				line-height: 1.5;
+				color: var(--np-color-text);
+
+				&::before {
+					content: '“';
+				}
+
+				&::after {
+					content: '”';
+				}
+			}
+
+			cite {
+				font-size: var(--np-font-size-small);
+				font-style: normal;
+				color: var(--np-color-sub-text);
+
+				&::before {
+					content: '— ';
+				}
+			}
+		}
+
+		/* brief: 단신은 작게 */
+		.story-brief {
+			h2 {
+				font-size: var(--np-font-size-large);
+			}
+
+			.lead {
+				font-size: var(--np-font-size-medium);
+			}
+		}
+
+		.analysis {
+			margin-top: 1.5rem;
+
+			p:last-child {
+				margin-bottom: 0;
+			}
+		}
+
+		/* 관전 포인트: 소식 끝 한 줄, 오른쪽 끝에 후속 지켜보기 단추 (FollowLayer) */
+		.next {
+			display: flex;
+			align-items: center;
+			gap: 0.75rem;
+			margin: 1.5rem 0 0;
+			padding: 0.75rem 0.75rem 0.75rem 1rem;
+			border-left: 3px solid var(--np-color-primary);
+			background: var(--np-color-tertiary);
+			font-size: var(--np-font-size-small);
+			line-height: 1.5;
+			color: var(--np-color-text);
+
+			strong {
+				flex-shrink: 0;
+				margin: 0;
+				font-weight: 800;
+				color: var(--np-color-primary);
+			}
+
+			span {
+				margin: 0;
+				word-break: keep-all;
+			}
+
+			.follow-slot {
+				display: inline-flex;
+				flex-shrink: 0;
+				margin: 0 0 0 auto;
+			}
+
+			@media (max-width: 480px) {
+				flex-wrap: wrap;
+				gap: 0.375rem 0.75rem;
+
+				span {
+					flex-basis: 100%;
+				}
+			}
+		}
+
+		/* 소식 맨 위 '지켜보던 소식의 후속' 자리 (FollowLayer): 후속이 아니면 비어 있으니 자리도 차지하지 않게 */
+		.follow-from:empty {
+			display: none;
+		}
+
+		/* 예전 뉴스레터(소식별 관전 포인트 없음): 출처 위에 단추만 오른쪽 끝에 */
+		.follow-row {
+			display: flex;
+			justify-content: flex-end;
+			margin: 1.25rem 0 0;
+		}
+
+		.credit {
+			margin-top: 1.25rem;
+			font-size: var(--np-font-size-extra-small);
+			color: var(--np-color-sub-text);
+
+			/* 원문 링크: 본문 링크보다 조용하게 */
+			a {
+				color: var(--np-color-sub-text);
+				text-decoration: underline;
+				text-decoration-thickness: 1px;
+				text-underline-offset: 2px;
+
+				&:hover {
+					color: var(--np-color-primary);
+				}
+			}
+		}
+
+		.watch {
+			margin-top: 3.5rem;
+			padding-top: 1.25rem;
+			border-top: 3px solid var(--np-color-text);
+
+			li {
+				position: relative;
+				padding: 0.5rem 0 0.5rem 1rem;
+				line-height: 1.6;
+				color: var(--np-color-medium-grey);
+
+				&::before {
+					content: '';
+					position: absolute;
+					left: 0;
+					top: 1.15em;
+					width: 0.4rem;
+					height: 2px;
+					background: var(--np-color-primary);
+				}
+			}
+		}
+	}
+}
+
+/* app/articles/detail/[slug]/_components/content/FollowLayer.tsx · FollowButton */
+.np-articles-follow-layer-follow-button {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	margin: 0;
+	padding: 0.25rem 0.625rem;
+	/* 눈에 띄게: 강조색 테두리 · 글자 (지켜보는 중이면 강조색으로 채운다) */
+	border: 1px solid var(--np-color-primary);
+	border-radius: 9999px;
+	background: var(--np-color-background);
+	font-size: 0.75rem;
+	font-weight: 700;
+	letter-spacing: 0;
+	color: var(--np-color-primary);
+	white-space: nowrap;
+	cursor: pointer;
+	transition:
+		color 0.15s ease,
+		background 0.15s ease;
+
+	line-height: 1.25;
+
+	/* 본문 공통 * { margin-bottom }이 아이콘을 위로 밀지 않게 · inline 기준선 대신 단추 가운데에 */
+	svg {
+		display: block;
+		flex-shrink: 0;
+		margin: 0;
+		width: 0.875rem;
+		height: 0.875rem;
+	}
+
+	&:hover:not(:disabled) {
+		background: var(--np-color-tertiary);
+	}
+
+	&.on {
+		background: var(--np-color-primary);
+		color: var(--np-color-background);
+	}
+
+	/* 켜진 단추를 가리켜도 채운 바탕 그대로 (연한 바탕이 덮이면 흰 글자가 안 보인다), 조금 옅게만 */
+	&.on:hover:not(:disabled) {
+		background: var(--np-color-primary);
+		opacity: 0.85;
+	}
+
+	&:disabled {
+		cursor: progress;
+		opacity: 0.6;
+	}
+}
+
+/* app/articles/detail/[slug]/_components/content/FollowLayer.tsx · FollowFrom */
+.np-articles-follow-layer-follow-from {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.75rem;
+	margin: 0 0 1rem;
+	padding: 0.5rem 0.875rem;
+	border-radius: 8px;
+	background: var(--np-color-tertiary);
+	font-size: 0.8125rem;
+	line-height: 1.5;
+
+	* {
+		margin: 0;
+	}
+
+	.label {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-weight: 700;
+		color: var(--np-color-primary);
+		white-space: nowrap;
+
+		svg {
+			display: block;
+			width: 0.875rem;
+			height: 0.875rem;
+		}
+	}
+
+	.origin {
+		color: var(--np-color-text);
+		text-decoration: none;
+
+		&:hover {
+			color: var(--np-color-primary);
+			text-decoration: underline;
+			text-underline-offset: 0.2em;
+		}
+	}
+
+	.date {
+		margin-right: 0.375rem;
+		color: var(--np-color-sub-text);
+	}
+}
+
+/* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx · StyledBands */
+.np-articles-highlight-layer-bands {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+
+	span {
+		position: absolute;
+		border-radius: 2px;
+		background: color-mix(in srgb, var(--np-color-primary) 18%, transparent);
+		transition: background-color 0.3s;
+
+		&.note {
+			box-shadow: inset 0 -2px 0 var(--np-color-primary);
+		}
+
+		&.focus {
+			background: color-mix(in srgb, var(--np-color-primary) 40%, transparent);
+		}
+	}
+}
+
+/* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx · StyledDim */
+.np-articles-highlight-layer-dim {
+	position: fixed;
+	inset: 0;
+	z-index: 999;
+	background: rgba(0, 0, 0, 0.35);
+}
+
+/* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx · StyledPopover */
+.np-articles-highlight-layer-popover {
+	/* 문서 기준으로 띄워 글과 함께 스크롤된다 (body에 붙여 둔다) */
+	position: absolute;
+	z-index: 1000;
+	display: flex;
+	flex-direction: column;
+	max-width: min(22rem, calc(100vw - 2rem));
+	line-height: 1.5;
+	border: 1px solid var(--np-color-border);
+	border-radius: 8px;
+	background: var(--np-color-background);
+	font-size: var(--np-font-size-extra-small);
+
+	/* 단추는 브라우저 기본 글꼴(13.3px)을 쓰므로 글꼴을 물려받게 */
+	button,
+	textarea {
+		font: inherit;
+	}
+
+	button {
+		line-height: 1;
+	}
+
+	/* 도구 막대: 32px 단추 둘 + 가는 세로줄, 막대 높이는 단추에 맞춘다 */
+	.toolbar {
+		display: flex;
+		align-items: center;
+		gap: 0.125rem;
+		padding: 0.25rem;
+
+		button {
+			display: inline-flex;
+			align-items: center;
+			justify-content: center;
+			gap: 0.375rem;
+			height: 2rem;
+			padding: 0 0.75rem;
+			border-radius: 0;
+			color: var(--np-color-text);
+			font-weight: 700;
+			white-space: nowrap;
+			cursor: pointer;
+
+			svg {
+				flex-shrink: 0;
+				width: 1rem;
+				height: 1rem;
+				color: var(--np-color-primary);
+			}
+
+			&:hover {
+				background: var(--np-color-tertiary);
+				color: var(--np-color-primary);
+			}
+		}
+
+		.divider {
+			width: 1px;
+			height: 1rem;
+			background: var(--np-color-border);
+		}
+	}
+
+	.memo {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+		width: 20rem;
+		max-width: 100%;
+		padding: 0.875rem;
+	}
+
+	blockquote {
+		margin: 0;
+		max-height: 4.5rem;
+		overflow: hidden;
+		padding-left: 0.625rem;
+		border-left: 2px solid var(--np-color-primary);
+		color: var(--np-color-sub-text);
+		line-height: 1.5;
+	}
+
+	.label {
+		margin: 0;
+		font-weight: 700;
+		color: var(--np-color-primary);
+	}
+
+	.saved-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+	}
+
+	.star-toggle {
+		padding: 0.25rem 0.5rem;
+		border-radius: 0;
+		font-size: var(--np-font-size-extra-small);
+		color: var(--np-color-sub-text);
+		cursor: pointer;
+
+		&:hover {
+			background: var(--np-color-surface);
+		}
+
+		&.on {
+			color: var(--np-color-primary);
+		}
+	}
+
+	textarea {
+		width: 100%;
+		padding: 0.5rem 0.625rem;
+		border: 1px solid var(--np-color-border);
+		border-radius: 0;
+		background: var(--np-color-background);
+		color: var(--np-color-text);
+		font: inherit;
+		line-height: 1.5;
+		resize: vertical;
+
+		&:focus {
+			outline: none;
+			border-color: var(--np-color-primary);
+		}
+	}
+
+	.actions {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.375rem;
+
+		button {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.25rem;
+			padding: 0.375rem 0.75rem;
+			border: 1px solid var(--np-color-border);
+			border-radius: 0;
+			color: var(--np-color-text);
+			cursor: pointer;
+
+			&.primary {
+				border-color: var(--np-color-primary);
+				background: var(--np-color-primary);
+				color: var(--np-color-white);
+			}
+
+			&.danger {
+				margin-right: auto;
+				border-color: transparent;
+				color: var(--np-color-error);
+			}
+
+			&:disabled {
+				opacity: 0.5;
+				cursor: default;
+			}
+		}
+	}
+
+	/* 휴대폰: 아래에 붙은 시트. 도구 막대는 단추 둘을 반씩 크게 */
+	&.sheet {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		max-width: none;
+		border-width: 1px 0 0;
+		border-radius: 16px 16px 0 0;
+		padding-bottom: env(safe-area-inset-bottom);
+		box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
+		font-size: var(--np-font-size-small);
+		animation: sheet-up 0.2s ease-out;
+
+		.toolbar {
+			padding: 0.5rem;
+
+			button {
+				flex: 1;
+				height: 3rem;
+			}
+		}
+
+		.memo {
+			width: 100%;
+			padding: 1.25rem 1rem;
+		}
+
+		textarea {
+			/* 16px 미만이면 iOS가 입력할 때 화면을 확대한다 */
+			font-size: 1rem;
+		}
+
+		.actions button {
+			padding: 0.625rem 1rem;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&.sheet {
+			animation: none;
+		}
+	}
+}
+
+/* app/articles/detail/[slug]/_components/Article.tsx · ArticleBackBar */
+.np-articles-article-back-bar {
+	margin-top: 4rem;
+}
+
+/* 움직임 (styled-components는 규칙 안의 @keyframes를 밖으로 꺼냈다. 일반 CSS는 최상위에만 둘 수 있다) */
+@keyframes datesIn {
+	from {
+		opacity: 0;
+		transform: translateX(-0.5rem);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes sheet-up {
+	from {
+		transform: translateY(100%);
+	}
+	to {
+		transform: translateY(0);
+	}
+}

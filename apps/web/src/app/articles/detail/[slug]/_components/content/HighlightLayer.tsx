@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
-import styled from 'styled-components';
 import { LuHighlighter, LuMessageSquarePlus, LuTrash2 } from 'react-icons/lu';
 import { useAuth } from '@/hooks/useAuth';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
@@ -12,6 +11,7 @@ import { findTextRange } from '@/utils/textRange';
 import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useFloatStore } from '@/stores/useFloatStore';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	newsletterId: number;
@@ -406,247 +406,15 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
  * 형광펜 띠: 본문 글자 뒤(z-index -1, 본문 틀이 isolation으로 따로 쌓임)에 깐다. 누르기는 본문이 받는다.
  * 스크랩은 옅은 주 색, 메모가 있으면 아래에 주 색 줄, 마이페이지에서 온 문장은 잠깐 진하게
  */
-const StyledBands = styled.div`
-	position: absolute;
-	inset: 0;
-	z-index: -1;
-	pointer-events: none;
-
-	span {
-		position: absolute;
-		border-radius: 2px;
-		background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 18%, transparent);
-		transition: background-color 0.3s;
-
-		&.note {
-			box-shadow: inset 0 -2px 0 ${({ theme }) => theme.color.primary};
-		}
-
-		&.focus {
-			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 40%, transparent);
-		}
-	}
-`;
+const StyledBands = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-articles-highlight-layer-bands', className)} {...props} />
+);
 
 /** 휴대폰 시트 뒤 어둡게 */
-const StyledDim = styled.div`
-	position: fixed;
-	inset: 0;
-	z-index: 999;
-	background: rgba(0, 0, 0, 0.35);
-`;
+const StyledDim = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-articles-highlight-layer-dim', className)} {...props} />
+);
 
-const StyledPopover = styled.div`
-	/* 문서 기준으로 띄워 글과 함께 스크롤된다 (body에 붙여 둔다) */
-	position: absolute;
-	z-index: 1000;
-	display: flex;
-	flex-direction: column;
-	max-width: min(22rem, calc(100vw - 2rem));
-	line-height: 1.5;
-	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.radius.surface};
-	background: ${({ theme }) => theme.color.background};
-	font-size: ${({ theme }) => theme.fontSize.extraSmall};
-
-	/* 단추는 브라우저 기본 글꼴(13.3px)을 쓰므로 글꼴을 물려받게 */
-	button,
-	textarea {
-		font: inherit;
-	}
-
-	button {
-		line-height: 1;
-	}
-
-	/* 도구 막대: 32px 단추 둘 + 가는 세로줄, 막대 높이는 단추에 맞춘다 */
-	.toolbar {
-		display: flex;
-		align-items: center;
-		gap: 0.125rem;
-		padding: 0.25rem;
-
-		button {
-			display: inline-flex;
-			align-items: center;
-			justify-content: center;
-			gap: 0.375rem;
-			height: 2rem;
-			padding: 0 0.75rem;
-			border-radius: ${({ theme }) => theme.radius.control};
-			color: ${({ theme }) => theme.color.text};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			white-space: nowrap;
-			cursor: pointer;
-
-			svg {
-				flex-shrink: 0;
-				width: 1rem;
-				height: 1rem;
-				color: ${({ theme }) => theme.color.primary};
-			}
-
-			&:hover {
-				background: ${({ theme }) => theme.color.tertiary};
-				color: ${({ theme }) => theme.color.primary};
-			}
-		}
-
-		.divider {
-			width: 1px;
-			height: 1rem;
-			background: ${({ theme }) => theme.color.border};
-		}
-	}
-
-	.memo {
-		display: flex;
-		flex-direction: column;
-		gap: 0.625rem;
-		width: 20rem;
-		max-width: 100%;
-		padding: 0.875rem;
-	}
-
-	blockquote {
-		margin: 0;
-		max-height: 4.5rem;
-		overflow: hidden;
-		padding-left: 0.625rem;
-		border-left: 2px solid ${({ theme }) => theme.color.primary};
-		color: ${({ theme }) => theme.color.subText};
-		line-height: 1.5;
-	}
-
-	.label {
-		margin: 0;
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.primary};
-	}
-
-	.saved-head {
-		display: flex;
-		align-items: center;
-		justify-content: space-between;
-	}
-
-	.star-toggle {
-		padding: 0.25rem 0.5rem;
-		border-radius: ${({ theme }) => theme.radius.control};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-		cursor: pointer;
-
-		&:hover {
-			background: ${({ theme }) => theme.color.surface};
-		}
-
-		&.on {
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	textarea {
-		width: 100%;
-		padding: 0.5rem 0.625rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.control};
-		background: ${({ theme }) => theme.color.background};
-		color: ${({ theme }) => theme.color.text};
-		font: inherit;
-		line-height: 1.5;
-		resize: vertical;
-
-		&:focus {
-			outline: none;
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.actions {
-		display: flex;
-		justify-content: flex-end;
-		gap: 0.375rem;
-
-		button {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.25rem;
-			padding: 0.375rem 0.75rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.control};
-			color: ${({ theme }) => theme.color.text};
-			cursor: pointer;
-
-			&.primary {
-				border-color: ${({ theme }) => theme.color.primary};
-				background: ${({ theme }) => theme.color.primary};
-				color: ${({ theme }) => theme.color.white};
-			}
-
-			&.danger {
-				margin-right: auto;
-				border-color: transparent;
-				color: ${({ theme }) => theme.color.error};
-			}
-
-			&:disabled {
-				opacity: 0.5;
-				cursor: default;
-			}
-		}
-	}
-
-	/* 휴대폰: 아래에 붙은 시트. 도구 막대는 단추 둘을 반씩 크게 */
-	&.sheet {
-		position: fixed;
-		left: 0;
-		right: 0;
-		bottom: 0;
-		max-width: none;
-		border-width: 1px 0 0;
-		border-radius: ${({ theme }) => theme.radius.floating} ${({ theme }) => theme.radius.floating} 0 0;
-		padding-bottom: env(safe-area-inset-bottom);
-		box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.12);
-		font-size: ${({ theme }) => theme.fontSize.small};
-		animation: sheet-up 0.2s ease-out;
-
-		.toolbar {
-			padding: 0.5rem;
-
-			button {
-				flex: 1;
-				height: 3rem;
-			}
-		}
-
-		.memo {
-			width: 100%;
-			padding: 1.25rem 1rem;
-		}
-
-		textarea {
-			/* 16px 미만이면 iOS가 입력할 때 화면을 확대한다 */
-			font-size: 1rem;
-		}
-
-		.actions button {
-			padding: 0.625rem 1rem;
-		}
-	}
-
-	@keyframes sheet-up {
-		from {
-			transform: translateY(100%);
-		}
-		to {
-			transform: translateY(0);
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		&.sheet {
-			animation: none;
-		}
-	}
-`;
+const StyledPopover = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-articles-highlight-layer-popover', className)} {...props} />
+);

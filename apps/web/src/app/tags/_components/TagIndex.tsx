@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { LuSearch, LuTags, LuChevronDown } from 'react-icons/lu';
 import { fetchAllKeywords, KeywordStat } from '@/api/article';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
@@ -16,6 +15,7 @@ import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
+import { cx } from '@/styles/tw';
 
 type Sort = 'count' | 'recent' | 'name';
 
@@ -168,175 +168,6 @@ export default function TagIndex() {
 	);
 }
 
-const StyledTagIndex = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 2rem;
-	margin: 3rem 0 10vh;
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		margin-top: 2rem;
-	}
-
-	.head {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-
-	.controls {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		padding: 1rem 1.25rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-	}
-
-	.row {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem;
-	}
-
-	.search {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		width: 18rem;
-		max-width: 100%;
-		height: 2.25rem;
-		padding: 0 0.75rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		background: ${({ theme }) => theme.color.background};
-		color: ${({ theme }) => theme.color.subText};
-
-		&:focus-within {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-
-		input {
-			flex: 1;
-			min-width: 0;
-			border: none;
-			background: transparent;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: ${({ theme }) => theme.color.text};
-			outline: none;
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			width: 100%;
-		}
-	}
-
-	.sorts {
-		display: flex;
-		gap: 0.25rem;
-
-		button {
-			padding: 0.375rem 0.75rem;
-			border-radius: ${({ theme }) => theme.radius.chip};
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: ${({ theme }) => theme.color.subText};
-			cursor: pointer;
-
-			&[aria-pressed='true'] {
-				background: ${({ theme }) => theme.color.tertiary};
-				color: ${({ theme }) => theme.color.primary};
-				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			}
-		}
-	}
-
-	.group {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-
-		h2 {
-			display: flex;
-			align-items: baseline;
-			gap: 0.375rem;
-			margin: 0;
-			padding-bottom: 0.5rem;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-			font-size: ${({ theme }) => theme.fontSize.medium};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-		}
-
-		.n {
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		.hint {
-			margin-left: 0.25rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			font-weight: ${({ theme }) => theme.fontWeight.regular};
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		.fold {
-			display: inline-flex;
-			align-items: baseline;
-			gap: 0.375rem;
-			padding: 0;
-			font: inherit;
-			color: inherit;
-			cursor: pointer;
-
-			svg {
-				align-self: center;
-				width: 1rem;
-				height: 1rem;
-				color: ${({ theme }) => theme.color.subText};
-				transition: transform 0.2s ease;
-			}
-
-			&[aria-expanded='true'] svg {
-				transform: rotate(180deg);
-			}
-		}
-	}
-
-	/* 카드 · 목록 태그와 같은 모양: 얇은 테두리 · 진한 회색 · #만 강조색, 두 번 이상 나온 건 횟수 */
-	.tag-list {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin: 0;
-		padding: 0;
-		list-style: none;
-	}
-
-	.tag {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.0625rem;
-		padding: 0.25rem 0.625rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.mediumGrey};
-
-		.hash {
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		.count {
-			margin-left: 0.375rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			font-variant-numeric: tabular-nums;
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-`;
+const StyledTagIndex = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-tags-tag-index-tag-index', className)} {...props} />
+);
