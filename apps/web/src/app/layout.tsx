@@ -10,7 +10,6 @@ import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/const
 
 import '@/styles/pretendard.css';
 import './global.css';
-import StyledComponentsRegistry from '@/lib/registry';
 import Providers from '@/components/providers/Providers';
 import Layout from '@/components/layout/MainLayout';
 import ToastContainer from '@/components/common/toast/ToastContainer';
@@ -77,7 +76,6 @@ export default async function RootLayout({
 				<link rel="icon" href="/icons/favicon.svg" />
 			</head>
 			<body>
-				<StyledComponentsRegistry>
 					<Providers initialTrends={parsedTrends}>
 						<Layout contactEmail={contactEmail}>{children}</Layout>
 						<ToastContainer />
@@ -86,7 +84,6 @@ export default async function RootLayout({
 						{/* 방문 통계 (#131): 쿠키 없이 */}
 						<Tracker />
 					</Providers>
-				</StyledComponentsRegistry>
 			</body>
 		</html>
 	);

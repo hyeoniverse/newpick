@@ -40,9 +40,6 @@ const nextConfig: NextConfig = {
 			},
 		],
 	},
-	compiler: {
-		styledComponents: true,
-	},
 	/**
 	 * 다른 사이트 안(iframe)에 넣는 것은 hyeoniverse.com 계열에서만 허용한다.
 	 * 그 밖의 사이트가 화면을 덮어 클릭을 가로채는 것(클릭재킹)을 막는다. 로그인은 iframe 안에서 팝업으로 연다 (utils/loginPopup.ts)

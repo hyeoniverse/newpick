@@ -1,7 +1,7 @@
 /*
  * 전역 스타일 + Tailwind v4 (#10).
- * styled-components에서 Tailwind로 단계별로 옮기는 동안 둘을 함께 쓴다.
- * - 기본 초기화는 지금처럼 sanitize.css. Tailwind preflight는 styled-components를 다 걷어 낸 뒤 켠다 (화면이 한꺼번에 바뀌지 않게)
+ * styled-components는 모두 걷어 냈다. 덮어쓰이는 부품 CSS는 아직 층 밖에 둔다.
+ * - 기본 초기화는 아직 sanitize.css. Tailwind preflight는 다음 단계에서 켠다 (화면이 한꺼번에 바뀌지 않게)
  * - 층 순서 theme → base → components → utilities: 유틸리티가 전역 기본값을 이긴다
  * - 색 · 글자 크기는 styles/tokens.css의 var(--np-…)를 그대로 쓴다. 라이트 · 다크 · 화면 폭에 따라 바뀌는 값이 한 곳에서 나온다
  */
@@ -13,6 +13,8 @@
 @import '../styles/tokens.css';
 /* 화면 틀(예전 CSS 모듈): 공통 부품 · 화면 CSS보다 앞 (예전에도 모듈 link가 styled 태그보다 먼저였다) */
 @import '../styles/pages/frames.css';
+/* 아이콘 버튼: 층 밖 */
+@import '../styles/icon.css';
 /* 공통 버튼: 층 밖 (styles/button.css 머리말) */
 @import '../styles/button.css';
 /* 입력칸 공통: 층 밖 (styles/field.css 머리말) */
