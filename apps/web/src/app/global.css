@@ -20,6 +20,8 @@
 /* 뒤로 가기 막대 · 분야 칩: 안의 Button을 덮어써서 층 밖 (각 파일 머리말) */
 @import '../styles/back-bar.css';
 @import '../styles/category-tags.css';
+/* 펼침 메뉴(프로필 · 태블릿 메뉴): 안의 Button을 덮어써서 층 밖 (styles/dropdown.css 머리말) */
+@import '../styles/dropdown.css';
 
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
