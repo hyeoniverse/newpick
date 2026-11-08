@@ -2,7 +2,6 @@
 
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import styled from 'styled-components';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useToast } from '@/hooks/useToast';
@@ -11,6 +10,7 @@ import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
 import Dashboard from '@/app/(protected)/admin/_components/Dashboard';
+import { cx } from '@/styles/tw';
 
 /** 마지막으로 비운 시각을 '오후 3:04:12'처럼 */
 const timeText = (iso: string) => new Date(iso).toLocaleTimeString('ko-KR');
@@ -120,53 +120,11 @@ export default function AdminHome() {
 }
 
 /** 마이페이지 '회원 탈퇴' 줄과 같은 모양: 위 구분선, 왼쪽 제목·설명, 오른쪽 버튼 (모바일은 아래로) */
-const StyledTool = styled.section`
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 1.5rem;
-	margin-top: 2.5rem;
-	padding-top: 2rem;
-	border-top: 1px solid ${({ theme }) => theme.color.border};
-
-	> div {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-		max-width: 44rem;
-		word-break: keep-all;
-	}
-
-	.last {
-		font-variant-numeric: tabular-nums;
-	}
-
-	.manage {
-		display: flex;
-		flex-wrap: wrap;
-		justify-content: flex-end;
-		gap: 0.375rem;
-		flex-shrink: 0;
-		max-width: 28rem;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			justify-content: flex-start;
-		}
-	}
-
-	button {
-		flex-shrink: 0;
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		flex-direction: column;
-		align-items: flex-start;
-	}
-`;
+const StyledTool = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-admin-admin-home-tool', className)} {...props} />
+);
 
 /** 도구 줄과 같은 구분선으로 기록(대시보드)을 나눈다 */
-const StyledRecords = styled.div`
-	margin-top: 2.5rem;
-	padding-top: 2rem;
-	border-top: 1px solid ${({ theme }) => theme.color.border};
-`;
+const StyledRecords = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-admin-home-records', className)} {...props} />
+);

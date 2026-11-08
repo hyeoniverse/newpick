@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import styled from 'styled-components';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import Button from '@/components/common/Button';
 import TimePicker from '@/components/common/TimePicker';
+import { cx } from '@/styles/tw';
 
 export interface ClockTime {
 	hour: number;
@@ -122,65 +122,6 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 	);
 }
 
-const StyledEditor = styled.form`
-	display: flex;
-	flex-direction: column;
-	gap: 0.875rem;
-
-	.title {
-		font-size: ${({ theme }) => theme.heading.extraSmall.fontSize};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-	}
-
-	.desc {
-		font-size: ${({ theme }) => theme.fontSize.small};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
-	}
-
-	.row {
-		display: grid;
-		grid-template-columns: 6rem 1fr 8.5rem;
-		align-items: center;
-		gap: 0.75rem;
-		padding: 0.25rem 0;
-	}
-
-	.name {
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-	}
-
-	.when {
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	select.when {
-		height: 2.5rem;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	/* 시각 칸 이름표는 화면 읽기 프로그램용으로만 (줄 이름이 보이므로) */
-	.row label {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip: rect(0 0 0 0);
-		white-space: nowrap;
-	}
-
-	.error {
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.error};
-		word-break: keep-all;
-	}
-
-	.actions {
-		display: flex;
-		justify-content: flex-end;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-	}
-`;
+const StyledEditor = ({ className, ...props }: React.ComponentProps<'form'>) => (
+	<form className={cx('np-admin-schedule-editor-editor', className)} {...props} />
+);

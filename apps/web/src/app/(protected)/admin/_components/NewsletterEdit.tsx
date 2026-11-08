@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { LuTriangleAlert } from 'react-icons/lu';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
@@ -20,6 +19,7 @@ import ArticleContent from '@/app/articles/detail/[slug]/_components/content/Art
 import InputSelect from '@/components/common/InputSelect';
 import HtmlCodeEditor from './HtmlCodeEditor';
 import { compactHtml, formatHtml } from './htmlFormat';
+import { cx } from '@/styles/tw';
 
 interface Newsletter {
 	id: string;
@@ -248,148 +248,6 @@ export default function NewsletterEdit({ id }: { id: number }) {
 	);
 }
 
-const StyledEdit = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 1.5rem;
-
-	.head {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 0.75rem 1.25rem;
-
-		.id {
-			color: ${({ theme }) => theme.color.subText};
-			font-weight: ${({ theme }) => theme.fontWeight.regular};
-		}
-	}
-
-	.meta {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 1rem;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.subText};
-
-		a,
-		button {
-			color: ${({ theme }) => theme.color.primary};
-			font-size: inherit;
-			cursor: pointer;
-
-			&:hover {
-				text-decoration: underline;
-			}
-		}
-
-		.danger {
-			color: ${({ theme }) => theme.color.error};
-		}
-	}
-
-	.state {
-		padding: 3rem 0;
-		text-align: center;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	/* 왼쪽 고치기 · 오른쪽 미리보기 (태블릿 이하는 위아래) */
-	.layout {
-		display: grid;
-		grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-		gap: 2rem;
-		align-items: start;
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.form {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-	}
-
-	.field {
-		display: flex;
-		flex-direction: column;
-
-		> textarea {
-			height: auto;
-			padding: 0.625rem 0.75rem;
-			line-height: 1.6;
-			resize: vertical;
-		}
-
-		.code-head {
-			display: flex;
-			align-items: baseline;
-			justify-content: space-between;
-
-			button {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-				color: ${({ theme }) => theme.color.primary};
-				cursor: pointer;
-
-				&:hover {
-					text-decoration: underline;
-				}
-			}
-		}
-
-		small {
-			margin-top: 0.375rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
-		}
-	}
-
-	.error {
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.error};
-	}
-
-	.actions {
-		display: flex;
-		justify-content: flex-end;
-		gap: 0.5rem;
-	}
-
-	/* 미리보기는 따라오게 (긴 본문을 고치며 볼 수 있게) */
-	.preview {
-		position: sticky;
-		top: 4rem;
-		max-height: calc(100vh - 6rem);
-		overflow-y: auto;
-		padding: 1rem 1.25rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			position: static;
-			max-height: none;
-		}
-	}
-
-	.preview-label {
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.preview-title {
-		margin: 0.75rem 0 0.25rem;
-		font-size: ${({ theme }) => theme.fontSize.large};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		word-break: keep-all;
-	}
-
-	.preview-subtitle {
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
-	}
-`;
+const StyledEdit = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-newsletter-edit-edit', className)} {...props} />
+);

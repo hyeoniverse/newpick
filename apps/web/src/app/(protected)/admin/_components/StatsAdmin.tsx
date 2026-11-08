@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import Title from '@/components/common/Title';
@@ -14,6 +13,7 @@ import { PRESETS, useAdminQuery } from './period';
 import { usd } from './format';
 import { CHANNEL_LABEL, DEVICE_LABEL, duration, routeName } from './trafficLabels';
 import Link from 'next/link';
+import { cx } from '@/styles/tw';
 
 type Runs = { success: number; partial: number; failed: number; skipped: number };
 
@@ -641,192 +641,6 @@ function DayTable({ caption, head, rows }: { caption: string; head: string[]; ro
 	);
 }
 
-const StyledStats = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 3rem;
-
-	.section {
-		display: flex;
-		flex-direction: column;
-		gap: 1.25rem;
-	}
-
-	.state {
-		padding: 2rem 0;
-		text-align: center;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	/* 숫자 칸: 대시보드와 같은 모양 */
-	.numbers {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
-		gap: 0.75rem;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-
-		> div {
-			display: flex;
-			flex-direction: column;
-			gap: 0.25rem;
-			padding: 1rem 1.125rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.surface};
-		}
-
-		dt {
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		dd {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.large};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-		}
-
-		.sub {
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
-		}
-	}
-
-	.note {
-		padding: 0.625rem 0.875rem;
-		border-radius: ${({ theme }) => theme.radius.control};
-		background: ${({ theme }) => theme.color.surface};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.charts {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 1rem;
-
-		&.three {
-			grid-template-columns: repeat(3, minmax(0, 1fr));
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			grid-template-columns: minmax(0, 1fr);
-
-			&.three {
-				grid-template-columns: minmax(0, 1fr);
-			}
-		}
-	}
-
-	.chart {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		min-width: 0;
-		margin: 0;
-		padding: 1rem 1.125rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-
-		figcaption {
-			display: flex;
-			flex-direction: column;
-			gap: 0.125rem;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-
-			small {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-				font-weight: ${({ theme }) => theme.fontWeight.regular};
-				color: ${({ theme }) => theme.color.subText};
-			}
-		}
-	}
-
-	.top {
-		display: flex;
-		flex-direction: column;
-		gap: 0.625rem;
-		counter-reset: top;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-
-		li {
-			position: relative;
-			padding-left: 1.25rem;
-			counter-increment: top;
-
-			&::before {
-				content: counter(top);
-				position: absolute;
-				left: 0;
-				color: ${({ theme }) => theme.color.subText};
-				font-variant-numeric: tabular-nums;
-			}
-		}
-
-		a {
-			color: ${({ theme }) => theme.color.text};
-
-			&:hover {
-				color: ${({ theme }) => theme.color.primary};
-				text-decoration: underline;
-			}
-		}
-
-		span {
-			display: block;
-			margin-top: 0.125rem;
-			color: ${({ theme }) => theme.color.subText};
-		}
-	}
-
-	.empty {
-		padding: 0.5rem 0;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.route {
-		display: block;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.row-link {
-		white-space: nowrap;
-		text-align: right;
-
-		a {
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.primary};
-
-			&:hover {
-				text-decoration: underline;
-			}
-		}
-	}
-
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip: rect(0 0 0 0);
-		white-space: nowrap;
-	}
-
-	.day-table summary {
-		width: fit-content;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.primary};
-		cursor: pointer;
-	}
-
-	.day-table .table-wrap {
-		max-height: 20rem;
-		margin-top: 0.75rem;
-		overflow: auto;
-	}
-`;
+const StyledStats = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-stats-admin-stats', className)} {...props} />
+);

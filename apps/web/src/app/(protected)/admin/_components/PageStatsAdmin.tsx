@@ -1,7 +1,6 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import FilterChips from '@/components/common/FilterChips';
@@ -10,6 +9,7 @@ import AdminSubPage from './AdminSubPage';
 import { useAdminQuery } from './period';
 import Heatmap, { Click } from './Heatmap';
 import { DEVICE_LABEL, duration, routeName, sectionName } from './trafficLabels';
+import { cx } from '@/styles/tw';
 
 interface PageStats {
 	route: string;
@@ -116,65 +116,6 @@ export default function PageStatsAdmin() {
 	);
 }
 
-const StyledPage = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 1.25rem;
-
-	.state {
-		padding: 3rem 0;
-		text-align: center;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.numbers {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
-		gap: 0.75rem;
-
-		> div {
-			display: flex;
-			flex-direction: column;
-			gap: 0.25rem;
-			padding: 1rem 1.125rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.surface};
-		}
-
-		dt {
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		dd {
-			margin: 0;
-			font-size: ${({ theme }) => theme.fontSize.large};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-		}
-	}
-
-	.chart {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-		min-width: 0;
-		margin: 0;
-		padding: 1rem 1.125rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-
-		figcaption {
-			display: flex;
-			flex-direction: column;
-			gap: 0.125rem;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-
-			small {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-				font-weight: ${({ theme }) => theme.fontWeight.regular};
-				color: ${({ theme }) => theme.color.subText};
-			}
-		}
-	}
-`;
+const StyledPage = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-page-stats-admin-page', className)} {...props} />
+);

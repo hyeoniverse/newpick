@@ -1,8 +1,8 @@
 'use client';
 
 import { Fragment } from 'react';
-import styled from 'styled-components';
 import { INDENT } from './htmlFormat';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	value: string;
@@ -89,7 +89,7 @@ function paintTag(tag: string) {
  */
 export default function HtmlCodeEditor({ value, onChange, id, rows = 20 }: Props) {
 	return (
-		<StyledEditor $rows={rows}>
+		<StyledEditor style={{ '--editor-rows': rows } as React.CSSProperties}>
 			<div className="stack">
 				<div className="gutter" aria-hidden />
 				<pre className="paint" aria-hidden>
@@ -118,135 +118,6 @@ export default function HtmlCodeEditor({ value, onChange, id, rows = 20 }: Props
 }
 
 /* indent-rainbow 색 (노랑 · 초록 · 분홍 · 하늘 · 주황 · 보라). 흰 바탕에서 칙칙하지 않게 채도 높게 */
-const RAINBOW = ['255, 204, 0', '52, 199, 89', '255, 45, 146', '0, 174, 255', '255, 132, 0', '138, 92, 255'];
-
-/** 줄 번호 칸 너비 (textarea도 같은 만큼 비운다) */
-const GUTTER = '3rem';
-
-const StyledEditor = styled.div<{ $rows: number }>`
-	max-height: ${({ $rows }) => `calc(${$rows} * 1.6em + 1.25rem)`};
-	overflow: auto;
-	resize: vertical;
-	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.radius.control};
-	background: ${({ theme }) => theme.color.background};
-	font-size: ${({ theme }) => theme.fontSize.extraSmall};
-	line-height: 1.6;
-
-	&:focus-within {
-		border-color: ${({ theme }) => theme.color.primary};
-	}
-
-	.stack {
-		position: relative;
-		counter-reset: line;
-	}
-
-	/* 전역 '* { font-family }'가 색칠한 글자에 붙지 않게: 두 겹 모두 같은 고정폭 글꼴 */
-	.stack,
-	.stack * {
-		font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-		font-size: inherit;
-		line-height: inherit;
-	}
-
-	.gutter {
-		position: absolute;
-		inset: 0 auto 0 0;
-		width: ${GUTTER};
-		border-right: 1px solid ${({ theme }) => theme.color.border};
-		background: ${({ theme }) => theme.color.surface};
-	}
-
-	/* 두 겹이 글자 하나까지 같은 자리에 오도록 모양을 똑같이 */
-	.paint,
-	textarea {
-		margin: 0;
-		padding: 0.625rem 0.75rem 0.625rem calc(${GUTTER} + 0.75rem);
-		border: 0;
-		letter-spacing: 0;
-		white-space: pre-wrap;
-		overflow-wrap: anywhere;
-	}
-
-	.paint {
-		position: relative;
-		min-height: ${({ $rows }) => `calc(${$rows} * 1.6em + 1.25rem)`};
-		pointer-events: none;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	.line {
-		position: relative;
-		counter-increment: line;
-
-		&::before {
-			content: counter(line);
-			position: absolute;
-			left: calc(-${GUTTER} - 0.75rem);
-			width: calc(${GUTTER} - 0.5rem);
-			text-align: right;
-			color: ${({ theme }) => theme.color.lightGrey};
-			font-size: 0.75rem;
-		}
-	}
-
-	textarea {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		overflow: hidden;
-		resize: none;
-		background: transparent;
-		color: transparent;
-		caret-color: ${({ theme }) => theme.color.text};
-		outline: none;
-
-		&::selection {
-			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 25%, transparent);
-			color: transparent;
-		}
-	}
-
-	${RAINBOW.map(
-		(rgb, i) => `
-	.level-${i} {
-		background: rgba(${rgb}, 0.22);
-		box-shadow: inset 2px 0 rgba(${rgb}, 0.75);
-	}`,
-	).join('')}
-
-	/* 코드 색: 사이트 주 색(보라)을 중심으로 — 태그는 주 색, 속성은 밝은 보라, 값은 청록, 기호는 차가운 회색 */
-	.tag {
-		color: ${({ theme }) => theme.color.primary};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-	}
-
-	.attr {
-		color: #8b5cf6;
-	}
-
-	.value {
-		color: #0d8a7f;
-	}
-
-	.punct {
-		color: #9aa0b8;
-	}
-
-	/* 어두운 테마 (태그는 테마의 주 색을 따라감) */
-	:root[data-theme='dark'] & {
-		.attr {
-			color: #c4b0ff;
-		}
-
-		.value {
-			color: #5fd4c3;
-		}
-
-		.punct {
-			color: #7d849c;
-		}
-	}
-`;
+const StyledEditor = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-html-code-editor-editor', className)} {...props} />
+);
