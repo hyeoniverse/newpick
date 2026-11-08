@@ -30,6 +30,9 @@
 @import '../styles/glyphs.css';
 @import '../styles/card-slider.css';
 @import '../styles/legal.css';
+/* 날짜 고르기: 라이브러리 CSS 바로 뒤에 덮어쓰기 (styles/datepicker.css 머리말) */
+@import 'react-datepicker/dist/react-datepicker.css';
+@import '../styles/datepicker.css';
 
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

@@ -2,12 +2,10 @@
 
 import { forwardRef, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import styled, { css } from 'styled-components';
 import ReactDatePicker, { registerLocale, type ReactDatePickerCustomHeaderProps } from 'react-datepicker';
 import { ko } from 'date-fns/locale';
 import { format } from 'date-fns';
 import { LuCalendar, LuChevronDown, LuChevronLeft, LuChevronRight } from 'react-icons/lu';
-import 'react-datepicker/dist/react-datepicker.css';
 import { kstDate } from '@/utils/formatter';
 
 registerLocale('ko', ko);
@@ -242,7 +240,7 @@ function CalendarLayer({ children }: { children?: React.ReactNode }) {
 	const [mounted, setMounted] = useState(false);
 	useEffect(() => setMounted(true), []);
 	if (!mounted || !children) return null;
-	return createPortal(<StyledCalendarLayer>{children}</StyledCalendarLayer>, document.body);
+	return createPortal(<div className="np-calendar-layer">{children}</div>, document.body);
 }
 
 interface CommonProps {
@@ -282,7 +280,7 @@ export function DatePicker({
 	const inputId = useId();
 	const pickerRef = useRef<ReactDatePicker>(null);
 	return (
-		<StyledDatePicker $size={size} className={className}>
+		<div className={`np-date-picker ${className ?? ''}`} data-size={size}>
 			{label && (
 				<label htmlFor={inputId} className="np-field-label">
 					{label}
@@ -317,7 +315,7 @@ export function DatePicker({
 					/>
 				</ReactDatePicker>
 			</div>
-		</StyledDatePicker>
+		</div>
 	);
 }
 
@@ -347,7 +345,7 @@ interface DateTriggerProps {
  */
 export function DateTrigger({ value, onChange, min, max, label, className }: DateTriggerProps) {
 	return (
-		<StyledTrigger className={className}>
+		<span className={`np-date-trigger ${className ?? ''}`}>
 			<ReactDatePicker
 				locale="ko"
 				calendarClassName="np-calendar"
@@ -362,7 +360,7 @@ export function DateTrigger({ value, onChange, min, max, label, className }: Dat
 				shouldCloseOnSelect
 				popperPlacement="bottom-start"
 			/>
-		</StyledTrigger>
+		</span>
 	);
 }
 
@@ -437,7 +435,7 @@ export function DateRangePicker({
 	};
 
 	return (
-		<StyledDatePicker $size={size} $range className={className}>
+		<div className={`np-date-picker ${className ?? ''}`} data-size={size} data-range>
 			{label && <span className="np-field-label group-label">{label}</span>}
 			<div className="range" role="group" aria-label={label ?? '기간'}>
 				<div className="control">
@@ -487,402 +485,10 @@ export function DateRangePicker({
 					</ReactDatePicker>
 				</div>
 			</div>
-		</StyledDatePicker>
+		</div>
 	);
 }
 
 export default DatePicker;
 
-/** 고른 칸에 올렸을 때: 강조색을 조금 짙게 (흰 글자 대비 유지) */
-const hoverPrimary = css`
-	${({ theme }) => `color-mix(in srgb, ${theme.color.primary} 82%, #000)`}
-`;
-
 /** 달력 모양: 얇은 테두리 · 8px 모서리 · 그림자 없음 · 선택은 강조색, 기간은 옅은 강조색 */
-const calendar = css`
-	/* 헤더(1000) · 시트(1000)보다 위 */
-	.react-datepicker-popper {
-		z-index: 1001;
-	}
-
-	.react-datepicker-popper .react-datepicker__triangle {
-		display: none;
-	}
-
-	.np-calendar {
-		padding: 0.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.background};
-		color: ${({ theme }) => theme.color.text};
-		font-family: inherit;
-		font-size: ${({ theme }) => theme.fontSize.small};
-
-		/* 달 · 연도 고르기 판이 달력 전체를 덮도록 머리는 기준에서 뺀다 */
-		.react-datepicker__month-container {
-			position: relative;
-		}
-
-		.react-datepicker__header {
-			position: static;
-			padding: 0 0 0.375rem;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-			background: transparent;
-		}
-
-		.np-header,
-		.panel-head {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: 0.375rem;
-		}
-
-		.nav {
-			display: flex;
-			align-items: center;
-			justify-content: center;
-			width: 2rem;
-			height: 2rem;
-			border-radius: 6px;
-			color: ${({ theme }) => theme.color.subText};
-			cursor: pointer;
-
-			&:hover:not(:disabled) {
-				background: ${({ theme }) => theme.color.neutral};
-				color: ${({ theme }) => theme.color.text};
-			}
-
-			&:disabled {
-				opacity: 0.3;
-				cursor: default;
-			}
-		}
-
-		.title {
-			display: inline-flex;
-			align-items: center;
-			gap: 0.25rem;
-			height: 2rem;
-			padding: 0 0.625rem;
-			border-radius: 6px;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			color: ${({ theme }) => theme.color.text};
-			cursor: pointer;
-
-			&:hover:not(.is-static) {
-				background: ${({ theme }) => theme.color.neutral};
-			}
-
-			&.is-static {
-				cursor: default;
-				font-variant-numeric: tabular-nums;
-			}
-
-			svg {
-				width: 0.875rem;
-				height: 0.875rem;
-				transition: transform 0.2s ease;
-
-				&.open {
-					transform: rotate(180deg);
-				}
-			}
-		}
-
-		/* 달 · 연도 고르기: 머리 아래 달력 자리를 덮는다 */
-		/* 달 · 연도 고르기를 열면 '‹ 2026년 10월 ›' 줄은 감추고 그 자리부터 덮는다 (패널에 자기 머리가 있음) */
-		.panel-open > .nav,
-		.panel-open > .title {
-			visibility: hidden;
-		}
-
-		.np-panel {
-			position: absolute;
-			inset: 0;
-			z-index: 2;
-			display: flex;
-			flex-direction: column;
-			background: ${({ theme }) => theme.color.background};
-		}
-
-		.cell-grid {
-			display: grid;
-			grid-template-columns: repeat(3, 1fr);
-			gap: 0.25rem;
-			flex: 1;
-			align-content: center;
-		}
-
-		.cell {
-			height: 2.75rem;
-			border-radius: 6px;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-variant-numeric: tabular-nums;
-			color: ${({ theme }) => theme.color.text};
-			cursor: pointer;
-
-			&:hover:not(:disabled) {
-				background: ${({ theme }) => theme.color.neutral};
-			}
-
-			&.current {
-				background: ${({ theme }) => theme.color.primary};
-				color: #ffffff;
-				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			}
-
-			/* 고른 칸에 올리면 회색이 아니라 조금 짙은 강조색 (흰 글자가 묻히지 않게) */
-			&.current:hover:not(:disabled) {
-				background: ${hoverPrimary};
-			}
-
-			&:disabled {
-				color: ${({ theme }) => theme.color.disabled};
-				cursor: default;
-			}
-		}
-
-		.react-datepicker__day-name {
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		.react-datepicker__day-name,
-		.react-datepicker__day {
-			width: 2.25rem;
-			line-height: 2.25rem;
-			margin: 0.0625rem;
-		}
-
-		.react-datepicker__day,
-		.react-datepicker__day--today,
-		.react-datepicker__day--in-range {
-			border-radius: 6px;
-			color: ${({ theme }) => theme.color.text};
-		}
-
-		/*
-		 * 올렸을 때 (상태마다 글자가 묻히지 않게):
-		 * 보통 날 → 옅은 회색 · 기간 안 → 조금 짙은 옅은 강조색 · 고른 날(시작 · 끝) → 조금 짙은 강조색 + 흰 글자
-		 */
-		.react-datepicker__day:hover {
-			background: ${({ theme }) => theme.color.neutral};
-			color: ${({ theme }) => theme.color.text};
-		}
-
-		/* 일요일 */
-		.react-datepicker__week
-			> .react-datepicker__day:first-child:not(.react-datepicker__day--selected):not(
-				.react-datepicker__day--outside-month
-			) {
-			color: ${({ theme }) => theme.color.error};
-		}
-
-		.react-datepicker__day--today {
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-			box-shadow: inset 0 0 0 1px ${({ theme }) => theme.color.border};
-		}
-
-		.react-datepicker__day--disabled {
-			color: ${({ theme }) => theme.color.disabled};
-			pointer-events: none;
-		}
-
-		/* 모든 날짜 칸은 같은 모서리 (기간 · 오늘 · 선택 모두) */
-		.react-datepicker__day--in-range,
-		.react-datepicker__day--in-selecting-range {
-			background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 14%, transparent);
-			color: ${({ theme }) => theme.color.text};
-
-			&:hover {
-				background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 26%, transparent);
-			}
-		}
-
-		.react-datepicker__day--selected,
-		.react-datepicker__day--range-start,
-		.react-datepicker__day--range-end,
-		.react-datepicker__day--selecting-range-start {
-			background: ${({ theme }) => theme.color.primary};
-			color: #ffffff;
-
-			&:hover {
-				background: ${hoverPrimary};
-				color: #ffffff;
-			}
-		}
-
-		/* 키보드로 옮겨 다니는 칸: 채우지 않고 테두리만 (고른 날과 헷갈리지 않게) */
-		.react-datepicker__day--keyboard-selected:not(.react-datepicker__day--selected):not(
-				.react-datepicker__day--range-start
-			):not(.react-datepicker__day--range-end) {
-			background: transparent;
-			box-shadow: inset 0 0 0 2px ${({ theme }) => theme.color.primary};
-		}
-		/* 앞 · 뒤 달 날짜는 흐린 글자만: 기간 · 선택 색을 칠하지 않는다 (지금 달 안의 기간만 보이게, 경계에서 색이 섞이지 않게) */
-		.react-datepicker__day.react-datepicker__day--outside-month {
-			background: transparent;
-			box-shadow: none;
-			color: ${({ theme }) => theme.color.disabled};
-			font-weight: inherit;
-
-			&:hover {
-				background: ${({ theme }) => theme.color.neutral};
-			}
-		}
-	}
-
-	/* 라이브러리 기본은 폭 13.8rem 고정이라 달력 폭만큼 펴 준다 */
-	.react-datepicker__children-container {
-		clear: both;
-		width: auto;
-		height: auto;
-		margin: 0;
-		padding: 0;
-	}
-
-	/* 달력 아래 빠른 선택: 얇은 테두리 칩, 고를 수 없는 건 흐리게 */
-	.np-quick {
-		/* 달 칸(float)의 아래로 */
-		clear: both;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.25rem;
-		width: 100%;
-		margin-top: 0.375rem;
-		padding-top: 0.5rem;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
-
-		button {
-			padding: 0.25rem 0.5rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.chip};
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.text};
-			cursor: pointer;
-
-			&:hover:not(:disabled) {
-				border-color: ${({ theme }) => theme.color.primary};
-				color: ${({ theme }) => theme.color.primary};
-			}
-
-			&:disabled {
-				opacity: 0.4;
-				cursor: default;
-			}
-		}
-	}
-`;
-
-const StyledDatePicker = styled.div<{ $size: Size; $range?: boolean }>`
-	display: flex;
-	flex-direction: column;
-	width: ${({ $size, $range }) => ($size === 'small' ? ($range ? 'fit-content' : '9.5rem') : '100%')};
-	max-width: 100%;
-
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip: rect(0 0 0 0);
-		white-space: nowrap;
-	}
-
-	/* 기간: [시작] ~ [종료] */
-	.range {
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
-
-		.control {
-			/* 작은 칸은 폭을 못 박는다 (flex-basis만 주면 Safari가 바깥 줄의 폭을 0으로 잡아 줄이 바뀐다) */
-			${({ $size }) =>
-				$size === 'small'
-					? css`
-							flex: none;
-							width: 9.5rem;
-						`
-					: css`
-							flex: 1 1 0;
-						`}
-			min-width: 0;
-		}
-	}
-
-	.tilde {
-		flex-shrink: 0;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.control {
-		position: relative;
-	}
-
-	.calendar-icon {
-		position: absolute;
-		top: 50%;
-		left: 0.75rem;
-		z-index: 1;
-		width: 1rem;
-		height: 1rem;
-		color: ${({ theme }) => theme.color.subText};
-		transform: translateY(-50%);
-		pointer-events: none;
-	}
-
-	.react-datepicker-wrapper,
-	.react-datepicker__input-container {
-		display: block;
-		width: 100%;
-	}
-
-	.date-input {
-		padding-left: 2.25rem;
-		font-variant-numeric: tabular-nums;
-		${({ $size }) =>
-			$size === 'small' &&
-			css`
-				height: 2.25rem;
-			`}
-	}
-`;
-
-/** 달력 층 (body 아래): 달력 모양은 여기서만 */
-const StyledCalendarLayer = styled.div`
-	${calendar}
-`;
-
-const StyledTrigger = styled.span`
-	display: inline-block;
-
-	.react-datepicker-wrapper,
-	.react-datepicker__input-container {
-		display: inline;
-	}
-
-	/* 글자 그대로, 점선 밑줄로 누를 수 있다는 표시. 마우스를 올리면 강조색 */
-	.date-trigger {
-		padding: 0;
-		font: inherit;
-		font-variant-numeric: tabular-nums;
-		color: inherit;
-		text-decoration: underline;
-		text-decoration-color: ${({ theme }) => theme.color.lightGrey};
-		text-underline-offset: 0.25em;
-		text-decoration-thickness: 1px;
-		cursor: pointer;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.primary};
-			text-decoration-color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	/* 달력은 글자 크기와 무관하게 */
-	.react-datepicker-popper {
-		font-size: 1rem;
-		font-weight: normal;
-	}
-`;
