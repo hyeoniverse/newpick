@@ -51,7 +51,10 @@ export default function HeaderSearch() {
 
 	const submit = (event: React.FormEvent) => {
 		event.preventDefault();
-		const value = q.trim();
+		// 상태(q)가 아니라 칸의 실제 값: 화면이 다 붙기 전에 입력하고 Enter를 누르면, React가 제출만 나중에 다시 실행해
+		// 상태에는 이전 검색어가 남아 있었다 (느린 기기 · CI에서 같은 주소로 다시 가며 검색이 안 되던 문제)
+		const value = String(new FormData(event.currentTarget as HTMLFormElement).get('q') ?? q).trim();
+		setQ(value);
 		if (value && !value.startsWith('#') && [...value.replace(/\s/g, '')].length < 2) {
 			setError('2글자 이상 입력해 주세요');
 			return;
