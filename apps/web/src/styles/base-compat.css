@@ -1,0 +1,173 @@
+/*
+ * preflight 위에 얹는 호환 규칙 (base 층, preflight 바로 뒤).
+ * 논리 속성(margin-block · padding-inline-start)은 쓰지 않는다: Lightning CSS가 :lang() 선택자로 풀어 무게가 커진다.
+ * 선택자는 :where 없이 preflight와 같은 무게로 쓴다 (층 안이라 화면 CSS · 유틸리티에는 어차피 진다).
+ * 화면은 sanitize.css + 브라우저 기본값을 기준으로 만들어졌다. preflight가 지우는 것 중
+ * 화면이 기대던 것만 되돌린다. 새 코드는 이 기본값에 기대지 말고 유틸리티로 직접 정한다.
+ */
+:root {
+	cursor: default;
+	overflow-wrap: break-word;
+	-webkit-tap-highlight-color: transparent;
+}
+
+/* 제목 · 문단 · 목록: 브라우저 기본 크기 · 굵기 · 여백 */
+h1 {
+	font-size: 2em;
+	margin-top: 0.67em;
+	margin-bottom: 0.67em;
+	font-weight: bold;
+}
+h2 {
+	font-size: 1.5em;
+	margin-top: 0.83em;
+	margin-bottom: 0.83em;
+	font-weight: bold;
+}
+h3 {
+	font-size: 1.17em;
+	margin-top: 1em;
+	margin-bottom: 1em;
+	font-weight: bold;
+}
+h4 {
+	margin-top: 1.33em;
+	margin-bottom: 1.33em;
+	font-weight: bold;
+}
+h5 {
+	font-size: 0.83em;
+	margin-top: 1.67em;
+	margin-bottom: 1.67em;
+	font-weight: bold;
+}
+h6 {
+	font-size: 0.67em;
+	margin-top: 2.33em;
+	margin-bottom: 2.33em;
+	font-weight: bold;
+}
+p,
+blockquote,
+figure,
+dl,
+ol,
+ul,
+pre {
+	margin-top: 1em;
+	margin-bottom: 1em;
+}
+blockquote,
+figure {
+	margin-left: 40px;
+	margin-right: 40px;
+}
+dd {
+	margin-left: 40px;
+}
+ol,
+ul {
+	padding-left: 40px;
+}
+ul {
+	list-style: disc;
+}
+ol {
+	list-style: decimal;
+}
+:is(dl, ol, ul) :is(dl, ol, ul) {
+	margin: 0;
+}
+nav :is(ol, ul) {
+	list-style-type: none;
+	padding: 0;
+}
+b,
+strong {
+	font-weight: bolder;
+}
+hr {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	border-width: 1px;
+	border-style: inset;
+}
+
+/* 그림: 글줄 안에 가운데 맞춤 (preflight는 block) */
+img,
+svg,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+	display: inline;
+	vertical-align: middle;
+}
+img,
+video {
+	max-width: none;
+	height: auto;
+}
+svg:not([fill]) {
+	fill: currentColor;
+}
+
+/* 입력 · 버튼: 브라우저 기본 모양 (글꼴만 이어받지 않음) */
+button,
+input,
+select,
+optgroup,
+textarea {
+	font: revert;
+	font-family: inherit;
+	letter-spacing: revert;
+	color: revert;
+}
+button,
+input:is([type='button' i], [type='reset' i], [type='submit' i]) {
+	background-color: revert;
+	border-radius: revert;
+	padding: revert;
+}
+input,
+textarea,
+select {
+	padding: revert;
+	border-radius: revert;
+	background-color: revert;
+}
+button,
+input,
+select,
+textarea {
+	border: revert;
+}
+[type='search' i] {
+	appearance: textfield;
+	outline-offset: -2px;
+}
+*,
+::before,
+::after {
+	background-repeat: no-repeat;
+}
+::placeholder {
+	color: inherit;
+	opacity: 0.54;
+}
+textarea {
+	resize: vertical;
+}
+
+[aria-busy='true' i] {
+	cursor: progress;
+}
+[aria-controls] {
+	cursor: pointer;
+}
+[aria-disabled='true' i],
+[disabled] {
+	cursor: not-allowed;
+}
