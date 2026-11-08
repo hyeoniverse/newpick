@@ -2,13 +2,22 @@
 
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import { ToastPosition } from '@/models/toast.model';
+import type { ToastPosition } from '@/models/toast.model';
 import { useMount } from '@/hooks/useMount';
 import { useToast } from '@/hooks/useToast';
 import { headerBottom } from '@/utils/headerBottom';
 
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 import Toast from '@/components/common/toast/Toast';
+
+const POSITION: Record<ToastPosition, string> = {
+	'top-left': 'top-4 left-4 items-start',
+	'top-right': 'top-4 right-4 items-end',
+	'bottom-left': 'bottom-4 left-4 items-start',
+	'bottom-right': 'bottom-4 right-4 items-end',
+	'center-bottom': 'bottom-4 left-1/2 -translate-x-1/2 items-center',
+	'center-top': 'top-4 left-1/2 -translate-x-1/2 items-center',
+};
 
 /** 헤더(또는 펼친 메뉴)와 토스트 사이 간격 */
 const GAP = 12;
@@ -40,7 +49,14 @@ const ToastContainer = React.memo(() => {
 	if (!isMounted) return null;
 
 	return createPortal(
-		<StyledToastContainer ref={containerRef} $position={position}>
+		<div
+			ref={containerRef}
+			// left: 50%로 두면 남은 폭(화면 절반)에 맞춰 줄어들어 짧은 문구도 꺾인다. 내용 폭에 맞춘다
+			className={cx(
+				'pointer-events-none fixed z-[9999] flex w-max max-w-[calc(100vw-2rem)] flex-col gap-2 [&>div]:pointer-events-auto',
+				POSITION[position] ?? POSITION['center-top'],
+			)}
+		>
 			{toasts.map((toast) => (
 				<Toast
 					key={toast.id}
@@ -52,7 +68,7 @@ const ToastContainer = React.memo(() => {
 					index={toasts.findIndex((t) => t.id === toast.id)}
 				/>
 			))}
-		</StyledToastContainer>,
+		</div>,
 		document.body,
 	);
 });
@@ -60,61 +76,3 @@ const ToastContainer = React.memo(() => {
 ToastContainer.displayName = 'ToastContainer';
 
 export default ToastContainer;
-
-interface StyledProps {
-	$position: ToastPosition;
-}
-
-const StyledToastContainer = styled.div<StyledProps>`
-	position: fixed;
-	/* left: 50%로 두면 남은 폭(화면 절반)에 맞춰 줄어들어 짧은 문구도 꺾인다. 내용 폭에 맞춘다 */
-	width: max-content;
-	max-width: calc(100vw - 2rem);
-	z-index: 9999;
-	display: flex;
-	flex-direction: column;
-	gap: 0.5rem;
-	pointer-events: none;
-
-	${({ $position }) => {
-		const positions = {
-			'top-left': `
-				top: 1rem;
-				left: 1rem;
-				align-items: flex-start;
-			`,
-			'top-right': `
-				top: 1rem;
-				right: 1rem;
-				align-items: flex-end;
-			`,
-			'bottom-left': `
-				bottom: 1rem;
-				left: 1rem;
-				align-items: flex-start;
-			`,
-			'bottom-right': `
-				bottom: 1rem;
-				right: 1rem;
-				align-items: flex-end;
-			`,
-			'center-bottom': `
-				bottom: 1rem;
-				left: 50%;
-				transform: translateX(-50%);
-				align-items: center;
-			`,
-			'center-top': `
-				top: 1rem;
-				left: 50%;
-				transform: translateX(-50%);
-				align-items: center;
-			`,
-		};
-		return positions[$position] || positions['center-top'];
-	}}
-
-	> div {
-		pointer-events: auto;
-	}
-`;

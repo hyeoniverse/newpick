@@ -7,7 +7,6 @@ import { useState } from 'react';
 import { loginUser } from '@/api/auth';
 import { useToast } from '@/hooks/useToast';
 
-import styled from 'styled-components';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
@@ -16,6 +15,8 @@ interface Props {
 	/** 로그인이 필요한 이유 (예: 구독하려면). 없으면 헤더의 로그인 */
 	reason?: string;
 }
+
+const LINK = 'text-text underline underline-offset-[0.2em] hover:text-primary focus-visible:text-primary';
 
 /**
  * 로그인 창 (#66). 구글로 넘어가기 전에 이용약관·개인정보 처리방침 안내를 보여 준다.
@@ -36,8 +37,8 @@ export default function LoginSheet({ reason }: Props) {
 	};
 
 	return (
-		<StyledLoginSheet>
-			<span className="badge">
+		<div className="flex w-full flex-col items-center gap-2 pt-2 text-center">
+			<span className="badge mb-2 flex size-[3.25rem] items-center justify-center rounded-full bg-tertiary text-primary [&_svg]:size-[1.625rem]">
 				<LuLogIn />
 			</span>
 			<Title size="extraSmall" weight="bold">
@@ -48,80 +49,29 @@ export default function LoginSheet({ reason }: Props) {
 			</Text>
 
 			<Button
-				className="google"
+				className="google mt-4"
 				scheme="primary"
 				size="medium"
 				icon={<IoLogoGoogle />}
 				iconPosition="left"
 				onClick={login}
+				style={{ '--btn-width': '100%' } as React.CSSProperties}
 			>
 				{/* 팝업을 닫았으면 다시 눌러 다시 연다 (구글을 거치면 팝업이 닫혔는지 알 수 없어 버튼을 막지 않는다) */}
 				{waiting ? '팝업에서 로그인 중 · 다시 열기' : '구글로 계속하기'}
 			</Button>
 
-			<p className="notice">
+			<p className="notice mt-2 text-extra-small leading-[1.6] text-sub-text [word-break:keep-all]">
 				로그인하면 뉴픽의 {/* 로그인 창을 닫지 않고 읽을 수 있게 새 탭으로 */}
-				<Link href="/terms" target="_blank">
+				<Link href="/terms" target="_blank" className={LINK}>
 					이용약관
 				</Link>
 				과{' '}
-				<Link href="/privacy" target="_blank">
+				<Link href="/privacy" target="_blank" className={LINK}>
 					개인정보 처리방침
 				</Link>
 				에 동의하는 것으로 봅니다.
 			</p>
-		</StyledLoginSheet>
+		</div>
 	);
 }
-
-const StyledLoginSheet = styled.div`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.5rem;
-	width: 100%;
-	padding-top: 0.5rem;
-	text-align: center;
-
-	.badge {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 3.25rem;
-		height: 3.25rem;
-		margin-bottom: 0.5rem;
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		background: ${({ theme }) => theme.color.tertiary};
-		color: ${({ theme }) => theme.color.primary};
-
-		svg {
-			width: 1.625rem;
-			height: 1.625rem;
-		}
-	}
-
-	.google {
-		width: 100%;
-		margin-top: 1rem;
-		justify-content: center;
-	}
-
-	.notice {
-		margin-top: 0.5rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
-
-		a {
-			color: ${({ theme }) => theme.color.text};
-			text-decoration: underline;
-			text-underline-offset: 0.2em;
-
-			&:hover,
-			&:focus-visible {
-				color: ${({ theme }) => theme.color.primary};
-			}
-		}
-	}
-`;

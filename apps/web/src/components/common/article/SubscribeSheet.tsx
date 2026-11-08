@@ -10,7 +10,7 @@ import useInterestsStore from '@/stores/useInterestStore';
 
 import { useEffect } from 'react';
 
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 import { LuMailCheck } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
@@ -59,8 +59,8 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 	};
 
 	return (
-		<StyledSubscribeSheet>
-			<div className="head">
+		<div className="flex flex-col gap-6">
+			<div className="head flex flex-col gap-1.5">
 				<Title size="small" weight="bold">
 					뉴스레터 구독
 				</Title>
@@ -69,15 +69,21 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 				</Text>
 			</div>
 
-			<fieldset className="categories">
-				<legend>관심 분야</legend>
+			<fieldset className="categories m-0 flex flex-wrap gap-2 border-none p-0">
+				<legend className="mb-3 text-small font-semi-bold text-text">관심 분야</legend>
 				{CATEGORIES.map((category) => {
 					const selected = category.name === '전체' ? isAll : selectedInterests.includes(category.name);
 					return (
 						<button
 							key={category.id}
 							type="button"
-							className={selected ? 'chip selected' : 'chip'}
+							className={cx(
+								'chip cursor-pointer rounded-chip border border-solid px-4 py-2 text-small [transition:background_0.15s,border-color_0.15s]',
+								// 같은 속성 클래스가 둘 붙지 않게 고른 · 안 고른 중 하나만
+								selected
+									? 'selected border-primary bg-primary font-semi-bold text-background'
+									: 'border-border bg-background text-text hover:border-primary',
+							)}
 							aria-pressed={selected}
 							onClick={() => handleSelectInterests(category)}
 						>
@@ -87,76 +93,20 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 				})}
 			</fieldset>
 
-			<ArgreementCheck name={CHECK_NAME} className="agreement" />
+			<ArgreementCheck name={CHECK_NAME} className="agreement border-0 border-t border-solid border-border pt-4" />
 
-			<Button scheme="primary" size="medium" className="submit" onClick={onSubmit} disabled={!canSubmit}>
+			<Button
+				scheme="primary"
+				size="medium"
+				className="submit"
+				onClick={onSubmit}
+				disabled={!canSubmit}
+				style={{ '--btn-width': '100%', '--btn-height': '3rem' } as React.CSSProperties}
+			>
 				{selectedInterests.length
 					? `${isAll ? '전체' : `${selectedInterests.length}개`} 분야 구독하기`
 					: '분야를 골라 주세요'}
 			</Button>
-		</StyledSubscribeSheet>
+		</div>
 	);
 }
-
-const StyledSubscribeSheet = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 1.5rem;
-
-	.head {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-	}
-
-	.categories {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin: 0;
-		padding: 0;
-		border: none;
-
-		legend {
-			margin-bottom: 0.75rem;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			color: ${({ theme }) => theme.color.text};
-		}
-	}
-
-	.chip {
-		padding: 0.5rem 1rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.background};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.text};
-		cursor: pointer;
-		transition:
-			background 0.15s,
-			border-color 0.15s;
-
-		&:hover {
-			border-color: ${({ theme }) => theme.color.primary};
-		}
-
-		&.selected {
-			border-color: ${({ theme }) => theme.color.primary};
-			background: ${({ theme }) => theme.color.primary};
-			color: ${({ theme }) => theme.color.background};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		}
-	}
-
-	.agreement {
-		padding-top: 1rem;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
-	}
-
-	.submit {
-		width: 100%;
-		height: 3rem;
-		border-radius: ${({ theme }) => theme.radius.control};
-	}
-`;

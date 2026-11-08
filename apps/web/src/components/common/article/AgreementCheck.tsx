@@ -2,7 +2,7 @@ import { useId } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
 import useSubscribe from '@/hooks/useSubscribe';
-import { styled } from 'styled-components';
+import { cx } from '@/styles/tw';
 import InputCheck from '@/components/common/InputCheck';
 import Text from '@/components/common/Text';
 import { LuCircleCheck } from 'react-icons/lu';
@@ -12,6 +12,10 @@ interface Props {
 	className?: string;
 }
 
+/* 동의 문구의 글자 조각은 한 줄 가운데 맞춤 */
+const INLINE = 'inline-flex align-middle';
+const LINK = 'font-bold text-primary hover:underline';
+
 export default function ArgreementCheck({ name, className }: Props) {
 	const { user } = useAuth();
 	const { status: isSubscribed = user?.isSubscribed, isChanging: isChangingSubscription } = useSubscribe();
@@ -19,7 +23,9 @@ export default function ArgreementCheck({ name, className }: Props) {
 	const textId = useId();
 
 	return (
-		<StyledAgreement className={className}>
+		<div
+			className={cx('mt-2 inline-flex w-full gap-2 text-left text-extra-small leading-[1.5] text-sub-text', className)}
+		>
 			{isSubscribed === null ? (
 				<>
 					<InputCheck
@@ -30,90 +36,39 @@ export default function ArgreementCheck({ name, className }: Props) {
 						aria-required
 					/>
 					<div id={textId} className="agreement-text">
-						<Text size="extraSmall" weight="semiBold" color="primary">
+						<Text size="extraSmall" weight="semiBold" color="primary" className={INLINE}>
 							[필수]&nbsp;
 						</Text>
-						<Text size="extraSmall">NewPick의&nbsp;</Text>
+						<Text size="extraSmall" className={INLINE}>
+							NewPick의&nbsp;
+						</Text>
 						{/* 구독 창을 닫지 않고 읽을 수 있게 새 탭으로 */}
-						<Link href="/terms" target="_blank">
+						<Link href="/terms" target="_blank" className={LINK}>
 							이용약관
 						</Link>
 						&nbsp;·&nbsp;
-						<Link href="/privacy" target="_blank">
+						<Link href="/privacy" target="_blank" className={LINK}>
 							개인정보 처리방침
 						</Link>
-						<Text size="extraSmall">에 동의합니다.</Text>
+						<Text size="extraSmall" className={INLINE}>
+							에 동의합니다.
+						</Text>
 					</div>
 				</>
 			) : (
 				// 이미 동의한 사람: 눈에 띄는 안내 대신 회색 한 줄로 (무엇에 동의했는지 링크와 함께)
-				<p className="agreed">
+				<p className="agreed m-0 inline-flex items-center text-sub-text [&_svg]:mr-1.5 [&_svg]:size-3.5 [&_svg]:shrink-0 [&_svg]:text-primary">
 					<LuCircleCheck aria-hidden />
-					<Link href="/terms" target="_blank">
+					<Link href="/terms" target="_blank" className="font-[inherit] text-inherit underline">
 						이용약관
 					</Link>
 					&nbsp;·&nbsp;
-					<Link href="/privacy" target="_blank">
+					<Link href="/privacy" target="_blank" className="font-[inherit] text-inherit underline">
 						개인정보 처리방침
 					</Link>
 					에 동의했습니다.
 				</p>
 			)}
-		</StyledAgreement>
+		</div>
 	);
 }
-
-const StyledAgreement = styled.div`
-	width: 100%;
-	display: inline-flex;
-	align-items: top;
-	gap: 0.5rem;
-	margin-top: 0.5rem;
-	line-height: 1.5;
-	font-size: ${({ theme }) => theme.fontSize.extraSmall};
-	color: ${({ theme }) => theme.color.subText};
-	text-align: left;
-
-	input {
-		display: inline-flex;
-		vertical-align: middle;
-	}
-
-	span {
-		display: inline-flex;
-		vertical-align: middle;
-		span {
-			white-space: nowrap;
-		}
-	}
-
-	.agreed {
-		display: inline-flex;
-		align-items: center;
-		margin: 0;
-		color: ${({ theme }) => theme.color.subText};
-
-		svg {
-			flex-shrink: 0;
-			width: 0.875rem;
-			height: 0.875rem;
-			margin-right: 0.375rem;
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		a {
-			font-weight: inherit;
-			color: inherit;
-			text-decoration: underline;
-		}
-	}
-
-	a {
-		color: ${({ theme }) => theme.color.primary};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-
-		&:hover {
-			text-decoration: underline;
-		}
-	}
-`;
