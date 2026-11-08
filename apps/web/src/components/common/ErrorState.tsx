@@ -19,7 +19,7 @@ import {
 import { ErrorAction, ErrorIcon, ErrorStateCopy } from '@/constants/errors';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 import Button from '@/components/common/Button';
 
 const ICONS: Record<ErrorIcon, IconType> = {
@@ -58,6 +58,8 @@ interface Props extends ErrorStateCopy {
 	inline?: boolean;
 }
 
+const TITLE = 'title m-0 font-bold leading-[1.35] text-text';
+
 /**
  * 오류·빈 화면 공통. 아이콘 · 코드 · 제목 · 설명 · 다음에 할 일(주 버튼 + 홈으로)
  */
@@ -74,15 +76,35 @@ export default function ErrorState({ code, icon, title, description, action, onR
 	};
 
 	return (
-		<StyledErrorState className={`${className ?? ''}${inline ? ' is-inline' : ''}`} role="alert">
-			<span className="badge" aria-hidden>
+		<section
+			className={cx(
+				'mx-auto flex w-full max-w-[30rem] flex-col items-center gap-3 text-center [word-break:keep-all]',
+				inline ? 'is-inline py-12' : 'py-24 mobile:py-16',
+				className,
+			)}
+			role="alert"
+		>
+			<span
+				className="badge mb-2 flex size-16 items-center justify-center rounded-full bg-tertiary text-primary [&_svg]:size-[1.875rem]"
+				aria-hidden
+			>
 				<Icon />
 			</span>
-			{code && <p className="code">{code}</p>}
-			{inline ? <h2 className="title">{title}</h2> : <h1 className="title">{title}</h1>}
-			<p className="description">{description}</p>
+			{code && <p className="code m-0 text-small font-bold tracking-[0.08em] text-sub-text tabular-nums">{code}</p>}
+			{inline ? (
+				<h2 className={cx(TITLE, 'text-medium')}>{title}</h2>
+			) : (
+				<h1 className={cx(TITLE, 'text-heading-extra-small')}>{title}</h1>
+			)}
+			<p className="description m-0 text-small leading-[1.6] text-sub-text">{description}</p>
 
-			<div className="actions">
+			{/* 단추는 10rem 이상, 휴대폰은 한 줄씩 꽉 채운다 (폭은 Button 변수로) */}
+			<div
+				className={cx(
+					'actions flex gap-3 [&_button]:min-w-40 mobile:w-full mobile:flex-col mobile:[&_button]:[--btn-width:100%]',
+					inline ? 'mt-4' : 'mt-6',
+				)}
+			>
 				<Button scheme="primary" size="medium" onClick={runAction}>
 					{ACTION_LABELS[action]}
 				</Button>
@@ -92,96 +114,6 @@ export default function ErrorState({ code, icon, title, description, action, onR
 					</Button>
 				)}
 			</div>
-		</StyledErrorState>
+		</section>
 	);
 }
-
-const StyledErrorState = styled.section`
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 0.75rem;
-	width: 100%;
-	max-width: 30rem;
-	margin: 0 auto;
-	padding: 6rem 0;
-	text-align: center;
-	word-break: keep-all;
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		padding: 4rem 0;
-	}
-
-	&.is-inline {
-		padding: 3rem 0;
-
-		.title {
-			font-size: ${({ theme }) => theme.fontSize.medium};
-		}
-
-		.actions {
-			margin-top: 1rem;
-		}
-	}
-
-	.badge {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 4rem;
-		height: 4rem;
-		margin-bottom: 0.5rem;
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		background: ${({ theme }) => theme.color.tertiary};
-		color: ${({ theme }) => theme.color.primary};
-
-		svg {
-			width: 1.875rem;
-			height: 1.875rem;
-		}
-	}
-
-	.code {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		font-variant-numeric: tabular-nums;
-		letter-spacing: 0.08em;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.title {
-		margin: 0;
-		font-size: ${({ theme }) => theme.heading.extraSmall.fontSize};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-		line-height: 1.35;
-		color: ${({ theme }) => theme.color.text};
-	}
-
-	.description {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.actions {
-		display: flex;
-		gap: 0.75rem;
-		margin-top: 1.5rem;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			flex-direction: column;
-			width: 100%;
-
-			button {
-				width: 100%;
-			}
-		}
-
-		button {
-			min-width: 10rem;
-			justify-content: center;
-		}
-	}
-`;
