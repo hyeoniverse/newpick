@@ -26,6 +26,10 @@
 @import '../styles/modal.css';
 @import '../styles/select.css';
 @import '../styles/time-picker.css';
+/* 움직이는 아이콘 · 카드 넘기기 · 약관 문서: 층 밖 (각 파일 머리말) */
+@import '../styles/glyphs.css';
+@import '../styles/card-slider.css';
+@import '../styles/legal.css';
 
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

@@ -1,0 +1,266 @@
+/*
+ * 부분이 따로 움직이는 아이콘 (components/common/icons/Glyphs.tsx, #63).
+ * 감싼 링크 · 단추를 가리키거나 키보드로 오면 움직이고, 움직임 줄이기를 켠 사용자에게는 움직이지 않는다.
+ * styled-components에서 옮기며 선택자 우선순위를 전과 같게 두고(아이콘마다 .np-glyph + 종류 클래스 하나),
+ * 채움 · 울림 상태는 data 속성을 :where()로 골라 우선순위를 올리지 않는다. 움직임 이름은 겹치지 않게 np-glyph-로 시작
+ */
+.np-glyph {
+	width: 1em;
+	height: 1em;
+	overflow: visible;
+
+	* {
+		transform-box: fill-box;
+		transform-origin: center;
+		transition: transform 0.25s ease;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&,
+		* {
+			transition: none !important;
+			animation: none !important;
+			transform: none !important;
+		}
+	}
+}
+
+/* 링크: 가운데 막대를 두고 ( ) 가 벌어진다 */
+:is(a, button):is(:hover, :focus-visible) .np-glyph-link {
+	.left {
+		transform: translateX(-2px);
+	}
+	.right {
+		transform: translateX(2px);
+	}
+	.bar {
+		transform: scaleX(1.15);
+	}
+}
+
+/* 바깥 링크: 상자는 그대로, 화살표만 나가는 쪽으로 */
+:is(a, button):is(:hover, :focus-visible) .np-glyph-external .arrow {
+	transform: translate(2px, -2px);
+}
+
+/*
+ * 북마크 · 별: 누르면 바뀌는 단추의 '누를 때 일 미리 보기'. 방금 눌러 바뀐 단추(data-settled)에서는 마우스가 나갔다 다시 들어오기 전까지 하지 않는다.
+ * 아이콘을 바로 감싼 단추를 가리킬 때만 (카드 전체가 링크인 곳에서 카드만 가리켜도 켜지지 않게)
+ */
+/* 북마크: 켜면 위에서부터 차고, 끄면 아래에서부터 빠진다 */
+.np-glyph-bookmark {
+	.fill {
+		fill: currentColor;
+		stroke: none;
+		clip-path: inset(0 0 100% 0);
+		transition: clip-path 0.4s ease-in-out;
+	}
+
+	&:where([data-filled]) .fill {
+		clip-path: inset(0 0 0 0);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.fill {
+			transition: none;
+		}
+	}
+}
+
+button:is(:hover, :focus-visible):not([data-settled]) > .np-glyph-bookmark .fill {
+	clip-path: inset(0 0 65% 0);
+	opacity: 0.45;
+}
+
+button:is(:hover, :focus-visible):not([data-settled]) > .np-glyph-bookmark:where([data-filled]) .fill {
+	clip-path: inset(0 0 35% 0);
+	opacity: 1;
+}
+
+/* 별(중요 표시): 켜면 아래에서부터 차고, 끄면 위에서부터 빠진다. 가리키면 살짝 기울며 커진다 */
+.np-glyph-star {
+	.fill {
+		fill: currentColor;
+		stroke: none;
+		clip-path: inset(100% 0 0 0);
+		transition:
+			clip-path 0.4s ease-in-out,
+			opacity 0.2s ease;
+	}
+
+	&:where([data-filled]) .fill {
+		clip-path: inset(0 0 0 0);
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.fill {
+			transition: none;
+		}
+	}
+}
+
+:is(a, button):is(:hover, :focus-visible) .np-glyph-star .star {
+	transform: rotate(-12deg) scale(1.12);
+}
+
+button:is(:hover, :focus-visible):not([data-settled]) > .np-glyph-star .fill {
+	clip-path: inset(65% 0 0 0);
+	opacity: 0.45;
+}
+
+button:is(:hover, :focus-visible):not([data-settled]) > .np-glyph-star:where([data-filled]) .fill {
+	clip-path: inset(35% 0 0 0);
+	opacity: 1;
+}
+
+/* 공유: 왼쪽 점에서 선을 타고 오른쪽 두 점으로 전해진다 */
+.np-glyph-share .edge {
+	stroke-dasharray: 8;
+}
+
+:is(a, button):is(:hover, :focus-visible) .np-glyph-share {
+	/* 1. 보내는 점(왼쪽)이 먼저 찬다 */
+	.from {
+		animation: np-glyph-arrive 0.15s ease forwards;
+	}
+	/* 2. 선이 왼쪽 점에서 오른쪽으로 다시 그려진다 */
+	.edge {
+		animation: np-glyph-travel 0.3s ease-out 0.1s both;
+	}
+	/* 3. 선이 닿으면 받는 점(오른쪽 둘)이 찬다 */
+	.to {
+		animation: np-glyph-arrive 0.15s ease 0.38s forwards;
+	}
+}
+
+/* 종(후속 지켜보기): 가리키면 흔들리고 추가 한 박자 늦게 따라간다. 끈 것은 +가 살짝 커지고, 켜면 한 번 울리며 양옆에 울림이 퍼진다 */
+.np-glyph-bell {
+	.bell {
+		transform-origin: 50% 0;
+	}
+	.wave-left {
+		--out: -1.5px;
+	}
+	.wave-right {
+		--out: 1.5px;
+	}
+
+	/* 눌러서 켠 순간 한 번 울린다 (이미 켜져 있던 것은 열 때마다 울리지 않게 data-ring으로 따로) */
+	&:where([data-ring]) {
+		.bell {
+			animation: np-glyph-swing 0.6s ease-out;
+		}
+		.clapper {
+			animation: np-glyph-knock 0.6s ease-out 0.05s;
+		}
+		.wave {
+			animation: np-glyph-spread 0.6s ease-out both;
+		}
+	}
+}
+
+:is(a, button):is(:hover, :focus-visible) .np-glyph-bell {
+	.bell {
+		animation: np-glyph-swing 0.6s ease-out;
+	}
+	.clapper {
+		animation: np-glyph-knock 0.6s ease-out 0.05s;
+	}
+	.wave {
+		animation: np-glyph-spread 0.6s ease-out both;
+	}
+	.plus {
+		transform: scale(1.25);
+	}
+}
+
+/* 체크: 붓으로 긋듯 그려진다 */
+.np-glyph-check path {
+	stroke-dasharray: 24;
+	animation: np-glyph-draw 0.35s ease-out both;
+}
+
+/* 선 길이(약 7.9)만큼 비워 두었다가 왼쪽 점 쪽부터 다시 그린다 */
+@keyframes np-glyph-travel {
+	from {
+		stroke-dashoffset: 8;
+	}
+	to {
+		stroke-dashoffset: 0;
+	}
+}
+
+@keyframes np-glyph-arrive {
+	from {
+		fill: transparent;
+	}
+	to {
+		fill: currentColor;
+	}
+}
+
+/* 꼭대기를 축으로 좌우로 흔들리다 멈춘다 */
+@keyframes np-glyph-swing {
+	0% {
+		transform: rotate(0);
+	}
+	20% {
+		transform: rotate(14deg);
+	}
+	40% {
+		transform: rotate(-10deg);
+	}
+	60% {
+		transform: rotate(6deg);
+	}
+	80% {
+		transform: rotate(-3deg);
+	}
+	100% {
+		transform: rotate(0);
+	}
+}
+
+/* 추는 종보다 크게, 반대쪽으로 */
+@keyframes np-glyph-knock {
+	0%,
+	100% {
+		transform: translateX(0);
+	}
+	30% {
+		transform: translateX(-1.5px);
+	}
+	55% {
+		transform: translateX(1.5px);
+	}
+	80% {
+		transform: translateX(-0.5px);
+	}
+}
+
+/* 울림이 바깥으로 퍼졌다 제자리로 */
+@keyframes np-glyph-spread {
+	0% {
+		opacity: 0;
+		transform: translateX(0);
+	}
+	40% {
+		opacity: 1;
+	}
+	60% {
+		transform: translateX(var(--out));
+	}
+	100% {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes np-glyph-draw {
+	from {
+		stroke-dashoffset: 24;
+	}
+	to {
+		stroke-dashoffset: 0;
+	}
+}
