@@ -5,7 +5,6 @@ import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSelectInterests } from '@/hooks/useInterests';
 import useSubscribe from '@/hooks/useSubscribe';
 
-import styled from 'styled-components';
 import { LuMailCheck } from 'react-icons/lu';
 import Text from '@/components/common/Text';
 import CategoryTags from '@/components/common/article/CategoryTags';
@@ -13,6 +12,7 @@ import Button from '@/components/common/Button';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
 import ModalContent from '@/components/common/modal/ModalContent';
 import BorderTitle from '@/components/common/BorderTitle';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	className?: string;
@@ -73,69 +73,8 @@ function WhyNewpickSection({ className }: Props) {
 	);
 }
 
-const StyledExploreSection = styled.div`
-	.title-section {
-		display: flex;
-		align-items: center;
-		margin-bottom: 3rem;
-
-		.title {
-			width: 20rem;
-		}
-
-		.bar {
-			border-bottom: 1px solid ${({ theme }) => theme.color.text};
-			color: ${({ theme }) => theme.color.text};
-			width: 100%;
-			height: fit-content;
-		}
-	}
-
-	.sub-text {
-		line-height: 1.8;
-		margin-bottom: 8rem;
-	}
-
-	.design-text {
-		font-size: 5.5rem;
-		font-weight: 800;
-		color: ${({ theme }) => theme.color.neutral};
-		letter-spacing: 10px;
-		justify-self: center;
-		margin-bottom: 2rem;
-	}
-
-	.subscription {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-
-		.agreement {
-			justify-content: center;
-		}
-
-		/* 다른 구독하기 버튼(구독 시트·홈)과 같은 기본 버튼: 각진 모서리, 위 간격만 */
-		.submit {
-			min-width: 10rem;
-			margin-top: 1rem;
-		}
-
-		.categories {
-			margin: 2rem auto;
-			display: flex;
-			flex-wrap: wrap;
-			justify-content: center;
-			align-items: center;
-
-			button {
-				width: calc((100% - 7rem) / 7);
-				min-width: 5rem;
-				aspect-ratio: 2.3/1;
-				font-size: ${({ theme }) => theme.fontSize.large};
-			}
-		}
-	}
-`;
+const StyledExploreSection = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-about-explore-section-explore-section', className)} {...props} />
+);
 
 export default WhyNewpickSection;

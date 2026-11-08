@@ -35,6 +35,8 @@
 @import '../styles/datepicker.css';
 /* 카드: 층 밖 (styles/card.css 머리말) */
 @import '../styles/card.css';
+/* 화면: 공통 부품 CSS 뒤 (우선순위가 같으면 화면 쪽이 이긴다) */
+@import '../styles/pages/about.css';
 
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

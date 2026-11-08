@@ -1,8 +1,8 @@
 'use client';
 
-import styled from 'styled-components';
 import BorderTitle from '@/components/common/BorderTitle';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
+import { cx } from '@/styles/tw';
 
 /** 가치 문장 세 줄. 강조할 말은 ** 로 감싼다 */
 const VALUES = [
@@ -77,66 +77,6 @@ export default function WhyNewpickSection() {
 	);
 }
 
-const StyledWhy = styled.section`
-	.sub-text {
-		line-height: 1.8;
-		margin: 0 0 8rem;
-		color: ${({ theme }) => theme.color.mediumGrey};
-		word-break: keep-all;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			margin-bottom: 5rem;
-		}
-	}
-
-	/* 좁은 화면에서 넘치지 않게 화면 폭에 맞춰 줄이고, 스크롤하면 0.3em → 0.12em으로 글자가 모인다 */
-	.design-text {
-		--progress: 0;
-		font-size: clamp(1.75rem, 7vw, 5.125rem);
-		font-weight: 800;
-		color: ${({ theme }) => theme.color.neutral};
-		letter-spacing: calc(0.3em - var(--progress) * 0.18em);
-		text-align: center;
-		white-space: nowrap;
-		margin-bottom: 2rem;
-
-		/* 좁은 화면은 벌어진 글자가 화면 밖으로 잘리므로 움직이지 않고 좁게 */
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			letter-spacing: 0.06em;
-		}
-	}
-
-	.value-text {
-		--progress: 0;
-		text-align: center;
-		word-break: keep-all;
-
-		p {
-			font-size: 1.25rem;
-			margin: 0 0 1rem;
-			color: ${({ theme }) => theme.color.mediumGrey};
-
-			@media ${({ theme }) => theme.mediaQuery.mobile} {
-				font-size: ${({ theme }) => theme.fontSize.medium};
-			}
-		}
-
-		strong {
-			color: ${({ theme }) => theme.color.text};
-		}
-
-		.word {
-			opacity: clamp(0.2, calc(var(--progress) * var(--n) * 1.05 - var(--i)), 1);
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.design-text {
-			letter-spacing: 0.12em;
-		}
-
-		.value-text .word {
-			opacity: 1;
-		}
-	}
-`;
+const StyledWhy = ({ className, ...props }: React.ComponentProps<'section'>) => (
+	<section className={cx('np-about-why-newpick-section-why', className)} {...props} />
+);
