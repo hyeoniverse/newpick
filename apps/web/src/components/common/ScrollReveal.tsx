@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	children: React.ReactNode;
@@ -68,23 +68,8 @@ export default function ScrollReveal({ children, className, items }: Props) {
 	}, [items]);
 
 	return (
-		<StyledReveal ref={ref} className={className}>
+		<div ref={ref} className={cx('np-reveal', className)}>
 			{children}
-		</StyledReveal>
+		</div>
 	);
 }
-
-const StyledReveal = styled.div`
-	.reveal {
-		opacity: 0;
-		transform: translateY(1.5rem);
-		transition:
-			opacity 0.6s ease,
-			transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
-	}
-
-	.reveal.is-revealed {
-		opacity: 1;
-		transform: none;
-	}
-`;

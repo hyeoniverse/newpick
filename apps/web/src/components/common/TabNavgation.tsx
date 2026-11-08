@@ -4,7 +4,7 @@ import { NavigationItem as INavigationItem } from '@/models/navigation.model';
 import useTabStore from '@/stores/useTabStore';
 import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	tabs: INavigationItem[];
@@ -41,61 +41,27 @@ function Tabs({ tabs }: Props) {
 	}, [activeTab, tabs]);
 
 	return (
-		<TabNavigationStyled role="tablist">
+		<div
+			role="tablist"
+			className="mt-[60px] mb-10 flex h-full flex-row justify-start border-0 border-b border-solid border-border"
+		>
 			{tabs.map(({ id, title, link }) => (
 				<button
 					key={id}
 					type="button"
 					role="tab"
 					aria-selected={activeTab === link}
-					className={activeTab === link ? 'active' : ''}
+					className={cx(
+						'-mb-px w-1/3 cursor-pointer border-0 border-b border-solid border-transparent bg-transparent px-0 py-4 text-small [transition:border-bottom_0.2s_ease,color_0.2s_ease] hover:text-text',
+						activeTab === link
+							? 'active font-regular text-text shadow-[inset_0_-2px_0_var(--color-text)]'
+							: 'text-light-grey',
+					)}
 					onClick={() => setActiveTab(link)}
 				>
-					<span>{title}</span>
+					<span className="flex h-full items-center justify-center whitespace-nowrap">{title}</span>
 				</button>
 			))}
-		</TabNavigationStyled>
+		</div>
 	);
 }
-
-const TabNavigationStyled = styled.div`
-	height: 100%;
-	margin: 60px 0 40px 0;
-	border-bottom: 1px solid ${({ theme }) => theme.color.border};
-
-	display: flex;
-	flex-direction: row;
-	justify-content: flex-start;
-
-	button {
-		cursor: pointer;
-		padding: 1rem 0;
-		width: calc(100% / 3);
-		background-color: transparent;
-		color: ${({ theme }) => theme.color.lightGrey};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		margin-bottom: -1px;
-		border-bottom: 1px solid transparent;
-		transition:
-			border-bottom 0.2s ease,
-			color 0.2s ease;
-
-		span {
-			height: 100%;
-			display: flex;
-			justify-content: center;
-			align-items: center;
-			white-space: nowrap;
-		}
-
-		&.active {
-			font-weight: ${({ theme }) => theme.fontWeight.regular};
-			color: ${({ theme }) => theme.color.text};
-			box-shadow: inset 0 -2px 0 ${({ theme }) => theme.color.text};
-		}
-
-		&:hover {
-			color: ${({ theme }) => theme.color.text};
-		}
-	}
-`;
