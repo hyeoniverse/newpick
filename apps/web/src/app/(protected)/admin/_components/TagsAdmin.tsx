@@ -3,7 +3,6 @@
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { LuTriangleAlert } from 'react-icons/lu';
 import { apiFetch, ApiError } from '@/api/client';
 import { fetchAllKeywords } from '@/api/article';
@@ -19,6 +18,7 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import AdminSubPage, { Cols } from './AdminSubPage';
 import { when } from './format';
 import { kstDate } from '@/utils/formatter';
+import { cx } from '@/styles/tw';
 
 const PAGE_SIZE = 30;
 
@@ -337,175 +337,10 @@ export default function TagsAdmin() {
 	);
 }
 
-const StyledTags = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 1rem;
+const StyledTags = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-tags-admin-tags', className)} {...props} />
+);
 
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip: rect(0 0 0 0);
-		white-space: nowrap;
-	}
-
-	.bulk {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.75rem;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.subText};
-
-		.clear {
-			padding: 0;
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: ${({ theme }) => theme.color.subText};
-			text-decoration: underline;
-			cursor: pointer;
-		}
-	}
-
-	tr.picked td {
-		background: color-mix(in srgb, ${({ theme }) => theme.color.primary} 6%, transparent);
-	}
-
-	input[type='checkbox'] {
-		width: 1.125rem;
-		height: 1.125rem;
-		accent-color: ${({ theme }) => theme.color.primary};
-		cursor: pointer;
-	}
-
-	.tag {
-		color: ${({ theme }) => theme.color.text};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-
-		.hash {
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.old {
-		margin-left: 0.5rem;
-		padding: 0.0625rem 0.375rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.neutral};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.row-actions {
-		white-space: nowrap;
-		text-align: right;
-
-		button {
-			padding: 0.25rem 0.5rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.primary};
-			cursor: pointer;
-
-			&:hover {
-				text-decoration: underline;
-			}
-
-			&.danger {
-				color: ${({ theme }) => theme.color.error};
-			}
-		}
-	}
-
-	.rules {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		margin-top: 1.5rem;
-
-		h2 {
-			margin: 0;
-			padding-bottom: 0.5rem;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-			font-size: ${({ theme }) => theme.fontSize.medium};
-			font-weight: ${({ theme }) => theme.fontWeight.bold};
-		}
-
-		.rules-desc {
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: ${({ theme }) => theme.color.subText};
-		}
-
-		ul {
-			margin: 0;
-			padding: 0;
-			list-style: none;
-		}
-
-		li {
-			display: flex;
-			align-items: center;
-			gap: 1rem;
-			padding: 0.625rem 0;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-			font-size: ${({ theme }) => theme.fontSize.small};
-
-			.rule {
-				flex: 1;
-				min-width: 0;
-			}
-
-			.blocked {
-				margin-left: 0.25rem;
-				color: ${({ theme }) => theme.color.error};
-			}
-
-			.rule-date {
-				color: ${({ theme }) => theme.color.subText};
-				font-variant-numeric: tabular-nums;
-			}
-
-			button {
-				font-size: ${({ theme }) => theme.fontSize.extraSmall};
-				color: ${({ theme }) => theme.color.subText};
-				text-decoration: underline;
-				cursor: pointer;
-			}
-		}
-	}
-`;
-
-const StyledSheet = styled.form`
-	display: flex;
-	flex-direction: column;
-	gap: 0.875rem;
-
-	.title {
-		font-size: ${({ theme }) => theme.heading.extraSmall.fontSize};
-		font-weight: ${({ theme }) => theme.fontWeight.bold};
-	}
-
-	.desc {
-		font-size: ${({ theme }) => theme.fontSize.small};
-		line-height: 1.6;
-		color: ${({ theme }) => theme.color.subText};
-		word-break: keep-all;
-	}
-
-	.field {
-		display: flex;
-		flex-direction: column;
-	}
-
-	.error {
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.error};
-	}
-
-	.actions {
-		display: flex;
-		justify-content: flex-end;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-	}
-`;
+const StyledSheet = ({ className, ...props }: React.ComponentProps<'form'>) => (
+	<form className={cx('np-admin-tags-admin-sheet', className)} {...props} />
+);

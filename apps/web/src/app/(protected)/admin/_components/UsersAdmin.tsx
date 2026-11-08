@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import styled from 'styled-components';
 import { LuTriangleAlert } from 'react-icons/lu';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
@@ -17,6 +16,7 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import AdminSubPage, { Cols } from './AdminSubPage';
 import { useAdminQuery } from './period';
 import { when } from './format';
+import { cx } from '@/styles/tw';
 
 const PAGE_SIZE = 20;
 
@@ -239,47 +239,6 @@ export default function UsersAdmin() {
 }
 
 /** 표 안의 줄 동작(권한 · 지우기)과 '나' 표시 — 수집 기사 · 태그 화면과 같은 모양 */
-export const StyledActions = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-
-	.sr-only {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip: rect(0 0 0 0);
-		white-space: nowrap;
-	}
-
-	.me {
-		margin-left: 0.375rem;
-		padding: 0.0625rem 0.375rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		background: ${({ theme }) => theme.color.tertiary};
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.primary};
-	}
-
-	.row-actions {
-		white-space: nowrap;
-		text-align: right;
-
-		button,
-		a {
-			padding: 0.25rem 0.5rem;
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.primary};
-			cursor: pointer;
-
-			&:hover {
-				text-decoration: underline;
-			}
-
-			&.danger {
-				color: ${({ theme }) => theme.color.error};
-			}
-		}
-	}
-`;
+export const StyledActions = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-users-admin-actions', className)} {...props} />
+);

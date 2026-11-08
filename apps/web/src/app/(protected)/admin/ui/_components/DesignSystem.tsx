@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import styled, { useTheme } from 'styled-components';
 import { LuArrowLeft, LuArrowRight, LuBell, LuMailCheck, LuSparkles } from 'react-icons/lu';
 
 import AdminGate from '@/components/common/auth/AdminGate';
@@ -20,6 +19,7 @@ import {
 	HeadingSize,
 	lightTheme,
 	Theme,
+	cssVarTheme,
 } from '@/styles/theme';
 
 import Button from '@/components/common/Button';
@@ -66,6 +66,7 @@ import Card from '@/components/common/Card';
 import BorderTitle from '@/components/common/BorderTitle';
 import CategoryTags from '@/components/common/article/CategoryTags';
 import Tags from '@/components/common/Tags';
+import { cx } from '@/styles/tw';
 
 const SIZES = ['extraSmall', 'small', 'medium', 'large', 'extraLarge'] as const;
 const WEIGHTS: FontWeight[] = ['light', 'regular', 'medium', 'semiBold', 'bold', 'extraBold'];
@@ -132,7 +133,8 @@ export default function DesignSystem() {
 }
 
 function DesignSystemBody() {
-	const theme = useTheme();
+	// 화면이 쓰는 테마 (예전 styled-components ThemeProvider가 넘기던 값과 같은 cssVarTheme)
+	const theme = cssVarTheme;
 	const { themeName } = useThemeStore();
 	const { showToast, setPosition, position } = useToast();
 	const { openModal, closeModal } = useModal();
@@ -175,8 +177,8 @@ function DesignSystemBody() {
 					{(Object.keys(lightTheme.color) as ColorKey[]).map((key) => (
 						<div key={key} className="swatch">
 							<div className="chips">
-								<Chip $color={lightTheme.color[key]} title="라이트" />
-								<Chip $color={darkTheme.color[key]} title="다크" />
+								<Chip style={{ '--chip-color': lightTheme.color[key] } as React.CSSProperties} title="라이트" />
+								<Chip style={{ '--chip-color': darkTheme.color[key] } as React.CSSProperties} title="다크" />
 							</div>
 							<code>{key}</code>
 							<span className="hex">
@@ -231,7 +233,7 @@ function DesignSystemBody() {
 						] as const
 					).map(([role, name, examples]) => (
 						<div key={role} className="radius">
-							<Box $radius={theme.radius[role]} />
+							<Box style={{ '--box-radius': theme.radius[role] } as React.CSSProperties} />
 							<code>radius.{role}</code>
 							<span className="hex">
 								{name} · {theme.radius[role]}
@@ -244,7 +246,7 @@ function DesignSystemBody() {
 				<div className="radii">
 					{(Object.keys(theme.borderRadius) as (keyof Theme['borderRadius'])[]).map((key) => (
 						<div key={key} className="radius">
-							<Box $radius={theme.borderRadius[key]} />
+							<Box style={{ '--box-radius': theme.borderRadius[key] } as React.CSSProperties} />
 							<code>{key}</code>
 							<span className="hex">{theme.borderRadius[key]}</span>
 						</div>
@@ -609,217 +611,15 @@ function Section({
 	);
 }
 
-const Chip = styled.span<{ $color: string }>`
-	width: 2.5rem;
-	height: 2.5rem;
-	border-radius: ${({ theme }) => theme.borderRadius.medium};
-	border: 1px solid ${({ theme }) => theme.color.border};
-	background: ${({ $color }) => $color};
-`;
+const Chip = ({ className, ...props }: React.ComponentProps<'span'>) => (
+	<span className={cx('np-admin-design-system-chip', className)} {...props} />
+);
 
 /** 가로로 긴 상자: 정사각형이면 capsule(9999px)과 circle(50%)이 둘 다 원으로 보여 구분되지 않는다 */
-const Box = styled.span<{ $radius: string }>`
-	width: 6rem;
-	height: 3rem;
-	border-radius: ${({ $radius }) => $radius};
-	background: ${({ theme }) => theme.color.tertiary};
-	border: 2px solid ${({ theme }) => theme.color.primary};
-`;
+const Box = ({ className, ...props }: React.ComponentProps<'span'>) => (
+	<span className={cx('np-admin-design-system-box', className)} {...props} />
+);
 
-const StyledPage = styled.div`
-	padding: 2.5rem 0 5rem;
-	color: ${({ theme }) => theme.color.text};
-
-	code {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.8125rem;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.hex {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.75rem;
-		color: ${({ theme }) => theme.color.lightGrey};
-	}
-
-	.page-head {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-		margin-bottom: 2rem;
-	}
-
-	/* 목차: 스크롤해도 위에 붙어 있다 */
-	.toc {
-		position: sticky;
-		top: 4rem;
-		z-index: 1;
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin-top: 0.75rem;
-		padding: 0.5rem 0;
-		background: ${({ theme }) => theme.color.background};
-
-		a {
-			padding: 0.25rem 0.75rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.borderRadius.capsule};
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.text};
-
-			&:hover {
-				border-color: ${({ theme }) => theme.color.primary};
-				color: ${({ theme }) => theme.color.primary};
-			}
-		}
-	}
-
-	/* 표 머리 예시 */
-	.ds-table {
-		width: 100%;
-		max-width: 32rem;
-		border-collapse: collapse;
-		font-size: ${({ theme }) => theme.fontSize.small};
-
-		th {
-			padding: 0.5rem 1rem 0.5rem 0;
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-			text-align: left;
-		}
-	}
-
-	.section {
-		display: flex;
-		flex-direction: column;
-		gap: 1rem;
-		padding: 2rem 0;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
-		scroll-margin-top: 7rem;
-	}
-
-	.section-head {
-		display: flex;
-		align-items: baseline;
-		flex-wrap: wrap;
-		gap: 0.75rem;
-	}
-
-	.swatches {
-		display: grid;
-		grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
-		gap: 1rem;
-	}
-
-	.swatch {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-
-		.chips {
-			display: flex;
-			gap: 0.25rem;
-		}
-	}
-
-	.stack {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-
-		hr {
-			width: 100%;
-			border: none;
-			border-top: 1px solid ${({ theme }) => theme.color.border};
-		}
-	}
-
-	.row {
-		display: grid;
-		grid-template-columns: 9rem 1fr auto;
-		align-items: center;
-		gap: 1rem;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: 1fr;
-			gap: 0.25rem;
-		}
-	}
-
-	.divider {
-		width: 100%;
-		border: none;
-		border-top: 1px solid ${({ theme }) => theme.color.border};
-	}
-
-	.radii {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 1.5rem;
-	}
-
-	.radius {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.375rem;
-	}
-
-	.table-scroll {
-		overflow-x: auto;
-	}
-
-	.matrix {
-		border-collapse: collapse;
-
-		th,
-		td {
-			padding: 0.5rem;
-			text-align: left;
-			vertical-align: middle;
-			white-space: nowrap;
-		}
-	}
-
-	.error-preview {
-		margin-top: 1rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-
-		> section {
-			padding: 3rem 1rem;
-		}
-	}
-
-	.wrap {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-	.images {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: flex-end;
-		gap: 1rem;
-	}
-
-	.image {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-		width: 8rem;
-	}
-
-	.demo-grid {
-		display: grid;
-		grid-template-columns: repeat(2, minmax(0, 1fr));
-		gap: 1rem;
-		align-items: end;
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			grid-template-columns: 1fr;
-		}
-	}
-`;
+const StyledPage = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-design-system-page', className)} {...props} />
+);

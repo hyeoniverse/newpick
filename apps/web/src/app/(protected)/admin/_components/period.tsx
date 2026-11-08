@@ -1,10 +1,10 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import styled from 'styled-components';
 import { kstDate } from '@/utils/formatter';
 import { useToast } from '@/hooks/useToast';
 import { DatePicker, DateRangePicker } from '@/components/common/DatePicker';
+import { cx } from '@/styles/tw';
 
 /** 고를 수 있는 가장 긴 기간 (API와 같음) */
 export const MAX_RANGE_DAYS = 92;
@@ -146,97 +146,10 @@ export function PeriodTitle({ id }: { id?: string }) {
 }
 
 /** 제목 줄에 네모 칸을 끼워 넣는다. 칸의 이름표는 화면 읽기 프로그램용으로만 */
-const StyledTitle = styled.span`
-	display: inline-flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.375rem;
+const StyledTitle = ({ className, ...props }: React.ComponentProps<'span'>) => (
+	<span className={cx('np-admin-period-title', className)} {...props} />
+);
 
-	.name {
-		white-space: nowrap;
-	}
-
-	.paren,
-	.tilde {
-		font-weight: ${({ theme }) => theme.fontWeight.regular};
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	label {
-		position: absolute;
-		width: 1px;
-		height: 1px;
-		overflow: hidden;
-		clip: rect(0 0 0 0);
-		white-space: nowrap;
-	}
-
-	/* 좁은 화면: 이름은 한 줄, 그 아래 시작 ~ 종료 두 칸이 폭을 나눠 쓴다 (괄호는 숨김) */
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		display: flex;
-		width: 100%;
-		max-width: 100%;
-
-		.name {
-			flex-basis: 100%;
-		}
-
-		.paren {
-			display: none;
-		}
-
-		> div {
-			flex: 1 1 0;
-			width: 0;
-			min-width: 0;
-		}
-
-		.control,
-		input {
-			width: 100%;
-			min-width: 0;
-		}
-	}
-
-	/* 제목의 굵은 글씨가 칸 안으로 번지지 않게 */
-	input {
-		font-weight: ${({ theme }) => theme.fontWeight.regular};
-		font-size: ${({ theme }) => theme.fontSize.small};
-	}
-`;
-
-const StyledPeriod = styled.div`
-	display: flex;
-	flex-wrap: wrap;
-	align-items: center;
-	gap: 0.25rem;
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		flex-wrap: nowrap;
-		overflow-x: auto;
-		scrollbar-width: none;
-
-		> button {
-			padding: 0.375rem 0.625rem;
-		}
-	}
-
-	> button {
-		padding: 0.375rem 0.75rem;
-		border-radius: ${({ theme }) => theme.radius.chip};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.subText};
-		cursor: pointer;
-		white-space: nowrap;
-
-		&:hover {
-			color: ${({ theme }) => theme.color.text};
-		}
-
-		&[aria-pressed='true'] {
-			background: ${({ theme }) => theme.color.tertiary};
-			color: ${({ theme }) => theme.color.primary};
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		}
-	}
-`;
+const StyledPeriod = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-period-period', className)} {...props} />
+);

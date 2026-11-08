@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import styled from 'styled-components';
 import { duration } from './trafficLabels';
+import { cx } from '@/styles/tw';
 
 export type Click = [number, number, string?];
 type Mode = 'attention' | 'clicks';
@@ -144,118 +144,6 @@ export default function Heatmap({ path, device, attention, clicks }: Props) {
 	);
 }
 
-const StyledHeatmap = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 0.75rem;
-
-	.toolbar {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		gap: 0.5rem 0.75rem;
-
-		button {
-			padding: 0.375rem 0.75rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.chip};
-			font-size: ${({ theme }) => theme.fontSize.extraSmall};
-			color: ${({ theme }) => theme.color.text};
-			cursor: pointer;
-
-			&[aria-pressed='true'] {
-				border-color: ${({ theme }) => theme.color.primary};
-				background: ${({ theme }) => theme.color.tertiary};
-				color: ${({ theme }) => theme.color.primary};
-				font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			}
-		}
-	}
-
-	.legend {
-		display: inline-flex;
-		align-items: center;
-		gap: 0.375rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-
-		.ramp {
-			width: 3rem;
-			height: 0.625rem;
-			border-radius: 2px;
-			background: linear-gradient(
-				to right,
-				color-mix(in srgb, var(--tone-a) 5%, transparent),
-				color-mix(in srgb, var(--tone-a) 55%, transparent)
-			);
-		}
-
-		.dot {
-			width: 0.75rem;
-			height: 0.75rem;
-			border-radius: 50%;
-			background: radial-gradient(var(--tone-b), transparent 70%);
-		}
-	}
-
-	/* 실제 페이지를 줄여 담는 틀: 바깥 페이지에서 스크롤 */
-	.viewport {
-		position: relative;
-		width: 100%;
-		overflow: hidden;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-		background: ${({ theme }) => theme.color.surface};
-	}
-
-	.stage {
-		position: absolute;
-		top: 0;
-		left: 0;
-		transform-origin: top left;
-	}
-
-	iframe {
-		display: block;
-		border: 0;
-		/* 미리보기는 보기만: 눌러서 다른 곳으로 가지 않게 */
-		pointer-events: none;
-		background: ${({ theme }) => theme.color.background};
-	}
-
-	.bands,
-	.clicks {
-		position: absolute;
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		pointer-events: none;
-	}
-
-	.bands li {
-		position: absolute;
-		left: 0;
-		right: 0;
-		height: 5%;
-		background: color-mix(in srgb, var(--tone-a) calc(5% + var(--strength) * 50%), transparent);
-		border-bottom: 1px solid color-mix(in srgb, var(--tone-a) 15%, transparent);
-
-		span {
-			position: absolute;
-			top: 0.5rem;
-			right: 0.75rem;
-			padding: 0.25rem 0.5rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.control};
-			background: ${({ theme }) => theme.color.background};
-			font-size: 0.875rem;
-			color: ${({ theme }) => theme.color.text};
-			font-variant-numeric: tabular-nums;
-		}
-
-		&.busiest span {
-			border-color: var(--tone-a);
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		}
-	}
-`;
+const StyledHeatmap = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-admin-heatmap-heatmap', className)} {...props} />
+);
