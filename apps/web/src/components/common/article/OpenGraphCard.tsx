@@ -4,7 +4,6 @@ import { dateFormatter } from '@/utils/formatter';
 import { getRelatedNews } from '@/hooks/useArticle';
 import { DEFAULT_IMAGES } from '@/constants/images';
 
-import { styled } from 'styled-components';
 import { FaLink } from 'react-icons/fa';
 import ExternalLink from '@/components/common/ExternalLink';
 import Image from '@/components/common/Image';
@@ -33,168 +32,40 @@ export default function OpenGraphCard({ urls }: Props) {
 	if (items.length === 0) return null;
 
 	return (
-		<StyledRelated>
-			<h2 className="heading">
+		<section className="mt-8 mb-16">
+			<h2 className="heading mb-3 flex items-center gap-2 text-medium font-semi-bold text-text [&_svg]:w-3.5 [&_svg]:text-primary">
 				<FaLink aria-hidden />
 				관련 뉴스
 			</h2>
-			<ul className="list">
+			<ul className="list m-0 border-0 border-t border-solid border-border p-0">
 				{items.map((news) => (
-					<li key={news.link}>
-						<ExternalLink href={news.link} showIcon={false} className="item">
-							<span className="photo">
+					<li key={news.link} className="border-0 border-b border-solid border-border">
+						<ExternalLink
+							href={news.link}
+							showIcon={false}
+							className="item flex flex-row-reverse items-center justify-between gap-5 py-5 text-inherit no-underline"
+						>
+							{/* 사진은 마우스를 올리면 살짝 커진다. 안의 Image가 정한 전환(opacity)보다 이 전환이 앞서게 ! */}
+							<span className="photo block w-44 shrink-0 overflow-hidden rounded-surface mobile:w-26 [&_img]:[transition:transform_0.4s_ease]! motion-reduce:[&_img]:[transition:none]! motion-safe:group-hover:[&_img]:[transform:scale(1.04)]">
 								<Image src={news.images[0] || DEFAULT_IMAGES.MONO} alt="" ratio="wide" priority={false} />
 							</span>
-							<span className="text">
-								<span className="meta">
-									<span className="source">{news.source}</span>
+							<span className="text flex min-w-0 flex-1 flex-col gap-1.5">
+								<span className="meta flex gap-1.5 text-extra-small text-sub-text">
+									<span className="source font-semi-bold text-primary">{news.source}</span>
 									<span aria-hidden>·</span>
 									<span>{dateFormatter(news.publishedAt)}</span>
 								</span>
-								<span className="title">{news.title}</span>
-								<span className="summary">{news.content}</span>
+								<span className="title line-clamp-2 leading-[1.45] font-semi-bold text-text [transition:color_0.2s_ease] [word-break:keep-all] group-hover:text-primary">
+									{news.title}
+								</span>
+								<span className="summary line-clamp-2 text-small leading-[1.55] text-sub-text mobile:hidden">
+									{news.content}
+								</span>
 							</span>
 						</ExternalLink>
 					</li>
 				))}
 			</ul>
-		</StyledRelated>
+		</section>
 	);
 }
-
-const StyledRelated = styled.section`
-	margin: 2rem 0 4rem;
-
-	.heading {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		margin-bottom: 0.75rem;
-		font-size: ${({ theme }) => theme.fontSize.medium};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.text};
-
-		svg {
-			width: 0.875rem;
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	ul {
-		margin: 0;
-		padding: 0;
-	}
-
-	.item {
-		display: flex;
-		gap: 1.25rem;
-		color: inherit;
-		text-decoration: none;
-	}
-
-	.photo {
-		display: block;
-		flex-shrink: 0;
-		overflow: hidden;
-		border-radius: ${({ theme }) => theme.radius.surface};
-
-		img {
-			transition: transform 0.4s ease;
-		}
-	}
-
-	.text {
-		display: flex;
-		flex-direction: column;
-		gap: 0.375rem;
-		min-width: 0;
-	}
-
-	.meta {
-		display: flex;
-		gap: 0.375rem;
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		color: ${({ theme }) => theme.color.subText};
-
-		.source {
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.title {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		line-height: 1.45;
-		word-break: keep-all;
-		color: ${({ theme }) => theme.color.text};
-		transition: color 0.2s ease;
-	}
-
-	.summary {
-		display: -webkit-box;
-		-webkit-line-clamp: 2;
-		-webkit-box-orient: vertical;
-		overflow: hidden;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		line-height: 1.55;
-		color: ${({ theme }) => theme.color.subText};
-	}
-
-	.item:hover {
-		.title {
-			color: ${({ theme }) => theme.color.primary};
-		}
-
-		.photo img {
-			transform: scale(1.04);
-		}
-	}
-
-	/* 구분선 목록: 배경 · 테두리 없이 얇은 선으로 나누고 사진은 오른쪽. 선은 모두 다른 구분선과 같은 색 */
-	.list {
-		border-top: 1px solid ${({ theme }) => theme.color.border};
-
-		li {
-			border-bottom: 1px solid ${({ theme }) => theme.color.border};
-		}
-
-		.item {
-			flex-direction: row-reverse;
-			justify-content: space-between;
-			align-items: center;
-			padding: 1.25rem 0;
-		}
-
-		.photo {
-			width: 11rem;
-
-			@media ${({ theme }) => theme.mediaQuery.mobile} {
-				width: 6.5rem;
-			}
-		}
-
-		.text {
-			flex: 1;
-		}
-
-		@media ${({ theme }) => theme.mediaQuery.mobile} {
-			.summary {
-				display: none;
-			}
-		}
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.photo img {
-			transition: none;
-		}
-
-		.item:hover .photo img {
-			transform: none;
-		}
-	}
-`;

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import styled from 'styled-components';
-import { chartTones } from '@/components/common/charts/TrendChart';
 import { duration } from './trafficLabels';
 
 export type Click = [number, number, string?];
@@ -146,7 +145,6 @@ export default function Heatmap({ path, device, attention, clicks }: Props) {
 }
 
 const StyledHeatmap = styled.div`
-	${chartTones}
 	display: flex;
 	flex-direction: column;
 	gap: 0.75rem;
