@@ -51,7 +51,8 @@ test.describe('비로그인 탐색', () => {
 		await expect(page.getByText(third.title).first()).toBeVisible();
 		await expect(page.getByText(first.title)).toHaveCount(0);
 
-		await page.reload();
+		// 새로 고침 뒤에도 화면이 다 붙은 다음에 입력한다 (붙기 전에 누른 Enter는 React가 붙잡았다가 다시 실행하지 못해 검색이 안 됐다)
+		await page.reload({ waitUntil: 'networkidle' });
 		await expect(page.getByText(third.title).first()).toBeVisible();
 
 		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('없는검색어입니다');
