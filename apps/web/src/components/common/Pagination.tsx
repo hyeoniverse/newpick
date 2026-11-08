@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 import { LuChevronLeft, LuChevronRight } from 'react-icons/lu';
 
 interface Props {
@@ -25,6 +25,13 @@ export function pages(current: number, last: number): (number | '…')[] {
 	return out;
 }
 
+/* 쪽 단추 공통 (같은 속성 클래스가 둘 붙지 않게 지금 쪽 · 나머지 색을 나눈다) */
+const BUTTON =
+	'flex h-9 min-w-9 cursor-pointer items-center justify-center px-2 text-small tabular-nums disabled:cursor-default disabled:opacity-30 [&_svg]:size-4';
+const ROUND = 'rounded-[6px]';
+const BASE = 'text-text hover:enabled:bg-neutral';
+const CURRENT = 'bg-primary font-semi-bold text-[#ffffff]';
+
 /** 쪽 번호 직접 넣기: [ 4 ] / 12 · Enter나 이동으로 간다. 범위 밖이면 처음 · 끝으로 맞춘다 */
 function PageJump({ page, last, onChange }: { page: number; last: number; onChange: (page: number) => void }) {
 	const [value, setValue] = useState(String(page));
@@ -36,7 +43,7 @@ function PageJump({ page, last, onChange }: { page: number; last: number; onChan
 	}
 	return (
 		<form
-			className="jump"
+			className="jump ml-3 flex items-center gap-1.5 text-small text-sub-text tabular-nums mobile:mx-0 mobile:mt-2 mobile:mb-0 mobile:basis-full mobile:justify-center"
 			onSubmit={(event) => {
 				event.preventDefault();
 				const next = Math.min(last, Math.max(1, Math.trunc(Number(value)) || page));
@@ -50,9 +57,12 @@ function PageJump({ page, last, onChange }: { page: number; last: number; onChan
 				value={value}
 				onChange={(event) => setValue(event.target.value)}
 				aria-label={`이동할 쪽 (1~${last})`}
+				className="h-9 w-14 [appearance:textfield] rounded-none border border-solid border-border bg-background px-2 text-center text-small text-text [&::-webkit-inner-spin-button]:m-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:m-0 [&::-webkit-outer-spin-button]:appearance-none"
 			/>
 			<span className="last">/ {last}</span>
-			<button type="submit">이동</button>
+			<button type="submit" className={cx(BUTTON, BASE, 'rounded-none border border-solid border-border')}>
+				이동
+			</button>
 		</form>
 	);
 }
@@ -64,13 +74,19 @@ export default function Pagination({ page, total, pageSize, onChange, className 
 	const last = Math.max(1, Math.ceil(total / pageSize));
 	if (last <= 1) return null;
 	return (
-		<StyledPagination className={className} aria-label="쪽 이동">
-			<button type="button" aria-label="이전 쪽" disabled={page <= 1} onClick={() => onChange(page - 1)}>
+		<nav className={cx('flex items-center justify-center gap-1 mobile:flex-wrap', className)} aria-label="쪽 이동">
+			<button
+				type="button"
+				aria-label="이전 쪽"
+				disabled={page <= 1}
+				onClick={() => onChange(page - 1)}
+				className={cx(BUTTON, BASE, ROUND)}
+			>
 				<LuChevronLeft aria-hidden />
 			</button>
 			{pages(page, last).map((p, i) =>
 				p === '…' ? (
-					<span key={`gap-${i}`} className="gap" aria-hidden>
+					<span key={`gap-${i}`} className="gap min-w-6 text-center text-sub-text" aria-hidden>
 						…
 					</span>
 				) : (
@@ -80,107 +96,22 @@ export default function Pagination({ page, total, pageSize, onChange, className 
 						aria-current={p === page ? 'page' : undefined}
 						aria-label={`${p}쪽`}
 						onClick={() => onChange(p)}
+						className={cx(BUTTON, ROUND, p === page ? CURRENT : BASE)}
 					>
 						{p}
 					</button>
 				),
 			)}
-			<button type="button" aria-label="다음 쪽" disabled={page >= last} onClick={() => onChange(page + 1)}>
+			<button
+				type="button"
+				aria-label="다음 쪽"
+				disabled={page >= last}
+				onClick={() => onChange(page + 1)}
+				className={cx(BUTTON, BASE, ROUND)}
+			>
 				<LuChevronRight aria-hidden />
 			</button>
 			<PageJump page={page} last={last} onChange={onChange} />
-		</StyledPagination>
+		</nav>
 	);
 }
-
-const StyledPagination = styled.nav`
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	gap: 0.25rem;
-
-	button {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		min-width: 2.25rem;
-		height: 2.25rem;
-		padding: 0 0.5rem;
-		border-radius: 6px;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-variant-numeric: tabular-nums;
-		color: ${({ theme }) => theme.color.text};
-		cursor: pointer;
-
-		&:hover:not(:disabled):not([aria-current='page']) {
-			background: ${({ theme }) => theme.color.neutral};
-		}
-
-		&[aria-current='page'] {
-			background: ${({ theme }) => theme.color.primary};
-			color: #ffffff;
-			font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		}
-
-		&:disabled {
-			opacity: 0.3;
-			cursor: default;
-		}
-
-		svg {
-			width: 1rem;
-			height: 1rem;
-		}
-	}
-
-	/* 쪽 직접 넣기: 번호 줄 오른쪽, 좁은 화면은 아래 줄 */
-	.jump {
-		display: flex;
-		align-items: center;
-		gap: 0.375rem;
-		margin-left: 0.75rem;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		color: ${({ theme }) => theme.color.subText};
-		font-variant-numeric: tabular-nums;
-
-		input {
-			width: 3.5rem;
-			height: 2.25rem;
-			padding: 0 0.5rem;
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.control};
-			background: ${({ theme }) => theme.color.background};
-			font-size: ${({ theme }) => theme.fontSize.small};
-			color: ${({ theme }) => theme.color.text};
-			text-align: center;
-			appearance: textfield;
-
-			&::-webkit-inner-spin-button,
-			&::-webkit-outer-spin-button {
-				appearance: none;
-				margin: 0;
-			}
-		}
-
-		button {
-			border: 1px solid ${({ theme }) => theme.color.border};
-			border-radius: ${({ theme }) => theme.radius.control};
-		}
-	}
-
-	@media ${({ theme }) => theme.mediaQuery.mobile} {
-		flex-wrap: wrap;
-
-		.jump {
-			flex-basis: 100%;
-			justify-content: center;
-			margin: 0.5rem 0 0;
-		}
-	}
-
-	.gap {
-		min-width: 1.5rem;
-		text-align: center;
-		color: ${({ theme }) => theme.color.subText};
-	}
-`;

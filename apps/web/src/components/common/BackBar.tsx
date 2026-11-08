@@ -1,6 +1,6 @@
 'use client';
 
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 import { IoArrowBack } from 'react-icons/io5';
 import Button from '@/components/common/Button';
 import MoveButton from '@/components/common/MoveButton';
@@ -20,12 +20,17 @@ interface Props {
 
 /**
  * 뒤로 가기 막대 (공통, 기사 상세에서 시작). 페이지 흐름에선 제자리를 지키고, 스크롤하면 위에 붙는다.
- * 헤더가 펼쳐져 있으면 헤더(3rem) 아래, 접히면 맨 위로 같이 올라가며 글자를 접어 화살표만 남긴다
+ * 헤더가 펼쳐져 있으면 헤더(3rem) 아래, 접히면 맨 위로 같이 올라가며 글자를 접어 화살표만 남긴다.
+ * 모양은 styles/back-bar.css (안의 단추를 덮어써서 층 밖)
  */
 export default function BackBar({ text, onClick, title, showTitle = false, onTitleClick, className }: Props) {
 	const { isHeaderOpen } = useHeader();
 	return (
-		<BackBarStyled className={className} $folded={!isHeaderOpen} $withTitle={!!title && showTitle}>
+		<div
+			className={cx('np-back-bar', className)}
+			data-folded={!isHeaderOpen || undefined}
+			data-with-title={(!!title && showTitle) || undefined}
+		>
 			<MoveButton className="back" onClick={onClick} text={text} frontIcon={<IoArrowBack aria-hidden />} />
 			{title &&
 				(onTitleClick ? (
@@ -44,103 +49,6 @@ export default function BackBar({ text, onClick, title, showTitle = false, onTit
 						<span>{title}</span>
 					</p>
 				))}
-		</BackBarStyled>
+		</div>
 	);
 }
-
-const BackBarStyled = styled.div<{ $folded: boolean; $withTitle: boolean }>`
-	position: sticky;
-	top: ${({ $folded }) => ($folded ? '0.75rem' : 'calc(3rem + 0.75rem)')};
-	z-index: 900;
-	display: flex;
-	align-items: stretch;
-	gap: 0.5rem;
-	width: fit-content;
-	max-width: min(100%, 44rem);
-	transition: top 0.3s ease;
-
-	/* 제목 한 줄: 버튼과 같은 높이의 칸, 배경을 깔아 본문 위에서도 읽히게 */
-	.bar-title {
-		display: flex;
-		align-items: center;
-		min-width: 0;
-		padding: 0 0.875rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.control};
-		background: ${({ theme }) => theme.color.background};
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.text};
-
-		/* 단추일 때 (onTitleClick): 공통 Button. 긴 제목은 줄여 쓴다 */
-		&:is(button) {
-			flex-shrink: 1;
-			justify-content: flex-start;
-			/* 공통 Button은 height: fit-content라, 옆 뒤로 가기 단추와 같은 높이로 늘린다 */
-			align-self: stretch;
-			height: auto;
-		}
-
-		span {
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-
-		opacity: ${({ $withTitle }) => ($withTitle ? 1 : 0)};
-		transform: translateY(${({ $withTitle }) => ($withTitle ? '0' : '-0.25rem')});
-		visibility: ${({ $withTitle }) => ($withTitle ? 'visible' : 'hidden')};
-		transition:
-			opacity 0.2s ease,
-			transform 0.2s ease,
-			visibility 0.2s,
-			color 0.15s ease,
-			background 0.15s ease,
-			border-color 0.15s ease;
-	}
-
-	/* 테두리는 옆의 제목 칸과 같은 연한 색 (버튼 기본 monoOutline은 진한 회색) */
-	.back {
-		border-color: ${({ theme }) => theme.color.border};
-		background: ${({ theme }) => theme.color.background};
-		gap: ${({ $folded }) => ($folded ? '0' : '0.5rem')};
-		transition:
-			gap 0.3s ease,
-			padding 0.3s ease,
-			color 0.15s ease,
-			background 0.15s ease,
-			border-color 0.15s ease;
-	}
-
-	/* 뒤로 가기 · 제목 단추는 같은 모양: 가리키면 포인트색 테두리 · 글자 · 아이콘에 연한 포인트색 바탕 */
-	.back:hover:not(:disabled),
-	button.bar-title:hover:not(:disabled) {
-		border-color: ${({ theme }) => theme.color.primary};
-		background: ${({ theme }) => theme.color.tertiary};
-		color: ${({ theme }) => theme.color.primary};
-
-		svg {
-			color: ${({ theme }) => theme.color.primary};
-		}
-	}
-
-	.move-text {
-		display: inline-block;
-		overflow: hidden;
-		white-space: nowrap;
-		max-width: ${({ $folded }) => ($folded ? '0' : '10rem')};
-		opacity: ${({ $folded }) => ($folded ? 0 : 1)};
-		transition:
-			max-width 0.3s ease,
-			opacity 0.2s ease;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		&,
-		.back,
-		.move-text,
-		.bar-title {
-			transition: none;
-		}
-	}
-`;

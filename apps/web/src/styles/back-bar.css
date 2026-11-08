@@ -1,0 +1,120 @@
+/*
+ * 뒤로 가기 막대 (components/common/BackBar.tsx). 안의 두 단추(MoveButton · Button)의 테두리 · 바탕 · 마우스 올림 모양을
+ * 덮어쓰므로, button.css처럼 Tailwind 층 밖에 두고 선택자 우선순위를 전(styled-components)과 같게 둔다.
+ * 접힘(헤더가 접혀 화살표만) · 제목 보임은 data 속성으로, 우선순위를 올리지 않게 :where()로 고른다
+ */
+.np-back-bar {
+	position: sticky;
+	top: calc(3rem + 0.75rem);
+	z-index: 900;
+	display: flex;
+	align-items: stretch;
+	gap: 0.5rem;
+	width: fit-content;
+	max-width: min(100%, 44rem);
+	transition: top 0.3s ease;
+
+	&:where([data-folded]) {
+		top: 0.75rem;
+	}
+
+	/* 제목 한 줄: 버튼과 같은 높이의 칸, 배경을 깔아 본문 위에서도 읽히게 */
+	.bar-title {
+		display: flex;
+		align-items: center;
+		min-width: 0;
+		padding: 0 0.875rem;
+		border: 1px solid var(--np-color-border);
+		border-radius: 0;
+		background: var(--np-color-background);
+		font-size: var(--np-font-size-small);
+		font-weight: 700;
+		color: var(--np-color-text);
+
+		/* 단추일 때 (onTitleClick): 공통 Button. 긴 제목은 줄여 쓴다 */
+		&:is(button) {
+			flex-shrink: 1;
+			justify-content: flex-start;
+			/* 공통 Button은 height: fit-content라, 옆 뒤로 가기 단추와 같은 높이로 늘린다 */
+			align-self: stretch;
+			height: auto;
+		}
+
+		span {
+			white-space: nowrap;
+			overflow: hidden;
+			text-overflow: ellipsis;
+		}
+
+		opacity: 0;
+		transform: translateY(-0.25rem);
+		visibility: hidden;
+		transition:
+			opacity 0.2s ease,
+			transform 0.2s ease,
+			visibility 0.2s,
+			color 0.15s ease,
+			background 0.15s ease,
+			border-color 0.15s ease;
+	}
+
+	&:where([data-with-title]) .bar-title {
+		opacity: 1;
+		transform: translateY(0);
+		visibility: visible;
+	}
+
+	/* 테두리는 옆의 제목 칸과 같은 연한 색 (버튼 기본 monoOutline은 진한 회색) */
+	.back {
+		border-color: var(--np-color-border);
+		background: var(--np-color-background);
+		gap: 0.5rem;
+		transition:
+			gap 0.3s ease,
+			padding 0.3s ease,
+			color 0.15s ease,
+			background 0.15s ease,
+			border-color 0.15s ease;
+	}
+
+	&:where([data-folded]) .back {
+		gap: 0;
+	}
+
+	/* 뒤로 가기 · 제목 단추는 같은 모양: 가리키면 포인트색 테두리 · 글자 · 아이콘에 연한 포인트색 바탕 */
+	.back:hover:not(:disabled),
+	button.bar-title:hover:not(:disabled) {
+		border-color: var(--np-color-primary);
+		background: var(--np-color-tertiary);
+		color: var(--np-color-primary);
+
+		svg {
+			color: var(--np-color-primary);
+		}
+	}
+
+	.move-text {
+		display: inline-block;
+		overflow: hidden;
+		white-space: nowrap;
+		max-width: 10rem;
+		opacity: 1;
+		transition:
+			max-width 0.3s ease,
+			opacity 0.2s ease;
+	}
+
+	&:where([data-folded]) .move-text {
+		max-width: 0;
+		opacity: 0;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		&,
+		.back,
+		.move-text,
+		.bar-title {
+			transition: none;
+		}
+	}
+}

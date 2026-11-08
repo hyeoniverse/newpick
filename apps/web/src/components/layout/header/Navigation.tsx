@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 import { NAVIGATION } from '@/constants/navigation';
 import Button from '@/components/common/Button';
 
@@ -11,47 +11,24 @@ const Navigation = () => {
 	const pathname = usePathname();
 
 	return (
-		<StyledNavigation>
-			<ul>
+		<nav className="mx-auto flex w-full flex-row items-center justify-center">
+			<ul className="m-0 flex list-none gap-4 p-0">
 				{NAVIGATION.map((item) => (
-					<li key={item.id} className={pathname.startsWith(item.link) ? 'current' : undefined}>
+					<li
+						key={item.id}
+						className={cx(
+							'relative cursor-pointer p-2 text-small hover:shadow-[inset_0_-2px_var(--color-primary)]',
+							pathname.startsWith(item.link) && 'current shadow-[inset_0_-2px_var(--color-primary)]',
+						)}
+					>
 						<Link href={item.link} aria-current={pathname.startsWith(item.link) ? 'page' : undefined}>
 							<Button as="span">{item.title}</Button>
 						</Link>
 					</li>
 				))}
 			</ul>
-		</StyledNavigation>
+		</nav>
 	);
 };
-
-const StyledNavigation = styled.nav`
-	width: 100%;
-	margin: 0 auto;
-	display: flex;
-	flex-direction: row;
-	justify-content: center;
-	align-items: center;
-
-	ul {
-		display: flex;
-		gap: 1rem;
-		padding: 0;
-		margin: 0;
-		list-style: none;
-
-		li {
-			position: relative;
-			padding: 0.5rem;
-			cursor: pointer;
-			font-size: ${({ theme }) => theme.fontSize.small};
-
-			&:hover,
-			&.current {
-				box-shadow: inset 0 -2px ${({ theme }) => theme.color.primary};
-			}
-		}
-	}
-`;
 
 export default Navigation;

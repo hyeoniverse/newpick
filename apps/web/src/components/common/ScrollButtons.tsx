@@ -1,6 +1,6 @@
 'use client';
 
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 import { FaChevronUp, FaChevronDown } from 'react-icons/fa6';
 import { useCallback, useEffect, useState } from 'react';
 import { useFloatStore } from '@/stores/useFloatStore';
@@ -34,6 +34,10 @@ export function useHideScrollButtons(active: boolean) {
 		return () => root.removeAttribute('data-np-hide-float');
 	}, [active]);
 }
+
+/* 아이콘은 단추 가운데 (단추의 transform이 기준 상자가 된다) */
+const BUTTON =
+	'size-10 cursor-pointer border-[0.5px] border-solid border-border bg-background text-primary [transition:opacity_0.3s_ease,transform_0.3s_ease] hover:bg-tertiary [&_svg]:absolute [&_svg]:top-1/2 [&_svg]:left-1/2 [&_svg]:size-5 [&_svg]:[transform:translate(-50%,-50%)]';
 
 function ScrollButtons() {
 	const [scrolled, setScrolled] = useState(false);
@@ -74,89 +78,45 @@ function ScrollButtons() {
 	}, []);
 
 	return (
-		<ScrollButtonsContainer>
+		<div
+			className={cx(
+				// 바닥에 붙는 막대가 있으면 그 높이만큼 위로 (useLiftScrollButtons)
+				'fixed right-6 bottom-[calc(1.5rem+var(--np-float-lift,0px))] z-[999] flex flex-col [transition:bottom_0.2s_ease,transform_0.25s_ease,visibility_0.25s] motion-reduce:transition-none',
+				// 잠깐 숨김 (useHideScrollButtons): 오른쪽 화면 밖으로 밀려 나갔다가 끝나면 다시 들어온다
+				'[html[data-np-hide-float]_&]:invisible [html[data-np-hide-float]_&]:[transform:translateX(calc(100%+1.5rem))]',
+			)}
+		>
 			{/* 숨어 있을 때는 탭으로도 잡히지 않게 (#16) */}
-			<ScrollButton
+			<button
 				onClick={handleScrollToTop}
-				className={showButtons ? 'fade-in' : 'fade-out'}
+				className={cx(
+					BUTTON,
+					showButtons
+						? 'fade-in opacity-80 [transform:translateY(0)]'
+						: 'fade-out opacity-0 [transform:translateY(60px)]',
+				)}
 				aria-label="맨 위로"
 				tabIndex={showButtons ? 0 : -1}
 				aria-hidden={!showButtons}
 			>
 				<FaChevronUp aria-hidden />
-			</ScrollButton>
-			<ScrollButton
+			</button>
+			<button
 				onClick={handleScrollToBottom}
-				className={showButtons ? 'fade-in' : 'fade-out'}
+				className={cx(
+					BUTTON,
+					showButtons
+						? 'fade-in opacity-80 [transform:translateY(0)]'
+						: 'fade-out opacity-0 [transform:translateY(60px)]',
+				)}
 				aria-label="맨 아래로"
 				tabIndex={showButtons ? 0 : -1}
 				aria-hidden={!showButtons}
 			>
 				<FaChevronDown aria-hidden />
-			</ScrollButton>
-		</ScrollButtonsContainer>
+			</button>
+		</div>
 	);
 }
-
-const ScrollButtonsContainer = styled.div`
-	position: fixed;
-	/* 바닥에 붙는 막대가 있으면 그 높이만큼 위로 (useLiftScrollButtons) */
-	bottom: calc(1.5rem + var(--np-float-lift, 0px));
-	transition:
-		bottom 0.2s ease,
-		transform 0.25s ease,
-		visibility 0.25s;
-	right: 1.5rem;
-	display: flex;
-	flex-direction: column;
-	z-index: 999;
-
-	/* 잠깐 숨김 (useHideScrollButtons): 오른쪽 화면 밖으로 밀려 나갔다가 끝나면 다시 들어온다 */
-	html[data-np-hide-float] & {
-		transform: translateX(calc(100% + 1.5rem));
-		visibility: hidden;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		transition: none;
-	}
-`;
-
-const ScrollButton = styled.button`
-	height: 2.5rem;
-	width: 2.5rem;
-	cursor: pointer;
-	color: ${({ theme }) => theme.color.primary};
-	background: ${({ theme }) => theme.color.background};
-	border: 0.5px solid ${({ theme }) => theme.color.border};
-	opacity: 0;
-	transform: translateY(10px);
-	transition:
-		opacity 0.3s ease,
-		transform 0.3s ease;
-
-	&:hover {
-		background: ${({ theme }) => theme.color.tertiary};
-	}
-
-	&.fade-in {
-		opacity: 80%;
-		transform: translateY(0);
-	}
-
-	&.fade-out {
-		opacity: 0;
-		transform: translateY(60px);
-	}
-
-	svg {
-		position: absolute;
-		width: 1.25rem;
-		height: 1.25rem;
-		left: 50%;
-		top: 50%;
-		transform: translate(-50%, -50%);
-	}
-`;
 
 export default ScrollButtons;

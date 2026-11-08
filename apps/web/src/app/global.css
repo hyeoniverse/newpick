@@ -17,6 +17,9 @@
 @import '../styles/field.css';
 /* 스크롤해서 나타나기: 층 밖 (styles/reveal.css 머리말) */
 @import '../styles/reveal.css';
+/* 뒤로 가기 막대 · 분야 칩: 안의 Button을 덮어써서 층 밖 (각 파일 머리말) */
+@import '../styles/back-bar.css';
+@import '../styles/category-tags.css';
 
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
