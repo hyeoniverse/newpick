@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { TOAST } from '@/constants/numbers';
-import { ToastItem, ToastPosition, ToastType } from '@/models/toast.model';
+import { ToastItem, ToastType } from '@/models/toast.model';
 import { useToast } from '@/hooks/useToast';
 
-import styled, { DefaultTheme } from 'styled-components';
+import { cx } from '@/styles/tw';
 import { LuCircleCheck, LuCircleX, LuInfo, LuTriangleAlert, LuX } from 'react-icons/lu';
 
 const ICONS: Record<ToastType, React.ReactNode> = {
@@ -16,13 +16,13 @@ const ICONS: Record<ToastType, React.ReactNode> = {
 	error: <LuCircleX />,
 };
 
-const typeColor = (theme: DefaultTheme, type: ToastType) =>
-	({
-		info: theme.color.primary,
-		success: theme.color.success,
-		warning: theme.color.warning,
-		error: theme.color.error,
-	})[type];
+/** 종류별 색 (--toast-tone): 배지 · 남은 시간 줄 */
+const TONE: Record<ToastType, string> = {
+	info: 'var(--np-color-primary)',
+	success: 'var(--np-color-success)',
+	warning: 'var(--np-color-warning)',
+	error: 'var(--np-color-error)',
+};
 
 const Toast = React.memo(({ id, message, type, duration = TOAST.DURATION, action }: ToastItem & { index: number }) => {
 	const { removeToast, position } = useToast();
@@ -63,179 +63,56 @@ const Toast = React.memo(({ id, message, type, duration = TOAST.DURATION, action
 	};
 
 	return (
-		<StyledToast
-			className={isFadingOut ? 'fade-out' : 'fade-in'}
+		<div
+			className={cx(
+				'relative flex max-w-[min(26rem,calc(100vw-2rem))] min-w-[min(16rem,calc(100vw-2rem))] items-center gap-3 overflow-hidden rounded-floating border border-solid border-border bg-background py-3 pr-2.5 pl-3.5 text-text shadow-[0_8px_24px_rgba(0,0,0,0.12)]',
+				isFadingOut ? 'fade-out animate-toast-out' : 'fade-in animate-toast-in',
+			)}
+			// 위쪽에 뜨는 토스트는 위에서, 아래쪽은 아래에서 들어온다 (global.css의 toast-in · toast-out)
+			style={
+				{
+					'--toast-tone': TONE[type],
+					'--toast-from': position.includes('top') ? '-12px' : '12px',
+				} as React.CSSProperties
+			}
 			// 오류는 바로 읽히게(alert), 나머지는 하던 일을 끊지 않게(status)
 			role={type === 'error' ? 'alert' : 'status'}
-			$type={type}
-			$position={position}
 			onMouseEnter={handleMouseEnter}
 			onMouseLeave={handleMouseLeave}
 			onAnimationEnd={handleAnimationEnd}
 		>
-			<span className="icon">{ICONS[type]}</span>
-			<div className="body">
-				<p>{message}</p>
+			{/* 종류별 색의 원형 배지 */}
+			<span className="icon flex size-8 shrink-0 items-center justify-center rounded-full bg-[color-mix(in_srgb,var(--toast-tone)_14%,transparent)] text-[var(--toast-tone)] [&_svg]:size-[1.125rem]">
+				{ICONS[type]}
+			</span>
+			<div className="body flex min-w-0 flex-1 flex-col items-start gap-0.5">
+				<p className="m-0 text-small leading-[1.5] font-medium [word-break:keep-all]">{message}</p>
 				{action && (
-					<Link href={action.href} className="action" onClick={startFadeOut}>
+					<Link
+						href={action.href}
+						className="action text-extra-small font-semi-bold text-primary hover:underline"
+						onClick={startFadeOut}
+					>
 						{action.label}
 					</Link>
 				)}
 			</div>
-			<button type="button" className="close" onClick={startFadeOut} aria-label="알림 닫기">
+			<button
+				type="button"
+				className="close flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 text-sub-text hover:bg-surface hover:text-text [&_svg]:size-4"
+				onClick={startFadeOut}
+				aria-label="알림 닫기"
+			>
 				<LuX />
 			</button>
-			<ProgressBar $type={type} $progress={progress} />
-		</StyledToast>
+			{/* 남은 시간: 아래쪽 얇은 줄 (마우스를 올리면 멈춤) */}
+			<div
+				className="absolute bottom-0 left-0 h-0.5 bg-[var(--toast-tone)] opacity-60 [transition:width_0.1s_linear]"
+				style={{ width: `${progress}%` }}
+			/>
+		</div>
 	);
 });
-
-interface StyledProps {
-	$type: ToastType;
-	$position: ToastPosition;
-}
-
-/** 위쪽에 뜨는 토스트는 위에서, 아래쪽은 아래에서 들어온다 */
-const enterFrom = ({ $position }: StyledProps) => ($position.includes('top') ? '-12px' : '12px');
-
-const StyledToast = styled.div<StyledProps>`
-	@keyframes toast-in {
-		from {
-			opacity: 0;
-			transform: translateY(${enterFrom}) scale(0.98);
-		}
-		to {
-			opacity: 1;
-			transform: translateY(0) scale(1);
-		}
-	}
-
-	@keyframes toast-out {
-		from {
-			opacity: 1;
-			max-height: 6rem;
-		}
-		to {
-			opacity: 0;
-			transform: translateY(${enterFrom}) scale(0.98);
-			max-height: 0;
-			margin-top: -0.5rem;
-		}
-	}
-
-	&.fade-in {
-		animation: toast-in 0.25s ease-out forwards;
-	}
-
-	&.fade-out {
-		animation: toast-out 0.25s ease-in forwards;
-	}
-
-	position: relative;
-	display: flex;
-	align-items: center;
-	gap: 0.75rem;
-	min-width: min(16rem, calc(100vw - 2rem));
-	max-width: min(26rem, calc(100vw - 2rem));
-	padding: 0.75rem 0.625rem 0.75rem 0.875rem;
-	overflow: hidden;
-
-	border: 1px solid ${({ theme }) => theme.color.border};
-	border-radius: ${({ theme }) => theme.radius.floating};
-	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-	background: ${({ theme }) => theme.color.background};
-	color: ${({ theme }) => theme.color.text};
-
-	/* 종류별 색의 원형 배지 */
-	.icon {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 2rem;
-		height: 2rem;
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		color: ${({ theme, $type }) => typeColor(theme, $type)};
-		background: ${({ theme, $type }) => `color-mix(in srgb, ${typeColor(theme, $type)} 14%, transparent)`};
-
-		svg {
-			width: 1.125rem;
-			height: 1.125rem;
-		}
-	}
-
-	.body {
-		flex: 1;
-		display: flex;
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 0.125rem;
-		min-width: 0;
-	}
-
-	.action {
-		font-size: ${({ theme }) => theme.fontSize.extraSmall};
-		font-weight: ${({ theme }) => theme.fontWeight.semiBold};
-		color: ${({ theme }) => theme.color.primary};
-
-		&:hover {
-			text-decoration: underline;
-		}
-	}
-
-	p {
-		margin: 0;
-		font-size: ${({ theme }) => theme.fontSize.small};
-		font-weight: ${({ theme }) => theme.fontWeight.medium};
-		line-height: 1.5;
-		word-break: keep-all;
-	}
-
-	.close {
-		flex-shrink: 0;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 1.75rem;
-		height: 1.75rem;
-		padding: 0;
-		border: none;
-		border-radius: ${({ theme }) => theme.borderRadius.circle};
-		background: transparent;
-		color: ${({ theme }) => theme.color.subText};
-		cursor: pointer;
-
-		svg {
-			width: 1rem;
-			height: 1rem;
-		}
-
-		&:hover {
-			background: ${({ theme }) => theme.color.surface};
-			color: ${({ theme }) => theme.color.text};
-		}
-	}
-`;
-
-interface ProgressProps {
-	$type: ToastType;
-	$progress: number;
-}
-
-/** 남은 시간: 아래쪽 얇은 줄 (마우스를 올리면 멈춤) */
-const ProgressBar = styled.div.attrs<ProgressProps>(({ $progress, theme, $type }) => ({
-	style: {
-		width: `${$progress}%`,
-		background: typeColor(theme, $type),
-	},
-}))<ProgressProps>`
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	height: 2px;
-	opacity: 0.6;
-	transition: width 0.1s linear;
-`;
 
 Toast.displayName = 'Toast';
 export default Toast;
