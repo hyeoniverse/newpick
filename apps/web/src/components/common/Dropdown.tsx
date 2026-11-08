@@ -3,6 +3,7 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useDropdown } from '@/hooks/useDropdown';
+import { cx } from '@/styles/tw';
 import styled from 'styled-components';
 
 interface Props {
@@ -70,7 +71,11 @@ const Dropdown = ({ type, children, toggleButton, className, label, style }: Pro
 					React.isValidElement(toggleButton) &&
 					(toggleButton.type !== React.Fragment
 						? React.cloneElement(toggleButton as React.ReactElement<React.HTMLAttributes<HTMLDivElement>>, {
-								className: isDropdownOpen ? 'open' : '',
+								// 안쪽 요소의 클래스(Tailwind)는 살리고 열림 표시만 더한다
+								className: cx(
+									(toggleButton as React.ReactElement<React.HTMLAttributes<HTMLDivElement>>).props.className,
+									isDropdownOpen && 'open',
+								),
 							})
 						: toggleButton)}
 			</button>

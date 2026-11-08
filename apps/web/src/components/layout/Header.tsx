@@ -9,7 +9,7 @@ import { useDropdown } from '@/hooks/useDropdown';
 import { useHeader } from '@/hooks/useHeader';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 
-import styled from 'styled-components';
+import { cx } from '@/styles/tw';
 import { IoLogoGoogle } from 'react-icons/io';
 
 import Logo from '@/components/common/Logo';
@@ -22,6 +22,12 @@ import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
 import { useUnseenFollows } from '@/hooks/useFollows';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import HeaderSearch, { HeaderSearchFallback } from '@/components/layout/header/HeaderSearch';
+
+/* 프로필 원 (사진은 overflow: hidden. 새 후속 소식 점은 원 바깥 칸에) */
+const USER_CIRCLE = 'relative flex size-10 items-center justify-center overflow-hidden rounded-[50%]';
+/* 표시 쿠키를 읽기 전에는 둘 다 그려 두고 <html data-auth>에 맞춰 하나만 보여 준다 */
+const AUTH_IN = "[html[data-auth='out']_&]:hidden";
+const AUTH_OUT = "[html[data-auth='in']_&]:hidden";
 
 export default function Header() {
 	const { user, session, handleLogout } = useAuth();
@@ -68,16 +74,21 @@ export default function Header() {
 	}, [handleScroll]);
 
 	return (
-		<StyledHeader $isFolded={isHeaderOpen}>
-			<div className="header">
-				<div className="left-section">
+		<header
+			className={cx(
+				'fixed left-0 z-[1000] m-0 w-full border-0 border-b border-solid border-border bg-background p-0 [transition:top_0.3s_ease,transform_0.3s_ease]',
+				isHeaderOpen ? 'top-0' : 'top-[-2.98rem]',
+			)}
+		>
+			<div className="header relative z-[1000] mx-auto flex w-full max-w-[1024px] flex-1 flex-row items-center justify-between gap-4 bg-background">
+				<div className="left-section relative left-0 flex h-full w-fit flex-row items-center justify-start">
 					<Drawer />
 					<Logo />
 				</div>
-				<div className="center-section">
+				<div className="center-section relative left-0 flex h-full w-fit flex-row items-center justify-center tablet:invisible tablet:w-0">
 					<Navigation />
 				</div>
-				<div className="right-section">
+				<div className="right-section relative right-0 flex h-full w-fit flex-1 flex-row items-center justify-end gap-2">
 					{/* 지난 뉴스레터 검색 (#20). 주소(?q=)를 읽으므로 Suspense 안에 */}
 					<Suspense fallback={<HeaderSearchFallback />}>
 						<HeaderSearch />
@@ -90,14 +101,18 @@ export default function Header() {
 								className="auth"
 								label="내 계정 메뉴"
 								toggleButton={
-									<StyledAvatar>
-										<StyledUserCircle>
+									<span className="relative inline-flex">
+										<span className={USER_CIRCLE}>
 											{user.profileImg ? <Imgae src={user.profileImg} alt="" ratio="square" /> : <AvatarPlaceholder />}
-										</StyledUserCircle>
+										</span>
 										{unseenFollows > 0 && (
-											<span className="follow-dot" role="status" aria-label={`새 후속 소식 ${unseenFollows}건`} />
+											<span
+												className="follow-dot absolute top-0 right-0 size-2.5 rounded-[50%] border-2 border-solid border-background bg-primary"
+												role="status"
+												aria-label={`새 후속 소식 ${unseenFollows}건`}
+											/>
 										)}
-									</StyledAvatar>
+									</span>
 								}
 							>
 								<>
@@ -130,12 +145,12 @@ export default function Header() {
 						) : (
 							// 사용자 정보를 조회하는 동안 프로필 사진 자리에 사람 모양(머리·어깨)을 채워 둡니다.
 							// 아이콘을 보여 주면 사진이 없는 사람처럼 보였다
-							<StyledUserCircle className="auth-in">
+							<span className={cx(USER_CIRCLE, 'auth-in', AUTH_IN)}>
 								<AvatarPlaceholder loading />
-							</StyledUserCircle>
+							</span>
 						))}
 					{session !== 'in' && (
-						<div className="auth-out">
+						<div className={cx('auth-out flex items-center gap-2', AUTH_OUT)}>
 							<ThemeSwitcher scheme="secondary" className="item" />
 							<Button scheme="outline" onClick={() => openLogin()} icon={<IoLogoGoogle />} iconPosition="left">
 								로그인
@@ -144,156 +159,6 @@ export default function Header() {
 					)}
 				</div>
 			</div>
-		</StyledHeader>
+		</header>
 	);
 }
-
-interface StyledProps {
-	$isFolded: boolean;
-}
-
-const StyledHeader = styled.header<StyledProps>`
-	position: fixed;
-	top: ${({ $isFolded }) => ($isFolded ? '0' : '-2.98rem')};
-	left: 0;
-	z-index: 1000;
-
-	width: 100%;
-	margin: 0;
-	padding: 0;
-
-	background: ${({ theme }) => theme.color.background};
-	border-bottom: 1px solid ${({ theme }) => theme.color.border};
-	transition:
-		top 0.3s ease,
-		transform 0.3s ease;
-
-	.header {
-		position: relative;
-		background: ${({ theme }) => theme.color.background};
-		z-index: 1000;
-
-		display: flex;
-		flex: 1;
-		flex-direction: row;
-		justify-content: space-between;
-		align-items: center;
-
-		margin: 0 auto;
-		gap: 1rem;
-
-		width: 100%;
-		max-width: ${({ theme }) => theme.layout.width.large};
-	}
-
-	.left-section {
-		position: relative;
-		left: 0;
-
-		width: fit-content;
-		height: 100%;
-		display: flex;
-		flex-direction: row;
-		justify-content: flex-start;
-		align-items: center;
-	}
-
-	.center-section {
-		position: relative;
-		left: 0;
-
-		width: fit-content;
-		height: 100%;
-		display: flex;
-		flex-direction: row;
-		justify-content: center;
-		align-items: center;
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			width: 0;
-			visibility: hidden;
-		}
-	}
-
-	.right-section {
-		position: relative;
-		right: 0;
-
-		width: fit-content;
-		height: 100%;
-		display: flex;
-		flex: 1;
-		flex-direction: row;
-		justify-content: flex-end;
-		align-items: center;
-		gap: 0.5rem;
-
-		.userCircle {
-			border-radius: ${({ theme }) => theme.borderRadius.circle};
-			object-fit: cover;
-		}
-
-		.auth-out {
-			display: flex;
-			align-items: center;
-			gap: 0.5rem;
-		}
-	}
-
-	html[data-auth='in'] & .auth-out,
-	html[data-auth='out'] & .auth-in {
-		display: none;
-	}
-
-	.mobile-hidden {
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			width: 0;
-			height: 0;
-			visibility: hidden;
-			transform: scaleX(0);
-			padding: 0;
-		}
-	}
-
-	.desktop-hidden {
-		width: 0;
-		height: 0;
-		visibility: hidden;
-		transform: scaleX(0);
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			width: fit-content;
-			height: fit-content;
-			visibility: visible;
-			transform: scaleX(1);
-		}
-	}
-`;
-
-/** 프로필 + 새 후속 소식 점 (원은 overflow: hidden이라 점은 바깥 칸에) */
-const StyledAvatar = styled.span`
-	position: relative;
-	display: inline-flex;
-
-	.follow-dot {
-		position: absolute;
-		top: 0;
-		right: 0;
-		width: 0.625rem;
-		height: 0.625rem;
-		border: 2px solid ${({ theme }) => theme.color.background};
-		border-radius: 50%;
-		background: ${({ theme }) => theme.color.primary};
-	}
-`;
-
-const StyledUserCircle = styled.div`
-	position: relative;
-	width: 2.5rem;
-	height: 2.5rem;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	border-radius: 50%;
-	overflow: hidden;
-`;
