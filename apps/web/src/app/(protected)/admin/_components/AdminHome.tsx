@@ -6,7 +6,6 @@ import styled from 'styled-components';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useToast } from '@/hooks/useToast';
-import styles from '@/app/(protected)/protected.module.css';
 import AdminGate from '@/components/common/auth/AdminGate';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
@@ -63,7 +62,7 @@ function SiteCacheTool() {
 export default function AdminHome() {
 	return (
 		<AdminGate>
-			<div className={styles.page}>
+			<div className="np-protected-page">
 				<Title size="extraSmall">관리자</Title>
 				<SiteCacheTool />
 				<StyledTool>

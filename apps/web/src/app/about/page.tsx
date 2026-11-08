@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/constants/site';
-import styles from '@/app/about/about.module.css';
 import HeroSection from '@/app/about/_components/HeroSection';
 import NumbersSection from '@/app/about/_components/NumbersSection';
 import StatementSection from '@/app/about/_components/StatementSection';
@@ -26,7 +25,7 @@ export const metadata: Metadata = pageMetadata(
 
 async function AboutPage() {
 	return (
-		<ScrollReveal className={styles.about} items={REVEAL_ITEMS}>
+		<ScrollReveal className="np-about" items={REVEAL_ITEMS}>
 			<HeroSection />
 			<StatementSection />
 			<WhyNewpickSection />

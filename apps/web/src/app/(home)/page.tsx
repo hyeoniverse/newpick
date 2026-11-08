@@ -1,7 +1,6 @@
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { fetchArticleList } from '@/api/article';
 
-import styles from '@/app/(home)/home.module.css';
 import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
@@ -22,7 +21,7 @@ export default async function HomePage() {
 	const secondArticles = fetchedArticles.slice(20, 40);
 
 	return (
-		<div className={styles.homePage}>
+		<div className="np-home-page">
 			<TitleSection firstArticles={firstArticles} secondArticles={secondArticles} />
 			<HeroSection />
 			<hr />

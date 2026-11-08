@@ -1,7 +1,7 @@
 'use client';
 
-import styled from 'styled-components';
 import { SkeletonBlock } from '@/components/common/loader/Skeleton';
+import { cx } from '@/styles/tw';
 
 /**
  * 뉴스레터 목록을 서버에서 그리는 동안 (#17). 관심사를 바꿀 때마다 요청마다 새로 그리므로,
@@ -41,65 +41,6 @@ export default function ArticlesLoading() {
 	);
 }
 
-const StyledLoading = styled.div`
-	display: flex;
-	flex-direction: column;
-	gap: 2rem;
-	width: 100%;
-	margin-top: 1.5rem;
-
-	.chips {
-		display: flex;
-		gap: 0.5rem;
-		overflow: hidden;
-	}
-
-	.intro {
-		display: flex;
-		flex-direction: column;
-		gap: 0.75rem;
-
-		> :last-child {
-			max-width: 100%;
-		}
-	}
-
-	.stage {
-		display: grid;
-		grid-template-columns: 1.4fr 1fr;
-		gap: 2rem;
-		height: 18rem;
-		padding: 1.5rem;
-		border: 1px solid ${({ theme }) => theme.color.border};
-		border-radius: ${({ theme }) => theme.radius.surface};
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			grid-template-columns: 1fr;
-			grid-template-rows: 10rem auto;
-			height: auto;
-		}
-	}
-
-	.stage-text {
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		gap: 0.75rem;
-	}
-
-	.list {
-		display: grid;
-		grid-template-columns: repeat(3, 1fr);
-		gap: 1.5rem;
-
-		@media ${({ theme }) => theme.mediaQuery.tablet} {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.item {
-		display: flex;
-		flex-direction: column;
-		gap: 0.5rem;
-	}
-`;
+const StyledLoading = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-articles-articles-loading-loading', className)} {...props} />
+);

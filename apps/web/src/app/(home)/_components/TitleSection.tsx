@@ -7,10 +7,10 @@ import { DEFAULT_IMAGES } from '@/constants/images';
 import { ArticleDetail as IArticleDetail } from '@/models/article.model';
 import { getFirstImage } from '@/utils/getFirstImage';
 
-import styled from 'styled-components';
 import { PCLogo } from '@/components/common/svg/LogoSVG';
 import Image from '@/components/common/Image';
 import Title from '@/components/common/Title';
+import { cx } from '@/styles/tw';
 
 interface Props {
 	className?: string;
@@ -102,59 +102,8 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 	);
 }
 
-const TitleSectionStyled = styled.div`
-	text-align: center;
-	margin-top: 6rem;
-	// margin-bottom: 10rem;
-
-	.logo {
-		color: ${({ theme }) => theme.color.primary};
-		height: 1.25rem;
-		margin-bottom: 0.25rem;
-	}
-
-	.title-text {
-		margin-bottom: 1rem;
-		/* '서비 / 스'처럼 낱말 가운데서 줄이 바뀌지 않게 */
-		word-break: keep-all;
-	}
-
-	p {
-		margin-bottom: 4rem;
-	}
-
-	.swiper {
-		width: 100vw;
-		height: 100%;
-		margin-left: calc(50% - 50vw);
-		margin-right: calc(50% - 50vw);
-		position: relative;
-		overflow: hidden;
-		margin-bottom: 2rem;
-
-		.swiper-wrapper {
-			transition-timing-function: linear !important;
-			padding-right: calc(50% - 50vw);
-
-			position: relative;
-			display: flex;
-
-			.swiper-slide {
-				width: auto;
-
-				.image-link {
-					position: relative;
-					display: block;
-					height: 186px;
-					width: 186px;
-				}
-			}
-		}
-
-		.image {
-			border-radius: ${({ theme }) => theme.radius.surface};
-		}
-	}
-`;
+const TitleSectionStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
+	<div className={cx('np-home-title-section-title-section', className)} {...props} />
+);
 
 export default TitleSection;

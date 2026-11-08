@@ -1,0 +1,73 @@
+/*
+ * 화면 틀 (예전 CSS 모듈 4개: 홈 · 뉴스레터 목록 · 소개 · 로그인이 필요한 화면).
+ * 화면 CSS(styles/pages/*.css)보다 먼저 불러와, 우선순위가 같으면 화면 쪽이 이기던 예전 순서(모듈 link → styled 태그)를 지킨다
+ */
+
+/* 예전 app/(home)/home.module.css */
+.np-home-page {
+	gap: 2rem;
+	width: 100%;
+}
+
+.np-home-page hr {
+	margin: 0;
+	padding: 0;
+	border: none;
+	border-bottom: 1px solid var(--border-color);
+	width: 100%;
+}
+
+/* CSS 변수로 반응형 적용 */
+@media (max-width: var(--breakpoint-mobile)) {
+	.np-home-page {
+		padding: 0 1rem;
+	}
+}
+
+/* 예전 app/articles/(main)/category.module.css. 안쪽 클래스(.title · .header …) 규칙은 모듈이 이름을 바꿔 한 번도 적용되지 않아 옮기지 않았다 */
+.np-category-page {
+	gap: 2rem;
+	margin-top: 1.5rem;
+	width: 100%;
+}
+
+.np-category-page hr {
+	margin: 0;
+	padding: 0;
+	border: none;
+	border-bottom: 1px solid var(--border-color);
+	width: 100%;
+}
+
+/* 예전 app/about/about.module.css */
+.np-about {
+	display: flex;
+	gap: 10rem;
+	flex-direction: column;
+	margin-top: 2rem;
+}
+
+/* 화면 끝까지 넓힌 줄(100vw)이 스크롤바 폭만큼 넘치는 것을 화면 전체(body)에서 자른다.
+   시작하기 페이지에서만 적용하고, clip이라 스크롤 영역이 생기지 않아 sticky는 그대로 동작한다 */
+body:has(.np-about) {
+	overflow-x: clip;
+}
+
+@media (max-width: 768px) {
+	.np-about {
+		gap: 6rem;
+	}
+}
+
+/* 예전 app/(protected)/protected.module.css */
+/* 로그인이 필요한 화면(마이페이지 · 관리자) 공통 틀: 헤더와 띄우고, 아래는 넉넉히 */
+.np-protected-page {
+	margin-top: 3rem;
+	margin-bottom: 10vh;
+}
+
+@media (max-width: 480px) {
+	.np-protected-page {
+		margin-top: 2rem;
+	}
+}
