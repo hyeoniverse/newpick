@@ -1,0 +1,19 @@
+{
+  "name": "newpick",
+  "private": true,
+  "description": "NewPick 모노레포: apps/web (Next.js) · apps/api (NestJS) · packages/* (공유)",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev -w apps/web",
+    "dev:api": "npm run start:dev -w apps/api",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm test --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

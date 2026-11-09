@@ -33,8 +33,8 @@ jobs:
           else
             files=$(git diff --name-only "origin/$GITHUB_BASE_REF...HEAD")
             echo "$files"
-            # 워크플로를 바꿨으면 전부 돌려 확인한다
-            ci=false; echo "$files" | grep -q '^\.github/workflows/' && ci=true
+            # 워크플로 · 루트 설치(package.json · package-lock.json) · 공유 패키지를 바꿨으면 전부 돌려 확인한다
+            ci=false; echo "$files" | grep -qE '^(\.github/workflows/|package(-lock)?\.json$|packages/)' && ci=true
             web=$ci; echo "$files" | grep -q '^apps/web/' && web=true
             api=$ci; echo "$files" | grep -q '^apps/api/' && api=true
           fi
@@ -63,8 +63,10 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: apps/${{ matrix.app }}/package-lock.json
-      - run: npm ci
+          cache-dependency-path: package-lock.json
+      # npm workspaces: 루트 잠금 파일 하나로 이 앱만 설치
+      - run: npm ci -w apps/${{ matrix.app }}
+        working-directory: .
       - if: matrix.app == 'api'
         run: npx prisma generate --schema=prisma/mysql.schema.prisma
       - run: npm run typecheck
@@ -81,7 +83,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build image
-        run: docker build -t newpick-api apps/api
+        # 빌드 컨텍스트는 저장소 루트 (npm workspaces)
+        run: docker build -f apps/api/Dockerfile -t newpick-api .
 
   # 서버에 떠 있는 api와 이 커밋 사이에 apps/api가 바뀌었는지 (main push). 바뀌었으면 이미지를 만들어 배포한다 (#39).
   # 직전 push와 비교하지 않는다: api를 바꾼 push의 실행이 실패하면, 다음 push에 api 변경이 없다는 이유로 그 변경이 배포에서 빠진다
@@ -107,7 +110,8 @@ jobs:
             echo "api=true" >> "$GITHUB_OUTPUT"
           elif [ -z "$commit" ] || ! git cat-file -e "$commit^{commit}" 2>/dev/null; then
             echo "api=true" >> "$GITHUB_OUTPUT"
-          elif git diff --quiet "$commit" "$GITHUB_SHA" -- apps/api; then
+          # api가 쓰는 것: apps/api · 루트 설치 파일 · 공유 패키지
+          elif git diff --quiet "$commit" "$GITHUB_SHA" -- apps/api packages package.json package-lock.json; then
             echo "api=false" >> "$GITHUB_OUTPUT"
           else
             echo "api=true" >> "$GITHUB_OUTPUT"
@@ -131,7 +135,9 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
       - uses: docker/build-push-action@v6
         with:
-          context: apps/api
+          # 빌드 컨텍스트는 저장소 루트 (npm workspaces)
+          context: .
+          file: apps/api/Dockerfile
           platforms: linux/amd64
           push: true
           # /health의 version. 배포가 끝나면 바깥에서 이 값으로 새 버전이 떴는지 본다
@@ -190,9 +196,9 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: apps/web/package-lock.json
-      - working-directory: apps/web
-        run: npm ci
+          cache-dependency-path: package-lock.json
+      # npm workspaces: 루트 잠금 파일 하나로 웹만 설치
+      - run: npm ci -w apps/web
       # 2026-10-26 수동 실행 두 번이 이 단계(apt)에서 29분·16분 멈췄다. 5분씩 최대 3번 시도한다.
       # timeout은 npx만 끝내고 그 아래 apt-get은 남아 잠금을 쥐고 있어, 다음 시도가 바로 실패했다 (#53 CI).
       # 다음 시도 전에 남은 apt를 끝내고, apt는 잠금을 기다리게 한다 (#57)

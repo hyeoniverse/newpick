@@ -1,0 +1,15 @@
+# apps/api/Dockerfile 전용 (빌드 컨텍스트가 저장소 루트라 경로는 루트 기준)
+**/node_modules
+**/dist
+**/coverage
+**/.env
+**/.env.*
+!**/.env.example
+**/*.log
+.git
+.github
+.vscode
+docs
+ops
+apps/web
+!apps/web/package.json

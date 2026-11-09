@@ -45,7 +45,8 @@ curl localhost:3001    # Hello World
 ### Docker 없이 실행
 
 ```bash
-npm ci
+npm ci                      # 저장소 루트에서 (npm workspaces, 루트 package-lock.json 하나)
+cd apps/api
 npx prisma generate
 npx prisma migrate deploy   # MYSQL_URL의 DB에 스키마 적용
 npm run start:dev
