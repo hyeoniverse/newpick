@@ -68,6 +68,16 @@ describe('스크랩 · 메모 (#123)', () => {
     expect(prisma.highlight.upsert.mock.calls[1][0].update).toEqual({});
   });
 
+  it('목록의 소식 태그는 문자열 배열로 (DB JSON · 아직 안 꺼낸 null도)', async () => {
+    const prisma = fakePrisma();
+    prisma.highlight.findMany.mockResolvedValue([
+      { id: 1, sectionTitle: '제목', sectionTags: ['코스피', 3] },
+      { id: 2, sectionTitle: '', sectionTags: null },
+    ]);
+    const rows = await new HighlightsService(prisma as never).list(7);
+    expect(rows.map((r) => r.sectionTags)).toEqual([['코스피'], []]);
+  });
+
   it('없는 뉴스레터면 404, 공백만 고르면 400', async () => {
     const prisma = fakePrisma();
     prisma.newsletter.findUnique.mockResolvedValue(null);

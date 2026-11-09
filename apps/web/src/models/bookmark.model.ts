@@ -1,17 +1,4 @@
-interface BookmarkCategory {
-	id: number;
-	name: string;
-}
+import type { BookmarkItem } from '@newpick/shared';
 
-export interface IBookmarkItem {
-	id: number;
-	newsTitle: string;
-	newsImg: string;
-	newsCreatedAt: string;
-	newsSummary: string;
-	category: BookmarkCategory;
-	/** 북마크한 시각 · 폴더 · 조회수 (#123 폴더 · 정렬) */
-	bookmarkedAt: string;
-	folderId: number | null;
-	viewcount: number;
-}
+/** 북마크한 뉴스레터 한 줄 (@newpick/shared, api 응답과 같다) */
+export type IBookmarkItem = BookmarkItem;

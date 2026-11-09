@@ -4,3 +4,4 @@ export * from './newsletters';
 export * from './jobs';
 export * from './stats';
 export * from './me';
+export * from './scraps';

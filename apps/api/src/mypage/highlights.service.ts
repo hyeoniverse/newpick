@@ -110,16 +110,21 @@ export class HighlightsService {
         },
       },
     });
+    // 소식 태그는 DB에 JSON으로 있다: 응답은 문자열 배열로 (아직 꺼내지 않은 것은 빈 배열)
+    const rows = highlights.map((h) => ({
+      ...h,
+      sectionTags: keywordList(h.sectionTags),
+    }));
     // 소식 제목은 꺼내 둔 것을 쓴다. 아직 없는 것(예전 스크랩 · 본문을 고친 뒤)만 본문을 읽어 채워 둔다
-    const missing = highlights.filter((h) => h.sectionTitle === null);
+    const missing = rows.filter((h) => h.sectionTitle === null);
     if (missing.length) {
       const filled = await this.fillSectionTitles(missing);
-      return highlights.map((h) => ({
+      return rows.map((h) => ({
         ...h,
         sectionTitle: filled.get(h.id)?.title ?? h.sectionTitle,
       }));
     }
-    return highlights;
+    return rows;
   }
 
   /**

@@ -1,3 +1,4 @@
+import type { Highlight, HighlightPage, MyTaste } from '@newpick/shared';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
@@ -5,27 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 
 /** 스크랩 · 메모 (#123) */
-export interface Highlight {
-	id: number;
-	newsletterId: number;
-	section: string | null;
-	/** 소식(story-N)이면 그 소식의 제목 (스크랩할 때 꺼내 둔 것, 빈 글이면 제목 없음) */
-	sectionTitle?: string | null;
-	/** 소식(story-N)이면 그 소식의 사진 (마이페이지 쪽 목록에만, 없으면 null) */
-	sectionImage?: string | null;
-	/** 그 소식의 태그 (뉴스레터 태그 중 소식 글에 나오는 것, 마이페이지 쪽 목록에만) */
-	sectionTags?: string[];
-	text: string;
-	note: string | null;
-	/** 중요 표시 (별) */
-	starred: boolean;
-	/** 폴더 (없으면 null) */
-	folderId: number | null;
-	createdAt: string;
-	updatedAt: string;
-	/** 썸네일(image)은 마이페이지 쪽 목록에만 온다 */
-	newsletter?: { title: string; createdAt: string; image?: string | null; category: { id: number; name: string } };
-}
+/** 스크랩 · 스크랩 한 쪽 · 내 취향 (@newpick/shared, api 응답과 같다) */
+export type { Highlight, HighlightPage };
 
 /** 내 스크랩. newsletterId를 주면 그 뉴스레터 것만 (상세 화면 형광펜), 아니면 전체 (마이페이지) */
 export function useHighlights(newsletterId?: number) {
@@ -38,14 +20,6 @@ export function useHighlights(newsletterId?: number) {
 }
 
 /** 마이페이지 스크랩 한 쪽 (서버에서 거름) */
-export interface HighlightPage {
-	items: Highlight[];
-	total: number;
-	/** 폴더 줄(전체 · 폴더 없음) · 보기 칩(고른 폴더 안의 중요 · 메모) 개수 */
-	counts: { all: number; unfiled: number; starred: number; memo: number };
-	/** 달 막대 바로 가기: 거르기 · 정렬을 적용한 순서로 달마다 개수와 그 달 첫 스크랩의 순번 */
-	months?: { month: string; count: number; firstIndex: number }[];
-}
 
 /** 한 번에 받는 스크랩 수 */
 export const HIGHLIGHT_PAGE_SIZE = 30;
@@ -156,13 +130,7 @@ export function useHighlightMutations() {
 }
 
 /** 내 취향 점수 (#123 2단계) */
-export interface Taste {
-	weights: { bookmark: number; scrap: number; memo: number };
-	halfLifeDays: number;
-	signals: { bookmark: number; scrap: number; memo: number };
-	topics: { topic: string; score: number; bookmark: number; scrap: number; memo: number }[];
-	categories: { categoryId: number; name: string | null; score: number }[];
-}
+export type Taste = MyTaste;
 
 export function useTaste() {
 	const { user } = useAuth();
