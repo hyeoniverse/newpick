@@ -6,12 +6,10 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuMailX, LuMailCheck, LuLink2Off, LuX, LuCheck } from 'react-icons/lu';
-import { apiFetch, ApiError } from '@/api/client';
-import { API_ENDPOINTS } from '@/constants/api';
+import { ApiError } from '@/api/client';
+import { fetchUnsubscribeTarget, unsubscribeByToken } from '@/api/subscription';
 import Button from '@/components/common/Button';
 import Spinner from '@/components/common/loader/Spinner';
-
-type Target = { email: string; subscribed: boolean };
 
 /** 해지하면 멈추는 것 / 그대로 남는 것 */
 const STOPS = ['매일 아침 8시 40분 뉴스레터 메일', '고른 관심사 설정'];
@@ -30,7 +28,7 @@ export default function Unsubscribe() {
 
 	const { data, error, isLoading } = useQuery({
 		queryKey: queryKeys.unsubscribe(token),
-		queryFn: () => apiFetch<{ data: Target }>(API_ENDPOINTS.SUBSCRIBERS.UNSUBSCRIBE(token)).then((r) => r.data),
+		queryFn: () => fetchUnsubscribeTarget(token),
 		enabled: Boolean(token),
 		retry: false,
 	});
@@ -39,7 +37,7 @@ export default function Unsubscribe() {
 		setPending(true);
 		setFailed(null);
 		try {
-			await apiFetch(API_ENDPOINTS.SUBSCRIBERS.UNSUBSCRIBE(token), { method: 'POST' });
+			await unsubscribeByToken(token);
 			setDone(true);
 		} catch (e) {
 			setFailed(e instanceof ApiError ? e.message : '해지하지 못했어요. 잠시 뒤 다시 시도해 주세요.');

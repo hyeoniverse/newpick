@@ -1,8 +1,8 @@
 import { queryKeys } from '@/api/queryKeys';
 import type { Folder } from '@newpick/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiFetch, ApiError } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { ApiError } from '@/api/client';
+import { createFolder, deleteFolder, fetchFolders, renameFolder, type FolderContents } from '@/api/folders';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 
@@ -10,8 +10,7 @@ import { useToast } from '@/hooks/useToast';
 /** 폴더 (@newpick/shared, api 응답과 같다) */
 export type { Folder };
 
-/** 폴더를 지울 때 안의 것들: 폴더 없음으로 남기기 · 같이 지우기 · 다른 폴더로 옮기기 */
-export type FolderContents = 'keep' | 'delete' | 'move';
+export type { FolderContents };
 
 const REMOVED: Record<FolderContents, string> = {
 	keep: '폴더를 지웠어요. 안의 것들은 폴더 없음으로 남겼어요.',
@@ -31,7 +30,7 @@ export function useFolders() {
 	const { user } = useAuth();
 	return useQuery({
 		queryKey: queryKeys.folders.list(user?.id),
-		queryFn: () => apiFetch<Folder[]>(API_ENDPOINTS.MY.FOLDERS()),
+		queryFn: fetchFolders,
 		enabled: !!user,
 	});
 }
@@ -45,14 +44,12 @@ export function useFolderMutations() {
 		showToast(error instanceof ApiError ? error.message : '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.', 'error');
 
 	const create = useMutation({
-		mutationFn: (name: string) =>
-			apiFetch<{ id: number; name: string }>(API_ENDPOINTS.MY.FOLDERS(), { method: 'POST', body: { name } }),
+		mutationFn: (name: string) => createFolder(name),
 		onSuccess: () => refresh(),
 		onError: fail,
 	});
 	const rename = useMutation({
-		mutationFn: ({ id, name }: { id: number; name: string }) =>
-			apiFetch(API_ENDPOINTS.MY.FOLDER(id), { method: 'PATCH', body: { name } }),
+		mutationFn: ({ id, name }: { id: number; name: string }) => renameFolder(id, name),
 		onSuccess: () => {
 			refresh();
 			showToast('폴더 이름을 바꿨어요.', 'success');
@@ -61,10 +58,7 @@ export function useFolderMutations() {
 	});
 	const remove = useMutation({
 		mutationFn: ({ id, contents, to }: { id: number; contents: FolderContents; to?: number }) =>
-			apiFetch(
-				API_ENDPOINTS.MY.FOLDER(id, new URLSearchParams({ contents, ...(to && { to: String(to) }) }).toString()),
-				{ method: 'DELETE' },
-			),
+			deleteFolder(id, contents, to),
 		onSuccess: (_, { contents }) => {
 			refresh();
 			// 북마크를 지웠으면 취향 점수도 바뀐다

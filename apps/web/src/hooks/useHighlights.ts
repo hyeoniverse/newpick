@@ -1,8 +1,17 @@
 import { queryKeys } from '@/api/queryKeys';
 import type { Highlight, HighlightPage, MyTaste } from '@newpick/shared';
+import {
+	bulkHighlights,
+	createHighlight,
+	deleteHighlight,
+	deleteHighlights,
+	fetchHighlightPage,
+	fetchHighlights,
+	fetchTaste,
+	updateHighlight,
+} from '@/api/highlights';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { apiFetch, ApiError } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { ApiError } from '@/api/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 
@@ -15,7 +24,7 @@ export function useHighlights(newsletterId?: number) {
 	const { user } = useAuth();
 	return useQuery({
 		queryKey: queryKeys.highlights.list(user?.id, newsletterId),
-		queryFn: () => apiFetch<Highlight[]>(API_ENDPOINTS.MY.HIGHLIGHTS(newsletterId)),
+		queryFn: () => fetchHighlights(newsletterId),
 		enabled: !!user,
 	});
 }
@@ -34,11 +43,7 @@ export function useHighlightPages(filters: string, startOffset = 0) {
 	return useInfiniteQuery({
 		queryKey: queryKeys.highlights.page(user?.id, filters, startOffset),
 		queryFn: async ({ pageParam }) => ({
-			...(await apiFetch<HighlightPage>(
-				API_ENDPOINTS.MY.HIGHLIGHTS_PAGE(
-					`offset=${pageParam}&limit=${HIGHLIGHT_PAGE_SIZE}${filters ? `&${filters}` : ''}`,
-				),
-			)),
+			...(await fetchHighlightPage(pageParam, HIGHLIGHT_PAGE_SIZE, filters)),
 			offset: pageParam,
 		}),
 		initialPageParam: startOffset,
@@ -64,8 +69,7 @@ export function useHighlightMutations() {
 		showToast(error instanceof ApiError ? error.message : '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.', 'error');
 
 	const create = useMutation({
-		mutationFn: (body: { newsletterId: number; section?: string; text: string; note?: string }) =>
-			apiFetch<Highlight>(API_ENDPOINTS.MY.HIGHLIGHTS(), { method: 'POST', body }),
+		mutationFn: createHighlight,
 		onSuccess: (saved, body) => {
 			refresh();
 			// 마이페이지 스크랩 탭의 이 문장으로 바로 (#hl-번호로 스크롤 · 잠깐 강조)
@@ -83,8 +87,7 @@ export function useHighlightMutations() {
 	});
 	// 메모 고치기 · 중요 표시 켜고 끄기 (준 것만)
 	const update = useMutation({
-		mutationFn: ({ id, ...body }: { id: number; note?: string; starred?: boolean }) =>
-			apiFetch<Highlight>(API_ENDPOINTS.MY.HIGHLIGHT(id), { method: 'PATCH', body }),
+		mutationFn: ({ id, ...body }: { id: number; note?: string; starred?: boolean }) => updateHighlight(id, body),
 		onSuccess: (_, body) => {
 			refresh();
 			if (body.starred !== undefined)
@@ -94,7 +97,7 @@ export function useHighlightMutations() {
 		onError: fail,
 	});
 	const remove = useMutation({
-		mutationFn: (id: number) => apiFetch(API_ENDPOINTS.MY.HIGHLIGHT(id), { method: 'DELETE' }),
+		mutationFn: deleteHighlight,
 		onSuccess: () => {
 			refresh();
 			showToast('스크랩을 지웠어요.', 'success');
@@ -102,8 +105,7 @@ export function useHighlightMutations() {
 		onError: fail,
 	});
 	const removeMany = useMutation({
-		mutationFn: (ids: number[]) =>
-			apiFetch<{ count: number }>(API_ENDPOINTS.MY.HIGHLIGHTS_DELETE(), { method: 'POST', body: { ids } }),
+		mutationFn: (ids: number[]) => deleteHighlights(ids),
 		onSuccess: ({ count }) => {
 			refresh();
 			showToast(`스크랩 ${count}개를 지웠어요.`, 'success');
@@ -112,8 +114,7 @@ export function useHighlightMutations() {
 	});
 	// 선택한 스크랩 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 해제
 	const bulk = useMutation({
-		mutationFn: (body: { ids: number[]; action: 'move' | 'star' | 'unstar'; folderId?: number | null }) =>
-			apiFetch<{ count: number }>(API_ENDPOINTS.MY.HIGHLIGHTS_BULK(), { method: 'POST', body }),
+		mutationFn: bulkHighlights,
 		onSuccess: ({ count }, body) => {
 			refresh();
 			showToast(
@@ -137,7 +138,7 @@ export function useTaste() {
 	const { user } = useAuth();
 	return useQuery({
 		queryKey: queryKeys.taste.mine(user?.id),
-		queryFn: () => apiFetch<Taste>(API_ENDPOINTS.MY.TASTE()),
+		queryFn: fetchTaste,
 		enabled: !!user,
 	});
 }

@@ -1,3 +1,4 @@
+import type { BookmarkPage } from '@newpick/shared';
 import API_ENDPOINTS from '@/constants/api';
 import { IBookmarkItem } from '@/models/bookmark.model';
 import { ApiError, apiFetch } from '@/api/client';
@@ -25,3 +26,15 @@ export async function removeBookmarkApi(newsId: number, newsletterId: number): P
 		body: { newsId, newsletterId },
 	});
 }
+
+/** 북마크 한 쪽. filters: 'folder=none&categoryId=3&sort=views' 같은 쿼리 */
+export const fetchBookmarkPage = (offset: number, limit: number, filters = '') =>
+	apiFetch<BookmarkPage>(
+		API_ENDPOINTS.MY.BOOKMARKS_PAGE(`offset=${offset}&limit=${limit}${filters ? `&${filters}` : ''}`),
+	);
+/** 북마크 수만 (한 개짜리 쪽) */
+export const fetchBookmarkCount = () =>
+	apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.BOOKMARKS_PAGE('limit=1'));
+/** 북마크를 폴더로 옮기기 (folderId null이면 폴더 없음) */
+export const moveBookmarks = (newsletterIds: number[], folderId: number | null) =>
+	apiFetch<{ count: number }>(API_ENDPOINTS.MY.BOOKMARKS_MOVE(), { method: 'POST', body: { newsletterIds, folderId } });

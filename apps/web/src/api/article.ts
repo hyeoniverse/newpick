@@ -71,3 +71,16 @@ export const fetchPopularKeywords = async (categoryId?: number) => {
 	);
 	return data;
 };
+
+/**
+ * 서버(페이지 · 사이트맵)에서 읽는 것: 뉴스레터를 만들거나 지우면 API가 꼬리표로 바로 비운다 (#73).
+ * revalidate는 그게 실패했을 때의 상한
+ */
+export const fetchArticleCached = (slug: string, revalidate: number) =>
+	apiFetch<{ data: ArticleInfo }>(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`, {
+		next: { revalidate, tags: [NEWSLETTER_CACHE_TAG] },
+	}).then((r) => r.data);
+export const fetchArticleListCached = (limit: number, offset: number, revalidate: number) =>
+	apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.LIST(limit, offset), {
+		next: { revalidate, tags: [NEWSLETTER_CACHE_TAG] },
+	}).then((r) => r.data);

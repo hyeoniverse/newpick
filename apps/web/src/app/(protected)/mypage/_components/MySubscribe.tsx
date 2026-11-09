@@ -2,12 +2,10 @@
 
 import { queryKeys } from '@/api/queryKeys';
 
-import type { Mail, MailDigest, MailsPage } from '@newpick/shared';
 import { useEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LuChevronRight, LuMailPlus, LuMail, LuNewspaper } from 'react-icons/lu';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { fetchMyMails, markMail } from '@/api/mails';
 import { useTab } from '@/hooks/useTab';
 import { useAuth } from '@/hooks/useAuth';
 import useSubscribe from '@/hooks/useSubscribe';
@@ -27,7 +25,7 @@ import FolderBar, { FolderFilter } from './folders/FolderBar';
 import { setFolderDragGhost } from './folders/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
-import MonthBar, { LoadNewer, MonthIndex, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
+import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
 
 /** 작은 화면에서 '오늘을 한눈에' 소식을 몇 개까지 보일지 (나머지는 '외 N개') */
 const GLANCE_SMALL = 3;
@@ -42,8 +40,7 @@ const useMarkMail = () => {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
 	return useMutation({
-		mutationFn: (body: { sentAt: string; starred?: boolean; folderId?: number | null }) =>
-			apiFetch(API_ENDPOINTS.MY.MAIL_MARK(), { method: 'PATCH', body }),
+		mutationFn: (body: { sentAt: string; starred?: boolean; folderId?: number | null }) => markMail(body),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.mails.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
@@ -105,7 +102,7 @@ export default function MySubscribe() {
 	} = useInfiniteQuery({
 		queryKey: queryKeys.mails.page(user?.id, filters, startOffset),
 		queryFn: async ({ pageParam }) => ({
-			...(await apiFetch<MailsPage>(API_ENDPOINTS.MY.MAILS(pageParam, PAGE_SIZE, filters))),
+			...(await fetchMyMails(pageParam, PAGE_SIZE, filters)),
 			offset: pageParam,
 		}),
 		initialPageParam: startOffset,

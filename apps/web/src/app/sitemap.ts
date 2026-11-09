@@ -1,7 +1,5 @@
 import type { MetadataRoute } from 'next';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
-import { NEWSLETTER_CACHE_TAG } from '@/constants/cache';
+import { fetchArticleListCached } from '@/api/article';
 import { SITE_URL } from '@/constants/site';
 import { ArticleDetail } from '@/models/article.model';
 
@@ -16,9 +14,7 @@ async function allNewsletters() {
 	const list: ArticleDetail[] = [];
 	try {
 		for (let offset = 0; offset < MAX; offset += PAGE) {
-			const { data } = await apiFetch<{ data: ArticleDetail[] }>(API_ENDPOINTS.NEWSLETTER.LIST(PAGE, offset), {
-				next: { revalidate, tags: [NEWSLETTER_CACHE_TAG] },
-			});
+			const data = await fetchArticleListCached(PAGE, offset, revalidate);
 			list.push(...data);
 			if (data.length < PAGE) break;
 		}

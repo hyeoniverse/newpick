@@ -1,10 +1,8 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { ApiError, apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
-import { NEWSLETTER_CACHE_TAG } from '@/constants/cache';
+import { ApiError } from '@/api/client';
+import { fetchArticleCached } from '@/api/article';
 import { DEFAULT_OG_IMAGE } from '@/constants/site';
-import { ArticleInfo } from '@/models/article.model';
 import { articleDescription, categoryName } from '@/utils/articleMeta';
 import { getFirstImage } from '@/utils/getFirstImage';
 import Article from '@/app/articles/detail/[slug]/_components/Article';
@@ -18,10 +16,7 @@ type Params = { params: Promise<{ slug: string }> };
 async function loadNewsletter(slug: string) {
 	if (!/^\d+$/.test(slug)) return null;
 	try {
-		const { data } = await apiFetch<{ data: ArticleInfo }>(`${API_ENDPOINTS.NEWSLETTER.BASE}/${slug}`, {
-			next: { revalidate: 60, tags: [NEWSLETTER_CACHE_TAG] },
-		});
-		return data;
+		return await fetchArticleCached(slug, 60);
 	} catch (error) {
 		if (error instanceof ApiError && (error.status === 404 || error.status === 400)) return null;
 		return undefined;

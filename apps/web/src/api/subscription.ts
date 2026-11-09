@@ -47,3 +47,11 @@ export const fetchPersonalMail = () => apiFetch<{ enabled: boolean }>(API_ENDPOI
 
 export const savePersonalMail = (enabled: boolean) =>
 	apiFetch<{ enabled: boolean }>(API_ENDPOINTS.MY.PERSONAL_MAIL(), { method: 'PUT', body: { enabled } });
+
+/** 메일의 구독 해지 링크 (로그인 없이 token으로): 누구의 구독인지 · 해지하기 */
+export const fetchUnsubscribeTarget = (token: string) =>
+	apiFetch<{ data: { email: string; subscribed: boolean } }>(API_ENDPOINTS.SUBSCRIBERS.UNSUBSCRIBE(token)).then(
+		(r) => r.data,
+	);
+export const unsubscribeByToken = (token: string) =>
+	apiFetch(API_ENDPOINTS.SUBSCRIBERS.UNSUBSCRIBE(token), { method: 'POST' });
