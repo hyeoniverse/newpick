@@ -1,4 +1,4 @@
-import { test, expect } from './support/fixtures';
+import { test, expect, waitForSearch } from './support/fixtures';
 import { SEEDED_NEWSLETTERS, newsletterIdByTitle, viewCount } from './support/db.mjs';
 
 const first = SEEDED_NEWSLETTERS[0];
@@ -40,11 +40,10 @@ test.describe('비로그인 탐색', () => {
 
 	// #20: 검색어 + 관심사로 찾고, 주소에 남아 새로 고침해도 같은 결과
 	test('뉴스레터 검색: 검색어와 관심사로 걸러 보고, 결과가 없으면 안내', async ({ page }) => {
-		// 첫 화면 · 새로 고침 모두 화면이 다 붙을 때까지 기다려 기본 30초로는 빠듯하다 (CI 배포용 빌드)
-		test.setTimeout(60_000);
 		const third = SEEDED_NEWSLETTERS[2];
-		// 화면이 다 붙기(하이드레이션) 전에 입력하면 그 글자가 지워져 빈 검색이 된다 (WebKit에서 드러남)
-		await page.goto(`/articles?categoryId=${third.categoryId}`, { waitUntil: 'networkidle' });
+		// 검색 칸이 붙기(하이드레이션) 전에 입력하면 글자가 지워지거나 Enter가 사라진다 (WebKit · CI에서 드러남)
+		await page.goto(`/articles?categoryId=${third.categoryId}`);
+		await waitForSearch(page);
 		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('카테고리');
 		await page.keyboard.press('Enter');
 
@@ -53,9 +52,10 @@ test.describe('비로그인 탐색', () => {
 		await expect(page.getByText(third.title).first()).toBeVisible();
 		await expect(page.getByText(first.title)).toHaveCount(0);
 
-		// 새로 고침 뒤에도 화면이 다 붙은 다음에 입력한다 (붙기 전에 누른 Enter는 React가 붙잡았다가 다시 실행하지 못해 검색이 안 됐다)
-		await page.reload({ waitUntil: 'networkidle' });
+		// 새로 고침 뒤에도 검색 칸이 다시 붙은 다음에 입력한다
+		await page.reload();
 		await expect(page.getByText(third.title).first()).toBeVisible();
+		await waitForSearch(page);
 
 		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('없는검색어입니다');
 		await page.keyboard.press('Enter');

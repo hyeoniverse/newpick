@@ -36,6 +36,12 @@ export default function Providers({ children, initialTrends }: Props) {
 		setSession(hasSession ? 'in' : 'out');
 	}, [setSession]);
 
+	// 화면이 다 붙었다(하이드레이션) 표시. 그 전에 누른 단추 · Enter는 사라질 수 있어 E2E가 이 표시를 기다린다
+	// (networkidle은 Next 링크 미리 받기가 Chrome에서 30초 가까이 열려 있어 믿을 수 없었다)
+	useEffect(() => {
+		document.documentElement.dataset.hydrated = '';
+	}, []);
+
 	return (
 		<AppThemeProvider>
 			<QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
