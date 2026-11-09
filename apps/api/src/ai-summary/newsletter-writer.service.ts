@@ -120,7 +120,8 @@ export const SELECT_MAX_TOKENS = 16000;
 export const LIMITS = {
   title: 30,
   subtitle: 60,
-  summary: 300,
+  // 소식마다 한 문장 (아침 속보 2 + 본문 3 = 최대 5문장)
+  summary: 450,
   briefing: 200,
   stories: 3,
   kicker: 8,
@@ -468,7 +469,7 @@ export const writerPrompt = (
     `아래 ${category ? `${category} 분야 ` : ''}기사 ${articles.length}건은 오늘 뉴스레터에 실을 소식으로 이미 고른 것입니다. 이걸로 전문가용 뉴스 브리핑 한 편을 써 주세요. 같은 사건을 다룬 기사는 한 소식으로 합칩니다.`,
     ...(morning.length
       ? [
-          `그 뒤의 기사 ${morning.length}건(${articles.length + 1}~${articles.length + morning.length}번)은 오늘 아침(05시 이후) 보도된 속보입니다. stories에는 넣지 않고 morning에 별도 소식으로 씁니다.`,
+          `그 뒤의 기사 ${morning.length}건(${articles.length + 1}~${articles.length + morning.length}번)은 오늘 아침(05시 이후) 보도된 속보입니다. 이 기사로 쓴 소식은 stories 맨 앞에 두고 morning을 true로 표시합니다.`,
         ]
       : []),
     '',
@@ -485,9 +486,9 @@ export const writerPrompt = (
     '## 항목',
     `- title: 가장 중요한 소식 하나를 담은 헤드라인. ${LIMITS.title}자 이내, 기사 제목 형식. 여러 소식을 ·, 쉼표, "외"로 나열하지 않고, 날짜·"주요 소식"·"브리핑" 같은 말은 넣지 않습니다.`,
     `- subtitle: 나머지 소식을 한 문장으로. ${LIMITS.subtitle}자 이내. 소식이 하나뿐이면 그 소식의 의미를 한 문장으로.`,
-    `- summary: 오늘 브리핑 전체를 2~3문장, ${LIMITS.summary}자 이내로.`,
+    `- summary: 소식마다 핵심을 한 문장씩, stories 순서대로(오늘 아침 속보가 먼저) 빠짐없이 이어 씁니다 (소식 하나에 문장 하나, 문장 끝은 마침표). 모두 ${LIMITS.summary}자 이내. 상세 화면 위 요약 상자가 문장마다 한 줄로 보여 줍니다.`,
     `- briefing: 에디터 브리핑. 오늘 소식들을 관통하는 흐름이나 공통 변수를 2~3문장, ${LIMITS.briefing}자 이내로. 소식 목록을 다시 나열하지 않습니다.`,
-    '- stories: 소식마다 내용에 맞는 template을 하나 고르고, 그 템플릿의 고유 항목만 채웁니다. 나머지 고유 항목은 빈 배열·빈 문자열로 둡니다. 소식이 여러 개면 가능한 한 서로 다른 템플릿을 씁니다.',
+    '- stories: 소식마다 morning(오늘 아침 속보 기사로 쓴 소식이면 true, 아니면 false)을 표시하고, 내용에 맞는 template을 하나 고르고, 그 템플릿의 고유 항목만 채웁니다. 나머지 고유 항목은 빈 배열·빈 문자열로 둡니다. 소식이 여러 개면 가능한 한 서로 다른 템플릿을 씁니다.',
     `  - template: ${TEMPLATES.join(' | ')}`,
     `    - numbers: 증시·경제지표·통계 발표처럼 숫자가 핵심인 소식 → stats ${LIMITS.stats.min}~${LIMITS.stats.max}개 (label: 지표 이름 12자 이내, value: 값 12자 이내 예 "5,469.47", note: 변화·비교 20자 이내 예 "-1.46%" 또는 "4월 6일 이후 최저", 등락은 반드시 +/- 부호를 붙인다)`,
     `    - timeline: 수사·재판·외교·사고처럼 단계적으로 진행 중인 사건 → timeline ${LIMITS.timeline.min}~${LIMITS.timeline.max}개 (when: 날짜·시점 12자 이내, what: 그때 일어난 일 50자 이내), 시간 순서대로`,
@@ -507,9 +508,9 @@ export const writerPrompt = (
     '  - imageQuery: 이 소식에 어울리는 사진 검색어. 영어 2~4단어. 사람이 나오지 않는 사물·풍경 위주로 (자료 사진 속 인물이 기사 속 인물로 오해받지 않게). 실존 인물 이름·기업 로고 금지 (예: "stock market screen", "farmland korea", "ballot box").',
     ...(morning.length
       ? [
-          `- morning: 오늘 아침 속보 ${Math.min(morning.length, LIMITS.morning.max)}개. 속보 기사(${articles.length + 1}번부터)마다 소식 하나, 짧은 속보 형식이라 kicker · heading · lead · body(${LIMITS.briefBody.min}~${LIMITS.briefBody.max}자) · next · tags · sources · imageQuery만 씁니다. 막 알려진 일이라 사실 위주로 쓰고, next(관전 포인트)는 이어질 발표 · 결과를 씁니다. 본문 기사로 쓴 사건은 넣지 않습니다.`,
+          `- 오늘 아침 속보 ${Math.min(morning.length, LIMITS.morning.max)}개: 속보 기사(${articles.length + 1}번부터)마다 소식 하나를 본문 소식과 **같은 형식**으로 써서 stories 맨 앞에 넣고 morning을 true로 합니다 (template 고르기 · body · 템플릿 고유 항목 · analysis · next 등 모두 위 규칙 그대로, 본문 소식 ${LIMITS.stories}개와 별개). 막 알려진 일이라 기사에 없는 내용을 더하지 말고, next(관전 포인트)는 이어질 발표 · 결과를 씁니다. 본문 기사로 쓴 사건은 넣지 않습니다.`,
         ]
-      : ['- morning: 빈 배열로 둡니다.']),
+      : ['- 오늘 아침 속보가 없으니 모든 소식의 morning은 false입니다.']),
     `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개 (소식 tags 중 중요한 것 포함), 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
     ...(category && DEBATE_CATEGORIES.includes(category)
       ? [
@@ -563,6 +564,8 @@ const STORY_SCHEMA = {
     tags: { type: 'array', items: { type: 'string' } },
     sources: { type: 'array', items: { type: 'integer' } },
     imageQuery: { type: 'string' },
+    /** 오늘 아침 속보 기사로 쓴 소식이면 true. 아침 속보도 같은 소식 스키마로 받는다 (스키마를 두 번 넣으면 문법 한도를 넘었다) */
+    morning: { type: 'boolean' },
   },
   required: [
     'template',
@@ -580,58 +583,10 @@ const STORY_SCHEMA = {
     'tags',
     'sources',
     'imageQuery',
+    'morning',
   ],
   additionalProperties: false,
 };
-
-/**
- * 아침 속보 하나: 정리 단계에서 brief로 고정되니 brief에 쓰는 칸만 받는다.
- * 본문 소식과 같은 STORY_SCHEMA를 두 번 넣으면 구조화 출력 문법이 한도를 넘어 요청이 400으로 거절된다
- * ('The compiled grammar is too large'). 빠진 칸은 normalize에서 빈 값으로 채운다
- */
-const MORNING_STORY_SCHEMA = {
-  type: 'object',
-  properties: {
-    kicker: { type: 'string' },
-    heading: { type: 'string' },
-    lead: { type: 'string' },
-    body: { type: 'string' },
-    next: { type: 'string' },
-    tags: { type: 'array', items: { type: 'string' } },
-    sources: { type: 'array', items: { type: 'integer' } },
-    imageQuery: { type: 'string' },
-  },
-  required: [
-    'kicker',
-    'heading',
-    'lead',
-    'body',
-    'next',
-    'tags',
-    'sources',
-    'imageQuery',
-  ],
-  additionalProperties: false,
-};
-
-/** 아침 속보 응답(brief 칸만)을 소식 모양으로: 쓰지 않는 칸은 빈 값 */
-const asBrief = (s: Partial<Story>): Story => ({
-  template: 'brief',
-  kicker: s.kicker ?? '',
-  heading: s.heading ?? '',
-  lead: s.lead ?? '',
-  body: s.body ?? '',
-  analysis: '',
-  stats: [],
-  timeline: [],
-  qa: [],
-  quote: { text: '', by: '' },
-  debate: [],
-  next: s.next ?? '',
-  tags: s.tags ?? [],
-  sources: s.sources ?? [],
-  imageQuery: s.imageQuery ?? '',
-});
 
 export const WRITER_SCHEMA = {
   type: 'object',
@@ -640,19 +595,11 @@ export const WRITER_SCHEMA = {
     subtitle: { type: 'string' },
     summary: { type: 'string' },
     briefing: { type: 'string' },
+    // 본문 소식과 오늘 아침 속보를 한 배열로 (아침 속보는 morning: true). 같은 형식으로 쓰고 정리 단계에서 나눈다
     stories: { type: 'array', items: STORY_SCHEMA },
-    morning: { type: 'array', items: MORNING_STORY_SCHEMA },
     keywords: { type: 'array', items: { type: 'string' } },
   },
-  required: [
-    'title',
-    'subtitle',
-    'summary',
-    'briefing',
-    'stories',
-    'morning',
-    'keywords',
-  ],
+  required: ['title', 'subtitle', 'summary', 'briefing', 'stories', 'keywords'],
   additionalProperties: false,
 };
 
@@ -834,17 +781,45 @@ const normalizeStories = (
     .filter((s) => s.heading && (s.lead || s.body))
     .slice(0, max);
 
+/**
+ * 아침 속보 표시를 근거 기사로 바로잡는다: 근거가 모두 아침 속보 기사(본문 기사 다음 번호)면 아침 속보, 아니면 본문 소식.
+ * 모델이 아침 속보에 morning: false를 붙이면 본문 소식 넷째로 밀려 잘리고, 요약에는 그 문장이 남았다
+ */
+export function markMorning(
+  raw: WrittenNewsletter,
+  storyArticles: number,
+  hasMorning: boolean,
+): WrittenNewsletter {
+  return {
+    ...raw,
+    stories: raw.stories.map((s) => {
+      const sources = (s.sources ?? []).filter(Number.isInteger);
+      const morning = !hasMorning
+        ? false
+        : sources.length
+          ? sources.every((n) => n > storyArticles)
+          : (s as Story & { morning?: boolean }).morning === true;
+      return { ...s, morning };
+    }),
+  };
+}
+
 export function normalize(
   raw: WrittenNewsletter,
   toOriginal: (n: number) => number | undefined,
 ): WrittenNewsletter {
-  const stories = normalizeStories(raw.stories, toOriginal, LIMITS.stories);
-  // 아침 속보는 짧게: 템플릿은 brief로 고정
+  // 아침 속보는 stories 안에 morning: true로 온다 (예전 응답은 따로 morning 배열). 본문 소식과 같은 형식으로 다듬는다
+  const isMorning = (s: Story & { morning?: boolean }) => s.morning === true;
+  const stories = normalizeStories(
+    raw.stories.filter((s) => !isMorning(s)),
+    toOriginal,
+    LIMITS.stories,
+  );
   const morning = normalizeStories(
-    (raw.morning ?? []).map(asBrief),
+    [...(raw.morning ?? []), ...raw.stories.filter(isMorning)],
     toOriginal,
     LIMITS.morning.max,
-  ).map((s) => ({ ...s, template: 'brief' as const, analysis: '' }));
+  );
 
   const result = {
     title: clean(plain(raw.title)),
@@ -1036,7 +1011,11 @@ export class NewsletterWriterService {
       // 기사 번호: 본문 기사 다음에 아침 속보 기사가 이어진다
       const numbered = [...chosen, ...morning];
       const newsletter = normalize(
-        JSON.parse(written.text) as WrittenNewsletter,
+        markMorning(
+          JSON.parse(written.text) as WrittenNewsletter,
+          chosen.length,
+          morning.length > 0,
+        ),
         (n) => (numbered[n - 1] ? numbered[n - 1].index + 1 : undefined),
       );
       const tokens = usage.reduce((sum, u) => sum + u.input + u.output, 0);

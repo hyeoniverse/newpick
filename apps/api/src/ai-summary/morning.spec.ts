@@ -3,6 +3,7 @@ import { isMorning, prepare } from './article-prep';
 import {
   describeClusters,
   LIMITS,
+  markMorning,
   MIN_TOTAL,
   normalize,
   selectPrompt,
@@ -107,69 +108,53 @@ describe('오늘 아침 속보 (05시 이후 보도는 뉴스레터 맨 위에 �
       prepared[1],
     ]);
     expect(prompt).toContain('기사 1건(2~2번)은 오늘 아침');
-    expect(prompt).toContain('- morning: 오늘 아침 속보 1개');
-    expect(prompt).toContain('kicker · heading · lead · body');
-    expect(writerPrompt([prepared[0]])).toContain('- morning: 빈 배열');
-    expect((WRITER_SCHEMA.required as string[]).includes('morning')).toBe(true);
+    expect(prompt).toContain('- 오늘 아침 속보 1개');
+    // 본문 소식과 같은 형식으로, stories 안에 morning: true
+    expect(prompt).toContain('**같은 형식**');
+    expect(prompt).toContain('morning을 true로');
+    expect(writerPrompt([prepared[0]])).toContain(
+      '모든 소식의 morning은 false',
+    );
+    expect((WRITER_SCHEMA.required as string[]).includes('morning')).toBe(
+      false,
+    );
   });
 
-  it('스키마: 아침 속보는 brief 칸만 받는다 (본문 소식 스키마를 두 번 넣으면 문법 한도를 넘는다)', () => {
+  it('스키마: 아침 속보도 본문 소식과 같은 스키마 하나로 받는다 (morning 표시만, 스키마를 두 번 넣으면 문법 한도를 넘는다)', () => {
     const props = WRITER_SCHEMA.properties as unknown as Record<
       string,
       { items: { properties: object } }
     >;
-    const morning = Object.keys(props.morning.items.properties);
-    expect(morning).toEqual([
-      'kicker',
-      'heading',
-      'lead',
-      'body',
-      'next',
-      'tags',
-      'sources',
-      'imageQuery',
-    ]);
-    expect(Object.keys(props.stories.items.properties)).toContain('stats');
-    // 스키마 전체 크기: 본문 소식 스키마를 두 번 넣던 때보다 작다
+    expect(props).not.toHaveProperty('morning');
+    const story = Object.keys(props.stories.items.properties);
+    expect(story).toContain('morning');
+    expect(story).toContain('stats');
+    // 스키마 전체 크기: 소식 스키마 한 번 + 나머지 칸 (두 번 넣으면 넘는다)
     expect(JSON.stringify(WRITER_SCHEMA).length).toBeLessThan(
-      2 * JSON.stringify(props.stories.items).length + 600,
+      JSON.stringify(props.stories.items).length + 600,
     );
   });
 
-  it('정리: brief 칸만 온 아침 속보도 소식 모양으로 채운다', () => {
-    const written = normalize(
-      {
-        title: '제목',
-        subtitle: '',
-        summary: '요약',
-        briefing: '',
-        stories: [story('어젯밤 소식')],
-        morning: [
-          {
-            kicker: '속보',
-            heading: '아침 속보 B',
-            lead: '리드',
-            body: '본문',
-            next: '다음',
-            tags: ['태그'],
-            sources: [2],
-            imageQuery: 'q',
-          } as never,
-        ],
-        watch: [],
-        keywords: [],
-      },
-      (n) => n,
-    );
-    expect(written.morning![0]).toMatchObject({
-      template: 'brief',
-      heading: '아침 속보 B',
-      analysis: '',
-      stats: [],
-      qa: [],
-      quote: { text: '', by: '' },
-      sources: [2],
-    });
+  it('아침 속보 표시는 근거 기사로 바로잡는다 (morning: false로 와도 근거가 아침 기사면 아침 속보)', () => {
+    const raw = {
+      title: '',
+      subtitle: '',
+      summary: '',
+      briefing: '',
+      stories: [
+        { ...story('아침인데 false로 옴'), sources: [4], morning: false },
+        { ...story('본문인데 true로 옴'), sources: [1, 2], morning: true },
+        { ...story('근거 없음'), sources: [], morning: true },
+      ] as never,
+      watch: [],
+      keywords: [],
+    };
+    const flags = (r: { stories: unknown[] }) =>
+      (r.stories as { morning: boolean }[]).map((s) => s.morning);
+    // 본문 기사 3건 (1~3번), 그 뒤가 아침 속보 기사
+    expect(flags(markMorning(raw, 3, true))).toEqual([true, false, true]);
+    // 아침 속보가 없으면 모두 본문
+    expect(flags(markMorning(raw, 3, false))).toEqual([false, false, false]);
   });
 
   it('정리 · HTML · 파싱 · 메일: 별도 소식으로 맨 위 묶음에, 번호는 아침부터, 메일 맨 위 상자', () => {
@@ -179,30 +164,35 @@ describe('오늘 아침 속보 (05시 이후 보도는 뉴스레터 맨 위에 �
         subtitle: '',
         summary: '요약',
         briefing: '',
-        stories: [story('어젯밤 소식')],
-        morning: [
+        // 아침 속보는 stories 안에 morning: true로 온다
+        stories: [
           {
             ...story(' "아침 속보 A" '),
             template: 'analysis',
-            analysis: '시사점은 비운다',
+            analysis: '시사점도 본문 소식처럼 남긴다',
             next: '다음 발표',
             sources: [2, 2],
+            morning: true,
           },
-          { ...story(''), sources: [] },
-        ],
+          { ...story(''), sources: [], morning: true },
+          story('어젯밤 소식'),
+        ] as never,
         watch: [],
         keywords: [],
       },
       (n) => n,
     );
     expect(written.morning).toHaveLength(1);
+    // 형식은 본문 소식과 같다 (예전엔 brief로 고정하고 시사점을 비웠다)
     expect(written.morning![0]).toMatchObject({
       heading: '아침 속보 A',
-      template: 'brief',
-      analysis: '',
+      template: 'analysis',
+      analysis: '시사점도 본문 소식처럼 남긴다',
       next: '다음 발표',
       sources: [2],
     });
+    expect(written.morning![0]).not.toHaveProperty('morning');
+    expect(written.stories.map((s) => s.heading)).toEqual(['어젯밤 소식']);
     // 관전 포인트 모음도 아침 속보부터
     expect(written.watch).toEqual(['다음 발표']);
 
@@ -211,7 +201,7 @@ describe('오늘 아침 속보 (05시 이후 보도는 뉴스레터 맨 위에 �
       { source: '연합뉴스', link: 'https://n.news/2' },
     ]);
     expect(html).toContain(
-      '<div class="newsletter"><section class="morning"><h3>오늘 아침 속보</h3><article class="story story-brief"><p class="kicker"><span class="index">01</span>',
+      '<div class="newsletter"><section class="morning"><h3>오늘 아침 속보</h3><article class="story story-analysis"><p class="kicker"><span class="index">01</span>',
     );
     // 본문 소식은 아침 다음 번호
     expect(html).toContain('<span class="index">02</span>');

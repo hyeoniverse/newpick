@@ -273,7 +273,9 @@ describe('2단계: 쓰기', () => {
 
   it('요약은 짧게, 소식은 리드·본문·핵심 사실·시사점, 소식마다 관전 포인트', () => {
     const prompt = writerPrompt(articles);
-    expect(prompt).toContain(`2~3문장, ${LIMITS.summary}자 이내`);
+    // 요약은 소식마다 한 문장 (상세 화면 요약 상자가 문장마다 한 줄)
+    expect(prompt).toContain('소식마다 핵심을 한 문장씩');
+    expect(prompt).toContain(`${LIMITS.summary}자 이내`);
     for (const key of [
       'briefing',
       'kicker',
