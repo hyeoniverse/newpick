@@ -545,6 +545,8 @@ describe('NewsletterWriterService.write', () => {
     const [select, write] = claude.generate.mock.calls.map(([o]) => o);
     expect(select.model).toBe(CLAUDE_FAST_MODEL);
     expect(select.effort).toBe('low');
+    // 묶음이 많은 날 6000에서 잘려 이틀 동안 발행이 멈췄다 (11/8 · 11/9)
+    expect(select.maxTokens).toBeGreaterThanOrEqual(12000);
     expect(write.model).toBeUndefined(); // 기본 모델 (CLAUDE_MODEL)
     expect(write.prompt).toContain('코스피 본문');
     expect(write.prompt).not.toContain('후보 본문');
