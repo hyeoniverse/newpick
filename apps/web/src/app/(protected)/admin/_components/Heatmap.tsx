@@ -1,9 +1,11 @@
 'use client';
 
+import type { HeatmapClick } from '@newpick/shared';
+
 import { useEffect, useRef, useState } from 'react';
 import { duration } from './trafficLabels';
 
-export type Click = [number, number, string?];
+type Click = HeatmapClick;
 type Mode = 'attention' | 'clicks';
 
 interface Props {

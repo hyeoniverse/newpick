@@ -1,13 +1,13 @@
 'use client';
 
+import { changeUserRole, deleteUser, fetchUsers } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
-import type { AdminUserRow, Paged } from '@newpick/shared';
+import type { AdminUserRow } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LuTriangleAlert } from 'react-icons/lu';
-import { apiFetch, ApiError } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { ApiError } from '@/api/client';
 import { useToast } from '@/hooks/useToast';
 import { useModal } from '@/hooks/useModal';
 import { useAuth } from '@/hooks/useAuth';
@@ -58,7 +58,7 @@ export default function UsersAdmin() {
 
 	const { data, isPending, isError } = useQuery({
 		queryKey: queryKeys.admin.users.list(query.toString()),
-		queryFn: () => apiFetch<{ data: Paged<Row> }>(API_ENDPOINTS.ADMIN.USERS(query.toString())).then((r) => r.data),
+		queryFn: () => fetchUsers(query.toString()),
 		placeholderData: (previous) => previous,
 	});
 	const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.users.all });
@@ -80,7 +80,7 @@ export default function UsersAdmin() {
 				onConfirmClick={async () => {
 					closeModal();
 					try {
-						await apiFetch(API_ENDPOINTS.ADMIN.USER(row.id), { method: 'PATCH', body: { role: next } });
+						await changeUserRole(row.id, next);
 						showToast('권한을 바꿨어요.', 'success');
 						refresh();
 					} catch (error) {
@@ -103,7 +103,7 @@ export default function UsersAdmin() {
 				onConfirmClick={async () => {
 					closeModal();
 					try {
-						await apiFetch(API_ENDPOINTS.ADMIN.USER(row.id), { method: 'DELETE' });
+						await deleteUser(row.id);
 						showToast('계정을 지웠어요.', 'success');
 						refresh();
 					} catch (error) {

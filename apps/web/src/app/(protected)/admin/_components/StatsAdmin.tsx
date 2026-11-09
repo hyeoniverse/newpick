@@ -1,14 +1,18 @@
 'use client';
 
+import {
+	fetchCostStats,
+	fetchDeliveryStats,
+	fetchSubscriberStats,
+	fetchTasteStats,
+	fetchTrafficStats,
+} from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 // 통계 응답 타입은 @newpick/shared (api 통계 함수의 반환 타입과 같다)
-import type { CostStats, DeliveryStats, SubscriberStats, TasteStats, TrafficStats } from '@newpick/shared';
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
 import Title from '@/components/common/Title';
 import TrendChart from '@/components/common/charts/TrendChart';
 import BarList from '@/components/common/charts/BarList';
@@ -63,31 +67,30 @@ export default function StatsAdmin() {
 	const enabled = !noPeriod;
 	const subscribers = useQuery({
 		queryKey: queryKeys.admin.stats('subscribers', query),
-		queryFn: () =>
-			apiFetch<{ data: SubscriberStats }>(API_ENDPOINTS.ADMIN.STATS('subscribers', query)).then((r) => r.data),
+		queryFn: () => fetchSubscriberStats(query),
 		enabled,
 		placeholderData: (previous) => previous,
 	});
 	const cost = useQuery({
 		queryKey: queryKeys.admin.stats('cost', query),
-		queryFn: () => apiFetch<{ data: CostStats }>(API_ENDPOINTS.ADMIN.STATS('cost', query)).then((r) => r.data),
+		queryFn: () => fetchCostStats(query),
 		enabled,
 		placeholderData: (previous) => previous,
 	});
 	const traffic = useQuery({
 		queryKey: queryKeys.admin.stats('traffic', query),
-		queryFn: () => apiFetch<{ data: TrafficStats }>(API_ENDPOINTS.ADMIN.STATS('traffic', query)).then((r) => r.data),
+		queryFn: () => fetchTrafficStats(query),
 		enabled,
 		placeholderData: (previous) => previous,
 	});
 	// 취향 신호는 기간과 상관없이 지금 점수 (반감기로 오래된 신호는 저절로 줄어듦)
 	const taste = useQuery({
 		queryKey: queryKeys.admin.tasteStats,
-		queryFn: () => apiFetch<{ data: TasteStats }>(API_ENDPOINTS.ADMIN.STATS('taste', '')).then((r) => r.data),
+		queryFn: () => fetchTasteStats(),
 	});
 	const delivery = useQuery({
 		queryKey: queryKeys.admin.stats('delivery', query),
-		queryFn: () => apiFetch<{ data: DeliveryStats }>(API_ENDPOINTS.ADMIN.STATS('delivery', query)).then((r) => r.data),
+		queryFn: () => fetchDeliveryStats(query),
 		enabled,
 		placeholderData: (previous) => previous,
 	});

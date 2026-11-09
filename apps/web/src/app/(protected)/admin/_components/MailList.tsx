@@ -1,12 +1,10 @@
 'use client';
 
+import { fetchMailList } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
-import type { AdminMailRow, Paged } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import Pagination from '@/components/common/Pagination';
@@ -20,7 +18,6 @@ import { when } from './format';
 const PAGE_SIZE = 20;
 
 /** 한 줄 (@newpick/shared, api 응답과 같다) */
-type Row = AdminMailRow;
 
 /** 관리자 상세: 발송 기록. 하루에 한 사람 한 줄(받은 관심사), 관심사 · 이메일로 찾기, 쪽 */
 export default function MailList() {
@@ -36,8 +33,7 @@ export default function MailList() {
 
 	const { data, isPending, isError } = useQuery({
 		queryKey: queryKeys.admin.mails(query.toString()),
-		queryFn: () =>
-			apiFetch<{ data: Paged<Row> }>(API_ENDPOINTS.ADMIN.LIST('mails', query.toString())).then((r) => r.data),
+		queryFn: () => fetchMailList(query.toString()),
 		placeholderData: (previous) => previous,
 	});
 

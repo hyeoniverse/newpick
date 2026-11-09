@@ -1,13 +1,13 @@
 'use client';
 
+import { fetchAiLogs, rerunSummary } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
-import type { AiLogPage, AiLogRow } from '@newpick/shared';
+import type { AiLogRow } from '@newpick/shared';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LuRotateCw, LuTriangleAlert } from 'react-icons/lu';
-import { apiFetch, ApiError } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { ApiError } from '@/api/client';
 import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
 import AdminSubPage, { Cols } from './AdminSubPage';
@@ -71,10 +71,7 @@ function useRerun() {
 				onConfirmClick={async () => {
 					closeModal();
 					try {
-						await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW('ai-summary'), {
-							method: 'POST',
-							body: { date, categoryId: log.categoryId },
-						});
+						await rerunSummary({ date, categoryId: log.categoryId });
 						showToast(
 							`${date} ${log.category ?? ''} 뉴스레터 생성을 시작했습니다. 몇 분 후 기록에 표시됩니다.`,
 							'success',
@@ -103,8 +100,7 @@ export default function AiLogsList() {
 
 	const { data, isPending, isError } = useQuery({
 		queryKey: queryKeys.admin.aiLogs.list(query.toString()),
-		queryFn: () =>
-			apiFetch<{ data: AiLogPage }>(API_ENDPOINTS.ADMIN.LIST('ai-logs', query.toString())).then((r) => r.data),
+		queryFn: () => fetchAiLogs(query.toString()),
 		placeholderData: (previous) => previous,
 	});
 

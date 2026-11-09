@@ -1,16 +1,23 @@
 'use client';
 
+import {
+	fetchDashboard,
+	fetchMailRecipients,
+	fetchNewsletterList,
+	rerunSummary,
+	runJobNow,
+	toggleJob,
+} from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
-import { JOB_ENDPOINT, type Dashboard, type JobName, type JobResult } from '@newpick/shared';
+import type { JobName, JobResult } from '@newpick/shared';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from './format';
 import { LuArrowRight, LuCalendarPlus, LuChevronDown, LuClock, LuInfo, LuPlay, LuTriangleAlert } from 'react-icons/lu';
-import ScheduleEditor, { clock, describe, type Schedule } from './ScheduleEditor';
-import { apiFetch, ApiError } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import ScheduleEditor, { describe, type Schedule } from './ScheduleEditor';
+import { ApiError } from '@/api/client';
 import { useToast } from '@/hooks/useToast';
 import { useModal } from '@/hooks/useModal';
 import { mapIdToTitle } from '@/utils/mapInterests';
@@ -27,7 +34,6 @@ import MoreLink from '@/components/common/MoreLink';
 type JobKey = JobName;
 
 /** 대시보드 응답 (@newpick/shared, api 응답과 같다) */
-type DashboardData = Dashboard;
 
 /** 작업마다: API 이름 · 언제 도는지 · 지금 실행 전 확인 문구 */
 const JOBS: Record<JobKey, { label: string; warning: string }> = {
@@ -65,10 +71,7 @@ const scheduleText = (job: JobKey, schedule: Schedule) =>
 function MailRecipients({ date, today }: { date: string; today: string }) {
 	const { data, isPending, isError } = useQuery({
 		queryKey: queryKeys.admin.mailRecipients(date),
-		queryFn: () =>
-			apiFetch<{ data: { email: string; sentAt: string; categoryIds: number[] }[] }>(
-				API_ENDPOINTS.ADMIN.MAIL_RECIPIENTS(date),
-			).then((r) => r.data),
+		queryFn: () => fetchMailRecipients(date),
 	});
 	if (isPending) return <p className="recipients-state">불러오는 중…</p>;
 	if (isError) return <p className="recipients-state">받은 사람을 불러오지 못했어요.</p>;
@@ -100,8 +103,7 @@ export default function Dashboard() {
 
 	const { data, isPending, isError, refetch } = useQuery({
 		queryKey: queryKeys.admin.dashboard.range(from, to),
-		queryFn: () =>
-			apiFetch<{ data: DashboardData }>(`${API_ENDPOINTS.ADMIN.DASHBOARD()}?from=${from}&to=${to}`).then((r) => r.data),
+		queryFn: () => fetchDashboard(from, to),
 		placeholderData: (previous) => previous,
 		refetchInterval: (query) =>
 			Object.values(query.state.data?.scheduler.runs ?? {}).some((run) => run.running) ? 5000 : 60000,
@@ -125,10 +127,7 @@ export default function Dashboard() {
 
 	const toggle = async (job: JobKey, enable: boolean) => {
 		try {
-			await apiFetch(API_ENDPOINTS.ADMIN.TOGGLE(JOB_ENDPOINT[job]), {
-				method: 'POST',
-				body: { enable },
-			});
+			await toggleJob(job, enable);
 			showToast(
 				enable
 					? `${JOBS[job].label}을 켰습니다.`
@@ -149,7 +148,7 @@ export default function Dashboard() {
 				onConfirm={async (date) => {
 					closeModal();
 					try {
-						await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW('ai-summary'), { method: 'POST', body: { date } });
+						await rerunSummary({ date });
 						showToast(`${date} 누락된 뉴스레터 생성을 시작했습니다. 관심사당 1~2분 소요됩니다.`, 'success');
 						setTimeout(refresh, 800);
 					} catch (error) {
@@ -171,7 +170,7 @@ export default function Dashboard() {
 				onConfirmClick={async () => {
 					closeModal();
 					try {
-						await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW(JOB_ENDPOINT[job]), { method: 'POST' });
+						await runJobNow(job);
 						showToast(`${JOBS[job].label}을 시작했습니다.`, 'success');
 						// 서버가 실행 기록을 남길 틈을 주고 새로 고친다
 						setTimeout(refresh, 800);
@@ -489,9 +488,7 @@ function MissingCategories({ date, label }: { date: string; label: string }) {
 		queryKey: queryKeys.admin.newsletters.day(date),
 		queryFn: async () => {
 			const query = new URLSearchParams({ from: date, to: date, limit: '100', offset: '0' });
-			const { data } = await apiFetch<{ data: { items: { categoryId: number }[] } }>(
-				API_ENDPOINTS.ADMIN.LIST('newsletters', query.toString()),
-			);
+			const data = await fetchNewsletterList(query.toString());
 			const done = new Set(data.items.map((item) => item.categoryId));
 			return CATEGORIES.filter((category) => category.id !== 0 && !done.has(category.id));
 		},

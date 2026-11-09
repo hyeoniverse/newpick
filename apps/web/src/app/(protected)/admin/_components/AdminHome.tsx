@@ -2,8 +2,8 @@
 
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
-import { apiFetch, ApiError } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { refreshSiteCache } from '@/api/admin';
+import { ApiError } from '@/api/client';
 import { useToast } from '@/hooks/useToast';
 import AdminGate from '@/components/common/auth/AdminGate';
 import Title from '@/components/common/Title';
@@ -22,9 +22,7 @@ function SiteCacheTool() {
 	const refresh = async () => {
 		setPending(true);
 		try {
-			const { data } = await apiFetch<{ data: { refreshedAt: string } }>(API_ENDPOINTS.ADMIN.SITE_CACHE_REFRESH(), {
-				method: 'POST',
-			});
+			const data = await refreshSiteCache();
 			setLastAt(data.refreshedAt);
 			showToast('사이트 캐시를 비웠습니다. 다음 접속부터 새 내용이 보여요.', 'success');
 		} catch (error) {

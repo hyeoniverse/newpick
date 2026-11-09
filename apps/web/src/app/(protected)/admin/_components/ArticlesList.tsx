@@ -1,13 +1,11 @@
 'use client';
 
+import { fetchArticleList, fetchSchedule } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
-import type { AdminArticlePage, AdminArticleRow } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
 import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
@@ -18,7 +16,7 @@ import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { when } from './format';
-import type { ClockTime, Schedule } from './ScheduleEditor';
+import type { ClockTime } from './ScheduleEditor';
 
 const PAGE_SIZE = 20;
 
@@ -65,7 +63,6 @@ const byCycle = <T extends { createdAt: string }>(items: T[], summary: ClockTime
 const CUSTOM = '__custom';
 
 /** 한 줄 (@newpick/shared, api 응답과 같다) */
-type Row = AdminArticleRow;
 
 /**
  * 관리자 상세: 수집한 기사 (#31). 크롤링 원문은 30일 뒤 지워진다.
@@ -87,7 +84,7 @@ export default function ArticlesList() {
 	// 주기를 나누는 기준: 관리자가 정한 AI 요약 시각 (기본 08:30)
 	const { data: schedule } = useQuery({
 		queryKey: queryKeys.admin.schedule,
-		queryFn: () => apiFetch<{ data: Schedule }>(API_ENDPOINTS.ADMIN.SCHEDULE()).then((r) => r.data),
+		queryFn: () => fetchSchedule(),
 		staleTime: 1000 * 60 * 10,
 	});
 	const summaryAt = schedule?.summary ?? { hour: 8, minute: 30 };
@@ -99,8 +96,7 @@ export default function ArticlesList() {
 
 	const { data, isPending, isError } = useQuery({
 		queryKey: queryKeys.admin.articles(query.toString()),
-		queryFn: () =>
-			apiFetch<{ data: AdminArticlePage }>(API_ENDPOINTS.ADMIN.LIST('articles', query.toString())).then((r) => r.data),
+		queryFn: () => fetchArticleList(query.toString()),
 		placeholderData: (previous) => previous,
 	});
 
