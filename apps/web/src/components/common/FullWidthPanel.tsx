@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ColorKey } from '@/styles/theme';
-import { BG_COLOR, BORDER_COLOR, cx, TEXT_COLOR } from '@/styles/tw';
+import { PART_BG_COLOR, PART_BORDER_COLOR, cx, PART_TEXT_COLOR } from '@/styles/tw';
 
 interface Props {
 	children?: React.ReactNode;
@@ -21,10 +21,10 @@ const FullWidthPanel: React.FC<Props> = ({
 	return (
 		<section
 			className={cx(
-				'relative left-1/2 mx-0 my-16 flex h-fit w-screen -translate-x-1/2 flex-col items-center justify-center border border-solid px-4 py-12',
-				BORDER_COLOR[border ?? background],
-				TEXT_COLOR[color],
-				BG_COLOR[background],
+				'np-full-width-panel',
+				PART_BORDER_COLOR[border ?? background],
+				PART_TEXT_COLOR[color],
+				PART_BG_COLOR[background],
 				className,
 			)}
 		>

@@ -26,10 +26,8 @@ interface Props {
 export default function FilterChips({ label, ariaLabel, options, value, onChange, className }: Props) {
 	const hasAll = options.some((option) => option.value === '');
 	return (
-		<div role="group" aria-label={ariaLabel ?? label} className={cx('flex flex-wrap items-center gap-1.5', className)}>
-			<span className="chips-label w-14 shrink-0 text-extra-small font-semi-bold text-sub-text mobile:basis-full">
-				{label}
-			</span>
+		<div role="group" aria-label={ariaLabel ?? label} className={cx('np-filter-chips', className)}>
+			<span className="chips-label">{label}</span>
 			{options.map((option) => (
 				<button
 					key={option.value}

@@ -55,12 +55,10 @@ export default function OpenGraphCard({ urls }: Props) {
 									<span aria-hidden>·</span>
 									<span>{dateFormatter(news.publishedAt)}</span>
 								</span>
-								<span className="title line-clamp-2 leading-[1.45] font-semi-bold text-text [transition:color_0.2s_ease] [word-break:keep-all] group-hover:text-primary">
+								<span className="title line-clamp-2 font-semi-bold text-text [transition:color_0.2s_ease] group-hover:text-primary">
 									{news.title}
 								</span>
-								<span className="summary line-clamp-2 text-small leading-[1.55] text-sub-text mobile:hidden">
-									{news.content}
-								</span>
+								<span className="summary line-clamp-2 text-small text-sub-text mobile:hidden">{news.content}</span>
 							</span>
 						</ExternalLink>
 					</li>

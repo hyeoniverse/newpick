@@ -76,14 +76,7 @@ export default function ErrorState({ code, icon, title, description, action, onR
 	};
 
 	return (
-		<section
-			className={cx(
-				'mx-auto flex w-full max-w-[30rem] flex-col items-center gap-3 text-center [word-break:keep-all]',
-				inline ? 'is-inline py-12' : 'py-24 mobile:py-16',
-				className,
-			)}
-			role="alert"
-		>
+		<section className={cx('np-error-state', inline && 'is-inline', className)} role="alert">
 			<span
 				className="badge mb-2 flex size-16 items-center justify-center rounded-full bg-tertiary text-primary [&_svg]:size-[1.875rem]"
 				aria-hidden

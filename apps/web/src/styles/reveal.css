@@ -1,6 +1,6 @@
 /*
- * 스크롤해서 나타나기 (components/common/ScrollReveal.tsx). 대상(섹션 · 카드)은 아직 styled-components로 모양을 정하는
- * 곳이 많아, 숨김 · 떠오름이 그 규칙에 지지 않게 button.css처럼 층 밖에 두고 우선순위(.np-reveal .reveal)를 전과 같게 둔다
+ * 스크롤해서 나타나기 (components/common/ScrollReveal.tsx). @layer components.
+ * 대상(섹션 · 카드)의 화면 CSS에 숨김 · 떠오름이 지지 않게 우선순위(.np-reveal .reveal)를 전과 같게 둔다
  */
 .np-reveal .reveal {
 	opacity: 0;

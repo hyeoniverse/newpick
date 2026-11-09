@@ -1,6 +1,6 @@
 /*
  * 카드 (components/common/Card.tsx): 큰 카드(main) · 세로 카드(sub) · 목록 카드(list).
- * 여러 화면이 styled-components로 카드 안을 덮어쓰므로 button.css처럼 Tailwind 층 밖에 두고 선택자 우선순위를 전과 같게 둔다.
+ * 여러 화면 CSS가 카드 안을 덮어쓰므로 @layer components에서 선택자 우선순위를 전과 같게 둔다.
  * 종류는 data-type을 :where()로 골라 우선순위를 올리지 않는다 (전에는 종류별 규칙이 기본 규칙 뒤에 붙었다)
  */
 .np-card {

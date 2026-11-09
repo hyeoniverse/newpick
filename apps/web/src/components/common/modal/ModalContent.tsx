@@ -14,7 +14,7 @@ interface ModalProps {
 	children?: React.ReactNode;
 }
 
-/* 버튼은 폭을 나눠 꽉 채운다. 높이는 Button의 변수로 (Button 모양 규칙이 층 밖이라 클래스로는 덮어쓰지 못한다) */
+/* 버튼은 폭을 나눠 꽉 채운다. 높이는 Button의 변수로 (Button 안의 크기 규칙이 이 변수를 읽는다) */
 const SPLIT = { flex: 1, minWidth: 0, '--btn-height': '2.75rem' } as React.CSSProperties;
 
 /** 확인 창 내용: 아이콘 · 제목 · 설명, 그 아래 단추 한두 개 (시트 ModalContainer 안에 넣는다) */

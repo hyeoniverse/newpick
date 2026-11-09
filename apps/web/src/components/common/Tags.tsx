@@ -11,28 +11,27 @@ interface Props {
 }
 
 /*
+ * 모양은 styles/parts.css (.np-tags): 화면 CSS가 덮어쓸 수 있게 components 층에 둔다.
  * 채우지 않고 얇은 테두리 + 진한 회색 글자: 관심사 · 제목(강조색)과 다투지 않으면서 또렷하게.
  * #만 강조색으로 남겨 태그라는 표시. 링크면 올렸을 때 테두리 · 글자를 강조색으로
  */
-const ITEM =
-	'm-0 whitespace-nowrap rounded-chip border border-solid border-border bg-transparent px-2 py-px text-extra-small font-medium leading-[1.6] text-medium-grey has-[a]:hover:border-primary has-[a]:hover:text-primary';
 
 /** 뉴스레터 키워드 (#50) */
 export default function Tags({ tags, max, className, linkable = false }: Props) {
 	const shown = (tags ?? []).slice(0, max);
 	if (!shown.length) return null;
 	return (
-		<ul className={cx('m-0 flex list-none flex-wrap gap-1.5 p-0', className)} aria-label="키워드">
+		<ul className={cx('np-tags', className)} aria-label="키워드">
 			{shown.map((tag) => (
-				<li key={tag} className={ITEM}>
+				<li key={tag} className="np-tags-chip">
 					{linkable ? (
-						<Link href={`/articles?keyword=${encodeURIComponent(tag)}`} className="text-inherit">
-							<span className="hash mr-px text-primary">#</span>
+						<Link href={`/articles?keyword=${encodeURIComponent(tag)}`} className="np-tags-link">
+							<span className="hash">#</span>
 							{tag}
 						</Link>
 					) : (
 						<>
-							<span className="hash mr-px text-primary">#</span>
+							<span className="hash">#</span>
 							{tag}
 						</>
 					)}

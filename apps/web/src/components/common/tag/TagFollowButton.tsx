@@ -25,8 +25,8 @@ export default function TagFollowButton({ tag, className, tagOnly }: Props) {
 		<button
 			type="button"
 			className={cx(
-				'm-0 inline-flex cursor-pointer items-center gap-1 whitespace-nowrap rounded-chip border border-solid px-2.5 py-1 text-small font-medium leading-[1.25] [transition:color_0.15s_ease,border-color_0.15s_ease]',
-				'[&_svg]:block [&_svg]:size-3.5 [&_svg]:shrink-0',
+				// 틀 · 크기는 styles/parts.css (.np-tag-follow): 화면 CSS가 줄일 수 있게 components 층
+				'np-tag-follow',
 				'disabled:cursor-progress disabled:opacity-60',
 				// 같은 속성 클래스가 둘 붙으면 순서로 갈리므로 켜짐 · 꺼짐 중 하나만
 				on

@@ -1,8 +1,7 @@
 /*
  * 공통 버튼 (components/common/Button.tsx, #10).
- * styled-components에서 옮기며 Tailwind 층(@layer)에 넣지 않고 층 밖에 둔다: 아직 styled-components로 버튼 모양을
- * 덮어쓰는 화면이 많아, 선택자 우선순위(.np-button 한 단계)를 전과 똑같이 지켜야 마우스 올림 · 비활성 모양이 그대로다.
- * 화면들이 Tailwind로 옮겨지면 @layer components로 넣는다.
+ * @layer components (global.css에서 불러올 때 층을 정한다). 버튼 모양을 덮어쓰는 화면 CSS가 많아,
+ * 선택자 우선순위(.np-button 한 단계)를 전과 똑같이 지켜야 마우스 올림 · 비활성 모양이 그대로다. 유틸리티는 이 규칙을 이긴다.
  * 크기 · 색은 Button.tsx가 theme.ts 값으로 --btn-* 변수를 넘긴다. 마우스 올림 값이 없는 색 조합은 기본 값을 쓴다
  */
 .np-button {
