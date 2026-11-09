@@ -8,6 +8,7 @@ import { Logger } from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
+import { AppException } from 'src/common/errors/app.exception';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 import { DashboardService } from './dashboard.service';
 import { StatsService } from './stats.service';
@@ -234,14 +235,36 @@ export class SchedulerController {
     };
   }
   @Post('manual/ai-summary')
-  startAiSummary(@Body() { date, categoryId }: ManualSummaryDto = {}) {
-    // 날짜가 맞지 않으면 시작하기 전에 400 (오늘 · 앞날 · 기사가 지워진 날)
+  async startAiSummary(
+    @Body() { date, categoryId, newsletterId }: ManualSummaryDto = {},
+  ) {
+    // 요약은 한 번에 하나: 도는 중에 누르면 새로 시작하지 않고 그 실행에 합쳐져 버려서, 알려 주고 거절한다
+    if (this.schedulerService.isSummaryRunning()) {
+      throw new AppException(
+        'BAD_REQUEST',
+        'AI 요약이 이미 진행 중입니다. 완료된 후 다시 시도해 주세요.',
+      );
+    }
+    // 다시 쓰기: 그 뉴스레터의 날 · 분야로 (없거나 너무 오래되면 404 · 400)
+    if (newsletterId) {
+      const target = await this.schedulerService.regenerateTarget(newsletterId);
+      this.schedulerService.manualStartAiSummary(
+        target.at,
+        target.categoryId,
+        newsletterId,
+      );
+      return {
+        success: true,
+        message: `#${newsletterId} 뉴스레터를 다시 쓰기 시작했습니다.`,
+      };
+    }
+    // 날짜가 맞지 않으면 시작하기 전에 400 (앞날 · 기사가 지워진 날)
     const at = date ? this.schedulerService.backfillMoment(date) : undefined;
     this.schedulerService.manualStartAiSummary(at, categoryId);
     return {
       success: true,
       message: date
-        ? `${date} 뉴스레터를 다시 만들기 시작했습니다.`
+        ? `${date} 빠진 뉴스레터를 만들기 시작했습니다.`
         : 'AI 요약 시작되었습니다.',
     };
   }

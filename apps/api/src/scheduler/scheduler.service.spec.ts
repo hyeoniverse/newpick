@@ -84,6 +84,7 @@ function setup(failingCategoryId: number, edition: unknown = null) {
     // 그날 이미 있는 뉴스레터 (기본 없음)
     newsletter: { findMany: jest.fn().mockResolvedValue([]) },
     jobRun: {
+      updateMany: jest.fn().mockResolvedValue({ count: 0 }),
       create: jest.fn().mockResolvedValue({ id: 41 }),
       update: jest.fn().mockResolvedValue({}),
     },
@@ -225,6 +226,59 @@ describe('다시 만들기 (빠진 날 · AI 기록에서 실패한 줄)', () =>
     expect(prisma.jobRun.update.mock.calls.at(-1)[0].data.message).toContain(
       '2026-11-08 다시 만들기',
     );
+  });
+
+  it('다시 쓰기는 그날 있어도 건너뛰지 않고 그 뉴스레터를 바꾼다 (메일 편집 · 후속 판정 없이)', async () => {
+    const { service, aiSummaryService, editionService, prisma } = setup(0);
+    prisma.newsletter.findMany.mockResolvedValue([{ categoryId: 3 }]);
+    const at = new Date('2026-11-09T13:11:44+09:00');
+    await service.makeAiSummary(at, 3, 86);
+    const call = aiSummaryService.summarizeText.mock.calls[0] as unknown[];
+    expect(call[1]).toBe(3);
+    expect(call[4]).toBe(at);
+    expect(call[5]).toBe(86);
+    expect(editionService.ensureEdition).not.toHaveBeenCalled();
+    expect(prisma.jobRun.update.mock.calls.at(-1)[0].data.message).toContain(
+      '#86',
+    );
+  });
+
+  it('다시 쓸 뉴스레터: 그 뉴스레터를 만든 시각 · 분야, 없으면 404 · 모은 기사가 지워졌으면 400', async () => {
+    const { service, prisma } = setup(0);
+    const createdAt = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    Object.assign(prisma.newsletter, {
+      findUnique: jest
+        .fn()
+        .mockResolvedValueOnce({ createdAt, categoryId: 4 })
+        .mockResolvedValueOnce(null)
+        .mockResolvedValueOnce({
+          createdAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+          categoryId: 4,
+        }),
+    });
+    await expect(service.regenerateTarget(86)).resolves.toEqual({
+      at: createdAt,
+      categoryId: 4,
+    });
+    await expect(service.regenerateTarget(1)).rejects.toThrow();
+    await expect(service.regenerateTarget(2)).rejects.toThrow();
+  });
+
+  it('도는 중인지 알 수 있다 (도는 중에 누르면 합쳐지지 않게 거절하려고)', async () => {
+    const { service } = setup(0);
+    expect(service.isSummaryRunning()).toBe(false);
+    const run = service.makeAiSummary();
+    expect(service.isSummaryRunning()).toBe(true);
+    await run;
+    expect(service.isSummaryRunning()).toBe(false);
+  });
+
+  it('서버가 다시 시작되면 진행 중으로 남은 기록을 실패로 닫는다 (대시보드가 계속 막히지 않게)', async () => {
+    const { service, prisma } = setup(0);
+    await service.closeInterruptedRuns();
+    const { where, data } = prisma.jobRun.updateMany.mock.calls[0][0];
+    expect(where).toEqual({ status: 'running' });
+    expect(data.status).toBe('failed');
   });
 
   it('분야를 주면 그 분야만', async () => {

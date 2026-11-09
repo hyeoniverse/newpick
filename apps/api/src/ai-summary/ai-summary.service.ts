@@ -68,6 +68,8 @@ export class AiSummaryService {
     morningSince?: Date,
     /** 지난 날짜를 다시 만들 때 그날 발행 시각. 프롬프트의 '오늘' · 최근 소재 · 발행일이 모두 그날 기준 */
     at?: Date,
+    /** 새로 만들지 않고 이 뉴스레터를 새로 쓴 내용으로 바꾼다 (관리자 '다시 쓰기') */
+    replaceId?: number,
   ): Promise<{
     summary: string;
     categoryId: number;
@@ -199,6 +201,7 @@ export class AiSummaryService {
         imageUrl,
         keywords,
         at,
+        replaceId,
       );
 
       return { summary, categoryId, newsletter };

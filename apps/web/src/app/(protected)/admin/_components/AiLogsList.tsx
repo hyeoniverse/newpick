@@ -77,10 +77,10 @@ function useRerun() {
 		openModal(
 			<ModalContents
 				icon={<LuTriangleAlert />}
-				title={`${date} ${log.category ?? ''} 다시 만들까요?`}
-				content="그날 모은 기사로 다시 요약해 그날 날짜로 올려요. 그날 이 분야 뉴스레터가 이미 있으면 건너뛰어요. 구독 메일은 보내지 않고, Claude 비용이 들어요."
+				title={`${date} ${log.category ?? ''} 뉴스레터를 다시 생성하시겠습니까?`}
+				content="해당 날짜에 수집된 기사로 다시 요약해 그날 날짜로 게시합니다. 그날 이 관심사의 뉴스레터가 이미 있으면 건너뜁니다. 구독 메일은 발송하지 않으며, Claude 비용이 발생합니다."
 				outlineButton="취소"
-				filledButton="다시 만들기"
+				filledButton="다시 생성"
 				onCancelClick={closeModal}
 				onConfirmClick={async () => {
 					closeModal();
@@ -89,7 +89,10 @@ function useRerun() {
 							method: 'POST',
 							body: { date, categoryId: log.categoryId },
 						});
-						showToast(`${date} ${log.category ?? ''} 다시 만들기를 시작했어요. 몇 분 뒤 기록에 나와요.`, 'success');
+						showToast(
+							`${date} ${log.category ?? ''} 뉴스레터 생성을 시작했습니다. 몇 분 후 기록에 표시됩니다.`,
+							'success',
+						);
 						setTimeout(() => queryClient.invalidateQueries({ queryKey: ['adminAiLogs'] }), 60_000);
 					} catch (error) {
 						showToast(error instanceof ApiError ? error.message : '시작하지 못했습니다.', 'error');

@@ -132,6 +132,22 @@ export default function NewsletterEdit({ id }: { id: number }) {
 			queryClient.invalidateQueries({ queryKey: ['adminNewsletter', id] });
 		});
 
+	// AI로 다시 쓰기: 그날 · 그 관심사 기사로 새로 써서 이 뉴스레터를 바꾼다 (id · 발행일 · 조회수 · 북마크는 그대로)
+	const regenerate = () =>
+		confirm(
+			'AI로 다시 작성하시겠습니까?',
+			'이 뉴스레터가 발행된 날 수집된 기사로 내용을 새로 작성합니다. 주소 · 발행일 · 조회수 · 북마크는 유지되며, 직접 수정한 내용은 사라집니다. 스크랩한 문장이 새 본문에 없으면 위치를 찾지 못할 수 있습니다. Claude 비용이 발생하며 1~2분 소요됩니다.',
+			'다시 작성',
+			async () => {
+				await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW('ai-summary'), { method: 'POST', body: { newsletterId: id } });
+				showToast('다시 작성을 시작했습니다. 1~2분 후 새로고침하면 변경된 내용이 표시됩니다.', 'success');
+				setTimeout(() => {
+					queryClient.invalidateQueries({ queryKey: ['adminNewsletter', id] });
+					queryClient.invalidateQueries({ queryKey: ['adminNewsletters'] });
+				}, 90_000);
+			},
+		);
+
 	const remove = () =>
 		confirm(
 			'이 뉴스레터를 지울까요?',
@@ -162,6 +178,9 @@ export default function NewsletterEdit({ id }: { id: number }) {
 								<span>조회수 {Number(data.viewcount).toLocaleString()}</span>
 								<button type="button" onClick={resetViews}>
 									조회수 0으로
+								</button>
+								<button type="button" onClick={regenerate}>
+									AI로 다시 작성
 								</button>
 								<button type="button" className="danger" onClick={remove}>
 									지우기

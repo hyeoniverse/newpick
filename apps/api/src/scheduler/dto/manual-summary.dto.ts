@@ -15,4 +15,11 @@ export class ManualSummaryDto {
   @IsInt()
   @Min(1)
   categoryId?: number;
+
+  /** 이 뉴스레터를 다시 쓴다 (그 뉴스레터의 날 · 분야로, 새로 만들지 않고 바꾼다). date · categoryId보다 먼저 */
+  @IsOptional()
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  newsletterId?: number;
 }
