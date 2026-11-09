@@ -7,7 +7,6 @@ import Skeleton from '@/components/common/loader/Skeleton';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import BorderTitle from '@/components/common/BorderTitle';
 import { useTrends } from '@/hooks/useTrends';
-import { cx } from '@/styles/tw';
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
 const TrendSection = () => {
@@ -15,7 +14,7 @@ const TrendSection = () => {
 	const isLoading = trends.length === 0;
 
 	return (
-		<StyledTrendSection data-track-section="home-trend">
+		<section className="np-home-trend-section-trend-section" data-track-section="home-trend">
 			<div className="trend-header">
 				<BorderTitle text="오늘의 트렌드"></BorderTitle>
 			</div>
@@ -54,12 +53,8 @@ const TrendSection = () => {
 					</div>
 				</Suspense>
 			)}
-		</StyledTrendSection>
+		</section>
 	);
 };
-
-const StyledTrendSection = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-home-trend-section-trend-section', className)} {...props} />
-);
 
 export default TrendSection;

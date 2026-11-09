@@ -8,7 +8,6 @@ import { apiFetch, ApiError } from '@/api/client';
 import { API_ENDPOINTS } from '@/constants/api';
 import Button from '@/components/common/Button';
 import Spinner from '@/components/common/loader/Spinner';
-import { cx } from '@/styles/tw';
 
 type Target = { email: string; subscribed: boolean };
 
@@ -49,15 +48,15 @@ export default function Unsubscribe() {
 
 	if (token && isLoading) {
 		return (
-			<StyledUnsubscribe>
+			<section className="np-unsubscribe-unsubscribe-unsubscribe">
 				<Spinner />
-			</StyledUnsubscribe>
+			</section>
 		);
 	}
 
 	if (!token || error || !data) {
 		return (
-			<StyledUnsubscribe>
+			<section className="np-unsubscribe-unsubscribe-unsubscribe">
 				<span className="badge" aria-hidden>
 					<LuLink2Off />
 				</span>
@@ -74,13 +73,13 @@ export default function Unsubscribe() {
 						홈으로
 					</Button>
 				</div>
-			</StyledUnsubscribe>
+			</section>
 		);
 	}
 
 	if (done || !data.subscribed) {
 		return (
-			<StyledUnsubscribe>
+			<section className="np-unsubscribe-unsubscribe-unsubscribe">
 				<span className="badge done" aria-hidden>
 					<LuMailCheck />
 				</span>
@@ -98,12 +97,12 @@ export default function Unsubscribe() {
 						홈으로
 					</Button>
 				</div>
-			</StyledUnsubscribe>
+			</section>
 		);
 	}
 
 	return (
-		<StyledUnsubscribe>
+		<section className="np-unsubscribe-unsubscribe-unsubscribe">
 			<span className="badge" aria-hidden>
 				<LuMailX />
 			</span>
@@ -143,11 +142,6 @@ export default function Unsubscribe() {
 					{failed}
 				</p>
 			)}
-		</StyledUnsubscribe>
+		</section>
 	);
 }
-
-/** 오류 화면(ErrorState)과 같은 가운데 정렬: 아이콘 → 머리말 → 제목 → 메일 주소 → 설명 → 버튼 */
-const StyledUnsubscribe = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-unsubscribe-unsubscribe-unsubscribe', className)} {...props} />
-);

@@ -1,7 +1,6 @@
 'use client';
 
 import { LuChevronDown, LuLoaderCircle } from 'react-icons/lu';
-import { cx } from '@/styles/tw';
 
 interface Props {
 	/** 아직 안 불러온 수 */
@@ -14,13 +13,15 @@ interface Props {
 export default function LoadMore({ remaining, loading, onClick }: Props) {
 	if (remaining <= 0) return null;
 	return (
-		<StyledLoadMore type="button" onClick={onClick} disabled={loading} aria-busy={loading || undefined}>
+		<button
+			className="np-mypage-load-more-load-more"
+			type="button"
+			onClick={onClick}
+			disabled={loading}
+			aria-busy={loading || undefined}
+		>
 			{loading ? <LuLoaderCircle className="spin" aria-hidden /> : <LuChevronDown aria-hidden />}더 보기{' '}
 			<span className="left">{remaining.toLocaleString()}개 남음</span>
-		</StyledLoadMore>
+		</button>
 	);
 }
-
-const StyledLoadMore = ({ className, ...props }: React.ComponentProps<'button'>) => (
-	<button className={cx('np-mypage-load-more-load-more', className)} {...props} />
-);

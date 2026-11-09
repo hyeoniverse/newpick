@@ -9,7 +9,6 @@ import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 import CodeInput from './CodeInput';
-import { cx } from '@/styles/tw';
 
 type Step =
 	{ kind: 'idle' } | { kind: 'enter' } | { kind: 'code'; email: string; resendAfter: number; expiresAt: number };
@@ -154,7 +153,7 @@ export default function AccountEmail() {
 	const waitSeconds = step.kind === 'code' ? Math.max(0, Math.ceil((step.resendAfter - now) / 1000)) : 0;
 
 	return (
-		<StyledAccountEmail>
+		<section className="np-mypage-account-email-account-email">
 			<div className="head">
 				<div>
 					<Title size="extraSmall" weight="bold">
@@ -269,10 +268,6 @@ export default function AccountEmail() {
 					{error}
 				</p>
 			)}
-		</StyledAccountEmail>
+		</section>
 	);
 }
-
-const StyledAccountEmail = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-mypage-account-email-account-email', className)} {...props} />
-);

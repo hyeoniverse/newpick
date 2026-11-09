@@ -1,6 +1,6 @@
 /* 화면 (mypage): styled-components 규칙을 그대로 옮긴 CSS (@layer components). 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
 
-/* app/(protected)/mypage/_components/MyBookmark.tsx · MyBookmarkStyled */
+/* app/(protected)/mypage/_components/MyBookmark.tsx */
 .np-mypage-my-bookmark-my-bookmark {
 	/* 끄는 중인 것: 흐리게 (세 탭 같은 모양) */
 	.card-grid > li.dragging {
@@ -228,7 +228,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/MyFollows.tsx · StyledFollows */
+/* app/(protected)/mypage/_components/MyFollows.tsx */
 .np-mypage-my-follows-follows {
 	display: flex;
 	flex-direction: column;
@@ -420,7 +420,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/MyHighlights.tsx · StyledHighlights */
+/* app/(protected)/mypage/_components/MyHighlights.tsx */
 .np-mypage-my-highlights-highlights {
 	display: flex;
 	flex-direction: column;
@@ -1172,7 +1172,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/MyProfile.tsx · ProfileStyled */
+/* app/(protected)/mypage/_components/MyProfile.tsx */
 .np-mypage-my-profile-profile {
 	display: flex;
 	flex-wrap: wrap;
@@ -1336,7 +1336,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/MySubscribe.tsx · MySubscribeStyled */
+/* app/(protected)/mypage/_components/MySubscribe.tsx */
 .np-mypage-my-subscribe-my-subscribe {
 	display: flex;
 	flex-direction: column;
@@ -1801,7 +1801,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/MyTaste.tsx · StyledTaste */
+/* app/(protected)/mypage/_components/MyTaste.tsx */
 .np-mypage-my-taste-taste {
 	display: flex;
 	flex-direction: column;
@@ -1873,7 +1873,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/folders/FolderBar.tsx · StyledFolderBar */
+/* app/(protected)/mypage/_components/folders/FolderBar.tsx */
 .np-mypage-folder-bar-folder-bar {
 	display: flex;
 	flex-direction: column;
@@ -2113,7 +2113,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/folders/FolderDeleteModal.tsx · StyledChoices */
+/* app/(protected)/mypage/_components/folders/FolderDeleteModal.tsx */
 .np-mypage-folder-delete-modal-choices {
 	display: flex;
 	flex-direction: column;
@@ -2133,13 +2133,14 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/folders/FolderMenu.tsx · StyledFolderMenu */
+/* app/(protected)/mypage/_components/folders/FolderMenu.tsx */
 .np-mypage-folder-menu-folder-menu {
 	position: relative;
 	display: inline-flex;
 }
 
-/* app/(protected)/mypage/_components/folders/FolderMenu.tsx · StyledMenu */
+/* app/(protected)/mypage/_components/folders/FolderMenu.tsx */
+/* body에 띄우는 메뉴 (자리는 style로) */
 .np-mypage-folder-menu-menu {
 	position: fixed;
 	z-index: 1000;
@@ -2244,7 +2245,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/follows/TagFollows.tsx · StyledTagFollows */
+/* app/(protected)/mypage/_components/follows/TagFollows.tsx */
 .np-mypage-tag-follows-tag-follows {
 	display: flex;
 	flex-direction: column;
@@ -2496,7 +2497,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/list/ListHead.tsx · StyledListHead */
+/* app/(protected)/mypage/_components/list/ListHead.tsx */
 .np-mypage-list-head-list-head {
 	display: flex;
 	flex-wrap: wrap;
@@ -2528,7 +2529,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/list/ListHead.tsx · FilterRow */
+/* app/(protected)/mypage/_components/list/ListHead.tsx */
 .np-mypage-list-head-filter-row {
 	margin-top: -0.25rem;
 
@@ -2554,7 +2555,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/list/LoadMore.tsx · StyledLoadMore */
+/* app/(protected)/mypage/_components/list/LoadMore.tsx */
 .np-mypage-load-more-load-more {
 	display: flex;
 	align-items: center;
@@ -2592,7 +2593,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/list/MonthBar.tsx · MonthBarStyled */
+/* app/(protected)/mypage/_components/list/MonthBar.tsx */
 .np-mypage-month-bar-month-bar {
 	position: sticky;
 	z-index: 5;
@@ -2865,7 +2866,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/list/MonthBar.tsx · LoadNewerStyled */
+/* app/(protected)/mypage/_components/list/MonthBar.tsx */
 .np-mypage-month-bar-load-newer {
 	display: flex;
 	align-items: center;
@@ -2908,7 +2909,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/list/Thumb.tsx · StyledThumb */
+/* app/(protected)/mypage/_components/list/Thumb.tsx */
 .np-mypage-thumb-thumb {
 	display: block;
 	overflow: hidden;
@@ -2928,7 +2929,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/profile/SubscribeToggle.tsx · SubscribeToggleStyled */
+/* app/(protected)/mypage/_components/profile/SubscribeToggle.tsx */
 .np-mypage-subscribe-toggle-subscribe-toggle {
 	.subscribe-on,
 	.subscribe-off,
@@ -2997,7 +2998,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/settings/AccountEmail.tsx · StyledAccountEmail */
+/* app/(protected)/mypage/_components/settings/AccountEmail.tsx */
 .np-mypage-account-email-account-email {
 	display: flex;
 	flex-direction: column;
@@ -3154,7 +3155,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/settings/CodeInput.tsx · StyledCodeInput */
+/* app/(protected)/mypage/_components/settings/CodeInput.tsx */
 .np-mypage-code-input-code-input {
 	position: relative;
 	width: fit-content;
@@ -3229,7 +3230,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/settings/DeleteAccount.tsx · StyledDeleteAccount */
+/* app/(protected)/mypage/_components/settings/DeleteAccount.tsx */
 .np-mypage-delete-account-delete-account {
 	display: flex;
 	align-items: center;
@@ -3252,7 +3253,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/settings/DeleteAccount.tsx · StyledSheet */
+/* app/(protected)/mypage/_components/settings/DeleteAccount.tsx */
 .np-mypage-delete-account-sheet {
 	display: flex;
 	flex-direction: column;
@@ -3302,7 +3303,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/settings/LoginSessions.tsx · StyledLoginSessions */
+/* app/(protected)/mypage/_components/settings/LoginSessions.tsx */
 .np-mypage-login-sessions-login-sessions {
 	display: flex;
 	flex-direction: column;
@@ -3403,7 +3404,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/settings/PersonalMail.tsx · StyledPersonalMail */
+/* app/(protected)/mypage/_components/settings/PersonalMail.tsx */
 .np-mypage-personal-mail-personal-mail {
 	display: flex;
 	flex-direction: column;
@@ -3432,7 +3433,7 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/settings/StartSubscription.tsx · StyeldStartSubscription */
+/* app/(protected)/mypage/_components/settings/StartSubscription.tsx */
 .np-mypage-start-subscription-styeld-start-subscription {
 	display: flex;
 	flex-direction: column;
@@ -3538,7 +3539,8 @@
 	}
 }
 
-/* app/(protected)/mypage/_components/subscribe/MyMailSheet.tsx · StyledSheet */
+/* app/(protected)/mypage/_components/subscribe/MyMailSheet.tsx */
+/* 체험하기 시트와 같은 높이 (넓은 시트 안을 채운다) */
 .np-mypage-my-mail-sheet-sheet {
 	width: 100%;
 	height: min(46rem, calc(85vh - 4rem));

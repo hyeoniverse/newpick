@@ -18,7 +18,6 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import { SkeletonBlock } from '@/components/common/loader/Skeleton';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 import MoreLink from '@/components/common/MoreLink';
-import { cx } from '@/styles/tw';
 
 type JobKey = 'crawling' | 'summary' | 'mail';
 type RunStatus = 'success' | 'partial' | 'failed' | 'skipped' | null;
@@ -203,22 +202,22 @@ export default function Dashboard() {
 
 	if (isPending) {
 		return (
-			<StyledDashboard aria-busy>
+			<div className="np-admin-dashboard-dashboard" aria-busy>
 				<SkeletonBlock $height="14rem" $radius="8px" />
-			</StyledDashboard>
+			</div>
 		);
 	}
 
 	if (isError || !data) {
 		return (
-			<StyledDashboard>
+			<div className="np-admin-dashboard-dashboard">
 				<Text size="small" color="subText">
 					대시보드를 불러오지 못했습니다.{' '}
 					<button type="button" className="retry" onClick={() => refetch()}>
 						다시 시도
 					</button>
 				</Text>
-			</StyledDashboard>
+			</div>
 		);
 	}
 
@@ -228,7 +227,7 @@ export default function Dashboard() {
 	const days = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) + 1;
 
 	return (
-		<StyledDashboard>
+		<div className="np-admin-dashboard-dashboard">
 			<section aria-labelledby="dash-today">
 				<div className="section-head period-head">
 					<Title as="h2" size="extraSmall" weight="bold" className="section-title">
@@ -479,10 +478,6 @@ export default function Dashboard() {
 					</div>
 				)}
 			</section>
-		</StyledDashboard>
+		</div>
 	);
 }
-
-const StyledDashboard = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-dashboard-dashboard', className)} {...props} />
-);

@@ -1,4 +1,4 @@
-import { IconStyled } from '@/styles/Icon';
+import { IconButton } from '@/styles/Icon';
 
 interface Props {
 	children?: React.ReactNode;
@@ -11,9 +11,9 @@ interface Props {
 /** 아이콘 버튼. 원 전체가 눌린다 (예전에는 안쪽 아이콘 영역만 눌렸다) */
 function CustomIcon({ children, onClick, className, label }: Props) {
 	return (
-		<IconStyled onClick={onClick} className={className} aria-label={label}>
+		<IconButton onClick={onClick} className={className} aria-label={label}>
 			{children}
-		</IconStyled>
+		</IconButton>
 	);
 }
 

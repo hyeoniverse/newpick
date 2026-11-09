@@ -2,7 +2,6 @@
 
 import { Fragment } from 'react';
 import { INDENT } from './htmlFormat';
-import { cx } from '@/styles/tw';
 
 interface Props {
 	value: string;
@@ -89,7 +88,7 @@ function paintTag(tag: string) {
  */
 export default function HtmlCodeEditor({ value, onChange, id, rows = 20 }: Props) {
 	return (
-		<StyledEditor style={{ '--editor-rows': rows } as React.CSSProperties}>
+		<div className="np-admin-html-code-editor-editor" style={{ '--editor-rows': rows } as React.CSSProperties}>
 			<div className="stack">
 				<div className="gutter" aria-hidden />
 				<pre className="paint" aria-hidden>
@@ -113,11 +112,6 @@ export default function HtmlCodeEditor({ value, onChange, id, rows = 20 }: Props
 					autoComplete="off"
 				/>
 			</div>
-		</StyledEditor>
+		</div>
 	);
 }
-
-/* indent-rainbow 색 (노랑 · 초록 · 분홍 · 하늘 · 주황 · 보라). 흰 바탕에서 칙칙하지 않게 채도 높게 */
-const StyledEditor = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-html-code-editor-editor', className)} {...props} />
-);

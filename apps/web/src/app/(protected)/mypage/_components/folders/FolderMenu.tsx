@@ -76,7 +76,7 @@ export default function FolderMenu({ label, current, onPick, up = false, classNa
 	};
 
 	return (
-		<StyledFolderMenu ref={boxRef} className={className}>
+		<div ref={boxRef} className={cx('np-mypage-folder-menu-folder-menu', className)}>
 			<button
 				type="button"
 				className="trigger"
@@ -89,7 +89,7 @@ export default function FolderMenu({ label, current, onPick, up = false, classNa
 			</button>
 			{open &&
 				createPortal(
-					<StyledMenu ref={menuRef} className="folder-menu" role="menu" style={place}>
+					<div ref={menuRef} className="np-mypage-folder-menu-menu folder-menu" role="menu" style={place}>
 						<button type="button" role="menuitem" onClick={() => pick(null)}>
 							<LuFolder aria-hidden className="muted" /> 폴더 없음
 							{current === null && <LuCheck aria-hidden className="check" />}
@@ -129,18 +129,9 @@ export default function FolderMenu({ label, current, onPick, up = false, classNa
 								<LuFolderPlus aria-hidden /> 새 폴더 만들어 옮기기
 							</button>
 						)}
-					</StyledMenu>,
+					</div>,
 					document.body,
 				)}
-		</StyledFolderMenu>
+		</div>
 	);
 }
-
-const StyledFolderMenu = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-folder-menu-folder-menu', className)} {...props} />
-);
-
-/** body에 띄우는 메뉴 (자리는 style로) */
-const StyledMenu = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-folder-menu-menu', className)} {...props} />
-);

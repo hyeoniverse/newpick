@@ -7,7 +7,6 @@ import { useToast } from '@/hooks/useToast';
 import Switch from '@/components/common/Switch';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
-import { cx } from '@/styles/tw';
 
 const PERSONAL_MAIL_KEY = ['personal-mail'];
 
@@ -45,7 +44,7 @@ export default function PersonalMail() {
 	const enabled = data?.enabled ?? true;
 
 	return (
-		<StyledPersonalMail>
+		<section className="np-mypage-personal-mail-personal-mail">
 			<div className="head">
 				<Title size="extraSmall" weight="bold" as="h2">
 					맞춤 메일
@@ -72,10 +71,6 @@ export default function PersonalMail() {
 				/>
 				<span aria-hidden>{enabled ? '켜짐' : '꺼짐'}</span>
 			</div>
-		</StyledPersonalMail>
+		</section>
 	);
 }
-
-const StyledPersonalMail = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-mypage-personal-mail-personal-mail', className)} {...props} />
-);

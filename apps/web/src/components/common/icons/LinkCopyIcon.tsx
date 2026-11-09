@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { CheckGlyph, LinkGlyph } from '@/components/common/icons/Glyphs';
-import { IconStyled } from '@/styles/Icon';
+import { IconButton } from '@/styles/Icon';
 import { useToast } from '@/hooks/useToast';
 
 interface Props {
@@ -36,10 +36,10 @@ function LinkCopyIcon({ className, id }: Props) {
 	};
 
 	return (
-		<IconStyled onClick={handleCopyClick} className={className} aria-label={copied ? '주소 복사됨' : '주소 복사'}>
+		<IconButton onClick={handleCopyClick} className={className} aria-label={copied ? '주소 복사됨' : '주소 복사'}>
 			{/* 마우스를 올리면 ( ) 가 벌어지고, 복사되면 체크가 그려진다 */}
 			{copied ? <CheckGlyph key="copied" /> : <LinkGlyph key="link" />}
-		</IconStyled>
+		</IconButton>
 	);
 }
 

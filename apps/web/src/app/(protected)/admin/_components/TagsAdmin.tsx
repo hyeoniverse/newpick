@@ -18,7 +18,6 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import AdminSubPage, { Cols } from './AdminSubPage';
 import { when } from './format';
 import { kstDate } from '@/utils/formatter';
-import { cx } from '@/styles/tw';
 
 const PAGE_SIZE = 30;
 
@@ -65,7 +64,7 @@ function MergeSheet({
 	};
 
 	return (
-		<StyledSheet onSubmit={submit}>
+		<form className="np-admin-tags-admin-sheet" onSubmit={submit}>
 			<h2 className="title">{rename ? '태그 이름 바꾸기' : `태그 ${tags.length}개 합치기`}</h2>
 			<p className="desc">
 				{tags.map((t) => `#${t.keyword}`).join(' · ')}
@@ -91,7 +90,7 @@ function MergeSheet({
 					{pending ? '바꾸는 중…' : rename ? '이름 바꾸기' : '합치기'}
 				</Button>
 			</div>
-		</StyledSheet>
+		</form>
 	);
 }
 
@@ -223,7 +222,7 @@ export default function TagsAdmin() {
 				</>
 			}
 		>
-			<StyledTags>
+			<div className="np-admin-tags-admin-tags">
 				<div className="bulk" aria-live="polite">
 					<span>{selected.length ? `${selected.length}개 고름` : '합칠 태그를 골라 주세요'}</span>
 					<Button
@@ -332,15 +331,7 @@ export default function TagsAdmin() {
 						<p className="state">아직 규칙이 없어요. 태그를 합치거나 지우면 생겨요.</p>
 					)}
 				</section>
-			</StyledTags>
+			</div>
 		</AdminSubPage>
 	);
 }
-
-const StyledTags = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-tags-admin-tags', className)} {...props} />
-);
-
-const StyledSheet = ({ className, ...props }: React.ComponentProps<'form'>) => (
-	<form className={cx('np-admin-tags-admin-sheet', className)} {...props} />
-);

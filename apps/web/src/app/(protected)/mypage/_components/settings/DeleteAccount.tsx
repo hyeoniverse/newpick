@@ -12,7 +12,6 @@ import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 import InputCheck from '@/components/common/InputCheck';
-import { cx } from '@/styles/tw';
 
 const CONFIRM_NAME = 'delete-account-confirm';
 
@@ -32,7 +31,7 @@ export default function DeleteAccount() {
 	const { openModal } = useModal();
 
 	return (
-		<StyledDeleteAccount>
+		<section className="np-mypage-delete-account-delete-account">
 			<div>
 				<Title size="extraSmall" weight="bold">
 					회원 탈퇴
@@ -45,7 +44,7 @@ export default function DeleteAccount() {
 			<Button scheme="monoOutline" size="small" onClick={() => openModal(<DeleteAccountSheet />)}>
 				탈퇴하기
 			</Button>
-		</StyledDeleteAccount>
+		</section>
 	);
 }
 
@@ -77,7 +76,7 @@ export function DeleteAccountSheet() {
 	};
 
 	return (
-		<StyledSheet>
+		<div className="np-mypage-delete-account-sheet">
 			<span className="icon" aria-hidden>
 				<LuTriangleAlert />
 			</span>
@@ -101,14 +100,6 @@ export function DeleteAccountSheet() {
 					탈퇴하기
 				</Button>
 			</div>
-		</StyledSheet>
+		</div>
 	);
 }
-
-const StyledDeleteAccount = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-mypage-delete-account-delete-account', className)} {...props} />
-);
-
-const StyledSheet = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-delete-account-sheet', className)} {...props} />
-);

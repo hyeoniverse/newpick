@@ -8,7 +8,6 @@ import { useTab } from '@/hooks/useTab';
 import { LuBell, LuBellOff } from 'react-icons/lu';
 import { ToggleIcon } from '@/components/common/svg/ToggleSVG';
 import ModalContents from '@/components/common/modal/ModalContent';
-import { cx } from '@/styles/tw';
 
 function SubscribeToggle() {
 	const { user } = useAuth();
@@ -26,7 +25,7 @@ function SubscribeToggle() {
 	};
 
 	return (
-		<SubscribeToggleStyled>
+		<div className="np-mypage-subscribe-toggle-subscribe-toggle">
 			{/*구독 진행 중에 따라 노출 변경 필요*/}
 			{isSubscribed === null ? (
 				<>
@@ -65,12 +64,8 @@ function SubscribeToggle() {
 					<span aria-hidden>{isSubscribed === true ? '구독 진행중' : '구독 일시정지 중'}</span>
 				</button>
 			)}
-		</SubscribeToggleStyled>
+		</div>
 	);
 }
-
-const SubscribeToggleStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-subscribe-toggle-subscribe-toggle', className)} {...props} />
-);
 
 export default SubscribeToggle;

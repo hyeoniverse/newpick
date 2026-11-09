@@ -20,7 +20,6 @@ import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 import LoadMore from './list/LoadMore';
 import Thumb from './list/Thumb';
-import { cx } from '@/styles/tw';
 
 /** 정렬: 북마크한 순 · 발행일순 · 조회수순 (서버에서 줄 세움) */
 const SORTS = [
@@ -52,11 +51,11 @@ function MyBookmark() {
 	// 마이페이지는 로그인해야 들어오므로(가드) 사용자 정보를 받는 중이거나 목록을 받는 중이면 자리만 채운다 (#17)
 	if (!user || isPending) {
 		return (
-			<MyBookmarkStyled aria-busy>
+			<div className="np-mypage-my-bookmark-my-bookmark" aria-busy>
 				<div className="trend-cards">
 					<Skeleton />
 				</div>
-			</MyBookmarkStyled>
+			</div>
 		);
 	}
 
@@ -81,7 +80,7 @@ function MyBookmark() {
 	const folderName = new Map(folders.map((f) => [f.id, f.name]));
 
 	return (
-		<MyBookmarkStyled>
+		<div className="np-mypage-my-bookmark-my-bookmark">
 			<FolderBar
 				folders={folders}
 				countOf={(f) => f.counts.bookmarks}
@@ -173,12 +172,8 @@ function MyBookmark() {
 				</ul>
 			)}
 			<LoadMore remaining={total - shown.length} loading={isFetchingNextPage} onClick={() => fetchNextPage()} />
-		</MyBookmarkStyled>
+		</div>
 	);
 }
-
-const MyBookmarkStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-my-bookmark-my-bookmark', className)} {...props} />
-);
 
 export default MyBookmark;

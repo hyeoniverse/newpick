@@ -15,7 +15,6 @@ import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/constants/errors';
-import { cx } from '@/styles/tw';
 
 type Sort = 'count' | 'recent' | 'name';
 
@@ -88,7 +87,7 @@ export default function TagIndex() {
 	);
 
 	return (
-		<StyledTagIndex>
+		<div className="np-tags-tag-index-tag-index">
 			<header className="head">
 				<Title size="extraSmall" weight="bold">
 					태그
@@ -164,10 +163,6 @@ export default function TagIndex() {
 					)}
 				</>
 			)}
-		</StyledTagIndex>
+		</div>
 	);
 }
-
-const StyledTagIndex = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-tags-tag-index-tag-index', className)} {...props} />
-);

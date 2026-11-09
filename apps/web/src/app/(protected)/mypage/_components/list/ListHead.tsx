@@ -17,12 +17,12 @@ interface Props {
  */
 export default function ListHead({ title, count, children }: Props) {
 	return (
-		<StyledListHead>
+		<div className="np-mypage-list-head-list-head">
 			<h3>
 				{title} <span className="count">{count}</span>
 			</h3>
 			{children && <div className="list-tools">{children}</div>}
-		</StyledListHead>
+		</div>
 	);
 }
 
@@ -45,10 +45,6 @@ export function SortSelect<T extends string>({ value, options, onChange }: SortP
 		/>
 	);
 }
-
-const StyledListHead = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-list-head-list-head', className)} {...props} />
-);
 
 /**
  * 목록 머리 아래 거르기 줄 (예: '관심사 [전체] [IT] …'). 휴대폰에서는 이름표 옆에 칩을 한 줄로 두고 옆으로 밀어 본다

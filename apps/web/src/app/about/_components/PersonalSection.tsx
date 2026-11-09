@@ -2,7 +2,6 @@
 
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
-import { cx } from '@/styles/tw';
 
 /** 맞춤 메일이 사람마다 달라지는 세 가지 (edition/personalize.ts · personalNote.ts · 메일 칸) */
 const POINTS = [
@@ -72,7 +71,11 @@ export default function PersonalSection() {
 	const ref = useScrollProgress<HTMLDivElement>('center');
 
 	return (
-		<StyledPersonal data-track-section="about-personal" aria-label="맞춤 뉴스레터">
+		<section
+			className="np-about-personal-section-personal"
+			data-track-section="about-personal"
+			aria-label="맞춤 뉴스레터"
+		>
 			<SectionHeading
 				label="PERSONAL"
 				title="매일 같은 아침, 나만을 위한 뉴스레터."
@@ -95,10 +98,6 @@ export default function PersonalSection() {
 			<p className="note">
 				맞춤 메일은 마이페이지 구독 설정에서 해제할 수 있습니다. 해제하면 공통 뉴스만 전해드립니다.
 			</p>
-		</StyledPersonal>
+		</section>
 	);
 }
-
-const StyledPersonal = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-about-personal-section-personal', className)} {...props} />
-);

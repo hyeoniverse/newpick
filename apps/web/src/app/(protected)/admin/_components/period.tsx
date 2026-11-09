@@ -4,7 +4,6 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { kstDate } from '@/utils/formatter';
 import { useToast } from '@/hooks/useToast';
 import { DatePicker, DateRangePicker } from '@/components/common/DatePicker';
-import { cx } from '@/styles/tw';
 
 /** 고를 수 있는 가장 긴 기간 (API와 같음) */
 export const MAX_RANGE_DAYS = 92;
@@ -70,7 +69,7 @@ export function PeriodPicker() {
 	const preset = custom ? undefined : findPreset(from, to)?.key;
 
 	return (
-		<StyledPeriod role="group" aria-label="볼 기간">
+		<div className="np-admin-period-period" role="group" aria-label="볼 기간">
 			{PRESETS.map((p) => (
 				<button
 					key={p.key}
@@ -89,7 +88,7 @@ export function PeriodPicker() {
 			>
 				직접 지정
 			</button>
-		</StyledPeriod>
+		</div>
 	);
 }
 
@@ -118,7 +117,7 @@ export function PeriodTitle({ id }: { id?: string }) {
 	};
 
 	return (
-		<StyledTitle>
+		<span className="np-admin-period-title">
 			{/* 섹션 이름은 '최근 7일'처럼 이름만 (칸의 이름표가 섞이지 않게) */}
 			<span className="name" id={id}>
 				{name}
@@ -141,15 +140,6 @@ export function PeriodTitle({ id }: { id?: string }) {
 			<span className="paren" aria-hidden>
 				)
 			</span>
-		</StyledTitle>
+		</span>
 	);
 }
-
-/** 제목 줄에 네모 칸을 끼워 넣는다. 칸의 이름표는 화면 읽기 프로그램용으로만 */
-const StyledTitle = ({ className, ...props }: React.ComponentProps<'span'>) => (
-	<span className={cx('np-admin-period-title', className)} {...props} />
-);
-
-const StyledPeriod = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-period-period', className)} {...props} />
-);

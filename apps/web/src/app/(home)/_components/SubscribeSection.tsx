@@ -19,7 +19,6 @@ import { useModal } from '@/hooks/useModal';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
-import { cx } from '@/styles/tw';
 
 const SubscribeSection = () => {
 	const { user } = useAuth();
@@ -57,7 +56,7 @@ const SubscribeSection = () => {
 	if (!trends) return null;
 
 	return (
-		<StyledSubscribe data-track-section="home-subscribe">
+		<section className="np-home-subscribe-section-subscribe" data-track-section="home-subscribe">
 			<FullWidthPanel>
 				<Title as="h2" size="extraLarge" weight="bold" color="background">
 					📩 지금 뉴스레터를 시작해보세요
@@ -124,12 +123,8 @@ const SubscribeSection = () => {
 					<ArgreementCheck name={checkName} />
 				</div>
 			</div>
-		</StyledSubscribe>
+		</section>
 	);
 };
-
-const StyledSubscribe = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-home-subscribe-section-subscribe', className)} {...props} />
-);
 
 export default SubscribeSection;

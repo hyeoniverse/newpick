@@ -10,7 +10,6 @@ import Text from '@/components/common/Text';
 import { LuChevronRight } from 'react-icons/lu';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
-import { cx } from '@/styles/tw';
 
 /** 프로필 아래 한눈에: 받은 메일 · 북마크 · 스크랩 수를 폭 가득 세 칸으로. 누르면 그 탭으로 */
 function Summary() {
@@ -58,7 +57,7 @@ function Profile() {
 	const { user } = useAuth();
 
 	return (
-		<ProfileStyled>
+		<div className="np-mypage-my-profile-profile">
 			{/* 불러오는 동안에도 자리를 잡아 둔다 (예전엔 비어 있다가 갑자기 나타났다) */}
 			{!user && (
 				<div className="profile">
@@ -95,12 +94,8 @@ function Profile() {
 					<Summary />
 				</>
 			)}
-		</ProfileStyled>
+		</div>
 	);
 }
-
-const ProfileStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-my-profile-profile', className)} {...props} />
-);
 
 export default Profile;

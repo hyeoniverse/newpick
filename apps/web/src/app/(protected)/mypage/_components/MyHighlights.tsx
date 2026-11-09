@@ -25,7 +25,6 @@ import { setFolderDragGhost } from './folders/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
-import { cx } from '@/styles/tw';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -194,7 +193,7 @@ export default function MyHighlights() {
 	if (first.counts.all === 0) {
 		// 스크랩이 없어도 북마크로 모인 주제는 보인다
 		return (
-			<StyledHighlights>
+			<div className="np-mypage-my-highlights-highlights">
 				<MyTaste />
 				<EmptyState
 					icon={LuHighlighter}
@@ -202,7 +201,7 @@ export default function MyHighlights() {
 					description="뉴스레터를 읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남기면 여기에 모여요."
 					action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
 				/>
-			</StyledHighlights>
+			</div>
 		);
 	}
 
@@ -233,7 +232,7 @@ export default function MyHighlights() {
 		});
 
 	return (
-		<StyledHighlights>
+		<div className="np-mypage-my-highlights-highlights">
 			<MyTaste />
 			<FolderBar
 				folders={folders}
@@ -488,7 +487,7 @@ export default function MyHighlights() {
 					</div>
 				</div>
 			)}
-		</StyledHighlights>
+		</div>
 	);
 }
 
@@ -634,7 +633,3 @@ function HighlightItem({
 		</article>
 	);
 }
-
-const StyledHighlights = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-my-highlights-highlights', className)} {...props} />
-);

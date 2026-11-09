@@ -12,7 +12,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import AdminSubPage, { Cols } from './AdminSubPage';
 import { useAdminQuery } from './period';
 import { when } from './format';
-import { StyledActions, SUBSCRIPTION_LABEL, subscriptionTone } from './UsersAdmin';
+import { AdminActions, SUBSCRIPTION_LABEL, subscriptionTone } from './UsersAdmin';
 
 const PAGE_SIZE = 20;
 
@@ -98,7 +98,7 @@ export default function SubscribersAdmin() {
 				</>
 			}
 		>
-			<StyledActions>
+			<AdminActions>
 				{isPending ? (
 					<p className="state">불러오는 중…</p>
 				) : isError ? (
@@ -147,7 +147,7 @@ export default function SubscribersAdmin() {
 						onChange={(next) => set({ page: next })}
 					/>
 				)}
-			</StyledActions>
+			</AdminActions>
 		</AdminSubPage>
 	);
 }

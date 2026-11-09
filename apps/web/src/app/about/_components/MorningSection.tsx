@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
-import { cx } from '@/styles/tw';
 
 /**
  * 서버 예약 작업 순서 그대로: 08:00 수집 → 08:30 AI 편집(고르기 → 쓰기) → 08:40 발송.
@@ -86,7 +85,8 @@ export default function MorningSection() {
 	const { active, minute } = state;
 
 	return (
-		<StyledMorning
+		<section
+			className="np-about-morning-section-morning"
 			data-track-section="about-morning"
 			aria-label="뉴스레터가 만들어지는 아침"
 			style={{ '--steps': STEPS.length } as React.CSSProperties}
@@ -170,10 +170,6 @@ export default function MorningSection() {
 					</div>
 				</div>
 			</div>
-		</StyledMorning>
+		</section>
 	);
 }
-
-const StyledMorning = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-about-morning-section-morning', className)} {...props} />
-);

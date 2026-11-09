@@ -66,7 +66,6 @@ import Card from '@/components/common/Card';
 import BorderTitle from '@/components/common/BorderTitle';
 import CategoryTags from '@/components/common/article/CategoryTags';
 import Tags from '@/components/common/Tags';
-import { cx } from '@/styles/tw';
 
 const SIZES = ['extraSmall', 'small', 'medium', 'large', 'extraLarge'] as const;
 const WEIGHTS: FontWeight[] = ['light', 'regular', 'medium', 'semiBold', 'bold', 'extraBold'];
@@ -155,7 +154,7 @@ function DesignSystemBody() {
 	const [watching, setWatching] = useState(false);
 
 	return (
-		<StyledPage>
+		<div className="np-admin-design-system-page">
 			<header className="page-head">
 				<Title size="small" weight="bold">
 					디자인 시스템
@@ -177,8 +176,16 @@ function DesignSystemBody() {
 					{(Object.keys(lightTheme.color) as ColorKey[]).map((key) => (
 						<div key={key} className="swatch">
 							<div className="chips">
-								<Chip style={{ '--chip-color': lightTheme.color[key] } as React.CSSProperties} title="라이트" />
-								<Chip style={{ '--chip-color': darkTheme.color[key] } as React.CSSProperties} title="다크" />
+								<span
+									className="np-admin-design-system-chip"
+									style={{ '--chip-color': lightTheme.color[key] } as React.CSSProperties}
+									title="라이트"
+								/>
+								<span
+									className="np-admin-design-system-chip"
+									style={{ '--chip-color': darkTheme.color[key] } as React.CSSProperties}
+									title="다크"
+								/>
 							</div>
 							<code>{key}</code>
 							<span className="hex">
@@ -233,7 +240,10 @@ function DesignSystemBody() {
 						] as const
 					).map(([role, name, examples]) => (
 						<div key={role} className="radius">
-							<Box style={{ '--box-radius': theme.radius[role] } as React.CSSProperties} />
+							<span
+								className="np-admin-design-system-box"
+								style={{ '--box-radius': theme.radius[role] } as React.CSSProperties}
+							/>
 							<code>radius.{role}</code>
 							<span className="hex">
 								{name} · {theme.radius[role]}
@@ -246,7 +256,10 @@ function DesignSystemBody() {
 				<div className="radii">
 					{(Object.keys(theme.borderRadius) as (keyof Theme['borderRadius'])[]).map((key) => (
 						<div key={key} className="radius">
-							<Box style={{ '--box-radius': theme.borderRadius[key] } as React.CSSProperties} />
+							<span
+								className="np-admin-design-system-box"
+								style={{ '--box-radius': theme.borderRadius[key] } as React.CSSProperties}
+							/>
 							<code>{key}</code>
 							<span className="hex">{theme.borderRadius[key]}</span>
 						</div>
@@ -583,7 +596,7 @@ function DesignSystemBody() {
 					)}
 				</div>
 			</Section>
-		</StyledPage>
+		</div>
 	);
 }
 
@@ -610,16 +623,3 @@ function Section({
 		</section>
 	);
 }
-
-const Chip = ({ className, ...props }: React.ComponentProps<'span'>) => (
-	<span className={cx('np-admin-design-system-chip', className)} {...props} />
-);
-
-/** 가로로 긴 상자: 정사각형이면 capsule(9999px)과 circle(50%)이 둘 다 원으로 보여 구분되지 않는다 */
-const Box = ({ className, ...props }: React.ComponentProps<'span'>) => (
-	<span className={cx('np-admin-design-system-box', className)} {...props} />
-);
-
-const StyledPage = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-design-system-page', className)} {...props} />
-);

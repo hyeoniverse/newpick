@@ -1,6 +1,7 @@
 /* 화면 (unsubscribe): styled-components 규칙을 그대로 옮긴 CSS (@layer components). 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
 
-/* app/unsubscribe/Unsubscribe.tsx · StyledUnsubscribe */
+/* app/unsubscribe/Unsubscribe.tsx */
+/* 오류 화면(ErrorState)과 같은 가운데 정렬: 아이콘 → 머리말 → 제목 → 메일 주소 → 설명 → 버튼 */
 .np-unsubscribe-unsubscribe-unsubscribe {
 	display: flex;
 	flex-direction: column;

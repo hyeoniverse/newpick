@@ -109,7 +109,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 				const from = updates.filter((u) => u.storyIndex === i + 1);
 				if (!from.length) return null;
 				return createPortal(
-					<FollowFrom>
+					<div className="np-articles-follow-layer-follow-from">
 						<span className="label">
 							<BellGlyph on />
 							지켜보던 소식의 후속
@@ -120,7 +120,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 								{u.follow.heading}
 							</Link>
 						))}
-					</FollowFrom>,
+					</div>,
 					top,
 					`follow-from-${i + 1}`,
 				);
@@ -130,9 +130,9 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 				const current = follows.find((f) => f.storyIndex === storyIndex);
 				const busy = follow.isPending || unfollow.isPending;
 				return createPortal(
-					<FollowButton
+					<button
 						type="button"
-						className={current ? 'on' : undefined}
+						className={cx('np-articles-follow-layer-follow-button', current && 'on')}
 						aria-pressed={!!current}
 						disabled={busy}
 						onClick={() => {
@@ -150,7 +150,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 					>
 						<BellGlyph on={!!current} ring={!!current && rung === storyIndex} />
 						{current ? '지켜보는 중' : '후속 지켜보기'}
-					</FollowButton>,
+					</button>,
 					slot,
 					`follow-${storyIndex}`,
 				);
@@ -158,12 +158,3 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 		</>
 	);
 }
-
-const FollowButton = ({ className, ...props }: React.ComponentProps<'button'>) => (
-	<button className={cx('np-articles-follow-layer-follow-button', className)} {...props} />
-);
-
-/* 소식 맨 위: 이 소식이 이어 가는, 내가 지켜보던 원래 소식 (실선 대신 연한 바탕) */
-const FollowFrom = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-follow-layer-follow-from', className)} {...props} />
-);

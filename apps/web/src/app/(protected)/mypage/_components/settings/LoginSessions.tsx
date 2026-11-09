@@ -8,7 +8,6 @@ import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 import { describeUserAgent } from '@/utils/userAgent';
-import { cx } from '@/styles/tw';
 
 const SESSIONS_KEY = ['login-sessions'];
 
@@ -51,7 +50,7 @@ export default function LoginSessions() {
 	const others = sessions.filter((session) => !session.current).length;
 
 	return (
-		<StyledLoginSessions>
+		<section className="np-mypage-login-sessions-login-sessions">
 			<div className="head">
 				<div>
 					<Title size="extraSmall" weight="bold">
@@ -113,10 +112,6 @@ export default function LoginSessions() {
 					})}
 				</ul>
 			)}
-		</StyledLoginSessions>
+		</section>
 	);
 }
-
-const StyledLoginSessions = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-mypage-login-sessions-login-sessions', className)} {...props} />
-);

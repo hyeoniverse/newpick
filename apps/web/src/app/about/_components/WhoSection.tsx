@@ -6,7 +6,6 @@ import Image from '@/components/common/Image';
 import BorderTitle from '@/components/common/BorderTitle';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
 import ExternalLink from '@/components/common/ExternalLink';
-import { cx } from '@/styles/tw';
 
 interface Member {
 	name: string;
@@ -60,7 +59,7 @@ function MemberCard({
  */
 export default function WhoSection() {
 	return (
-		<StyledWhoSection data-track-section="about-who">
+		<div className="np-about-who-section-who-section" data-track-section="about-who">
 			<FullWidthPanel background="mono" className="panel">
 				<div className="content">
 					<BorderTitle text="WHO WE ARE" color="white" className="title" />
@@ -124,10 +123,6 @@ export default function WhoSection() {
 					</details>
 				</div>
 			</FullWidthPanel>
-		</StyledWhoSection>
+		</div>
 	);
 }
-
-const StyledWhoSection = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-about-who-section-who-section', className)} {...props} />
-);

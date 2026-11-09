@@ -1,6 +1,6 @@
 /* 화면 (about): styled-components 규칙을 그대로 옮긴 CSS (@layer components). 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
 
-/* app/about/_components/CoreFeature.tsx · StyledCore */
+/* app/about/_components/CoreFeature.tsx */
 .np-about-core-feature-core {
 	/* 화면 폭 전체 회색 띠 (100vw가 스크롤바만큼 넘치는 부분은 시작하기 페이지의 body overflow-x: clip이 자른다) */
 	--gutter: max(1rem, calc((100vw - 1024px) / 2));
@@ -447,7 +447,7 @@
 	}
 }
 
-/* app/about/_components/ExploreSection.tsx · StyledExploreSection */
+/* app/about/_components/ExploreSection.tsx */
 .np-about-explore-section-explore-section {
 	.title-section {
 		display: flex;
@@ -513,7 +513,7 @@
 	}
 }
 
-/* app/about/_components/FaqSection.tsx · StyledFaq */
+/* app/about/_components/FaqSection.tsx */
 .np-about-faq-section-faq {
 	.list {
 		margin: 0;
@@ -611,7 +611,7 @@
 	}
 }
 
-/* app/about/_components/HeroSection.tsx · StyledHero */
+/* app/about/_components/HeroSection.tsx */
 .np-about-hero-section-hero {
 	display: flex;
 	flex-direction: column;
@@ -854,7 +854,7 @@
 	}
 }
 
-/* app/about/_components/HowToUseSection.tsx · StyledHowToUse */
+/* app/about/_components/HowToUseSection.tsx */
 .np-about-how-to-use-section-how-to-use {
 	/* 두 번째 제목: 섹션 제목과 같은 꼴을 한 단계 작게, 위아래로 단계 사이 간격만큼 */
 	.mid {
@@ -1122,7 +1122,7 @@
 	}
 }
 
-/* app/about/_components/Logos.tsx · LogosStyled */
+/* app/about/_components/Logos.tsx */
 .np-about-logos-logos {
 	margin: 2rem 0;
 	.swiper {
@@ -1153,7 +1153,7 @@
 	}
 }
 
-/* app/about/_components/MorningSection.tsx · StyledMorning */
+/* app/about/_components/MorningSection.tsx */
 .np-about-morning-section-morning {
 	/* 장면이 붙어 있는 구간. 높이 = 단계 수 × 80vh라 단계마다 한 화면쯤 스크롤한다 */
 	.track {
@@ -1534,7 +1534,7 @@
 	}
 }
 
-/* app/about/_components/NumbersSection.tsx · StyledNumbers */
+/* app/about/_components/NumbersSection.tsx */
 .np-about-numbers-section-numbers {
 	scroll-margin-top: 6rem;
 
@@ -1603,7 +1603,7 @@
 	}
 }
 
-/* app/about/_components/PersonalSection.tsx · StyledPersonal */
+/* app/about/_components/PersonalSection.tsx */
 .np-about-personal-section-personal {
 	word-break: keep-all;
 
@@ -1790,7 +1790,7 @@
 	}
 }
 
-/* app/about/_components/SectionHeading.tsx · StyledHeading */
+/* app/about/_components/SectionHeading.tsx */
 .np-about-section-heading-heading {
 	margin-bottom: 3.5rem;
 	word-break: keep-all;
@@ -1820,7 +1820,7 @@
 	}
 }
 
-/* app/about/_components/StatementSection.tsx · StyledStatement */
+/* app/about/_components/StatementSection.tsx */
 .np-about-statement-section-statement {
 	word-break: keep-all;
 
@@ -1850,7 +1850,7 @@
 	}
 }
 
-/* app/about/_components/WhoSection.tsx · StyledWhoSection */
+/* app/about/_components/WhoSection.tsx */
 .np-about-who-section-who-section {
 	margin-top: auto;
 
@@ -2288,7 +2288,7 @@
 	}
 }
 
-/* app/about/_components/WhyNewpickSection.tsx · StyledWhy */
+/* app/about/_components/WhyNewpickSection.tsx */
 .np-about-why-newpick-section-why {
 	.sub-text {
 		line-height: 1.8;

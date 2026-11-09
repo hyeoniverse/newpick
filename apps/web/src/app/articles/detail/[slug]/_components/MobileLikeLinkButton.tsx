@@ -41,19 +41,15 @@ function MobileLikeLinkButton({ className, newsId }: Props) {
 	}, []);
 
 	return (
-		<MobileLikeLinkButtonStyled className={className}>
+		<div className={cx('np-articles-mobile-like-link-button-mobile-like-link-button', className)}>
 			<BookmarkIcon
 				newsId={newsId}
 				newsletterId={newsId}
 				className={`mobile-icon ${showButton ? 'fade-in ' : 'fade-out'}`}
 			/>
 			<LinkCopyIcon id={crypto.randomUUID()} className={`mobile-icon ${showButton ? 'fade-in ' : 'fade-out'}`} />
-		</MobileLikeLinkButtonStyled>
+		</div>
 	);
 }
-
-const MobileLikeLinkButtonStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-mobile-like-link-button-mobile-like-link-button', className)} {...props} />
-);
 
 export default MobileLikeLinkButton;

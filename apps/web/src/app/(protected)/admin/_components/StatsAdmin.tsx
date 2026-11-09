@@ -13,7 +13,6 @@ import { PRESETS, useAdminQuery } from './period';
 import { usd } from './format';
 import { CHANNEL_LABEL, DEVICE_LABEL, duration, routeName } from './trafficLabels';
 import Link from 'next/link';
-import { cx } from '@/styles/tw';
 
 type Runs = { success: number; partial: number; failed: number; skipped: number };
 
@@ -146,7 +145,7 @@ export default function StatsAdmin() {
 
 	return (
 		<AdminSubPage title="통계">
-			<StyledStats>
+			<div className="np-admin-stats-admin-stats">
 				<Section id="stats-traffic" title="방문 · 유입" state={traffic}>
 					{(t) => {
 						const visits = (n: number) => `${n.toLocaleString()}번`;
@@ -555,7 +554,7 @@ export default function StatsAdmin() {
 						</>
 					)}
 				</Section>
-			</StyledStats>
+			</div>
 		</AdminSubPage>
 	);
 }
@@ -640,7 +639,3 @@ function DayTable({ caption, head, rows }: { caption: string; head: string[]; ro
 		</details>
 	);
 }
-
-const StyledStats = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-stats-admin-stats', className)} {...props} />
-);

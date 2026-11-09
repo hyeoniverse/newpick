@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { duration } from './trafficLabels';
-import { cx } from '@/styles/tw';
 
 export type Click = [number, number, string?];
 type Mode = 'attention' | 'clicks';
@@ -83,7 +82,7 @@ export default function Heatmap({ path, device, attention, clicks }: Props) {
 	const busiest = attention.indexOf(Math.max(...attention));
 
 	return (
-		<StyledHeatmap>
+		<div className="np-admin-heatmap-heatmap">
 			<div className="toolbar" role="group" aria-label="히트맵 보기">
 				<button type="button" aria-pressed={mode === 'attention'} onClick={() => setMode('attention')}>
 					어텐션 맵
@@ -140,10 +139,6 @@ export default function Heatmap({ path, device, attention, clicks }: Props) {
 					<canvas ref={canvasRef} className="clicks" aria-hidden />
 				</div>
 			</div>
-		</StyledHeatmap>
+		</div>
 	);
 }
-
-const StyledHeatmap = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-heatmap-heatmap', className)} {...props} />
-);

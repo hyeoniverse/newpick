@@ -2,7 +2,6 @@
 
 import BorderTitle from '@/components/common/BorderTitle';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
-import { cx } from '@/styles/tw';
 
 /** 가치 문장 세 줄. 강조할 말은 ** 로 감싼다 */
 const VALUES = [
@@ -42,7 +41,11 @@ export default function WhyNewpickSection() {
 	const valuesRef = useScrollProgress<HTMLDivElement>('center');
 
 	return (
-		<StyledWhy data-track-section="about-why-newpick" aria-label="WHY NEWPICK">
+		<section
+			className="np-about-why-newpick-section-why"
+			data-track-section="about-why-newpick"
+			aria-label="WHY NEWPICK"
+		>
 			<BorderTitle text="WHY NEWPICK?" />
 			<p className="sub-text">
 				매일 새로운 소식, 중요한 소식이 쏟아지지만 모두 챙기기 힘드셨다면?
@@ -73,10 +76,6 @@ export default function WhyNewpickSection() {
 					</p>
 				))}
 			</div>
-		</StyledWhy>
+		</section>
 	);
 }
-
-const StyledWhy = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-about-why-newpick-section-why', className)} {...props} />
-);

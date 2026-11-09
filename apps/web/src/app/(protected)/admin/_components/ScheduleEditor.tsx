@@ -5,7 +5,6 @@ import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import Button from '@/components/common/Button';
 import TimePicker from '@/components/common/TimePicker';
-import { cx } from '@/styles/tw';
 
 export interface ClockTime {
 	hour: number;
@@ -72,7 +71,7 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 	};
 
 	return (
-		<StyledEditor onSubmit={save}>
+		<form className="np-admin-schedule-editor-editor" onSubmit={save}>
 			<h2 className="title">예약 시간 바꾸기</h2>
 			<p className="desc">
 				기사 수집 → AI 요약 → 구독 메일 순서로 돌아요. 수집은 매시간(이 시각의 분에) 하고, 요약은 그 전 24시간 동안 모은
@@ -118,10 +117,6 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 					{pending ? '저장하는 중…' : '저장'}
 				</Button>
 			</div>
-		</StyledEditor>
+		</form>
 	);
 }
-
-const StyledEditor = ({ className, ...props }: React.ComponentProps<'form'>) => (
-	<form className={cx('np-admin-schedule-editor-editor', className)} {...props} />
-);

@@ -7,7 +7,7 @@ import API_ENDPOINTS from '@/constants/api';
 import AdminSubPage, { Cols } from './AdminSubPage';
 import { useAdminQuery } from './period';
 import { when } from './format';
-import { StyledActions } from './UsersAdmin';
+import { AdminActions } from './UsersAdmin';
 
 interface Row {
 	id: number;
@@ -36,7 +36,7 @@ export default function CategoriesAdmin() {
 			period={false}
 			summary="관심사 이름은 수집(네이버 섹션) · 화면 · 메일과 묶여 있어 여기서는 보기만 해요. 바꾸려면 코드와 함께 바꿔야 해요."
 		>
-			<StyledActions>
+			<AdminActions>
 				{isPending ? (
 					<p className="state">불러오는 중…</p>
 				) : isError ? (
@@ -82,7 +82,7 @@ export default function CategoriesAdmin() {
 						</table>
 					</div>
 				)}
-			</StyledActions>
+			</AdminActions>
 		</AdminSubPage>
 	);
 }

@@ -4,7 +4,6 @@ import { useModal } from '@/hooks/useModal';
 import Title from '@/components/common/Title';
 import Button from '@/components/common/Button';
 import Trial from '@/app/(home)/_components/Trial';
-import { cx } from '@/styles/tw';
 
 export default function HeroSection() {
 	const { openModal } = useModal();
@@ -14,7 +13,7 @@ export default function HeroSection() {
 	};
 
 	return (
-		<StyledHeroSection data-track-section="home-hero">
+		<section className="np-home-hero-section-hero-section" data-track-section="home-hero">
 			<div className="content">
 				<div className="left-section">
 					<div className="description">
@@ -30,10 +29,6 @@ export default function HeroSection() {
 					</Button>
 				</div>
 			</div>
-		</StyledHeroSection>
+		</section>
 	);
 }
-
-const StyledHeroSection = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-home-hero-section-hero-section', className)} {...props} />
-);

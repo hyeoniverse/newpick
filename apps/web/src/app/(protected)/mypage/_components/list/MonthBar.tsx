@@ -67,10 +67,10 @@ export function useMonthJump() {
 /** 달 · 연도로 건너뛴 뒤 위로 더 최근 것: 폭 가득, 각진 띠, 아래로 갈수록 진한 보라 · 달 막대에 틈 없이 붙음 */
 export function LoadNewer({ label, loading, onClick }: { label: string; loading: boolean; onClick: () => void }) {
 	return (
-		<LoadNewerStyled type="button" disabled={loading} onClick={onClick}>
+		<button className="np-mypage-month-bar-load-newer" type="button" disabled={loading} onClick={onClick}>
 			<LuChevronUp aria-hidden />
 			{loading ? '불러오는 중…' : label}
-		</LoadNewerStyled>
+		</button>
 	);
 }
 
@@ -246,9 +246,9 @@ export default function MonthBar({
 	}, [open]);
 
 	return (
-		<MonthBarStyled
+		<div
 			ref={ref}
-			className={`month-bar ${stuck ? 'stuck' : ''}`}
+			className={cx('np-mypage-month-bar-month-bar', 'month-bar', stuck && 'stuck')}
 			style={{ top, ['--page-w' as string]: `${pageWidth}px` }}
 		>
 			{/* 달이 바뀌면 연도 · 월 글자는 숫자판처럼 넘어가고(아래로 보면 위로, 위로 보면 아래로), 날짜 줄은 흐려졌다 바뀐다 */}
@@ -356,14 +356,6 @@ export default function MonthBar({
 					<LuChevronRight aria-hidden />
 				</button>
 			</div>
-		</MonthBarStyled>
+		</div>
 	);
 }
-
-const MonthBarStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-month-bar-month-bar', className)} {...props} />
-);
-
-const LoadNewerStyled = ({ className, ...props }: React.ComponentProps<'button'>) => (
-	<button className={cx('np-mypage-month-bar-load-newer', className)} {...props} />
-);

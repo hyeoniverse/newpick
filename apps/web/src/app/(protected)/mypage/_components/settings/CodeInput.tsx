@@ -22,7 +22,7 @@ export default function CodeInput({ id, value, onChange, invalid, length = 6, au
 	const active = Math.min(value.length, length - 1);
 
 	return (
-		<StyledCodeInput className={invalid ? 'invalid' : undefined}>
+		<div className={cx('np-mypage-code-input-code-input', invalid ? 'invalid' : undefined)}>
 			<input
 				id={id}
 				inputMode="numeric"
@@ -44,10 +44,6 @@ export default function CodeInput({ id, value, onChange, invalid, length = 6, au
 					</span>
 				))}
 			</div>
-		</StyledCodeInput>
+		</div>
 	);
 }
-
-const StyledCodeInput = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-code-input-code-input', className)} {...props} />
-);
