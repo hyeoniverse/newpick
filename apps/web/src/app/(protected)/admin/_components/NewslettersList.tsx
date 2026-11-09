@@ -1,5 +1,6 @@
 'use client';
 
+import type { NewsletterListItem } from '@newpick/shared';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/api/client';
@@ -16,13 +17,8 @@ import { when } from './format';
 
 const PAGE_SIZE = 20;
 
-interface Row {
-	id: number;
-	title: string;
-	categoryId: number;
-	viewcount: number;
-	createdAt: string;
-}
+/** 발행 목록 한 줄 (@newpick/shared) */
+type Row = NewsletterListItem;
 
 /** 관리자 상세: 기간 안에 발행한 뉴스레터 (관심사로 거르기, 쪽) */
 export default function NewslettersList() {

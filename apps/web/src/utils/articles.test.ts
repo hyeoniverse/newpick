@@ -55,6 +55,8 @@ describe('AI 응답의 코드 블록', () => {
 
 	it('감싸지 않은 내용과 다른 언어 블록은 그대로', () => {
 		expect(stripCodeFence('<div>본문</div>')).toBe('<div>본문</div>');
+		// 본문이 없는(null) 아주 예전 뉴스레터도 상세 화면이 깨지지 않게
+		expect(stripCodeFence(null)).toBe('');
 		expect(stripCodeFence('```json\n{}\n```')).toBe('```json\n{}\n```');
 	});
 });

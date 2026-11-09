@@ -1,24 +1,10 @@
-export interface ArticleInfo {
-	newsletter: ArticleDetail;
-	previousNewsletter: ArticleDetail | null;
-	nextNewsletter: ArticleDetail | null;
-}
+import type { Newsletter, NewsletterDetail } from '@newpick/shared';
 
-export interface ArticleDetail {
-	id: number;
-	title: string;
-	/** 제목에 담지 않은 나머지 소식 한 줄. 이전 뉴스레터는 null */
-	subtitle?: string | null;
-	/** 키워드 (#50). 이전 뉴스레터는 null */
-	keywords?: string[] | null;
-	content: string;
-	contentAsHTML: string;
-	imageUrl: string | null;
-	categoryId: number;
-	viewcount: number;
-	usedNews: string;
-	createdAt: string;
-}
+/** 뉴스레터 상세 응답 (@newpick/shared, api와 같은 타입) */
+export type ArticleInfo = NewsletterDetail;
+
+/** 뉴스레터 한 편 (@newpick/shared, api와 같은 타입) */
+export type ArticleDetail = Newsletter;
 
 export interface ArticleSummary {
 	id: number;
