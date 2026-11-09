@@ -1,6 +1,7 @@
 /*
  * 전역 스타일 + Tailwind v4 (#10).
- * styled-components는 모두 걷어 냈다. 덮어쓰이는 부품 CSS는 아직 층 밖에 둔다.
+ * 부품 · 화면 CSS는 모두 @layer components. 유틸리티(클래스)가 언제나 이긴다.
+ * 공통 부품이 스스로 붙이는 기본 모양은 styles/parts.css (유틸리티로 두면 화면 CSS가 덮어쓸 수 없어서).
  * - 기본 초기화는 Tailwind preflight. 화면이 기대던 sanitize.css · 브라우저 기본값은 styles/base-compat.css가 되돌린다
  * - 층 순서 theme → base → components → utilities: 유틸리티가 전역 기본값을 이긴다
  * - 색 · 글자 크기는 styles/tokens.css의 var(--np-…)를 그대로 쓴다. 라이트 · 다크 · 화면 폭에 따라 바뀌는 값이 한 곳에서 나온다
@@ -13,42 +14,44 @@
 /* preflight가 지운 기본값 중 화면이 기대던 것 (styles/base-compat.css 머리말) */
 @import '../styles/base-compat.css' layer(base);
 @import '../styles/tokens.css';
+/* 공통 부품이 스스로 붙이는 기본 모양: components 층 맨 앞 (styles/parts.css 머리말) */
+@import '../styles/parts.css' layer(components);
 /* 화면 틀(예전 CSS 모듈): 공통 부품 · 화면 CSS보다 앞 (예전에도 모듈 link가 styled 태그보다 먼저였다) */
-@import '../styles/pages/frames.css';
-/* 아이콘 버튼: 층 밖 */
-@import '../styles/icon.css';
-/* 공통 버튼: 층 밖 (styles/button.css 머리말) */
-@import '../styles/button.css';
-/* 입력칸 공통: 층 밖 (styles/field.css 머리말) */
-@import '../styles/field.css';
-/* 스크롤해서 나타나기: 층 밖 (styles/reveal.css 머리말) */
-@import '../styles/reveal.css';
-/* 뒤로 가기 막대 · 분야 칩: 안의 Button을 덮어써서 층 밖 (각 파일 머리말) */
-@import '../styles/back-bar.css';
-@import '../styles/category-tags.css';
-/* 펼침 메뉴(프로필 · 태블릿 메뉴): 안의 Button을 덮어써서 층 밖 (styles/dropdown.css 머리말) */
-@import '../styles/dropdown.css';
-/* 시트 · 고르기 칸 · 시각 고르기: 층 밖 (각 파일 머리말) */
-@import '../styles/modal.css';
-@import '../styles/select.css';
-@import '../styles/time-picker.css';
-/* 움직이는 아이콘 · 카드 넘기기 · 약관 문서: 층 밖 (각 파일 머리말) */
-@import '../styles/glyphs.css';
-@import '../styles/card-slider.css';
-@import '../styles/legal.css';
+@import '../styles/pages/frames.css' layer(components);
+/* 아이콘 버튼 (styles/icon.css 머리말) */
+@import '../styles/icon.css' layer(components);
+/* 공통 버튼 (styles/button.css 머리말) */
+@import '../styles/button.css' layer(components);
+/* 입력칸 공통 (styles/field.css 머리말) */
+@import '../styles/field.css' layer(components);
+/* 스크롤해서 나타나기 (styles/reveal.css 머리말) */
+@import '../styles/reveal.css' layer(components);
+/* 뒤로 가기 막대 · 분야 칩 (각 파일 머리말) */
+@import '../styles/back-bar.css' layer(components);
+@import '../styles/category-tags.css' layer(components);
+/* 펼침 메뉴(프로필 · 태블릿 메뉴) (styles/dropdown.css 머리말) */
+@import '../styles/dropdown.css' layer(components);
+/* 시트 · 고르기 칸 · 시각 고르기 (각 파일 머리말) */
+@import '../styles/modal.css' layer(components);
+@import '../styles/select.css' layer(components);
+@import '../styles/time-picker.css' layer(components);
+/* 움직이는 아이콘 · 카드 넘기기 · 약관 문서 (각 파일 머리말) */
+@import '../styles/glyphs.css' layer(components);
+@import '../styles/card-slider.css' layer(components);
+@import '../styles/legal.css' layer(components);
 /* 날짜 고르기: 라이브러리 CSS 바로 뒤에 덮어쓰기 (styles/datepicker.css 머리말) */
-@import 'react-datepicker/dist/react-datepicker.css';
-@import '../styles/datepicker.css';
-/* 카드: 층 밖 (styles/card.css 머리말) */
-@import '../styles/card.css';
+@import 'react-datepicker/dist/react-datepicker.css' layer(components);
+@import '../styles/datepicker.css' layer(components);
+/* 카드 (styles/card.css 머리말) */
+@import '../styles/card.css' layer(components);
 /* 화면: 공통 부품 CSS 뒤 (우선순위가 같으면 화면 쪽이 이긴다) */
-@import '../styles/pages/about.css';
-@import '../styles/pages/home.css';
-@import '../styles/pages/articles.css';
-@import '../styles/pages/tags.css';
-@import '../styles/pages/unsubscribe.css';
-@import '../styles/pages/mypage.css';
-@import '../styles/pages/admin.css';
+@import '../styles/pages/about.css' layer(components);
+@import '../styles/pages/home.css' layer(components);
+@import '../styles/pages/articles.css' layer(components);
+@import '../styles/pages/tags.css' layer(components);
+@import '../styles/pages/unsubscribe.css' layer(components);
+@import '../styles/pages/mypage.css' layer(components);
+@import '../styles/pages/admin.css' layer(components);
 
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));

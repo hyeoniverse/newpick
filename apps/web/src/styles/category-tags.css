@@ -1,6 +1,6 @@
 /*
  * 분야 칩 (components/common/article/CategoryTags.tsx). 공통 Button의 모양 · 마우스 올림을 덮어써서(.category-btn)
- * button.css처럼 Tailwind 층 밖에 두고 선택자 우선순위를 전(styled-components)과 같게 둔다
+ * @layer components에 두고 선택자 우선순위를 전(styled-components)과 같게 둔다
  */
 .np-category-tags {
 	width: 100%;

@@ -1,5 +1,5 @@
 import type { ColorKey, FontWeight, HeadingSize } from '@/styles/theme';
-import { cx, FONT_WEIGHT, HEADING_SIZE, TEXT_COLOR } from '@/styles/tw';
+import { cx, PART_FONT_WEIGHT, PART_HEADING_SIZE, PART_TEXT_COLOR } from '@/styles/tw';
 
 interface Props {
 	children: React.ReactNode;
@@ -25,13 +25,7 @@ const Title = ({
 	return (
 		<Tag
 			ref={ref}
-			className={cx(
-				HEADING_SIZE[size],
-				FONT_WEIGHT[weight],
-				TEXT_COLOR[color],
-				'm-0 [transition:color_0.3s_ease]',
-				className,
-			)}
+			className={cx(PART_HEADING_SIZE[size], PART_FONT_WEIGHT[weight], PART_TEXT_COLOR[color], 'np-typo', className)}
 		>
 			{children}
 		</Tag>

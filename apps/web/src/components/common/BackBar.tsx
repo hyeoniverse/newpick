@@ -21,7 +21,7 @@ interface Props {
 /**
  * 뒤로 가기 막대 (공통, 기사 상세에서 시작). 페이지 흐름에선 제자리를 지키고, 스크롤하면 위에 붙는다.
  * 헤더가 펼쳐져 있으면 헤더(3rem) 아래, 접히면 맨 위로 같이 올라가며 글자를 접어 화살표만 남긴다.
- * 모양은 styles/back-bar.css (안의 단추를 덮어써서 층 밖)
+ * 모양은 styles/back-bar.css (안의 단추를 덮어쓴다)
  */
 export default function BackBar({ text, onClick, title, showTitle = false, onTitleClick, className }: Props) {
 	const { isHeaderOpen } = useHeader();

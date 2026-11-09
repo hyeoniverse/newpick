@@ -1,6 +1,6 @@
 /*
- * 시각 고르기 (components/common/TimePicker.tsx). 아직 styled-components로 모양을 덮어쓰는 화면이 있어 button.css처럼 Tailwind 층 밖에 두고
- * 선택자 우선순위를 전과 같게 둔다. 상태는 data 속성을 :where()로 골라 우선순위를 올리지 않는다
+ * 시각 고르기 (components/common/TimePicker.tsx). 모양을 덮어쓰는 화면 CSS가 있어
+ * @layer components에서 선택자 우선순위를 전과 같게 둔다. 상태는 data 속성을 :where()로 골라 우선순위를 올리지 않는다
  */
 .np-time-picker {
 	position: relative;

@@ -1,7 +1,7 @@
 /*
  * 입력칸 공통 모양 (InputText · InputSelect · DatePicker · TimePicker · InputRadio, 관리자 편집 화면).
  * 이름표는 위, 칸은 같은 높이·모서리·배경, 안내 글자는 읽을 수 있는 회색, 초점은 강조색 테두리 + 옅은 띠.
- * styled-components의 css 조각(field.ts)에서 옮기며 button.css처럼 Tailwind 층 밖에 둔다 (#10).
+ * styled-components의 css 조각(field.ts)에서 옮겼다. @layer components (#10).
  * 칸마다 다른 부분(오른쪽 여백, 화살표 등)은 쓰는 쪽 스타일이 덮어쓴다
  */
 .np-field-label {

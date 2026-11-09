@@ -18,7 +18,8 @@ interface Props {
 	className?: string;
 }
 
-const RATIO = { square: 'aspect-square', wide: 'aspect-video', tall: 'aspect-[9/16]' } as const;
+/* 비율 · 틀은 styles/parts.css (.np-image): 화면 CSS가 덮어쓸 수 있게 components 층에 둔다 */
+const RATIO = { square: 'np-ratio-square', wide: 'np-ratio-wide', tall: 'np-ratio-tall' } as const;
 const RADIUS: Record<BorderRadius, string> = {
 	flat: 'rounded-none',
 	soft: 'rounded-[4px]',
@@ -46,7 +47,7 @@ export default function Image({
 	return (
 		<div
 			className={cx(
-				'flex h-fit w-full items-center justify-center overflow-hidden',
+				'np-image',
 				RATIO[ratio],
 				RADIUS[borderRadius],
 				isLoaded ? 'bg-transparent' : BG_COLOR[placeholder],

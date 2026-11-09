@@ -1,6 +1,6 @@
 /*
- * 약관 · 개인정보 처리방침 문서 (components/common/legal/LegalDocument.tsx). styled-components 규칙을 그대로 옮기며
- * button.css처럼 Tailwind 층 밖에 두고 선택자 우선순위를 전과 같게 둔다
+ * 약관 · 개인정보 처리방침 문서 (components/common/legal/LegalDocument.tsx). styled-components 규칙을 그대로 옮겼다.
+ * @layer components에서 선택자 우선순위를 전과 같게 둔다
  */
 .np-legal {
 	--sticky-top: 5rem;

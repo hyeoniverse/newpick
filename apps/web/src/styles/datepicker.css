@@ -1,6 +1,6 @@
 /*
  * 날짜 고르기 (components/common/DatePicker.tsx). react-datepicker CSS를 덮어쓰므로 global.css에서 그 CSS 바로 뒤에 불러온다.
- * styled-components 규칙을 그대로 옮기며 Tailwind 층 밖에 두고 선택자 우선순위를 전과 같게 둔다.
+ * styled-components 규칙을 그대로 옮겼다. @layer components에서 선택자 우선순위를 전과 같게 둔다.
  * 작은 칸 · 기간은 data 속성을 :where()로 골라 우선순위를 올리지 않는다
  */
 

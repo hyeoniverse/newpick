@@ -1,6 +1,6 @@
 /*
  * 펼침 메뉴 (components/common/Dropdown.tsx): 머리글 프로필 메뉴(.auth) · 태블릿 이하 메뉴(.drawer)와 그 세 줄 단추.
- * 안의 공통 Button(.item)의 여백 · 폭을 덮어써서 button.css처럼 Tailwind 층 밖에 두고, 선택자 우선순위를 전(styled-components)과 같게 둔다
+ * 안의 공통 Button(.item)의 여백 · 폭을 덮어써서 @layer components에 두고, 선택자 우선순위를 전(styled-components)과 같게 둔다
  */
 .np-dropdown {
 	position: relative;

@@ -1,4 +1,4 @@
-/* 화면 (about): styled-components 규칙을 그대로 옮긴 층 밖 CSS. 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
+/* 화면 (about): styled-components 규칙을 그대로 옮긴 CSS (@layer components). 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
 
 /* app/about/_components/CoreFeature.tsx · StyledCore */
 .np-about-core-feature-core {
