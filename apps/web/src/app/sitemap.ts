@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import type { MetadataRoute } from 'next';
 import { fetchArticleListCached } from '@/api/article';
 import { SITE_URL } from '@/constants/site';
@@ -36,7 +37,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 		{ url: `${SITE_URL}/terms`, changeFrequency: 'yearly', priority: 0.2 },
 		{ url: `${SITE_URL}/privacy`, changeFrequency: 'yearly', priority: 0.2 },
 		...newsletters.map((newsletter) => ({
-			url: `${SITE_URL}/articles/detail/${newsletter.id}`,
+			url: `${SITE_URL}${ROUTES.article(newsletter.id)}`,
 			lastModified: new Date(newsletter.createdAt),
 			changeFrequency: 'monthly' as const,
 			priority: 0.7,

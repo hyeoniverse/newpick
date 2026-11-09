@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { useTaste } from '@/hooks/useHighlights';
 
@@ -26,10 +27,7 @@ export default function MyTaste() {
 			<ol>
 				{data.topics.slice(0, SHOWN).map((t, i) => (
 					<li key={t.topic}>
-						<Link
-							href={`/articles?keyword=${encodeURIComponent(t.topic)}`}
-							className={i < HIGHLIGHTED ? 'chip top' : 'chip'}
-						>
+						<Link href={ROUTES.articlesByKeyword(t.topic)} className={i < HIGHLIGHTED ? 'chip top' : 'chip'}>
 							#{t.topic}
 						</Link>
 					</li>

@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
 import type { Highlight, HighlightPage, MyTaste } from '@newpick/shared';
 import {
@@ -79,7 +80,7 @@ export function useHighlightMutations() {
 				undefined,
 				{
 					label: '스크랩 모아 보기 →',
-					href: `/mypage?tab=highlights#hl-${saved.id}`,
+					href: `${ROUTES.mypage('highlights')}#hl-${saved.id}`,
 				},
 			);
 		},

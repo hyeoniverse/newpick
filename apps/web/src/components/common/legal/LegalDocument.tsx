@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ExternalLink from '@/components/common/ExternalLink';
@@ -39,8 +40,8 @@ const ICONS: Record<LegalSummary['icon'], React.ReactNode> = {
 };
 
 const DOCS = [
-	{ key: 'terms', title: '이용약관', href: '/terms' },
-	{ key: 'privacy', title: '개인정보 처리방침', href: '/privacy' },
+	{ key: 'terms', title: '이용약관', href: ROUTES.terms },
+	{ key: 'privacy', title: '개인정보 처리방침', href: ROUTES.privacy },
 ] as const;
 
 interface Props {

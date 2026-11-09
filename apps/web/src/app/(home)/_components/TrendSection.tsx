@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { Suspense, lazy } from 'react';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import Text from '@/components/common/Text';
@@ -30,7 +31,7 @@ const TrendSection = () => {
 								key={trend.id}
 								data={{
 									id: trend.id,
-									url: `/articles/detail/${trend.id}`,
+									url: ROUTES.article(trend.id),
 									image: trend.image,
 									header: trend.categoryName,
 									main: {

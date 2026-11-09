@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import type { TagRule } from '@newpick/shared';
 
 import { deleteTagRule, fetchTagRules, mergeTags, removeTag } from '@/api/admin';
@@ -272,7 +273,7 @@ export default function TagsAdmin() {
 											/>
 										</td>
 										<td>
-											<Link href={`/articles?keyword=${encodeURIComponent(t.keyword)}`} className="tag">
+											<Link href={ROUTES.articlesByKeyword(t.keyword)} className="tag">
 												<span className="hash">#</span>
 												{t.keyword}
 											</Link>

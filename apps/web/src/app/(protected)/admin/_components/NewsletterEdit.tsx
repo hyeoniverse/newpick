@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { deleteNewsletter, fetchNewsletter, rerunSummary, resetNewsletterViews, updateNewsletter } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
@@ -144,7 +145,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 				await deleteNewsletter(id);
 				showToast('지웠어요.', 'success');
 				queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters.all });
-				router.push('/admin/newsletters');
+				router.push(ROUTES.admin.newsletters);
 			},
 		);
 
@@ -152,14 +153,14 @@ export default function NewsletterEdit({ id }: { id: number }) {
 		<AdminGate>
 			<div className="np-protected-page">
 				<div className="np-admin-newsletter-edit-edit">
-					<BackBar text="발행한 뉴스레터" onClick={() => router.push('/admin/newsletters')} />
+					<BackBar text="발행한 뉴스레터" onClick={() => router.push(ROUTES.admin.newsletters)} />
 					<div className="head">
 						<Title size="extraSmall" weight="bold">
 							뉴스레터 고치기 <span className="id">#{id}</span>
 						</Title>
 						{data && (
 							<div className="meta">
-								<Link href={`/articles/detail/${id}`} target="_blank">
+								<Link href={ROUTES.article(id)} target="_blank">
 									사이트에서 보기 ↗
 								</Link>
 								<span>조회수 {Number(data.viewcount).toLocaleString()}</span>

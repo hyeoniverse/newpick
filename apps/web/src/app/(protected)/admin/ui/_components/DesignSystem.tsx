@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useState } from 'react';
 import { LuArrowLeft, LuArrowRight, LuBell, LuMailCheck, LuSparkles } from 'react-icons/lu';
 
@@ -110,7 +111,7 @@ const SAMPLE_CARD = {
 		tags: ['더존비즈온', '침해사고', 'PHP투쉘'],
 	},
 	footer: '2026-10-27 | 조회수 34',
-	url: '/articles',
+	url: ROUTES.articles,
 };
 
 const SAMPLE_TABS = [
@@ -535,7 +536,7 @@ function DesignSystemBody() {
 					<StatusBadge tone="neutral">건너뜀</StatusBadge>
 				</div>
 				<div className="wrap">
-					<MoreLink href="/admin">전체 보기 →</MoreLink>
+					<MoreLink href={ROUTES.admin.home}>전체 보기 →</MoreLink>
 					<BrandAvatar />
 				</div>
 				<Pagination page={page} total={240} pageSize={20} onChange={setPage} />
@@ -551,7 +552,7 @@ function DesignSystemBody() {
 					icon={LuBookmark}
 					title="북마크한 뉴스레터가 없어요"
 					description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모여요."
-					action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+					action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 				/>
 				<BarWidth />
 				<div className="wrap">

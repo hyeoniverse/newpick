@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -58,7 +59,7 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 			>
 				{fillForLoop(firstArticles).map((article, index) => (
 					<SwiperSlide key={`${article.id}-${index}`} className="swiper-slide">
-						<Link href={`/articles/detail/${article.id}`} className="image-link">
+						<Link href={ROUTES.article(article.id)} className="image-link">
 							<Image
 								src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
 								alt={article.title}
@@ -87,7 +88,7 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 			>
 				{fillForLoop(secondArticles).map((article, index) => (
 					<SwiperSlide key={`${article.id}-${index}`} className="swiper-slide">
-						<Link href={`/articles/detail/${article.id}`} className="image-link">
+						<Link href={ROUTES.article(article.id)} className="image-link">
 							<Image
 								src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
 								alt={article.title}

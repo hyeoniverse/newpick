@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
 
 import { useState } from 'react';
@@ -66,7 +67,7 @@ export default function Unsubscribe() {
 					메일 아래쪽의 &quot;수신 거부&quot;를 다시 눌러 주세요. 로그인했다면 마이페이지에서도 해지할 수 있어요.
 				</p>
 				<div className="actions">
-					<Button scheme="primary" size="medium" onClick={() => router.push('/mypage?tab=settings')}>
+					<Button scheme="primary" size="medium" onClick={() => router.push(ROUTES.mypage('settings'))}>
 						마이페이지에서 해지
 					</Button>
 					<Button scheme="outline" size="medium" onClick={() => router.push('/')}>
@@ -90,7 +91,7 @@ export default function Unsubscribe() {
 					이 주소로 뉴스레터를 더 보내지 않아요. 다시 받고 싶으면 로그인해서 마이페이지에서 언제든 구독할 수 있어요.
 				</p>
 				<div className="actions">
-					<Button scheme="primary" size="medium" onClick={() => router.push('/articles')}>
+					<Button scheme="primary" size="medium" onClick={() => router.push(ROUTES.articles)}>
 						뉴스레터 둘러보기
 					</Button>
 					<Button scheme="outline" size="medium" onClick={() => router.push('/')}>

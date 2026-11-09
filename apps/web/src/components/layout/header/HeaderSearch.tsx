@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useEffect, useRef, useState } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { LuSearch, LuX } from 'react-icons/lu';
@@ -34,7 +35,7 @@ export default function HeaderSearch() {
 	const router = useRouter();
 	const pathname = usePathname();
 	const searchParams = useSearchParams();
-	const onList = pathname === '/articles';
+	const onList = pathname === ROUTES.articles;
 	// 태그로 거르는 중이면 칸에 '#태그'를 보여 준다
 	const current = onList
 		? (searchParams.get('q') ?? (searchParams.get('keyword') ? `#${searchParams.get('keyword')}` : ''))
@@ -133,7 +134,7 @@ export function HeaderSearchFallback() {
 			<button type="button" className={TOGGLE} aria-label="검색" disabled>
 				<LuSearch aria-hidden />
 			</button>
-			<form role="search" className={FORM} action="/articles" method="get">
+			<form role="search" className={FORM} action={ROUTES.articles} method="get">
 				<LuSearch className={ICON} aria-hidden />
 				<input
 					type="search"

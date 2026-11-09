@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
@@ -115,7 +116,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 							지켜보던 소식의 후속
 						</span>
 						{from.map((u) => (
-							<Link key={u.id} href={`/articles/detail/${u.follow.newsletter.id}`} className="origin">
+							<Link key={u.id} href={ROUTES.article(u.follow.newsletter.id)} className="origin">
 								<span className="date">{day(u.follow.newsletter.createdAt)}</span>
 								{u.follow.heading}
 							</Link>

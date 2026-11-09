@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useState } from 'react';
 import Link from 'next/link';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
@@ -70,7 +71,7 @@ function MyBookmark() {
 				icon={LuBookmark}
 				title="북마크한 뉴스레터가 없어요"
 				description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모여요."
-				action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+				action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 			/>
 		);
 	}
@@ -131,7 +132,7 @@ function MyBookmark() {
 						>
 							{/* 썸네일: 카드 왼쪽 위아래를 다 채운다. 같은 글로 가는 링크라 키보드 · 화면 읽기에서는 뺀다 */}
 							<Link
-								href={`/articles/detail/${bookmark.id}`}
+								href={ROUTES.article(bookmark.id)}
 								className="thumb-link"
 								tabIndex={-1}
 								aria-hidden
@@ -140,7 +141,7 @@ function MyBookmark() {
 								<Thumb src={getFirstImage(bookmark.newsImg)} className="thumb" />
 							</Link>
 							<div className="content">
-								<Link href={`/articles/detail/${bookmark.id}`} className="main" draggable={false}>
+								<Link href={ROUTES.article(bookmark.id)} className="main" draggable={false}>
 									<span className="body">
 										<span className="kicker">
 											{/* 관심사: 메일 · 스크랩 블록의 관심사 칩과 같은 모양 */}

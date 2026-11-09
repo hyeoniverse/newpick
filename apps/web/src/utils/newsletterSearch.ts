@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import { kstDate } from '@/utils/formatter';
 
 /** 기간 고르기: 전체 · 오늘 · 1주 · 1달 · 직접 지정(from/to) */
@@ -104,7 +105,7 @@ export function toPageHref(filters: NewsletterFilters): string {
 	}
 	if (filters.sort === 'popular') query.set('sort', 'popular');
 	const qs = query.toString();
-	return qs ? `/articles?${qs}` : '/articles';
+	return qs ? `${ROUTES.articles}?${qs}` : ROUTES.articles;
 }
 
 /** 필터 상태를 하나의 문자열로 (목록을 새로 받아야 하는지 비교 · Suspense key) */

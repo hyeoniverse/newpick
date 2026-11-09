@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ApiError } from '@/api/client';
@@ -39,7 +40,7 @@ export async function generateMetadata({ params }: Params): Promise<Metadata> {
 	// imageUrl은 소식마다의 사진을 쉼표로 이어 둔 값이라 화면과 같이 첫 장만 쓴다
 	const image = newsletter.imageUrl ? getFirstImage(newsletter.imageUrl) : '';
 	const images = image ? [{ url: image, alt: newsletter.title }] : [DEFAULT_OG_IMAGE];
-	const url = `/articles/detail/${newsletter.id}`;
+	const url = ROUTES.article(newsletter.id);
 
 	return {
 		title: newsletter.title,

@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useRouter } from 'next/navigation';
 import type { IconType } from 'react-icons';
 import {
@@ -72,7 +73,7 @@ export default function ErrorState({ code, icon, title, description, action, onR
 		if (action === 'retry') return onRetry ? onRetry() : window.location.reload();
 		if (action === 'login') return openLogin();
 		if (action === 'back') return window.history.length > 1 ? router.back() : router.push('/');
-		router.push(action === 'articles' ? '/articles' : '/');
+		router.push(action === 'articles' ? ROUTES.articles : '/');
 	};
 
 	return (

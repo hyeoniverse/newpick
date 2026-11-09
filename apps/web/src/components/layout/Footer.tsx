@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { cx } from '@/styles/tw';
 import { GITHUB } from '@/constants/about';
@@ -33,11 +34,11 @@ const Footer = ({ contactEmail }: Props) => {
 							</a>
 						</>
 					)}
-					<Link className={cx('footer-item', LINK)} href="/terms">
+					<Link className={cx('footer-item', LINK)} href={ROUTES.terms}>
 						이용약관
 					</Link>
 					{/* 개인정보 처리방침은 다른 항목과 색으로 구분해 쉽게 찾게 한다 (개인정보 처리방침 작성지침) */}
-					<Link className="footer-item privacy cursor-pointer text-primary hover:underline" href="/privacy">
+					<Link className="footer-item privacy cursor-pointer text-primary hover:underline" href={ROUTES.privacy}>
 						개인정보 처리방침
 					</Link>
 					<ExternalLink className={cx('footer-item', LINK)} href={GITHUB.REPO} showIcon={false}>

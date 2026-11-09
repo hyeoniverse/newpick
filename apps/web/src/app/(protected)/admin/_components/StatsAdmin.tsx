@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import {
 	fetchCostStats,
 	fetchDeliveryStats,
@@ -183,7 +184,9 @@ export default function StatsAdmin() {
 															<td className="num">{p.avgScroll}%</td>
 															<td className="row-link">
 																<Link
-																	href={`/admin/stats/page?route=${encodeURIComponent(p.route)}&from=${from}&to=${to}`}
+																	href={ROUTES.admin.statsPage(
+																		`route=${encodeURIComponent(p.route)}&from=${from}&to=${to}`,
+																	)}
 																>
 																	히트맵 보기 →
 																</Link>
@@ -426,7 +429,7 @@ export default function StatsAdmin() {
 									<ol className="top">
 										{d.views.top.map((n) => (
 											<li key={n.id}>
-												<a href={`/admin/newsletters/${n.id}`}>{n.title}</a>
+												<a href={ROUTES.admin.newsletter(n.id)}>{n.title}</a>
 												<span>
 													{n.category} · {n.viewcount.toLocaleString()}회
 												</span>

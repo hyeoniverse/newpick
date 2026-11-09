@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import { SESSION_HINT_COOKIE } from '@/constants/api';
 
 /**
@@ -59,7 +60,7 @@ export function openLoginPopup(): Promise<LoginPopupResult> {
 	const left = Math.max(0, window.screenX + (window.outerWidth - WIDTH) / 2);
 	const top = Math.max(0, window.screenY + (window.outerHeight - HEIGHT) / 2);
 	const popup = window.open(
-		'/login-popup',
+		ROUTES.loginPopup,
 		'newpick-login',
 		`popup=yes,width=${WIDTH},height=${HEIGHT},left=${left},top=${top}`,
 	);

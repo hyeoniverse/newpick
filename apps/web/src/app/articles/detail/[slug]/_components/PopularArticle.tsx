@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import { dateFormatter } from '@/utils/formatter';
@@ -49,14 +50,14 @@ function PopularArticle({ className }: Props) {
 					popularArticles.map((article, index) => (
 						<li key={index}>
 							<p className="index">{index + 1}</p>
-							<Link href={`/articles/detail/${article.id}`} className="text-section">
+							<Link href={ROUTES.article(article.id)} className="text-section">
 								<div>
 									<p className="title">{article.title}</p>
 									<p className="date">{dateFormatter(article.createdAt)}</p>
 								</div>
 							</Link>
 							{article.imageUrl ? (
-								<Link href={`/articles/detail/${article.id}`} className="thum-link">
+								<Link href={ROUTES.article(article.id)} className="thum-link">
 									<HeightAutoImg src={getFirstImage(article.imageUrl)} aspectratio={1} />
 								</Link>
 							) : (

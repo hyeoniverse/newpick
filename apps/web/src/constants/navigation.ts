@@ -1,15 +1,16 @@
+import { ROUTES } from '@/constants/routes';
 import { Navigation as INavigation } from '@/models/navigation.model';
 
 export const NAVIGATION: INavigation[] = [
 	{
 		id: 0,
 		title: '시작하기',
-		link: '/about',
+		link: ROUTES.about,
 	},
 	{
 		id: 1,
 		title: '뉴스레터',
-		link: '/articles',
+		link: ROUTES.articles,
 	},
 ];
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
 
 import { useState } from 'react';
@@ -125,7 +126,7 @@ export default function TagFollows() {
 													{day(n.createdAt)}
 													<span className="category">{n.category}</span>
 												</p>
-												<Link href={`/articles/detail/${n.id}`} className="heading">
+												<Link href={ROUTES.article(n.id)} className="heading">
 													{n.title}
 												</Link>
 											</li>
@@ -146,8 +147,8 @@ export default function TagFollows() {
 			) : (
 				!isPending && (
 					<p className="empty">
-						아직 팔로우한 태그가 없습니다. 위에서 찾아 추가하거나, <Link href="/tags">태그 전체 보기</Link>에서 태그를
-						눌러 목록 위의 &lsquo;팔로우&rsquo;로 추가할 수 있습니다.
+						아직 팔로우한 태그가 없습니다. 위에서 찾아 추가하거나, <Link href={ROUTES.tags}>태그 전체 보기</Link>에서
+						태그를 눌러 목록 위의 &lsquo;팔로우&rsquo;로 추가할 수 있습니다.
 					</p>
 				)
 			)}

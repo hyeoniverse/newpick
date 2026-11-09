@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useRouter } from 'next/navigation';
 import { LuChevronRight } from 'react-icons/lu';
 import Button from '@/components/common/Button';
@@ -42,7 +43,7 @@ export default function HeroSection() {
 				<Button scheme="primary" size="large" onClick={() => openSubscribe()}>
 					무료로 구독하기
 				</Button>
-				<button type="button" className="text-link" onClick={() => router.push('/articles')}>
+				<button type="button" className="text-link" onClick={() => router.push(ROUTES.articles)}>
 					뉴스레터 둘러보기 <LuChevronRight aria-hidden />
 				</button>
 			</div>

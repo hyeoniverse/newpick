@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { fetchNewsletterList } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
@@ -89,7 +90,7 @@ export default function NewslettersList() {
 									<td className="nowrap category">{mapIdToTitle([n.categoryId])[0]}</td>
 									<td>
 										{/* 누르면 고치기 (#31). 사이트에서 보기는 고치기 화면에서 */}
-										<Link href={`/admin/newsletters/${n.id}`}>{n.title}</Link>
+										<Link href={ROUTES.admin.newsletter(n.id)}>{n.title}</Link>
 									</td>
 									<td className="nowrap num">{n.viewcount.toLocaleString()}</td>
 									<td className="nowrap num">{n.id}</td>

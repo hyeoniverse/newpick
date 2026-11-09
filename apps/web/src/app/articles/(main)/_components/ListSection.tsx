@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { ITEMS_PER_PAGE } from '@/constants/numbers';
@@ -210,7 +211,7 @@ export default function ListSection() {
 					icon={LuSearchX}
 					title="찾는 뉴스레터가 없어요"
 					description={'검색어를 바꾸거나 기간 · 관심사를 넓혀 보세요.'}
-					action={{ label: '조건 지우기', href: '/articles' }}
+					action={{ label: '조건 지우기', href: ROUTES.articles }}
 				/>
 			) : (
 				<div className="newsletter-cards">
@@ -221,7 +222,7 @@ export default function ListSection() {
 							highlight={filters.q}
 							data={{
 								id: article.id,
-								url: `/articles/detail/${article.id}`,
+								url: ROUTES.article(article.id),
 								image: article.image,
 								header: article.categoryName,
 								main: {

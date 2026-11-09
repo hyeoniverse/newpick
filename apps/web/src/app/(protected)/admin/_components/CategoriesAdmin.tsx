@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { fetchCategories } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
@@ -51,19 +52,23 @@ export default function CategoriesAdmin() {
 									<tr key={row.id}>
 										<td className="category">{row.name}</td>
 										<td className="num">
-											<Link href={`/admin/newsletters?categoryId=${row.id}&from=${daysAgo(today, 29)}&to=${today}`}>
+											<Link
+												href={`${ROUTES.admin.newsletters}?categoryId=${row.id}&from=${daysAgo(today, 29)}&to=${today}`}
+											>
 												{row.newsletters.toLocaleString()}편
 											</Link>
 										</td>
 										<td className="nowrap num">{when(row.lastNewsletterAt, today)}</td>
 										<td className="num">{row.interestedUsers.toLocaleString()}명</td>
 										<td className="num">
-											<Link href={`/admin/subscribers?status=active&categoryId=${row.id}`}>
+											<Link href={`${ROUTES.admin.subscribers}?status=active&categoryId=${row.id}`}>
 												{row.activeSubscribers.toLocaleString()}명
 											</Link>
 										</td>
 										<td className="num">
-											<Link href={`/admin/articles?categoryId=${row.id}&from=${daysAgo(today, 29)}&to=${today}`}>
+											<Link
+												href={`${ROUTES.admin.articles}?categoryId=${row.id}&from=${daysAgo(today, 29)}&to=${today}`}
+											>
 												{row.articles30d.toLocaleString()}건
 											</Link>
 										</td>
