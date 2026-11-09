@@ -1,5 +1,5 @@
 import { useCallback, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { type QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 
 import { User } from '@/models/user.model';
@@ -10,17 +10,24 @@ import { fetchUser, logoutUser } from '@/api/auth';
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/stores/useAuthStore';
 
-/** 로그인한 사람마다 다른 조회 결과. 로그아웃·탈퇴하면 지운다 */
-const USER_QUERY_KEYS = [
-	'user',
-	'bookmarks',
-	'highlights',
-	'folders',
-	'myMails',
-	'taste',
-	'subscriptionStatus',
-	'subscriptionInterests',
-];
+/**
+ * 누구에게나 같은 조회 결과(뉴스레터 목록 · 본문 · 인기 · 키워드 · 트렌드). 로그아웃 · 탈퇴해도 남긴다.
+ * 나머지는 모두 지운다: 계정별 키를 하나씩 적으면 새 키(팔로우 · 로그인 기록 …)가 빠져 전 계정 데이터가 보였다
+ */
+const PUBLIC_QUERY_ROOTS = new Set([
+	'articleList',
+	'articleContent',
+	'popularArticles',
+	'relatedNews',
+	'popularKeywords',
+	'allKeywords',
+	'trends',
+]);
+
+/** 이 계정의 조회 결과를 모두 지운다 (공개 결과만 남김) */
+export function clearAccountQueries(queryClient: QueryClient) {
+	queryClient.removeQueries({ predicate: (query) => !PUBLIC_QUERY_ROOTS.has(String(query.queryKey[0])) });
+}
 
 export const useAuth = () => {
 	const { showToast } = useToast();
@@ -35,7 +42,7 @@ export const useAuth = () => {
 	 */
 	const resetSession = useCallback(() => {
 		clearUser();
-		for (const key of USER_QUERY_KEYS) queryClient.removeQueries({ queryKey: [key] });
+		clearAccountQueries(queryClient);
 		if (PROTECTED.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
 			router.push('/');
 		}
