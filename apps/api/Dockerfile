@@ -9,7 +9,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends openssl && rm -
 COPY package.json package-lock.json ./
 COPY apps/api/package.json apps/api/
 COPY apps/web/package.json apps/web/
-RUN npm ci -w apps/api
+# 공유 패키지(@newpick/shared)는 작아서 소스째 먼저 넣고 설치 뒤 바로 빌드 (api가 dist를 require)
+COPY packages/shared packages/shared
+RUN npm ci -w apps/api -w packages/shared && npm run build -w @newpick/shared
 
 COPY apps/api apps/api
 WORKDIR /app/apps/api
@@ -34,6 +36,9 @@ COPY --from=build /app/node_modules /app/node_modules
 COPY --from=build /app/apps/api/node_modules ./node_modules
 COPY --from=build /app/apps/api/dist ./dist
 COPY --from=build /app/apps/api/prisma ./prisma
+# node_modules/@newpick/shared는 packages/shared를 가리키는 링크라 빌드한 결과를 그 자리에
+COPY --from=build /app/packages/shared/package.json /app/packages/shared/package.json
+COPY --from=build /app/packages/shared/dist /app/packages/shared/dist
 COPY apps/api/package.json ./
 
 USER node

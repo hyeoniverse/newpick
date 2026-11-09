@@ -1,9 +1,11 @@
+import { CATEGORY_NAMES } from '@newpick/shared';
 import { MysqlPrismaService } from '../prisma/mysql.service';
 
 const prisma = new MysqlPrismaService();
 
 async function generateCategory() {
-  const categories = ['IT', '정치', '경제', '사회', '생활', '세계'];
+  // 분야 목록은 @newpick/shared (웹과 같은 목록)
+  const categories = CATEGORY_NAMES;
 
   for (const category of categories) {
     await prisma.newsCategory.upsert({

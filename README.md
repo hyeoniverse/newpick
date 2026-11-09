@@ -15,6 +15,7 @@
 |---|---|
 | [`apps/web`](apps/web) | 프론트엔드 (Next.js) |
 | [`apps/api`](apps/api) | 백엔드 (NestJS) |
+| [`packages/shared`](packages/shared) | 웹 · api가 함께 쓰는 상수와 타입 (`@newpick/shared`) |
 
 ## 설치 · 실행
 
@@ -28,4 +29,5 @@ npm test               # 두 앱의 테스트
 ```
 
 - 패키지 추가 · 삭제도 루트에서 앱을 지정합니다: `npm install dayjs -w apps/web`
+- 설치하면 `postinstall`이 `packages/shared`를 빌드합니다 (두 앱은 빌드된 `dist`를 씁니다). 공유 패키지를 고쳤으면 `npm run build -w @newpick/shared`
 - api Docker 이미지는 루트를 컨텍스트로 만듭니다: `docker build -f apps/api/Dockerfile .`

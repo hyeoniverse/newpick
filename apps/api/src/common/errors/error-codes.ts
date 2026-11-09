@@ -1,4 +1,5 @@
 import { HttpStatus } from '@nestjs/common';
+import type { ErrorCode } from '@newpick/shared';
 
 /**
  * API 오류 목록. 모든 오류 응답은 이 표의 code · 상태 코드 · 메시지로 나간다.
@@ -168,9 +169,10 @@ export const ERROR_CODES = {
     status: HttpStatus.BAD_REQUEST,
     message: '인증 코드가 만료되었습니다. 인증 코드를 다시 요청해 주세요.',
   },
-} as const satisfies Record<string, { status: HttpStatus; message: string }>;
+  // 이름 목록은 @newpick/shared (웹과 같은 이름). 하나라도 빠지거나 남으면 타입 오류
+} as const satisfies Record<ErrorCode, { status: HttpStatus; message: string }>;
 
-export type ErrorCode = keyof typeof ERROR_CODES;
+export type { ErrorCode };
 
 /** code가 없는 오류(Nest 기본 예외 등)는 상태 코드로 대표 code를 정한다 */
 export const DEFAULT_CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {

@@ -1,3 +1,4 @@
+import type { CategoryName } from '@newpick/shared';
 import { Injectable, Logger } from '@nestjs/common';
 import { OpenModelService } from '../ai/open-model.service';
 import { GENDER_RULES } from './writing-rules';
@@ -149,7 +150,10 @@ export const LIMITS = {
 } as const;
 
 /** 같은 사안을 두고 주장이 엇갈리기 쉬운 분야: 기사를 더 보내고 반대 주장을 더 챙긴다 */
-export const DEBATE_CATEGORIES = ['정치', '사회'];
+export const DEBATE_CATEGORIES: readonly CategoryName[] = ['정치', '사회'];
+/** 같은 사안을 두고 주장이 맞서기 쉬운 분야인가 (debate를 적극 채운다) */
+const isDebateCategory = (category?: string) =>
+  !!category && (DEBATE_CATEGORIES as readonly string[]).includes(category);
 
 /**
  * 중요도 점수표. 예전엔 '여러 언론이 함께 다룬 사건'을 앞세워,
@@ -512,7 +516,7 @@ export const writerPrompt = (
         ]
       : ['- 오늘 아침 속보가 없으니 모든 소식의 morning은 false입니다.']),
     `- keywords: 이 뉴스레터의 핵심 키워드 ${LIMITS.keywords.min}~${LIMITS.keywords.max}개 (소식 tags 중 중요한 것 포함), 하나에 ${LIMITS.keywords.length}자 이내. 독자가 검색할 만한 고유명사·주제어(예: 코스피, 가상자산 과세, CPTPP). # 기호와 분야 이름 자체는 넣지 않고, 중요한 순서로.`,
-    ...(category && DEBATE_CATEGORIES.includes(category)
+    ...(isDebateCategory(category)
       ? [
           `- ${category} 분야는 같은 사안을 두고 주장이 맞서는 경우가 많습니다. 여러 기사(언론사)를 비교해 서로 반대되는 주장이 있으면 debate를 채우고, body · analysis도 한쪽 주장만 따르지 않게 씁니다.`,
         ]
@@ -865,7 +869,7 @@ export function pickArticles(
 ) {
   const perStory =
     perCluster ??
-    (category && DEBATE_CATEGORIES.includes(category)
+    (isDebateCategory(category)
       ? LIMITS.articlesPerStoryWide
       : LIMITS.articlesPerStory);
   return [...new Set(picks)]

@@ -1,3 +1,4 @@
+import { type ErrorCode, isErrorCode } from '@newpick/shared';
 import { API_ENDPOINTS } from '@/constants/api';
 
 /**
@@ -5,8 +6,8 @@ import { API_ENDPOINTS } from '@/constants/api';
  * status(HTTP 상태)나 code(예: NEWSLETTER_NOT_FOUND)로 분기하고, message는 사용자에게 그대로 보여 줘도 된다
  */
 export class ApiError extends Error {
-	/** API 오류 code. 응답이 JSON이 아니면(프록시 오류 등) 없음 */
-	public readonly code?: string;
+	/** API 오류 code (@newpick/shared의 이름). 응답이 JSON이 아니거나(프록시 오류 등) 모르는 code면 없음 */
+	public readonly code?: ErrorCode;
 
 	constructor(
 		public readonly status: number,
@@ -16,7 +17,7 @@ export class ApiError extends Error {
 		super(message);
 		this.name = 'ApiError';
 		const code = (body as { code?: unknown } | undefined)?.code;
-		if (typeof code === 'string') this.code = code;
+		if (isErrorCode(code)) this.code = code;
 	}
 }
 

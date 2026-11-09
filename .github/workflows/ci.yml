@@ -64,8 +64,8 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
-      # npm workspaces: 루트 잠금 파일 하나로 이 앱만 설치
-      - run: npm ci -w apps/${{ matrix.app }}
+      # npm workspaces: 루트 잠금 파일 하나로 이 앱과 공유 패키지만 설치, 공유 패키지는 바로 빌드 (앱이 dist를 쓴다)
+      - run: npm ci -w apps/${{ matrix.app }} -w packages/shared && npm run build -w @newpick/shared
         working-directory: .
       - if: matrix.app == 'api'
         run: npx prisma generate --schema=prisma/mysql.schema.prisma
@@ -197,8 +197,8 @@ jobs:
           node-version: 22
           cache: npm
           cache-dependency-path: package-lock.json
-      # npm workspaces: 루트 잠금 파일 하나로 웹만 설치
-      - run: npm ci -w apps/web
+      # npm workspaces: 루트 잠금 파일 하나로 웹과 공유 패키지만 설치, 공유 패키지는 바로 빌드
+      - run: npm ci -w apps/web -w packages/shared && npm run build -w @newpick/shared
       # 2026-10-26 수동 실행 두 번이 이 단계(apt)에서 29분·16분 멈췄다. 5분씩 최대 3번 시도한다.
       # timeout은 npx만 끝내고 그 아래 apt-get은 남아 잠금을 쥐고 있어, 다음 시도가 바로 실패했다 (#53 CI).
       # 다음 시도 전에 남은 apt를 끝내고, apt는 잠금을 기다리게 한다 (#57)
