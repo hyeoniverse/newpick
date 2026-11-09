@@ -1,6 +1,6 @@
-import type { Story } from './newsletterWriter.service';
-import { articleImage, StoryImageService } from './storyImages';
-import { renderNewsletterHtml } from './newsletterHtml';
+import type { Story } from './newsletter-writer.service';
+import { articleImage, StoryImageService } from './story-images';
+import { renderNewsletterHtml } from './newsletter-html';
 
 const story = (overrides: Partial<Story> = {}): Story => ({
   template: 'analysis',

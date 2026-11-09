@@ -1,12 +1,12 @@
-import { renderNewsletterHtml } from './newsletterHtml';
+import { renderNewsletterHtml } from './newsletter-html';
 import { mergeTags } from './ai-summary.service';
 import {
   LIMITS,
   normalize,
   WRITER_SCHEMA,
   writerPrompt,
-} from './newsletterWriter.service';
-import { prepare } from './articlePrep';
+} from './newsletter-writer.service';
+import { prepare } from './article-prep';
 import { parseNewsletterHtml } from '../edition/parse';
 import { tagStories } from '../edition/personalize';
 import { sectionTags } from '../mypage/highlights.service';

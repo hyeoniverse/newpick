@@ -2,7 +2,7 @@ import type {
   Story,
   StoryImage,
   WrittenNewsletter,
-} from './newsletterWriter.service';
+} from './newsletter-writer.service';
 
 const escapeHtml = (text: string) =>
   text

@@ -1,6 +1,6 @@
-import { prepare } from './articlePrep';
-import { selectPrompt, writerPrompt } from './newsletterWriter.service';
-import { GENDER_RULES } from './writingRules';
+import { prepare } from './article-prep';
+import { selectPrompt, writerPrompt } from './newsletter-writer.service';
+import { GENDER_RULES } from './writing-rules';
 import { editorPrompt } from '../edition/editor';
 
 const articles = prepare([{ title: '제목', content: '본문', source: 'KBS' }]);

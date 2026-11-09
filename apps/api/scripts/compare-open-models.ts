@@ -16,15 +16,15 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import mongoose from 'mongoose';
 import { PrismaClient } from '@prisma/client';
-import { prepare } from '../src/ai-summary/articlePrep';
+import { prepare } from '../src/ai-summary/article-prep';
 import {
   normalize,
   WRITER_SCHEMA,
   WRITER_SYSTEM,
   writerPrompt,
   type WrittenNewsletter,
-} from '../src/ai-summary/newsletterWriter.service';
-import { renderNewsletterHtml } from '../src/ai-summary/newsletterHtml';
+} from '../src/ai-summary/newsletter-writer.service';
+import { renderNewsletterHtml } from '../src/ai-summary/newsletter-html';
 
 const OLLAMA = process.env.OLLAMA_URL || 'http://localhost:11434';
 

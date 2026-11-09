@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { OpenModelService } from '../ai/open-model.service';
-import { GENDER_RULES } from './writingRules';
+import { GENDER_RULES } from './writing-rules';
 import { ClaudeService, CLAUDE_FAST_MODEL } from './claude.service';
 import {
   Cluster,
@@ -11,7 +11,7 @@ import {
   PrepArticle,
   publishedLabel,
   isMorning,
-} from './articlePrep';
+} from './article-prep';
 import { kstDayLabel, kstStamp } from '../common/kst';
 import { UsageError, usageOf } from './pricing';
 
@@ -62,7 +62,7 @@ export type Story = {
   sources: number[];
   /** 원출처 사진이 없을 때 Pexels·Unsplash에서 찾을 영어 검색어 */
   imageQuery: string;
-  /** 쓰기가 끝난 뒤 서버가 붙인다 (storyImages.ts) */
+  /** 쓰기가 끝난 뒤 서버가 붙인다 (story-images.ts) */
   image?: StoryImage;
 };
 

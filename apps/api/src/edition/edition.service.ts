@@ -22,7 +22,7 @@ import {
   normalizeNote,
   notePrompt,
   PersonalNote,
-} from './personalNote';
+} from './personal-note';
 import { AiService } from '../ai/ai.service';
 import { createUnsubscribeToken } from 'src/subscriber/unsubscribe-token';
 import { renderEditionMail } from './mail';

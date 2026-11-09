@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { Story, StoryImage } from './newsletterWriter.service';
+import type { Story, StoryImage } from './newsletter-writer.service';
 
 /**
  * 소식마다 사진 한 장 (#49)

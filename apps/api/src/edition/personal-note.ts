@@ -1,4 +1,4 @@
-import { GENDER_RULES } from 'src/ai-summary/writingRules';
+import { GENDER_RULES } from 'src/ai-summary/writing-rules';
 import type { ComposedEdition } from './compose';
 import type { TasteProfile } from './personalize';
 

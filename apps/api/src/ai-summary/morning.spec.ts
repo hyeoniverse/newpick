@@ -1,5 +1,5 @@
-import { renderNewsletterHtml } from './newsletterHtml';
-import { isMorning, prepare } from './articlePrep';
+import { renderNewsletterHtml } from './newsletter-html';
+import { isMorning, prepare } from './article-prep';
 import {
   describeClusters,
   LIMITS,
@@ -9,7 +9,7 @@ import {
   splitPicks,
   WRITER_SCHEMA,
   writerPrompt,
-} from './newsletterWriter.service';
+} from './newsletter-writer.service';
 import { parseNewsletterHtml } from '../edition/parse';
 import { composeEdition } from '../edition/compose';
 import { renderEditionMail } from '../edition/mail';

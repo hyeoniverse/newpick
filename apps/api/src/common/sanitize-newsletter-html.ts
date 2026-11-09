@@ -1,6 +1,6 @@
 import { JSDOM } from 'jsdom';
 
-/** 뉴스레터 템플릿(newsletterHtml.ts)이 쓰는 태그만 */
+/** 뉴스레터 템플릿(newsletter-html.ts)이 쓰는 태그만 */
 const ALLOWED_TAGS = new Set([
   'article',
   'section',

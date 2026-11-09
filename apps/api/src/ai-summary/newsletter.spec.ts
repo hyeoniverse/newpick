@@ -18,7 +18,7 @@ import {
   writerPrompt,
   Story,
   WrittenNewsletter,
-} from './newsletterWriter.service';
+} from './newsletter-writer.service';
 import {
   cleanText,
   clusterArticles,
@@ -26,8 +26,8 @@ import {
   prepare,
   titleSimilarity,
   truncate,
-} from './articlePrep';
-import { renderNewsletterHtml } from './newsletterHtml';
+} from './article-prep';
+import { renderNewsletterHtml } from './newsletter-html';
 import { AiSummaryService, usedArticles } from './ai-summary.service';
 import { CLAUDE_FAST_MODEL } from './claude.service';
 

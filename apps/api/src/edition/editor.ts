@@ -1,4 +1,4 @@
-import { GENDER_RULES } from '../ai-summary/writingRules';
+import { GENDER_RULES } from '../ai-summary/writing-rules';
 import type { ParsedStory } from './parse';
 import { storyText } from './parse';
 
