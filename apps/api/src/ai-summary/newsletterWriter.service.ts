@@ -110,6 +110,12 @@ export type Usage = {
   stage?: string;
 };
 
+/**
+ * 고르기 응답 한도. 묶음마다 번호 · 제목 · 점수 · 이유 한 줄씩이라 묶음이 많은 날은 5~6천 토큰을 넘는다
+ * (11/2~11/7 최대 5,570, 제목 칸이 붙은 11/8부터 6000에서 잘려 이틀 동안 전 분야 실패). 쓴 만큼만 비용이 나와 넉넉히 둔다
+ */
+export const SELECT_MAX_TOKENS = 16000;
+
 export const LIMITS = {
   title: 30,
   subtitle: 60,
@@ -984,8 +990,7 @@ export class NewsletterWriterService {
           prompt: selectPrompt(clusters, category, recentTopics, today),
           schema: SELECT_SCHEMA,
           effort: 'low',
-          // 묶음마다 점수 한 줄씩 (30묶음이면 2천 토큰 남짓)
-          maxTokens: 6000,
+          maxTokens: SELECT_MAX_TOKENS,
         });
         usage.push({ ...selected.usage, stage: 'select' });
         const raw = JSON.parse(selected.text) as {
