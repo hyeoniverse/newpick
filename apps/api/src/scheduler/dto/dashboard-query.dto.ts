@@ -116,7 +116,7 @@ export class DashboardJobRunsQueryDto extends DashboardListQueryDto {
   @IsIn(['running', ...JOB_RESULTS], {
     message: 'status가 올바르지 않습니다',
   })
-  status?: string;
+  status?: JobStatus;
 }
 
 /** 수집 기사 (#31): + 관심사 · 언론사 · 제목 */
