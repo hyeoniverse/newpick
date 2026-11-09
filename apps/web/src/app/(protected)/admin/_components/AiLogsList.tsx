@@ -1,8 +1,9 @@
 'use client';
 
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/api/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { LuRotateCw, LuTriangleAlert } from 'react-icons/lu';
+import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
@@ -12,11 +13,14 @@ import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from './format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
+import ModalContents from '@/components/common/modal/ModalContent';
+import { useModal } from '@/hooks/useModal';
+import { useToast } from '@/hooks/useToast';
 
 const PAGE_SIZE = 20;
 
 /** 가로로 넘겨도 왼쪽에 고정하는 칸 폭: 시각 · 분야 · 결과 (무엇이 언제 어떻게 됐는지) */
-const PINNED = ['9rem', '3.5rem', '7.5rem'];
+const PINNED = ['9rem', '3.5rem', '9rem'];
 
 interface Row {
 	id: number;
@@ -33,6 +37,7 @@ interface Row {
 	costUsd: number | null;
 	/** 요약한 분야 (이전 기록은 없음) */
 	category: string | null;
+	categoryId: number | null;
 	/** 같은 분야 시도 묶음 (12시간 안에 이어진 다시 시도): n번째 시도 / 모두 total번, 묶음이 어떻게 끝났는지, 묶음 열쇠 */
 	attempt: { n: number; total: number; outcome: string; chain: number } | null;
 }
@@ -49,9 +54,56 @@ const STATUSES = [
 	{ value: 'error', label: '실패' },
 ];
 
+/** 기록이 남은 날 (KST, YYYY-MM-DD) */
+const kstDay = (iso: string) => new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+/**
+ * 다시 만들 수 있는 기록: 분야가 있는 요약이 실패했고, 그 묶음의 마지막 시도도 실패로 끝난 것.
+ * (묶음 중간 실패는 뒤에서 이미 다시 시도했다)
+ */
+const canRerun = (log: Row) =>
+	log.processType === 'summarization' &&
+	log.status === 'error' &&
+	log.categoryId != null &&
+	(!log.attempt || (log.attempt.n === log.attempt.total && log.attempt.outcome !== 'success'));
+
+/** 실패한 요약을 그날 · 그 분야로 다시 만든다 (서버가 그날 이미 있는 분야는 건너뛴다) */
+function useRerun() {
+	const { openModal, closeModal } = useModal();
+	const { showToast } = useToast();
+	const queryClient = useQueryClient();
+	return (log: Row) => {
+		const date = kstDay(log.createdAt);
+		openModal(
+			<ModalContents
+				icon={<LuTriangleAlert />}
+				title={`${date} ${log.category ?? ''} 다시 만들까요?`}
+				content="그날 모은 기사로 다시 요약해 그날 날짜로 올려요. 그날 이 분야 뉴스레터가 이미 있으면 건너뛰어요. 구독 메일은 보내지 않고, Claude 비용이 들어요."
+				outlineButton="취소"
+				filledButton="다시 만들기"
+				onCancelClick={closeModal}
+				onConfirmClick={async () => {
+					closeModal();
+					try {
+						await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW('ai-summary'), {
+							method: 'POST',
+							body: { date, categoryId: log.categoryId },
+						});
+						showToast(`${date} ${log.category ?? ''} 다시 만들기를 시작했어요. 몇 분 뒤 기록에 나와요.`, 'success');
+						setTimeout(() => queryClient.invalidateQueries({ queryKey: ['adminAiLogs'] }), 60_000);
+					} catch (error) {
+						showToast(error instanceof ApiError ? error.message : '시작하지 못했습니다.', 'error');
+					}
+				}}
+			/>,
+		);
+	};
+}
+
 /** 관리자 상세: AI 기록 (종류 · 결과로 거르기, 그 조건의 비용 합계, 쪽) */
 export default function AiLogsList() {
 	const { from, to, page, set, get, today } = useAdminQuery();
+	const rerun = useRerun();
 	const type = get('type');
 	const status = get('status');
 	const sortQuery = useSortQuery();
@@ -170,7 +222,7 @@ export default function AiLogsList() {
 										<td className="nowrap num">{when(log.createdAt, today)}</td>
 										<td className="nowrap">{log.category ?? '-'}</td>
 										<td>
-											<Result log={log} />
+											<Result log={log} onRerun={rerun} />
 										</td>
 										<td className="nowrap">{PROCESS_LABEL[log.processType] ?? log.processType}</td>
 										<td className="model">
@@ -219,6 +271,7 @@ export default function AiLogsList() {
 										earlier={i > 0}
 										open={open.has(log.id)}
 										onToggle={() => toggle(log.id)}
+										onRerun={rerun}
 									/>
 								))}
 							</ol>
@@ -257,7 +310,7 @@ function groupAttempts(items: Row[]) {
 }
 
 /** 결과 칸: 성공 · 실패 배지, 다시 시도 묶음이면 옆에 '시도 n/total' (묶음 결과는 붙어 있는 맨 위 줄에서 보인다) */
-function Result({ log }: { log: Row }) {
+function Result({ log, onRerun }: { log: Row; onRerun: (log: Row) => void }) {
 	const attempt = log.attempt;
 	return (
 		<span className="np-admin-ai-logs-list-badges">
@@ -266,6 +319,11 @@ function Result({ log }: { log: Row }) {
 				<span className="step">
 					시도 {attempt.n}/{attempt.total}
 				</span>
+			)}
+			{canRerun(log) && (
+				<button type="button" className="rerun" onClick={() => onRerun(log)} aria-label={`${log.category} 다시 만들기`}>
+					<LuRotateCw aria-hidden />
+				</button>
 			)}
 		</span>
 	);
@@ -324,12 +382,14 @@ function LogEntry({
 	earlier,
 	open,
 	onToggle,
+	onRerun,
 }: {
 	log: Row;
 	today: string;
 	earlier: boolean;
 	open: boolean;
 	onToggle: () => void;
+	onRerun: (log: Row) => void;
 }) {
 	const ok = log.status === 'success';
 	const attempt = log.attempt && log.attempt.total > 1 ? log.attempt : null;
@@ -375,6 +435,12 @@ function LogEntry({
 					</span>
 				)}
 			</button>
+			{canRerun(log) && (
+				<button type="button" className="rerun" onClick={() => onRerun(log)}>
+					<LuRotateCw aria-hidden />
+					다시 만들기
+				</button>
+			)}
 		</li>
 	);
 }

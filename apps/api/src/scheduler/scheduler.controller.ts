@@ -3,6 +3,7 @@ import { ScheduleDto } from './dto/schedule.dto';
 import { SchedulerService } from './scheduler.service';
 import { MailSendCycleDto } from './dto/mail-send-cycle.dto';
 import { ToggleDto } from './dto/toggle.dto';
+import { ManualSummaryDto } from './dto/manual-summary.dto';
 import { Logger } from '@nestjs/common';
 import { MailService } from '../mail/mail.service';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
@@ -233,11 +234,15 @@ export class SchedulerController {
     };
   }
   @Post('manual/ai-summary')
-  startAiSummary() {
-    this.schedulerService.manualStartAiSummary();
+  startAiSummary(@Body() { date, categoryId }: ManualSummaryDto = {}) {
+    // 날짜가 맞지 않으면 시작하기 전에 400 (오늘 · 앞날 · 기사가 지워진 날)
+    const at = date ? this.schedulerService.backfillMoment(date) : undefined;
+    this.schedulerService.manualStartAiSummary(at, categoryId);
     return {
       success: true,
-      message: 'AI 요약 시작되었습니다.',
+      message: date
+        ? `${date} 뉴스레터를 다시 만들기 시작했습니다.`
+        : 'AI 요약 시작되었습니다.',
     };
   }
   @Post('manual/mail-send')

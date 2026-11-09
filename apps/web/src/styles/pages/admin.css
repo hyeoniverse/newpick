@@ -542,6 +542,57 @@
 		font-variant-numeric: tabular-nums;
 		color: var(--np-color-sub-text);
 	}
+
+	/* 실패한 요약 다시 만들기: 배지 옆 작은 원형 단추 */
+	.rerun {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		padding: 0;
+		border: 1px solid var(--np-color-border);
+		border-radius: 9999px;
+		background: var(--np-color-background);
+		color: var(--np-color-sub-text);
+		cursor: pointer;
+		transition:
+			color 0.15s ease,
+			border-color 0.15s ease;
+
+		svg {
+			width: 0.8125rem;
+			height: 0.8125rem;
+		}
+
+		&:hover {
+			color: var(--np-color-primary);
+			border-color: var(--np-color-primary);
+		}
+	}
+}
+
+/* 휴대폰 카드: 실패한 요약 아래 '다시 만들기' (글 칸 아래 줄, 왼쪽 맞춤) */
+.np-admin-ai-logs-list-card-list .rerun {
+	grid-column: 2;
+	justify-self: start;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	margin: 0 0 0.75rem;
+	white-space: nowrap;
+	padding: 0.25rem 0.625rem;
+	border: 1px solid var(--np-color-border);
+	border-radius: 9999px;
+	background: var(--np-color-background);
+	color: var(--np-color-sub-text);
+	font-size: var(--np-font-size-extra-small);
+	cursor: pointer;
+
+	svg {
+		width: 0.75rem;
+		height: 0.75rem;
+	}
 }
 
 /* app/(protected)/admin/_components/AiLogsList.tsx */
