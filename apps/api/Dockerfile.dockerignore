@@ -13,3 +13,6 @@ docs
 ops
 apps/web
 !apps/web/package.json
+
+# 공유 패키지는 소스만 (빌드는 이미지 안에서)
+packages/*/dist

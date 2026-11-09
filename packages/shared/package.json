@@ -1,0 +1,18 @@
+{
+  "name": "@newpick/shared",
+  "version": "0.0.0",
+  "private": true,
+  "description": "웹 · api가 함께 쓰는 상수와 타입 (분야 목록, 오류 코드 이름 …)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "5.7.3"
+  }
+}
