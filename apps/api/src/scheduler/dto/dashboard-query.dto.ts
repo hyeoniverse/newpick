@@ -1,3 +1,9 @@
+import {
+  JOB_NAMES,
+  JOB_RESULTS,
+  type JobName,
+  type JobStatus,
+} from '@newpick/shared';
 import { Type } from 'class-transformer';
 import {
   IsDefined,
@@ -101,16 +107,16 @@ export class DashboardAiLogsQueryDto extends DashboardListQueryDto {
 /** 실행 기록: + 작업 · 결과 */
 export class DashboardJobRunsQueryDto extends DashboardListQueryDto {
   @IsOptional()
-  @IsIn(['crawling', 'summary', 'mail'], {
+  @IsIn(JOB_NAMES, {
     message: 'job은 crawling · summary · mail 중 하나여야 합니다',
   })
-  job?: 'crawling' | 'summary' | 'mail';
+  job?: JobName;
 
   @IsOptional()
-  @IsIn(['running', 'success', 'partial', 'failed', 'skipped'], {
+  @IsIn(['running', ...JOB_RESULTS], {
     message: 'status가 올바르지 않습니다',
   })
-  status?: string;
+  status?: JobStatus;
 }
 
 /** 수집 기사 (#31): + 관심사 · 언론사 · 제목 */

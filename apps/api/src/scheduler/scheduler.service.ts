@@ -1,3 +1,4 @@
+import type { JobName, JobRun, JobTrigger } from '@newpick/shared';
 import { FollowsService } from 'src/follows/follows.service';
 import {
   MailPlan,
@@ -120,22 +121,8 @@ export const backfillAt = (
   );
 };
 
-export type JobName = 'crawling' | 'summary' | 'mail';
-
-/**
- * 작업의 마지막 실행 (#21 관리자 대시보드). 서버 메모리에만 두므로 재시작하면 비어 있다.
- * success: 다 됨, partial: 일부 실패, failed: 실패, skipped: 꺼져 있거나 할 일이 없어 건너뜀
- */
-export type JobTrigger = 'schedule' | 'manual';
-
-export interface JobRun {
-  running: boolean;
-  trigger: JobTrigger | null;
-  startedAt: string | null;
-  finishedAt: string | null;
-  status: 'success' | 'partial' | 'failed' | 'skipped' | null;
-  message: string | null;
-}
+// 작업 이름 · 실행 상태는 @newpick/shared (웹 대시보드와 같은 타입)
+export type { JobName, JobRun, JobTrigger };
 
 const emptyRun = (): JobRun => ({
   running: false,

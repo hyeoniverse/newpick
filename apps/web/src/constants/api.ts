@@ -1,3 +1,4 @@
+import type { JobEndpoint } from '@newpick/shared';
 /** 백엔드 주소. 서버(SSR, middleware, next.config rewrites)에서만 사용합니다. */
 export const BACK_URL = process.env.API_URL || 'http://localhost:3001';
 
@@ -50,9 +51,9 @@ export const API_ENDPOINTS = {
 		/** 그날 메일을 받은 사람 */
 		MAIL_RECIPIENTS: (date: string) => `${API_URL}/scheduler/dashboard/mail?date=${date}`,
 		/** 스케줄러 켜기 · 끄기 (본문 { enable }) */
-		TOGGLE: (job: 'crawling' | 'ai-summary' | 'mail-send') => `${API_URL}/scheduler/toggle/${job}`,
+		TOGGLE: (job: JobEndpoint) => `${API_URL}/scheduler/toggle/${job}`,
 		/** 지금 실행 (응답은 바로 오고 작업은 서버에서 계속) */
-		RUN_NOW: (job: 'crawling' | 'ai-summary' | 'mail-send') => `${API_URL}/scheduler/manual/${job}`,
+		RUN_NOW: (job: JobEndpoint) => `${API_URL}/scheduler/manual/${job}`,
 	},
 	MY: {
 		PROFILE: () => `${API_URL}/mypage/profile`,
