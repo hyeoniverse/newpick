@@ -1,3 +1,4 @@
+import type { TasteStats } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { tagKey, toRules } from 'src/tags/tags';
@@ -214,7 +215,7 @@ export class TasteService {
    * 관리자 통계: 신호를 남긴 사람 수, 모두의 점수를 더한 태그 순위(그 태그를 가진 사람 수 함께), 관심사별 합.
    * 사람마다 따로 계산해 더하므로 한 사람이 많이 남겨도 그 사람 몫만큼만
    */
-  async overview() {
+  async overview(): Promise<TasteStats> {
     const { byUser, rules, names } = await this.signals();
     const topics = new Map<string, { score: number; users: number }>();
     const categories = new Map<number, number>();
