@@ -1,3 +1,9 @@
+import type {
+  CostStats,
+  DeliveryStats,
+  SubscriberStats,
+  TrafficStats,
+} from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { kstDays, kstDaysAgo, kstMonth, toKstDate } from 'src/common/kst';
@@ -53,7 +59,7 @@ export class StatsService {
    * 구독자: 날짜별 새 구독 · 다시 시작 · 일시정지 · 해지와 그날 끝의 구독 중 수, 관심사별 지금 구독 중.
    * 구독 기록(subscription_events)을 처음부터 다시 따라가 사람마다 상태를 맞춘다 (기록이 회원당 몇 줄이라 가볍다)
    */
-  async subscribers(from?: string, to?: string) {
+  async subscribers(from?: string, to?: string): Promise<SubscriberStats> {
     const { days, end, ...range } = this.period(from, to);
     const [events, first, categories, byCategory, active] = await Promise.all([
       this.prisma.subscriptionEvent.findMany({
@@ -136,7 +142,7 @@ export class StatsService {
    * AI 비용: 날짜별 · 종류별 · 관심사별 · 모델별 · 단계별, 뉴스레터 한 편당 평균, 이번 달 누적 · 월말 예상.
    * 비용을 모르는 기록(가격표에 없는 모델 · 이전 기록)은 합계에서 빼고 따로 센다. 실패 기록은 사용량이 남지 않아 따로 센다
    */
-  async cost(from?: string, to?: string) {
+  async cost(from?: string, to?: string): Promise<CostStats> {
     const { days, inRange, start, end, ...range } = this.period(from, to);
     const month = kstMonth();
     const [logs, newsletters, monthCost, categories] = await Promise.all([
@@ -292,7 +298,7 @@ export class StatsService {
    * 발송 · 읽기: 날짜별 받은 사람 · 보낸 메일 수, 구독 메일 작업 결과(성공 · 일부 실패 · 실패 · 건너뜀),
    * 기간 안에 나온 뉴스레터의 관심사별 조회수와 많이 본 뉴스레터
    */
-  async delivery(from?: string, to?: string) {
+  async delivery(from?: string, to?: string): Promise<DeliveryStats> {
     const { days, inRange, start, end, ...range } = this.period(from, to);
     const [sent, runs, newsletters, categories] = await Promise.all([
       this.prisma.$queryRaw<
@@ -391,7 +397,7 @@ export class StatsService {
    * 방문 · 유입 (#131): 날짜별 방문(탭) · 페이지 보기, 유입 경로 · 이전 사이트 · 캠페인 · 첫 페이지 · 기기,
    * 페이지별 보기 · 방문 · 평균 머문 시간 · 평균 스크롤. 유입은 탭의 첫 페이지 기준
    */
-  async traffic(from?: string, to?: string) {
+  async traffic(from?: string, to?: string): Promise<TrafficStats> {
     const { days, inRange, ...range } = this.period(from, to);
     const views = await this.prisma.pageView.findMany({
       where: { startedAt: inRange },

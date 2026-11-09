@@ -1,5 +1,13 @@
 'use client';
 
+// 통계 응답 타입은 @newpick/shared (api 통계 함수의 반환 타입과 같다)
+import type {
+	CostStats,
+	DeliveryStats,
+	SubscriberStats,
+	TasteStats,
+	TrafficStats,
+} from '@newpick/shared';
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -13,61 +21,6 @@ import { PRESETS, useAdminQuery } from './period';
 import { usd } from './format';
 import { CHANNEL_LABEL, DEVICE_LABEL, duration, routeName } from './trafficLabels';
 import Link from 'next/link';
-
-type Runs = { success: number; partial: number; failed: number; skipped: number };
-
-interface SubscriberStats {
-	since: string | null;
-	days: { date: string; subscribe: number; resume: number; pause: number; cancel: number; active: number }[];
-	totals: { subscribe: number; resume: number; pause: number; cancel: number; activeStart: number; activeEnd: number };
-	active: number;
-	byCategory: { id: number; name: string; active: number }[];
-}
-
-interface CostStats {
-	total: number;
-	count: number;
-	unknown: number;
-	failed: number;
-	newsletters: number;
-	perNewsletter: number | null;
-	days: { date: string; cost: number }[];
-	byType: { key: string; cost: number; count: number }[];
-	byModel: { key: string; cost: number }[];
-	byStage: { key: string; cost: number }[];
-	byCategory: { id: number | null; name: string | null; cost: number }[];
-	month: { month: string; toDate: number; projected: number; elapsedDays: number; daysInMonth: number };
-}
-
-interface TrafficStats {
-	totals: { sessions: number; views: number; avgMs: number; viewsPerSession: number };
-	days: { date: string; sessions: number; views: number }[];
-	channels: { key: string; sessions: number }[];
-	referrers: { key: string; sessions: number }[];
-	campaigns: { key: string; sessions: number }[];
-	entryPages: { key: string; sessions: number }[];
-	devices: { key: string; sessions: number }[];
-	pages: { route: string; views: number; sessions: number; avgMs: number; avgScroll: number }[];
-}
-
-interface TasteStats {
-	weights: { bookmark: number; scrap: number; memo: number };
-	halfLifeDays: number;
-	users: number;
-	signals: { bookmark: number; scrap: number; memo: number };
-	topics: { topic: string; score: number; users: number }[];
-	categories: { categoryId: number; name: string | null; score: number }[];
-}
-
-interface DeliveryStats {
-	days: { date: string; recipients: number; mails: number; runs: Runs }[];
-	totals: { recipients: number; mails: number; runs: Runs };
-	views: {
-		total: number;
-		byCategory: { id: number; name: string; views: number; newsletters: number }[];
-		top: { id: number; title: string; category: string | null; viewcount: number }[];
-	};
-}
 
 const TYPE_LABEL: Record<string, string> = {
 	summarization: '뉴스레터 쓰기',
