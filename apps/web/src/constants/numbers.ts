@@ -4,11 +4,6 @@ export const TOAST = {
 	MAX_TOASTS: 5,
 };
 
-export const POPUP = {
-	WIDTH: 500,
-	HEIGHT: 600,
-};
-
 export const SCROLL = {
 	THRESHOLD: 10,
 };

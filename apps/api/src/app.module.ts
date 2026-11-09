@@ -3,7 +3,6 @@ import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
-import { AppService } from './app.service';
 import { CrawlingModule } from './crawling/crawling.module';
 import { SchedulerModule } from './scheduler/scheduler.module'; // 스케줄러 모듈
 import { AuthModule } from './auth/auth.module'; // 인증 모듈
@@ -59,7 +58,6 @@ import { AnalyticsModule } from './analytics/analytics.module';
   ],
   controllers: [AppController], // 컨트롤러 등록
   providers: [
-    AppService,
     {
       provide: APP_FILTER,
       useClass: ApiExceptionFilter, // 모든 오류를 { statusCode, code, message } 한 모양으로
