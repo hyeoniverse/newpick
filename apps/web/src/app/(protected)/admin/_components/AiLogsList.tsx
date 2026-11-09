@@ -1,5 +1,6 @@
 'use client';
 
+import type { AiLogPage, AiLogRow } from '@newpick/shared';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LuRotateCw, LuTriangleAlert } from 'react-icons/lu';
@@ -22,25 +23,8 @@ const PAGE_SIZE = 20;
 /** 가로로 넘겨도 왼쪽에 고정하는 칸 폭: 시각 · 분야 · 결과 (무엇이 언제 어떻게 됐는지) */
 const PINNED = ['9rem', '3.5rem', '9rem'];
 
-interface Row {
-	id: number;
-	processType: string;
-	status: string;
-	duration: number;
-	token: number;
-	createdAt: string;
-	result: string | null;
-	error: string | null;
-	model: string | null;
-	inputTokens: number;
-	outputTokens: number;
-	costUsd: number | null;
-	/** 요약한 분야 (이전 기록은 없음) */
-	category: string | null;
-	categoryId: number | null;
-	/** 같은 분야 시도 묶음 (12시간 안에 이어진 다시 시도): n번째 시도 / 모두 total번, 묶음이 어떻게 끝났는지, 묶음 열쇠 */
-	attempt: { n: number; total: number; outcome: string; chain: number } | null;
-}
+/** 한 줄 (@newpick/shared, api 응답과 같다) */
+type Row = AiLogRow;
 
 const TYPES = [
 	{ value: '', label: '전체' },
@@ -118,9 +102,7 @@ export default function AiLogsList() {
 	const { data, isPending, isError } = useQuery({
 		queryKey: ['adminAiLogs', query.toString()],
 		queryFn: () =>
-			apiFetch<{ data: { items: Row[]; total: number; cost: { total: number; unknown: number } } }>(
-				API_ENDPOINTS.ADMIN.LIST('ai-logs', query.toString()),
-			).then((r) => r.data),
+			apiFetch<{ data: AiLogPage }>(API_ENDPOINTS.ADMIN.LIST('ai-logs', query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,
 	});
 
