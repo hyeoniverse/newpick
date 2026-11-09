@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
@@ -58,7 +59,7 @@ function LatestArticle({ className }: Props) {
 				>
 					{articleList?.map((article) => (
 						<SwiperSlide key={article.id}>
-							<Link href={`/articles/detail/${article.id}`} className="item">
+							<Link href={ROUTES.article(article.id)} className="item">
 								<span className="photo">
 									<Image
 										src={(article.imageUrl && getFirstImage(article.imageUrl)) || DEFAULT_IMAGES.MONO}

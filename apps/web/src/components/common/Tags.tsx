@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { cx } from '@/styles/tw';
 
@@ -25,7 +26,7 @@ export default function Tags({ tags, max, className, linkable = false }: Props) 
 			{shown.map((tag) => (
 				<li key={tag} className="np-tags-chip">
 					{linkable ? (
-						<Link href={`/articles?keyword=${encodeURIComponent(tag)}`} className="np-tags-link">
+						<Link href={ROUTES.articlesByKeyword(tag)} className="np-tags-link">
 							<span className="hash">#</span>
 							{tag}
 						</Link>

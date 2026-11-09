@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
 
 import Link from 'next/link';
@@ -113,7 +114,7 @@ export default function SearchFilters() {
 						})}
 					</div>
 					{/* 태그 줄은 최근 자주 나온 것만. 나머지는 태그 전체 화면에서 */}
-					<Link href="/tags" className="tags-all">
+					<Link href={ROUTES.tags} className="tags-all">
 						전체 보기
 					</Link>
 				</div>

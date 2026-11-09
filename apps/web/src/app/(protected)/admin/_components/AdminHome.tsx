@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { refreshSiteCache } from '@/api/admin';
@@ -71,7 +72,7 @@ export default function AdminHome() {
 							테마 값과 공통 컴포넌트를 한 화면에서 확인합니다.
 						</Text>
 					</div>
-					<Link href="/admin/ui">
+					<Link href={ROUTES.admin.ui}>
 						<Button scheme="monoOutline" size="small">
 							열기
 						</Button>
@@ -90,12 +91,12 @@ export default function AdminHome() {
 					</div>
 					<nav className="manage" aria-label="콘텐츠 · 회원 관리">
 						{[
-							['/admin/stats', '통계'],
-							['/admin/newsletters', '뉴스레터'],
-							['/admin/users', '사용자'],
-							['/admin/subscribers', '구독자'],
-							['/admin/categories', '관심사'],
-							['/admin/tags', '태그'],
+							[ROUTES.admin.stats, '통계'],
+							[ROUTES.admin.newsletters, '뉴스레터'],
+							[ROUTES.admin.users, '사용자'],
+							[ROUTES.admin.subscribers, '구독자'],
+							[ROUTES.admin.categories, '관심사'],
+							[ROUTES.admin.tags, '태그'],
 						].map(([href, label]) => (
 							<Link key={href} href={href}>
 								<Button scheme="monoOutline" size="small">

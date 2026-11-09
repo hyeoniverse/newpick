@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useRouter } from 'next/navigation';
 import AdminGate from '@/components/common/auth/AdminGate';
 import Title from '@/components/common/Title';
@@ -35,7 +36,7 @@ export default function AdminSubPage({ title, summary, filters, period = true, b
 					    화면 끝까지 따라오도록 묶음 밖(맨 바깥 틀의 바로 아래)에 둔다 */}
 					<BackBar
 						text={back?.text ?? '관리자 대시보드'}
-						onClick={() => router.push(`${back?.href ?? '/admin'}${periodQuery}`)}
+						onClick={() => router.push(`${back?.href ?? ROUTES.admin.home}${periodQuery}`)}
 					/>
 					<div className="conditions">
 						{/* 제목 · 기간을 한 줄에: 왼쪽 '수집한 기사 | 기간 ( 날짜 )', 오른쪽 끝 오늘 · 어제 · … */}

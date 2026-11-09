@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/constants/site';
 import { fetchContactEmail } from '@/api/contact';
@@ -7,7 +8,7 @@ import LegalDocument from '@/components/common/legal/LegalDocument';
 export const metadata: Metadata = pageMetadata(
 	'개인정보 처리방침',
 	'뉴픽이 어떤 개인정보를 왜, 얼마나 보관하는지 안내합니다.',
-	'/privacy',
+	ROUTES.privacy,
 );
 
 export default async function Page() {

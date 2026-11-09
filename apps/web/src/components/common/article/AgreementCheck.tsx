@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import { useId } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,11 +44,11 @@ export default function ArgreementCheck({ name, className }: Props) {
 							NewPick의&nbsp;
 						</Text>
 						{/* 구독 창을 닫지 않고 읽을 수 있게 새 탭으로 */}
-						<Link href="/terms" target="_blank" className={LINK}>
+						<Link href={ROUTES.terms} target="_blank" className={LINK}>
 							이용약관
 						</Link>
 						&nbsp;·&nbsp;
-						<Link href="/privacy" target="_blank" className={LINK}>
+						<Link href={ROUTES.privacy} target="_blank" className={LINK}>
 							개인정보 처리방침
 						</Link>
 						<Text size="extraSmall" className={INLINE}>
@@ -59,11 +60,11 @@ export default function ArgreementCheck({ name, className }: Props) {
 				// 이미 동의한 사람: 눈에 띄는 안내 대신 회색 한 줄로 (무엇에 동의했는지 링크와 함께)
 				<p className="agreed m-0 inline-flex items-center text-sub-text [&_svg]:mr-1.5 [&_svg]:size-3.5 [&_svg]:shrink-0 [&_svg]:text-primary">
 					<LuCircleCheck aria-hidden />
-					<Link href="/terms" target="_blank" className="font-[inherit] text-inherit underline">
+					<Link href={ROUTES.terms} target="_blank" className="font-[inherit] text-inherit underline">
 						이용약관
 					</Link>
 					&nbsp;·&nbsp;
-					<Link href="/privacy" target="_blank" className="font-[inherit] text-inherit underline">
+					<Link href={ROUTES.privacy} target="_blank" className="font-[inherit] text-inherit underline">
 						개인정보 처리방침
 					</Link>
 					에 동의했습니다.

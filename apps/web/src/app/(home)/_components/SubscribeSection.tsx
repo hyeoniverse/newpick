@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSubscribe } from '@/hooks/useSubscribe';
@@ -76,7 +77,7 @@ const SubscribeSection = () => {
 
 						return {
 							id: category.id ?? 0,
-							url: `/articles` + (category.id !== 0 ? `?categoryId=${category.id}` : ''),
+							url: category.id !== 0 ? ROUTES.articlesByCategory(category.id) : ROUTES.articles,
 							image,
 							header: category.name,
 							main: {

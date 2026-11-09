@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { IoLogoGoogle } from 'react-icons/io';
 import { LuLogIn } from 'react-icons/lu';
@@ -63,11 +64,11 @@ export default function LoginSheet({ reason }: Props) {
 
 			<p className="notice mt-2 text-extra-small leading-[1.6] text-sub-text [word-break:keep-all]">
 				로그인하면 뉴픽의 {/* 로그인 창을 닫지 않고 읽을 수 있게 새 탭으로 */}
-				<Link href="/terms" target="_blank" className={LINK}>
+				<Link href={ROUTES.terms} target="_blank" className={LINK}>
 					이용약관
 				</Link>
 				과{' '}
-				<Link href="/privacy" target="_blank" className={LINK}>
+				<Link href={ROUTES.privacy} target="_blank" className={LINK}>
 					개인정보 처리방침
 				</Link>
 				에 동의하는 것으로 봅니다.

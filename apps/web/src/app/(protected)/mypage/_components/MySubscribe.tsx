@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
 
 import { useEffect, useRef, useState } from 'react';
@@ -168,7 +169,7 @@ export default function MySubscribe() {
 				icon={LuMail}
 				title="아직 받은 메일이 없어요"
 				description={'매일 아침 8시 40분에 첫 메일이 가요.\n보낸 메일은 여기에 날짜별로 모여요.'}
-				action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+				action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 			/>
 		);
 	}

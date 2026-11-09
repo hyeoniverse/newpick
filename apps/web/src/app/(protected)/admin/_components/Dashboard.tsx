@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import {
 	fetchDashboard,
 	fetchMailRecipients,
@@ -224,7 +225,7 @@ export default function Dashboard() {
 						<dt>수집한 기사</dt>
 						<dd>{crawling.count.toLocaleString()}건</dd>
 						<span className="sub">마지막 {when(crawling.latestAt, today)}</span>
-						<MoreLink href={`/admin/articles${periodQuery}`}>기사 보기 →</MoreLink>
+						<MoreLink href={`${ROUTES.admin.articles}${periodQuery}`}>기사 보기 →</MoreLink>
 					</div>
 					<div>
 						<dt>발행한 뉴스레터</dt>
@@ -234,7 +235,7 @@ export default function Dashboard() {
 								? `관심사 6개 중 ${new Set(newsletters.items.map((n) => n.categoryId)).size}개`
 								: `${days}일 · 하루 평균 ${(newsletters.total / days).toFixed(1)}편`}
 						</span>
-						<MoreLink href={`/admin/newsletters${periodQuery}`}>발행 목록 보기 →</MoreLink>
+						<MoreLink href={`${ROUTES.admin.newsletters}${periodQuery}`}>발행 목록 보기 →</MoreLink>
 					</div>
 					<div>
 						<dt>AI 비용</dt>
@@ -242,13 +243,13 @@ export default function Dashboard() {
 						<span className="sub">
 							{aiCost.unknown > 0 ? `비용 모르는 이전 기록 ${aiCost.unknown}건 제외` : `AI 호출 ${summaryLogs.total}건`}
 						</span>
-						<MoreLink href={`/admin/ai-logs${periodQuery}`}>AI 기록 보기 →</MoreLink>
+						<MoreLink href={`${ROUTES.admin.aiLogs}${periodQuery}`}>AI 기록 보기 →</MoreLink>
 					</div>
 					<div>
 						<dt>메일 받은 사람</dt>
 						<dd>{recipients.toLocaleString()}명</dd>
 						<span className="sub">구독 중 {mail.activeSubscribers.toLocaleString()}명</span>
-						<MoreLink href={`/admin/mail${periodQuery}`}>발송 기록 보기 →</MoreLink>
+						<MoreLink href={`${ROUTES.admin.mail}${periodQuery}`}>발송 기록 보기 →</MoreLink>
 					</div>
 				</dl>
 			</section>
@@ -272,7 +273,7 @@ export default function Dashboard() {
 						{/* 예약 실행이 꺼진 서버(보통 로컬): 제목 옆 배지로 짧게, 풀어 쓴 설명은 아래 한 줄 */}
 						{scheduler.autoRun === false && <StatusBadge tone="neutral">자동 실행 꺼짐</StatusBadge>}
 					</div>
-					<MoreLink href={`/admin/job-runs${periodQuery}`}>
+					<MoreLink href={`${ROUTES.admin.jobRuns}${periodQuery}`}>
 						실행 기록 보기 <LuArrowRight aria-hidden />
 					</MoreLink>
 				</div>
@@ -358,7 +359,7 @@ export default function Dashboard() {
 						<Title as="h2" size="extraSmall" weight="bold" className="section-title">
 							<span id="dash-newsletters">발행</span>
 						</Title>
-						<MoreLink href={`/admin/newsletters${periodQuery}`}>
+						<MoreLink href={`${ROUTES.admin.newsletters}${periodQuery}`}>
 							전체 {newsletters.total.toLocaleString()}편 보기 <LuArrowRight aria-hidden />
 						</MoreLink>
 					</div>
@@ -371,7 +372,7 @@ export default function Dashboard() {
 							{newsletters.items.map((n) => (
 								<li key={n.id}>
 									<span className="category">{mapIdToTitle([n.categoryId])[0]}</span>
-									<a href={`/articles/detail/${n.id}`} className="title">
+									<a href={ROUTES.article(n.id)} className="title">
 										{n.title}
 									</a>
 									<span className="time">{when(n.createdAt, today)}</span>
@@ -386,7 +387,7 @@ export default function Dashboard() {
 						<Title as="h2" size="extraSmall" weight="bold" className="section-title">
 							<span id="dash-mail">날짜별 발송</span>
 						</Title>
-						<MoreLink href={`/admin/mail${periodQuery}`}>
+						<MoreLink href={`${ROUTES.admin.mail}${periodQuery}`}>
 							발송 기록 보기 <LuArrowRight aria-hidden />
 						</MoreLink>
 					</div>
@@ -425,7 +426,7 @@ export default function Dashboard() {
 					<Title as="h2" size="extraSmall" weight="bold" className="section-title">
 						<span id="dash-logs">AI 기록</span>
 					</Title>
-					<MoreLink href={`/admin/ai-logs${periodQuery}`}>
+					<MoreLink href={`${ROUTES.admin.aiLogs}${periodQuery}`}>
 						전체 {summaryLogs.total.toLocaleString()}건 보기 <LuArrowRight aria-hidden />
 					</MoreLink>
 				</div>

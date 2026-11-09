@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
@@ -76,7 +77,7 @@ function Article({ initial }: Props) {
           제목을 지나 읽는 중이면 옆에 제목을 한 줄로, 누르면 맨 위 제목으로 올라간다 */}
 			<ArticleBackBar
 				text="목록으로"
-				onClick={() => router.push(`/articles?categoryId=${newsletterContent.categoryId}`)}
+				onClick={() => router.push(ROUTES.articlesByCategory(newsletterContent.categoryId))}
 				title={newsletterContent.title}
 				showTitle={titlePassed}
 				// 따라오는 제목을 누르면 맨 위 제목으로 (움직임 줄이기 설정이면 바로)
@@ -89,7 +90,7 @@ function Article({ initial }: Props) {
 			/>
 			<div className="np-articles-article-title-section" data-track-section="detail-title">
 				<div className="title-section">
-					<Link href={`/articles?categoryId=${newsletterContent.categoryId}`} className="category">
+					<Link href={ROUTES.articlesByCategory(newsletterContent.categoryId)} className="category">
 						{mapIdToTitle([newsletterContent.categoryId])[0] || `#${newsletterContent.categoryId}`}
 					</Link>
 					<Title size="large" weight="semiBold" className="title" ref={setTitleEl}>

@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import StarToggle from '@/components/common/icons/StarToggle';
@@ -199,7 +200,7 @@ export default function MyHighlights() {
 					icon={LuHighlighter}
 					title="스크랩한 문장이 없어요"
 					description="뉴스레터를 읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남기면 여기에 모여요."
-					action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+					action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 				/>
 			</div>
 		);
@@ -316,7 +317,7 @@ export default function MyHighlights() {
 									<div key={day} id={`hl-day-${day}`} className="scrap-day">
 										{byStory(items).map((block) => {
 											const newsletter = block.items[0].newsletter;
-											const href = `/articles/detail/${block.newsletterId}`;
+											const href = ROUTES.article(block.newsletterId);
 											// 블록 제목 · 사진은 그 소식 것 (브리핑 · 구역 모름이면 뉴스레터 것), 어느 뉴스레터인지는 위에 작게
 											const { index, name } = sectionName(block.items[0]);
 											const title = name ?? newsletter?.title ?? `뉴스레터 #${block.newsletterId}`;
@@ -575,7 +576,7 @@ function HighlightItem({
 				<span>{highlight.text}</span>
 			</p>
 			<div className="tools" hidden={selecting}>
-				<Link href={`/articles/detail/${highlight.newsletterId}?hl=${highlight.id}`}>원문에서 보기</Link>
+				<Link href={`${ROUTES.article(highlight.newsletterId)}?hl=${highlight.id}`}>원문에서 보기</Link>
 				{!editing && (
 					<button type="button" onClick={() => setEditing(true)}>
 						{highlight.note ? '메모 고치기' : '메모 남기기'}

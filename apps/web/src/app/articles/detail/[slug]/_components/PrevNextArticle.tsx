@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useState } from 'react';
 import { IoArrowUp, IoArrowDown } from 'react-icons/io5';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
@@ -23,7 +24,7 @@ function PrevNextArticle({ className, prev, next }: Props) {
 	const renderArticle = (article: IArticleDetail | null, type: 'prev' | 'next') => {
 		const isPrev = type === 'prev';
 		const isDisabled = !article;
-		const href = isDisabled ? '#' : `/articles/detail/${article?.id}`;
+		const href = isDisabled ? '#' : ROUTES.article(article?.id);
 		const text = isPrev ? '이전글' : '다음글';
 		// 이전글이 위 줄, 다음글이 아래 줄이라 화살표도 위 · 아래로
 		const icon = isPrev ? <IoArrowUp /> : <IoArrowDown />;

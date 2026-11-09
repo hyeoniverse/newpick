@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import { useEffect, useState } from 'react';
 import { CheckGlyph, LinkGlyph } from '@/components/common/icons/Glyphs';
 import { IconButton } from '@/styles/Icon';
@@ -31,7 +32,7 @@ function LinkCopyIcon({ className, id }: Props) {
 	};
 
 	const handleCopyClick = () => {
-		const url = `${window.location.origin}/articles/detail/${id}`;
+		const url = `${window.location.origin}${ROUTES.article(id)}`;
 		copyToClipboard(url);
 	};
 

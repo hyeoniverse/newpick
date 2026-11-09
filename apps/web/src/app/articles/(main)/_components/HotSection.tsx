@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
@@ -179,7 +180,7 @@ export default function HotSection({ trends: initiallData = [], stats, latest }:
 											</div>
 										</>
 									),
-									url: `/articles/detail/${trend.id}`,
+									url: ROUTES.article(trend.id),
 								}))}
 							/>
 						</div>

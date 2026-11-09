@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { parseArticles } from '@/utils/parseArticles';
 import type { Metadata } from 'next';
@@ -36,9 +37,9 @@ export async function generateMetadata({
 		? pageMetadata(
 				`${category.name} 뉴스레터`,
 				`${category.name}: ${category.description}. AI가 고르고 요약한 뉴픽 뉴스레터.`,
-				`/articles?categoryId=${category.id}`,
+				ROUTES.articlesByCategory(category.id),
 			)
-		: pageMetadata('뉴스레터', '관심사별로 AI가 고르고 요약한 뉴픽 뉴스레터를 모아 봅니다.', '/articles');
+		: pageMetadata('뉴스레터', '관심사별로 AI가 고르고 요약한 뉴픽 뉴스레터를 모아 봅니다.', ROUTES.articles);
 }
 
 /**

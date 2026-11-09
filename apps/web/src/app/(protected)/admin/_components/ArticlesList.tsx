@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { fetchArticleList, fetchSchedule } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
@@ -249,7 +250,7 @@ export default function ArticlesList() {
 											{article.usedIn.length === 0
 												? '-'
 												: article.usedIn.map((n) => (
-														<Link key={n.id} href={`/articles/detail/${n.id}`} className="used">
+														<Link key={n.id} href={ROUTES.article(n.id)} className="used">
 															#{n.id} {n.title}
 														</Link>
 													))}

@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import type { PageStats } from '@newpick/shared';
 
 import { fetchPageStats } from '@/api/admin';
@@ -36,7 +37,7 @@ export default function PageStatsAdmin() {
 	return (
 		<AdminSubPage
 			title={`히트맵 · ${routeName(route)}`}
-			back={{ text: '통계', href: '/admin/stats' }}
+			back={{ text: '통계', href: ROUTES.admin.stats }}
 			filters={
 				<FilterChips
 					label="기기"

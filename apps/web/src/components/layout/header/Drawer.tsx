@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import React, { Fragment, Suspense, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
@@ -55,7 +56,7 @@ const Drawer = () => {
 							</div>
 						</div>
 						{/* 뉴스레터 아래 분야: 메뉴에서 바로 그 분야 목록으로 (주소의 분야를 읽어서 Suspense 안에) */}
-						{item.link === '/articles' && (
+						{item.link === ROUTES.articles && (
 							<Suspense fallback={<DrawerCategories active={null} base={NAVIGATION.length} />}>
 								<CurrentCategory base={NAVIGATION.length} />
 							</Suspense>
@@ -73,7 +74,7 @@ function CurrentCategory({ base }: { base: number }) {
 	const searchParams = useSearchParams();
 	return (
 		<DrawerCategories
-			active={pathname === '/articles' ? Number(searchParams.get('categoryId')) || 0 : null}
+			active={pathname === ROUTES.articles ? Number(searchParams.get('categoryId')) || 0 : null}
 			base={base}
 		/>
 	);
@@ -88,7 +89,7 @@ function DrawerCategories({ active, base }: { active: number | null; base: numbe
 				<li key={c.id} className="row" style={{ '--i': base + i, '--phase': 1 } as React.CSSProperties}>
 					<div className="row-body">
 						<Link
-							href={c.id ? `/articles?categoryId=${c.id}` : '/articles'}
+							href={c.id ? ROUTES.articlesByCategory(c.id) : ROUTES.articles}
 							className="category"
 							aria-current={active === c.id ? 'page' : undefined}
 							onClick={closeDropdown}

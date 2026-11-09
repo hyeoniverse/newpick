@@ -1,3 +1,4 @@
+import { ROUTES } from '@/constants/routes';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/constants/site';
 import HeroSection from '@/app/about/_components/HeroSection';
@@ -20,7 +21,7 @@ const REVEAL_ITEMS = '#about-numbers .item, [aria-label="자주 묻는 질문"] 
 export const metadata: Metadata = pageMetadata(
 	'시작하기',
 	'내 관심사만 골라, 매일 아침 한 통으로. 뉴픽이 뉴스레터를 만드는 방법과 시작하는 법을 소개합니다.',
-	'/about',
+	ROUTES.about,
 );
 
 async function AboutPage() {

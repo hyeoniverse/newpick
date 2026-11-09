@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
 
@@ -117,13 +118,13 @@ export default function Header() {
 							>
 								<>
 									<ThemeSwitcher className="item" />
-									<Link href="/mypage">
+									<Link href={ROUTES.mypage()}>
 										<Button as="span" className="item">
 											마이페이지
 										</Button>
 									</Link>
 									{unseenFollows > 0 && (
-										<Link href="/mypage?tab=follows">
+										<Link href={ROUTES.mypage('follows')}>
 											<Button as="span" className="item">
 												새 후속 소식 {unseenFollows}
 											</Button>
@@ -131,7 +132,7 @@ export default function Header() {
 									)}
 									{/* 관리자에게만 보이는 진입점 (#73). 실제 권한은 API가 지킨다 */}
 									{user.role === 'admin' && (
-										<Link href="/admin">
+										<Link href={ROUTES.admin.home}>
 											<Button as="span" className="item">
 												관리자
 											</Button>

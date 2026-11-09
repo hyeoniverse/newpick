@@ -1,5 +1,6 @@
 'use client';
 
+import { ROUTES } from '@/constants/routes';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { LuBellPlus } from 'react-icons/lu';
@@ -62,7 +63,7 @@ export default function MyFollows() {
 						icon={LuBellPlus}
 						title="지켜보는 소식이 없어요"
 						description="뉴스레터의 소식마다 있는 '후속 지켜보기'를 누르면, 이어지는 새 소식이 여기에 쌓이고 머리글에 표시됩니다."
-						action={{ label: '뉴스레터 둘러보기', href: '/articles' }}
+						action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 					/>
 				)}
 			</section>
@@ -93,7 +94,7 @@ function FollowCard({
 					그만 지켜보기
 				</button>
 			</div>
-			<Link href={`/articles/detail/${follow.newsletter.id}`} className="origin">
+			<Link href={ROUTES.article(follow.newsletter.id)} className="origin">
 				{follow.heading}
 			</Link>
 
@@ -106,7 +107,7 @@ function FollowCard({
 								<span className="category">{u.newsletter.category.name}</span>
 								{fresh.has(u.id) && <span className="new">새 소식</span>}
 							</p>
-							<Link href={`/articles/detail/${u.newsletter.id}`} className="heading">
+							<Link href={ROUTES.article(u.newsletter.id)} className="heading">
 								{u.heading}
 							</Link>
 							{u.reason && <p className="reason">{u.reason}</p>}
