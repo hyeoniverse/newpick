@@ -1769,6 +1769,8 @@
 		.story {
 			padding-top: 1.5rem;
 			border-top: 1px solid var(--np-color-text);
+			/* 요약 상자에서 눌러 왔을 때 위에 떠 있는 머리글 · 목록으로 막대에 가리지 않게 */
+			scroll-margin-top: 7rem;
 
 			& + .story {
 				margin-top: 3.5rem;

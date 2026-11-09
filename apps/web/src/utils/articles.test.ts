@@ -112,9 +112,18 @@ describe('extractStories (분야 페이지 배너)', () => {
 			'<div class="newsletter"><article class="story story-analysis"><p class="kicker"><span class="index">01</span>브라질</p><h2>룰라, 결선 뒤집고 4선</h2></article>' +
 			'<article class="story story-quote"><p class="kicker"><span class="index">02</span>중동</p><h2>&quot;호르무즈 기뢰 없다&quot; &amp; 통과</h2></article></div>';
 		expect(extractStories(html)).toEqual([
-			{ kicker: '브라질', heading: '룰라, 결선 뒤집고 4선' },
-			{ kicker: '중동', heading: '"호르무즈 기뢰 없다" & 통과' },
+			{ kicker: '브라질', heading: '룰라, 결선 뒤집고 4선', lead: '', morning: false },
+			{ kicker: '중동', heading: '"호르무즈 기뢰 없다" & 통과', lead: '', morning: false },
 		]);
+	});
+
+	it('맨 위 오늘 아침 속보 묶음 안의 소식은 morning (요약 상자의 아침 속보 표시)', () => {
+		const html =
+			'<div class="newsletter"><section class="morning"><h3>오늘 아침 속보</h3><article class="story story-quote"><p class="kicker"><span class="index">01</span>미국 정치</p><h2>밀러 임명</h2><p class="lead">트럼프가 밀러를 임명했다.</p></article></section>' +
+			'<article class="story story-analysis"><p class="kicker"><span class="index">02</span>중동</p><h2>연정 구성권</h2></article></div>';
+		expect(extractStories(html).map((s) => s.morning)).toEqual([true, false]);
+		// 리드(핵심 한 문장)도 함께 (요약 상자가 소식마다 보여 준다)
+		expect(extractStories(html)[0].lead).toBe('트럼프가 밀러를 임명했다.');
 	});
 
 	it('구조가 없는 예전 뉴스레터는 빈 배열', () => {

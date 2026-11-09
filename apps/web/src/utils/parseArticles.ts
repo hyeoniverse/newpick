@@ -14,15 +14,23 @@ const decode = (text: string) =>
 		.replace(/&amp;/g, '&');
 
 /**
- * 본문 HTML(서버 newsletter-html.ts가 만든 구조)에서 소식의 꼬리표·제목만 꺼낸다.
+ * 본문 HTML(서버 newsletter-html.ts가 만든 구조)에서 소식의 꼬리표 · 제목 · 리드(핵심 한 문장)를 꺼낸다 (본문 순서 그대로).
+ * morning: 맨 위 '오늘 아침 속보' 묶음(section.morning) 안의 소식인지.
  * 브라우저·서버 모두에서 쓰도록 DOM 대신 정규식. 구조가 없는 예전 뉴스레터는 빈 배열
  */
-export function extractStories(html?: string | null): { kicker: string; heading: string }[] {
+export function extractStories(
+	html?: string | null,
+): { kicker: string; heading: string; lead: string; morning: boolean }[] {
 	if (!html) return [];
-	const pattern = /<p class="kicker">(?:<span class="index">[^<]*<\/span>)?([^<]*)<\/p><h2>([^<]*)<\/h2>/g;
-	return [...html.matchAll(pattern)].map(([, kicker, heading]) => ({
-		kicker: decode(kicker).trim(),
-		heading: decode(heading).trim(),
+	const start = html.indexOf('<section class="morning">');
+	const end = start < 0 ? -1 : html.indexOf('</section>', start);
+	const pattern =
+		/<p class="kicker">(?:<span class="index">[^<]*<\/span>)?([^<]*)<\/p><h2>([^<]*)<\/h2>(?:<p class="lead">([^<]*)<\/p>)?/g;
+	return [...html.matchAll(pattern)].map((match) => ({
+		kicker: decode(match[1]).trim(),
+		heading: decode(match[2]).trim(),
+		lead: decode(match[3] ?? '').trim(),
+		morning: start >= 0 && match.index > start && match.index < end,
 	}));
 }
 
