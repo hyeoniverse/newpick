@@ -105,7 +105,6 @@ export const API_ENDPOINTS = {
 	},
 	SUBSCRIBERS: {
 		STATUS: () => `${API_URL}/subscribers/status`,
-		HISTORY: () => `${API_URL}/subscribers/history`,
 		INTERESTS: () => `${API_URL}/mypage/interests`,
 		START: () => `${API_URL}/subscribers/start`,
 		PAUSE: () => `${API_URL}/subscribers/pause`,
