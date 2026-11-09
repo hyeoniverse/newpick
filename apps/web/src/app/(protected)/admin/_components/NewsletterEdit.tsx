@@ -1,5 +1,6 @@
 'use client';
 
+import type { Newsletter } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -19,18 +20,6 @@ import ArticleContent from '@/app/articles/detail/[slug]/_components/content/Art
 import InputSelect from '@/components/common/InputSelect';
 import HtmlCodeEditor from './HtmlCodeEditor';
 import { compactHtml, formatHtml } from './htmlFormat';
-
-interface Newsletter {
-	id: string;
-	title: string;
-	subtitle: string | null;
-	content: string;
-	contentAsHTML: string | null;
-	keywords: string[] | null;
-	categoryId: string;
-	viewcount: string;
-	createdAt: string;
-}
 
 type Form = { title: string; subtitle: string; content: string; keywords: string; categoryId: string; html: string };
 
