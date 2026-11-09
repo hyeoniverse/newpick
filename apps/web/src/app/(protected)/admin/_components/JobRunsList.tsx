@@ -1,5 +1,6 @@
 'use client';
 
+import type { JobRunRecord } from '@newpick/shared';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
@@ -14,16 +15,8 @@ import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 
 const PAGE_SIZE = 20;
 
-interface Row {
-	id: number;
-	job: 'crawling' | 'summary' | 'mail';
-	trigger: 'schedule' | 'manual';
-	status: 'running' | 'success' | 'partial' | 'failed' | 'skipped';
-	message: string | null;
-	startedAt: string;
-	finishedAt: string | null;
-	durationMs: number | null;
-}
+/** 실행 기록 한 줄 (@newpick/shared) */
+type Row = JobRunRecord;
 
 const JOB_LABEL: Record<Row['job'], string> = { crawling: '기사 수집', summary: 'AI 요약', mail: '구독 메일' };
 const STATUS_LABEL: Record<Row['status'], string> = {

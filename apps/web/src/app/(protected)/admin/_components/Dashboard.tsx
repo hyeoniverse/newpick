@@ -1,5 +1,6 @@
 'use client';
 
+import { JOB_ENDPOINT, type JobName, type JobResult, type JobRun } from '@newpick/shared';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
@@ -20,17 +21,8 @@ import { SkeletonBlock } from '@/components/common/loader/Skeleton';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 import MoreLink from '@/components/common/MoreLink';
 
-type JobKey = 'crawling' | 'summary' | 'mail';
-type RunStatus = 'success' | 'partial' | 'failed' | 'skipped' | null;
-
-interface JobRun {
-	running: boolean;
-	trigger: 'schedule' | 'manual' | null;
-	startedAt: string | null;
-	finishedAt: string | null;
-	status: RunStatus;
-	message: string | null;
-}
+/** 작업 이름 · 지금 상태는 @newpick/shared (api와 같은 타입) */
+type JobKey = JobName;
 
 interface DashboardData {
 	range: { from: string; to: string };
@@ -65,26 +57,23 @@ interface DashboardData {
 }
 
 /** 작업마다: API 이름 · 언제 도는지 · 지금 실행 전 확인 문구 */
-const JOBS: Record<JobKey, { label: string; api: 'crawling' | 'ai-summary' | 'mail-send'; warning: string }> = {
+const JOBS: Record<JobKey, { label: string; warning: string }> = {
 	crawling: {
 		label: '기사 수집',
-		api: 'crawling',
 		warning: '언론사 기사를 지금 모읍니다. 분야가 없는 기사는 Claude로 분류해 비용이 조금 듭니다.',
 	},
 	summary: {
 		label: 'AI 요약',
-		api: 'ai-summary',
 		warning:
 			'생성에 실패한 분야의 뉴스레터를 다시 시도합니다. 생성에 성공한 항목을 제외하고, 실패한 항목만 재시도하며, Claude 비용이 발생합니다.',
 	},
 	mail: {
 		label: '구독 메일',
-		api: 'mail-send',
 		warning: '모든 구독자에게 오늘 뉴스레터를 지금 보냅니다. 이미 보냈다면 같은 메일을 한 번 더 받습니다.',
 	},
 };
 
-const STATUS_LABEL: Record<Exclude<RunStatus, null>, string> = {
+const STATUS_LABEL: Record<JobResult, string> = {
 	success: '성공',
 	partial: '일부 실패',
 	failed: '실패',
@@ -163,7 +152,7 @@ export default function Dashboard() {
 
 	const toggle = async (job: JobKey, enable: boolean) => {
 		try {
-			await apiFetch(API_ENDPOINTS.ADMIN.TOGGLE(JOBS[job].api), {
+			await apiFetch(API_ENDPOINTS.ADMIN.TOGGLE(JOB_ENDPOINT[job]), {
 				method: 'POST',
 				body: { enable },
 			});
@@ -209,7 +198,7 @@ export default function Dashboard() {
 				onConfirmClick={async () => {
 					closeModal();
 					try {
-						await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW(JOBS[job].api), { method: 'POST' });
+						await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW(JOB_ENDPOINT[job]), { method: 'POST' });
 						showToast(`${JOBS[job].label}을 시작했습니다.`, 'success');
 						// 서버가 실행 기록을 남길 틈을 주고 새로 고친다
 						setTimeout(refresh, 800);

@@ -1,3 +1,4 @@
+import { JOB_ENDPOINT } from '@newpick/shared';
 import { Controller, Post, Get, Put, Body, Query } from '@nestjs/common';
 import { ScheduleDto } from './dto/schedule.dto';
 import { SchedulerService } from './scheduler.service';
@@ -173,7 +174,7 @@ export class SchedulerController {
     };
   }
 
-  @Post('toggle/crawling')
+  @Post(`toggle/${JOB_ENDPOINT.crawling}`)
   toggleCrawling(@Body() data: ToggleDto) {
     const enable = Boolean(data.enable);
     this.schedulerService.toggleCrawlingScheduler(enable);
@@ -184,7 +185,7 @@ export class SchedulerController {
     };
   }
 
-  @Post('toggle/ai-summary')
+  @Post(`toggle/${JOB_ENDPOINT.summary}`)
   toggleAiSummary(@Body() data: ToggleDto) {
     const enable = Boolean(data.enable);
     this.schedulerService.toggleAiSummaryScheduler(enable);
@@ -195,7 +196,7 @@ export class SchedulerController {
     };
   }
 
-  @Post('toggle/mail-send')
+  @Post(`toggle/${JOB_ENDPOINT.mail}`)
   toggleMailSend(@Body() data: ToggleDto) {
     const enable = Boolean(data.enable);
     this.schedulerService.toggleMailSendScheduler(enable);
@@ -226,7 +227,7 @@ export class SchedulerController {
       cycle,
     };
   }
-  @Post('manual/crawling')
+  @Post(`manual/${JOB_ENDPOINT.crawling}`)
   startCrawling() {
     this.schedulerService.manualStartCrawling();
     return {
@@ -234,7 +235,7 @@ export class SchedulerController {
       message: '크롤링 시작되었습니다.',
     };
   }
-  @Post('manual/ai-summary')
+  @Post(`manual/${JOB_ENDPOINT.summary}`)
   async startAiSummary(
     @Body() { date, categoryId, newsletterId }: ManualSummaryDto = {},
   ) {
@@ -268,7 +269,7 @@ export class SchedulerController {
         : 'AI 요약 시작되었습니다.',
     };
   }
-  @Post('manual/mail-send')
+  @Post(`manual/${JOB_ENDPOINT.mail}`)
   startMailSend() {
     this.schedulerService.manualStartMailSend();
     return {
