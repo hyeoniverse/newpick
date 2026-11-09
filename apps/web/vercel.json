@@ -5,8 +5,7 @@
   "git": {
     "deploymentEnabled": {
       "**": false,
-      "main": true,
-      "chore/root-workspace": true
+      "main": true
     }
   }
 }
