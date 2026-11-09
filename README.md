@@ -15,3 +15,17 @@
 |---|---|
 | [`apps/web`](apps/web) | 프론트엔드 (Next.js) |
 | [`apps/api`](apps/api) | 백엔드 (NestJS) |
+
+## 설치 · 실행
+
+npm workspaces로 묶여 있어 **저장소 루트에서 한 번** 설치합니다 (잠금 파일은 루트 `package-lock.json` 하나).
+
+```bash
+npm ci                 # 두 앱 모두 설치 (한 앱만: npm ci -w apps/web)
+npm run dev:web        # 웹 (localhost:3000)
+npm run dev:api        # api (localhost:3001, apps/api/README.md의 .env 먼저)
+npm test               # 두 앱의 테스트
+```
+
+- 패키지 추가 · 삭제도 루트에서 앱을 지정합니다: `npm install dayjs -w apps/web`
+- api Docker 이미지는 루트를 컨텍스트로 만듭니다: `docker build -f apps/api/Dockerfile .`
