@@ -3,7 +3,7 @@
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 
-/** 맞춤 메일이 사람마다 달라지는 세 가지 (edition/personalize.ts · personalNote.ts · 메일 칸) */
+/** 맞춤 메일이 사람마다 달라지는 세 가지 (edition/personalize.ts · personal-note.ts · 메일 칸) */
 const POINTS = [
 	{
 		title: '관심 있는 소식부터',

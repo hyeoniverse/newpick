@@ -14,7 +14,7 @@ const decode = (text: string) =>
 		.replace(/&amp;/g, '&');
 
 /**
- * 본문 HTML(서버 newsletterHtml.ts가 만든 구조)에서 소식의 꼬리표·제목만 꺼낸다.
+ * 본문 HTML(서버 newsletter-html.ts가 만든 구조)에서 소식의 꼬리표·제목만 꺼낸다.
  * 브라우저·서버 모두에서 쓰도록 DOM 대신 정규식. 구조가 없는 예전 뉴스레터는 빈 배열
  */
 export function extractStories(html?: string | null): { kicker: string; heading: string }[] {
