@@ -58,7 +58,7 @@ import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import ExternalLink from '@/components/common/ExternalLink';
 import MoveButton from '@/components/common/MoveButton';
-import TabNavigation from '@/components/common/TabNavgation';
+import TabNavigation from '@/components/common/TabNavigation';
 import Logo from '@/components/common/Logo';
 import Image from '@/components/common/Image';
 import SummaryTextBox from '@/components/common/article/SummaryTextBox';

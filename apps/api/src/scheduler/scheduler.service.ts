@@ -399,15 +399,6 @@ export class SchedulerService implements OnApplicationBootstrap {
       this.finishRun('summary', 'failed', error.message);
     }
   }
-  // @Cron(CronExpression.EVERY_5_SECONDS)
-  // async sendAiSummary() {
-  //   const subscribers = await this.subscriberService.getSubscribers();
-  //   if (subscribers.length === 0) {
-  //     throw new NotFoundException('구독자가 없습니다.');
-  //     return;
-  //   }
-  //   this.logger.debug(subscribers[0]);
-  // }
 
   /**
    * 구독 메일 발송 (기본: 매일 08:40 KST). cron 등록은 onApplicationBootstrap에서 합니다.

@@ -1,24 +1,3 @@
-import { HttpStatus } from '@nestjs/common';
-import { StatusMessage } from './interface';
-
-export const getStatusMessage = (statusCode: HttpStatus): StatusMessage => {
-  return {
-    statusCode,
-    message: HttpStatus[statusCode],
-  };
-};
-
-export const getStatusMessageWithData = (
-  statusCode: HttpStatus,
-  data: any,
-): StatusMessage => {
-  return {
-    statusCode,
-    message: HttpStatus[statusCode],
-    data,
-  };
-};
-
 /** 매일 발송을 뜻하는 요일 값 (#55) */
 export const EVERY_DAY = 7;
 
