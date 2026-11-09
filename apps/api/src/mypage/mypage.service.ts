@@ -1,3 +1,4 @@
+import type { Profile } from '@newpick/shared';
 import type { ComposedSection } from '../edition/compose';
 import type { MailPlan } from '../edition/personalize';
 import { Injectable } from '@nestjs/common';
@@ -111,7 +112,7 @@ export class MyPageService {
     return { enabled };
   }
 
-  async getProfile(userId: number) {
+  async getProfile(userId: number): Promise<Profile> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -136,6 +137,7 @@ export class MyPageService {
     // 응답 형태는 이전과 같이 interests: number[]
     return {
       ...user,
+      role: user.role === 'admin' ? 'admin' : 'user',
       interests: user.interests.map((interest) => interest.categoryId),
     };
   }

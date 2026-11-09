@@ -1,3 +1,4 @@
+import type { Folder } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AppException } from '../common/errors/app.exception';
@@ -27,7 +28,7 @@ export class FoldersService {
   constructor(private readonly prisma: MysqlPrismaService) {}
 
   /** 내 폴더 (만든 순서), 폴더마다 스크랩 · 북마크 · 받은 메일 수 */
-  async list(userId: number) {
+  async list(userId: number): Promise<Folder[]> {
     const folders = await this.prisma.folder.findMany({
       where: { userId },
       orderBy: { createdAt: 'asc' },

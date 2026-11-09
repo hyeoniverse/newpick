@@ -1,18 +1,8 @@
-export interface User {
-	id: number;
-	email: string;
-	username: string;
-	profileImg?: string;
-	accessToken: string | null;
+import type { Profile } from '@newpick/shared';
+
+/**
+ * 로그인한 사람: 프로필(@newpick/shared, api 응답과 같다) + 구독 여부(따로 불러와 붙인다, 모르면 null)
+ */
+export interface User extends Profile {
 	isSubscribed: boolean | null;
-	interests: number[] | null;
-	role: 'user' | 'admin';
-	frequency?: 'daily' | 'weekly' | 'monthly';
-	notificationPreferences?: {
-		email: boolean;
-		web: boolean;
-	};
-	timezone?: string;
-	createdAt?: Date;
-	updatedAt?: Date;
 }

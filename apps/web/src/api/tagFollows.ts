@@ -1,13 +1,10 @@
+import type { TagFollow } from '@newpick/shared';
 import { API_ENDPOINTS } from '@/constants/api';
 import { apiFetch } from '@/api/client';
 
 /** 팔로우한 태그 (#123): 맞춤 메일에서 이 태그가 나온 소식을 앞에, 추천 기사에서 제목에 나온 기사를 챙긴다 */
-export interface TagFollow {
-	tag: string;
-	createdAt: string;
-	/** 이 태그가 붙은 최근 뉴스레터 (오래된 것 → 새것). 마이페이지 지켜보기에서 시간순 줄로 */
-	news?: { id: number; title: string; createdAt: string; category: string }[];
-}
+/** 팔로우한 태그 (@newpick/shared, api 응답과 같다) */
+export type { TagFollow };
 
 export const fetchTagFollows = () => apiFetch<TagFollow[]>(API_ENDPOINTS.MY.TAG_FOLLOWS());
 
