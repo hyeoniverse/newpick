@@ -5,8 +5,9 @@ import { queryKeys } from '@/api/queryKeys';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useTab } from '@/hooks/useTab';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { fetchMyMailCount } from '@/api/mails';
+import { fetchBookmarkCount } from '@/api/bookmark';
+import { fetchHighlightCount } from '@/api/highlights';
 import Imgae from '@/components/common/Image';
 import Text from '@/components/common/Text';
 import { LuChevronRight } from 'react-icons/lu';
@@ -19,18 +20,18 @@ function Summary() {
 	const { setActiveTab } = useTab();
 	const { data: mails } = useQuery({
 		queryKey: queryKeys.mails.count(user?.id),
-		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.MAILS(0, 1)),
+		queryFn: fetchMyMailCount,
 		enabled: !!user,
 	});
 	// 개수만 필요하니 한 개짜리 쪽으로 (목록 전체를 받지 않게)
 	const { data: bookmarks } = useQuery({
 		queryKey: queryKeys.bookmarks.count(user?.id),
-		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.BOOKMARKS_PAGE('limit=1')),
+		queryFn: fetchBookmarkCount,
 		enabled: !!user,
 	});
 	const { data: highlights } = useQuery({
 		queryKey: queryKeys.highlights.count(user?.id),
-		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.HIGHLIGHTS_PAGE('limit=1')),
+		queryFn: fetchHighlightCount,
 		enabled: !!user,
 	});
 	const items = [

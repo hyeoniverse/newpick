@@ -2,10 +2,15 @@ import { queryKeys } from '@/api/queryKeys';
 import type { BookmarkPage } from '@newpick/shared';
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IBookmarkItem } from '@/models/bookmark.model';
-import { fetchUserBookmarksApi, addBookmarkApi, removeBookmarkApi } from '@/api/bookmark';
+import {
+	fetchUserBookmarksApi,
+	addBookmarkApi,
+	removeBookmarkApi,
+	fetchBookmarkPage,
+	moveBookmarks,
+} from '@/api/bookmark';
 import { useAuth } from '@/hooks/useAuth';
-import { apiFetch, ApiError } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { ApiError } from '@/api/client';
 import { useToast } from '@/hooks/useToast';
 
 interface BookmarkVariables {
@@ -41,12 +46,7 @@ export const useBookmarkPages = (filters: string) => {
 	const { user } = useAuth();
 	return useInfiniteQuery({
 		queryKey: queryKeys.bookmarks.page(user?.id, filters),
-		queryFn: ({ pageParam }) =>
-			apiFetch<BookmarkPage>(
-				API_ENDPOINTS.MY.BOOKMARKS_PAGE(
-					`offset=${pageParam}&limit=${BOOKMARK_PAGE_SIZE}${filters ? `&${filters}` : ''}`,
-				),
-			),
+		queryFn: ({ pageParam }) => fetchBookmarkPage(pageParam, BOOKMARK_PAGE_SIZE, filters),
 		initialPageParam: 0,
 		getNextPageParam: (last, pages) => {
 			const loaded = pages.reduce((n, p) => n + p.items.length, 0);
@@ -97,10 +97,7 @@ export const useMoveBookmarksMutation = () => {
 	const queryClient = useQueryClient();
 	return useMutation({
 		mutationFn: ({ newsletterIds, folderId }: { newsletterIds: number[]; folderId: number | null }) =>
-			apiFetch<{ count: number }>(API_ENDPOINTS.MY.BOOKMARKS_MOVE(), {
-				method: 'POST',
-				body: { newsletterIds, folderId },
-			}),
+			moveBookmarks(newsletterIds, folderId),
 		onSuccess: ({ count }) => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });

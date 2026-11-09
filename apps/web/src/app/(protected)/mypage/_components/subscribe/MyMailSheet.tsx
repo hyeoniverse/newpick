@@ -3,8 +3,7 @@
 import { queryKeys } from '@/api/queryKeys';
 
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { fetchMyMail } from '@/api/mails';
 import MailView from '@/components/common/MailView';
 import Skeleton from '@/components/common/loader/Skeleton';
 import ErrorState from '@/components/common/ErrorState';
@@ -14,7 +13,7 @@ import { errorStateFor, statusOf } from '@/constants/errors';
 export default function MyMailSheet({ sentAt }: { sentAt: string }) {
 	const { data, isPending, isError, error, refetch } = useQuery({
 		queryKey: queryKeys.mails.one(sentAt),
-		queryFn: () => apiFetch<{ subject: string; html: string }>(API_ENDPOINTS.MY.MAIL(sentAt)),
+		queryFn: () => fetchMyMail(sentAt),
 		staleTime: Infinity,
 	});
 
