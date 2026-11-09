@@ -1713,45 +1713,16 @@
 			list-style: none;
 		}
 
-		/* 오늘 아침 속보 (05시 이후 보도): 별도 소식들을 맨 위 연한 상자에. 소식 모양은 본문과 같되 조금 작게 */
+		/* 오늘 아침 속보 (05시 이후 보도): 맨 위 묶음. 소식 모양은 본문 소식과 똑같이, 묶음 이름표만 붙인다 */
 		.morning {
-			margin-bottom: 2.5rem;
-			padding: 1.25rem 1.5rem 0.5rem;
-			border-radius: 8px;
-			background: var(--np-color-tertiary);
+			margin-bottom: 3.5rem;
 
 			> h3 {
-				margin: 0 0 1rem;
+				margin: 0 0 0.75rem;
 				font-size: var(--np-font-size-extra-small);
 				font-weight: 800;
 				letter-spacing: 0.02em;
 				color: var(--np-color-primary);
-			}
-
-			.story {
-				margin-bottom: 1.25rem;
-				padding-top: 0;
-				border-top: 0;
-
-				& + .story {
-					margin-top: 1.5rem;
-					padding-top: 1.5rem;
-					border-top: 1px solid var(--np-color-border);
-				}
-
-				h2 {
-					font-size: var(--np-font-size-large);
-				}
-
-				.lead {
-					font-size: var(--np-font-size-medium);
-				}
-
-				/* 상자 안이라 관전 포인트 줄은 바탕색 대신 흰 바탕 */
-				.next {
-					margin-top: 1rem;
-					background: var(--np-color-background);
-				}
 			}
 		}
 
