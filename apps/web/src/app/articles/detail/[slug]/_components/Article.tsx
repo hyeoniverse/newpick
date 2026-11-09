@@ -23,7 +23,7 @@ import { useViewCount } from '@/hooks/useViewCount';
 import { ArticleInfo as IArticleInfo } from '@/models/article.model';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 import { DEFAULT_IMAGES } from '@/constants/images';
-import { parseUrls } from '@/utils/parseArticles';
+import { parseUrls, extractStories } from '@/utils/parseArticles';
 import Skeleton from '@/components/common/loader/Skeleton';
 import ErrorState from '@/components/common/ErrorState';
 import { DELETED_NEWSLETTER, errorStateFor, statusOf } from '@/constants/errors';
@@ -117,7 +117,7 @@ function Article({ initial }: Props) {
 			</div>
 			<div className="np-articles-article-article">
 				<Suspense fallback={<Skeleton />}>
-					<SummaryTextBox>{newsletterContent.content}</SummaryTextBox>
+					<SummaryTextBox stories={extractStories(newsletterHTML)}>{newsletterContent.content}</SummaryTextBox>
 				</Suspense>
 				{/* 생성형 AI 결과물 표시 (인공지능 기본법 제31조, 이용약관 제5조) */}
 				<Text as="p" size="extraSmall" color="subText" className="ai-notice">
