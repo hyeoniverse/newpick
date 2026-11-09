@@ -1,5 +1,6 @@
 'use client';
 
+import type { AdminSubscriberPage, AdminSubscriberRow } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/api/client';
@@ -16,16 +17,8 @@ import { AdminActions, SUBSCRIPTION_LABEL, subscriptionTone } from './UsersAdmin
 
 const PAGE_SIZE = 20;
 
-interface Row {
-	id: number;
-	status: string;
-	startedAt: string;
-	endAt: string | null;
-	userId: number;
-	email: string;
-	username: string | null;
-	interests: number[];
-}
+/** 한 줄 (@newpick/shared, api 응답과 같다) */
+type Row = AdminSubscriberRow;
 
 /**
  * 관리자 CMS (#31): 구독자. 구독 상태(구독 중 · 일시 정지 · 해지) · 관심사 · 이메일로 찾고,
@@ -47,9 +40,7 @@ export default function SubscribersAdmin() {
 	const { data, isPending, isError } = useQuery({
 		queryKey: ['adminSubscribers', query.toString()],
 		queryFn: () =>
-			apiFetch<{ data: { items: Row[]; total: number; byStatus: Record<string, number> } }>(
-				API_ENDPOINTS.ADMIN.SUBSCRIBERS(query.toString()),
-			).then((r) => r.data),
+			apiFetch<{ data: AdminSubscriberPage }>(API_ENDPOINTS.ADMIN.SUBSCRIBERS(query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,
 	});
 

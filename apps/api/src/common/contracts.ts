@@ -1,5 +1,11 @@
 import type { Newsletter as NewsletterRow } from '@prisma/client';
 import type {
+  AdminArticlePage,
+  AdminMailRow,
+  AdminSubscriberPage,
+  AdminUserRow,
+  AiLogPage,
+  Paged,
   BookmarkItem,
   BookmarkPage,
   HighlightPage,
@@ -8,6 +14,8 @@ import type {
   Newsletter,
   TagFollow,
 } from '@newpick/shared';
+import type { AdminService } from 'src/admin/admin.service';
+import type { DashboardService } from 'src/scheduler/dashboard.service';
 import type { HighlightsService } from 'src/mypage/highlights.service';
 import type { MyPageService } from 'src/mypage/mypage.service';
 import type { TasteService } from 'src/taste/taste.service';
@@ -74,4 +82,26 @@ export const BOOKMARK_PAGE_FIT: Fits<
 export const MY_TASTE_FIT: Fits<
   Response<TasteService, 'forUser'>,
   MyTaste
+> = true;
+
+/** 관리자 목록 */
+export const ADMIN_USERS_FIT: Fits<
+  Response<AdminService, 'getUsers'>,
+  Paged<AdminUserRow>
+> = true;
+export const ADMIN_SUBSCRIBERS_FIT: Fits<
+  Response<AdminService, 'getSubscribers'>,
+  AdminSubscriberPage
+> = true;
+export const ADMIN_ARTICLES_FIT: Fits<
+  Response<DashboardService, 'listArticles'>,
+  AdminArticlePage
+> = true;
+export const ADMIN_MAILS_FIT: Fits<
+  Response<DashboardService, 'listMails'>,
+  Paged<AdminMailRow>
+> = true;
+export const AI_LOGS_FIT: Fits<
+  Response<DashboardService, 'listAiLogs'>,
+  AiLogPage
 > = true;

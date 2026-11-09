@@ -55,6 +55,8 @@ export class AdminService {
       total,
       items: rows.map(({ interests, subscribers, _count, ...user }) => ({
         ...user,
+        // DB는 아무 문자열이라 응답에서 'user' | 'admin'으로 (프로필과 같게)
+        role: user.role === 'admin' ? ('admin' as const) : ('user' as const),
         interests: interests.map((i) => i.categoryId),
         subscription: subscribers[0]?.status ?? null,
         bookmarks: _count.bookmarks,

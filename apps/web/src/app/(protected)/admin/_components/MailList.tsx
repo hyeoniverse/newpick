@@ -1,5 +1,6 @@
 'use client';
 
+import type { AdminMailRow, Paged } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/api/client';
@@ -16,12 +17,8 @@ import { when } from './format';
 
 const PAGE_SIZE = 20;
 
-interface Row {
-	day: string;
-	email: string;
-	sentAt: string;
-	categoryIds: number[];
-}
+/** 한 줄 (@newpick/shared, api 응답과 같다) */
+type Row = AdminMailRow;
 
 /** 관리자 상세: 발송 기록. 하루에 한 사람 한 줄(받은 관심사), 관심사 · 이메일로 찾기, 쪽 */
 export default function MailList() {
@@ -38,9 +35,7 @@ export default function MailList() {
 	const { data, isPending, isError } = useQuery({
 		queryKey: ['adminMails', query.toString()],
 		queryFn: () =>
-			apiFetch<{ data: { items: Row[]; total: number } }>(API_ENDPOINTS.ADMIN.LIST('mails', query.toString())).then(
-				(r) => r.data,
-			),
+			apiFetch<{ data: Paged<Row> }>(API_ENDPOINTS.ADMIN.LIST('mails', query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,
 	});
 

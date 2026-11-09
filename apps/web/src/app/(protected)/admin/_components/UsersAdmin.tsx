@@ -1,5 +1,6 @@
 'use client';
 
+import type { AdminUserRow, Paged } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LuTriangleAlert } from 'react-icons/lu';
@@ -31,16 +32,8 @@ export const SUBSCRIPTION_LABEL: Record<string, string> = { active: '구독 중'
 export const subscriptionTone = (status: string | null) =>
 	status === 'active' ? 'success' : status === 'paused' ? 'warning' : 'neutral';
 
-interface Row {
-	id: number;
-	email: string;
-	username: string | null;
-	role: 'user' | 'admin';
-	createdAt: string;
-	interests: number[];
-	subscription: string | null;
-	bookmarks: number;
-}
+/** 한 줄 (@newpick/shared, api 응답과 같다) */
+type Row = AdminUserRow;
 
 /**
  * 관리자 CMS (#31): 사용자. 이메일 · 이름 · 권한으로 찾고, 권한을 바꾸거나 지운다(회원 탈퇴와 같은 경로).
@@ -63,10 +56,7 @@ export default function UsersAdmin() {
 
 	const { data, isPending, isError } = useQuery({
 		queryKey: ['adminUsers', query.toString()],
-		queryFn: () =>
-			apiFetch<{ data: { items: Row[]; total: number } }>(API_ENDPOINTS.ADMIN.USERS(query.toString())).then(
-				(r) => r.data,
-			),
+		queryFn: () => apiFetch<{ data: Paged<Row> }>(API_ENDPOINTS.ADMIN.USERS(query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,
 	});
 	const refresh = () => queryClient.invalidateQueries({ queryKey: ['adminUsers'] });

@@ -1,5 +1,6 @@
 'use client';
 
+import type { AdminArticlePage, AdminArticleRow } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -61,17 +62,8 @@ const byCycle = <T extends { createdAt: string }>(items: T[], summary: ClockTime
 /** 언론사 고르기에서 '직접 입력'을 뜻하는 값 (언론사 이름과 겹치지 않게) */
 const CUSTOM = '__custom';
 
-interface Row {
-	id: string;
-	title: string;
-	link: string;
-	source: string;
-	category: string[];
-	publishedAt: string | null;
-	createdAt: string;
-	image: string | null;
-	usedIn: { id: number; title: string }[];
-}
+/** 한 줄 (@newpick/shared, api 응답과 같다) */
+type Row = AdminArticleRow;
 
 /**
  * 관리자 상세: 수집한 기사 (#31). 크롤링 원문은 30일 뒤 지워진다.
@@ -106,9 +98,7 @@ export default function ArticlesList() {
 	const { data, isPending, isError } = useQuery({
 		queryKey: ['adminArticles', query.toString()],
 		queryFn: () =>
-			apiFetch<{ data: { items: Row[]; total: number; sources: string[] } }>(
-				API_ENDPOINTS.ADMIN.LIST('articles', query.toString()),
-			).then((r) => r.data),
+			apiFetch<{ data: AdminArticlePage }>(API_ENDPOINTS.ADMIN.LIST('articles', query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,
 	});
 
