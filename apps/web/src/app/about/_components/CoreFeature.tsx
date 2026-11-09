@@ -1,10 +1,11 @@
 'use client';
 
+import { CATEGORY_NAMES } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 
-const CATEGORIES = ['IT', '정치', '경제', '사회', '생활', '세계'];
+const CATEGORIES = CATEGORY_NAMES;
 
 /** AI 큐레이션: 소식 한 꼭지가 요약 · 시사점 · 문답으로 써지고, 중요한 구절에 형광펜 */
 function CurationDemo() {

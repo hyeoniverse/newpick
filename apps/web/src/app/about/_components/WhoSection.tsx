@@ -1,6 +1,6 @@
 'use client';
 
-import { TEAMS, V1, V2 } from '@/constants/about';
+import { TEAMS, V1, V2 } from '@/content/about';
 import { LuChevronDown, LuExternalLink } from 'react-icons/lu';
 import Image from '@/components/common/Image';
 import BorderTitle from '@/components/common/BorderTitle';

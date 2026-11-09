@@ -1,5 +1,6 @@
 'use client';
 
+import { STORAGE_KEYS } from '@/constants/storage';
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 
@@ -10,7 +11,6 @@ import { usePathname } from 'next/navigation';
  * 관리자 화면 · 자동화 브라우저 · 추적 거부(Do Not Track · GPC) · 히트맵 미리보기(?__notrack)는 모으지 않는다
  */
 const ENDPOINT = '/api/analytics/collect';
-const SESSION_KEY = 'np-visit';
 /** 문서를 몇 칸으로 나눠 머문 시간을 세는지 (API와 같음) */
 const BANDS = 20;
 const MAX_CLICKS = 100;
@@ -34,7 +34,7 @@ function trackingAllowed(pathname: string) {
 	// 자동화 브라우저(테스트 · 봇). 직접 확인할 때는 localStorage 'np-track-debug'로 켠다
 	let debug = false;
 	try {
-		debug = localStorage.getItem('np-track-debug') === '1';
+		debug = localStorage.getItem(STORAGE_KEYS.trackDebug) === '1';
 	} catch {}
 	return debug || !nav.webdriver;
 }
@@ -42,10 +42,10 @@ function trackingAllowed(pathname: string) {
 /** 탭 번호 (없으면 새로 만들고 이 탭의 첫 페이지로 본다) */
 function visitSession(): { id: string; isNew: boolean } {
 	try {
-		const saved = sessionStorage.getItem(SESSION_KEY);
+		const saved = sessionStorage.getItem(STORAGE_KEYS.visit);
 		if (saved) return { id: saved, isNew: false };
 		const id = randomId();
-		sessionStorage.setItem(SESSION_KEY, id);
+		sessionStorage.setItem(STORAGE_KEYS.visit, id);
 		return { id, isNew: true };
 	} catch {
 		return { id: randomId(), isNew: true };

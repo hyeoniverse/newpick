@@ -2,7 +2,7 @@ import { ROUTES } from '@/constants/routes';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/constants/site';
 import { fetchContactEmail } from '@/api/contact';
-import { PRIVACY_EFFECTIVE_DATE, privacySections, privacySummary } from '@/constants/legal';
+import { PRIVACY_EFFECTIVE_DATE, privacySections, privacySummary } from '@/content/legal';
 import LegalDocument from '@/components/common/legal/LegalDocument';
 
 export const metadata: Metadata = pageMetadata(

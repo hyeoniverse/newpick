@@ -4,8 +4,7 @@ import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } fr
 import { fetchTrendList } from '@/api/article';
 import { fetchContactEmail } from '@/api/contact';
 import { parseArticles } from '@/utils/parseArticles';
-import { SESSION_HINT_COOKIE } from '@/constants/api';
-import { THEME_LOCALSTORAGE_KEY } from '@/stores/useThemeStore';
+import { COOKIES, STORAGE_KEYS } from '@/constants/storage';
 import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/constants/site';
 
 import '@/styles/pretendard.css';
@@ -46,10 +45,10 @@ export const metadata: Metadata = {
  * 화면을 그리기 전에 로그인 표시 쿠키를 읽어 <html data-auth>를 정합니다.
  * 하이드레이션 전에도 헤더가 CSS로 맞는 쪽(로그인 버튼 / 프로필 자리)만 보여 줘 깜빡이지 않습니다.
  */
-const sessionHintScript = `document.documentElement.dataset.auth=document.cookie.split('; ').includes('${SESSION_HINT_COOKIE}=1')?'in':'out'`;
+const sessionHintScript = `document.documentElement.dataset.auth=document.cookie.split('; ').includes('${COOKIES.sessionHint}=1')?'in':'out'`;
 
 /** 저장된 테마도 그리기 전에 <html data-theme>에 적어, 다크 사용자가 라이트 화면을 잠깐 보지 않게 합니다 */
-const themeScript = `try{document.documentElement.dataset.theme=localStorage.getItem('${THEME_LOCALSTORAGE_KEY}')==='dark'?'dark':'light'}catch(e){}`;
+const themeScript = `try{document.documentElement.dataset.theme=localStorage.getItem('${STORAGE_KEYS.theme}')==='dark'?'dark':'light'}catch(e){}`;
 
 export default async function RootLayout({
 	children,
@@ -76,14 +75,14 @@ export default async function RootLayout({
 				<link rel="icon" href="/icons/favicon.svg" />
 			</head>
 			<body>
-					<Providers initialTrends={parsedTrends}>
-						<Layout contactEmail={contactEmail}>{children}</Layout>
-						<ToastContainer />
-						<ModalContainer />
-						<SpeedInsights />
-						{/* 방문 통계 (#131): 쿠키 없이 */}
-						<Tracker />
-					</Providers>
+				<Providers initialTrends={parsedTrends}>
+					<Layout contactEmail={contactEmail}>{children}</Layout>
+					<ToastContainer />
+					<ModalContainer />
+					<SpeedInsights />
+					{/* 방문 통계 (#131): 쿠키 없이 */}
+					<Tracker />
+				</Providers>
 			</body>
 		</html>
 	);

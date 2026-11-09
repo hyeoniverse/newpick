@@ -1,5 +1,6 @@
 'use client';
 
+import { CATEGORY_NAMES } from '@newpick/shared';
 import { useState } from 'react';
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
@@ -30,7 +31,7 @@ const STEPS = [
 	},
 ];
 
-const CATEGORIES = ['IT', '정치', '경제', '사회', '생활', '세계'];
+const CATEGORIES = CATEGORY_NAMES;
 
 /** 같은 사건 묶음의 자리 (무대 안 %). 0 · 2 · 3번 묶음이 뽑힌다 */
 const CLUSTERS = [
