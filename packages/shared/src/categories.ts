@@ -15,7 +15,9 @@ export type Category = (typeof CATEGORIES)[number];
 export type CategoryId = Category['id'];
 export type CategoryName = Category['name'];
 
-export const CATEGORY_NAMES: readonly CategoryName[] = CATEGORIES.map((c) => c.name);
+export const CATEGORY_NAMES: readonly CategoryName[] = CATEGORIES.map(
+  (c) => c.name,
+);
 
 /** id → 이름 (없는 id면 undefined) */
 export const categoryName = (id: number): CategoryName | undefined =>

@@ -1,21 +1,14 @@
 'use client';
 
+import type { ClockTime, Schedule } from '@newpick/shared';
 import { useState } from 'react';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import Button from '@/components/common/Button';
 import TimePicker from '@/components/common/TimePicker';
 
-export interface ClockTime {
-	hour: number;
-	minute: number;
-}
-
-export interface Schedule {
-	crawl: ClockTime;
-	summary: ClockTime;
-	mail: ClockTime & { day: number };
-}
+/** 예약 시각 (@newpick/shared, api와 같다) */
+export type { ClockTime, Schedule };
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
 const pad = (n: number) => String(n).padStart(2, '0');

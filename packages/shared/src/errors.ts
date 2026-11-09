@@ -47,4 +47,5 @@ export const ERROR_CODE_NAMES = [
 export type ErrorCode = (typeof ERROR_CODE_NAMES)[number];
 
 export const isErrorCode = (value: unknown): value is ErrorCode =>
-  typeof value === 'string' && (ERROR_CODE_NAMES as readonly string[]).includes(value);
+  typeof value === 'string' &&
+  (ERROR_CODE_NAMES as readonly string[]).includes(value);

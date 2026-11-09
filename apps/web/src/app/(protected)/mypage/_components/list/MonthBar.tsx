@@ -1,15 +1,13 @@
 'use client';
 
+import type { MonthIndex } from '@newpick/shared';
 import { useEffect, useRef, useState } from 'react';
 import { LuChevronDown, LuChevronLeft, LuChevronRight, LuChevronUp } from 'react-icons/lu';
 import { cx } from '@/styles/tw';
 
 /** 바로 가기용 달 (서버가 거르기 · 정렬을 적용한 순서로 준다): 그 달 개수와 그 달 첫 항목의 순번 */
-export interface MonthIndex {
-	month: string;
-	count: number;
-	firstIndex: number;
-}
+/** 달 이동 (@newpick/shared) */
+export type { MonthIndex };
 
 /** 날짜 바로가기 하나: 누르면 갈 요소의 id와 그 날짜 */
 export interface BarItem {

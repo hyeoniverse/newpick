@@ -1,3 +1,4 @@
+import type { JobName, JobResult, JobRun, JobTrigger } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { MysqlPrismaService } from 'prisma/mysql.service';
@@ -503,6 +504,21 @@ export class DashboardService {
     ]);
 
     const status = this.scheduler.getSchedulerStatus();
+    // 지금 진행 중이면 서버 메모리, 아니면 DB의 마지막 실행 (재시작해도 남음).
+    // DB의 trigger · status는 문자열 칸이지만 작업 기록이 쓰는 값만 들어간다 (scheduler.service startRun · finishRun)
+    const runOf = (job: JobName): JobRun => {
+      const live = status.runs[job];
+      const last = lastRuns[job];
+      if (live.running || !last) return live;
+      return {
+        running: last.status === 'running',
+        trigger: last.trigger as JobTrigger,
+        startedAt: last.startedAt.toISOString(),
+        finishedAt: last.finishedAt?.toISOString() ?? null,
+        status: last.status === 'running' ? null : (last.status as JobResult),
+        message: last.message,
+      };
+    };
     return {
       range: { from, to },
       scheduler: {
@@ -514,25 +530,11 @@ export class DashboardService {
           mail: status.mailing,
         },
         schedule: this.scheduler.getSchedule(),
-        // 지금 진행 중이면 서버 메모리, 아니면 DB의 마지막 실행 (재시작해도 남음)
-        runs: Object.fromEntries(
-          (['crawling', 'summary', 'mail'] as const).map((job) => {
-            const live = status.runs[job];
-            const last = lastRuns[job];
-            if (live.running || !last) return [job, live];
-            return [
-              job,
-              {
-                running: last.status === 'running',
-                trigger: last.trigger,
-                startedAt: last.startedAt.toISOString(),
-                finishedAt: last.finishedAt?.toISOString() ?? null,
-                status: last.status === 'running' ? null : last.status,
-                message: last.message,
-              },
-            ];
-          }),
-        ),
+        runs: {
+          crawling: runOf('crawling'),
+          summary: runOf('summary'),
+          mail: runOf('mail'),
+        },
       },
       crawling: {
         count: crawled,

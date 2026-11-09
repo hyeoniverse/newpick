@@ -1,5 +1,6 @@
 'use client';
 
+import type { Mail, MailDigest, MailsPage } from '@newpick/shared';
 import { useEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { LuChevronRight, LuMailPlus, LuMail, LuNewspaper } from 'react-icons/lu';
@@ -32,52 +33,7 @@ const GLANCE_SMALL = 3;
 /** 한 번에 받아 오는 메일 수 (무한 스크롤 한 묶음, 서버는 20통까지) */
 const PAGE_SIZE = 10;
 
-interface MailNewsletter {
-	id: number;
-	title: string;
-	subtitle: string | null;
-	image: string | null;
-	summary: string | null;
-	createdAt: string;
-	category: { id: number; name: string };
-}
-
-interface Mail {
-	sentAt: string;
-	/** 메일 제목 (발송 때와 같은 방식으로 다시 만든 것) */
-	subject: string | null;
-	newsletters: MailNewsletter[];
-	starred: boolean;
-	folderId: number | null;
-	/** 메일의 짜임새 (발송 때처럼 고른 분야로 다시 엮은 것). 편집본 · 소식이 없으면 null */
-	digest: MailDigest | null;
-}
-
-/** 받은 메일은 사이트 뉴스레터를 그대로 붙인 게 아니라, 그날 편집본으로 고른 분야만 다시 엮은 것 */
-interface MailDigest {
-	/** 오늘을 한눈에: 고른 분야 전체에서 중요도 순 */
-	top: { category: string; heading: string; line: string }[];
-	/** 분야를 넘는 흐름 (고른 분야끼리만) */
-	threads: { title: string; text: string; categories: string[] }[];
-	/** 분야별 소식 (같은 사건은 한 번만, 다른 분야에도 실렸으면 alsoIn) */
-	sections: {
-		category: string;
-		newsletterId: number;
-		title: string;
-		stories: { heading: string; alsoIn: string[] }[];
-	}[];
-	/** 관전 포인트 */
-	watch: string[];
-}
-
-interface MailsPage {
-	items: Mail[];
-	total: number;
-	/** 달 이동용: 거르기 · 정렬을 적용한 순서로 달마다 통수와 그 달 첫 메일의 순번 */
-	months?: MonthIndex[];
-	/** 거르기와 상관없는 개수: 전체 · 중요 · 폴더 없음 */
-	counts: { all: number; starred: number; unfiled: number };
-}
+/** 받은 메일 · 짜임새 · 한 쪽 (@newpick/shared, api 응답과 같다) */
 
 /** 받은 메일 한 통 표시 (중요 · 폴더). 목록 · 폴더 개수를 다시 받는다 */
 const useMarkMail = () => {

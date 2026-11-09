@@ -29,4 +29,7 @@ export interface NewsletterDetail {
 }
 
 /** 관리자 발행 목록 한 줄 (GET /scheduler/dashboard/newsletters) */
-export type NewsletterListItem = Pick<Newsletter, 'id' | 'title' | 'categoryId' | 'viewcount' | 'createdAt'>;
+export type NewsletterListItem = Pick<
+  Newsletter,
+  'id' | 'title' | 'categoryId' | 'viewcount' | 'createdAt'
+>;
