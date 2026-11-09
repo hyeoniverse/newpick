@@ -11,6 +11,7 @@ import {
   PrepArticle,
   publishedLabel,
   isMorning,
+  selectCandidates,
 } from './article-prep';
 import { kstDayLabel, kstStamp } from '../common/kst';
 import { UsageError, usageOf } from './pricing';
@@ -960,7 +961,10 @@ export class NewsletterWriterService {
       morningSince ? kstStamp(morningSince) : undefined,
     );
     const vectors = await this.embeddings(prepared);
-    const clusters = clusterArticles(prepared, vectors ?? undefined);
+    // 묶음이 많은 날은 큰 묶음부터 추린다 (고르기 응답이 묶음 수만큼 길어진다)
+    const clusters = selectCandidates(
+      clusterArticles(prepared, vectors ?? undefined),
+    );
     const usage: Usage[] = [];
     // 실패해도 그때까지 쓴 사용량(끝난 호출 + 실패한 호출에서 받은 데까지)을 오류에 실어 보낸다
     const call = async (

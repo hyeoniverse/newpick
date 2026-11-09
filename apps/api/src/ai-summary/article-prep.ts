@@ -173,3 +173,24 @@ export function prepare(
 /** 묶음이 오늘 아침 속보인가: 하나라도 아침 보도면 (어젯밤 보도에 오늘 아침 후속이 붙은 묶음도 아침) */
 export const isMorning = (cluster: Cluster) =>
   cluster.articles.some((a) => a.morning);
+
+/** 고르기에 보내는 묶음 수 한도. 묶음마다 점수 한 줄을 받으므로 이보다 많으면 응답이 한도에서 잘린다 */
+export const SELECT_MAX_CLUSTERS = 50;
+/** 그중 오늘 아침 속보 묶음은 작아도 이만큼은 넣는다 (아침 속보는 보도가 1~2건인 때가 많다) */
+export const SELECT_MAX_MORNING = 10;
+
+/**
+ * 고르기 후보: 보도가 많은 묶음부터 SELECT_MAX_CLUSTERS개 + 거기 못 든 아침 속보 묶음 SELECT_MAX_MORNING개까지.
+ * 묶음 순서(보도 많은 순)는 그대로 둔다. 기사가 많은 날은 묶음이 300개 가까워 점수 줄만으로 1만 6천 토큰을 넘겼다 (11/8 · 11/9)
+ */
+export function selectCandidates(
+  clusters: Cluster[],
+  max = SELECT_MAX_CLUSTERS,
+  morningMax = SELECT_MAX_MORNING,
+): Cluster[] {
+  if (clusters.length <= max) return clusters;
+  const top = new Set(clusters.slice(0, max));
+  const morning = clusters.slice(max).filter(isMorning).slice(0, morningMax);
+  morning.forEach((cluster) => top.add(cluster));
+  return clusters.filter((cluster) => top.has(cluster));
+}
