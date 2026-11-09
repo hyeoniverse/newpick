@@ -1,3 +1,4 @@
+import { queryKeys } from '@/api/queryKeys';
 import type { Highlight, HighlightPage, MyTaste } from '@newpick/shared';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from '@/api/client';
@@ -13,7 +14,7 @@ export type { Highlight, HighlightPage };
 export function useHighlights(newsletterId?: number) {
 	const { user } = useAuth();
 	return useQuery({
-		queryKey: ['highlights', user?.id, newsletterId ?? 'all'],
+		queryKey: queryKeys.highlights.list(user?.id, newsletterId),
 		queryFn: () => apiFetch<Highlight[]>(API_ENDPOINTS.MY.HIGHLIGHTS(newsletterId)),
 		enabled: !!user,
 	});
@@ -31,7 +32,7 @@ export const HIGHLIGHT_PAGE_SIZE = 30;
 export function useHighlightPages(filters: string, startOffset = 0) {
 	const { user } = useAuth();
 	return useInfiniteQuery({
-		queryKey: ['highlights', 'page', user?.id, filters, startOffset],
+		queryKey: queryKeys.highlights.page(user?.id, filters, startOffset),
 		queryFn: async ({ pageParam }) => ({
 			...(await apiFetch<HighlightPage>(
 				API_ENDPOINTS.MY.HIGHLIGHTS_PAGE(
@@ -55,9 +56,9 @@ export function useHighlightMutations() {
 	const { showToast } = useToast();
 	// 스크랩이 바뀌면 취향 점수도 다시
 	const refresh = () => {
-		queryClient.invalidateQueries({ queryKey: ['highlights'] });
-		queryClient.invalidateQueries({ queryKey: ['folders'] });
-		queryClient.invalidateQueries({ queryKey: ['taste'] });
+		queryClient.invalidateQueries({ queryKey: queryKeys.highlights.all });
+		queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
+		queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
 	};
 	const fail = (error: Error) =>
 		showToast(error instanceof ApiError ? error.message : '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.', 'error');
@@ -135,7 +136,7 @@ export type Taste = MyTaste;
 export function useTaste() {
 	const { user } = useAuth();
 	return useQuery({
-		queryKey: ['taste', user?.id],
+		queryKey: queryKeys.taste.mine(user?.id),
 		queryFn: () => apiFetch<Taste>(API_ENDPOINTS.MY.TASTE()),
 		enabled: !!user,
 	});

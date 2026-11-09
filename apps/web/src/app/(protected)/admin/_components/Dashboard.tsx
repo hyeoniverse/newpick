@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import { JOB_ENDPOINT, type Dashboard, type JobName, type JobResult } from '@newpick/shared';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -62,7 +64,7 @@ const scheduleText = (job: JobKey, schedule: Schedule) =>
 /** 그날 받은 사람: 펼칠 때만 불러온다 */
 function MailRecipients({ date, today }: { date: string; today: string }) {
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminMailRecipients', date],
+		queryKey: queryKeys.admin.mailRecipients(date),
 		queryFn: () =>
 			apiFetch<{ data: { email: string; sentAt: string; categoryIds: number[] }[] }>(
 				API_ENDPOINTS.ADMIN.MAIL_RECIPIENTS(date),
@@ -97,7 +99,7 @@ export default function Dashboard() {
 	const [openDay, setOpenDay] = useState<string | null>(null);
 
 	const { data, isPending, isError, refetch } = useQuery({
-		queryKey: ['adminDashboard', from, to],
+		queryKey: queryKeys.admin.dashboard.range(from, to),
 		queryFn: () =>
 			apiFetch<{ data: DashboardData }>(`${API_ENDPOINTS.ADMIN.DASHBOARD()}?from=${from}&to=${to}`).then((r) => r.data),
 		placeholderData: (previous) => previous,
@@ -105,7 +107,7 @@ export default function Dashboard() {
 			Object.values(query.state.data?.scheduler.runs ?? {}).some((run) => run.running) ? 5000 : 60000,
 	});
 
-	const refresh = () => queryClient.invalidateQueries({ queryKey: ['adminDashboard'] });
+	const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.dashboard.all });
 
 	const editSchedule = () =>
 		data &&
@@ -484,7 +486,7 @@ const kstDay = (daysAgo: number) =>
 /** 그날 아직 뉴스레터가 없는 분야: 서버가 만들 분야와 같다 (있는 분야는 건너뛴다) */
 function MissingCategories({ date, label }: { date: string; label: string }) {
 	const { data: missing, isPending } = useQuery({
-		queryKey: ['adminNewsletters', 'day', date],
+		queryKey: queryKeys.admin.newsletters.day(date),
 		queryFn: async () => {
 			const query = new URLSearchParams({ from: date, to: date, limit: '100', offset: '0' });
 			const { data } = await apiFetch<{ data: { items: { categoryId: number }[] } }>(

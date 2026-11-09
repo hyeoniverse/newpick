@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import type { AdminSubscriberPage, AdminSubscriberRow } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -38,7 +40,7 @@ export default function SubscribersAdmin() {
 	if (q) query.set('q', q);
 
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminSubscribers', query.toString()],
+		queryKey: queryKeys.admin.subscribers(query.toString()),
 		queryFn: () =>
 			apiFetch<{ data: AdminSubscriberPage }>(API_ENDPOINTS.ADMIN.SUBSCRIBERS(query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,

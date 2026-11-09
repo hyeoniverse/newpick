@@ -1,3 +1,4 @@
+import { queryKeys } from '@/api/queryKeys';
 import type { BookmarkPage } from '@newpick/shared';
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IBookmarkItem } from '@/models/bookmark.model';
@@ -17,7 +18,7 @@ export const useBookmarksList = () => {
 	const { user } = useAuth();
 
 	return useQuery<IBookmarkItem[]>({
-		queryKey: ['bookmarks', user?.id],
+		queryKey: queryKeys.bookmarks.list(user?.id),
 		queryFn: async () => {
 			return fetchUserBookmarksApi();
 		},
@@ -39,7 +40,7 @@ export const BOOKMARK_PAGE_SIZE = 24;
 export const useBookmarkPages = (filters: string) => {
 	const { user } = useAuth();
 	return useInfiniteQuery({
-		queryKey: ['bookmarks', 'page', user?.id, filters],
+		queryKey: queryKeys.bookmarks.page(user?.id, filters),
 		queryFn: ({ pageParam }) =>
 			apiFetch<BookmarkPage>(
 				API_ENDPOINTS.MY.BOOKMARKS_PAGE(
@@ -66,8 +67,8 @@ export const useAddBookmarkMutation = () => {
 			return addBookmarkApi(newsId, newsletterId);
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
-			queryClient.invalidateQueries({ queryKey: ['taste'] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
+			queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
 			showToast('북마크가 추가되었습니다.', 'success');
 		},
 	});
@@ -83,8 +84,8 @@ export const useRemoveBookmarkMutation = () => {
 			return removeBookmarkApi(newsId, newsletterId);
 		},
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
-			queryClient.invalidateQueries({ queryKey: ['taste'] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
+			queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
 			showToast('북마크가 삭제되었습니다.', 'success');
 		},
 	});
@@ -101,8 +102,8 @@ export const useMoveBookmarksMutation = () => {
 				body: { newsletterIds, folderId },
 			}),
 		onSuccess: ({ count }) => {
-			queryClient.invalidateQueries({ queryKey: ['bookmarks'] });
-			queryClient.invalidateQueries({ queryKey: ['folders'] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
+			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
 			showToast(`${count}개를 옮겼어요.`, 'success');
 		},
 		onError: (error: Error) =>

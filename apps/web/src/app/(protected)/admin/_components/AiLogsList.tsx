@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import type { AiLogPage, AiLogRow } from '@newpick/shared';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -77,7 +79,7 @@ function useRerun() {
 							`${date} ${log.category ?? ''} 뉴스레터 생성을 시작했습니다. 몇 분 후 기록에 표시됩니다.`,
 							'success',
 						);
-						setTimeout(() => queryClient.invalidateQueries({ queryKey: ['adminAiLogs'] }), 60_000);
+						setTimeout(() => queryClient.invalidateQueries({ queryKey: queryKeys.admin.aiLogs.all }), 60_000);
 					} catch (error) {
 						showToast(error instanceof ApiError ? error.message : '시작하지 못했습니다.', 'error');
 					}
@@ -100,7 +102,7 @@ export default function AiLogsList() {
 	for (const [key, value] of Object.entries(sortQuery)) query.set(key, value);
 
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminAiLogs', query.toString()],
+		queryKey: queryKeys.admin.aiLogs.list(query.toString()),
 		queryFn: () =>
 			apiFetch<{ data: AiLogPage }>(API_ENDPOINTS.ADMIN.LIST('ai-logs', query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,

@@ -1,10 +1,11 @@
+import { queryKeys } from '@/api/queryKeys';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/client';
 import { fetchTagFollows, followTag, unfollowTag } from '@/api/tagFollows';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 
-export const TAG_FOLLOWS_KEY = ['tag-follows'];
+export const TAG_FOLLOWS_KEY = queryKeys.tagFollows;
 
 /** 팔로우한 태그 (#123): 목록 · 팔로우 · 끊기. 로그인했을 때만 불러온다 */
 export function useTagFollows() {

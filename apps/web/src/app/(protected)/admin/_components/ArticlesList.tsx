@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import type { AdminArticlePage, AdminArticleRow } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -84,7 +86,7 @@ export default function ArticlesList() {
 	const sortQuery = useSortQuery();
 	// 주기를 나누는 기준: 관리자가 정한 AI 요약 시각 (기본 08:30)
 	const { data: schedule } = useQuery({
-		queryKey: ['adminSchedule'],
+		queryKey: queryKeys.admin.schedule,
 		queryFn: () => apiFetch<{ data: Schedule }>(API_ENDPOINTS.ADMIN.SCHEDULE()).then((r) => r.data),
 		staleTime: 1000 * 60 * 10,
 	});
@@ -96,7 +98,7 @@ export default function ArticlesList() {
 	for (const [key, value] of Object.entries(sortQuery)) query.set(key, value);
 
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminArticles', query.toString()],
+		queryKey: queryKeys.admin.articles(query.toString()),
 		queryFn: () =>
 			apiFetch<{ data: AdminArticlePage }>(API_ENDPOINTS.ADMIN.LIST('articles', query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,

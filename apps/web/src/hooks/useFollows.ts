@@ -1,3 +1,4 @@
+import { queryKeys } from '@/api/queryKeys';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
@@ -35,13 +36,11 @@ export interface FollowUpdateIn {
 	follow: { heading: string; newsletter: { id: number; createdAt: string } };
 }
 
-const KEY = 'follows';
-
 /** 마이페이지: 지켜보는 소식마다 이어진 소식 */
 export function useFollows() {
 	const { user } = useAuth();
 	return useQuery({
-		queryKey: [KEY, user?.id, 'list'],
+		queryKey: queryKeys.follows.list(user?.id),
 		queryFn: () => apiFetch<StoryFollow[]>(API_ENDPOINTS.MY.FOLLOWS()),
 		enabled: !!user,
 	});
@@ -51,7 +50,7 @@ export function useFollows() {
 export function useUnseenFollows() {
 	const { user } = useAuth();
 	return useQuery({
-		queryKey: [KEY, user?.id, 'unseen'],
+		queryKey: queryKeys.follows.unseen(user?.id),
 		queryFn: () => apiFetch<{ count: number }>(API_ENDPOINTS.MY.FOLLOWS_UNSEEN()),
 		enabled: !!user,
 		staleTime: 5 * 60 * 1000,
@@ -63,7 +62,7 @@ export function useUnseenFollows() {
 export function useNewsletterFollows(newsletterId: number) {
 	const { user } = useAuth();
 	return useQuery({
-		queryKey: [KEY, user?.id, 'newsletter', newsletterId],
+		queryKey: queryKeys.follows.newsletter(user?.id, newsletterId),
 		queryFn: () =>
 			apiFetch<{ id: number; storyIndex: number; _count: { updates: number } }[]>(
 				API_ENDPOINTS.MY.FOLLOWS_OF(newsletterId),
@@ -76,7 +75,7 @@ export function useNewsletterFollows(newsletterId: number) {
 export function useNewsletterFollowUpdates(newsletterId: number) {
 	const { user } = useAuth();
 	return useQuery({
-		queryKey: [KEY, user?.id, 'newsletter', newsletterId, 'updates'],
+		queryKey: queryKeys.follows.updates(user?.id, newsletterId),
 		queryFn: () => apiFetch<FollowUpdateIn[]>(API_ENDPOINTS.MY.FOLLOW_UPDATES_IN(newsletterId)),
 		enabled: !!user,
 	});
@@ -85,7 +84,7 @@ export function useNewsletterFollowUpdates(newsletterId: number) {
 export function useFollowMutations() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
-	const refresh = () => queryClient.invalidateQueries({ queryKey: [KEY] });
+	const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.follows.all });
 
 	const follow = useMutation({
 		mutationFn: (body: { newsletterId: number; storyIndex: number }) =>
@@ -104,7 +103,7 @@ export function useFollowMutations() {
 	const markSeen = useMutation({
 		mutationFn: (newsletterId?: number) =>
 			apiFetch(API_ENDPOINTS.MY.FOLLOWS_SEEN(), { method: 'POST', body: newsletterId ? { newsletterId } : {} }),
-		onSettled: () => queryClient.invalidateQueries({ queryKey: [KEY] }),
+		onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.follows.all }),
 	});
 	const keep = useMutation({
 		mutationFn: (id: number) => apiFetch(API_ENDPOINTS.MY.FOLLOW_KEEP(id), { method: 'POST' }),

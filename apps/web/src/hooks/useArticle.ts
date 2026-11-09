@@ -1,3 +1,4 @@
+import { queryKeys } from '@/api/queryKeys';
 import { ApiError } from '@/api/client';
 import { NewsInfo as INewsInfo } from '@/models/article.model';
 import {
@@ -19,7 +20,7 @@ export const getArticleContent = async (slug: string): Promise<IArticleInfo> => 
 };
 export function useArticleContentQuery(slug: string, initialData?: IArticleInfo) {
 	return useQuery<IArticleInfo, Error>({
-		queryKey: ['articleContent', slug],
+		queryKey: queryKeys.articles.content(slug),
 		queryFn: () => getArticleContent(slug),
 		initialData,
 	});
@@ -38,7 +39,7 @@ export const getPopularArticles = async (
 };
 export function usePopularArticlesQuery(limit: number = 5, offset: number = 0, trend: boolean = true) {
 	return useQuery<IArticleDetail[], Error>({
-		queryKey: ['popularArticles', limit, offset, trend],
+		queryKey: queryKeys.articles.popular(limit, offset, trend),
 		queryFn: () => getPopularArticles(limit, offset, trend),
 	});
 }
@@ -52,7 +53,7 @@ export const getArticleList = async (limit: number = 5, offset: number = 0): Pro
 };
 export function useArticleListQuery(limit: number = 5, offset: number = 0) {
 	return useQuery<IArticleDetail[], Error>({
-		queryKey: ['articleList', limit, offset],
+		queryKey: queryKeys.articles.list(limit, offset),
 		queryFn: () => getArticleList(limit, offset),
 	});
 }

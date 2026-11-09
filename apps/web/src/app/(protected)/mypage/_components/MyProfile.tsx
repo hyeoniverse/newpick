@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useTab } from '@/hooks/useTab';
@@ -16,18 +18,18 @@ function Summary() {
 	const { user } = useAuth();
 	const { setActiveTab } = useTab();
 	const { data: mails } = useQuery({
-		queryKey: ['myMails', user?.id, 'count'],
+		queryKey: queryKeys.mails.count(user?.id),
 		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.MAILS(0, 1)),
 		enabled: !!user,
 	});
 	// 개수만 필요하니 한 개짜리 쪽으로 (목록 전체를 받지 않게)
 	const { data: bookmarks } = useQuery({
-		queryKey: ['bookmarks', 'count', user?.id],
+		queryKey: queryKeys.bookmarks.count(user?.id),
 		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.BOOKMARKS_PAGE('limit=1')),
 		enabled: !!user,
 	});
 	const { data: highlights } = useQuery({
-		queryKey: ['highlights', 'count', user?.id],
+		queryKey: queryKeys.highlights.count(user?.id),
 		queryFn: () => apiFetch<{ counts: { all: number } }>(API_ENDPOINTS.MY.HIGHLIGHTS_PAGE('limit=1')),
 		enabled: !!user,
 	});

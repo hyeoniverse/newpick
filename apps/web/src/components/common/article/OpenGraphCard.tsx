@@ -1,3 +1,4 @@
+import { queryKeys } from '@/api/queryKeys';
 import { useQuery } from '@tanstack/react-query';
 import { NewsInfo as INewsInfo } from '@/models/article.model';
 import { dateFormatter } from '@/utils/formatter';
@@ -21,7 +22,7 @@ export default function OpenGraphCard({ urls }: Props) {
 	// 예전에는 urls 배열이 그릴 때마다 새로 만들어져 useEffect가 매번 다시 요청했고,
 	// API 요청 제한(429)에 걸린 요청이 빠지면서 카드가 떴다 사라졌다
 	const { data: relatedNewsData = [] } = useQuery<INewsInfo[]>({
-		queryKey: ['relatedNews', urls.join(',')],
+		queryKey: queryKeys.articles.related(urls.join(',')),
 		queryFn: () => getRelatedNews(urls),
 		enabled: urls.length > 0,
 		staleTime: 1000 * 60 * 30,

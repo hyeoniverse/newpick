@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import type { JobRunRecord } from '@newpick/shared';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/api/client';
@@ -55,7 +57,7 @@ export default function JobRunsList() {
 	for (const [key, value] of Object.entries(sortQuery)) query.set(key, value);
 
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminJobRuns', query.toString()],
+		queryKey: queryKeys.admin.jobRuns(query.toString()),
 		queryFn: () =>
 			apiFetch<{ data: { items: Row[]; total: number } }>(API_ENDPOINTS.ADMIN.LIST('job-runs', query.toString())).then(
 				(r) => r.data,

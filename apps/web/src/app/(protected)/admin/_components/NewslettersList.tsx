@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import type { NewsletterListItem } from '@newpick/shared';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -30,7 +32,7 @@ export default function NewslettersList() {
 	for (const [key, value] of Object.entries(sortQuery)) query.set(key, value);
 
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminNewsletters', query.toString()],
+		queryKey: queryKeys.admin.newsletters.list(query.toString()),
 		queryFn: () =>
 			apiFetch<{ data: { items: Row[]; total: number } }>(
 				API_ENDPOINTS.ADMIN.LIST('newsletters', query.toString()),

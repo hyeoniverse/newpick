@@ -1,13 +1,9 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 // 통계 응답 타입은 @newpick/shared (api 통계 함수의 반환 타입과 같다)
-import type {
-	CostStats,
-	DeliveryStats,
-	SubscriberStats,
-	TasteStats,
-	TrafficStats,
-} from '@newpick/shared';
+import type { CostStats, DeliveryStats, SubscriberStats, TasteStats, TrafficStats } from '@newpick/shared';
 import { useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -66,31 +62,31 @@ export default function StatsAdmin() {
 	const query = `from=${from}&to=${to}`;
 	const enabled = !noPeriod;
 	const subscribers = useQuery({
-		queryKey: ['adminStats', 'subscribers', query],
+		queryKey: queryKeys.admin.stats('subscribers', query),
 		queryFn: () =>
 			apiFetch<{ data: SubscriberStats }>(API_ENDPOINTS.ADMIN.STATS('subscribers', query)).then((r) => r.data),
 		enabled,
 		placeholderData: (previous) => previous,
 	});
 	const cost = useQuery({
-		queryKey: ['adminStats', 'cost', query],
+		queryKey: queryKeys.admin.stats('cost', query),
 		queryFn: () => apiFetch<{ data: CostStats }>(API_ENDPOINTS.ADMIN.STATS('cost', query)).then((r) => r.data),
 		enabled,
 		placeholderData: (previous) => previous,
 	});
 	const traffic = useQuery({
-		queryKey: ['adminStats', 'traffic', query],
+		queryKey: queryKeys.admin.stats('traffic', query),
 		queryFn: () => apiFetch<{ data: TrafficStats }>(API_ENDPOINTS.ADMIN.STATS('traffic', query)).then((r) => r.data),
 		enabled,
 		placeholderData: (previous) => previous,
 	});
 	// 취향 신호는 기간과 상관없이 지금 점수 (반감기로 오래된 신호는 저절로 줄어듦)
 	const taste = useQuery({
-		queryKey: ['adminStats', 'taste'],
+		queryKey: queryKeys.admin.tasteStats,
 		queryFn: () => apiFetch<{ data: TasteStats }>(API_ENDPOINTS.ADMIN.STATS('taste', '')).then((r) => r.data),
 	});
 	const delivery = useQuery({
-		queryKey: ['adminStats', 'delivery', query],
+		queryKey: queryKeys.admin.stats('delivery', query),
 		queryFn: () => apiFetch<{ data: DeliveryStats }>(API_ENDPOINTS.ADMIN.STATS('delivery', query)).then((r) => r.data),
 		enabled,
 		placeholderData: (previous) => previous,
