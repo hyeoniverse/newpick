@@ -35,11 +35,18 @@ export class AiSummaryService {
     private readonly crawlingRepository: CrawlingRepository,
   ) {}
 
-  /** 최근 RECENT_DAYS일 이 분야 뉴스레터: 제목 · 부제 · 쓴 기사 링크 */
-  private async recentNewsletters(categoryId: number) {
-    const since = new Date(Date.now() - RECENT_DAYS * 24 * 60 * 60 * 1000);
+  /**
+   * 최근 RECENT_DAYS일 이 분야 뉴스레터: 제목 · 부제 · 쓴 기사 링크.
+   * 지난 날짜를 다시 만들 때(at)는 그날 이전 것만 (뒷날 뉴스레터가 쓴 기사로 그날 기사를 거르지 않게)
+   */
+  private async recentNewsletters(categoryId: number, at?: Date) {
+    const until = at ?? new Date();
+    const since = new Date(until.getTime() - RECENT_DAYS * 24 * 60 * 60 * 1000);
     const rows = await this.prisma.newsletter.findMany({
-      where: { categoryId, createdAt: { gte: since } },
+      where: {
+        categoryId,
+        createdAt: at ? { gte: since, lt: at } : { gte: since },
+      },
       orderBy: { createdAt: 'desc' },
       select: { title: true, subtitle: true, usedNews: true, createdAt: true },
     });
@@ -59,13 +66,15 @@ export class AiSummaryService {
     test: boolean,
     /** 이 시각 이후 보도는 '오늘 아침 속보'로 따로 (스케줄러가 오늘 05:00 KST를 준다) */
     morningSince?: Date,
+    /** 지난 날짜를 다시 만들 때 그날 발행 시각. 프롬프트의 '오늘' · 최근 소재 · 발행일이 모두 그날 기준 */
+    at?: Date,
   ): Promise<{
     summary: string;
     categoryId: number;
     newsletter: any;
   }> {
     // 최근 이 분야 뉴스레터 (최근 소재와 겹치지 않게): 이미 쓴 기사는 빼고, 다룬 소식은 고르기 · 쓰기에 알려 준다
-    const recent = await this.recentNewsletters(categoryId);
+    const recent = await this.recentNewsletters(categoryId, at);
     const usedLinks = new Set(recent.flatMap((n) => n.usedNews.split(',')));
     news = news.filter((item) => !usedLinks.has(item.link));
     if (news.length === 0) {
@@ -95,6 +104,7 @@ export class AiSummaryService {
         existingTags: await this.tagsService.recentTags(),
         recentTopics,
         morningSince,
+        today: at,
       });
       const { title, subtitle, summary, stories, morning = [] } = written;
       // 같은 사건 묶기로 계산한 임베딩을 남긴다 (추천 기사에서 다시 계산하지 않게). 실패해도 뉴스레터는 계속
@@ -188,6 +198,7 @@ export class AiSummaryService {
         html,
         imageUrl,
         keywords,
+        at,
       );
 
       return { summary, categoryId, newsletter };

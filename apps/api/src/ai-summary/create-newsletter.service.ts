@@ -18,6 +18,8 @@ export class CreateNewsletterService {
     contentAsHTML: string,
     imgUrl: string,
     keywords: string[] = [],
+    /** 발행 시각. 지난 날짜를 다시 만들 때 그날로 (기본 지금) */
+    createdAt: Date = new Date(),
   ): Promise<Newsletter> {
     const newsletter = await this.prisma.newsletter.create({
       data: {
@@ -26,7 +28,7 @@ export class CreateNewsletterService {
         content: summary,
         contentAsHTML,
         categoryId: categoryId,
-        createdAt: new Date(),
+        createdAt,
         usedNews,
         viewcount: 0,
         imageUrl: imgUrl,

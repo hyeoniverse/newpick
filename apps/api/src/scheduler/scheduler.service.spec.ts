@@ -1,6 +1,7 @@
 import { kstDaysAgo, kstStamp } from 'src/common/kst';
 import { Logger } from '@nestjs/common';
 import {
+  backfillAt,
   SchedulerService,
   SUMMARY_WINDOW_HOURS,
   crawlCron,
@@ -23,7 +24,8 @@ function setup(failingCategoryId: number, edition: unknown = null) {
   };
   const aiSummaryService = {
     summarizeText: jest.fn(async (_news, categoryId: number) => ({
-      newsletter: [{ categoryId, content: `요약${categoryId}` }],
+      // 실제처럼 만든 뉴스레터 한 편 (예전 목은 배열이라 '늘 0편' 버그를 못 잡았다)
+      newsletter: { categoryId, content: `요약${categoryId}` },
     })),
   };
   const editionService = {
@@ -79,6 +81,8 @@ function setup(failingCategoryId: number, edition: unknown = null) {
           .map((id) => ({ id })),
       ),
     },
+    // 그날 이미 있는 뉴스레터 (기본 없음)
+    newsletter: { findMany: jest.fn().mockResolvedValue([]) },
     jobRun: {
       create: jest.fn().mockResolvedValue({ id: 41 }),
       update: jest.fn().mockResolvedValue({}),
@@ -174,6 +178,75 @@ describe('SchedulerService.makeAiSummary', () => {
   });
 });
 
+describe('다시 만들기 (빠진 날 · AI 기록에서 실패한 줄)', () => {
+  it('만든 편수를 제대로 센다 (예전엔 늘 0편)', async () => {
+    const { service, prisma } = setup(0);
+    await service.makeAiSummary();
+    expect(prisma.jobRun.update.mock.calls.at(-1)[0].data.message).toContain(
+      '뉴스레터 3편 생성',
+    );
+  });
+
+  it('그날 이미 있는 분야는 건너뛴다 (일부만 실패해 다시 실행해도 같은 날 두 편이 되지 않게)', async () => {
+    const { service, aiSummaryService, prisma } = setup(0);
+    prisma.newsletter.findMany.mockResolvedValue([{ categoryId: 2 }]);
+    await service.makeAiSummary();
+    const summarized = aiSummaryService.summarizeText.mock.calls.map(
+      (call) => call[1],
+    );
+    expect(summarized).toEqual([1, 3]);
+    expect(prisma.jobRun.update.mock.calls.at(-1)[0].data.message).toContain(
+      '이미 있어 건너뜀 1',
+    );
+  });
+
+  it('지난 날짜는 그날 기사 · 그날 발행 시각으로, 메일 편집 · 후속 판정은 하지 않는다', async () => {
+    const {
+      service,
+      crawlingRepository,
+      aiSummaryService,
+      editionService,
+      followsService,
+      prisma,
+    } = setup(0);
+    const at = new Date('2026-11-08T08:30:00+09:00');
+    await service.makeAiSummary(at);
+    const [start, end] = crawlingRepository.getCrawledNewsBetween.mock.calls[0];
+    expect(kstStamp(start)).toBe('2026-11-07 08:00:00');
+    expect(end).toBe(at);
+    expect((aiSummaryService.summarizeText.mock.calls[0] as unknown[])[4]).toBe(
+      at,
+    );
+    // 그날 있는 분야를 그날 범위로 찾는다
+    const where = prisma.newsletter.findMany.mock.calls[0][0].where;
+    expect(kstStamp(where.createdAt.gte)).toBe('2026-11-08 00:00:00');
+    expect(editionService.ensureEdition).not.toHaveBeenCalled();
+    expect(followsService.detect).not.toHaveBeenCalled();
+    expect(prisma.jobRun.update.mock.calls.at(-1)[0].data.message).toContain(
+      '2026-11-08 다시 만들기',
+    );
+  });
+
+  it('분야를 주면 그 분야만', async () => {
+    const { service, aiSummaryService } = setup(0);
+    await service.makeAiSummary(undefined, 3);
+    expect(aiSummaryService.summarizeText.mock.calls.map((c) => c[1])).toEqual([
+      3,
+    ]);
+  });
+
+  it('다시 만들 날: 오늘은 평소처럼, 지난 날은 그날 요약 시각, 앞날 · 기사가 지워진 날은 거절', () => {
+    const now = new Date('2026-11-09T14:00:00+09:00');
+    const summary = { hour: 8, minute: 30 };
+    expect(kstStamp(backfillAt('2026-11-08', summary, now))).toBe(
+      '2026-11-08 08:30:00',
+    );
+    expect(() => backfillAt('2026-11-09', summary, now)).toThrow();
+    expect(() => backfillAt('2026-11-10', summary, now)).toThrow();
+    expect(() => backfillAt('2026-10-01', summary, now)).toThrow();
+  });
+});
+
 describe('사이트 캐시 (#73)', () => {
   it('새 뉴스레터를 만든 뒤 사이트 캐시를 한 번 비운다', async () => {
     const { service, siteCache, editionService } = setup(0);
@@ -186,7 +259,7 @@ describe('사이트 캐시 (#73)', () => {
 
   it('만든 뉴스레터가 없으면 비우지 않는다', async () => {
     const { service, siteCache, aiSummaryService } = setup(0);
-    aiSummaryService.summarizeText.mockResolvedValue({ newsletter: [] });
+    aiSummaryService.summarizeText.mockResolvedValue({ newsletter: null });
     await service.makeAiSummary();
     expect(siteCache.refresh).not.toHaveBeenCalled();
   });
@@ -437,7 +510,9 @@ describe('구독 메일 (#55)', () => {
     let finish: () => void;
     aiSummaryService.summarizeText.mockImplementationOnce(
       () =>
-        new Promise((resolve) => (finish = () => resolve({ newsletter: [] }))),
+        new Promise(
+          (resolve) => (finish = () => resolve({ newsletter: null })),
+        ),
     );
     const summary = service.makeAiSummary();
     const mail = service.sendEmailSummary();
@@ -496,7 +571,9 @@ describe('작업 실행 기록 (#21)', () => {
     let finish: () => void;
     aiSummaryService.summarizeText.mockImplementationOnce(
       () =>
-        new Promise((resolve) => (finish = () => resolve({ newsletter: [] }))),
+        new Promise(
+          (resolve) => (finish = () => resolve({ newsletter: null })),
+        ),
     );
     const run = service.makeAiSummary();
     await new Promise((r) => setImmediate(r));

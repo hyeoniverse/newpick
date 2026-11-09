@@ -15,7 +15,7 @@ import { AiSummaryService } from 'src/ai-summary/ai-summary.service';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { SubscriberService } from 'src/subscriber/subscriber.service';
-import { KST, kstTimeOf } from 'src/common/kst';
+import { KST, kstDayRange, kstTimeOf, toKstDate } from 'src/common/kst';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { CategoryRepository } from 'src/category/category.repository';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
@@ -84,6 +84,38 @@ export const summaryWindow = (crawl: ClockTime, now = new Date()) => ({
   morningSince: kstTimeOf(MORNING_START_HOUR, 0, now),
 });
 const minutesOf = ({ hour, minute }: ClockTime) => hour * 60 + minute;
+
+/** 모은 기사가 남아 있는 날수 (MongoDB TTL 30일). 그보다 오래된 날은 다시 만들 재료가 없다 */
+export const BACKFILL_MAX_DAYS = 29;
+
+/**
+ * 지난 날짜(YYYY-MM-DD, KST)를 다시 만들 때 그날의 발행 시각: 그날 예약된 요약 시각.
+ * 오늘 · 앞날, 기사가 남아 있지 않은 날이면 거절한다
+ */
+export const backfillAt = (
+  date: string,
+  summary: ClockTime,
+  now = new Date(),
+): Date => {
+  const today = toKstDate(now);
+  if (date >= today) {
+    throw new AppException('BAD_REQUEST', '지난 날짜만 다시 만들 수 있어요.');
+  }
+  const oldest = toKstDate(
+    new Date(now.getTime() - BACKFILL_MAX_DAYS * 24 * 60 * 60 * 1000),
+  );
+  if (date < oldest) {
+    throw new AppException(
+      'BAD_REQUEST',
+      `모은 기사는 ${BACKFILL_MAX_DAYS}일만 남아 있어 ${oldest}부터 다시 만들 수 있어요.`,
+    );
+  }
+  return kstTimeOf(
+    summary.hour,
+    summary.minute,
+    new Date(`${date}T12:00:00+09:00`),
+  );
+};
 
 export type JobName = 'crawling' | 'summary' | 'mail';
 
@@ -257,17 +289,24 @@ export class SchedulerService implements OnApplicationBootstrap {
       throw error;
     }
   }
-  /** AI 요약 (예약 시간은 setSchedule로) */
-  async makeAiSummary() {
+  /**
+   * AI 요약 (예약 시간은 setSchedule로). at을 주면 그날을 다시 만들고(지난 날짜),
+   * categoryId를 주면 그 분야만 (AI 기록에서 실패한 줄 다시 실행)
+   */
+  async makeAiSummary(at?: Date, categoryId?: number) {
     if (this.summaryRun) return this.summaryRun;
-    this.summaryRun = this.runAiSummary().finally(() => {
+    this.summaryRun = this.runAiSummary(at, categoryId).finally(() => {
       this.summaryRun = null;
     });
     return this.summaryRun;
   }
 
-  private async runAiSummary() {
-    this.logger.debug('AI 요약 시작');
+  private async runAiSummary(at?: Date, categoryId?: number) {
+    // 지난 날짜 다시 만들기: 그날 기사로 그날 발행. 이미 있는 분야는 건너뛰고, 메일 편집 · 후속 판정 · 알림 메일은 하지 않는다
+    const backfill = at ? toKstDate(at) : null;
+    this.logger.debug(
+      backfill ? `AI 요약 시작 (${backfill} 다시 만들기)` : 'AI 요약 시작',
+    );
 
     if (!this.isAiSummaryEnabled) {
       this.logger.log('ai 요약 스케줄러가 비활성화되었습니다.');
@@ -277,17 +316,36 @@ export class SchedulerService implements OnApplicationBootstrap {
     this.startRun('summary');
 
     try {
-      const categoryList = await this.categoryRepository.findAll();
+      const categoryList = (await this.categoryRepository.findAll()).filter(
+        (category) => !categoryId || category.id === categoryId,
+      );
       const generatedNewsletter = [];
       // 그날의 뉴스만: 어제 수집 시각부터 지금까지 처음 모은 기사 (예전엔 지난 7일 전부라 지난 소식이 다시 실렸다)
       const {
         start: startDate,
         end: endDate,
         morningSince,
-      } = summaryWindow(this.schedule.crawl);
+      } = summaryWindow(this.schedule.crawl, at);
+      // 그날 이미 뉴스레터가 있는 분야는 건너뛴다: 일부만 실패해 다시 실행하면 된 분야까지 또 만들어 같은 날 두 편이 됐다
+      const day = backfill ?? toKstDate(new Date());
+      const { start: dayStart, end: dayEnd } = kstDayRange(day, day);
+      const done = new Set(
+        (
+          await this.prisma.newsletter.findMany({
+            where: { createdAt: { gte: dayStart, lte: dayEnd } },
+            select: { categoryId: true },
+          })
+        ).map((row) => row.categoryId),
+      );
 
       // 관심사 하나 요약: 만들었으면 true, 요약할 뉴스가 없으면 null, 실패하면 오류를 던진다
       const summarize = async (category: { id: number; name: string }) => {
+        if (done.has(category.id)) {
+          this.logger.log(
+            `카테고리 ${category.name}: ${day}에 이미 있어 건너뜀`,
+          );
+          return null;
+        }
         const news = await this.crawlingRepository.getCrawledNewsBetween(
           startDate,
           endDate,
@@ -302,10 +360,11 @@ export class SchedulerService implements OnApplicationBootstrap {
           category.id,
           false,
           morningSince,
+          at,
         );
-        if (newsletter.newsletter?.length > 0) {
-          generatedNewsletter.push(...newsletter.newsletter);
-        }
+        // 만든 뉴스레터 한 편 (예전엔 배열로 보고 길이를 봐서 늘 0편이었다: 캐시 새로 고침 · 후속 판정 · 알림도 건너뜀)
+        if (newsletter.newsletter)
+          generatedNewsletter.push(newsletter.newsletter);
         this.logger.log(
           `카테고리 ${category.name}: 뉴스 ${news.length}건 요약`,
         );
@@ -349,7 +408,13 @@ export class SchedulerService implements OnApplicationBootstrap {
       if (failedCategories.length) {
         this.logger.error(`요약 실패 카테고리: ${failedCategories.join(', ')}`);
       }
-      const made = `뉴스레터 ${generatedNewsletter.length}편 생성`;
+      const scope = [backfill, categoryId && categoryList[0]?.name]
+        .filter(Boolean)
+        .join(' ');
+      const skipped = categoryList.filter((c) => done.has(c.id)).length;
+      const made =
+        `${scope ? `${scope} 다시 만들기: ` : ''}뉴스레터 ${generatedNewsletter.length}편 생성` +
+        (skipped ? ` · 이미 있어 건너뜀 ${skipped}` : '');
       const again = retried ? ` · 다시 시도로 ${retried}편` : '';
       const failedText = failedCategories.length
         ? ` · 실패: ${failedCategories.join(', ')}`
@@ -363,6 +428,14 @@ export class SchedulerService implements OnApplicationBootstrap {
             : 'failed',
         made + again + failedText,
       );
+
+      // 새 글이 생겼으면 사이트 첫 화면·목록이 10분 기다리지 않고 바로 보여 주게 (#73)
+      if (backfill) {
+        if (generatedNewsletter.length > 0) {
+          await this.siteCache.refresh('지난 날짜 뉴스레터 생성');
+        }
+        return;
+      }
 
       // 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
       await this.editionService.ensureEdition();
@@ -741,11 +814,22 @@ export class SchedulerService implements OnApplicationBootstrap {
     return this.getMailSendCycle();
   }
 
-  async manualStartAiSummary() {
-    this.logger.debug('AI 요약 수동 시작');
+  /**
+   * 다시 만들 날(YYYY-MM-DD)의 발행 시각. 오늘이면 undefined(평소처럼 지금 실행),
+   * 지난 날짜면 그날 요약 시각. 앞날 · 기사가 지워진 날은 여기서 바로 거절 (요청에 400)
+   */
+  backfillMoment(date: string) {
+    if (date === toKstDate(new Date())) return undefined;
+    return backfillAt(date, this.schedule.summary);
+  }
+
+  async manualStartAiSummary(at?: Date, categoryId?: number) {
+    this.logger.debug(
+      at ? 'AI 요약 수동 시작 (지난 날짜)' : 'AI 요약 수동 시작',
+    );
     this.nextTrigger.summary = 'manual';
     try {
-      await this.makeAiSummary(); // 직접 메서드 호출
+      await this.makeAiSummary(at, categoryId); // 직접 메서드 호출
     } catch (error) {
       this.logger.error(`수동 AI 요약 실패: ${error.message}`);
     }
