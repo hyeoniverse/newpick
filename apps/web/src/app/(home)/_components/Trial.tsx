@@ -1,3 +1,4 @@
+import { queryKeys } from '@/api/queryKeys';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
@@ -27,7 +28,7 @@ export default function Trial() {
 	// 고른 순서와 상관없이 같은 조합이면 같은 요청
 	const ids = INTERESTS.filter((c) => selected.includes(c.name)).map((c) => c.id);
 	const { data, isLoading, isError, refetch } = useQuery({
-		queryKey: ['edition-preview', ids],
+		queryKey: queryKeys.editionPreview(ids),
 		queryFn: () => fetchEditionPreview(ids),
 		enabled: ids.length > 0,
 		staleTime: 1000 * 60 * 5,

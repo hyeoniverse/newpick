@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/api/client';
@@ -26,7 +28,7 @@ interface Row {
 export default function CategoriesAdmin() {
 	const { today } = useAdminQuery();
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminCategories'],
+		queryKey: queryKeys.admin.categories,
 		queryFn: () => apiFetch<{ data: Row[] }>(API_ENDPOINTS.ADMIN.CATEGORIES()).then((r) => r.data),
 	});
 

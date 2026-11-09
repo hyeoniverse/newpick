@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -50,7 +52,7 @@ export default function TagIndex() {
 	const categoryId = Number(category) || 0;
 
 	const { data, isPending, isError, error, refetch } = useQuery({
-		queryKey: ['allKeywords', categoryId],
+		queryKey: queryKeys.keywords.byCategory(categoryId),
 		queryFn: () => fetchAllKeywords(categoryId || undefined),
 		staleTime: 1000 * 60 * 10,
 		placeholderData: (previous) => previous,

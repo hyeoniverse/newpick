@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -26,7 +28,7 @@ export default function SearchFilters() {
 
 	// 지금 보는 관심사에서 최근 30일 자주 나온 태그
 	const { data: keywords = [] } = useQuery({
-		queryKey: ['popularKeywords', filters.categoryId],
+		queryKey: queryKeys.keywords.popular(filters.categoryId),
 		queryFn: () => fetchPopularKeywords(filters.categoryId || undefined),
 		staleTime: 1000 * 60 * 10,
 	});

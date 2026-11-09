@@ -1,3 +1,4 @@
+import { queryKeys } from '@/api/queryKeys';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
@@ -15,7 +16,7 @@ export const useSubscribeStatus = () => {
 		isLoading: isStatusLoading,
 		refetch: refetchStatus,
 	} = useQuery({
-		queryKey: ['subscriptionStatus'],
+		queryKey: queryKeys.subscription.status,
 		queryFn: async () => {
 			const status = await fetchSubscription();
 			return status;
@@ -88,7 +89,7 @@ export const useSubscribeInterests = () => {
 		isLoading: isInterestsLoading,
 		// refetch: refetchInterests,
 	} = useQuery({
-		queryKey: ['subscriptionInterests'],
+		queryKey: queryKeys.subscription.interests,
 		queryFn: () => fetchInterests(),
 		enabled: !!user,
 		retry: 1,

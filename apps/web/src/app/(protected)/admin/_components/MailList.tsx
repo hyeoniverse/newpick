@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import type { AdminMailRow, Paged } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -33,7 +35,7 @@ export default function MailList() {
 	if (categoryId) query.set('categoryId', String(categoryId));
 
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminMails', query.toString()],
+		queryKey: queryKeys.admin.mails(query.toString()),
 		queryFn: () =>
 			apiFetch<{ data: Paged<Row> }>(API_ENDPOINTS.ADMIN.LIST('mails', query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,

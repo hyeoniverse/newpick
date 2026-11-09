@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchPersonalMail, savePersonalMail } from '@/api/subscription';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,7 +10,7 @@ import Switch from '@/components/common/Switch';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 
-const PERSONAL_MAIL_KEY = ['personal-mail'];
+const PERSONAL_MAIL_KEY = queryKeys.personalMail;
 
 /**
  * 마이페이지 > 설정의 맞춤 메일 (#123 16): 켜 두면 북마크 · 스크랩을 바탕으로 그날 모든 분야에서 골라 보내고,

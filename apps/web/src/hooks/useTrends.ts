@@ -1,9 +1,10 @@
+import { queryKeys } from '@/api/queryKeys';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTrendList } from '@/api/article';
 import { ArticleSummary } from '@/models/article.model';
 import { parseArticles } from '@/utils/parseArticles';
 
-export const TRENDS_QUERY_KEY = ['trends'] as const;
+export const TRENDS_QUERY_KEY = queryKeys.trends;
 
 /**
  * 트렌드 목록. 서버 렌더링 때 받은 값을 Providers가 이 쿼리 캐시에 넣어 두므로 첫 화면에서 다시 요청하지 않습니다.

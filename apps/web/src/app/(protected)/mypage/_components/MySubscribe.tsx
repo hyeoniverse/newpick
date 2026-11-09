@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import type { Mail, MailDigest, MailsPage } from '@newpick/shared';
 import { useEffect, useRef, useState } from 'react';
 import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -43,8 +45,8 @@ const useMarkMail = () => {
 		mutationFn: (body: { sentAt: string; starred?: boolean; folderId?: number | null }) =>
 			apiFetch(API_ENDPOINTS.MY.MAIL_MARK(), { method: 'PATCH', body }),
 		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: ['myMails'] });
-			queryClient.invalidateQueries({ queryKey: ['folders'] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.mails.all });
+			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
 		},
 		onError: () => showToast('바꾸지 못했어요. 잠시 뒤 다시 해 주세요.', 'error'),
 	});
@@ -101,7 +103,7 @@ export default function MySubscribe() {
 		isFetchingNextPage,
 		isFetchingPreviousPage,
 	} = useInfiniteQuery({
-		queryKey: ['myMails', user?.id, filters, startOffset],
+		queryKey: queryKeys.mails.page(user?.id, filters, startOffset),
 		queryFn: async ({ pageParam }) => ({
 			...(await apiFetch<MailsPage>(API_ENDPOINTS.MY.MAILS(pageParam, PAGE_SIZE, filters))),
 			offset: pageParam,

@@ -1,3 +1,4 @@
+import { queryKeys } from '@/api/queryKeys';
 import type { Folder } from '@newpick/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from '@/api/client';
@@ -19,12 +20,17 @@ const REMOVED: Record<FolderContents, string> = {
 };
 
 /** 폴더 안의 것들이 바뀌면 다시 불러올 목록들 */
-export const FOLDER_CONTENT_KEYS = [['folders'], ['highlights'], ['bookmarks'], ['myMails']];
+export const FOLDER_CONTENT_KEYS = [
+	queryKeys.folders.all,
+	queryKeys.highlights.all,
+	queryKeys.bookmarks.all,
+	queryKeys.mails.all,
+];
 
 export function useFolders() {
 	const { user } = useAuth();
 	return useQuery({
-		queryKey: ['folders', user?.id],
+		queryKey: queryKeys.folders.list(user?.id),
 		queryFn: () => apiFetch<Folder[]>(API_ENDPOINTS.MY.FOLDERS()),
 		enabled: !!user,
 	});
@@ -62,7 +68,7 @@ export function useFolderMutations() {
 		onSuccess: (_, { contents }) => {
 			refresh();
 			// 북마크를 지웠으면 취향 점수도 바뀐다
-			if (contents === 'delete') queryClient.invalidateQueries({ queryKey: ['taste'] });
+			if (contents === 'delete') queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
 			showToast(REMOVED[contents], 'success');
 		},
 		onError: fail,

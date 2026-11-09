@@ -1,3 +1,4 @@
+import { queryKeys } from '@/api/queryKeys';
 import { useCallback, useEffect } from 'react';
 import { type QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
@@ -65,7 +66,7 @@ export const useAuth = () => {
 		error: userError,
 		refetch: refetchUser,
 	} = useQuery<User | null>({
-		queryKey: ['user'],
+		queryKey: queryKeys.user,
 		queryFn: fetchUser,
 		// 로그인 표시 쿠키가 있을 때만 조회합니다. 비로그인 방문자는 백엔드를 호출하지 않습니다.
 		enabled: session === 'in',

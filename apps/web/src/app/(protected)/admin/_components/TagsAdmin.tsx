@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -109,12 +111,12 @@ export default function TagsAdmin() {
 	const categoryId = Number(category) || 0;
 
 	const tags = useQuery({
-		queryKey: ['allKeywords', categoryId],
+		queryKey: queryKeys.keywords.byCategory(categoryId),
 		queryFn: () => fetchAllKeywords(categoryId || undefined),
 		placeholderData: (previous) => previous,
 	});
 	const rules = useQuery({
-		queryKey: ['tagRules'],
+		queryKey: queryKeys.admin.tagRules,
 		queryFn: () => apiFetch<{ data: Rule[] }>(API_ENDPOINTS.ADMIN.TAG_RULES()).then((r) => r.data),
 	});
 
@@ -127,9 +129,9 @@ export default function TagsAdmin() {
 
 	const refresh = () => {
 		setSelected([]);
-		queryClient.invalidateQueries({ queryKey: ['allKeywords'] });
-		queryClient.invalidateQueries({ queryKey: ['tagRules'] });
-		queryClient.invalidateQueries({ queryKey: ['popularKeywords'] });
+		queryClient.invalidateQueries({ queryKey: queryKeys.keywords.all });
+		queryClient.invalidateQueries({ queryKey: queryKeys.admin.tagRules });
+		queryClient.invalidateQueries({ queryKey: queryKeys.keywords.popularAll });
 	};
 
 	const toggle = (keyword: string) =>

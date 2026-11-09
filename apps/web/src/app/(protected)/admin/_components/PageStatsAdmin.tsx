@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import { useQuery } from '@tanstack/react-query';
 import { apiFetch } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
@@ -37,7 +39,7 @@ export default function PageStatsAdmin() {
 	const query = new URLSearchParams({ from, to, route, device }).toString();
 
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminStats', 'page', query],
+		queryKey: queryKeys.admin.stats('page', query),
 		queryFn: () => apiFetch<{ data: PageStats }>(API_ENDPOINTS.ADMIN.STATS('page', query)).then((r) => r.data),
 		placeholderData: (previous) => previous,
 	});

@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import type { AdminUserRow, Paged } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -55,11 +57,11 @@ export default function UsersAdmin() {
 	if (q) query.set('q', q);
 
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminUsers', query.toString()],
+		queryKey: queryKeys.admin.users.list(query.toString()),
 		queryFn: () => apiFetch<{ data: Paged<Row> }>(API_ENDPOINTS.ADMIN.USERS(query.toString())).then((r) => r.data),
 		placeholderData: (previous) => previous,
 	});
-	const refresh = () => queryClient.invalidateQueries({ queryKey: ['adminUsers'] });
+	const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.users.all });
 
 	const changeRole = (row: Row) => {
 		const next = row.role === 'admin' ? 'user' : 'admin';

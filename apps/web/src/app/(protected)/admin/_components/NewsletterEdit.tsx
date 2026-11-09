@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import type { Newsletter } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -50,7 +52,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 	const [error, setError] = useState('');
 
 	const { data, isPending, isError } = useQuery({
-		queryKey: ['adminNewsletter', id],
+		queryKey: queryKeys.admin.newsletter(id),
 		queryFn: () =>
 			apiFetch<{ data: { newsletter: Newsletter } }>(API_ENDPOINTS.ADMIN.NEWSLETTER(id)).then((r) => r.data.newsletter),
 	});
@@ -85,8 +87,8 @@ export default function NewsletterEdit({ id }: { id: number }) {
 				},
 			});
 			showToast('고쳤어요. 상세 페이지와 이후 메일에 반영돼요.', 'success');
-			queryClient.invalidateQueries({ queryKey: ['adminNewsletter', id] });
-			queryClient.invalidateQueries({ queryKey: ['adminNewsletters'] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id) });
+			queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters.all });
 		} catch (e) {
 			setError(e instanceof ApiError ? e.message : '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.');
 		} finally {
@@ -118,7 +120,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 		confirm('조회수를 0으로 되돌릴까요?', '인기 순위에서 이 뉴스레터가 아래로 내려가요.', '되돌리기', async () => {
 			await apiFetch(API_ENDPOINTS.ADMIN.NEWSLETTER_RESET_VIEWS(id), { method: 'POST' });
 			showToast('조회수를 0으로 되돌렸어요.', 'success');
-			queryClient.invalidateQueries({ queryKey: ['adminNewsletter', id] });
+			queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id) });
 		});
 
 	// AI로 다시 쓰기: 그날 · 그 관심사 기사로 새로 써서 이 뉴스레터를 바꾼다 (id · 발행일 · 조회수 · 북마크는 그대로)
@@ -131,8 +133,8 @@ export default function NewsletterEdit({ id }: { id: number }) {
 				await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW('ai-summary'), { method: 'POST', body: { newsletterId: id } });
 				showToast('다시 작성을 시작했습니다. 1~2분 후 새로고침하면 변경된 내용이 표시됩니다.', 'success');
 				setTimeout(() => {
-					queryClient.invalidateQueries({ queryKey: ['adminNewsletter', id] });
-					queryClient.invalidateQueries({ queryKey: ['adminNewsletters'] });
+					queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id) });
+					queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters.all });
 				}, 90_000);
 			},
 		);
@@ -145,7 +147,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 			async () => {
 				await apiFetch(API_ENDPOINTS.ADMIN.NEWSLETTER(id), { method: 'DELETE' });
 				showToast('지웠어요.', 'success');
-				queryClient.invalidateQueries({ queryKey: ['adminNewsletters'] });
+				queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters.all });
 				router.push('/admin/newsletters');
 			},
 		);

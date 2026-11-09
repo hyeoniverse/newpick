@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import { useState } from 'react';
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
@@ -25,7 +27,7 @@ export default function TagFollows() {
 	const [text, setText] = useState('');
 	// 태그 전체 화면(/tags)과 같은 목록을 같이 쓴다
 	const { data: allTags = [] } = useQuery({
-		queryKey: ['allKeywords', 0],
+		queryKey: queryKeys.keywords.byCategory(0),
 		queryFn: () => fetchAllKeywords(),
 		staleTime: 1000 * 60 * 10,
 	});

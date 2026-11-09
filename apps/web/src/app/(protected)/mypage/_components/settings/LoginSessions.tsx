@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { LuMonitor, LuSmartphone } from 'react-icons/lu';
 import { fetchSessions, LoginSession, logoutOtherSessions, logoutSession } from '@/api/auth';
@@ -9,7 +11,7 @@ import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 import { describeUserAgent } from '@/utils/userAgent';
 
-const SESSIONS_KEY = ['login-sessions'];
+const SESSIONS_KEY = queryKeys.loginSessions;
 
 /** '방금 전' · '3시간 전' · '2일 전' · 그보다 오래면 날짜 */
 function ago(iso: string) {

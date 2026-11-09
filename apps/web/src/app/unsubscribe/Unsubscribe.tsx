@@ -1,5 +1,7 @@
 'use client';
 
+import { queryKeys } from '@/api/queryKeys';
+
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
@@ -27,7 +29,7 @@ export default function Unsubscribe() {
 	const [failed, setFailed] = useState<string | null>(null);
 
 	const { data, error, isLoading } = useQuery({
-		queryKey: ['unsubscribe', token],
+		queryKey: queryKeys.unsubscribe(token),
 		queryFn: () => apiFetch<{ data: Target }>(API_ENDPOINTS.SUBSCRIBERS.UNSUBSCRIBE(token)).then((r) => r.data),
 		enabled: Boolean(token),
 		retry: false,
