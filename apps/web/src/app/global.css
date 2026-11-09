@@ -190,7 +190,7 @@
 		scroll-behavior: smooth;
 		font-size: 16px;
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			/* 스크롤바 숨김 (Firefox · Webkit · 예전 Edge) */
 			scrollbar-width: none;
 			-ms-overflow-style: none;

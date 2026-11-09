@@ -213,13 +213,13 @@
 			row-gap: 0.5rem;
 			width: 100%;
 
-			@media (max-width: 768px) {
+			@variant tablet {
 				grid-template-columns: 1fr;
 				grid-template-rows: none;
 				grid-template-areas: 'img' 'category' 'title' 'desc' 'points' 'tags' 'footer';
 			}
 
-			@media (max-width: 480px) {
+			@variant mobile {
 				grid-template-columns: 1fr;
 				grid-template-rows: none;
 				/* 휴대폰은 설명 · 소식을 빼므로 그 줄도 없앤다 (빈 줄의 간격이 남지 않게) */
@@ -235,7 +235,7 @@
 			aspect-ratio: 16 / 9;
 
 			/* 1024px 이하 나란히 놓일 때: 사진이 글 높이만큼 채워 아래가 비지 않게 (사진은 칸에 맞춰 잘림) */
-			@media (max-width: 1024px) {
+			@variant desktop {
 				align-self: stretch;
 				aspect-ratio: auto;
 				min-height: 14rem;
@@ -248,7 +248,7 @@
 				}
 			}
 
-			@media (max-width: 768px) {
+			@variant tablet {
 				align-self: start;
 				aspect-ratio: 16 / 9;
 				min-height: 0;
@@ -291,7 +291,7 @@
 		}
 
 		/* 휴대폰은 짧게: 설명 · 이 뉴스레터의 소식은 빼고 사진 · 분야 · 제목 · 태그 · 날짜만, 글자 · 간격도 줄인다 */
-		@media (max-width: 480px) {
+		@variant mobile {
 			a {
 				row-gap: 0.375rem;
 			}
@@ -331,7 +331,7 @@
 				word-break: keep-all;
 				-webkit-line-clamp: 2;
 
-				@media (max-width: 480px) {
+				@variant mobile {
 					font-size: var(--np-font-size-large);
 				}
 			}
@@ -341,7 +341,7 @@
 				color: var(--np-color-sub-text);
 				-webkit-line-clamp: 3;
 
-				@media (max-width: 480px) {
+				@variant mobile {
 					-webkit-line-clamp: 2;
 				}
 			}
@@ -351,7 +351,7 @@
 				width: 100%;
 				margin-top: 0.25rem;
 
-				@media (max-width: 768px) {
+				@variant tablet {
 					margin-top: 1rem;
 				}
 
@@ -399,7 +399,7 @@
 			.tags {
 				margin-top: 0.25rem;
 
-				@media (max-width: 480px) {
+				@variant mobile {
 					li:nth-child(n + 4) {
 						display: none;
 					}
@@ -474,7 +474,7 @@
 				align-items: flex-start;
 				gap: 1.5rem;
 
-				@media (max-width: 480px) {
+				@variant mobile {
 					gap: 0.75rem;
 				}
 
@@ -491,7 +491,7 @@
 					flex: 0 0 clamp(9rem, 28%, 15rem);
 					width: clamp(9rem, 28%, 15rem);
 
-					@media (max-width: 480px) {
+					@variant mobile {
 						flex-basis: 7.5rem;
 						width: 7.5rem;
 					}
@@ -499,7 +499,7 @@
 			}
 
 			/* 태블릿: 제목 · 요약 | 사진, 그 아래 전체 폭으로 태그 한 줄, 날짜 · 북마크 한 줄 */
-			@media (max-width: 1024px) {
+			@variant desktop {
 				.content {
 					display: grid;
 					grid-template-columns: minmax(0, 1fr) clamp(9rem, 28%, 15rem);
@@ -548,13 +548,13 @@
 				margin-top: 0.25rem;
 
 				/* 태블릿은 한 줄에 들어가는 3개까지, 모바일은 2개까지 */
-				@media (max-width: 768px) {
+				@variant tablet {
 					li:nth-child(n + 4) {
 						display: none;
 					}
 				}
 
-				@media (max-width: 480px) {
+				@variant mobile {
 					li:nth-child(n + 3) {
 						display: none;
 					}
@@ -566,7 +566,7 @@
 				height: calc(var(--np-font-size-small) * 1.5 * 3);
 				-webkit-line-clamp: 3;
 
-				@media (max-width: 768px) {
+				@variant tablet {
 					height: auto;
 					-webkit-line-clamp: 2;
 				}
@@ -578,7 +578,7 @@
 			display: none;
 		}
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			.card-body {
 				padding: 1rem 0;
 			}

@@ -17,13 +17,6 @@
 	width: 100%;
 }
 
-/* CSS 변수로 반응형 적용 */
-@media (max-width: var(--breakpoint-mobile)) {
-	.np-home-page {
-		padding: 0 1rem;
-	}
-}
-
 /* 예전 app/articles/(main)/category.module.css. 안쪽 클래스(.title · .header …) 규칙은 모듈이 이름을 바꿔 한 번도 적용되지 않아 옮기지 않았다 */
 .np-category-page {
 	gap: 2rem;
@@ -53,7 +46,7 @@ body:has(.np-about) {
 	overflow-x: clip;
 }
 
-@media (max-width: 768px) {
+@variant tablet {
 	.np-about {
 		gap: 6rem;
 	}
@@ -66,7 +59,7 @@ body:has(.np-about) {
 	margin-bottom: 10vh;
 }
 
-@media (max-width: 480px) {
+@variant mobile {
 	.np-protected-page {
 		margin-top: 2rem;
 	}

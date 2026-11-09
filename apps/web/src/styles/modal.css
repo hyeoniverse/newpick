@@ -48,7 +48,7 @@
 			width: min(42rem, 100%);
 		}
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			--modal-pad: 1.25rem;
 			width: 100%;
 

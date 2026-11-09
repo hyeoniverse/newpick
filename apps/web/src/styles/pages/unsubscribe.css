@@ -14,7 +14,7 @@
 	text-align: center;
 	word-break: keep-all;
 
-	@media (max-width: 480px) {
+	@variant mobile {
 		padding: 4rem 0;
 	}
 
@@ -84,7 +84,7 @@
 		border-radius: 8px;
 		text-align: left;
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			grid-template-columns: 1fr;
 		}
 
@@ -99,7 +99,7 @@
 			& + ul {
 				border-left: 1px solid var(--np-color-border);
 
-				@media (max-width: 480px) {
+				@variant mobile {
 					border-left: none;
 					border-top: 1px solid var(--np-color-border);
 				}
@@ -136,7 +136,7 @@
 		gap: 0.75rem;
 		margin-top: 1.5rem;
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			flex-direction: column;
 			width: 100%;
 
