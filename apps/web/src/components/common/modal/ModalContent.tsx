@@ -41,8 +41,9 @@ function ModalContents({
 				<Title size="extraSmall" weight="bold">
 					{title}
 				</Title>
+				{/* 본문은 왼쪽 맞춤 (아이콘 · 제목만 가운데): 여러 줄 설명이 가운데로 흩어지면 읽기 어렵다 */}
 				{content && (
-					<Text size="small" color="subText" className="leading-[1.6]">
+					<Text size="small" color="subText" className="self-stretch text-left leading-[1.6]">
 						{content}
 					</Text>
 				)}
