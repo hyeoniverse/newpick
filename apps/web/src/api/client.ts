@@ -69,8 +69,10 @@ async function errorMessage(response: Response): Promise<{ message: string; body
  * 모든 API 요청의 공통 경로.
  * - 브라우저: /api/* (Next rewrites 프록시) → 쿠키가 프론트 도메인에 저장됩니다.
  * - 서버: API_URL로 백엔드를 직접 호출합니다. (서버에서의 토큰 갱신은 middleware가 담당)
+ * - 응답을 쓰려면 타입을 적는다 (apiFetch<{ data: Newsletter }>). 적지 않으면 void라 응답을 쓸 수 없다
+ *   (보내기만 하는 POST · DELETE용, 응답 모양을 모른 채 쓰지 않게)
  */
-export async function apiFetch<T = unknown>(url: string, options: ApiOptions = {}): Promise<T> {
+export async function apiFetch<T = void>(url: string, options: ApiOptions = {}): Promise<T> {
 	const { retryOnUnauthorized = true } = options;
 	let response = await send(url, options);
 
