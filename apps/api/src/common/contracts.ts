@@ -1,5 +1,16 @@
 import type { Newsletter as NewsletterRow } from '@prisma/client';
-import type { Newsletter, TagFollow } from '@newpick/shared';
+import type {
+  BookmarkItem,
+  BookmarkPage,
+  HighlightPage,
+  Highlight,
+  MyTaste,
+  Newsletter,
+  TagFollow,
+} from '@newpick/shared';
+import type { HighlightsService } from 'src/mypage/highlights.service';
+import type { MyPageService } from 'src/mypage/mypage.service';
+import type { TasteService } from 'src/taste/taste.service';
 import type { TagFollowsService } from 'src/mypage/tag-follows.service';
 
 /**
@@ -32,4 +43,35 @@ type Fits<A, B> = [A] extends [B] ? true : false;
 export const TAG_FOLLOWS_FIT: Fits<
   Wire<Awaited<ReturnType<TagFollowsService['listWithNews']>>>,
   TagFollow[]
+> = true;
+
+/** 서비스 메서드가 돌려주는 것을 JSON으로 바꾼 모양 */
+type Response<S, K extends keyof S> = S[K] extends (
+  ...args: never[]
+) => Promise<infer R>
+  ? Wire<R>
+  : never;
+
+/** 스크랩: 상세 화면 형광펜 · 마이페이지 목록 · 한 쪽 */
+export const HIGHLIGHTS_FIT: Fits<
+  Response<HighlightsService, 'list'>,
+  Highlight[]
+> = true;
+export const HIGHLIGHT_PAGE_FIT: Fits<
+  Response<HighlightsService, 'page'>,
+  HighlightPage
+> = true;
+/** 북마크: 전체 목록 · 한 쪽 */
+export const BOOKMARKS_FIT: Fits<
+  Response<MyPageService, 'getBookmarks'>,
+  BookmarkItem[]
+> = true;
+export const BOOKMARK_PAGE_FIT: Fits<
+  Response<MyPageService, 'getBookmarkPage'>,
+  BookmarkPage
+> = true;
+/** 내 취향 */
+export const MY_TASTE_FIT: Fits<
+  Response<TasteService, 'forUser'>,
+  MyTaste
 > = true;

@@ -1,3 +1,4 @@
+import type { BookmarkPage } from '@newpick/shared';
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IBookmarkItem } from '@/models/bookmark.model';
 import { fetchUserBookmarksApi, addBookmarkApi, removeBookmarkApi } from '@/api/bookmark';
@@ -25,14 +26,8 @@ export const useBookmarksList = () => {
 };
 
 /** 마이페이지 북마크 한 쪽 (서버에서 거르고 정렬) */
-export interface BookmarkPage {
-	items: IBookmarkItem[];
-	total: number;
-	/** 폴더 줄 개수 (거르기와 상관없이) */
-	counts: { all: number; unfiled: number };
-	/** 내 북마크에 있는 관심사 (거르기 칩) */
-	categories: { id: number; name: string }[];
-}
+/** 북마크 한 쪽 (@newpick/shared) */
+export type { BookmarkPage };
 
 /** 한 번에 받는 북마크 수 (카드 세 줄 × 여덟) */
 export const BOOKMARK_PAGE_SIZE = 24;
