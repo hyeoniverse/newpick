@@ -9,7 +9,6 @@ import Skeleton from '@/components/common/loader/Skeleton';
 import { StoryFollow, useFollowMutations, useFollows } from '@/hooks/useFollows';
 import ListHead from '@/app/(protected)/mypage/_components/list/ListHead';
 import TagFollows from '@/app/(protected)/mypage/_components/follows/TagFollows';
-import { cx } from '@/styles/tw';
 
 /** '10월 31일' (한국 시각) */
 const day = (iso: string) =>
@@ -37,7 +36,7 @@ export default function MyFollows() {
 	}, [follows, markSeen]);
 
 	return (
-		<StyledFollows>
+		<div className="np-mypage-my-follows-follows">
 			<TagFollows />
 			<section className="stories">
 				<ListHead title="지켜보는 소식" count={follows?.length ?? 0} />
@@ -67,7 +66,7 @@ export default function MyFollows() {
 					/>
 				)}
 			</section>
-		</StyledFollows>
+		</div>
 	);
 }
 
@@ -134,7 +133,3 @@ function FollowCard({
 		</li>
 	);
 }
-
-const StyledFollows = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-my-follows-follows', className)} {...props} />
-);

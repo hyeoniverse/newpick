@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useTaste } from '@/hooks/useHighlights';
-import { cx } from '@/styles/tw';
 
 /** 보여 줄 주제 수 */
 const SHOWN = 10;
@@ -19,7 +18,7 @@ export default function MyTaste() {
 	if (!data || data.topics.length === 0) return null;
 
 	return (
-		<StyledTaste aria-labelledby="my-taste">
+		<section className="np-mypage-my-taste-taste" aria-labelledby="my-taste">
 			<div className="head">
 				<h3 id="my-taste">요즘 관심 있게 본 주제</h3>
 				<p>앞으로 맞춤 뉴스레터가 이 주제를 먼저 챙겨요.</p>
@@ -36,10 +35,6 @@ export default function MyTaste() {
 					</li>
 				))}
 			</ol>
-		</StyledTaste>
+		</section>
 	);
 }
-
-const StyledTaste = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-mypage-my-taste-taste', className)} {...props} />
-);

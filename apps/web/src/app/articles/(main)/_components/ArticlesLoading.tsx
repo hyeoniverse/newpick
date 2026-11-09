@@ -1,7 +1,6 @@
 'use client';
 
 import { SkeletonBlock } from '@/components/common/loader/Skeleton';
-import { cx } from '@/styles/tw';
 
 /**
  * 뉴스레터 목록을 서버에서 그리는 동안 (#17). 관심사를 바꿀 때마다 요청마다 새로 그리므로,
@@ -9,7 +8,7 @@ import { cx } from '@/styles/tw';
  */
 export default function ArticlesLoading() {
 	return (
-		<StyledLoading aria-busy aria-label="뉴스레터를 불러오는 중">
+		<div className="np-articles-articles-loading-loading" aria-busy aria-label="뉴스레터를 불러오는 중">
 			<div className="chips" aria-hidden>
 				{Array.from({ length: 7 }).map((_, index) => (
 					<SkeletonBlock key={index} $width="3.5rem" $height="2.125rem" />
@@ -37,10 +36,6 @@ export default function ArticlesLoading() {
 					</div>
 				))}
 			</div>
-		</StyledLoading>
+		</div>
 	);
 }
-
-const StyledLoading = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-articles-loading-loading', className)} {...props} />
-);

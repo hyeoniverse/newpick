@@ -22,13 +22,13 @@ interface NewsletterContentProps {
 function ArticleContent({ content, className, articleImage, newsId, related = [] }: NewsletterContentProps) {
 	const bodyRef = useRef<HTMLDivElement>(null);
 	return (
-		<ContainerStyled className={className}>
+		<div className={cx('np-articles-article-content-container', className)}>
 			{articleImage && (
 				<div className="image-wrapper" data-track-section="detail-image">
 					<HeightAutoImg src={articleImage} height={'auto'} />
 				</div>
 			)}
-			<NewsletterContentStyled>
+			<article className="np-articles-article-content-newsletter-content">
 				{/* 방문 통계 (#131): 본문의 브리핑 · 소식을 구역으로 센다 */}
 				<div
 					ref={bodyRef}
@@ -40,26 +40,14 @@ function ArticleContent({ content, className, articleImage, newsId, related = []
 				{/* 후속 지켜보기: 소식마다 단추 */}
 				{newsId && <FollowLayer newsletterId={newsId} rootRef={bodyRef} content={content} />}
 				<div className="content-bottom-margin" />
-			</NewsletterContentStyled>
+			</article>
 			{/* 본문을 다 읽은 자리에서 바로 구독 권유, 그 아래 출처(관련 뉴스) */}
 			<SubscribeInduce className="subscribe" />
-			<OpenGraphCardContainer data-track-section="detail-sources">
+			<div className="np-articles-article-content-open-graph-card-container" data-track-section="detail-sources">
 				<OpenGraphCard urls={related} />
-			</OpenGraphCardContainer>
-		</ContainerStyled>
+			</div>
+		</div>
 	);
 }
-
-const ContainerStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-article-content-container', className)} {...props} />
-);
-
-const OpenGraphCardContainer = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-article-content-open-graph-card-container', className)} {...props} />
-);
-
-const NewsletterContentStyled = ({ className, ...props }: React.ComponentProps<'article'>) => (
-	<article className={cx('np-articles-article-content-newsletter-content', className)} {...props} />
-);
 
 export default ArticleContent;

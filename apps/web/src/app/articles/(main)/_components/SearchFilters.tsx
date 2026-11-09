@@ -8,7 +8,6 @@ import { LuX } from 'react-icons/lu';
 import { PERIOD_OPTIONS, SearchPeriod, readFilters, toPageHref, toggleKeyword } from '@/utils/newsletterSearch';
 import { kstDate } from '@/utils/formatter';
 import { DateRangePicker } from '@/components/common/DatePicker';
-import { cx } from '@/styles/tw';
 
 /**
  * 뉴스레터 목록 위 필터 줄 (#20): 기간 · 자주 나온 태그(여러 개 고르기).
@@ -45,7 +44,7 @@ export default function SearchFilters() {
 				);
 
 	return (
-		<StyledSearchFilters>
+		<div className="np-articles-search-filters-search-filters">
 			<div className="filters">
 				<div className={custom ? 'periods custom' : 'periods'} role="group" aria-label="기간">
 					{PERIOD_OPTIONS.map((option) => {
@@ -117,10 +116,6 @@ export default function SearchFilters() {
 					</Link>
 				</div>
 			)}
-		</StyledSearchFilters>
+		</div>
 	);
 }
-
-const StyledSearchFilters = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-search-filters-search-filters', className)} {...props} />
-);

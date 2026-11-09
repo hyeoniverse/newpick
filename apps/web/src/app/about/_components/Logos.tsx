@@ -17,7 +17,7 @@ function Logos({ className }: Props) {
 	const extendedLogoPaths2 = [...logoPaths2, ...logoPaths2, ...logoPaths2];
 
 	return (
-		<LogosStyled className={className}>
+		<div className={cx('np-about-logos-logos', className)}>
 			<Swiper
 				dir={'rtl'}
 				modules={[Autoplay]}
@@ -62,12 +62,8 @@ function Logos({ className }: Props) {
 					</SwiperSlide>
 				))}
 			</Swiper>
-		</LogosStyled>
+		</div>
 	);
 }
-
-const LogosStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-about-logos-logos', className)} {...props} />
-);
 
 export default Logos;

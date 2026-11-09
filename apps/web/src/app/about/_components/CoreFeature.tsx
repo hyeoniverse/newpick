@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
-import { cx } from '@/styles/tw';
 
 const CATEGORIES = ['IT', '정치', '경제', '사회', '생활', '세계'];
 
@@ -225,7 +224,11 @@ export default function CoreFeature() {
 	useSnapToPanels(trackRef);
 
 	return (
-		<StyledCore data-track-section="about-core-feature" style={{ '--n': FEATURES.length } as React.CSSProperties}>
+		<section
+			className="np-about-core-feature-core"
+			data-track-section="about-core-feature"
+			style={{ '--n': FEATURES.length } as React.CSSProperties}
+		>
 			<div className="inner">
 				<SectionHeading label="CORE FEATURE" />
 			</div>
@@ -249,10 +252,6 @@ export default function CoreFeature() {
 					</div>
 				</div>
 			</div>
-		</StyledCore>
+		</section>
 	);
 }
-
-const StyledCore = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-about-core-feature-core', className)} {...props} />
-);

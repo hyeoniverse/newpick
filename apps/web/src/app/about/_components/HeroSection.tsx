@@ -5,7 +5,6 @@ import { LuChevronRight } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import { useOpenSubscribe } from '@/hooks/useOpenSubscribe';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
-import { cx } from '@/styles/tw';
 
 const HEADLINE = ['내 관심사만 골라,', '매일 아침 한 통으로.'];
 
@@ -26,7 +25,7 @@ export default function HeroSection() {
 	const stageRef = useScrollProgress<HTMLDivElement>('enter');
 
 	return (
-		<StyledHero data-track-section="about-hero">
+		<section className="np-about-hero-section-hero" data-track-section="about-hero">
 			<p className="eyebrow">AI 뉴스 큐레이션 · NEWPICK</p>
 			<h1 className="headline">
 				{HEADLINE.map((line, i) => (
@@ -68,10 +67,6 @@ export default function HeroSection() {
 					</div>
 				</div>
 			</div>
-		</StyledHero>
+		</section>
 	);
 }
-
-const StyledHero = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-about-hero-section-hero', className)} {...props} />
-);

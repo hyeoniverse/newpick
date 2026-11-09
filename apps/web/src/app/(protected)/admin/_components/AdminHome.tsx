@@ -10,7 +10,6 @@ import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
 import Dashboard from '@/app/(protected)/admin/_components/Dashboard';
-import { cx } from '@/styles/tw';
 
 /** 마지막으로 비운 시각을 '오후 3:04:12'처럼 */
 const timeText = (iso: string) => new Date(iso).toLocaleTimeString('ko-KR');
@@ -36,7 +35,7 @@ function SiteCacheTool() {
 	};
 
 	return (
-		<StyledTool>
+		<section className="np-admin-admin-home-tool">
 			<div>
 				<Title as="h2" size="extraSmall" weight="bold">
 					사이트 캐시 비우기
@@ -54,7 +53,7 @@ function SiteCacheTool() {
 			<Button scheme="primary" size="small" onClick={refresh} disabled={pending}>
 				{pending ? '비우는 중…' : '지금 비우기'}
 			</Button>
-		</StyledTool>
+		</section>
 	);
 }
 
@@ -65,7 +64,7 @@ export default function AdminHome() {
 			<div className="np-protected-page">
 				<Title size="extraSmall">관리자</Title>
 				<SiteCacheTool />
-				<StyledTool>
+				<section className="np-admin-admin-home-tool">
 					<div>
 						<Title as="h2" size="extraSmall" weight="bold">
 							디자인 시스템
@@ -79,9 +78,9 @@ export default function AdminHome() {
 							열기
 						</Button>
 					</Link>
-				</StyledTool>
+				</section>
 				{/* 콘텐츠 · 회원 관리 (#31): 뉴스레터 고치기 · 사용자 · 구독자 · 관심사 · 태그 */}
-				<StyledTool>
+				<section className="np-admin-admin-home-tool">
 					<div>
 						<Title as="h2" size="extraSmall" weight="bold">
 							콘텐츠 · 회원 관리
@@ -107,24 +106,16 @@ export default function AdminHome() {
 							</Link>
 						))}
 					</nav>
-				</StyledTool>
+				</section>
 				{/* 운영 도구 아래에 기록(대시보드). 기간을 주소(?from=&to=)에서 읽으므로 Suspense 안에 */}
-				<StyledRecords>
+				<div className="np-admin-admin-home-records">
 					<Suspense fallback={null}>
 						<Dashboard />
 					</Suspense>
-				</StyledRecords>
+				</div>
 			</div>
 		</AdminGate>
 	);
 }
 
 /** 마이페이지 '회원 탈퇴' 줄과 같은 모양: 위 구분선, 왼쪽 제목·설명, 오른쪽 버튼 (모바일은 아래로) */
-const StyledTool = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-admin-admin-home-tool', className)} {...props} />
-);
-
-/** 도구 줄과 같은 구분선으로 기록(대시보드)을 나눈다 */
-const StyledRecords = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-admin-home-records', className)} {...props} />
-);

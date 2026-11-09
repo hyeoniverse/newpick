@@ -1,6 +1,6 @@
 /* 화면 (articles): styled-components 규칙을 그대로 옮긴 CSS (@layer components). 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
 
-/* app/articles/(main)/_components/ArticlesLoading.tsx · StyledLoading */
+/* app/articles/(main)/_components/ArticlesLoading.tsx */
 .np-articles-articles-loading-loading {
 	display: flex;
 	flex-direction: column;
@@ -64,7 +64,7 @@
 	}
 }
 
-/* app/articles/(main)/_components/HotSection.tsx · StyledHotSection */
+/* app/articles/(main)/_components/HotSection.tsx */
 .np-articles-hot-section-hot-section {
 	width: 100%;
 	height: fit-content;
@@ -533,7 +533,7 @@
 	}
 }
 
-/* app/articles/(main)/_components/ListSection.tsx · StyledListSection */
+/* app/articles/(main)/_components/ListSection.tsx */
 .np-articles-list-section-list-section {
 	width: 100%;
 	height: fit-content;
@@ -801,7 +801,7 @@
 	}
 }
 
-/* app/articles/(main)/_components/SearchFilters.tsx · StyledSearchFilters */
+/* app/articles/(main)/_components/SearchFilters.tsx */
 .np-articles-search-filters-search-filters {
 	display: flex;
 	flex-direction: column;
@@ -1015,7 +1015,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/Article.tsx · ArticleStyled */
+/* app/articles/detail/[slug]/_components/Article.tsx */
 .np-articles-article-article {
 	margin: 4rem 0;
 	position: relative;
@@ -1076,7 +1076,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/Article.tsx · TitleSectionStyled */
+/* app/articles/detail/[slug]/_components/Article.tsx */
 .np-articles-article-title-section {
 	display: flex;
 	flex-direction: column;
@@ -1129,7 +1129,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/LatestArticle.tsx · LatestArticleStyled */
+/* app/articles/detail/[slug]/_components/LatestArticle.tsx */
 .np-articles-latest-article-latest-article {
 	position: relative;
 	padding: 3rem 0 5.5rem;
@@ -1291,7 +1291,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/MobileLikeLinkButton.tsx · MobileLikeLinkButtonStyled */
+/* app/articles/detail/[slug]/_components/MobileLikeLinkButton.tsx */
 .np-articles-mobile-like-link-button-mobile-like-link-button {
 	display: flex;
 	flex-direction: column;
@@ -1338,7 +1338,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/PopularArticle.tsx · PopularNewsletterStyled */
+/* app/articles/detail/[slug]/_components/PopularArticle.tsx */
 .np-articles-popular-article-popular-newsletter {
 	/* display: flex라 hidden 속성이 안 먹으므로 직접 */
 	.popular-list[hidden] {
@@ -1492,7 +1492,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/PrevNextArticle.tsx · PrevNextArticleStyled */
+/* app/articles/detail/[slug]/_components/PrevNextArticle.tsx */
 .np-articles-prev-next-article-prev-next-article {
 	border-top: 1px solid var(--np-color-border);
 
@@ -1599,7 +1599,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/content/ArticleContent.tsx · ContainerStyled */
+/* app/articles/detail/[slug]/_components/content/ArticleContent.tsx */
 .np-articles-article-content-container {
 	position: relative;
 	display: flex;
@@ -1608,7 +1608,7 @@
 	max-width: 100%;
 }
 
-/* app/articles/detail/[slug]/_components/content/ArticleContent.tsx · OpenGraphCardContainer */
+/* app/articles/detail/[slug]/_components/content/ArticleContent.tsx */
 .np-articles-article-content-open-graph-card-container {
 	position: relative;
 	gap: 0.5rem;
@@ -1623,7 +1623,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/content/ArticleContent.tsx · NewsletterContentStyled */
+/* app/articles/detail/[slug]/_components/content/ArticleContent.tsx */
 .np-articles-article-content-newsletter-content {
 	position: relative;
 	/* 스크랩 형광펜 띠(z-index -1)가 본문 글자 뒤 · 이 틀 안에 깔리도록 따로 쌓는다 */
@@ -2153,7 +2153,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/content/FollowLayer.tsx · FollowButton */
+/* app/articles/detail/[slug]/_components/content/FollowLayer.tsx */
 .np-articles-follow-layer-follow-button {
 	display: inline-flex;
 	align-items: center;
@@ -2206,7 +2206,8 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/content/FollowLayer.tsx · FollowFrom */
+/* app/articles/detail/[slug]/_components/content/FollowLayer.tsx */
+/* 소식 맨 위: 이 소식이 이어 가는, 내가 지켜보던 원래 소식 (실선 대신 연한 바탕) */
 .np-articles-follow-layer-follow-from {
 	display: flex;
 	flex-wrap: wrap;
@@ -2255,7 +2256,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx · StyledBands */
+/* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx */
 .np-articles-highlight-layer-bands {
 	position: absolute;
 	inset: 0;
@@ -2278,7 +2279,8 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx · StyledDim */
+/* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx */
+/* 휴대폰 시트 뒤 어둡게 */
 .np-articles-highlight-layer-dim {
 	position: fixed;
 	inset: 0;
@@ -2286,7 +2288,7 @@
 	background: rgba(0, 0, 0, 0.35);
 }
 
-/* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx · StyledPopover */
+/* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx */
 .np-articles-highlight-layer-popover {
 	/* 문서 기준으로 띄워 글과 함께 스크롤된다 (body에 붙여 둔다) */
 	position: absolute;
@@ -2493,7 +2495,7 @@
 	}
 }
 
-/* app/articles/detail/[slug]/_components/Article.tsx · ArticleBackBar */
+/* app/articles/detail/[slug]/_components/Article.tsx */
 .np-articles-article-back-bar {
 	margin-top: 4rem;
 }

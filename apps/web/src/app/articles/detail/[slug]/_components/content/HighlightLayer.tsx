@@ -258,7 +258,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	};
 
 	const bandLayer = (
-		<StyledBands ref={bandsRef} aria-hidden>
+		<div className="np-articles-highlight-layer-bands" ref={bandsRef} aria-hidden>
 			{bands.map((band, i) => (
 				<span
 					key={`${band.id}-${i}`}
@@ -266,7 +266,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 					style={{ left: band.left, top: band.top, width: band.width, height: band.height }}
 				/>
 			))}
-		</StyledBands>
+		</div>
 	);
 
 	if (!popover) return bandLayer;
@@ -295,10 +295,17 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 			{/* 본문 스타일(문단 · 블록 여백)이 붙지 않게 body에 띄운다 */}
 			{createPortal(
 				<>
-					{dim && <StyledDim data-highlight-popover aria-hidden onClick={() => setPopover(null)} />}
-					<StyledPopover
+					{dim && (
+						<div
+							className="np-articles-highlight-layer-dim"
+							data-highlight-popover
+							aria-hidden
+							onClick={() => setPopover(null)}
+						/>
+					)}
+					<div
 						style={style}
-						className={isMobile ? `sheet ${popover.kind}` : undefined}
+						className={cx('np-articles-highlight-layer-popover', isMobile ? `sheet ${popover.kind}` : undefined)}
 						data-highlight-popover
 						role="dialog"
 						aria-label="스크랩 · 메모"
@@ -394,7 +401,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 								</div>
 							</form>
 						)}
-					</StyledPopover>
+					</div>
 				</>,
 				document.body,
 			)}
@@ -406,15 +413,3 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
  * 형광펜 띠: 본문 글자 뒤(z-index -1, 본문 틀이 isolation으로 따로 쌓임)에 깐다. 누르기는 본문이 받는다.
  * 스크랩은 옅은 주 색, 메모가 있으면 아래에 주 색 줄, 마이페이지에서 온 문장은 잠깐 진하게
  */
-const StyledBands = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-highlight-layer-bands', className)} {...props} />
-);
-
-/** 휴대폰 시트 뒤 어둡게 */
-const StyledDim = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-highlight-layer-dim', className)} {...props} />
-);
-
-const StyledPopover = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-highlight-layer-popover', className)} {...props} />
-);

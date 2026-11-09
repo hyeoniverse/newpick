@@ -25,7 +25,6 @@ import { setFolderDragGhost } from './folders/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 import MonthBar, { LoadNewer, MonthIndex, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
-import { cx } from '@/styles/tw';
 
 /** 작은 화면에서 '오늘을 한눈에' 소식을 몇 개까지 보일지 (나머지는 '외 N개') */
 const GLANCE_SMALL = 3;
@@ -192,11 +191,11 @@ export default function MySubscribe() {
 
 	if (!user || isPending || !data) {
 		return (
-			<MySubscribeStyled aria-busy>
+			<div className="np-mypage-my-subscribe-my-subscribe" aria-busy>
 				<div className="cards">
 					<Skeleton />
 				</div>
-			</MySubscribeStyled>
+			</div>
 		);
 	}
 
@@ -228,7 +227,7 @@ export default function MySubscribe() {
 	}));
 
 	return (
-		<MySubscribeStyled>
+		<div className="np-mypage-my-subscribe-my-subscribe">
 			<FolderBar
 				folders={folders}
 				countOf={(f) => f.counts.mails}
@@ -423,10 +422,6 @@ export default function MySubscribe() {
 			<div ref={endRef} className="list-end" aria-hidden />
 			{isFetchingNextPage && <p className="list-status">메일을 더 불러오는 중…</p>}
 			{!hasNextPage && data.total > PAGE_SIZE && <p className="list-status">받은 메일을 모두 봤어요.</p>}
-		</MySubscribeStyled>
+		</div>
 	);
 }
-
-const MySubscribeStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-my-subscribe-my-subscribe', className)} {...props} />
-);

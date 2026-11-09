@@ -19,7 +19,6 @@ import ArticleContent from '@/app/articles/detail/[slug]/_components/content/Art
 import InputSelect from '@/components/common/InputSelect';
 import HtmlCodeEditor from './HtmlCodeEditor';
 import { compactHtml, formatHtml } from './htmlFormat';
-import { cx } from '@/styles/tw';
 
 interface Newsletter {
 	id: string;
@@ -149,7 +148,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 	return (
 		<AdminGate>
 			<div className="np-protected-page">
-				<StyledEdit>
+				<div className="np-admin-newsletter-edit-edit">
 					<BackBar text="발행한 뉴스레터" onClick={() => router.push('/admin/newsletters')} />
 					<div className="head">
 						<Title size="extraSmall" weight="bold">
@@ -242,12 +241,8 @@ export default function NewsletterEdit({ id }: { id: number }) {
 							</section>
 						</div>
 					)}
-				</StyledEdit>
+				</div>
 			</div>
 		</AdminGate>
 	);
 }
-
-const StyledEdit = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-newsletter-edit-edit', className)} {...props} />
-);

@@ -14,7 +14,6 @@ import useSubscribe from '@/hooks/useSubscribe';
 import Title from '@/components/common/Title';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
-import { cx } from '@/styles/tw';
 
 export default function StartSubscription() {
 	const { user } = useAuth();
@@ -54,7 +53,7 @@ export default function StartSubscription() {
 	};
 
 	return (
-		<StyeldStartSubscription>
+		<div className="np-mypage-start-subscription-styeld-start-subscription">
 			<div className="description">
 				<div className="title">
 					<Title size="extraSmall" weight="bold">
@@ -133,10 +132,6 @@ export default function StartSubscription() {
 					{isSubscribed === false ? '구독 다시 시작' : '완료'}
 				</Button>
 			</div>
-		</StyeldStartSubscription>
+		</div>
 	);
 }
-
-const StyeldStartSubscription = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-start-subscription-styeld-start-subscription', className)} {...props} />
-);

@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from 'react';
 import SectionHeading from '@/app/about/_components/SectionHeading';
-import { cx } from '@/styles/tw';
 
 /** 숫자는 서비스 설정에서 온 값이다 (관심사 6개, 하루 한 통, 08:40 발송, AI 2단계, 무료) */
 const NUMBERS = [
@@ -69,17 +68,18 @@ export default function NumbersSection() {
 	}, []);
 
 	return (
-		<StyledNumbers data-track-section="about-numbers" id="about-numbers" aria-label="숫자로 보는 NEWPICK">
+		<section
+			className="np-about-numbers-section-numbers"
+			data-track-section="about-numbers"
+			id="about-numbers"
+			aria-label="숫자로 보는 NEWPICK"
+		>
 			<SectionHeading label="IN NUMBERS" title="하루 한 통이면 충분합니다." />
 			<ul ref={ref} className="list">
 				{NUMBERS.map((item) => (
 					<NumberItem key={item.text} {...item} start={start} />
 				))}
 			</ul>
-		</StyledNumbers>
+		</section>
 	);
 }
-
-const StyledNumbers = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-about-numbers-section-numbers', className)} {...props} />
-);

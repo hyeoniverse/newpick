@@ -20,7 +20,6 @@ import { SearchSort, filtersKey, isSearching, readFilters, toApiQuery, toPageHre
 import TagFollowButton from '@/components/common/tag/TagFollowButton';
 import InputSelect from '@/components/common/InputSelect';
 import { useToast } from '@/hooks/useToast';
-import { cx } from '@/styles/tw';
 
 export default function ListSection() {
 	const searchParams = useSearchParams();
@@ -141,7 +140,7 @@ export default function ListSection() {
 	);
 
 	return (
-		<StyledListSection data-track-section="articles-list">
+		<section className="np-articles-list-section-list-section" data-track-section="articles-list">
 			<div className={bare ? 'header bare' : 'header'}>
 				<div className={tags.length ? 'title stack' : 'title'}>
 					{tags.length ? (
@@ -252,10 +251,6 @@ export default function ListSection() {
 			<div ref={observerRef} className="observer">
 				{isLoading && <Spinner />}
 			</div>
-		</StyledListSection>
+		</section>
 	);
 }
-
-const StyledListSection = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-articles-list-section-list-section', className)} {...props} />
-);

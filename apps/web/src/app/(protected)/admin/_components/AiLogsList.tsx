@@ -12,7 +12,6 @@ import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from './format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
-import { cx } from '@/styles/tw';
 
 const PAGE_SIZE = 20;
 
@@ -118,7 +117,7 @@ export default function AiLogsList() {
 			) : data.items.length === 0 ? (
 				<p className="state">이 조건의 기록이 없어요.</p>
 			) : (
-				<Chains className="table-wrap">
+				<div className="np-admin-ai-logs-list-chains table-wrap">
 					<table className="wide">
 						{/* 칸 폭 = 내용 · 머리글(정렬 아이콘 포함) + 오른쪽 여백 1rem. 좁으면 옆 칸에 붙는다.
 						    앞 세 칸(시각 · 분야 · 결과)은 가로로 넘겨도 왼쪽에 고정 (PINNED) */}
@@ -205,10 +204,10 @@ export default function AiLogsList() {
 							})}
 						</tbody>
 					</table>
-				</Chains>
+				</div>
 			)}
 			{data && data.items.length > 0 && (
-				<CardList aria-label="AI 기록">
+				<ul className="np-admin-ai-logs-list-card-list" aria-label="AI 기록">
 					{groups.map((group) => (
 						<li key={group[0].id}>
 							<ol className="timeline">
@@ -225,7 +224,7 @@ export default function AiLogsList() {
 							</ol>
 						</li>
 					))}
-				</CardList>
+				</ul>
 			)}
 			{data && (
 				<Pagination
@@ -261,14 +260,14 @@ function groupAttempts(items: Row[]) {
 function Result({ log }: { log: Row }) {
 	const attempt = log.attempt;
 	return (
-		<Badges>
+		<span className="np-admin-ai-logs-list-badges">
 			<StatusBadge tone={toneOf(log.status)}>{log.status === 'success' ? '성공' : '실패'}</StatusBadge>
 			{attempt && attempt.total > 1 && (
 				<span className="step">
 					시도 {attempt.n}/{attempt.total}
 				</span>
 			)}
-		</Badges>
+		</span>
 	);
 }
 
@@ -381,15 +380,3 @@ function LogEntry({
 }
 
 /** 휴대폰 폭에서만 보이는 활동 목록 (표 대신): 묶음마다 구분선, 묶음 안은 상태 점을 세로선으로 잇는다 */
-const CardList = ({ className, ...props }: React.ComponentProps<'ul'>) => (
-	<ul className={cx('np-admin-ai-logs-list-card-list', className)} {...props} />
-);
-
-const Badges = ({ className, ...props }: React.ComponentProps<'span'>) => (
-	<span className={cx('np-admin-ai-logs-list-badges', className)} {...props} />
-);
-
-/** 스레드: 묶음 안 줄은 구분선 없이 이어 쓰고, 앞선 시도(reply)는 들여 써서 연결선(└)으로 잇는다. 내용은 두 줄까지 */
-const Chains = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-ai-logs-list-chains', className)} {...props} />
-);

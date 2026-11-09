@@ -87,7 +87,7 @@ function Article({ initial }: Props) {
 					})
 				}
 			/>
-			<TitleSectionStyled data-track-section="detail-title">
+			<div className="np-articles-article-title-section" data-track-section="detail-title">
 				<div className="title-section">
 					<Link href={`/articles?categoryId=${newsletterContent.categoryId}`} className="category">
 						{mapIdToTitle([newsletterContent.categoryId])[0] || `#${newsletterContent.categoryId}`}
@@ -114,8 +114,8 @@ function Article({ initial }: Props) {
 						<LinkCopyIcon id={newsletterContent.id} />
 					</div>
 				</div>
-			</TitleSectionStyled>
-			<ArticleStyled>
+			</div>
+			<div className="np-articles-article-article">
 				<Suspense fallback={<Skeleton />}>
 					<SummaryTextBox>{newsletterContent.content}</SummaryTextBox>
 				</Suspense>
@@ -148,22 +148,14 @@ function Article({ initial }: Props) {
 					<LatestArticle className="latest" />
 				</Suspense>
 				<MobileLikeLinkButton className="icons" newsId={newsletterContent.id} />
-			</ArticleStyled>
+			</div>
 		</>
 	);
 }
 
-const ArticleStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-article-article', className)} {...props} />
-);
-
 /** 기사 화면에서는 제목 위 여백을 두고 시작 (styles/pages/articles.css) */
 const ArticleBackBar = ({ className, ...props }: React.ComponentProps<typeof BackBar>) => (
 	<BackBar className={cx('np-articles-article-back-bar', className)} {...props} />
-);
-
-const TitleSectionStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-articles-article-title-section', className)} {...props} />
 );
 
 export default Article;

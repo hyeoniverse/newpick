@@ -16,7 +16,6 @@ import { PERIOD_OPTIONS, isSearching, readFilters, toPageHref } from '@/utils/ne
 import { kstDate } from '@/utils/formatter';
 import InputSelect from '@/components/common/InputSelect';
 import SearchFilters from '@/app/articles/(main)/_components/SearchFilters';
-import { cx } from '@/styles/tw';
 
 /** 분야 페이지 배너 요약 (page.tsx가 서버에서 계산) */
 export interface CategoryStats {
@@ -61,7 +60,8 @@ export default function HotSection({ trends: initiallData = [], stats, latest }:
 	if (fallback) filteredTrends = [latest];
 
 	return (
-		<StyledHotSection
+		<section
+			className="np-articles-hot-section-hot-section"
 			data-track-section="articles-hot"
 			// 점·화살표 줄: 분야 페이지(카드 하나)에서도 자리는 남겨 높이를 맞춘다
 			style={{ '--hot-controls-visibility': isAll ? 'visible' : 'hidden' } as React.CSSProperties}
@@ -186,7 +186,7 @@ export default function HotSection({ trends: initiallData = [], stats, latest }:
 					)}
 				</>
 			)}
-		</StyledHotSection>
+		</section>
 	);
 }
 
@@ -201,7 +201,3 @@ const todayLabel = () =>
 	new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', weekday: 'long', timeZone: 'Asia/Seoul' }).format(
 		new Date(),
 	);
-
-const StyledHotSection = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-articles-hot-section-hot-section', className)} {...props} />
-);

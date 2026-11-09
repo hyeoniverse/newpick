@@ -6,7 +6,6 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import InputRadio from '@/components/common/InputRadio';
 import InputSelect from '@/components/common/InputSelect';
 import { Folder, FolderContents } from '@/hooks/useFolders';
-import { cx } from '@/styles/tw';
 
 interface Props {
 	folder: Folder;
@@ -55,7 +54,7 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 			onCancelClick={onCancel}
 			onConfirmClick={() => onConfirm(contents, contents === 'move' ? Number(to) : undefined)}
 		>
-			<StyledChoices>
+			<div className="np-mypage-folder-delete-modal-choices">
 				<InputRadio<FolderContents>
 					name="folder-contents"
 					label="안의 것들"
@@ -83,11 +82,7 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 						{mails ? `${erasable.length ? '\n' : ''}받은 메일은 지울 수 없어 폴더 없음으로 남아요.` : ''}
 					</p>
 				)}
-			</StyledChoices>
+			</div>
 		</ModalContents>
 	);
 }
-
-const StyledChoices = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-folder-delete-modal-choices', className)} {...props} />
-);

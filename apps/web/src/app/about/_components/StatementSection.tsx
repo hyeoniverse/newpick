@@ -1,7 +1,6 @@
 'use client';
 
 import { useScrollProgress } from '@/hooks/useScrollProgress';
-import { cx } from '@/styles/tw';
 
 /** 강조할 낱말은 ** 로 감싼다 */
 const STATEMENT =
@@ -21,7 +20,11 @@ export default function StatementSection() {
 	const ref = useScrollProgress<HTMLParagraphElement>('through');
 
 	return (
-		<StyledStatement data-track-section="about-statement" aria-label="NEWPICK 소개">
+		<section
+			className="np-about-statement-section-statement"
+			data-track-section="about-statement"
+			aria-label="NEWPICK 소개"
+		>
 			<p ref={ref} className="statement" style={{ '--n': WORDS.length } as React.CSSProperties}>
 				{WORDS.map((word, i) => (
 					<span key={i} className={word.strong ? 'word strong' : 'word'} style={{ '--i': i } as React.CSSProperties}>
@@ -29,10 +32,6 @@ export default function StatementSection() {
 					</span>
 				))}
 			</p>
-		</StyledStatement>
+		</section>
 	);
 }
-
-const StyledStatement = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-about-statement-section-statement', className)} {...props} />
-);

@@ -11,7 +11,6 @@ import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Skeleton from '@/components/common/loader/Skeleton';
 import MailView from '@/components/common/MailView';
-import { cx } from '@/styles/tw';
 
 const INTERESTS = CATEGORIES.slice(1);
 
@@ -40,7 +39,7 @@ export default function Trial() {
 	const isAll = selected.length === INTERESTS.length;
 
 	return (
-		<StyledTrial>
+		<div className="np-home-trial-trial">
 			<div className="header">
 				<Title as="h2" size="small" weight="bold">
 					내 뉴스레터 미리보기
@@ -71,7 +70,7 @@ export default function Trial() {
 				</div>
 			</div>
 
-			<StyledMail aria-live="polite" aria-busy={isLoading}>
+			<div className="np-home-trial-mail" aria-live="polite" aria-busy={isLoading}>
 				{!ids.length ? (
 					<div className="info">
 						<span className="badge">
@@ -110,7 +109,7 @@ export default function Trial() {
 				) : (
 					<MailView subject={data.subject} html={data.html} title="구독 메일 미리보기" />
 				)}
-			</StyledMail>
+			</div>
 
 			<Button
 				size="medium"
@@ -123,15 +122,6 @@ export default function Trial() {
 					? `이 구성으로 구독하기 (${isAll ? '전체' : `${selected.length}개 분야`})`
 					: '분야를 골라 주세요'}
 			</Button>
-		</StyledTrial>
+		</div>
 	);
 }
-
-const StyledTrial = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-home-trial-trial', className)} {...props} />
-);
-
-/** 받은편지함에서 연 메일 모양. 시트 폭이 메일 폭(600px)에 맞춰져 있어 본문(iframe)이 꽉 찬다 */
-const StyledMail = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-home-trial-mail', className)} {...props} />
-);

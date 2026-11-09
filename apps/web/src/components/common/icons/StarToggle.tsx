@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { IconStyled } from '@/styles/Icon';
+import { IconButton } from '@/styles/Icon';
 import { StarGlyph } from '@/components/common/icons/Glyphs';
 
 interface Props {
@@ -19,7 +19,7 @@ export default function StarToggle({ pressed, onToggle, className }: Props) {
 	// 방금 눌러 바뀌었으면 마우스가 나갔다 다시 들어오기 전까지 미리 보기를 멈춘다 (바뀐 상태 그대로 보이게)
 	const [settled, setSettled] = useState(false);
 	return (
-		<IconStyled
+		<IconButton
 			onClick={() => {
 				setSettled(true);
 				onToggle();
@@ -33,6 +33,6 @@ export default function StarToggle({ pressed, onToggle, className }: Props) {
 			title={pressed ? '중요 해제' : '중요 표시'}
 		>
 			<StarGlyph filled={pressed} />
-		</IconStyled>
+		</IconButton>
 	);
 }

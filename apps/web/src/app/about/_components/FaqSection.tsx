@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { LuPlus } from 'react-icons/lu';
 import SectionHeading from '@/app/about/_components/SectionHeading';
-import { cx } from '@/styles/tw';
 
 /** 답은 실제 동작 기준 (이용약관 요약·발송 예약·탈퇴 처리와 같은 내용) */
 const FAQ = [
@@ -62,7 +61,7 @@ export default function FaqSection() {
 	const toggle = (index: number) => setOpen((prev) => prev.map((v, i) => (i === index ? !v : v)));
 
 	return (
-		<StyledFaq data-track-section="about-faq" aria-label="자주 묻는 질문">
+		<section className="np-about-faq-section-faq" data-track-section="about-faq" aria-label="자주 묻는 질문">
 			<SectionHeading label="FAQ" title="자주 묻는 질문" />
 			<ul className="list">
 				{FAQ.map(({ q, a }, i) => (
@@ -93,10 +92,6 @@ export default function FaqSection() {
 					</li>
 				))}
 			</ul>
-		</StyledFaq>
+		</section>
 	);
 }
-
-const StyledFaq = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-about-faq-section-faq', className)} {...props} />
-);

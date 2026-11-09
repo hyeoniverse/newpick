@@ -9,7 +9,6 @@ import { useTagFollows } from '@/hooks/useTagFollows';
 import { toPageHref, readFilters } from '@/utils/newsletterSearch';
 import Text from '@/components/common/Text';
 import ListHead from '@/app/(protected)/mypage/_components/list/ListHead';
-import { cx } from '@/styles/tw';
 
 /** '10월 31일' (한국 시각) */
 const day = (iso: string) =>
@@ -44,7 +43,7 @@ export default function TagFollows() {
 	};
 
 	return (
-		<StyledTagFollows>
+		<section className="np-mypage-tag-follows-tag-follows">
 			<div className="tag-follows-head">
 				<ListHead title="팔로우한 태그" count={follows.length} />
 				<Text size="small" color="subText">
@@ -150,13 +149,9 @@ export default function TagFollows() {
 					</p>
 				)
 			)}
-		</StyledTagFollows>
+		</section>
 	);
 }
 
 /** 맞는 태그를 몇 개까지 보여 줄지 */
 const SUGGESTIONS = 6;
-
-const StyledTagFollows = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-mypage-tag-follows-tag-follows', className)} {...props} />
-);

@@ -70,17 +70,16 @@ function PrevNextArticle({ className, prev, next }: Props) {
 	};
 
 	return (
-		<PrevNextArticleStyled className={className} data-track-section="detail-prev-next">
+		<section
+			className={cx('np-articles-prev-next-article-prev-next-article', className)}
+			data-track-section="detail-prev-next"
+		>
 			<ul>
 				{renderArticle(prev, 'prev')} {/* 이전글 */}
 				{renderArticle(next, 'next')} {/* 다음글 */}
 			</ul>
-		</PrevNextArticleStyled>
+		</section>
 	);
 }
-
-const PrevNextArticleStyled = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-articles-prev-next-article-prev-next-article', className)} {...props} />
-);
 
 export default PrevNextArticle;

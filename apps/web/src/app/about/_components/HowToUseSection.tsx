@@ -4,7 +4,6 @@ import Img from 'next/image';
 import { FcGoogle } from 'react-icons/fc';
 import SectionHeading from '@/app/about/_components/SectionHeading';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
-import { cx } from '@/styles/tw';
 
 interface Step {
 	title: string;
@@ -195,7 +194,7 @@ function StepRow({ step, index }: { step: Step; index: number }) {
  */
 export default function HowToUseSection() {
 	return (
-		<StyledHowToUse data-track-section="about-how-to-use">
+		<section className="np-about-how-to-use-section-how-to-use" data-track-section="about-how-to-use">
 			<SectionHeading
 				label="HOW TO USE"
 				title="세 번의 클릭으로, 간단하게 시작."
@@ -219,10 +218,6 @@ export default function HowToUseSection() {
 					<StepRow key={step.title} step={step} index={FIRST_PART + i} />
 				))}
 			</ol>
-		</StyledHowToUse>
+		</section>
 	);
 }
-
-const StyledHowToUse = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-about-how-to-use-section-how-to-use', className)} {...props} />
-);

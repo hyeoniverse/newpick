@@ -6,7 +6,6 @@ import { useModal } from '@/hooks/useModal';
 import { Folder, useFolderMutations } from '@/hooks/useFolders';
 import { useHideScrollButtons } from '@/components/common/ScrollButtons';
 import FolderDeleteModal from './FolderDeleteModal';
-import { cx } from '@/styles/tw';
 
 /** 폴더 거르기 값: 'all' 모두 · 'none' 폴더 없음 · 폴더 번호 */
 export type FolderFilter = 'all' | 'none' | number;
@@ -108,7 +107,7 @@ export default function FolderBar({
 	);
 
 	return (
-		<StyledFolderBar role="group" aria-label="폴더">
+		<div className="np-mypage-folder-bar-folder-bar" role="group" aria-label="폴더">
 			{/* 끄는 중: 화면 아래에 폴더 칸을 띄워 멀리 끌고 올라가지 않아도 놓을 수 있게 (스크랩 선택 막대와 같은 자리).
 			    폴더는 한 줄, 넘치면 옆으로: 끄는 채로 칸 양 끝에 가져가면 그쪽으로 넘어간다 */}
 			{dragging > 0 && (
@@ -233,10 +232,6 @@ export default function FolderBar({
 					)}
 				</div>
 			)}
-		</StyledFolderBar>
+		</div>
 	);
 }
-
-const StyledFolderBar = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-mypage-folder-bar-folder-bar', className)} {...props} />
-);

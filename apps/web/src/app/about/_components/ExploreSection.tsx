@@ -43,7 +43,7 @@ function WhyNewpickSection({ className }: Props) {
 	};
 
 	return (
-		<StyledExploreSection data-track-section="about-explore" className={className}>
+		<div data-track-section="about-explore" className={cx('np-about-explore-section-explore-section', className)}>
 			<BorderTitle text="EXPLORE" />
 			<div>
 				<Text size="medium" color="mediumGrey" className="sub-text">
@@ -69,12 +69,8 @@ function WhyNewpickSection({ className }: Props) {
 					구독하기
 				</Button>
 			</div>
-		</StyledExploreSection>
+		</div>
 	);
 }
-
-const StyledExploreSection = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-about-explore-section-explore-section', className)} {...props} />
-);
 
 export default WhyNewpickSection;

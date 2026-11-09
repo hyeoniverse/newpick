@@ -1,6 +1,6 @@
 /* 화면 (home): styled-components 규칙을 그대로 옮긴 CSS (@layer components). 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
 
-/* app/(home)/_components/HeroSection.tsx · StyledHeroSection */
+/* app/(home)/_components/HeroSection.tsx */
 .np-home-hero-section-hero-section {
 	width: 100%;
 	height: fit-content;
@@ -58,7 +58,7 @@
 	}
 }
 
-/* app/(home)/_components/SubscribeSection.tsx · StyledSubscribe */
+/* app/(home)/_components/SubscribeSection.tsx */
 .np-home-subscribe-section-subscribe {
 	width: 100%;
 	display: flex;
@@ -110,7 +110,7 @@
 	}
 }
 
-/* app/(home)/_components/TitleSection.tsx · TitleSectionStyled */
+/* app/(home)/_components/TitleSection.tsx */
 .np-home-title-section-title-section {
 	text-align: center;
 	margin-top: 6rem;
@@ -166,7 +166,7 @@
 	}
 }
 
-/* app/(home)/_components/TrendSection.tsx · StyledTrendSection */
+/* app/(home)/_components/TrendSection.tsx */
 .np-home-trend-section-trend-section {
 	display: flex;
 	flex-direction: column;
@@ -208,7 +208,7 @@
 	}
 }
 
-/* app/(home)/_components/Trial.tsx · StyledTrial */
+/* app/(home)/_components/Trial.tsx */
 .np-home-trial-trial {
 	/* 넓은 시트(large) 안을 채운다. 시트 최대 높이 85vh에서 위아래 여백을 뺀 만큼 */
 	width: 100%;
@@ -259,7 +259,8 @@
 	}
 }
 
-/* app/(home)/_components/Trial.tsx · StyledMail */
+/* app/(home)/_components/Trial.tsx */
+/* 받은편지함에서 연 메일 모양. 시트 폭이 메일 폭(600px)에 맞춰져 있어 본문(iframe)이 꽉 찬다 */
 .np-home-trial-mail {
 	flex: 1;
 	min-height: 0;

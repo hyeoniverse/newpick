@@ -30,7 +30,7 @@ const fillForLoop = (articles: IArticleDetail[]) =>
 
 function TitleSection({ className, firstArticles, secondArticles }: Props) {
 	return (
-		<TitleSectionStyled data-track-section="home-title" className={className}>
+		<div data-track-section="home-title" className={cx('np-home-title-section-title-section', className)}>
 			<PCLogo className="logo" />
 			<Title size="extraLarge" weight="medium" className="title-text">
 				AI 뉴스레터 서비스 뉴픽
@@ -98,12 +98,8 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 					</SwiperSlide>
 				))}
 			</Swiper>
-		</TitleSectionStyled>
+		</div>
 	);
 }
-
-const TitleSectionStyled = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-home-title-section-title-section', className)} {...props} />
-);
 
 export default TitleSection;

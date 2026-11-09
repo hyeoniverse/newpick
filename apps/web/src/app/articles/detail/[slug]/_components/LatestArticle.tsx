@@ -27,7 +27,11 @@ function LatestArticle({ className }: Props) {
 	if (isError || articleList?.length === 0) return null;
 
 	return (
-		<LatestArticleStyled className={className} aria-busy={isPending || undefined} data-track-section="detail-latest">
+		<section
+			className={cx('np-articles-latest-article-latest-article', className)}
+			aria-busy={isPending || undefined}
+			data-track-section="detail-latest"
+		>
 			<div className="section-title">
 				<h3>최신 뉴스레터</h3>
 				<div className="arrow">
@@ -76,12 +80,8 @@ function LatestArticle({ className }: Props) {
 					))}
 				</Swiper>
 			)}
-		</LatestArticleStyled>
+		</section>
 	);
 }
-
-const LatestArticleStyled = ({ className, ...props }: React.ComponentProps<'section'>) => (
-	<section className={cx('np-articles-latest-article-latest-article', className)} {...props} />
-);
 
 export default LatestArticle;

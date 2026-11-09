@@ -1,6 +1,6 @@
 /* 화면 (tags): styled-components 규칙을 그대로 옮긴 CSS (@layer components). 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
 
-/* app/tags/_components/TagIndex.tsx · StyledTagIndex */
+/* app/tags/_components/TagIndex.tsx */
 .np-tags-tag-index-tag-index {
 	display: flex;
 	flex-direction: column;

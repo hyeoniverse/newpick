@@ -5,7 +5,6 @@ import AdminGate from '@/components/common/auth/AdminGate';
 import Title from '@/components/common/Title';
 import BackBar from '@/components/common/BackBar';
 import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
-import { cx } from '@/styles/tw';
 
 interface Props {
 	title: string;
@@ -30,7 +29,7 @@ export default function AdminSubPage({ title, summary, filters, period = true, b
 	return (
 		<AdminGate>
 			<div className="np-protected-page">
-				<StyledSubPage>
+				<div className="np-admin-admin-sub-page-sub-page">
 					{/* 세 묶음: 머리(뒤로 막대) / 조건(제목 · 기간 한 줄, 거르기) / 결과(건수 · 표 · 쪽) */}
 					{/* 기사 상세의 '목록으로'와 같은 막대: 스크롤하면 위에 붙고, 내릴 땐 화살표만.
 					    화면 끝까지 따라오도록 묶음 밖(맨 바깥 틀의 바로 아래)에 둔다 */}
@@ -63,7 +62,7 @@ export default function AdminSubPage({ title, summary, filters, period = true, b
 						{summary && <p className="summary">{summary}</p>}
 						{children}
 					</div>
-				</StyledSubPage>
+				</div>
 			</div>
 		</AdminGate>
 	);
@@ -81,7 +80,3 @@ export function Cols({ widths }: { widths: (string | undefined)[] }) {
 		</colgroup>
 	);
 }
-
-const StyledSubPage = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-admin-sub-page-sub-page', className)} {...props} />
-);

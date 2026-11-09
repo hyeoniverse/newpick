@@ -1,6 +1,6 @@
 /* 화면 (admin): styled-components 규칙을 그대로 옮긴 CSS (@layer components). 공통 부품 CSS 뒤에 불러와 우선순위가 같으면 화면 쪽이 이긴다 */
 
-/* app/(protected)/admin/_components/AdminHome.tsx · StyledTool */
+/* app/(protected)/admin/_components/AdminHome.tsx */
 .np-admin-admin-home-tool {
 	display: flex;
 	align-items: center;
@@ -45,14 +45,15 @@
 	}
 }
 
-/* app/(protected)/admin/_components/AdminHome.tsx · StyledRecords */
+/* app/(protected)/admin/_components/AdminHome.tsx */
+/* 도구 줄과 같은 구분선으로 기록(대시보드)을 나눈다 */
 .np-admin-admin-home-records {
 	margin-top: 2.5rem;
 	padding-top: 2rem;
 	border-top: 1px solid var(--np-color-border);
 }
 
-/* app/(protected)/admin/_components/AdminSubPage.tsx · StyledSubPage */
+/* app/(protected)/admin/_components/AdminSubPage.tsx */
 .np-admin-admin-sub-page-sub-page {
 	display: flex;
 	flex-direction: column;
@@ -343,7 +344,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/AiLogsList.tsx · CardList */
+/* app/(protected)/admin/_components/AiLogsList.tsx */
 .np-admin-ai-logs-list-card-list {
 	display: none;
 	margin: 0;
@@ -529,7 +530,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/AiLogsList.tsx · Badges */
+/* app/(protected)/admin/_components/AiLogsList.tsx */
 .np-admin-ai-logs-list-badges {
 	display: inline-flex;
 	align-items: center;
@@ -543,7 +544,8 @@
 	}
 }
 
-/* app/(protected)/admin/_components/AiLogsList.tsx · Chains */
+/* app/(protected)/admin/_components/AiLogsList.tsx */
+/* 스레드: 묶음 안 줄은 구분선 없이 이어 쓰고, 앞선 시도(reply)는 들여 써서 연결선(└)으로 잇는다. 내용은 두 줄까지 */
 .np-admin-ai-logs-list-chains {
 	/* 휴대폰 폭에서는 표 대신 카드 목록 */
 	@media (max-width: 768px) {
@@ -663,7 +665,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/Dashboard.tsx · StyledDashboard */
+/* app/(protected)/admin/_components/Dashboard.tsx */
 .np-admin-dashboard-dashboard {
 	display: flex;
 	flex-direction: column;
@@ -1079,7 +1081,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/Heatmap.tsx · StyledHeatmap */
+/* app/(protected)/admin/_components/Heatmap.tsx */
 .np-admin-heatmap-heatmap {
 	display: flex;
 	flex-direction: column;
@@ -1196,7 +1198,8 @@
 	}
 }
 
-/* app/(protected)/admin/_components/HtmlCodeEditor.tsx · StyledEditor */
+/* app/(protected)/admin/_components/HtmlCodeEditor.tsx */
+/* indent-rainbow 색 (노랑 · 초록 · 분홍 · 하늘 · 주황 · 보라). 흰 바탕에서 칙칙하지 않게 채도 높게 */
 .np-admin-html-code-editor-editor {
 	max-height: calc(var(--editor-rows) * 1.6em + 1.25rem);
 	overflow: auto;
@@ -1348,7 +1351,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/NewsletterEdit.tsx · StyledEdit */
+/* app/(protected)/admin/_components/NewsletterEdit.tsx */
 .np-admin-newsletter-edit-edit {
 	display: flex;
 	flex-direction: column;
@@ -1495,7 +1498,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/PageStatsAdmin.tsx · StyledPage */
+/* app/(protected)/admin/_components/PageStatsAdmin.tsx */
 .np-admin-page-stats-admin-page {
 	display: flex;
 	flex-direction: column;
@@ -1559,7 +1562,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/ScheduleEditor.tsx · StyledEditor */
+/* app/(protected)/admin/_components/ScheduleEditor.tsx */
 .np-admin-schedule-editor-editor {
 	display: flex;
 	flex-direction: column;
@@ -1623,7 +1626,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/StatsAdmin.tsx · StyledStats */
+/* app/(protected)/admin/_components/StatsAdmin.tsx */
 .np-admin-stats-admin-stats {
 	display: flex;
 	flex-direction: column;
@@ -1814,7 +1817,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/TagsAdmin.tsx · StyledTags */
+/* app/(protected)/admin/_components/TagsAdmin.tsx */
 .np-admin-tags-admin-tags {
 	display: flex;
 	flex-direction: column;
@@ -1953,7 +1956,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/TagsAdmin.tsx · StyledSheet */
+/* app/(protected)/admin/_components/TagsAdmin.tsx */
 .np-admin-tags-admin-sheet {
 	display: flex;
 	flex-direction: column;
@@ -1989,7 +1992,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/UsersAdmin.tsx · StyledActions */
+/* app/(protected)/admin/_components/UsersAdmin.tsx */
 .np-admin-users-admin-actions {
 	display: flex;
 	flex-direction: column;
@@ -2035,7 +2038,8 @@
 	}
 }
 
-/* app/(protected)/admin/_components/period.tsx · StyledTitle */
+/* app/(protected)/admin/_components/period.tsx */
+/* 제목 줄에 네모 칸을 끼워 넣는다. 칸의 이름표는 화면 읽기 프로그램용으로만 */
 .np-admin-period-title {
 	display: inline-flex;
 	flex-wrap: wrap;
@@ -2095,7 +2099,7 @@
 	}
 }
 
-/* app/(protected)/admin/_components/period.tsx · StyledPeriod */
+/* app/(protected)/admin/_components/period.tsx */
 .np-admin-period-period {
 	display: flex;
 	flex-wrap: wrap;
@@ -2132,7 +2136,7 @@
 	}
 }
 
-/* app/(protected)/admin/ui/_components/DesignSystem.tsx · Chip */
+/* app/(protected)/admin/ui/_components/DesignSystem.tsx */
 .np-admin-design-system-chip {
 	width: 2.5rem;
 	height: 2.5rem;
@@ -2141,7 +2145,8 @@
 	background: var(--chip-color);
 }
 
-/* app/(protected)/admin/ui/_components/DesignSystem.tsx · Box */
+/* app/(protected)/admin/ui/_components/DesignSystem.tsx */
+/* 가로로 긴 상자: 정사각형이면 capsule(9999px)과 circle(50%)이 둘 다 원으로 보여 구분되지 않는다 */
 .np-admin-design-system-box {
 	width: 6rem;
 	height: 3rem;
@@ -2150,7 +2155,7 @@
 	border: 2px solid var(--np-color-primary);
 }
 
-/* app/(protected)/admin/ui/_components/DesignSystem.tsx · StyledPage */
+/* app/(protected)/admin/ui/_components/DesignSystem.tsx */
 .np-admin-design-system-page {
 	padding: 2.5rem 0 5rem;
 	color: var(--np-color-text);

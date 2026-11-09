@@ -9,7 +9,6 @@ import AdminSubPage from './AdminSubPage';
 import { useAdminQuery } from './period';
 import Heatmap, { Click } from './Heatmap';
 import { DEVICE_LABEL, duration, routeName, sectionName } from './trafficLabels';
-import { cx } from '@/styles/tw';
 
 interface PageStats {
 	route: string;
@@ -57,7 +56,7 @@ export default function PageStatsAdmin() {
 			}
 			summary={data && `${route} · ${DEVICE_LABEL[device]} 보기 ${data.views.toLocaleString()}번`}
 		>
-			<StyledPage>
+			<div className="np-admin-page-stats-admin-page">
 				{isPending ? (
 					<p className="state">불러오는 중…</p>
 				) : isError || !data ? (
@@ -111,11 +110,7 @@ export default function PageStatsAdmin() {
 						) : null}
 					</>
 				)}
-			</StyledPage>
+			</div>
 		</AdminSubPage>
 	);
 }
-
-const StyledPage = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-page-stats-admin-page', className)} {...props} />
-);
