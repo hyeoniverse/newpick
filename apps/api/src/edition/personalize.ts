@@ -1,9 +1,9 @@
-import { cosine } from 'src/ai-summary/articlePrep';
+import { cosine } from 'src/ai-summary/article-prep';
 import { tagKey } from 'src/tags/tags';
 import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
 import { storyText } from './parse';
-import type { PersonalNote } from './personalNote';
+import type { PersonalNote } from './personal-note';
 import type { ArticlePick } from '../recommend/pick';
 
 /**
@@ -35,7 +35,7 @@ export type TasteProfile = {
 export type MailPlan = {
   /** 메일에 싣는 소식, 점수 높은 순 */
   picks: { ref: string; newsletterId: number }[];
-  /** 사람마다 쓴 제목 · 맞춤 브리핑 (personalNote.ts). 못 쓰면 없음 */
+  /** 사람마다 쓴 제목 · 맞춤 브리핑 (personal-note.ts). 못 쓰면 없음 */
   note?: PersonalNote | null;
   /** 뉴스레터에 쓰지 않은 오늘 기사 중 관심과 가까운 원문 (recommend) */
   articles?: ArticlePick[];

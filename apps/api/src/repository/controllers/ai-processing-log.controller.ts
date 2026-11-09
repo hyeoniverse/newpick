@@ -6,7 +6,7 @@ import {
   Param,
   Delete,
 } from '@nestjs/common';
-import { AiProcessingLogRepo } from '../aiProcessingLog.repo';
+import { AiProcessingLogRepo } from '../ai-processing-log.repository';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 

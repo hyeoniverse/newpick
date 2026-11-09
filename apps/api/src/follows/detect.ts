@@ -1,4 +1,4 @@
-import { cosine } from 'src/ai-summary/articlePrep';
+import { cosine } from 'src/ai-summary/article-prep';
 
 /**
  * 후속 지켜보기 판정. 지켜보는 소식마다 오늘 새 소식 가운데

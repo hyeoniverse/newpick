@@ -9,7 +9,7 @@ import {
   tagStories,
   TasteProfile,
 } from './personalize';
-import { normalizeNote, notePrompt } from './personalNote';
+import { normalizeNote, notePrompt } from './personal-note';
 
 const story = (heading: string, lead = `${heading} 리드`): ParsedStory => ({
   kicker: '',

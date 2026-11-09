@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { CrawlerService } from './crawler.service';
 import { CrawlingRepository } from './crawling.repository';
 import { CrawledNews } from './schema/crawling.schema';
-import { FindCategoryService } from 'src/ai-summary/findCategory.service';
+import { FindCategoryService } from 'src/ai-summary/find-category.service';
 
 /**
  * 분야 첫 화면에서 한 번에 가져오는 '최신 기사' 목록 수 (시간순, 헤드라인 아래).

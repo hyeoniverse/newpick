@@ -20,7 +20,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { validateEnv } from './config/env.validation';
 import { ScheduleModule } from '@nestjs/schedule';
-import { BasicRepositoryModule } from './repository/module';
+import { BasicRepositoryModule } from './repository/repository.module';
 import { ConfigLoggerMiddleware } from './middleware/config-logger.middleware';
 import { CoopMiddleware } from './middleware/coop.middleware';
 // import { CommonResponseInterceptor } from './common/response.interceptor';

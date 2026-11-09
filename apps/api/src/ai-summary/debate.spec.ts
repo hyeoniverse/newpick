@@ -1,6 +1,6 @@
-import { clusterArticles, prepare, SAME_EVENT_EMBEDDING } from './articlePrep';
+import { clusterArticles, prepare, SAME_EVENT_EMBEDDING } from './article-prep';
 import { CLAUDE_FAST_MODEL } from './claude.service';
-import { renderNewsletterHtml } from './newsletterHtml';
+import { renderNewsletterHtml } from './newsletter-html';
 import {
   diverseArticles,
   LIMITS,
@@ -9,7 +9,7 @@ import {
   pickArticles,
   Story,
   writerPrompt,
-} from './newsletterWriter.service';
+} from './newsletter-writer.service';
 import { parseNewsletterHtml } from '../edition/parse';
 import { renderEditionMail } from '../edition/mail';
 import { composeEdition } from '../edition/compose';

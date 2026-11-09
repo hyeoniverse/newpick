@@ -7,7 +7,7 @@ import {
   Delete,
 } from '@nestjs/common';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
-import { EmailArchivesRepo } from '../emailArchives.repository';
+import { EmailArchivesRepo } from '../email-archives.repository';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 
 @AdminOnly()

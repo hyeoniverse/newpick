@@ -2,12 +2,12 @@ import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { usageLog, usageOf } from './pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
-import { FindCategoryService } from './findCategory.service';
-import { CreateNewsletterService } from './createNewsletter.service';
+import { FindCategoryService } from './find-category.service';
+import { CreateNewsletterService } from './create-newsletter.service';
 import { CrawledNews } from 'src/crawling/schema/crawling.schema';
-import { NewsletterWriterService } from './newsletterWriter.service';
-import { renderNewsletterHtml } from './newsletterHtml';
-import { StoryImageService } from './storyImages';
+import { NewsletterWriterService } from './newsletter-writer.service';
+import { renderNewsletterHtml } from './newsletter-html';
+import { StoryImageService } from './story-images';
 import { TagsService } from '../tags/tags.service';
 
 /**

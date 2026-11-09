@@ -1,10 +1,10 @@
-import type { Cluster } from './articlePrep';
+import type { Cluster } from './article-prep';
 import {
   alignScores,
   rankClusters,
   selectPrompt,
   type ClusterScore,
-} from './newsletterWriter.service';
+} from './newsletter-writer.service';
 
 const cluster = (...titles: string[]): Cluster => ({
   articles: titles.map(

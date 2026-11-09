@@ -1,6 +1,6 @@
-import { renderNewsletterHtml } from './newsletterHtml';
-import { LIMITS, normalize, writerPrompt } from './newsletterWriter.service';
-import { prepare } from './articlePrep';
+import { renderNewsletterHtml } from './newsletter-html';
+import { LIMITS, normalize, writerPrompt } from './newsletter-writer.service';
+import { prepare } from './article-prep';
 import { parseNewsletterHtml } from '../edition/parse';
 
 const story = (next?: string) => ({
