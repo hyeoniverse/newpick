@@ -76,6 +76,10 @@ export default function HeaderSearch() {
 
 	const toggle = () => setOpen((prev) => !prev);
 
+	// 검색 칸은 주소를 읽느라 Suspense 안에서 따로 붙는다. 붙은 뒤 표시해 E2E가 그 다음에 입력하게 한다
+	const [ready, setReady] = useState(false);
+	useEffect(() => setReady(true), []);
+
 	// 펼치면 바로 입력할 수 있게 (보이게 바뀐 뒤에 포커스)
 	useEffect(() => {
 		if (open) inputRef.current?.focus();
@@ -93,7 +97,7 @@ export default function HeaderSearch() {
 			>
 				{open ? <LuX aria-hidden /> : <LuSearch aria-hidden />}
 			</button>
-			<form id="header-search" role="search" className={FORM} onSubmit={submit}>
+			<form id="header-search" role="search" className={FORM} onSubmit={submit} data-ready={ready || undefined}>
 				<LuSearch className={ICON} aria-hidden />
 				<input
 					ref={inputRef}

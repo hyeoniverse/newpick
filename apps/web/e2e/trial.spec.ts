@@ -1,4 +1,4 @@
-import { test, expect } from './support/fixtures';
+import { test, expect, waitForHydration } from './support/fixtures';
 import { SEEDED_NEWSLETTERS } from './support/db.mjs';
 
 // #54, #55: 체험하기는 Claude로 생성하지 않고, 고른 분야로 엮은 구독 메일을 실제 메일 HTML 그대로 보여 준다.
@@ -28,6 +28,8 @@ test('체험하기는 생성 없이 고른 분야를 한 통으로 엮은 실제
 
 test('로그인 없이 구독하기를 누르면 로그인 안내', async ({ page }) => {
 	await page.goto('/');
+	// 화면이 붙기 전에 누르면 체험 창이 열리지 않는다 (WebKit에서 가끔)
+	await waitForHydration(page);
 	await page.getByRole('button', { name: 'AI 뉴스레터 체험하기' }).first().click();
 	await page.getByRole('button', { name: /이 구성으로 구독하기/ }).click();
 
