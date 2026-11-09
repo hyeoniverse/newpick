@@ -102,7 +102,7 @@ function SummaryTextBox({
 	return (
 		<div
 			className={cx(
-				'h-auto flex-[var(--summary-flex,1)] rounded-surface border border-solid border-border bg-surface p-5',
+				'h-auto flex-[var(--summary-flex,1)] rounded-surface border border-solid border-border bg-surface p-5 mobile:p-4',
 				className,
 			)}
 			style={{ '--summary-flex': flex } as React.CSSProperties}
@@ -119,12 +119,13 @@ function SummaryTextBox({
 							<button
 								type="button"
 								onClick={() => goToStory(storySelector, i)}
-								className="group grid w-full cursor-pointer grid-cols-[2rem_minmax(0,1fr)_1rem] items-start gap-x-3 border-0 bg-transparent px-0 py-3 text-left text-inherit"
+								className="group grid w-full cursor-pointer grid-cols-[2rem_minmax(0,1fr)_1rem] items-start gap-x-3 border-0 bg-transparent px-0 py-3 text-left text-inherit mobile:grid-cols-[auto_minmax(0,1fr)] mobile:items-center mobile:gap-x-2 mobile:gap-y-1"
 							>
-								<span className="pt-0.5 text-small font-extra-bold tabular-nums text-primary">
+								<span className="pt-0.5 text-small font-extra-bold tabular-nums text-primary mobile:pt-0">
 									{String(i + 1).padStart(2, '0')}
 								</span>
-								<span className="flex min-w-0 flex-col gap-1">
+								{/* 휴대폰: 이 칸을 풀어(contents) 번호는 칩과 한 줄, 제목 · 리드는 번호 아래로 폭을 다 쓴다 */}
+								<span className="flex min-w-0 flex-col gap-1 mobile:contents">
 									<span className="flex flex-wrap items-center gap-1.5">
 										{story.morning && (
 											<span className="rounded-chip bg-primary px-2 py-px text-extra-small font-semi-bold text-[#ffffff]">
@@ -137,14 +138,16 @@ function SummaryTextBox({
 											</span>
 										)}
 									</span>
-									<strong className="text-medium font-bold leading-[1.45] text-text group-hover:text-primary">
+									<strong className="text-medium font-bold leading-[1.45] text-text group-hover:text-primary mobile:col-span-2">
 										{story.heading}
 									</strong>
-									<span className="text-small leading-[1.6] text-sub-text">{story.lead}</span>
+									<span className="text-small leading-[1.6] text-sub-text mobile:col-span-2 mobile:line-clamp-2">
+										{story.lead}
+									</span>
 								</span>
 								<LuChevronRight
 									aria-hidden
-									className="mt-1 size-4 text-sub-text transition-transform group-hover:translate-x-0.5 group-hover:text-primary motion-reduce:transition-none"
+									className="mt-1 size-4 text-sub-text transition-transform group-hover:translate-x-0.5 group-hover:text-primary motion-reduce:transition-none mobile:hidden"
 								/>
 							</button>
 						</li>
