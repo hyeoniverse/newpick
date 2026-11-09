@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { BACK_URL, PROTECTED, SESSION_HINT_COOKIE } from '@/constants/api';
-
-const ACCESS_COOKIE = 'access_token';
-const REFRESH_COOKIE = 'refresh_token';
+import { BACK_URL } from '@/constants/api';
+import { isProtectedPath } from '@/constants/routes';
+import { COOKIES } from '@/constants/storage';
 
 /**
  * 페이지를 렌더링하기 전에 인증 상태를 맞춥니다.
@@ -13,8 +12,8 @@ const REFRESH_COOKIE = 'refresh_token';
  *    토큰은 있는데 표시 쿠키가 없으면(이 쿠키가 생기기 전에 로그인한 경우) 채웁니다.
  */
 export async function middleware(request: NextRequest) {
-	const hasAccess = request.cookies.has(ACCESS_COOKIE);
-	const refreshToken = request.cookies.get(REFRESH_COOKIE)?.value;
+	const hasAccess = request.cookies.has(COOKIES.access);
+	const refreshToken = request.cookies.get(COOKIES.refresh)?.value;
 
 	let response: NextResponse | null = null;
 	let authenticated = hasAccess;
@@ -28,10 +27,10 @@ export async function middleware(request: NextRequest) {
 		authenticated = result.ok;
 	}
 
-	const clearHint = !authenticated && request.cookies.has(SESSION_HINT_COOKIE);
+	const clearHint = !authenticated && request.cookies.has(COOKIES.sessionHint);
 
 	const { pathname } = request.nextUrl;
-	const isProtected = PROTECTED.some((path) => pathname === path || pathname.startsWith(`${path}/`));
+	const isProtected = isProtectedPath(pathname);
 	if (isProtected && !authenticated) {
 		const url = request.nextUrl.clone();
 		url.pathname = '/';
@@ -39,9 +38,9 @@ export async function middleware(request: NextRequest) {
 		return withClearedHint(NextResponse.redirect(url), clearHint, failedSetCookies);
 	}
 
-	if (hasAccess && !request.cookies.has(SESSION_HINT_COOKIE)) {
+	if (hasAccess && !request.cookies.has(COOKIES.sessionHint)) {
 		response ??= NextResponse.next();
-		response.cookies.set(SESSION_HINT_COOKIE, '1', { path: '/', secure: true, sameSite: 'lax' });
+		response.cookies.set(COOKIES.sessionHint, '1', { path: '/', secure: true, sameSite: 'lax' });
 	}
 
 	return response ?? withClearedHint(NextResponse.next(), clearHint, failedSetCookies);
@@ -49,11 +48,11 @@ export async function middleware(request: NextRequest) {
 
 function withClearedHint(response: NextResponse, clearHint: boolean, setCookies: string[]) {
 	if (!clearHint) return response;
-	if (setCookies.some((cookie) => cookie.startsWith(`${SESSION_HINT_COOKIE}=`))) {
+	if (setCookies.some((cookie) => cookie.startsWith(`${COOKIES.sessionHint}=`))) {
 		setCookies.forEach((cookie) => response.headers.append('Set-Cookie', cookie));
 	} else {
 		// api에 닿지 못했거나 refresh token이 아예 없는 경우
-		response.cookies.delete(SESSION_HINT_COOKIE);
+		response.cookies.delete(COOKIES.sessionHint);
 	}
 	return response;
 }
@@ -64,19 +63,19 @@ async function refreshSession(request: NextRequest, refreshToken: string): Promi
 	try {
 		const result = await fetch(`${BACK_URL}/auth/refresh`, {
 			// 로그인한 기기 목록이 웹 서버가 아니라 사용자 브라우저를 보이게
-			headers: { Cookie: `${REFRESH_COOKIE}=${refreshToken}`, 'User-Agent': request.headers.get('user-agent') ?? '' },
+			headers: { Cookie: `${COOKIES.refresh}=${refreshToken}`, 'User-Agent': request.headers.get('user-agent') ?? '' },
 			cache: 'no-store',
 		});
 		const setCookies = result.headers.getSetCookie();
 		if (!result.ok) return { ok: false, setCookies };
 
 		const accessToken = setCookies
-			.map((cookie) => cookie.match(new RegExp(`^${ACCESS_COOKIE}=([^;]+)`))?.[1])
+			.map((cookie) => cookie.match(new RegExp(`^${COOKIES.access}=([^;]+)`))?.[1])
 			.find(Boolean);
 		if (!accessToken) return { ok: false, setCookies: [] };
 
 		// 이번 요청을 처리하는 서버 컴포넌트도 새 토큰을 보도록 요청 쿠키를 바꿉니다.
-		request.cookies.set(ACCESS_COOKIE, accessToken);
+		request.cookies.set(COOKIES.access, accessToken);
 		const response = NextResponse.next({ request: { headers: request.headers } });
 		setCookies.forEach((cookie) => response.headers.append('Set-Cookie', cookie));
 		return { ok: true, response };

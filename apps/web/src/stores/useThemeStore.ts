@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { ThemeName } from '@/styles/theme';
 import React from 'react';
 
-export const THEME_LOCALSTORAGE_KEY = 'newpick_theme';
+import { STORAGE_KEYS } from '@/constants/storage';
 
 interface ThemeState {
 	themeName: ThemeName;
@@ -16,7 +16,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
 
 	setTheme: (theme) => {
 		if (typeof window !== 'undefined') {
-			localStorage.setItem(THEME_LOCALSTORAGE_KEY, theme);
+			localStorage.setItem(STORAGE_KEYS.theme, theme);
 		}
 		set({ themeName: theme });
 	},
@@ -25,7 +25,7 @@ export const useThemeStore = create<ThemeState>((set) => ({
 		set((state) => {
 			const newTheme = state.themeName === 'light' ? 'dark' : 'light';
 			if (typeof window !== 'undefined') {
-				localStorage.setItem(THEME_LOCALSTORAGE_KEY, newTheme);
+				localStorage.setItem(STORAGE_KEYS.theme, newTheme);
 			}
 			return { themeName: newTheme };
 		}),
@@ -36,7 +36,7 @@ export const useSyncTheme = () => {
 	const { themeName, setTheme } = useThemeStore();
 
 	React.useEffect(() => {
-		const savedTheme = (localStorage.getItem(THEME_LOCALSTORAGE_KEY) as ThemeName) || 'light';
+		const savedTheme = (localStorage.getItem(STORAGE_KEYS.theme) as ThemeName) || 'light';
 		setTheme(savedTheme);
 	}, [setTheme]);
 

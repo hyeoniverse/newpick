@@ -1,5 +1,5 @@
 import { ROUTES } from '@/constants/routes';
-import { SESSION_HINT_COOKIE } from '@/constants/api';
+import { COOKIES } from '@/constants/storage';
 
 /**
  * iframe 안 로그인 (다른 hyeoniverse.com 사이트에 뉴픽을 넣었을 때).
@@ -15,7 +15,6 @@ import { SESSION_HINT_COOKIE } from '@/constants/api';
  */
 export const LOGIN_CHANNEL = 'newpick-login';
 /** 팝업 창에서 로그인 중이라는 표시 쿠키. 구글을 거쳐도 남고 10분 뒤 사라진다 */
-export const POPUP_COOKIE = 'newpick_login_popup';
 
 export type LoginPopupResult = 'ok' | 'failed' | 'blocked';
 
@@ -39,15 +38,15 @@ const readCookie = (name: string) =>
 		?.slice(name.length + 1);
 
 export const setPopupCookie = () => {
-	document.cookie = `${POPUP_COOKIE}=1; Max-Age=600; Path=/; SameSite=Lax; Secure`;
+	document.cookie = `${COOKIES.loginPopup}=1; Max-Age=600; Path=/; SameSite=Lax; Secure`;
 };
 export const clearPopupCookie = () => {
-	document.cookie = `${POPUP_COOKIE}=; Max-Age=0; Path=/; SameSite=Lax; Secure`;
+	document.cookie = `${COOKIES.loginPopup}=; Max-Age=0; Path=/; SameSite=Lax; Secure`;
 };
-export const isLoginPopup = () => readCookie(POPUP_COOKIE) === '1';
+export const isLoginPopup = () => readCookie(COOKIES.loginPopup) === '1';
 
 /** 로그인 표시 쿠키(api가 로그인 때 발급) */
-const loggedIn = () => readCookie(SESSION_HINT_COOKIE) === '1';
+const loggedIn = () => readCookie(COOKIES.sessionHint) === '1';
 
 const POLL_MS = 1000;
 

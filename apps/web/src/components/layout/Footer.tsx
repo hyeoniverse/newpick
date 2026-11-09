@@ -3,7 +3,7 @@
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { cx } from '@/styles/tw';
-import { GITHUB } from '@/constants/about';
+import { GITHUB } from '@/content/about';
 import Logo from '@/components/common/Logo';
 import Text from '@/components/common/Text';
 import ExternalLink from '@/components/common/ExternalLink';

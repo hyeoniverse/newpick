@@ -2,7 +2,7 @@ import { ROUTES } from '@/constants/routes';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/constants/site';
 import { fetchContactEmail } from '@/api/contact';
-import { LEGAL_EFFECTIVE_DATE, termsSections, termsSummary } from '@/constants/legal';
+import { LEGAL_EFFECTIVE_DATE, termsSections, termsSummary } from '@/content/legal';
 import LegalDocument from '@/components/common/legal/LegalDocument';
 
 export const metadata: Metadata = pageMetadata('이용약관', '뉴픽 서비스 이용약관입니다.', ROUTES.terms);

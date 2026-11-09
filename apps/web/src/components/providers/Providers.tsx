@@ -6,7 +6,7 @@ import { ApiError } from '@/api/client';
 import { ArticleSummary as IArticleSummary } from '@/models/article.model';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { TRENDS_QUERY_KEY } from '@/hooks/useTrends';
-import { SESSION_HINT_COOKIE } from '@/constants/api';
+import { COOKIES } from '@/constants/storage';
 import { AppThemeProvider } from '@/components/providers/AppThemeProvider';
 
 interface Props {
@@ -32,7 +32,7 @@ export default function Providers({ children, initialTrends }: Props) {
 
 	// 페이지는 정적으로 만들어지므로 로그인 여부는 브라우저에서 표시 쿠키로 판단합니다.
 	useEffect(() => {
-		const hasSession = document.cookie.split('; ').includes(`${SESSION_HINT_COOKIE}=1`);
+		const hasSession = document.cookie.split('; ').includes(`${COOKIES.sessionHint}=1`);
 		setSession(hasSession ? 'in' : 'out');
 	}, [setSession]);
 

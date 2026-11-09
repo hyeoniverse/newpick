@@ -5,7 +5,7 @@ import { usePathname, useRouter } from 'next/navigation';
 
 import { User } from '@/models/user.model';
 import { AUTH } from '@/constants/numbers';
-import { PROTECTED } from '@/constants/api';
+import { isProtectedPath } from '@/constants/routes';
 import { fetchUser, logoutUser } from '@/api/auth';
 
 import { useToast } from '@/hooks/useToast';
@@ -44,7 +44,7 @@ export const useAuth = () => {
 	const resetSession = useCallback(() => {
 		clearUser();
 		clearAccountQueries(queryClient);
-		if (PROTECTED.some((path) => pathname === path || pathname.startsWith(`${path}/`))) {
+		if (isProtectedPath(pathname)) {
 			router.push('/');
 		}
 	}, [pathname, router, clearUser, queryClient]);

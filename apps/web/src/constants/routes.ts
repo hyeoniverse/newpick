@@ -39,3 +39,8 @@ export const ROUTES = {
 		ui: '/admin/ui',
 	},
 } as const;
+
+/** 로그인이 필요한 경로 (middleware · 로그아웃할 때 확인). 그 아래 경로도 포함 */
+export const PROTECTED_ROUTES = [ROUTES.mypage(), ROUTES.admin.home];
+export const isProtectedPath = (pathname: string) =>
+	PROTECTED_ROUTES.some((path) => pathname === path || pathname.startsWith(`${path}/`));
