@@ -255,7 +255,7 @@
 		font-weight: 700;
 		color: var(--np-color-sub-text);
 	}
-	@media (max-width: 480px) {
+	@variant mobile {
 		.chips-label {
 			flex-basis: 100%;
 		}
@@ -294,7 +294,7 @@
 	text-align: center;
 	word-break: keep-all;
 	padding-block: 6rem;
-	@media (max-width: 480px) {
+	@variant mobile {
 		padding-block: 4rem;
 	}
 	&.is-inline {

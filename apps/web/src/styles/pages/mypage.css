@@ -269,7 +269,7 @@
 		border: 1px solid var(--np-color-border);
 		border-radius: 8px;
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			padding: 1rem;
 		}
 	}
@@ -610,7 +610,7 @@
 		}
 	}
 
-	@media (max-width: 768px) {
+	@variant tablet {
 		.news-icons {
 			gap: 0.25rem;
 
@@ -641,14 +641,14 @@
 	}
 
 	/* 작은 화면: 블록 위아래 여백도 줄인다 (블록 자신은 @container로 못 바꿔 화면 폭으로) */
-	@media (max-width: 480px) {
+	@variant mobile {
 		.news {
 			padding: 1.125rem 0 1.25rem;
 		}
 	}
 
 	/* 좁은 화면: 그림 위 · 상자 아래 */
-	@media (max-width: 768px) {
+	@variant tablet {
 		.news-body {
 			flex-direction: column;
 		}
@@ -975,7 +975,7 @@
 		/* 목록 카드와 같은 안쪽 여백: 체크칸 시작 위치를 문장 체크칸과 맞춘다 */
 		padding: 0.75rem 1.5rem;
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			padding: 0.75rem 1rem;
 		}
 		border: 1px solid var(--np-color-border);
@@ -998,7 +998,7 @@
 			gap: 0.375rem;
 
 			/* 모바일: 막대가 높아지지 않게 한 줄로 두고 옆으로 밀어 본다 (폴더 메뉴는 위로 펼쳐져 잘리지 않게 visible) */
-			@media (max-width: 480px) {
+			@variant mobile {
 				width: 100%;
 				overflow-x: auto;
 				scrollbar-width: none;
@@ -1310,7 +1310,7 @@
 		}
 	}
 
-	@media (max-width: 480px) {
+	@variant mobile {
 		gap: 1.5rem;
 
 		.profile {
@@ -1629,7 +1629,7 @@
 		}
 	}
 
-	@media (max-width: 768px) {
+	@variant tablet {
 		.news-icons {
 			gap: 0.25rem;
 
@@ -1660,14 +1660,14 @@
 	}
 
 	/* 작은 화면: 블록 위아래 여백도 줄인다 (블록 자신은 @container로 못 바꿔 화면 폭으로) */
-	@media (max-width: 480px) {
+	@variant mobile {
 		.news {
 			padding: 1.125rem 0 1.25rem;
 		}
 	}
 
 	/* 좁은 화면: 그림 위 · 상자 아래 */
-	@media (max-width: 768px) {
+	@variant tablet {
 		.news-body {
 			flex-direction: column;
 		}
@@ -1839,7 +1839,7 @@
 		list-style: none;
 
 		/* 모바일은 두어 줄만: 앞 6개 */
-		@media (max-width: 480px) {
+		@variant mobile {
 			li:nth-child(n + 7) {
 				display: none;
 			}
@@ -2155,7 +2155,7 @@
 	background: var(--np-color-background);
 
 	/* 모바일: 화면 아래에 붙여 띄운다 (단추 옆 자리를 정한 인라인 위치보다 앞서게) */
-	@media (max-width: 480px) {
+	@variant mobile {
 		top: auto !important;
 		right: 1rem !important;
 		bottom: 6.5rem !important;
@@ -2276,7 +2276,7 @@
 		border: 1px solid var(--np-color-border);
 		border-radius: 8px;
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			padding: 1rem;
 		}
 	}
@@ -2538,7 +2538,7 @@
 		margin-right: 0.25rem;
 	}
 
-	@media (max-width: 480px) {
+	@variant mobile {
 		[role='group'] {
 			flex-wrap: nowrap;
 			overflow-x: auto;
@@ -2962,7 +2962,7 @@
 		}
 
 		/* 휴대폰: 프로필 아래 한 줄을 다 채운다 */
-		@media (max-width: 480px) {
+		@variant mobile {
 			width: 100%;
 		}
 	}
@@ -3205,7 +3205,7 @@
 			border-color: var(--np-color-primary);
 		}
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			width: 2.5rem;
 			height: 3rem;
 		}
@@ -3247,7 +3247,7 @@
 		word-break: keep-all;
 	}
 
-	@media (max-width: 480px) {
+	@variant mobile {
 		flex-direction: column;
 		align-items: flex-start;
 	}
@@ -3325,7 +3325,7 @@
 			gap: 0.375rem;
 		}
 
-		@media (max-width: 480px) {
+		@variant mobile {
 			flex-direction: column;
 			align-items: flex-start;
 		}

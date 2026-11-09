@@ -102,7 +102,7 @@
 		.toggle-button {
 			display: none;
 
-			@media (max-width: 768px) {
+			@variant tablet {
 				display: block;
 			}
 		}
@@ -111,7 +111,7 @@
 		.panel {
 			display: none;
 
-			@media (max-width: 768px) {
+			@variant tablet {
 				position: fixed;
 				top: var(--np-header-h, 3.5rem);
 				left: 0;
@@ -343,7 +343,7 @@
 		}
 	}
 
-	@media (max-width: 768px) {
+	@variant tablet {
 		position: relative;
 		visibility: visible;
 		width: 1.25rem;
