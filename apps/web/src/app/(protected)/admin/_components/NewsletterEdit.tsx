@@ -1,5 +1,6 @@
 'use client';
 
+import { deleteNewsletter, fetchNewsletter, rerunSummary, resetNewsletterViews, updateNewsletter } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import type { Newsletter } from '@newpick/shared';
@@ -8,8 +9,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LuTriangleAlert } from 'react-icons/lu';
-import { apiFetch, ApiError } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { ApiError } from '@/api/client';
 import { CATEGORIES } from '@/constants/categories';
 import { useToast } from '@/hooks/useToast';
 import { useModal } from '@/hooks/useModal';
@@ -53,8 +53,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 
 	const { data, isPending, isError } = useQuery({
 		queryKey: queryKeys.admin.newsletter(id),
-		queryFn: () =>
-			apiFetch<{ data: { newsletter: Newsletter } }>(API_ENDPOINTS.ADMIN.NEWSLETTER(id)).then((r) => r.data.newsletter),
+		queryFn: () => fetchNewsletter(id),
 	});
 	useEffect(() => {
 		if (data) setForm(toForm(data));
@@ -72,19 +71,16 @@ export default function NewsletterEdit({ id }: { id: number }) {
 		setPending(true);
 		setError('');
 		try {
-			await apiFetch(API_ENDPOINTS.ADMIN.NEWSLETTER(id), {
-				method: 'PATCH',
-				body: {
-					title: form.title,
-					subtitle: form.subtitle,
-					content: form.content,
-					keywords: form.keywords
-						.split(',')
-						.map((k) => k.trim())
-						.filter(Boolean),
-					categoryId: Number(form.categoryId),
-					...(form.html !== toForm(data).html && { contentAsHTML: compactHtml(form.html) }),
-				},
+			await updateNewsletter(id, {
+				title: form.title,
+				subtitle: form.subtitle,
+				content: form.content,
+				keywords: form.keywords
+					.split(',')
+					.map((k) => k.trim())
+					.filter(Boolean),
+				categoryId: Number(form.categoryId),
+				...(form.html !== toForm(data).html && { contentAsHTML: compactHtml(form.html) }),
 			});
 			showToast('고쳤어요. 상세 페이지와 이후 메일에 반영돼요.', 'success');
 			queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id) });
@@ -118,7 +114,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 
 	const resetViews = () =>
 		confirm('조회수를 0으로 되돌릴까요?', '인기 순위에서 이 뉴스레터가 아래로 내려가요.', '되돌리기', async () => {
-			await apiFetch(API_ENDPOINTS.ADMIN.NEWSLETTER_RESET_VIEWS(id), { method: 'POST' });
+			await resetNewsletterViews(id);
 			showToast('조회수를 0으로 되돌렸어요.', 'success');
 			queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id) });
 		});
@@ -130,7 +126,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 			'이 뉴스레터가 발행된 날 수집된 기사로 내용을 새로 작성합니다. 주소 · 발행일 · 조회수 · 북마크는 유지되며, 직접 수정한 내용은 사라집니다. 스크랩한 문장이 새 본문에 없으면 위치를 찾지 못할 수 있습니다. Claude 비용이 발생하며 1~2분 소요됩니다.',
 			'다시 작성',
 			async () => {
-				await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW('ai-summary'), { method: 'POST', body: { newsletterId: id } });
+				await rerunSummary({ newsletterId: id });
 				showToast('다시 작성을 시작했습니다. 1~2분 후 새로고침하면 변경된 내용이 표시됩니다.', 'success');
 				setTimeout(() => {
 					queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id) });
@@ -145,7 +141,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 			'상세 페이지 · 목록에서 사라지고 북마크 · 발송 기록도 함께 지워져요. 되돌릴 수 없어요.',
 			'지우기',
 			async () => {
-				await apiFetch(API_ENDPOINTS.ADMIN.NEWSLETTER(id), { method: 'DELETE' });
+				await deleteNewsletter(id);
 				showToast('지웠어요.', 'success');
 				queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters.all });
 				router.push('/admin/newsletters');

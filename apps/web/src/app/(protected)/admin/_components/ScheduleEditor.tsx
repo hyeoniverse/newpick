@@ -2,8 +2,8 @@
 
 import type { ClockTime, Schedule } from '@newpick/shared';
 import { useState } from 'react';
-import { apiFetch, ApiError } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { saveSchedule } from '@/api/admin';
+import { ApiError } from '@/api/client';
 import Button from '@/components/common/Button';
 import TimePicker from '@/components/common/TimePicker';
 
@@ -51,10 +51,7 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 		setPending(true);
 		setError('');
 		try {
-			const { data } = await apiFetch<{ data: Schedule }>(API_ENDPOINTS.ADMIN.SCHEDULE(), {
-				method: 'PUT',
-				body: next,
-			});
+			const data = await saveSchedule(next);
 			onSaved(data);
 		} catch (e) {
 			setError(e instanceof ApiError ? e.message : '바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.');

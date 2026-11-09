@@ -1,14 +1,16 @@
 'use client';
 
+import type { TagRule } from '@newpick/shared';
+
+import { deleteTagRule, fetchTagRules, mergeTags, removeTag } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { LuTriangleAlert } from 'react-icons/lu';
-import { apiFetch, ApiError } from '@/api/client';
+import { ApiError } from '@/api/client';
 import { fetchAllKeywords } from '@/api/article';
-import API_ENDPOINTS from '@/constants/api';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
 import { useToast } from '@/hooks/useToast';
 import { useModal } from '@/hooks/useModal';
@@ -23,13 +25,7 @@ import { kstDate } from '@/utils/formatter';
 
 const PAGE_SIZE = 30;
 
-interface Rule {
-	id: number;
-	keyword: string;
-	action: 'alias' | 'block';
-	target: string | null;
-	createdAt: string;
-}
+type Rule = TagRule;
 
 /** 합치기 · 이름 바꾸기 창: 고른 태그들을 새 이름 하나로 (기본은 가장 많이 쓴 태그 이름) */
 function MergeSheet({
@@ -53,10 +49,10 @@ function MergeSheet({
 		setPending(true);
 		setError('');
 		try {
-			const { data } = await apiFetch<{ data: { changed: number } }>(API_ENDPOINTS.ADMIN.TAG_MERGE(), {
-				method: 'POST',
-				body: { from: tags.map((t) => t.keyword), to: name },
-			});
+			const data = await mergeTags(
+				tags.map((t) => t.keyword),
+				name,
+			);
 			onDone(data.changed, name);
 		} catch (e) {
 			setError(e instanceof ApiError ? e.message : '바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.');
@@ -117,7 +113,7 @@ export default function TagsAdmin() {
 	});
 	const rules = useQuery({
 		queryKey: queryKeys.admin.tagRules,
-		queryFn: () => apiFetch<{ data: Rule[] }>(API_ENDPOINTS.ADMIN.TAG_RULES()).then((r) => r.data),
+		queryFn: () => fetchTagRules(),
 	});
 
 	const list = useMemo(() => {
@@ -162,10 +158,7 @@ export default function TagsAdmin() {
 				onConfirmClick={async () => {
 					closeModal();
 					try {
-						const { data } = await apiFetch<{ data: { changed: number } }>(API_ENDPOINTS.ADMIN.TAG_REMOVE(), {
-							method: 'POST',
-							body: { tag: keyword },
-						});
+						const data = await removeTag(keyword);
 						showToast(`#${keyword}을(를) 지웠어요. 뉴스레터 ${data.changed}편의 태그를 고쳤어요.`, 'success');
 						refresh();
 					} catch (error) {
@@ -177,7 +170,7 @@ export default function TagsAdmin() {
 
 	const deleteRule = async (rule: Rule) => {
 		try {
-			await apiFetch(API_ENDPOINTS.ADMIN.TAG_RULE(rule.id), { method: 'DELETE' });
+			await deleteTagRule(rule.id);
 			showToast('규칙을 지웠어요. 앞으로의 새 뉴스레터부터 적용돼요.', 'info');
 			refresh();
 		} catch (error) {

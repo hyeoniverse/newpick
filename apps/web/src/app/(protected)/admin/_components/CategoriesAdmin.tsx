@@ -1,25 +1,14 @@
 'use client';
 
+import { fetchCategories } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
 import AdminSubPage, { Cols } from './AdminSubPage';
 import { useAdminQuery } from './period';
 import { when } from './format';
 import { AdminActions } from './UsersAdmin';
-
-interface Row {
-	id: number;
-	name: string;
-	newsletters: number;
-	lastNewsletterAt: string | null;
-	interestedUsers: number;
-	activeSubscribers: number;
-	articles30d: number;
-}
 
 /**
  * 관리자 CMS (#31): 관심사 현황. 관심사 이름은 수집(네이버 섹션) · 화면 상수 · 메일과 묶여 있어 여기서는 보기만 하고,
@@ -29,7 +18,7 @@ export default function CategoriesAdmin() {
 	const { today } = useAdminQuery();
 	const { data, isPending, isError } = useQuery({
 		queryKey: queryKeys.admin.categories,
-		queryFn: () => apiFetch<{ data: Row[] }>(API_ENDPOINTS.ADMIN.CATEGORIES()).then((r) => r.data),
+		queryFn: () => fetchCategories(),
 	});
 
 	return (

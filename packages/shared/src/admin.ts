@@ -89,3 +89,46 @@ export interface AiLogRow {
 export interface AiLogPage extends Paged<AiLogRow> {
   cost: { total: number; unknown: number };
 }
+
+/** 관심사 현황 한 줄 (GET /admin/categories) */
+export interface AdminCategoryRow {
+  id: number;
+  name: string;
+  newsletters: number;
+  lastNewsletterAt: string | null;
+  interestedUsers: number;
+  activeSubscribers: number;
+  articles30d: number;
+}
+
+/** 태그 규칙 (GET /admin/tags/rules): alias는 keyword를 target으로 바꿔 쓰고, block은 쓰지 않는다 */
+export interface TagRule {
+  id: number;
+  keyword: string;
+  action: 'alias' | 'block';
+  target: string | null;
+  createdAt: string;
+}
+
+/** 클릭 한 점: [가로 비율, 세로 비율, 누른 요소 이름] */
+export type HeatmapClick = [number, number, string?];
+
+/** 화면 하나의 체류 · 스크롤 · 클릭 (GET /scheduler/stats/page) */
+export interface PageStats {
+  route: string;
+  device: 'desktop' | 'tablet' | 'mobile';
+  views: number;
+  samplePath: string | null;
+  avgMs: number;
+  avgScroll: number;
+  sections: { name: string; avgMs: number; totalMs: number; reach: number }[];
+  attention: number[];
+  clicks: HeatmapClick[];
+}
+
+/** 관리자가 받는 메일 주소 한 줄 (GET /scheduler/dashboard/mail?date=) */
+export interface MailRecipient {
+  email: string;
+  sentAt: string;
+  categoryIds: number[];
+}

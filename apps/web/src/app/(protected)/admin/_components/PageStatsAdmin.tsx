@@ -1,28 +1,17 @@
 'use client';
 
+import type { PageStats } from '@newpick/shared';
+
+import { fetchPageStats } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
 import FilterChips from '@/components/common/FilterChips';
 import BarList from '@/components/common/charts/BarList';
 import AdminSubPage from './AdminSubPage';
 import { useAdminQuery } from './period';
-import Heatmap, { Click } from './Heatmap';
+import Heatmap from './Heatmap';
 import { DEVICE_LABEL, duration, routeName, sectionName } from './trafficLabels';
-
-interface PageStats {
-	route: string;
-	device: 'desktop' | 'tablet' | 'mobile';
-	views: number;
-	samplePath: string | null;
-	avgMs: number;
-	avgScroll: number;
-	sections: { name: string; avgMs: number; totalMs: number; reach: number }[];
-	attention: number[];
-	clicks: Click[];
-}
 
 const DEVICES = (['desktop', 'tablet', 'mobile'] as const).map((value) => ({ value, label: DEVICE_LABEL[value] }));
 
@@ -40,7 +29,7 @@ export default function PageStatsAdmin() {
 
 	const { data, isPending, isError } = useQuery({
 		queryKey: queryKeys.admin.stats('page', query),
-		queryFn: () => apiFetch<{ data: PageStats }>(API_ENDPOINTS.ADMIN.STATS('page', query)).then((r) => r.data),
+		queryFn: () => fetchPageStats(query),
 		placeholderData: (previous) => previous,
 	});
 

@@ -1,11 +1,10 @@
 'use client';
 
+import { fetchJobRuns } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import type { JobRunRecord } from '@newpick/shared';
 import { useQuery } from '@tanstack/react-query';
-import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
 import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
 import AdminSubPage, { Cols } from './AdminSubPage';
@@ -58,10 +57,7 @@ export default function JobRunsList() {
 
 	const { data, isPending, isError } = useQuery({
 		queryKey: queryKeys.admin.jobRuns(query.toString()),
-		queryFn: () =>
-			apiFetch<{ data: { items: Row[]; total: number } }>(API_ENDPOINTS.ADMIN.LIST('job-runs', query.toString())).then(
-				(r) => r.data,
-			),
+		queryFn: () => fetchJobRuns(query.toString()),
 		placeholderData: (previous) => previous,
 	});
 
