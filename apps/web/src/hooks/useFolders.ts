@@ -1,3 +1,4 @@
+import type { Folder } from '@newpick/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
@@ -5,11 +6,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 
 /** 폴더 (#123): 스크랩 · 북마크 · 받은 메일이 같이 쓰는 주제 폴더. 폴더마다 탭별 개수 */
-export interface Folder {
-	id: number;
-	name: string;
-	counts: { highlights: number; bookmarks: number; mails: number };
-}
+/** 폴더 (@newpick/shared, api 응답과 같다) */
+export type { Folder };
 
 /** 폴더를 지울 때 안의 것들: 폴더 없음으로 남기기 · 같이 지우기 · 다른 폴더로 옮기기 */
 export type FolderContents = 'keep' | 'delete' | 'move';
