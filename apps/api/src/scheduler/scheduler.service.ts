@@ -99,7 +99,10 @@ export const backfillAt = (
 ): Date => {
   const today = toKstDate(now);
   if (date >= today) {
-    throw new AppException('BAD_REQUEST', '지난 날짜만 다시 만들 수 있어요.');
+    throw new AppException(
+      'BAD_REQUEST',
+      '지난 날짜만 다시 생성할 수 있습니다.',
+    );
   }
   const oldest = toKstDate(
     new Date(now.getTime() - BACKFILL_MAX_DAYS * 24 * 60 * 60 * 1000),
@@ -107,7 +110,7 @@ export const backfillAt = (
   if (date < oldest) {
     throw new AppException(
       'BAD_REQUEST',
-      `모은 기사는 ${BACKFILL_MAX_DAYS}일만 남아 있어 ${oldest}부터 다시 만들 수 있어요.`,
+      `수집한 기사는 ${BACKFILL_MAX_DAYS}일간 보관되어 ${oldest}부터 다시 생성할 수 있습니다.`,
     );
   }
   return kstTimeOf(
@@ -190,7 +193,26 @@ export class SchedulerService implements OnApplicationBootstrap {
    * 예약 작업(수집 · AI 요약 · 메일)을 등록합니다. 관리자가 바꿔 둔 시간이 DB에 있으면 그 값을 씁니다 (#21).
    * 데코레이터(@Cron)는 시간이 코드에 박혀 바꿀 수 없어, 세 작업 모두 직접 등록합니다
    */
+  /**
+   * 서버가 다시 시작되면 진행 중이던 작업은 이미 멈췄다. DB에 '진행 중'으로 남은 기록을 실패로 닫는다
+   * (그대로 두면 대시보드가 계속 진행 중으로 보고 '지금 실행'을 막았다. 배포 중에 요약이 돌면 생긴다)
+   */
+  async closeInterruptedRuns() {
+    const { count } = await this.prisma.jobRun.updateMany({
+      where: { status: 'running' },
+      data: {
+        status: 'failed',
+        finishedAt: new Date(),
+        message: '서버가 다시 시작되어 중단되었습니다.',
+      },
+    });
+    if (count) this.logger.warn(`중단된 작업 기록 ${count}건을 실패로 닫음`);
+  }
+
   async onApplicationBootstrap() {
+    await this.closeInterruptedRuns().catch((error) =>
+      this.logger.warn(`중단된 작업 기록 정리 실패: ${error.message}`),
+    );
     const config = await this.prisma.scheduleConfig.findUnique({
       where: { id: MAIL_CYCLE_CONFIG_ID },
     });
@@ -291,17 +313,24 @@ export class SchedulerService implements OnApplicationBootstrap {
   }
   /**
    * AI 요약 (예약 시간은 setSchedule로). at을 주면 그날을 다시 만들고(지난 날짜),
-   * categoryId를 주면 그 분야만 (AI 기록에서 실패한 줄 다시 실행)
+   * categoryId를 주면 그 분야만 (AI 기록에서 실패한 줄 다시 실행),
+   * replaceId를 주면 새로 만들지 않고 그 뉴스레터를 다시 쓴다 (관리자 '다시 쓰기', 그날 · 그 분야로)
    */
-  async makeAiSummary(at?: Date, categoryId?: number) {
+  async makeAiSummary(at?: Date, categoryId?: number, replaceId?: number) {
     if (this.summaryRun) return this.summaryRun;
-    this.summaryRun = this.runAiSummary(at, categoryId).finally(() => {
-      this.summaryRun = null;
-    });
+    this.summaryRun = this.runAiSummary(at, categoryId, replaceId).finally(
+      () => {
+        this.summaryRun = null;
+      },
+    );
     return this.summaryRun;
   }
 
-  private async runAiSummary(at?: Date, categoryId?: number) {
+  private async runAiSummary(
+    at?: Date,
+    categoryId?: number,
+    replaceId?: number,
+  ) {
     // 지난 날짜 다시 만들기: 그날 기사로 그날 발행. 이미 있는 분야는 건너뛰고, 메일 편집 · 후속 판정 · 알림 메일은 하지 않는다
     const backfill = at ? toKstDate(at) : null;
     this.logger.debug(
@@ -340,7 +369,8 @@ export class SchedulerService implements OnApplicationBootstrap {
 
       // 관심사 하나 요약: 만들었으면 true, 요약할 뉴스가 없으면 null, 실패하면 오류를 던진다
       const summarize = async (category: { id: number; name: string }) => {
-        if (done.has(category.id)) {
+        // 다시 쓰기는 이미 있는 그 뉴스레터를 바꾸는 것이라 건너뛰지 않는다
+        if (!replaceId && done.has(category.id)) {
           this.logger.log(
             `카테고리 ${category.name}: ${day}에 이미 있어 건너뜀`,
           );
@@ -361,6 +391,7 @@ export class SchedulerService implements OnApplicationBootstrap {
           false,
           morningSince,
           at,
+          replaceId,
         );
         // 만든 뉴스레터 한 편 (예전엔 배열로 보고 길이를 봐서 늘 0편이었다: 캐시 새로 고침 · 후속 판정 · 알림도 건너뜀)
         if (newsletter.newsletter)
@@ -408,13 +439,20 @@ export class SchedulerService implements OnApplicationBootstrap {
       if (failedCategories.length) {
         this.logger.error(`요약 실패 카테고리: ${failedCategories.join(', ')}`);
       }
-      const scope = [backfill, categoryId && categoryList[0]?.name]
+      const scope = [
+        replaceId && `#${replaceId}`,
+        backfill,
+        categoryId && categoryList[0]?.name,
+      ]
         .filter(Boolean)
         .join(' ');
-      const skipped = categoryList.filter((c) => done.has(c.id)).length;
-      const made =
-        `${scope ? `${scope} 다시 만들기: ` : ''}뉴스레터 ${generatedNewsletter.length}편 생성` +
-        (skipped ? ` · 이미 있어 건너뜀 ${skipped}` : '');
+      const skipped = replaceId
+        ? 0
+        : categoryList.filter((c) => done.has(c.id)).length;
+      const made = replaceId
+        ? `${scope} 다시 쓰기: ${generatedNewsletter.length ? '바꿈' : '바꾸지 못함'}`
+        : `${scope ? `${scope} 다시 만들기: ` : ''}뉴스레터 ${generatedNewsletter.length}편 생성` +
+          (skipped ? ` · 이미 있어 건너뜀 ${skipped}` : '');
       const again = retried ? ` · 다시 시도로 ${retried}편` : '';
       const failedText = failedCategories.length
         ? ` · 실패: ${failedCategories.join(', ')}`
@@ -823,13 +861,42 @@ export class SchedulerService implements OnApplicationBootstrap {
     return backfillAt(date, this.schedule.summary);
   }
 
-  async manualStartAiSummary(at?: Date, categoryId?: number) {
+  /** AI 요약이 도는 중인가 (예약 · 지금 실행 · 다시 만들기 모두) */
+  isSummaryRunning() {
+    return this.summaryRun !== null;
+  }
+
+  /**
+   * 다시 쓸 뉴스레터의 그날 · 분야. 모은 기사가 지워진(BACKFILL_MAX_DAYS일 넘은) 뉴스레터는 다시 쓸 재료가 없어 거절
+   */
+  async regenerateTarget(newsletterId: number) {
+    const newsletter = await this.prisma.newsletter.findUnique({
+      where: { id: newsletterId },
+      select: { createdAt: true, categoryId: true },
+    });
+    if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
+    const oldest = Date.now() - BACKFILL_MAX_DAYS * 24 * 60 * 60 * 1000;
+    if (newsletter.createdAt.getTime() < oldest) {
+      throw new AppException(
+        'BAD_REQUEST',
+        `수집한 기사는 ${BACKFILL_MAX_DAYS}일간 보관되어 그보다 오래된 뉴스레터는 다시 작성할 수 없습니다.`,
+      );
+    }
+    // 그 뉴스레터를 만든 시각까지 모은 기사로 (그때와 같은 재료)
+    return { at: newsletter.createdAt, categoryId: newsletter.categoryId };
+  }
+
+  async manualStartAiSummary(
+    at?: Date,
+    categoryId?: number,
+    replaceId?: number,
+  ) {
     this.logger.debug(
       at ? 'AI 요약 수동 시작 (지난 날짜)' : 'AI 요약 수동 시작',
     );
     this.nextTrigger.summary = 'manual';
     try {
-      await this.makeAiSummary(at, categoryId); // 직접 메서드 호출
+      await this.makeAiSummary(at, categoryId, replaceId); // 직접 메서드 호출
     } catch (error) {
       this.logger.error(`수동 AI 요약 실패: ${error.message}`);
     }

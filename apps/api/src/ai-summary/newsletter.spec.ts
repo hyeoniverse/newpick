@@ -770,6 +770,8 @@ describe('파이프라인', () => {
       ['코스피', '외국인 매도'],
       // 발행 시각: 평소엔 없음(지금), 지난 날짜를 다시 만들 때 그날
       undefined,
+      // 다시 쓸 뉴스레터: 평소엔 없음(새로 만듦)
+      undefined,
     );
     // 같은 사건 묶기로 계산한 임베딩은 기사 링크로 남긴다 (추천 기사에서 다시 쓴다)
     expect(saveEmbeddings).toHaveBeenCalledWith([

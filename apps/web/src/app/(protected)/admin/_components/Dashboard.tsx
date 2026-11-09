@@ -4,13 +4,14 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from './format';
-import { LuArrowRight, LuChevronDown, LuClock, LuInfo, LuPlay, LuTriangleAlert } from 'react-icons/lu';
+import { LuArrowRight, LuCalendarPlus, LuChevronDown, LuClock, LuInfo, LuPlay, LuTriangleAlert } from 'react-icons/lu';
 import ScheduleEditor, { clock, describe, type Schedule } from './ScheduleEditor';
 import { apiFetch, ApiError } from '@/api/client';
 import API_ENDPOINTS from '@/constants/api';
 import { useToast } from '@/hooks/useToast';
 import { useModal } from '@/hooks/useModal';
 import { mapIdToTitle } from '@/utils/mapInterests';
+import { CATEGORIES } from '@/constants/categories';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
@@ -73,7 +74,8 @@ const JOBS: Record<JobKey, { label: string; api: 'crawling' | 'ai-summary' | 'ma
 	summary: {
 		label: 'AI 요약',
 		api: 'ai-summary',
-		warning: '관심사 6개의 뉴스레터를 지금 다시 만듭니다. Claude 비용이 들고, 오늘 것이 있으면 하나 더 생깁니다.',
+		warning:
+			'생성에 실패한 분야의 뉴스레터를 다시 시도합니다. 생성에 성공한 항목을 제외하고, 실패한 항목만 재시도하며, Claude 비용이 발생합니다.',
 	},
 	mail: {
 		label: '구독 메일',
@@ -177,11 +179,29 @@ export default function Dashboard() {
 		}
 	};
 
+	// 빠진 날 채우기: 고른 날에 뉴스레터가 없는 관심사만 그날 기사 · 그날 날짜로 (서버가 있는 관심사는 건너뛴다)
+	const fillDay = () =>
+		openModal(
+			<FillDay
+				onCancel={closeModal}
+				onConfirm={async (date) => {
+					closeModal();
+					try {
+						await apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW('ai-summary'), { method: 'POST', body: { date } });
+						showToast(`${date} 누락된 뉴스레터 생성을 시작했습니다. 관심사당 1~2분 소요됩니다.`, 'success');
+						setTimeout(refresh, 800);
+					} catch (error) {
+						showToast(error instanceof ApiError ? error.message : '시작하지 못했습니다.', 'error');
+					}
+				}}
+			/>,
+		);
+
 	const runNow = (job: JobKey) =>
 		openModal(
 			<ModalContents
 				icon={<LuTriangleAlert />}
-				title={`${JOBS[job].label}을 지금 실행할까요?`}
+				title={`${JOBS[job].label}을 지금 실행하시겠습니까?`}
 				content={JOBS[job].warning}
 				outlineButton="취소"
 				filledButton="지금 실행"
@@ -197,7 +217,10 @@ export default function Dashboard() {
 						showToast(error instanceof ApiError ? error.message : '시작하지 못했습니다.', 'error');
 					}
 				}}
-			/>,
+			>
+				{/* AI 요약은 오늘 아직 없는 분야만 만들므로, 어느 분야를 만드는지 보여 준다 */}
+				{job === 'summary' && <MissingCategories date={kstDay(0)} label="재생성 항목" />}
+			</ModalContents>,
 		);
 
 	if (isPending) {
@@ -346,6 +369,18 @@ export default function Dashboard() {
 									>
 										지금 실행
 									</Button>
+									{job === 'summary' && (
+										<Button
+											scheme="monoOutline"
+											size="small"
+											icon={<LuCalendarPlus aria-hidden />}
+											iconPosition="left"
+											onClick={fillDay}
+											disabled={run.running}
+										>
+											빠진 날
+										</Button>
+									)}
 								</div>
 							</li>
 						);
@@ -479,5 +514,64 @@ export default function Dashboard() {
 				)}
 			</section>
 		</div>
+	);
+}
+
+/** KST로 daysAgo일 전 날짜 (YYYY-MM-DD) */
+const kstDay = (daysAgo: number) =>
+	new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
+
+/** 그날 아직 뉴스레터가 없는 분야: 서버가 만들 분야와 같다 (있는 분야는 건너뛴다) */
+function MissingCategories({ date, label }: { date: string; label: string }) {
+	const { data: missing, isPending } = useQuery({
+		queryKey: ['adminNewsletters', 'day', date],
+		queryFn: async () => {
+			const query = new URLSearchParams({ from: date, to: date, limit: '100', offset: '0' });
+			const { data } = await apiFetch<{ data: { items: { categoryId: number }[] } }>(
+				API_ENDPOINTS.ADMIN.LIST('newsletters', query.toString()),
+			);
+			const done = new Set(data.items.map((item) => item.categoryId));
+			return CATEGORIES.filter((category) => category.id !== 0 && !done.has(category.id));
+		},
+	});
+	return (
+		<p className="np-admin-dashboard-missing" aria-live="polite">
+			<span className="label">{label}</span>
+			{isPending
+				? '확인 중입니다.'
+				: !missing?.length
+					? '모든 분야가 이미 생성되어 대상이 없습니다.'
+					: missing.map((category) => category.name).join(' · ')}
+		</p>
+	);
+}
+
+/** 빠진 날 채우기 창: 날짜 하나 고르기 (어제부터 모은 기사가 남아 있는 29일 전까지) */
+function FillDay({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (date: string) => void }) {
+	const day = kstDay;
+	const [date, setDate] = useState(day(1));
+	return (
+		<ModalContents
+			icon={<LuCalendarPlus />}
+			title="누락된 날짜 채우기"
+			content="선택한 날짜에 수집된 기사로, 그날 발행되지 않은 관심사의 뉴스레터를 생성해 해당 날짜로 게시합니다. 구독 메일은 발송하지 않으며, Claude 비용이 발생합니다."
+			outlineButton="취소"
+			filledButton="생성"
+			onCancelClick={onCancel}
+			onConfirmClick={() => date && onConfirm(date)}
+		>
+			<label className="np-admin-dashboard-fill-day">
+				<span className="np-field-label">날짜</span>
+				<input
+					type="date"
+					className="np-field-control"
+					value={date}
+					min={day(29)}
+					max={day(1)}
+					onChange={(event) => setDate(event.target.value)}
+				/>
+			</label>
+			{date && <MissingCategories date={date} label="생성 항목" />}
+		</ModalContents>
 	);
 }
