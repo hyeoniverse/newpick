@@ -5,8 +5,7 @@
   "git": {
     "deploymentEnabled": {
       "**": false,
-      "main": true,
-      "feat/shared-package": true
+      "main": true
     }
   }
 }
