@@ -1,5 +1,7 @@
 import type { Newsletter as NewsletterRow } from '@prisma/client';
 import type {
+  Dashboard,
+  MailsPage,
   AdminArticlePage,
   AdminMailRow,
   AdminSubscriberPage,
@@ -104,4 +106,14 @@ export const ADMIN_MAILS_FIT: Fits<
 export const AI_LOGS_FIT: Fits<
   Response<DashboardService, 'listAiLogs'>,
   AiLogPage
+> = true;
+
+/** 관리자 대시보드 · 받은 메일 한 쪽 */
+export const DASHBOARD_FIT: Fits<
+  Response<DashboardService, 'getDashboard'>,
+  Dashboard
+> = true;
+export const MAILS_PAGE_FIT: Fits<
+  Response<MyPageService, 'getMails'>,
+  MailsPage
 > = true;

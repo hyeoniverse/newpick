@@ -1,4 +1,4 @@
-import type { JobResult } from "./jobs";
+import type { JobResult } from './jobs';
 
 /**
  * 관리자 통계 응답 (#122): GET /scheduler/stats/* 의 data. 날짜는 'YYYY-MM-DD'(KST) 문자열, 금액은 USD.

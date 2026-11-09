@@ -6,3 +6,6 @@ export * from './stats';
 export * from './me';
 export * from './scraps';
 export * from './admin';
+export * from './mails';
+export * from './schedule';
+export * from './dashboard';

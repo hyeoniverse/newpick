@@ -1,4 +1,10 @@
-import type { JobName, JobRun, JobTrigger } from '@newpick/shared';
+import type {
+  ClockTime,
+  JobName,
+  JobRun,
+  JobTrigger,
+  Schedule,
+} from '@newpick/shared';
 import { FollowsService } from 'src/follows/follows.service';
 import {
   MailPlan,
@@ -31,18 +37,9 @@ const MAIL_JOB_NAME = 'sendNewsletter';
 const CRAWL_JOB_NAME = 'startCrawling';
 const SUMMARY_JOB_NAME = 'makeAiSummary';
 
-/** 하루 중 시각 (KST) */
-export interface ClockTime {
-  hour: number;
-  minute: number;
-}
-
 /** 예약 작업 시간 (#21). 메일은 요일도: 0(일)~6(토), 7 매일 */
-export interface Schedule {
-  crawl: ClockTime;
-  summary: ClockTime;
-  mail: ClockTime & { day: number };
-}
+// 예약 시각 타입은 @newpick/shared (웹 시간 설정과 같다)
+export type { ClockTime, Schedule };
 
 /** 저장한 적이 없을 때: 수집 08:00 → AI 요약 08:30 → 메일 매일 08:40 */
 export const DEFAULT_SCHEDULE: Schedule = {

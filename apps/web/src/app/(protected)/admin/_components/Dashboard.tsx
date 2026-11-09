@@ -1,6 +1,6 @@
 'use client';
 
-import { JOB_ENDPOINT, type JobName, type JobResult, type JobRun } from '@newpick/shared';
+import { JOB_ENDPOINT, type Dashboard, type JobName, type JobResult } from '@newpick/shared';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
@@ -24,37 +24,8 @@ import MoreLink from '@/components/common/MoreLink';
 /** 작업 이름 · 지금 상태는 @newpick/shared (api와 같은 타입) */
 type JobKey = JobName;
 
-interface DashboardData {
-	range: { from: string; to: string };
-	scheduler: {
-		/** false면 이 서버는 예약 시각에 저절로 돌지 않는다 ('지금 실행'만) */
-		autoRun?: boolean;
-		enabled: Record<JobKey, boolean>;
-		schedule: Schedule;
-		runs: Record<JobKey, JobRun>;
-	};
-	crawling: { count: number; latestAt: string | null };
-	newsletters: { total: number; items: { id: number; title: string; categoryId: number; createdAt: string }[] };
-	aiCost: { total: number; unknown: number };
-	summaryLogs: {
-		total: number;
-		items: {
-			id: number;
-			processType: string;
-			status: string;
-			duration: number;
-			token: number;
-			createdAt: string;
-			result: string | null;
-			error: string | null;
-			model: string | null;
-			inputTokens: number;
-			outputTokens: number;
-			costUsd: number | null;
-		}[];
-	};
-	mail: { activeSubscribers: number; byDay: { day: string; recipients: number }[] };
-}
+/** 대시보드 응답 (@newpick/shared, api 응답과 같다) */
+type DashboardData = Dashboard;
 
 /** 작업마다: API 이름 · 언제 도는지 · 지금 실행 전 확인 문구 */
 const JOBS: Record<JobKey, { label: string; warning: string }> = {

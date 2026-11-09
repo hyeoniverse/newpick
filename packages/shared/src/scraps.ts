@@ -1,3 +1,5 @@
+import type { MonthIndex } from './mails';
+
 /** 마이페이지: 스크랩(형광펜) · 북마크 · 내 취향. 날짜는 ISO 문자열 */
 
 /** 스크랩 한 줄 (GET /mypage/highlights, /mypage/highlights/page의 items) */
@@ -36,7 +38,7 @@ export interface HighlightPage {
   /** 폴더 줄(전체 · 폴더 없음) · 보기 칩(고른 폴더 안의 중요 · 메모) 개수 */
   counts: { all: number; unfiled: number; starred: number; memo: number };
   /** 달 막대 바로 가기: 거르기 · 정렬을 적용한 순서로 달마다 개수와 그 달 첫 스크랩의 순번 */
-  months?: { month: string; count: number; firstIndex: number }[];
+  months?: MonthIndex[];
 }
 
 /** 북마크한 뉴스레터 한 줄 */
