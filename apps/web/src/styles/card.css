@@ -235,7 +235,7 @@
 			aspect-ratio: 16 / 9;
 
 			/* 1024px 이하 나란히 놓일 때: 사진이 글 높이만큼 채워 아래가 비지 않게 (사진은 칸에 맞춰 잘림) */
-			@variant desktop {
+			@variant tablet {
 				align-self: stretch;
 				aspect-ratio: auto;
 				min-height: 14rem;
@@ -499,7 +499,7 @@
 			}
 
 			/* 태블릿: 제목 · 요약 | 사진, 그 아래 전체 폭으로 태그 한 줄, 날짜 · 북마크 한 줄 */
-			@variant desktop {
+			@variant tablet {
 				.content {
 					display: grid;
 					grid-template-columns: minmax(0, 1fr) clamp(9rem, 28%, 15rem);

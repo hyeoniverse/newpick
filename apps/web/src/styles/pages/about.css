@@ -1547,7 +1547,7 @@
 		border-top: 1px solid var(--np-color-border);
 		border-bottom: 1px solid var(--np-color-border);
 
-		@variant desktop {
+		@variant tablet {
 			grid-template-columns: repeat(3, minmax(0, 1fr));
 		}
 
@@ -1565,7 +1565,7 @@
 			border-left: none;
 		}
 
-		@variant desktop {
+		@variant tablet {
 			border-left: none;
 			padding: 1.75rem 0.5rem;
 		}
@@ -1875,7 +1875,7 @@
 		width: 100%;
 		max-width: 1024px;
 
-		@variant desktop {
+		@variant tablet {
 			padding: 0 1rem;
 		}
 	}

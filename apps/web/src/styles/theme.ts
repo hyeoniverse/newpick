@@ -37,7 +37,7 @@ export type Shadow = 'light' | 'medium' | 'heavy';
 export type ButtonSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
 export type ButtonScheme = 'primary' | 'secondary' | 'outline' | 'mono' | 'monoOutline' | 'danger' | 'default';
 export type LayoutWidth = 'small' | 'medium' | 'large';
-export type MediaQuery = 'mobile' | 'tablet' | 'desktop';
+export type MediaQuery = 'mobile' | 'tablet' | 'notebook' | 'desktop';
 
 export interface Theme {
 	name: ThemeName;
@@ -269,10 +269,12 @@ export const lightTheme: Theme = {
 			small: '375px',
 		},
 	},
+	// 화면 폭 4단계: 데스크톱 1440 이상 · 노트북 1024~1439 · 태블릿 768~1023 · 휴대폰 767 이하 (global.css와 같이)
 	mediaQuery: {
-		desktop: '(max-width: 1024px)',
-		tablet: '(max-width: 768px)',
-		mobile: '(max-width: 480px)',
+		desktop: '(min-width: 1440px)',
+		notebook: '(max-width: 1439px)',
+		tablet: '(max-width: 1023px)',
+		mobile: '(max-width: 767px)',
 	},
 };
 
