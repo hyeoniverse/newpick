@@ -6,12 +6,12 @@ import { queryKeys } from '@/api/queryKeys';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
-import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
 import ExternalLink from '@/components/common/ExternalLink';
 import InputSelect from '@/components/common/InputSelect';
+import { useQuery } from '@tanstack/react-query';
+import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
@@ -21,8 +21,6 @@ import type { ClockTime } from './ScheduleEditor';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = ['8.75rem', '8.75rem', '7.5rem', '7.5rem', undefined, '15rem'];
-
-const PAGE_SIZE = 20;
 
 /** 기사 작성 시각 'YYYY-MM-DD HH:mm:ss'(KST, 네이버 기사 날짜) → 수집 시각과 같은 모양으로 */
 const publishedText = (value: string | null, today: string) =>
@@ -66,14 +64,12 @@ const byCycle = <T extends { createdAt: string }>(items: T[], summary: ClockTime
 /** 언론사 고르기에서 '직접 입력'을 뜻하는 값 (언론사 이름과 겹치지 않게) */
 const CUSTOM = '__custom';
 
-/** 한 줄 (@newpick/shared, api 응답과 같다) */
-
 /**
  * 관리자 상세: 수집한 기사 (#31). 크롤링 원문은 30일 뒤 지워진다.
  * 관심사 · 언론사 · 제목으로 거르고, 어느 뉴스레터에 쓰였는지 함께
  */
 export default function ArticlesList() {
-	const { from, to, page, set, get, today } = useAdminQuery();
+	const { set, get, today } = useAdminQuery();
 	const categoryId = Number(get('categoryId')) || 0;
 	const source = get('source');
 	const title = get('title');
@@ -92,17 +88,13 @@ export default function ArticlesList() {
 		staleTime: 1000 * 60 * 10,
 	});
 	const summaryAt = schedule?.summary ?? { hour: 8, minute: 30 };
-	const query = new URLSearchParams({ from, to, limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
-	if (categoryId) query.set('categoryId', String(categoryId));
-	if (source) query.set('source', source);
-	if (title) query.set('title', title);
-	for (const [key, value] of Object.entries(sortQuery)) query.set(key, value);
-
-	const { data, isPending, isError } = useQuery({
-		queryKey: queryKeys.admin.articles(query.toString()),
-		queryFn: () => fetchArticleList(query.toString()),
-		placeholderData: (previous) => previous,
+	const list = useAdminList({
+		queryKey: queryKeys.admin.articles,
+		fetch: fetchArticleList,
+		params: { categoryId: categoryId || null, source, title },
+		sort: true,
 	});
+	const { data } = list;
 
 	const sources = data?.sources ?? [];
 	const custom = customSource || (!!source && !!data && !sources.includes(source));
@@ -184,96 +176,84 @@ export default function ArticlesList() {
 				</>
 			}
 		>
-			{isPending ? (
-				<p className="state">불러오는 중…</p>
-			) : isError ? (
-				<p className="state">불러오지 못했어요.</p>
-			) : data.items.length === 0 ? (
-				<p className="state">이 조건의 수집 기사가 없어요.</p>
-			) : (
-				<div className="table-wrap">
-					<table style={{ minWidth: tableMinWidth(COLS) }}>
-						<Cols widths={COLS} />
-						<thead>
-							<tr>
-								{/* 위 거르기 상자와 같은 조건을 표 머리에서도 (#31). 기간은 정해 둔 범위만, 날짜는 위 칸에서 */}
-								<th scope="col">
-									<PeriodHeaderFilter label="수집" />
-								</th>
-								{/* 기사가 실제로 쓰인 시각 (네이버 기사 날짜). 수집은 매시간이라 수집 시각보다 이를 수 있다 */}
-								<th scope="col">기사 작성</th>
-								<th scope="col">
-									<HeaderSelect
-										label="관심사"
-										value={categoryId ? String(categoryId) : ''}
-										options={CATEGORY_OPTIONS}
-										onChange={(id) => set({ categoryId: id || null })}
-									/>
-								</th>
-								<th scope="col">
-									<HeaderSelect
-										label="언론사"
-										value={source}
-										options={[
-											{ label: '전체 언론사', value: '' },
-											...sources.map((name) => ({ label: name, value: name })),
-										]}
-										onChange={(name) => {
-											setCustomSource(false);
-											set({ source: name || null });
-										}}
-									/>
-								</th>
-								<th scope="col">
-									<SortHeader label="제목" field="title" first="asc" />
-								</th>
-								<th scope="col">쓰인 뉴스레터</th>
-							</tr>
-						</thead>
-						{/* 뉴스레터 주기(수집 → 요약 → 발행)마다 묶음: 맨 위에 어느 날 뉴스레터 재료인지 · 수집 기간, 주기 사이에 구분선. 제목순일 때는 묶지 않는다 */}
-						{(sortQuery.sort ? [{ day: '', items: data.items }] : byCycle(data.items, summaryAt)).map((run) => (
-							<tbody key={run.day || 'all'} className={run.day ? 'run' : undefined}>
-								{run.day && (
-									<tr className="run-head">
-										<th colSpan={6} scope="rowgroup">
-											{cycleLabel(run.day, summaryAt)}
-										</th>
-									</tr>
-								)}
-								{run.items.map((article) => (
-									<tr key={article.id}>
-										<td className="nowrap num">{when(article.createdAt, today)}</td>
-										<td className="nowrap num">{publishedText(article.publishedAt, today)}</td>
-										<td className="nowrap category">{article.category.join(' · ')}</td>
-										<td className="nowrap">{article.source}</td>
-										<td>
-											<ExternalLink href={article.link}>{article.title}</ExternalLink>
-										</td>
-										<td>
-											{article.usedIn.length === 0
-												? '-'
-												: article.usedIn.map((n) => (
-														<Link key={n.id} href={ROUTES.article(n.id)} className="used">
-															#{n.id} {n.title}
-														</Link>
-													))}
-										</td>
-									</tr>
-								))}
-							</tbody>
-						))}
-					</table>
-				</div>
-			)}
-			{data && (
-				<Pagination
-					className="pagination"
-					page={page}
-					total={data.total}
-					pageSize={PAGE_SIZE}
-					onChange={(next) => set({ page: next })}
-				/>
-			)}
+			<AdminListState list={list} empty="이 조건의 수집 기사가 없어요.">
+				{(data) => (
+					<div className="table-wrap">
+						<table style={{ minWidth: tableMinWidth(COLS) }}>
+							<Cols widths={COLS} />
+							<thead>
+								<tr>
+									{/* 위 거르기 상자와 같은 조건을 표 머리에서도 (#31). 기간은 정해 둔 범위만, 날짜는 위 칸에서 */}
+									<th scope="col">
+										<PeriodHeaderFilter label="수집" />
+									</th>
+									{/* 기사가 실제로 쓰인 시각 (네이버 기사 날짜). 수집은 매시간이라 수집 시각보다 이를 수 있다 */}
+									<th scope="col">기사 작성</th>
+									<th scope="col">
+										<HeaderSelect
+											label="관심사"
+											value={categoryId ? String(categoryId) : ''}
+											options={CATEGORY_OPTIONS}
+											onChange={(id) => set({ categoryId: id || null })}
+										/>
+									</th>
+									<th scope="col">
+										<HeaderSelect
+											label="언론사"
+											value={source}
+											options={[
+												{ label: '전체 언론사', value: '' },
+												...sources.map((name) => ({ label: name, value: name })),
+											]}
+											onChange={(name) => {
+												setCustomSource(false);
+												set({ source: name || null });
+											}}
+										/>
+									</th>
+									<th scope="col">
+										<SortHeader label="제목" field="title" first="asc" />
+									</th>
+									<th scope="col">쓰인 뉴스레터</th>
+								</tr>
+							</thead>
+							{/* 뉴스레터 주기(수집 → 요약 → 발행)마다 묶음: 맨 위에 어느 날 뉴스레터 재료인지 · 수집 기간, 주기 사이에 구분선. 제목순일 때는 묶지 않는다 */}
+							{(sortQuery.sort ? [{ day: '', items: data.items }] : byCycle(data.items, summaryAt)).map((run) => (
+								<tbody key={run.day || 'all'} className={run.day ? 'run' : undefined}>
+									{run.day && (
+										<tr className="run-head">
+											<th colSpan={6} scope="rowgroup">
+												{cycleLabel(run.day, summaryAt)}
+											</th>
+										</tr>
+									)}
+									{run.items.map((article) => (
+										<tr key={article.id}>
+											<td className="nowrap num">{when(article.createdAt, today)}</td>
+											<td className="nowrap num">{publishedText(article.publishedAt, today)}</td>
+											<td className="nowrap category">{article.category.join(' · ')}</td>
+											<td className="nowrap">{article.source}</td>
+											<td>
+												<ExternalLink href={article.link}>{article.title}</ExternalLink>
+											</td>
+											<td>
+												{article.usedIn.length === 0
+													? '-'
+													: article.usedIn.map((n) => (
+															<Link key={n.id} href={ROUTES.article(n.id)} className="used">
+																#{n.id} {n.title}
+															</Link>
+														))}
+											</td>
+										</tr>
+									))}
+								</tbody>
+							))}
+						</table>
+					</div>
+				)}
+			</AdminListState>
+			<AdminListPagination list={list} />
 		</AdminSubPage>
 	);
 }

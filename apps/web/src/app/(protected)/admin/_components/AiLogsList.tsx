@@ -5,11 +5,11 @@ import { queryKeys } from '@/api/queryKeys';
 
 import type { AiLogRow } from '@newpick/shared';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { LuRotateCw, LuTriangleAlert } from 'react-icons/lu';
 import { ApiError } from '@/api/client';
-import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
+import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
@@ -19,8 +19,6 @@ import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 import ModalContents from '@/components/common/modal/ModalContent';
 import { useModal } from '@/hooks/useModal';
 import { useToast } from '@/hooks/useToast';
-
-const PAGE_SIZE = 20;
 
 /** 가로로 넘겨도 왼쪽에 고정하는 칸 폭: 시각 · 분야 · 결과 (무엇이 언제 어떻게 됐는지) */
 const PINNED = ['9rem', '3.5rem', '9rem'];
@@ -87,21 +85,18 @@ function useRerun() {
 
 /** 관리자 상세: AI 기록 (종류 · 결과로 거르기, 그 조건의 비용 합계, 쪽) */
 export default function AiLogsList() {
-	const { from, to, page, set, get, today } = useAdminQuery();
+	const { set, get, today } = useAdminQuery();
 	const rerun = useRerun();
 	const type = get('type');
 	const status = get('status');
 	const sortQuery = useSortQuery();
-	const query = new URLSearchParams({ from, to, limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
-	if (type) query.set('type', type);
-	if (status) query.set('status', status);
-	for (const [key, value] of Object.entries(sortQuery)) query.set(key, value);
-
-	const { data, isPending, isError } = useQuery({
-		queryKey: queryKeys.admin.aiLogs.list(query.toString()),
-		queryFn: () => fetchAiLogs(query.toString()),
-		placeholderData: (previous) => previous,
+	const list = useAdminList({
+		queryKey: queryKeys.admin.aiLogs.list,
+		fetch: fetchAiLogs,
+		params: { type, status },
+		sort: true,
 	});
+	const { data } = list;
 
 	// 기본 정렬(최신순)일 때 같은 묶음의 시도를 붙여 놓는다 (묶음 자리는 가장 최근 시도 자리)
 	// 내용은 두 줄까지만, 누르면 펼친다 (펼친 기록 id)
@@ -144,102 +139,107 @@ export default function AiLogsList() {
 				</>
 			}
 		>
-			{isPending ? (
-				<p className="state">불러오는 중…</p>
-			) : isError ? (
-				<p className="state">불러오지 못했어요.</p>
-			) : data.items.length === 0 ? (
-				<p className="state">이 조건의 기록이 없어요.</p>
-			) : (
-				<div className="np-admin-ai-logs-list-chains table-wrap">
-					<table className="wide" style={{ minWidth: tableMinWidth(COLS, '60rem') }}>
-						{/* 칸 폭 = 내용 · 머리글(정렬 아이콘 포함) + 오른쪽 여백 1rem. 좁으면 옆 칸에 붙는다.
-						    앞 세 칸(시각 · 분야 · 결과)은 가로로 넘겨도 왼쪽에 고정 (PINNED) */}
-						<Cols widths={COLS} />
-						<thead>
-							<tr>
-								{/* 위 거르기와 같은 조건을 표 머리에서도 */}
-								<th scope="col">
-									<PeriodHeaderFilter label="시각" />
-								</th>
-								<th scope="col">분야</th>
-								<th scope="col">
-									<HeaderSelect
-										label="결과"
-										value={status}
-										options={STATUSES}
-										onChange={(v) => set({ status: v || null })}
-									/>
-								</th>
-								<th scope="col">
-									<HeaderSelect label="종류" value={type} options={TYPES} onChange={(v) => set({ type: v || null })} />
-								</th>
-								<th scope="col">모델</th>
-								<th scope="col">
-									<SortHeader label="걸린 시간" field="duration" />
-								</th>
-								<th scope="col">
-									<SortHeader label="토큰" field="token" />
-								</th>
-								<th scope="col">
-									<SortHeader label="비용" field="costUsd" />
-								</th>
-								<th scope="col">내용</th>
-							</tr>
-						</thead>
-						<tbody>
-							{rows.map((log, i) => {
-								const chained = !!log.attempt && log.attempt.total > 1;
-								// 스레드: 묶음 첫 줄(가장 최근 시도)이 위, 앞선 시도는 그 아래 들여 쓴 답글처럼
-								const child = chained && rows[i - 1]?.attempt?.chain === log.attempt!.chain;
-								const continues = chained && rows[i + 1]?.attempt?.chain === log.attempt!.chain;
-								const text = log.error ?? log.result ?? '';
-								return (
-									<tr
-										key={log.id}
-										className={[chained && 'chain', child && 'reply', continues ? 'continues' : chained && 'chain-end']
-											.filter(Boolean)
-											.join(' ')}
-									>
-										<td className="nowrap num">{when(log.createdAt, today)}</td>
-										<td className="nowrap">{log.category ?? '-'}</td>
-										<td>
-											<Result log={log} onRerun={rerun} />
-										</td>
-										<td className="nowrap">{PROCESS_LABEL[log.processType] ?? log.processType}</td>
-										<td className="model">
-											{log.model
-												? log.model.split(',').map((name) => (
-														<span key={name} className="name">
-															{name.trim().replace(/^claude-/, '')}
-														</span>
-													))
-												: '-'}
-										</td>
-										<td className="nowrap num">{log.duration.toFixed(1)}초</td>
-										<td className="nowrap num">
-											{log.inputTokens || log.outputTokens
-												? `${log.inputTokens.toLocaleString()} / ${log.outputTokens.toLocaleString()}`
-												: log.token.toLocaleString()}
-										</td>
-										<td className="nowrap num">{usd(log.costUsd)}</td>
-										<td className="content">
-											<button
-												type="button"
-												className={open.has(log.id) ? 'text open' : 'text'}
-												aria-expanded={open.has(log.id)}
-												onClick={() => toggle(log.id)}
-											>
-												{text}
-											</button>
-										</td>
-									</tr>
-								);
-							})}
-						</tbody>
-					</table>
-				</div>
-			)}
+			<AdminListState list={list} empty="이 조건의 기록이 없어요.">
+				{() => (
+					<div className="np-admin-ai-logs-list-chains table-wrap">
+						<table className="wide" style={{ minWidth: tableMinWidth(COLS, '60rem') }}>
+							{/* 칸 폭 = 내용 · 머리글(정렬 아이콘 포함) + 오른쪽 여백 1rem. 좁으면 옆 칸에 붙는다.
+							    앞 세 칸(시각 · 분야 · 결과)은 가로로 넘겨도 왼쪽에 고정 (PINNED) */}
+							<Cols widths={COLS} />
+							<thead>
+								<tr>
+									{/* 위 거르기와 같은 조건을 표 머리에서도 */}
+									<th scope="col">
+										<PeriodHeaderFilter label="시각" />
+									</th>
+									<th scope="col">분야</th>
+									<th scope="col">
+										<HeaderSelect
+											label="결과"
+											value={status}
+											options={STATUSES}
+											onChange={(v) => set({ status: v || null })}
+										/>
+									</th>
+									<th scope="col">
+										<HeaderSelect
+											label="종류"
+											value={type}
+											options={TYPES}
+											onChange={(v) => set({ type: v || null })}
+										/>
+									</th>
+									<th scope="col">모델</th>
+									<th scope="col">
+										<SortHeader label="걸린 시간" field="duration" />
+									</th>
+									<th scope="col">
+										<SortHeader label="토큰" field="token" />
+									</th>
+									<th scope="col">
+										<SortHeader label="비용" field="costUsd" />
+									</th>
+									<th scope="col">내용</th>
+								</tr>
+							</thead>
+							<tbody>
+								{rows.map((log, i) => {
+									const chained = !!log.attempt && log.attempt.total > 1;
+									// 스레드: 묶음 첫 줄(가장 최근 시도)이 위, 앞선 시도는 그 아래 들여 쓴 답글처럼
+									const child = chained && rows[i - 1]?.attempt?.chain === log.attempt!.chain;
+									const continues = chained && rows[i + 1]?.attempt?.chain === log.attempt!.chain;
+									const text = log.error ?? log.result ?? '';
+									return (
+										<tr
+											key={log.id}
+											className={[
+												chained && 'chain',
+												child && 'reply',
+												continues ? 'continues' : chained && 'chain-end',
+											]
+												.filter(Boolean)
+												.join(' ')}
+										>
+											<td className="nowrap num">{when(log.createdAt, today)}</td>
+											<td className="nowrap">{log.category ?? '-'}</td>
+											<td>
+												<Result log={log} onRerun={rerun} />
+											</td>
+											<td className="nowrap">{PROCESS_LABEL[log.processType] ?? log.processType}</td>
+											<td className="model">
+												{log.model
+													? log.model.split(',').map((name) => (
+															<span key={name} className="name">
+																{name.trim().replace(/^claude-/, '')}
+															</span>
+														))
+													: '-'}
+											</td>
+											<td className="nowrap num">{log.duration.toFixed(1)}초</td>
+											<td className="nowrap num">
+												{log.inputTokens || log.outputTokens
+													? `${log.inputTokens.toLocaleString()} / ${log.outputTokens.toLocaleString()}`
+													: log.token.toLocaleString()}
+											</td>
+											<td className="nowrap num">{usd(log.costUsd)}</td>
+											<td className="content">
+												<button
+													type="button"
+													className={open.has(log.id) ? 'text open' : 'text'}
+													aria-expanded={open.has(log.id)}
+													onClick={() => toggle(log.id)}
+												>
+													{text}
+												</button>
+											</td>
+										</tr>
+									);
+								})}
+							</tbody>
+						</table>
+					</div>
+				)}
+			</AdminListState>
 			{data && data.items.length > 0 && (
 				<ul className="np-admin-ai-logs-list-card-list" aria-label="AI 기록">
 					{groups.map((group) => (
@@ -261,15 +261,7 @@ export default function AiLogsList() {
 					))}
 				</ul>
 			)}
-			{data && (
-				<Pagination
-					className="pagination"
-					page={page}
-					total={data.total}
-					pageSize={PAGE_SIZE}
-					onChange={(next) => set({ page: next })}
-				/>
-			)}
+			<AdminListPagination list={list} />
 		</AdminSubPage>
 	);
 }

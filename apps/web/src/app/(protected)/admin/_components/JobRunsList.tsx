@@ -4,20 +4,17 @@ import { fetchJobRuns } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import type { JobRunRecord } from '@newpick/shared';
-import { useQuery } from '@tanstack/react-query';
-import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
+import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
-import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
+import { PeriodHeaderFilter, SortHeader } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { when } from '../_lib/format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = ['10rem', '6.5rem', '5rem', '6rem', '6.5rem', undefined];
-
-const PAGE_SIZE = 20;
 
 const JOB_LABEL: Record<JobRunRecord['job'], string> = { crawling: '기사 수집', summary: 'AI 요약', mail: '구독 메일' };
 const STATUS_LABEL: Record<JobRunRecord['status'], string> = {
@@ -46,20 +43,16 @@ const duration = (ms: number | null) => {
 
 /** 관리자 상세: 예약 작업 실행 기록 (작업 · 결과로 거르기, 쪽) */
 export default function JobRunsList() {
-	const { from, to, page, set, get, today } = useAdminQuery();
+	const { set, get, today } = useAdminQuery();
 	const job = get('job');
 	const status = get('status');
-	const sortQuery = useSortQuery();
-	const query = new URLSearchParams({ from, to, limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
-	if (job) query.set('job', job);
-	if (status) query.set('status', status);
-	for (const [key, value] of Object.entries(sortQuery)) query.set(key, value);
-
-	const { data, isPending, isError } = useQuery({
-		queryKey: queryKeys.admin.jobRuns(query.toString()),
-		queryFn: () => fetchJobRuns(query.toString()),
-		placeholderData: (previous) => previous,
+	const list = useAdminList({
+		queryKey: queryKeys.admin.jobRuns,
+		fetch: fetchJobRuns,
+		params: { job, status },
+		sort: true,
 	});
+	const { data } = list;
 
 	return (
 		<AdminSubPage
@@ -72,66 +65,54 @@ export default function JobRunsList() {
 				</>
 			}
 		>
-			{isPending ? (
-				<p className="state">불러오는 중…</p>
-			) : isError ? (
-				<p className="state">불러오지 못했어요.</p>
-			) : data.items.length === 0 ? (
-				<p className="state">이 조건의 실행 기록이 없어요.</p>
-			) : (
-				<div className="table-wrap">
-					<table style={{ minWidth: tableMinWidth(COLS) }}>
-						<Cols widths={COLS} />
-						<thead>
-							<tr>
-								{/* 위 거르기와 같은 조건을 표 머리에서도 */}
-								<th scope="col">
-									<PeriodHeaderFilter label="시작" />
-								</th>
-								<th scope="col">
-									<HeaderSelect label="작업" value={job} options={JOBS} onChange={(v) => set({ job: v || null })} />
-								</th>
-								<th scope="col">실행</th>
-								<th scope="col">
-									<HeaderSelect
-										label="결과"
-										value={status}
-										options={STATUSES}
-										onChange={(v) => set({ status: v || null })}
-									/>
-								</th>
-								<th scope="col">
-									<SortHeader label="걸린 시간" field="durationMs" />
-								</th>
-								<th scope="col">내용</th>
-							</tr>
-						</thead>
-						<tbody>
-							{data.items.map((run) => (
-								<tr key={run.id}>
-									<td className="nowrap num">{when(run.startedAt, today)}</td>
-									<td className="nowrap">{JOB_LABEL[run.job] ?? run.job}</td>
-									<td className="nowrap">{run.trigger === 'manual' ? '지금 실행' : '예약'}</td>
-									<td className="nowrap">
-										<StatusBadge tone={toneOf(run.status)}>{STATUS_LABEL[run.status] ?? run.status}</StatusBadge>
-									</td>
-									<td className="nowrap num">{duration(run.durationMs)}</td>
-									<td className="content">{run.message ?? '-'}</td>
+			<AdminListState list={list} empty="이 조건의 실행 기록이 없어요.">
+				{(data) => (
+					<div className="table-wrap">
+						<table style={{ minWidth: tableMinWidth(COLS) }}>
+							<Cols widths={COLS} />
+							<thead>
+								<tr>
+									{/* 위 거르기와 같은 조건을 표 머리에서도 */}
+									<th scope="col">
+										<PeriodHeaderFilter label="시작" />
+									</th>
+									<th scope="col">
+										<HeaderSelect label="작업" value={job} options={JOBS} onChange={(v) => set({ job: v || null })} />
+									</th>
+									<th scope="col">실행</th>
+									<th scope="col">
+										<HeaderSelect
+											label="결과"
+											value={status}
+											options={STATUSES}
+											onChange={(v) => set({ status: v || null })}
+										/>
+									</th>
+									<th scope="col">
+										<SortHeader label="걸린 시간" field="durationMs" />
+									</th>
+									<th scope="col">내용</th>
 								</tr>
-							))}
-						</tbody>
-					</table>
-				</div>
-			)}
-			{data && (
-				<Pagination
-					className="pagination"
-					page={page}
-					total={data.total}
-					pageSize={PAGE_SIZE}
-					onChange={(next) => set({ page: next })}
-				/>
-			)}
+							</thead>
+							<tbody>
+								{data.items.map((run) => (
+									<tr key={run.id}>
+										<td className="nowrap num">{when(run.startedAt, today)}</td>
+										<td className="nowrap">{JOB_LABEL[run.job] ?? run.job}</td>
+										<td className="nowrap">{run.trigger === 'manual' ? '지금 실행' : '예약'}</td>
+										<td className="nowrap">
+											<StatusBadge tone={toneOf(run.status)}>{STATUS_LABEL[run.status] ?? run.status}</StatusBadge>
+										</td>
+										<td className="nowrap num">{duration(run.durationMs)}</td>
+										<td className="content">{run.message ?? '-'}</td>
+									</tr>
+								))}
+							</tbody>
+						</table>
+					</div>
+				)}
+			</AdminListState>
+			<AdminListPagination list={list} />
 		</AdminSubPage>
 	);
 }
