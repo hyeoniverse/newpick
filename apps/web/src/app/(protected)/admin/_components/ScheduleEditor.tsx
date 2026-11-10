@@ -3,7 +3,7 @@
 import type { ClockTime, Schedule } from '@newpick/shared';
 import { useState } from 'react';
 import { saveSchedule } from '@/api/admin';
-import { ApiError } from '@/api/client';
+import { errorMessage } from '@/api/client';
 import Button from '@/components/common/Button';
 import TimePicker from '@/components/common/TimePicker';
 
@@ -54,7 +54,7 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 			const data = await saveSchedule(next);
 			onSaved(data);
 		} catch (e) {
-			setError(e instanceof ApiError ? e.message : '바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+			setError(errorMessage(e, '바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.'));
 		} finally {
 			setPending(false);
 		}

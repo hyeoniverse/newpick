@@ -1,5 +1,6 @@
 'use client';
 
+import { useConfirmAction } from '@/hooks/useConfirmAction';
 import { ROUTES } from '@/constants/routes';
 import type { TagRule } from '@newpick/shared';
 
@@ -9,8 +10,8 @@ import { queryKeys } from '@/api/queryKeys';
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { LuTriangleAlert } from 'react-icons/lu';
-import { ApiError } from '@/api/client';
+
+import { errorMessage } from '@/api/client';
 import { fetchAllKeywords } from '@/api/article';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
 import { useToast } from '@/hooks/useToast';
@@ -19,7 +20,6 @@ import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
-import ModalContents from '@/components/common/modal/ModalContent';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { when } from '../_lib/format';
 import { kstDate } from '@/utils/formatter';
@@ -57,7 +57,7 @@ function MergeSheet({
 			);
 			onDone(data.changed, name);
 		} catch (e) {
-			setError(e instanceof ApiError ? e.message : '바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+			setError(errorMessage(e, '바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.'));
 		} finally {
 			setPending(false);
 		}
@@ -101,6 +101,7 @@ function MergeSheet({
 export default function TagsAdmin() {
 	const { showToast } = useToast();
 	const { openModal, closeModal } = useModal();
+	const confirm = useConfirmAction();
 	const queryClient = useQueryClient();
 	const [category, setCategory] = useState('');
 	const [q, setQ] = useState('');
@@ -149,26 +150,16 @@ export default function TagsAdmin() {
 		);
 
 	const remove = (keyword: string) =>
-		openModal(
-			<ModalContents
-				icon={<LuTriangleAlert />}
-				title={`#${keyword} 태그를 지울까요?`}
-				content="이미 발행한 뉴스레터에서 이 태그를 빼고, 앞으로 새 뉴스레터에도 붙이지 않아요. 규칙을 지우면 앞으로는 다시 붙을 수 있어요."
-				outlineButton="취소"
-				filledButton="지우기"
-				onCancelClick={closeModal}
-				onConfirmClick={async () => {
-					closeModal();
-					try {
-						const data = await removeTag(keyword);
-						showToast(`#${keyword}을(를) 지웠어요. 뉴스레터 ${data.changed}편의 태그를 고쳤어요.`, 'success');
-						refresh();
-					} catch (error) {
-						showToast(error instanceof ApiError ? error.message : '지우지 못했어요.', 'error');
-					}
-				}}
-			/>,
-		);
+		confirm({
+			title: `#${keyword} 태그를 지울까요?`,
+			content:
+				'이미 발행한 뉴스레터에서 이 태그를 빼고, 앞으로 새 뉴스레터에도 붙이지 않아요. 규칙을 지우면 앞으로는 다시 붙을 수 있어요.',
+			confirmLabel: '지우기',
+			run: () => removeTag(keyword),
+			success: (data) => `#${keyword}을(를) 지웠어요. 뉴스레터 ${data.changed}편의 태그를 고쳤어요.`,
+			failure: '지우지 못했어요.',
+			onDone: refresh,
+		});
 
 	const deleteRule = async (rule: TagRule) => {
 		try {
@@ -176,7 +167,7 @@ export default function TagsAdmin() {
 			showToast('규칙을 지웠어요. 앞으로의 새 뉴스레터부터 적용돼요.', 'info');
 			refresh();
 		} catch (error) {
-			showToast(error instanceof ApiError ? error.message : '지우지 못했어요.', 'error');
+			showToast(errorMessage(error, '지우지 못했어요.'), 'error');
 		}
 	};
 

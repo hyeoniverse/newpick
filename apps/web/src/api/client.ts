@@ -21,6 +21,10 @@ export class ApiError extends Error {
 	}
 }
 
+/** 알릴 오류 문구: api가 준 문구가 있으면 그것, 없으면(네트워크 · 프록시 오류 등) fallback */
+export const errorMessage = (error: unknown, fallback: string) =>
+	error instanceof ApiError ? error.message : fallback;
+
 type ApiOptions = Omit<RequestInit, 'body'> & {
 	/** 객체를 넘기면 JSON으로 보냅니다. */
 	body?: unknown;
@@ -55,7 +59,7 @@ async function send(url: string, { body, headers, ...init }: ApiOptions) {
 	});
 }
 
-async function errorMessage(response: Response): Promise<{ message: string; body?: unknown }> {
+async function readError(response: Response): Promise<{ message: string; body?: unknown }> {
 	try {
 		const body = await response.json();
 		const message = Array.isArray(body?.message) ? body.message.join(', ') : body?.message;
@@ -87,7 +91,7 @@ export async function apiFetch<T = void>(url: string, options: ApiOptions = {}):
 	}
 
 	if (!response.ok) {
-		const { message, body } = await errorMessage(response);
+		const { message, body } = await readError(response);
 		throw new ApiError(response.status, message, body);
 	}
 

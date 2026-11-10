@@ -1,6 +1,6 @@
 import { queryKeys } from '@/api/queryKeys';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError } from '@/api/client';
+import { errorMessage } from '@/api/client';
 import { fetchTagFollows, followTag, unfollowTag } from '@/api/tagFollows';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
@@ -26,11 +26,7 @@ export function useTagFollows() {
 				'success',
 			),
 		// 오류 메시지는 API 문장 그대로 (예: 20개 넘음)
-		onError: (error) =>
-			showToast(
-				error instanceof ApiError ? error.message : '팔로우하지 못했습니다. 잠시 후 다시 시도해 주세요.',
-				'error',
-			),
+		onError: (error) => showToast(errorMessage(error, '팔로우하지 못했습니다. 잠시 후 다시 시도해 주세요.'), 'error'),
 		onSettled: refresh,
 	});
 	const unfollow = useMutation({
