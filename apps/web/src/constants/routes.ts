@@ -25,7 +25,7 @@ export const ROUTES = {
 		home: '/admin',
 		stats: '/admin/stats',
 		/** 한 화면의 히트맵 (query: route · from · to) */
-		statsPage: (query: string) => `/admin/stats/page?${query}`,
+		statsHeatmap: (query: string) => `/admin/stats/heatmap?${query}`,
 		newsletters: '/admin/newsletters',
 		newsletter: (id: number) => `/admin/newsletters/${id}`,
 		articles: '/admin/articles',
