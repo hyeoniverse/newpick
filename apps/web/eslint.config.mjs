@@ -14,8 +14,8 @@ const eslintConfig = [
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   // 디버그 로그는 남기지 않습니다. console.error는 서버 로그와 에러 경계처럼 사용자에게 알릴 수 없는 곳에서만 씁니다.
   { rules: { "no-console": ["error", { allow: ["error"] }] } },
-  // E2E 시드·설정은 브라우저가 아니라 Node에서 도는 스크립트
-  { files: ["e2e/**"], rules: { "no-console": "off" } },
+  // E2E 시드·설정 · 화면 비교 도구는 브라우저가 아니라 Node에서 도는 스크립트
+  { files: ["e2e/**", "visual/**"], rules: { "no-console": "off" } },
   /*
    * 구조 규칙 잠그기 (#197). 정리한 규칙이 다시 흐트러지지 않게 lint가 막는다
    * - api 요청은 src/api/ 모듈에서만 (화면 · 훅은 그 함수를 부른다)

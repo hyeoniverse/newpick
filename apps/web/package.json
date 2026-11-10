@@ -10,6 +10,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "cycles": "node ../../scripts/check-cycles.mjs",
+    "visual:shots": "node visual/shots.mjs",
+    "visual:diff": "node visual/diff.mjs",
     "tokens": "UPDATE_TOKENS=1 vitest run src/styles/tokens/tokens.test.ts",
     "e2e:seed": "node e2e/seed.mjs",
     "e2e": "playwright test",
