@@ -12,12 +12,15 @@ import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
 import ExternalLink from '@/components/common/ExternalLink';
 import InputSelect from '@/components/common/InputSelect';
-import AdminSubPage, { Cols } from './AdminSubPage';
+import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { when } from './format';
 import type { ClockTime } from './ScheduleEditor';
+
+/** 표 칸 폭 (정하지 않은 칸은 나머지) */
+const COLS = ['8.75rem', '8.75rem', '7.5rem', '7.5rem', undefined, '15rem'];
 
 const PAGE_SIZE = 20;
 
@@ -189,8 +192,8 @@ export default function ArticlesList() {
 				<p className="state">이 조건의 수집 기사가 없어요.</p>
 			) : (
 				<div className="table-wrap">
-					<table>
-						<Cols widths={['8.75rem', '8.75rem', '7.5rem', '7.5rem', undefined, '15rem']} />
+					<table style={{ minWidth: tableMinWidth(COLS) }}>
+						<Cols widths={COLS} />
 						<thead>
 							<tr>
 								{/* 위 거르기 상자와 같은 조건을 표 머리에서도 (#31). 기간은 정해 둔 범위만, 날짜는 위 칸에서 */}

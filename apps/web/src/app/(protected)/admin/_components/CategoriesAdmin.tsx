@@ -6,10 +6,13 @@ import { queryKeys } from '@/api/queryKeys';
 
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import AdminSubPage, { Cols } from './AdminSubPage';
+import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
 import { when } from './format';
 import { AdminActions } from './UsersAdmin';
+
+/** 표 칸 폭 (정하지 않은 칸은 나머지) */
+const COLS = ['7rem', '8rem', '10rem', '8rem', '8rem', undefined];
 
 /**
  * 관리자 CMS (#31): 관심사 현황. 관심사 이름은 수집(네이버 섹션) · 화면 상수 · 메일과 묶여 있어 여기서는 보기만 하고,
@@ -35,8 +38,8 @@ export default function CategoriesAdmin() {
 					<p className="state">불러오지 못했어요.</p>
 				) : (
 					<div className="table-wrap">
-						<table>
-							<Cols widths={['7rem', '8rem', '10rem', '8rem', '8rem', undefined]} />
+						<table style={{ minWidth: tableMinWidth(COLS) }}>
+							<Cols widths={COLS} />
 							<thead>
 								<tr>
 									<th scope="col">관심사</th>

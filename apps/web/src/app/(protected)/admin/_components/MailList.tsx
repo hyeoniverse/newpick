@@ -9,11 +9,14 @@ import { CATEGORY_OPTIONS } from '@/constants/categories';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
-import AdminSubPage, { Cols } from './AdminSubPage';
+import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { when } from './format';
+
+/** 표 칸 폭 (정하지 않은 칸은 나머지) */
+const COLS = ['9rem', '10rem', undefined, '12rem'];
 
 const PAGE_SIZE = 20;
 
@@ -82,8 +85,8 @@ export default function MailList() {
 				</p>
 			) : (
 				<div className="table-wrap">
-					<table>
-						<Cols widths={['9rem', '10rem', undefined, '12rem']} />
+					<table style={{ minWidth: tableMinWidth(COLS) }}>
+						<Cols widths={COLS} />
 						<thead>
 							<tr>
 								{/* 위 거르기와 같은 조건을 표 머리에서도 */}

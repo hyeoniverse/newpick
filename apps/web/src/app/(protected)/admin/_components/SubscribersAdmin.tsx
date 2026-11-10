@@ -10,10 +10,13 @@ import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
 import Pagination from '@/components/common/Pagination';
 import StatusBadge from '@/components/common/StatusBadge';
-import AdminSubPage, { Cols } from './AdminSubPage';
+import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
 import { when } from './format';
 import { AdminActions, SUBSCRIPTION_LABEL, subscriptionTone } from './UsersAdmin';
+
+/** 표 칸 폭 (정하지 않은 칸은 나머지) */
+const COLS = [undefined, '8rem', '7rem', '12rem', '9rem', '9rem'];
 
 const PAGE_SIZE = 20;
 
@@ -96,8 +99,8 @@ export default function SubscribersAdmin() {
 					<p className="state">이 조건의 구독자가 없어요.</p>
 				) : (
 					<div className="table-wrap">
-						<table>
-							<Cols widths={[undefined, '8rem', '7rem', '12rem', '9rem', '9rem']} />
+						<table style={{ minWidth: tableMinWidth(COLS) }}>
+							<Cols widths={COLS} />
 							<thead>
 								<tr>
 									<th scope="col">이메일</th>

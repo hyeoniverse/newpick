@@ -16,10 +16,13 @@ import FilterChips from '@/components/common/FilterChips';
 import Pagination from '@/components/common/Pagination';
 import StatusBadge from '@/components/common/StatusBadge';
 import ModalContents from '@/components/common/modal/ModalContent';
-import AdminSubPage, { Cols } from './AdminSubPage';
+import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
 import { when } from './format';
 import { cx } from '@/styles/tw';
+
+/** 표 칸 폭 (정하지 않은 칸은 나머지) */
+const COLS = ['3.5rem', undefined, '6.5rem', '5.5rem', '6.5rem', '7rem', '4.5rem', '9rem', '8.5rem'];
 
 const PAGE_SIZE = 20;
 
@@ -152,8 +155,8 @@ export default function UsersAdmin() {
 					<p className="state">이 조건의 사용자가 없어요.</p>
 				) : (
 					<div className="table-wrap">
-						<table>
-							<Cols widths={['3.5rem', undefined, '6.5rem', '5.5rem', '6.5rem', '7rem', '4.5rem', '9rem', '8.5rem']} />
+						<table style={{ minWidth: tableMinWidth(COLS) }}>
+							<Cols widths={COLS} />
 							<thead>
 								<tr>
 									<th scope="col">id</th>

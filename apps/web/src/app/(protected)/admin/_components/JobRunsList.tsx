@@ -7,12 +7,15 @@ import type { JobRunRecord } from '@newpick/shared';
 import { useQuery } from '@tanstack/react-query';
 import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
-import AdminSubPage, { Cols } from './AdminSubPage';
+import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { when } from './format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
+
+/** 표 칸 폭 (정하지 않은 칸은 나머지) */
+const COLS = ['10rem', '6.5rem', '5rem', '6rem', '6.5rem', undefined];
 
 const PAGE_SIZE = 20;
 
@@ -80,8 +83,8 @@ export default function JobRunsList() {
 				<p className="state">이 조건의 실행 기록이 없어요.</p>
 			) : (
 				<div className="table-wrap">
-					<table>
-						<Cols widths={['10rem', '6.5rem', '5rem', '6rem', '6.5rem', undefined]} />
+					<table style={{ minWidth: tableMinWidth(COLS) }}>
+						<Cols widths={COLS} />
 						<thead>
 							<tr>
 								{/* 위 거르기와 같은 조건을 표 머리에서도 */}
