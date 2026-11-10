@@ -1,7 +1,7 @@
 import React from 'react';
 import { CSSProperties } from 'react';
 import { MdLightMode, MdDarkMode } from 'react-icons/md';
-import { ButtonScheme } from '@/styles/theme';
+import { ButtonScheme } from '@/styles/tokens/theme';
 import { useThemeStore } from '@/stores/useThemeStore';
 import Button from '@/components/common/Button';
 

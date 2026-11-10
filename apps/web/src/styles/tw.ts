@@ -1,9 +1,9 @@
-import type { ColorKey, FontSize, FontWeight, HeadingSize } from '@/styles/theme';
+import type { ColorKey, FontSize, FontWeight, HeadingSize } from '@/styles/tokens/theme';
 
 /**
  * Tailwind로 옮긴 컴포넌트가 theme.ts의 이름(size="small", color="subText" …)을 그대로 받도록 잇는 표 (#10).
  * Tailwind는 소스에 그대로 적힌 클래스 이름만 만들므로, 이름을 조립하지 않고 표에 다 적어 둔다.
- * 값은 global.css @theme inline → styles/tokens.css의 var(--np-…)라 라이트 · 다크 · 화면 폭에 따라 바뀐다.
+ * 값은 global.css @theme inline → styles/tokens/tokens.css의 var(--np-…)라 라이트 · 다크 · 화면 폭에 따라 바뀐다.
  */
 
 /** 클래스 이름 잇기. 거짓 값은 뺀다 */

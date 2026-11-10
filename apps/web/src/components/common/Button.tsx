@@ -2,7 +2,7 @@
 
 import React, { JSX } from 'react';
 import { LuLoaderCircle } from 'react-icons/lu';
-import { ButtonScheme, ButtonSize, cssVarTheme } from '@/styles/theme';
+import { ButtonScheme, ButtonSize, cssVarTheme } from '@/styles/tokens/theme';
 import { cx } from '@/styles/tw';
 
 interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {

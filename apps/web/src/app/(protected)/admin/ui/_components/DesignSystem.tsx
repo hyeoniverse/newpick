@@ -21,7 +21,7 @@ import {
 	lightTheme,
 	Theme,
 	cssVarTheme,
-} from '@/styles/theme';
+} from '@/styles/tokens/theme';
 
 import Button from '@/components/common/Button';
 import Title from '@/components/common/Title';
@@ -122,7 +122,7 @@ const SAMPLE_TABS = [
 
 /**
  * 디자인 시스템 확인 화면 (관리자). 테마 값과 공통 컴포넌트를 한곳에서 눌러 본다.
- * 값은 styles/theme.ts에서 바로 읽으므로 테마를 바꾸면 여기도 따라 바뀐다
+ * 값은 styles/tokens/theme.ts에서 바로 읽으므로 테마를 바꾸면 여기도 따라 바뀐다
  */
 export default function DesignSystem() {
 	return (

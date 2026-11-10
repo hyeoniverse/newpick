@@ -3,7 +3,7 @@
 import React from 'react';
 import { useInputCheck } from '@/hooks/useInputCheck';
 
-import { cssVarTheme, type FontSize } from '@/styles/theme';
+import { cssVarTheme, type FontSize } from '@/styles/tokens/theme';
 import { cx } from '@/styles/tw';
 import { BiCheck } from 'react-icons/bi';
 

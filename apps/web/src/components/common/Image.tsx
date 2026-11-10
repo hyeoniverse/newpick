@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Img from 'next/image';
-import type { BorderRadius, ColorKey } from '@/styles/theme';
+import type { BorderRadius, ColorKey } from '@/styles/tokens/theme';
 import { BG_COLOR, cx } from '@/styles/tw';
 
 interface Props {

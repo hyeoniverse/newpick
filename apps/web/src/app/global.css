@@ -4,7 +4,7 @@
  * 공통 부품이 스스로 붙이는 기본 모양은 styles/parts.css (유틸리티로 두면 화면 CSS가 덮어쓸 수 없어서).
  * - 기본 초기화는 Tailwind preflight. 화면이 기대던 sanitize.css · 브라우저 기본값은 styles/base-compat.css가 되돌린다
  * - 층 순서 theme → base → components → utilities: 유틸리티가 전역 기본값을 이긴다
- * - 색 · 글자 크기는 styles/tokens.css의 var(--np-…)를 그대로 쓴다. 라이트 · 다크 · 화면 폭에 따라 바뀌는 값이 한 곳에서 나온다
+ * - 색 · 글자 크기는 styles/tokens/tokens.css의 var(--np-…)를 그대로 쓴다. 라이트 · 다크 · 화면 폭에 따라 바뀌는 값이 한 곳에서 나온다
  */
 @layer theme, base, components, utilities;
 
@@ -13,7 +13,7 @@
 @import 'tailwindcss/preflight.css' layer(base);
 /* preflight가 지운 기본값 중 화면이 기대던 것 (styles/base-compat.css 머리말) */
 @import '../styles/base-compat.css' layer(base);
-@import '../styles/tokens.css';
+@import '../styles/tokens/tokens.css';
 /* 공통 부품이 스스로 붙이는 기본 모양: components 층 맨 앞 (styles/parts.css 머리말) */
 @import '../styles/parts.css' layer(components);
 /* 화면 틀(예전 CSS 모듈): 공통 부품 · 화면 CSS보다 앞 (예전에도 모듈 link가 styled 태그보다 먼저였다) */
