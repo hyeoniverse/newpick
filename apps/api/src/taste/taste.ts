@@ -34,10 +34,45 @@ export interface TopicScore {
   bookmark: number;
   scrap: number;
   memo: number;
+  /** 마지막 신호 시각 (ms). 점수가 같을 때 순서용, 응답에는 넣지 않는다 */
+  lastAt: number;
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const round = (n: number) => Math.round(n * 100) / 100;
+
+/** 순서를 정하는 데 쓰는 값: 신호 종류별 수(중요도) · 마지막 신호 시각(최신) */
+interface Ranked {
+  score: number;
+  topic: string;
+  memo: number;
+  scrap: number;
+  bookmark: number;
+  /** 마지막 신호 시각 (ms) */
+  lastAt: number;
+  /** 운영 통계: 이 태그가 취향에 든 사람 수 */
+  users?: number;
+}
+
+/**
+ * 태그 순서: 점수 → (같으면) 더 중요한 신호 → (같으면) 더 최신 → 이름.
+ * - 중요한 신호: 더 많은 사람(운영 통계) → 메모 → 스크랩 → 북마크 수 (가중치가 큰 신호일수록 뚜렷한 관심)
+ * 점수가 같을 때 정하지 않으면 쿼리 결과 순서를 따라 불러올 때마다 순서 · 상위 N개 안에 드는 태그가 바뀐다
+ */
+export const byTopicScore = (a: Ranked, b: Ranked) =>
+  b.score - a.score ||
+  (b.users ?? 0) - (a.users ?? 0) ||
+  b.memo - a.memo ||
+  b.scrap - a.scrap ||
+  b.bookmark - a.bookmark ||
+  b.lastAt - a.lastAt ||
+  a.topic.localeCompare(b.topic, 'ko');
+
+/** 분야 순서: 점수 → (같으면) 더 최신 → 분야 번호 */
+export const byCategoryScore = (
+  a: { score: number; categoryId: number; lastAt: number },
+  b: { score: number; categoryId: number; lastAt: number },
+) => b.score - a.score || b.lastAt - a.lastAt || a.categoryId - b.categoryId;
 
 export const decay = (at: Date, now: Date) =>
   0.5 ** (Math.max(0, now.getTime() - at.getTime()) / DAY_MS / HALF_LIFE_DAYS);
@@ -52,16 +87,21 @@ export function scoreTaste(
   now = new Date(),
 ) {
   const topics = new Map<string, TopicScore & { names: Map<string, number> }>();
-  const categories = new Map<number, number>();
+  const categories = new Map<number, { score: number; lastAt: number }>();
 
   for (const signal of signals) {
     const weight =
       (WEIGHTS[signal.kind] + (signal.starred ? STAR_BONUS : 0)) *
       decay(signal.at, now);
-    categories.set(
-      signal.categoryId,
-      (categories.get(signal.categoryId) ?? 0) + weight,
-    );
+    const at = signal.at.getTime();
+    const category = categories.get(signal.categoryId) ?? {
+      score: 0,
+      lastAt: 0,
+    };
+    categories.set(signal.categoryId, {
+      score: category.score + weight,
+      lastAt: Math.max(category.lastAt, at),
+    });
     const text = signal.text ? tagKey(signal.text) : '';
     const seen = new Set<string>();
     for (const raw of signal.keywords) {
@@ -75,6 +115,7 @@ export function scoreTaste(
         bookmark: 0,
         scrap: 0,
         memo: 0,
+        lastAt: 0,
         names: new Map<string, number>(),
       };
       const bonus = text.includes(key)
@@ -82,6 +123,7 @@ export function scoreTaste(
         : 0;
       topic.score += weight + bonus;
       topic[signal.kind] += 1;
+      topic.lastAt = Math.max(topic.lastAt, at);
       topic.names.set(name, (topic.names.get(name) ?? 0) + 1);
       topics.set(key, topic);
     }
@@ -91,12 +133,18 @@ export function scoreTaste(
     topics: [...topics.values()]
       .map(({ names, ...topic }) => ({
         ...topic,
-        topic: [...names.entries()].sort((a, b) => b[1] - a[1])[0][0],
+        topic: [...names.entries()].sort(
+          (a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'ko'),
+        )[0][0],
         score: round(topic.score),
       }))
-      .sort((a, b) => b.score - a.score || a.topic.localeCompare(b.topic)),
+      .sort(byTopicScore),
     categories: [...categories.entries()]
-      .map(([categoryId, score]) => ({ categoryId, score: round(score) }))
-      .sort((a, b) => b.score - a.score),
+      .map(([categoryId, c]) => ({
+        categoryId,
+        score: round(c.score),
+        lastAt: c.lastAt,
+      }))
+      .sort(byCategoryScore),
   };
 }
