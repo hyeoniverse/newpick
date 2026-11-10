@@ -6,7 +6,7 @@ import { useModal } from '@/hooks/useModal';
 import { useTab } from '@/hooks/useTab';
 
 import { LuBell, LuBellOff } from 'react-icons/lu';
-import { ToggleIcon } from '@/components/common/svg/ToggleSVG';
+import { ToggleIcon } from '@/components/common/icons/ToggleSVG';
 import ModalContents from '@/components/common/modal/ModalContent';
 
 function SubscribeToggle() {

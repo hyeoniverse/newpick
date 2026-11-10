@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
-import Unsubscribe from './Unsubscribe';
+import Unsubscribe from './_components/Unsubscribe';
 
 export const metadata: Metadata = { title: '수신 거부', robots: { index: false, follow: false } };
 

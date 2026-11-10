@@ -21,7 +21,7 @@ import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
 import ModalContents from '@/components/common/modal/ModalContent';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
-import { when } from './format';
+import { when } from '../_lib/format';
 import { kstDate } from '@/utils/formatter';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */

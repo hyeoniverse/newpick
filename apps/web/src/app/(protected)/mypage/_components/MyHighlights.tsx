@@ -22,7 +22,7 @@ import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { dateFormatter } from '@/utils/formatter';
 import MyTaste from './MyTaste';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
-import { setFolderDragGhost } from './folders/dragGhost';
+import { setFolderDragGhost } from '../_lib/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/MonthBar';

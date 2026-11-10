@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { IconButton } from '@/styles/Icon';
+import { IconButton } from '@/components/common/icons/IconButton';
 import { StarGlyph } from '@/components/common/icons/Glyphs';
 
 interface Props {

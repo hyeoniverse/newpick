@@ -8,7 +8,7 @@ import { DEFAULT_IMAGES } from '@/constants/images';
 import { ArticleDetail as IArticleDetail } from '@/types/article';
 import { getFirstImage } from '@/utils/getFirstImage';
 
-import { PCLogo } from '@/components/common/svg/LogoSVG';
+import { PCLogo } from '@/components/common/icons/LogoSVG';
 import Image from '@/components/common/Image';
 import Title from '@/components/common/Title';
 import { cx } from '@/styles/tw';

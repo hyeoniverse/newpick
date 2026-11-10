@@ -1,4 +1,4 @@
-import { IconButton } from '@/styles/Icon';
+import { IconButton } from '@/components/common/icons/IconButton';
 
 interface Props {
 	children?: React.ReactNode;

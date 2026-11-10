@@ -14,7 +14,7 @@ import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
-import { PROCESS_LABEL, usd, when } from './format';
+import { PROCESS_LABEL, usd, when } from '../_lib/format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 import ModalContents from '@/components/common/modal/ModalContent';
 import { useModal } from '@/hooks/useModal';

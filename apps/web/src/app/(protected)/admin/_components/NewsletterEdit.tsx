@@ -22,7 +22,7 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import ArticleContent from '@/app/articles/detail/[slug]/_components/content/ArticleContent';
 import InputSelect from '@/components/common/InputSelect';
 import HtmlCodeEditor from './HtmlCodeEditor';
-import { compactHtml, formatHtml } from './htmlFormat';
+import { compactHtml, formatHtml } from '../_lib/htmlFormat';
 
 type Form = { title: string; subtitle: string; content: string; keywords: string; categoryId: string; html: string };
 
