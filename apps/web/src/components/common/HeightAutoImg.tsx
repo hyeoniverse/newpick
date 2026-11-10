@@ -28,7 +28,7 @@ function HeightAutoImg({ src, height, className, aspectratio = 'auto' }: Props) 
 				src={(src && getFirstImage(src)) || '/img/newpick_default_img.jpg'}
 				alt="news-img"
 				quality={75}
-				sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+				sizes="(max-width: 1023px) 100vw, (max-width: 1200px) 50vw, 33vw"
 				fill
 				className="relative! block h-[unset]! w-full object-cover object-center [aspect-ratio:var(--img-ratio)] [content-visibility:auto]"
 				onError={imageOnErrorHandler}

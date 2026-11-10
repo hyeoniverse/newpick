@@ -56,10 +56,14 @@
 /* 다크 모드: <html data-theme='dark'> (머리의 스크립트가 그리기 전에 정한다) */
 @custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
 
-/* 화면 폭: theme.mediaQuery와 같이 '이하' 기준 (데스크톱 먼저 만들고 좁은 화면에서 고친다) */
-@custom-variant desktop (@media (max-width: 1024px));
-@custom-variant tablet (@media (max-width: 768px));
-@custom-variant mobile (@media (max-width: 480px));
+/*
+ * 화면 폭 4단계 (theme.mediaQuery와 같이): 데스크톱 1440 이상 · 노트북 1024~1439 · 태블릿 768~1023 · 휴대폰 767 이하.
+ * 데스크톱을 기본으로 만들고 좁은 화면에서 고친다 (notebook · tablet · mobile은 '이하'). desktop은 넓은 화면에만 더할 때
+ */
+@custom-variant desktop (@media (min-width: 1440px));
+@custom-variant notebook (@media (max-width: 1439px));
+@custom-variant tablet (@media (max-width: 1023px));
+@custom-variant mobile (@media (max-width: 767px));
 
 /* theme.ts의 이름 그대로: bg-primary · text-sub-text · text-small · font-semi-bold · rounded-surface · shadow-medium … */
 @theme inline {

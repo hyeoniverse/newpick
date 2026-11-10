@@ -163,7 +163,7 @@ function StepRow({ step, index }: { step: Step; index: number }) {
 								alt={shot.alt}
 								width={shot.size[0]}
 								height={shot.size[1]}
-								sizes="(max-width: 768px) 100vw, 60vw"
+								sizes="(max-width: 1023px) 100vw, 60vw"
 							/>
 						</figure>
 					))}
@@ -176,7 +176,7 @@ function StepRow({ step, index }: { step: Step; index: number }) {
 							alt={step.alt ?? ''}
 							width={step.size?.[0] ?? 0}
 							height={step.size?.[1] ?? 0}
-							sizes="(max-width: 768px) 100vw, 60vw"
+							sizes="(max-width: 1023px) 100vw, 60vw"
 						/>
 					) : (
 						<LoginMock />
