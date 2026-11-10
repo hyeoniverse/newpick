@@ -184,7 +184,7 @@ export default function StatsAdmin() {
 															<td className="num">{p.avgScroll}%</td>
 															<td className="row-link">
 																<Link
-																	href={ROUTES.admin.statsPage(
+																	href={ROUTES.admin.statsHeatmap(
 																		`route=${encodeURIComponent(p.route)}&from=${from}&to=${to}`,
 																	)}
 																>
