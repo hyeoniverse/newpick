@@ -10,7 +10,7 @@ interface ToastState {
 	setPosition: (position: ToastPosition) => void;
 }
 
-const useToastStore = create<ToastState>((set) => ({
+export const useToastStore = create<ToastState>((set) => ({
 	toasts: [],
 	// 모달이 모두 아래에서 올라오는 시트라 위쪽에 (#52). 헤더·펼친 메뉴 아래로 비켜 선다 (ToastContainer)
 	position: 'top-right',
@@ -46,5 +46,3 @@ const useToastStore = create<ToastState>((set) => ({
 			position,
 		})),
 }));
-
-export default useToastStore;

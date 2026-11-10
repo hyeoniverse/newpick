@@ -1,7 +1,7 @@
 'use client';
 
 import { NavigationItem as INavigationItem } from '@/types/navigation';
-import useTabStore from '@/stores/useTabStore';
+import { useTabStore } from '@/stores/useTabStore';
 import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { cx } from '@/styles/tw';

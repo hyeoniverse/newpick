@@ -5,9 +5,7 @@ interface MountState {
 	setMounted: () => void;
 }
 
-const useMountStore = create<MountState>((set) => ({
+export const useMountStore = create<MountState>((set) => ({
 	isMounted: false,
 	setMounted: () => set({ isMounted: true }),
 }));
-
-export default useMountStore;
