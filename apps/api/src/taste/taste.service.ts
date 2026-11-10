@@ -5,11 +5,13 @@ import { tagKey, toRules } from 'src/tags/tags';
 import { parseNewsletterHtml } from 'src/edition/parse';
 import type { TasteProfile, TasteSignal } from 'src/edition/personalize';
 import {
+  byCategoryScore,
+  byTopicScore,
   HALF_LIFE_DAYS,
-  STAR_BONUS,
-  Signal,
-  WEIGHTS,
   scoreTaste,
+  Signal,
+  STAR_BONUS,
+  WEIGHTS,
 } from './taste';
 
 const asKeywords = (value: unknown) =>
@@ -203,10 +205,20 @@ export class TasteService {
         scrap: signals.filter((s) => s.kind === 'scrap').length,
         memo: signals.filter((s) => s.kind === 'memo').length,
       },
-      topics: topics.slice(0, 20),
-      categories: categories.map((c) => ({
-        ...c,
-        name: names.get(c.categoryId) ?? null,
+      // lastAt은 순서를 정하는 데만 쓰고 응답에는 넣지 않는다
+      topics: topics
+        .slice(0, 20)
+        .map(({ topic, score, bookmark, scrap, memo }) => ({
+          topic,
+          score,
+          bookmark,
+          scrap,
+          memo,
+        })),
+      categories: categories.map(({ categoryId, score }) => ({
+        categoryId,
+        score,
+        name: names.get(categoryId) ?? null,
       })),
     };
   }
@@ -217,46 +229,73 @@ export class TasteService {
    */
   async overview(): Promise<TasteStats> {
     const { byUser, rules, names } = await this.signals();
-    const topics = new Map<string, { score: number; users: number }>();
-    const categories = new Map<number, number>();
+    const topics = new Map<
+      string,
+      {
+        score: number;
+        users: number;
+        memo: number;
+        scrap: number;
+        bookmark: number;
+        lastAt: number;
+      }
+    >();
+    const categories = new Map<number, { score: number; lastAt: number }>();
     const totals = { bookmark: 0, scrap: 0, memo: 0 };
     for (const signals of byUser.values()) {
       for (const s of signals) totals[s.kind] += 1;
       const scored = scoreTaste(signals, rules);
       for (const t of scored.topics) {
-        const sum = topics.get(t.topic) ?? { score: 0, users: 0 };
-        sum.score += t.score;
-        sum.users += 1;
-        topics.set(t.topic, sum);
+        const sum = topics.get(t.topic) ?? {
+          score: 0,
+          users: 0,
+          memo: 0,
+          scrap: 0,
+          bookmark: 0,
+          lastAt: 0,
+        };
+        topics.set(t.topic, {
+          score: sum.score + t.score,
+          users: sum.users + 1,
+          memo: sum.memo + t.memo,
+          scrap: sum.scrap + t.scrap,
+          bookmark: sum.bookmark + t.bookmark,
+          lastAt: Math.max(sum.lastAt, t.lastAt),
+        });
       }
       for (const c of scored.categories) {
-        categories.set(
-          c.categoryId,
-          (categories.get(c.categoryId) ?? 0) + c.score,
-        );
+        const sum = categories.get(c.categoryId) ?? { score: 0, lastAt: 0 };
+        categories.set(c.categoryId, {
+          score: sum.score + c.score,
+          lastAt: Math.max(sum.lastAt, c.lastAt),
+        });
       }
     }
+    const round = (n: number) => Math.round(n * 100) / 100;
     return {
       weights: WEIGHTS,
       starBonus: STAR_BONUS,
       halfLifeDays: HALF_LIFE_DAYS,
       users: byUser.size,
       signals: totals,
+      // 순서는 점수 → 중요한 신호 → 최신 (byTopicScore), 응답에는 태그 · 점수 · 사람 수만
       topics: [...topics.entries()]
-        .map(([topic, v]) => ({
-          topic,
-          score: Math.round(v.score * 100) / 100,
-          users: v.users,
-        }))
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 20),
+        .map(([topic, v]) => ({ ...v, topic, score: round(v.score) }))
+        .sort(byTopicScore)
+        .slice(0, 20)
+        .map(({ topic, score, users }) => ({ topic, score, users })),
       categories: [...categories.entries()]
-        .map(([categoryId, score]) => ({
+        .map(([categoryId, v]) => ({
+          categoryId,
+          score: round(v.score),
+          lastAt: v.lastAt,
+        }))
+        .sort(byCategoryScore)
+        .map(({ categoryId, score }) => ({
           categoryId,
           name: names.get(categoryId) ?? null,
-          score: Math.round(score * 100) / 100,
-        }))
-        .sort((a, b) => b.score - a.score),
+          score,
+        })),
     };
   }
 }
