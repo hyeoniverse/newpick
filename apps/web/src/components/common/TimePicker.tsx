@@ -1,9 +1,10 @@
 'use client';
 
+import type { FieldSize } from '@/types/ui';
 import { useEffect, useId, useRef, useState } from 'react';
 import { LuClock } from 'react-icons/lu';
 
-type Size = 'medium' | 'small';
+type Size = FieldSize;
 
 interface Props {
 	/** 'HH:mm' (24시간) */

@@ -1,5 +1,5 @@
 import { CATEGORIES as SHARED_CATEGORIES } from '@newpick/shared';
-import { Category } from '@/models/category.model';
+import { Category } from '@/types/category';
 
 /** 화면용 분야 목록: '전체'(id 0) + 공유 분야 (@newpick/shared, api와 같은 목록) */
 export const CATEGORIES: Category[] = [

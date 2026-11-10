@@ -2,7 +2,7 @@ import { ROUTES } from '@/constants/routes';
 import type { MetadataRoute } from 'next';
 import { fetchArticleListCached } from '@/api/article';
 import { SITE_URL } from '@/constants/site';
-import { ArticleDetail } from '@/models/article.model';
+import { ArticleDetail } from '@/types/article';
 
 /** 한 시간마다 다시 만든다. 뉴스레터를 만들거나 지우면 사이트 캐시 비우기(#73)로 바로 바뀐다 */
 export const revalidate = 3600;

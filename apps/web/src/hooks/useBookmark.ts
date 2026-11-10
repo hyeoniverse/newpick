@@ -1,7 +1,7 @@
 import { queryKeys } from '@/api/queryKeys';
 import type { BookmarkPage } from '@newpick/shared';
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { IBookmarkItem } from '@/models/bookmark.model';
+import { IBookmarkItem } from '@/types/bookmark';
 import {
 	fetchUserBookmarksApi,
 	addBookmarkApi,

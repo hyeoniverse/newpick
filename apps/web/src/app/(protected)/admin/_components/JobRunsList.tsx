@@ -19,11 +19,8 @@ const COLS = ['10rem', '6.5rem', '5rem', '6rem', '6.5rem', undefined];
 
 const PAGE_SIZE = 20;
 
-/** 실행 기록 한 줄 (@newpick/shared) */
-type Row = JobRunRecord;
-
-const JOB_LABEL: Record<Row['job'], string> = { crawling: '기사 수집', summary: 'AI 요약', mail: '구독 메일' };
-const STATUS_LABEL: Record<Row['status'], string> = {
+const JOB_LABEL: Record<JobRunRecord['job'], string> = { crawling: '기사 수집', summary: 'AI 요약', mail: '구독 메일' };
+const STATUS_LABEL: Record<JobRunRecord['status'], string> = {
 	running: '진행 중',
 	success: '성공',
 	partial: '일부 실패',

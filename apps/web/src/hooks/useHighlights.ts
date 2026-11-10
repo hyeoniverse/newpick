@@ -1,6 +1,6 @@
 import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
-import type { Highlight, HighlightPage, MyTaste } from '@newpick/shared';
+import type { Highlight, HighlightPage } from '@newpick/shared';
 import {
 	bulkHighlights,
 	createHighlight,
@@ -133,8 +133,6 @@ export function useHighlightMutations() {
 }
 
 /** 내 취향 점수 (#123 2단계) */
-export type Taste = MyTaste;
-
 export function useTaste() {
 	const { user } = useAuth();
 	return useQuery({

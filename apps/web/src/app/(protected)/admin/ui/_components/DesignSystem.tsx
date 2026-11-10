@@ -8,7 +8,7 @@ import AdminGate from '@/components/common/auth/AdminGate';
 import { useModal } from '@/hooks/useModal';
 import { useToast } from '@/hooks/useToast';
 import { useInputCheck } from '@/hooks/useInputCheck';
-import { ToastPosition, ToastType } from '@/models/toast.model';
+import { ToastPosition, ToastType } from '@/types/toast';
 import { useThemeStore } from '@/stores/useThemeStore';
 import {
 	ButtonScheme,

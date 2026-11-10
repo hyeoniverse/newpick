@@ -5,7 +5,6 @@ import type { HeatmapClick } from '@newpick/shared';
 import { useEffect, useRef, useState } from 'react';
 import { duration } from './trafficLabels';
 
-type Click = HeatmapClick;
 type Mode = 'attention' | 'clicks';
 
 interface Props {
@@ -15,7 +14,7 @@ interface Props {
 	/** 어텐션 맵: 문서 20칸 평균 체류 시간 (ms) */
 	attention: number[];
 	/** [가로 비율, 세로 비율, 구역] */
-	clicks: Click[];
+	clicks: HeatmapClick[];
 }
 
 /** 기기마다 띄울 화면 너비 (수집기가 나눈 기준의 대표 너비) */

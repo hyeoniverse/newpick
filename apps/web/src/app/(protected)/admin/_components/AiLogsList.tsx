@@ -27,9 +27,6 @@ const PINNED = ['9rem', '3.5rem', '9rem'];
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = [...PINNED, '5rem', '6.5rem', '6.5rem', '8.5rem', '5rem', undefined];
 
-/** 한 줄 (@newpick/shared, api 응답과 같다) */
-type Row = AiLogRow;
-
 const TYPES = [
 	{ value: '', label: '전체' },
 	{ value: 'summarization', label: '요약' },
@@ -49,7 +46,7 @@ const kstDay = (iso: string) => new Date(iso).toLocaleDateString('sv-SE', { time
  * 다시 만들 수 있는 기록: 분야가 있는 요약이 실패했고, 그 묶음의 마지막 시도도 실패로 끝난 것.
  * (묶음 중간 실패는 뒤에서 이미 다시 시도했다)
  */
-const canRerun = (log: Row) =>
+const canRerun = (log: AiLogRow) =>
 	log.processType === 'summarization' &&
 	log.status === 'error' &&
 	log.categoryId != null &&
@@ -60,7 +57,7 @@ function useRerun() {
 	const { openModal, closeModal } = useModal();
 	const { showToast } = useToast();
 	const queryClient = useQueryClient();
-	return (log: Row) => {
+	return (log: AiLogRow) => {
 		const date = kstDay(log.createdAt);
 		openModal(
 			<ModalContents
@@ -123,7 +120,7 @@ export default function AiLogsList() {
 
 	// 카드 목록(휴대폰)용: 이어진 같은 묶음을 [마지막 시도, ...앞선 시도]로
 	const groups = useMemo(() => {
-		const out: Row[][] = [];
+		const out: AiLogRow[][] = [];
 		for (const log of rows) {
 			const last = out.at(-1);
 			const chain = log.attempt && log.attempt.total > 1 ? log.attempt.chain : null;
@@ -278,9 +275,9 @@ export default function AiLogsList() {
 }
 
 /** 같은 묶음(다시 시도)의 기록을 붙여 놓는다. 묶음 자리는 가장 최근 시도가 있던 자리, 묶음 안은 최신순 그대로 */
-function groupAttempts(items: Row[]) {
+function groupAttempts(items: AiLogRow[]) {
 	const placed = new Set<number>();
-	const out: Row[] = [];
+	const out: AiLogRow[] = [];
 	for (const item of items) {
 		const chain = item.attempt && item.attempt.total > 1 ? item.attempt.chain : null;
 		if (chain === null) {
@@ -295,7 +292,7 @@ function groupAttempts(items: Row[]) {
 }
 
 /** 결과 칸: 성공 · 실패 배지, 다시 시도 묶음이면 옆에 '시도 n/total' (묶음 결과는 붙어 있는 맨 위 줄에서 보인다) */
-function Result({ log, onRerun }: { log: Row; onRerun: (log: Row) => void }) {
+function Result({ log, onRerun }: { log: AiLogRow; onRerun: (log: AiLogRow) => void }) {
 	const attempt = log.attempt;
 	return (
 		<span className="np-admin-ai-logs-list-badges">
@@ -369,12 +366,12 @@ function LogEntry({
 	onToggle,
 	onRerun,
 }: {
-	log: Row;
+	log: AiLogRow;
 	today: string;
 	earlier: boolean;
 	open: boolean;
 	onToggle: () => void;
-	onRerun: (log: Row) => void;
+	onRerun: (log: AiLogRow) => void;
 }) {
 	const ok = log.status === 'success';
 	const attempt = log.attempt && log.attempt.total > 1 ? log.attempt : null;

@@ -1,7 +1,7 @@
 import API_ENDPOINTS from '@/constants/api';
 import { apiFetch } from '@/api/client';
 import { NEWSLETTER_CACHE_TAG } from '@/constants/cache';
-import { ArticleDetail, ArticleInfo, NewsInfo } from '@/models/article.model';
+import { ArticleDetail, ArticleInfo, NewsInfo } from '@/types/article';
 
 type ArticleList = { data: ArticleDetail[] };
 

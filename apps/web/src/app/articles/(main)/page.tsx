@@ -1,5 +1,5 @@
 import { ROUTES } from '@/constants/routes';
-import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/types/article';
 import { parseArticles } from '@/utils/parseArticles';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';

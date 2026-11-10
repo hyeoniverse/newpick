@@ -37,9 +37,6 @@ export const SUBSCRIPTION_LABEL: Record<string, string> = { active: '구독 중'
 export const subscriptionTone = (status: string | null) =>
 	status === 'active' ? 'success' : status === 'paused' ? 'warning' : 'neutral';
 
-/** 한 줄 (@newpick/shared, api 응답과 같다) */
-type Row = AdminUserRow;
-
 /**
  * 관리자 CMS (#31): 사용자. 이메일 · 이름 · 권한으로 찾고, 권한을 바꾸거나 지운다(회원 탈퇴와 같은 경로).
  * 내 계정은 바꾸거나 지울 수 없다 (서버에서도 막음)
@@ -66,7 +63,7 @@ export default function UsersAdmin() {
 	});
 	const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.users.all });
 
-	const changeRole = (row: Row) => {
+	const changeRole = (row: AdminUserRow) => {
 		const next = row.role === 'admin' ? 'user' : 'admin';
 		openModal(
 			<ModalContents
@@ -94,7 +91,7 @@ export default function UsersAdmin() {
 		);
 	};
 
-	const remove = (row: Row) =>
+	const remove = (row: AdminUserRow) =>
 		openModal(
 			<ModalContents
 				icon={<LuTriangleAlert />}

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
-import type { ToastPosition } from '@/models/toast.model';
+import type { ToastPosition } from '@/types/toast';
 import { useMount } from '@/hooks/useMount';
 import { useToast } from '@/hooks/useToast';
 import { headerBottom } from '@/utils/headerBottom';

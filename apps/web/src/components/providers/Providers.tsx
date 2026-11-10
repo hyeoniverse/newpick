@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ApiError } from '@/api/client';
-import { ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleSummary as IArticleSummary } from '@/types/article';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { TRENDS_QUERY_KEY } from '@/hooks/useTrends';
 import { COOKIES } from '@/constants/storage';

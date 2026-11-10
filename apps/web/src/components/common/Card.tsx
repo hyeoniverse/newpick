@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { forwardRef } from 'react';
 import { DEFAULT_IMAGES } from '@/constants/images';
-import { Card as ICard } from '@/models/card.model';
+import { Card as ICard } from '@/types/card';
 
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { TOAST } from '@/constants/numbers';
-import { ToastAction, ToastItem, ToastType, ToastPosition } from '@/models/toast.model';
+import { ToastAction, ToastItem, ToastType, ToastPosition } from '@/types/toast';
 
 interface ToastState {
 	toasts: ToastItem[];

@@ -3,7 +3,7 @@ import { act, renderHook, waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { useSubscribe } from '@/hooks/useSubscribe';
-import { User } from '@/models/user.model';
+import { User } from '@/types/user';
 import * as subscriptionApi from '@/api/subscription';
 import * as interestsApi from '@/api/interests';
 

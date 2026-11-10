@@ -3,7 +3,7 @@ import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
 import { extractStories, parseArticles, parseUrls } from '@/utils/parseArticles';
 import { getFirstImage } from '@/utils/getFirstImage';
 import { stripCodeFence } from '@/utils/stripCodeFence';
-import { ArticleDetail } from '@/models/article.model';
+import { ArticleDetail } from '@/types/article';
 
 describe('카테고리 변환', () => {
 	it('id ↔ 이름', () => {

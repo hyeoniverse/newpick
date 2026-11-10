@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { User } from '@/models/user.model';
+import { User } from '@/types/user';
 
 /**
  * 로그인 표시 쿠키로 판단한 세션 상태.

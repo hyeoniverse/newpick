@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AUTO_SCROLL_INTERVAL } from '@/constants/numbers';
-import { Card as ICard } from '@/models/card.model';
+import { Card as ICard } from '@/types/card';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 import { useTimeout } from '@/hooks/useTimeout';
 

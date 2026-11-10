@@ -2,7 +2,7 @@
 
 import { ROUTES } from '@/constants/routes';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleSummary as IArticleSummary } from '@/types/article';
 import { ITEMS_PER_PAGE } from '@/constants/numbers';
 
 import Title from '@/components/common/Title';

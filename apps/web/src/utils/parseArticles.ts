@@ -1,4 +1,4 @@
-import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/types/article';
 
 import { getFirstImage } from '@/utils/getFirstImage';
 import { mapIdToTitle } from '@/utils/mapInterests';
