@@ -5,7 +5,7 @@ import TagIndex from '@/app/tags/_components/TagIndex';
 
 export const metadata: Metadata = pageMetadata(
 	'태그',
-	'뉴픽 뉴스레터에 붙은 태그를 관심사별로 모아 봅니다. 태그를 누르면 그 태그가 붙은 뉴스레터를 볼 수 있어요.',
+	'뉴픽 뉴스레터에 붙은 태그를 관심사별로 모아 봅니다. 태그를 누르면 그 태그가 붙은 뉴스레터를 볼 수 있습니다.',
 	ROUTES.tags,
 );
 

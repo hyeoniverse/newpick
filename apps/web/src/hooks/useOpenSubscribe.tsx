@@ -29,7 +29,7 @@ export function useOpenSubscribe() {
 				/>,
 			);
 		} else {
-			openLogin('구독하려면 로그인해 주세요');
+			openLogin('구독하려면 로그인해 주십시오');
 		}
 	};
 }

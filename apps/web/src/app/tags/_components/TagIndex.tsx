@@ -95,7 +95,7 @@ export default function TagIndex() {
 					태그
 				</Title>
 				<Text size="small" color="subText">
-					뉴스레터에 붙은 태그를 모았어요. 누르면 그 태그가 붙은 뉴스레터를 볼 수 있어요.
+					뉴스레터에 붙은 태그를 모았습니다. 누르면 그 태그가 붙은 뉴스레터를 볼 수 있습니다.
 				</Text>
 			</header>
 
@@ -130,8 +130,8 @@ export default function TagIndex() {
 			) : groups.total === 0 ? (
 				<EmptyState
 					icon={LuTags}
-					title={q ? `‘${q}’이(가) 들어간 태그가 없어요` : '아직 태그가 없어요'}
-					description="다른 이름으로 찾거나 관심사를 바꿔 보세요."
+					title={q ? `‘${q}’이(가) 들어간 태그가 없습니다` : '아직 태그가 없습니다'}
+					description="다른 이름으로 찾거나 관심사를 바꿔 보십시오."
 				/>
 			) : (
 				<>

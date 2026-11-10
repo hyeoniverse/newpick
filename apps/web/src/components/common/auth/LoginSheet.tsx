@@ -32,8 +32,9 @@ export default function LoginSheet({ reason }: Props) {
 		const result = await loginUser();
 		// iframe 안 팝업 로그인의 결과. 성공하면 새로 고쳐 로그인 상태로 (쿠키는 같은 사이트라 그대로 쓰인다)
 		if (result === 'ok') return window.location.reload();
-		if (result === 'blocked') showToast('팝업이 막혀 있어요. 이 사이트의 팝업을 허용한 뒤 다시 눌러 주세요.', 'error');
-		if (result === 'failed') showToast('로그인하지 못했어요. 다시 시도해 주세요.', 'error');
+		if (result === 'blocked')
+			showToast('팝업이 막혀 있습니다. 이 사이트의 팝업을 허용한 뒤 다시 눌러 주십시오.', 'error');
+		if (result === 'failed') showToast('로그인하지 못했습니다. 다시 시도해 주십시오.', 'error');
 		setWaiting(false);
 	};
 
@@ -46,7 +47,7 @@ export default function LoginSheet({ reason }: Props) {
 				{reason ?? '뉴픽 로그인'}
 			</Title>
 			<Text size="small" color="subText">
-				구글 계정으로 바로 시작할 수 있어요.
+				구글 계정으로 바로 시작할 수 있습니다.
 			</Text>
 
 			<Button

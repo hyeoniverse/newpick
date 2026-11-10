@@ -51,7 +51,7 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 			<ModalContent
 				icon={<LuMailCheck />}
 				title="구독이 완료되었습니다"
-				content="내일 아침부터 선택한 분야의 뉴스레터를 보내드려요."
+				content="내일 아침부터 선택한 분야의 뉴스레터를 보내드립니다."
 				filledButton="확인"
 				onConfirmClick={closeModal}
 			/>,
@@ -65,7 +65,7 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 					뉴스레터 구독
 				</Title>
 				<Text size="small" color="subText">
-					받아 볼 분야를 고르면 주요 소식만 골라 메일로 보내드려요.
+					받아 볼 분야를 고르면 주요 소식만 골라 메일로 보내드립니다.
 				</Text>
 			</div>
 
@@ -105,7 +105,7 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 			>
 				{selectedInterests.length
 					? `${isAll ? '전체' : `${selectedInterests.length}개`} 분야 구독하기`
-					: '분야를 골라 주세요'}
+					: '분야를 골라 주십시오'}
 			</Button>
 		</div>
 	);

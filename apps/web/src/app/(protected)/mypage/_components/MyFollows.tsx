@@ -61,7 +61,7 @@ export default function MyFollows() {
 				) : (
 					<EmptyState
 						icon={LuBellPlus}
-						title="지켜보는 소식이 없어요"
+						title="지켜보는 소식이 없습니다"
 						description="뉴스레터의 소식마다 있는 '후속 지켜보기'를 누르면, 이어지는 새 소식이 여기에 쌓이고 머리글에 표시됩니다."
 						action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 					/>

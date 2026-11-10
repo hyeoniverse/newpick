@@ -62,7 +62,7 @@ export function AdminListState<T extends { items: unknown[] }>({
 	children: (data: T) => React.ReactNode;
 }) {
 	if (list.isPending) return <p className="state">불러오는 중…</p>;
-	if (list.isError || !list.data) return <p className="state">불러오지 못했어요.</p>;
+	if (list.isError || !list.data) return <p className="state">불러오지 못했습니다.</p>;
 	if (list.data.items.length === 0) return <p className="state">{empty}</p>;
 	return <>{children(list.data)}</>;
 }

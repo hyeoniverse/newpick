@@ -5,7 +5,7 @@
 export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL || 'https://newpick.hyeoniverse.com').replace(/\/$/, '');
 export const SITE_NAME = '뉴픽: NewPick';
 export const SITE_DESCRIPTION =
-	'AI가 그날의 기사를 읽고 중요한 소식만 골라 요약합니다. 고른 관심사를 엮은 메일 한 통을 매일 아침 받아 보세요.';
+	'AI가 그날의 기사를 읽고 중요한 소식만 골라 요약합니다. 고른 관심사를 엮은 메일 한 통을 매일 아침 받아 보십시오.';
 /** 기본 공유 이미지 (1200×630). 사진이 없는 뉴스레터와 다른 화면이 쓴다 */
 export const DEFAULT_OG_IMAGE = {
 	url: '/og.png',

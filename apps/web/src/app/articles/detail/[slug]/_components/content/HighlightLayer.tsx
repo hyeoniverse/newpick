@@ -243,7 +243,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	}, [highlights, readSelection, rootRef]);
 
 	const needLogin = () => {
-		openLogin('스크랩 · 메모는 로그인하면 쓸 수 있어요.');
+		openLogin('스크랩 · 메모는 로그인하면 쓸 수 있습니다.');
 		setPopover(null);
 	};
 

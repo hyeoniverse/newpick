@@ -95,7 +95,7 @@ export default function MorningSection() {
 			<SectionHeading
 				label="08:00 → 08:40"
 				title="뉴스레터가 만들어지는 아침 40분."
-				sub="기사를 모으고, 고르고, 쓰고, 보내기까지. 스크롤하며 따라가 보세요."
+				sub="기사를 모으고, 고르고, 쓰고, 보내기까지. 스크롤하며 따라가 보십시오."
 			/>
 
 			<div ref={ref} className="track">

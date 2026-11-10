@@ -69,8 +69,8 @@ function MyBookmark() {
 		return (
 			<EmptyState
 				icon={LuBookmark}
-				title="북마크한 뉴스레터가 없어요"
-				description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모여요."
+				title="북마크한 뉴스레터가 없습니다"
+				description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모입니다."
 				action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 			/>
 		);
@@ -114,7 +114,7 @@ function MyBookmark() {
 				</FilterRow>
 			)}
 			{shown.length === 0 ? (
-				<p className="empty">이 조건의 북마크가 없어요.</p>
+				<p className="empty">이 조건의 북마크가 없습니다.</p>
 			) : (
 				/* 북마크: 그림이 위에 오는 작은 카드 격자 (줄 목록인 내 뉴스레터와 다르게 모아 둔 기사 모음처럼, 한 줄에 4장 · 휴대폰 2장). 카드를 끌면 폴더로 */
 				<ul className="card-grid">

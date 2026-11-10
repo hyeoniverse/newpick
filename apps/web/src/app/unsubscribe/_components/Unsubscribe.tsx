@@ -41,7 +41,7 @@ export default function Unsubscribe() {
 			await unsubscribeByToken(token);
 			setDone(true);
 		} catch (e) {
-			setFailed(errorMessage(e, '해지하지 못했어요. 잠시 뒤 다시 시도해 주세요.'));
+			setFailed(errorMessage(e, '해지하지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'));
 		} finally {
 			setPending(false);
 		}
@@ -62,9 +62,9 @@ export default function Unsubscribe() {
 					<LuLink2Off />
 				</span>
 				<p className="eyebrow">수신 거부</p>
-				<h1 className="title">링크가 올바르지 않아요</h1>
+				<h1 className="title">링크가 올바르지 않습니다</h1>
 				<p className="description">
-					메일 아래쪽의 &quot;수신 거부&quot;를 다시 눌러 주세요. 로그인했다면 마이페이지에서도 해지할 수 있어요.
+					메일 아래쪽의 &quot;수신 거부&quot;를 다시 눌러 주십시오. 로그인했다면 마이페이지에서도 해지할 수 있습니다.
 				</p>
 				<div className="actions">
 					<Button scheme="primary" size="medium" onClick={() => router.push(ROUTES.mypage('settings'))}>
@@ -85,10 +85,10 @@ export default function Unsubscribe() {
 					<LuMailCheck />
 				</span>
 				<p className="eyebrow">수신 거부</p>
-				<h1 className="title">{done ? '구독을 해지했어요' : '이미 수신 거부된 메일이에요'}</h1>
+				<h1 className="title">{done ? '구독을 해지했습니다' : '이미 수신 거부된 메일입니다'}</h1>
 				<p className="email">{data.email}</p>
 				<p className="description">
-					이 주소로 뉴스레터를 더 보내지 않아요. 다시 받고 싶으면 로그인해서 마이페이지에서 언제든 구독할 수 있어요.
+					이 주소로 뉴스레터를 더 보내지 않습니다. 다시 받고 싶으면 로그인해서 마이페이지에서 언제든 구독할 수 있습니다.
 				</p>
 				<div className="actions">
 					<Button scheme="primary" size="medium" onClick={() => router.push(ROUTES.articles)}>
@@ -108,7 +108,7 @@ export default function Unsubscribe() {
 				<LuMailX />
 			</span>
 			<p className="eyebrow">수신 거부</p>
-			<h1 className="title">뉴픽 구독을 해지할까요?</h1>
+			<h1 className="title">뉴픽 구독을 해지하시겠습니까?</h1>
 			<p className="email">{data.email}</p>
 
 			<div className="changes">
@@ -135,7 +135,7 @@ export default function Unsubscribe() {
 					{pending ? '해지하는 중…' : '해지하기'}
 				</Button>
 				<Button scheme="outline" size="medium" onClick={() => router.push('/')}>
-					계속 받을게요
+					계속 받겠습니다
 				</Button>
 			</div>
 			{failed && (

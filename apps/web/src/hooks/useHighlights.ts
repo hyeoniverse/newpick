@@ -67,7 +67,7 @@ export function useHighlightMutations() {
 		queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
 	};
 	const fail = (error: Error) =>
-		showToast(errorMessage(error, '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.'), 'error');
+		showToast(errorMessage(error, '저장하지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'), 'error');
 
 	const create = useMutation({
 		mutationFn: createHighlight,
@@ -75,7 +75,7 @@ export function useHighlightMutations() {
 			refresh();
 			// 마이페이지 스크랩 탭의 이 문장으로 바로 (#hl-번호로 스크롤 · 잠깐 강조)
 			showToast(
-				body.note ? '메모를 남겼어요.' : '스크랩했어요. 마이페이지에서 모아 볼 수 있어요.',
+				body.note ? '메모를 남겼습니다.' : '스크랩했습니다. 마이페이지에서 모아 볼 수 있습니다.',
 				'success',
 				undefined,
 				{
@@ -92,8 +92,8 @@ export function useHighlightMutations() {
 		onSuccess: (_, body) => {
 			refresh();
 			if (body.starred !== undefined)
-				showToast(body.starred ? '중요 표시했어요.' : '중요 표시를 해제했어요.', 'success');
-			else showToast('메모를 고쳤어요.', 'success');
+				showToast(body.starred ? '중요 표시했습니다.' : '중요 표시를 해제했습니다.', 'success');
+			else showToast('메모를 고쳤습니다.', 'success');
 		},
 		onError: fail,
 	});
@@ -101,7 +101,7 @@ export function useHighlightMutations() {
 		mutationFn: deleteHighlight,
 		onSuccess: () => {
 			refresh();
-			showToast('스크랩을 지웠어요.', 'success');
+			showToast('스크랩을 지웠습니다.', 'success');
 		},
 		onError: fail,
 	});
@@ -109,7 +109,7 @@ export function useHighlightMutations() {
 		mutationFn: (ids: number[]) => deleteHighlights(ids),
 		onSuccess: ({ count }) => {
 			refresh();
-			showToast(`스크랩 ${count}개를 지웠어요.`, 'success');
+			showToast(`스크랩 ${count}개를 지웠습니다.`, 'success');
 		},
 		onError: fail,
 	});
@@ -120,10 +120,10 @@ export function useHighlightMutations() {
 			refresh();
 			showToast(
 				body.action === 'move'
-					? `${count}개를 옮겼어요.`
+					? `${count}개를 옮겼습니다.`
 					: body.action === 'star'
-						? `${count}개를 중요 표시했어요.`
-						: `${count}개의 중요 표시를 해제했어요.`,
+						? `${count}개를 중요 표시했습니다.`
+						: `${count}개의 중요 표시를 해제했습니다.`,
 				'success',
 			);
 		},

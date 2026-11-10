@@ -27,7 +27,7 @@ test.describe('비로그인 탐색', () => {
 		const response = await page.goto('/articles/detail/99999999');
 
 		expect(response?.status()).toBe(404);
-		await expect(page.getByRole('heading', { name: '삭제되었거나 없는 뉴스레터예요' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: '삭제되었거나 없는 뉴스레터입니다' })).toBeVisible();
 		await page.getByRole('button', { name: '뉴스레터 둘러보기' }).click();
 		await expect(page).toHaveURL(/\/articles$/);
 	});
@@ -59,7 +59,7 @@ test.describe('비로그인 탐색', () => {
 
 		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('없는검색어입니다');
 		await page.keyboard.press('Enter');
-		await expect(page.getByText('찾는 뉴스레터가 없어요')).toBeVisible();
+		await expect(page.getByText('찾는 뉴스레터가 없습니다')).toBeVisible();
 	});
 
 	// #32: 서버 렌더링 중에 조회수를 올리면 봇·서버 요청에도 늘고, 실패하면 페이지가 500이었다
@@ -82,7 +82,7 @@ test.describe('비로그인 탐색', () => {
 		// 서버는 /?login=required로 보내고, 화면이 그 값을 읽어 로그인 창을 연 뒤 주소에서 지운다.
 		// 지우는 시점이 화면이 뜨는 속도에 따라 달라서, 주소의 ?login= 대신 결과(홈 + 로그인 창)를 본다
 		await expect(page).toHaveURL(/\/(\?login=required)?$/);
-		await expect(page.getByText('로그인이 필요한 화면이에요')).toBeVisible();
+		await expect(page.getByText('로그인이 필요한 화면입니다')).toBeVisible();
 		await expect(page).toHaveURL(/\/$/);
 	});
 });

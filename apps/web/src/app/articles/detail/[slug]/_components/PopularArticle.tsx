@@ -38,13 +38,13 @@ function PopularArticle({ className }: Props) {
 			)}
 			{isError && (
 				<p className="state">
-					인기 뉴스레터를 불러오지 못했어요.{' '}
+					인기 뉴스레터를 불러오지 못했습니다.{' '}
 					<button type="button" className="retry" onClick={() => refetch()}>
 						다시 시도
 					</button>
 				</p>
 			)}
-			{popularArticles?.length === 0 && <p className="state">아직 인기 뉴스레터가 없어요.</p>}
+			{popularArticles?.length === 0 && <p className="state">아직 인기 뉴스레터가 없습니다.</p>}
 			<ul className="popular-list" hidden={!popularArticles?.length}>
 				{popularArticles &&
 					popularArticles.map((article, index) => (

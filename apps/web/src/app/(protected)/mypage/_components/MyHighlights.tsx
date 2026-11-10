@@ -198,8 +198,8 @@ export default function MyHighlights() {
 				<MyTaste />
 				<EmptyState
 					icon={LuHighlighter}
-					title="스크랩한 문장이 없어요"
-					description="뉴스레터를 읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남기면 여기에 모여요."
+					title="스크랩한 문장이 없습니다"
+					description="뉴스레터를 읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남기면 여기에 모입니다."
 					action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 				/>
 			</div>
@@ -218,9 +218,9 @@ export default function MyHighlights() {
 	const copy = async () => {
 		try {
 			await navigator.clipboard.writeText(asText(picked));
-			showToast(`${picked.length}개를 복사했어요.`, 'success');
+			showToast(`${picked.length}개를 복사했습니다.`, 'success');
 		} catch {
-			showToast('복사하지 못했어요.', 'error');
+			showToast('복사하지 못했습니다.', 'error');
 		}
 	};
 	const allShownSelected = shown.length > 0 && shown.every((h) => selected.has(h.id));
@@ -284,10 +284,10 @@ export default function MyHighlights() {
 			{shown.length === 0 && (
 				<p className="empty">
 					{filter === 'starred'
-						? '중요 표시한 문장이 없어요. 문장 옆 별을 누르면 여기 모여요.'
+						? '중요 표시한 문장이 없습니다. 문장 옆 별을 누르면 여기 모입니다.'
 						: filter === 'memo'
-							? '메모를 남긴 문장이 없어요.'
-							: "이 폴더에 스크랩이 없어요. 문장 아래 '폴더 옮기기'나 '선택'으로 옮겨 보세요."}
+							? '메모를 남긴 문장이 없습니다.'
+							: "이 폴더에 스크랩이 없습니다. 문장 아래 '폴더 옮기기'나 '선택'으로 옮겨 보십시오."}
 				</p>
 			)}
 			{shown.length > 0 && (

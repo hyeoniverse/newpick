@@ -37,7 +37,7 @@ export default function HeroSection() {
 			</h1>
 			<p className="lead">
 				AI가 그날의 기사를 읽고 중요한 소식만 골라 요약합니다.
-				<br className="desktop-only" /> 고른 관심사를 엮은 메일 한 통을 매일 아침 받아 보세요.
+				<br className="desktop-only" /> 고른 관심사를 엮은 메일 한 통을 매일 아침 받아 보십시오.
 			</p>
 			<div className="actions">
 				<Button scheme="primary" size="large" onClick={() => openSubscribe()}>

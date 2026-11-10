@@ -36,7 +36,7 @@ export default function PersonalMail() {
 		},
 		onError: (_error, _enabled, context) => {
 			queryClient.setQueryData(PERSONAL_MAIL_KEY, context?.before);
-			showToast('설정을 바꾸지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error');
+			showToast('설정을 바꾸지 못했습니다. 잠시 후 다시 시도해 주십시오.', 'error');
 		},
 		onSuccess: ({ enabled }) => showToast(enabled ? '맞춤 메일을 켰습니다.' : '맞춤 메일을 껐습니다.', 'success'),
 	});

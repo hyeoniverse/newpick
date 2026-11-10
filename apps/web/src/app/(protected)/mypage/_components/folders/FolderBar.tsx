@@ -132,7 +132,7 @@ export default function FolderBar({
 								<LuFolder /> {f.name}
 							</div>
 						))}
-						{folders.length === 0 && <span className="hint">먼저 &lsquo;새 폴더&rsquo;로 폴더를 만들어 주세요</span>}
+						{folders.length === 0 && <span className="hint">먼저 &lsquo;새 폴더&rsquo;로 폴더를 만들어 주십시오</span>}
 					</div>
 				</div>
 			)}

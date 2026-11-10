@@ -209,8 +209,8 @@ export default function ListSection() {
 			{total === 0 && !isLoading ? (
 				<EmptyState
 					icon={LuSearchX}
-					title="찾는 뉴스레터가 없어요"
-					description={'검색어를 바꾸거나 기간 · 관심사를 넓혀 보세요.'}
+					title="찾는 뉴스레터가 없습니다"
+					description={'검색어를 바꾸거나 기간 · 관심사를 넓혀 보십시오.'}
 					action={{ label: '조건 지우기', href: ROUTES.articles }}
 				/>
 			) : (

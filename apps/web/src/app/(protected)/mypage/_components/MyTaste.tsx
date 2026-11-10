@@ -22,7 +22,7 @@ export default function MyTaste() {
 		<section className="np-mypage-my-taste-taste" aria-labelledby="my-taste">
 			<div className="head">
 				<h3 id="my-taste">요즘 관심 있게 본 주제</h3>
-				<p>앞으로 맞춤 뉴스레터가 이 주제를 먼저 챙겨요.</p>
+				<p>앞으로 맞춤 뉴스레터가 이 주제를 먼저 챙깁니다.</p>
 			</div>
 			<ol>
 				{data.topics.slice(0, SHOWN).map((t, i) => (

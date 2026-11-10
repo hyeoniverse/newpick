@@ -107,7 +107,7 @@ export default function ArticlesList() {
 	return (
 		<AdminSubPage
 			title="수집한 기사"
-			summary={data && `${data.total.toLocaleString()}건 · 원문은 수집하고 30일 뒤 지워져요`}
+			summary={data && `${data.total.toLocaleString()}건 · 원문은 수집하고 30일 뒤 지워집니다`}
 			filters={
 				<>
 					<FilterChips
@@ -176,7 +176,7 @@ export default function ArticlesList() {
 				</>
 			}
 		>
-			<AdminListState list={list} empty="이 조건의 수집 기사가 없어요.">
+			<AdminListState list={list} empty="이 조건의 수집 기사가 없습니다.">
 				{(data) => (
 					<div className="table-wrap">
 						<table style={{ minWidth: tableMinWidth(COLS) }}>

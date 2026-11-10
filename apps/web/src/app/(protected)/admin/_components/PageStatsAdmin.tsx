@@ -52,9 +52,9 @@ export default function PageStatsAdmin() {
 				{isPending ? (
 					<p className="state">불러오는 중…</p>
 				) : isError || !data ? (
-					<p className="state">불러오지 못했어요.</p>
+					<p className="state">불러오지 못했습니다.</p>
 				) : data.views === 0 ? (
-					<p className="state">이 기간 · 기기의 기록이 없어요.</p>
+					<p className="state">이 기간 · 기기의 기록이 없습니다.</p>
 				) : (
 					<>
 						<dl className="numbers">
@@ -94,7 +94,7 @@ export default function PageStatsAdmin() {
 								<figcaption>
 									히트맵
 									<small>
-										{data.samplePath} 을 지금 모습으로 띄웠어요. 내용이 바뀐 페이지는 위치가 조금 어긋날 수 있어요.
+										{data.samplePath} 을 지금 모습으로 띄웠습니다. 내용이 바뀐 페이지는 위치가 조금 어긋날 수 있습니다.
 									</small>
 								</figcaption>
 								<Heatmap path={data.samplePath} device={device} attention={data.attention} clicks={data.clicks} />

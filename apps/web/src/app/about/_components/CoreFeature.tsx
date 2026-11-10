@@ -46,7 +46,7 @@ function SubscribeDemo() {
 				))}
 			</div>
 			<p className="count">
-				관심사 <strong>3개</strong>를 골랐어요
+				관심사 <strong>3개</strong>를 골랐습니다
 			</p>
 		</div>
 	);

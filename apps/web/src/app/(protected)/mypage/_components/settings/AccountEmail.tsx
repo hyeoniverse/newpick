@@ -21,7 +21,7 @@ const clock = (ms: number) => {
 
 /** API 오류 message는 사용자에게 그대로 보여 줘도 되는 글 (남은 횟수가 있으면 덧붙인다) */
 const errorText = (error: unknown) => {
-	if (!(error instanceof ApiError)) return '잠시 후 다시 시도해 주세요.';
+	if (!(error instanceof ApiError)) return '잠시 후 다시 시도해 주십시오.';
 	const left = (error.body as { details?: { attemptsLeft?: number } } | undefined)?.details?.attemptsLeft;
 	return left ? `${error.message} (${left}번 남음)` : error.message;
 };
@@ -31,7 +31,7 @@ const LINK_RESULTS: Record<string, [string, 'success' | 'error' | 'info']> = {
 	linked: ['Google 계정을 변경했습니다. 로그인 계정과 수신 이메일이 함께 변경되었습니다.', 'success'],
 	same: ['현재 연결된 Google 계정과 같습니다.', 'info'],
 	taken: ['다른 뉴픽 계정에 연결된 Google 계정(또는 이메일)이라 변경하지 않았습니다.', 'error'],
-	failed: ['Google 계정을 변경하지 못했습니다. 다시 시도해 주세요.', 'error'],
+	failed: ['Google 계정을 변경하지 못했습니다. 다시 시도해 주십시오.', 'error'],
 };
 
 /**
@@ -71,7 +71,7 @@ export default function AccountEmail() {
 		try {
 			await linkGoogleAccount();
 		} catch {
-			showToast('잠시 후 다시 시도해 주세요.', 'error');
+			showToast('잠시 후 다시 시도해 주십시오.', 'error');
 			setBusy(false);
 		}
 	};
@@ -212,7 +212,7 @@ export default function AccountEmail() {
 				<div {...revealProps}>
 					<form ref={codeForm} className="form" onSubmit={onVerify}>
 						<label htmlFor="email-code">
-							<b>{step.email}</b>(으)로 보낸 인증 코드 6자리를 입력해 주세요.
+							<b>{step.email}</b>(으)로 보낸 인증 코드 6자리를 입력해 주십시오.
 						</label>
 						<CodeInput
 							id="email-code"
@@ -238,7 +238,7 @@ export default function AccountEmail() {
 										남은 시간 <span className="clock">{clock(step.expiresAt - now)}</span>
 									</>
 								) : (
-									'인증 코드가 만료되었습니다. 재전송해 주세요.'
+									'인증 코드가 만료되었습니다. 재전송해 주십시오.'
 								)}
 							</span>
 							<button

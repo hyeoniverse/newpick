@@ -83,7 +83,7 @@ export default function SubscribersAdmin() {
 			}
 		>
 			<AdminActions>
-				<AdminListState list={list} empty="이 조건의 구독자가 없어요.">
+				<AdminListState list={list} empty="이 조건의 구독자가 없습니다.">
 					{(data) => (
 						<div className="table-wrap">
 							<table style={{ minWidth: tableMinWidth(COLS) }}>

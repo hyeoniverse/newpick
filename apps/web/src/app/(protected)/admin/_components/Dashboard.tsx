@@ -73,8 +73,8 @@ function MailRecipients({ date, today }: { date: string; today: string }) {
 		queryFn: () => fetchMailRecipients(date),
 	});
 	if (isPending) return <p className="recipients-state">불러오는 중…</p>;
-	if (isError) return <p className="recipients-state">받은 사람을 불러오지 못했어요.</p>;
-	if (data.length === 0) return <p className="recipients-state">기록이 없어요.</p>;
+	if (isError) return <p className="recipients-state">받은 사람을 불러오지 못했습니다.</p>;
+	if (data.length === 0) return <p className="recipients-state">기록이 없습니다.</p>;
 	return (
 		<ul className="recipients">
 			{data.map((row) => (
@@ -119,7 +119,7 @@ export default function Dashboard() {
 				onCancel={closeModal}
 				onSaved={() => {
 					closeModal();
-					showToast('예약 시간을 바꿨습니다. 다음 실행부터 적용돼요.', 'success');
+					showToast('예약 시간을 바꿨습니다. 다음 실행부터 적용됩니다.', 'success');
 					refresh();
 				}}
 			/>,
@@ -268,7 +268,7 @@ export default function Dashboard() {
 					<p className="auto-off" role="note">
 						<LuInfo aria-hidden />
 						<span>
-							이 서버는 예약 시각에 저절로 돌지 않아요. 필요할 때 &lsquo;지금 실행&rsquo;으로 돌려 주세요.
+							이 서버는 예약 시각에 저절로 돌지 않습니다. 필요할 때 &lsquo;지금 실행&rsquo;으로 돌려 주십시오.
 							<code>SCHEDULER_ENABLED=false</code>
 						</span>
 					</p>
@@ -304,7 +304,7 @@ export default function Dashboard() {
 											? `${when(run.startedAt, today)} 시작`
 											: run.finishedAt
 												? `${when(run.finishedAt, today)}${run.trigger === 'manual' ? ' · 지금 실행' : ''} · ${run.message}`
-												: '아직 실행 기록이 없어요'}
+												: '아직 실행 기록이 없습니다'}
 									</span>
 								</div>
 								<div className="job-actions">
@@ -336,7 +336,7 @@ export default function Dashboard() {
 					})}
 				</ul>
 				<Text size="extraSmall" color="subText" className="note">
-					켜기 · 끄기는 서버 메모리에만 있어 서버를 다시 시작하면 켜짐으로 돌아갑니다. 시간과 실행 기록은 남아요.
+					켜기 · 끄기는 서버 메모리에만 있어 서버를 다시 시작하면 켜짐으로 돌아갑니다. 시간과 실행 기록은 남습니다.
 				</Text>
 			</section>
 
@@ -352,7 +352,7 @@ export default function Dashboard() {
 					</div>
 					{newsletters.items.length === 0 ? (
 						<Text size="small" color="subText">
-							이 기간에 발행한 뉴스레터가 없어요.
+							이 기간에 발행한 뉴스레터가 없습니다.
 						</Text>
 					) : (
 						<ul className="list">
@@ -380,7 +380,7 @@ export default function Dashboard() {
 					</div>
 					{mail.byDay.length === 0 ? (
 						<Text size="small" color="subText">
-							이 기간에 보낸 메일이 없어요.
+							이 기간에 보낸 메일이 없습니다.
 						</Text>
 					) : (
 						<ul className="list">
@@ -419,7 +419,7 @@ export default function Dashboard() {
 				</div>
 				{summaryLogs.items.length === 0 ? (
 					<Text size="small" color="subText">
-						이 기간에 기록이 없어요.
+						이 기간에 기록이 없습니다.
 					</Text>
 				) : (
 					<div className="table-wrap">

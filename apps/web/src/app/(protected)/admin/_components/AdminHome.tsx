@@ -25,7 +25,7 @@ function SiteCacheTool() {
 		try {
 			const data = await refreshSiteCache();
 			setLastAt(data.refreshedAt);
-			showToast('사이트 캐시를 비웠습니다. 다음 접속부터 새 내용이 보여요.', 'success');
+			showToast('사이트 캐시를 비웠습니다. 다음 접속부터 새 내용이 보입니다.', 'success');
 		} catch (error) {
 			showToast(errorMessage(error, '사이트 캐시를 비우지 못했습니다.'), 'error');
 		} finally {

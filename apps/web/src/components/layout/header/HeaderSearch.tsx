@@ -57,7 +57,7 @@ export default function HeaderSearch() {
 		const value = String(new FormData(event.currentTarget as HTMLFormElement).get('q') ?? q).trim();
 		setQ(value);
 		if (value && !value.startsWith('#') && [...value.replace(/\s/g, '')].length < 2) {
-			setError('2글자 이상 입력해 주세요');
+			setError('2글자 이상 입력해 주십시오');
 			return;
 		}
 		setError('');

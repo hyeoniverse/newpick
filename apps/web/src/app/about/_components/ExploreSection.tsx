@@ -33,7 +33,7 @@ function WhyNewpickSection({ className }: Props) {
 				<ModalContent
 					icon={<LuMailCheck />}
 					title="구독 설정이 완료되었습니다"
-					content={`내일부터 새로운 뉴스레터를 보내드려요.`}
+					content={`내일부터 새로운 뉴스레터를 보내드립니다.`}
 					filledButton="확인"
 					onConfirmClick={closeModal}
 				/>,
@@ -55,7 +55,7 @@ function WhyNewpickSection({ className }: Props) {
 			<div className="subscription">
 				<CategoryTags className="categories" />
 				<Text size="medium" weight="bold">
-					평소에 관심있던 카테고리를 선택해보세요.
+					평소에 관심있던 카테고리를 선택해보십시오.
 				</Text>
 				<ArgreementCheck className="agreement" name={checkName} />
 				<Button

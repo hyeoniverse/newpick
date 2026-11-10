@@ -26,12 +26,12 @@ export function useTagFollows() {
 				'success',
 			),
 		// 오류 메시지는 API 문장 그대로 (예: 20개 넘음)
-		onError: (error) => showToast(errorMessage(error, '팔로우하지 못했습니다. 잠시 후 다시 시도해 주세요.'), 'error'),
+		onError: (error) => showToast(errorMessage(error, '팔로우하지 못했습니다. 잠시 후 다시 시도해 주십시오.'), 'error'),
 		onSettled: refresh,
 	});
 	const unfollow = useMutation({
 		mutationFn: unfollowTag,
-		onError: () => showToast('팔로우를 끊지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error'),
+		onError: () => showToast('팔로우를 끊지 못했습니다. 잠시 후 다시 시도해 주십시오.', 'error'),
 		onSettled: refresh,
 	});
 	return {

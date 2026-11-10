@@ -65,7 +65,7 @@ export default function JobRunsList() {
 				</>
 			}
 		>
-			<AdminListState list={list} empty="이 조건의 실행 기록이 없어요.">
+			<AdminListState list={list} empty="이 조건의 실행 기록이 없습니다.">
 				{(data) => (
 					<div className="table-wrap">
 						<table style={{ minWidth: tableMinWidth(COLS) }}>

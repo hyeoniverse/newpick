@@ -123,7 +123,7 @@ export default function AiLogsList() {
 				</>
 			}
 		>
-			<AdminListState list={list} empty="이 조건의 기록이 없어요.">
+			<AdminListState list={list} empty="이 조건의 기록이 없습니다.">
 				{() => (
 					<div className="np-admin-ai-logs-list-chains table-wrap">
 						<table className="wide" style={{ minWidth: tableMinWidth(COLS, '60rem') }}>

@@ -39,7 +39,7 @@ export default function TagFollowButton({ tag, className, tagOnly }: Props) {
 			disabled={busy}
 			onClick={() => {
 				if (!user) {
-					openLogin('태그를 팔로우하려면 로그인해 주세요');
+					openLogin('태그를 팔로우하려면 로그인해 주십시오');
 					return;
 				}
 				if (on) unfollow.mutate(tag);

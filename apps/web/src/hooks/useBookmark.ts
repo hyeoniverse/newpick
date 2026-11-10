@@ -101,8 +101,9 @@ export const useMoveBookmarksMutation = () => {
 		onSuccess: ({ count }) => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
-			showToast(`${count}개를 옮겼어요.`, 'success');
+			showToast(`${count}개를 옮겼습니다.`, 'success');
 		},
-		onError: (error: Error) => showToast(errorMessage(error, '옮기지 못했어요. 잠시 뒤 다시 시도해 주세요.'), 'error'),
+		onError: (error: Error) =>
+			showToast(errorMessage(error, '옮기지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'), 'error'),
 	});
 };

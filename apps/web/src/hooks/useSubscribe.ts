@@ -60,20 +60,20 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 
 	return {
 		startMutation: useMutation(
-			startOptions(startSubscription, '구독이 완료되었습니다!', '구독 중 오류가 발생했습니다. 다시 시도해주세요.'),
+			startOptions(startSubscription, '구독이 완료되었습니다!', '구독 중 오류가 발생했습니다. 다시 시도해주십시오.'),
 		),
 		pauseMutation: useMutation(
 			suspendOptions(
 				pauseSubscription,
 				'구독이 일시정지되었습니다.',
-				'구독 일시정지 중 오류가 발생했습니다. 다시 시도해주세요.',
+				'구독 일시정지 중 오류가 발생했습니다. 다시 시도해주십시오.',
 			),
 		),
 		cancelMutation: useMutation(
 			suspendOptions(
 				cancelSubscription,
 				'구독이 해지되었습니다.',
-				'구독 해지 중 오류가 발생했습니다. 다시 시도해주세요.',
+				'구독 해지 중 오류가 발생했습니다. 다시 시도해주십시오.',
 			),
 		),
 	};
@@ -98,7 +98,7 @@ export const useSubscribeInterests = () => {
 
 	const updateMutation = useMutation({
 		mutationFn: updateInterests,
-		onError: () => handleError('관심사 변경 중 오류가 발생했습니다. 다시 시도해주세요.', showToast),
+		onError: () => handleError('관심사 변경 중 오류가 발생했습니다. 다시 시도해주십시오.', showToast),
 	});
 
 	return { interests, isInterestsLoading, updateMutation };

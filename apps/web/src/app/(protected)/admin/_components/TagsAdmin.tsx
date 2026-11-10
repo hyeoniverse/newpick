@@ -47,7 +47,7 @@ function MergeSheet({
 	const submit = async (event: React.FormEvent) => {
 		event.preventDefault();
 		const name = to.trim();
-		if (!name) return setError('새 이름을 적어 주세요.');
+		if (!name) return setError('새 이름을 적어 주십시오.');
 		setPending(true);
 		setError('');
 		try {
@@ -57,7 +57,7 @@ function MergeSheet({
 			);
 			onDone(data.changed, name);
 		} catch (e) {
-			setError(errorMessage(e, '바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.'));
+			setError(errorMessage(e, '바꾸지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'));
 		} finally {
 			setPending(false);
 		}
@@ -68,8 +68,8 @@ function MergeSheet({
 			<h2 className="title">{rename ? '태그 이름 바꾸기' : `태그 ${tags.length}개 합치기`}</h2>
 			<p className="desc">
 				{tags.map((t) => `#${t.keyword}`).join(' · ')}
-				{rename ? '의 이름을 바꿔요.' : '을(를) 한 이름으로 합쳐요.'} 이미 발행한 뉴스레터의 태그도 바뀌고, 앞으로 새
-				뉴스레터에 같은 태그가 나와도 새 이름으로 바꿔 저장해요.
+				{rename ? '의 이름을 바꿉니다.' : '을(를) 한 이름으로 합칩니다.'} 이미 발행한 뉴스레터의 태그도 바뀌고, 앞으로
+				새 뉴스레터에 같은 태그가 나와도 새 이름으로 바꿔 저장합니다.
 			</p>
 			<label className="field">
 				<span className="np-field-label">새 이름</span>
@@ -143,7 +143,7 @@ export default function TagsAdmin() {
 				onCancel={closeModal}
 				onDone={(changed, to) => {
 					closeModal();
-					showToast(`#${to}(으)로 바꿨어요. 뉴스레터 ${changed}편의 태그를 고쳤어요.`, 'success');
+					showToast(`#${to}(으)로 바꿨습니다. 뉴스레터 ${changed}편의 태그를 고쳤습니다.`, 'success');
 					refresh();
 				}}
 			/>,
@@ -151,23 +151,23 @@ export default function TagsAdmin() {
 
 	const remove = (keyword: string) =>
 		confirm({
-			title: `#${keyword} 태그를 지울까요?`,
+			title: `#${keyword} 태그를 지우시겠습니까?`,
 			content:
-				'이미 발행한 뉴스레터에서 이 태그를 빼고, 앞으로 새 뉴스레터에도 붙이지 않아요. 규칙을 지우면 앞으로는 다시 붙을 수 있어요.',
+				'이미 발행한 뉴스레터에서 이 태그를 빼고, 앞으로 새 뉴스레터에도 붙이지 않습니다. 규칙을 지우면 앞으로는 다시 붙을 수 있습니다.',
 			confirmLabel: '지우기',
 			run: () => removeTag(keyword),
-			success: (data) => `#${keyword}을(를) 지웠어요. 뉴스레터 ${data.changed}편의 태그를 고쳤어요.`,
-			failure: '지우지 못했어요.',
+			success: (data) => `#${keyword}을(를) 지웠습니다. 뉴스레터 ${data.changed}편의 태그를 고쳤습니다.`,
+			failure: '지우지 못했습니다.',
 			onDone: refresh,
 		});
 
 	const deleteRule = async (rule: TagRule) => {
 		try {
 			await deleteTagRule(rule.id);
-			showToast('규칙을 지웠어요. 앞으로의 새 뉴스레터부터 적용돼요.', 'info');
+			showToast('규칙을 지웠습니다. 앞으로의 새 뉴스레터부터 적용됩니다.', 'info');
 			refresh();
 		} catch (error) {
-			showToast(errorMessage(error, '지우지 못했어요.'), 'error');
+			showToast(errorMessage(error, '지우지 못했습니다.'), 'error');
 		}
 	};
 
@@ -212,7 +212,7 @@ export default function TagsAdmin() {
 		>
 			<div className="np-admin-tags-admin-tags">
 				<div className="bulk" aria-live="polite">
-					<span>{selected.length ? `${selected.length}개 고름` : '합칠 태그를 골라 주세요'}</span>
+					<span>{selected.length ? `${selected.length}개 고름` : '합칠 태그를 골라 주십시오'}</span>
 					<Button
 						type="button"
 						scheme="primary"
@@ -232,9 +232,9 @@ export default function TagsAdmin() {
 				{tags.isPending ? (
 					<p className="state">불러오는 중…</p>
 				) : tags.isError ? (
-					<p className="state">불러오지 못했어요.</p>
+					<p className="state">불러오지 못했습니다.</p>
 				) : list.length === 0 ? (
-					<p className="state">이 조건의 태그가 없어요.</p>
+					<p className="state">이 조건의 태그가 없습니다.</p>
 				) : (
 					<div className="table-wrap">
 						<table style={{ minWidth: tableMinWidth(COLS) }}>
@@ -292,7 +292,7 @@ export default function TagsAdmin() {
 
 				<section className="rules" aria-labelledby="tag-rules">
 					<h2 id="tag-rules">규칙</h2>
-					<p className="rules-desc">새 뉴스레터를 저장할 때 태그에 적용돼요. 지워도 이미 바꾼 태그는 그대로예요.</p>
+					<p className="rules-desc">새 뉴스레터를 저장할 때 태그에 적용됩니다. 지워도 이미 바꾼 태그는 그대로입니다.</p>
 					{rules.data?.length ? (
 						<ul>
 							{rules.data.map((rule) => (
@@ -316,7 +316,7 @@ export default function TagsAdmin() {
 							))}
 						</ul>
 					) : (
-						<p className="state">아직 규칙이 없어요. 태그를 합치거나 지우면 생겨요.</p>
+						<p className="state">아직 규칙이 없습니다. 태그를 합치거나 지우면 생깁니다.</p>
 					)}
 				</section>
 			</div>

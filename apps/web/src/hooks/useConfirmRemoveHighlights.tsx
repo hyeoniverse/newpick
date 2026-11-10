@@ -34,10 +34,10 @@ export function useConfirmRemoveHighlights() {
 						icon={<LuStar />}
 						title={
 							items.length === 1
-								? '중요 표시한 문장이에요. 그래도 지울까요?'
-								: `중요 표시한 문장이 ${starred}개 있어요. 그래도 지울까요?`
+								? '중요 표시한 문장입니다. 그래도 지우시겠습니까?'
+								: `중요 표시한 문장이 ${starred}개 있습니다. 그래도 지우시겠습니까?`
 						}
-						content="중요하다고 표시해 둔 문장이에요. 지우면 되돌릴 수 없어요."
+						content="중요하다고 표시해 둔 문장입니다. 지우면 되돌릴 수 없습니다."
 						outlineButton="그만두기"
 						filledButton="지우기"
 						onCancelClick={closeModal}
@@ -54,13 +54,13 @@ export function useConfirmRemoveHighlights() {
 			openModal(
 				<ModalContents
 					icon={<LuTriangleAlert />}
-					title={items.length === 1 ? '이 스크랩을 지울까요?' : `스크랩 ${items.length}개를 지울까요?`}
+					title={items.length === 1 ? '이 스크랩을 지우시겠습니까?' : `스크랩 ${items.length}개를 지우시겠습니까?`}
 					content={
 						items.length === 1
 							? one.note
-								? '메모도 함께 지워져요.'
-								: '문장만 지워지고 뉴스레터는 그대로예요.'
-							: '스크랩한 문장과 그 메모가 함께 지워져요. 뉴스레터는 그대로예요.'
+								? '메모도 함께 지워집니다.'
+								: '문장만 지워지고 뉴스레터는 그대로입니다.'
+							: '스크랩한 문장과 그 메모가 함께 지워집니다. 뉴스레터는 그대로입니다.'
 					}
 					outlineButton="취소"
 					filledButton="지우기"

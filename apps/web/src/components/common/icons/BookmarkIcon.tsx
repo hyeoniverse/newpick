@@ -25,7 +25,7 @@ export default function BookmarkIcon({ newsId, className, newsletterId }: Bookma
 
 	const handleToggle = async () => {
 		if (!user) {
-			openLogin('북마크하려면 로그인해 주세요');
+			openLogin('북마크하려면 로그인해 주십시오');
 			return;
 		}
 

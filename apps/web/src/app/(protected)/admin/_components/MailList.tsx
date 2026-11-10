@@ -69,7 +69,7 @@ export default function MailList() {
 		>
 			<AdminListState
 				list={list}
-				empty={email ? `‘${email}’이(가) 들어간 받은 사람이 없어요.` : '이 기간에 보낸 메일이 없어요.'}
+				empty={email ? `‘${email}’이(가) 들어간 받은 사람이 없습니다.` : '이 기간에 보낸 메일이 없습니다.'}
 			>
 				{(data) => (
 					<div className="table-wrap">

@@ -46,7 +46,7 @@ export default function Trial() {
 					내 뉴스레터 미리보기
 				</Title>
 				<Text size="small" color="subText">
-					관심 분야를 고르면, 그 분야로 엮어 매일 아침 보내는 메일을 오늘 발행본으로 보여 드려요.
+					관심 분야를 고르면, 그 분야로 엮어 매일 아침 보내는 메일을 오늘 발행본으로 보여 드립니다.
 				</Text>
 				<div className="chips" role="group" aria-label="관심 분야">
 					<button
@@ -78,7 +78,7 @@ export default function Trial() {
 							<LuMailOpen />
 						</span>
 						<Text size="medium" weight="semiBold">
-							관심 분야를 하나 이상 골라 주세요
+							관심 분야를 하나 이상 골라 주십시오
 						</Text>
 					</div>
 				) : isLoading ? (
@@ -89,7 +89,7 @@ export default function Trial() {
 							<LuCircleAlert />
 						</span>
 						<Text size="medium" weight="semiBold">
-							뉴스레터를 불러오지 못했어요
+							뉴스레터를 불러오지 못했습니다
 						</Text>
 						<Button scheme="outline" size="small" onClick={() => refetch()}>
 							다시 불러오기
@@ -101,10 +101,10 @@ export default function Trial() {
 							<LuMailOpen />
 						</span>
 						<Text size="medium" weight="semiBold">
-							아직 발행된 뉴스레터가 없어요
+							아직 발행된 뉴스레터가 없습니다
 						</Text>
 						<Text size="small" color="subText">
-							뉴스레터는 매일 아침 8시 30분쯤 발행돼요.
+							뉴스레터는 매일 아침 8시 30분쯤 발행됩니다.
 						</Text>
 					</div>
 				) : (
@@ -121,7 +121,7 @@ export default function Trial() {
 			>
 				{selected.length
 					? `이 구성으로 구독하기 (${isAll ? '전체' : `${selected.length}개 분야`})`
-					: '분야를 골라 주세요'}
+					: '분야를 골라 주십시오'}
 			</Button>
 		</div>
 	);
