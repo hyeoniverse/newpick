@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { getRelatedNews } from '@/hooks/useArticle';
 import { fetchRelatedNews } from '@/api/article';
 import { ApiError } from '@/api/client';
-import { NewsInfo } from '@/models/article.model';
+import { NewsInfo } from '@/types/article';
 
 vi.mock('@/api/article', () => ({ fetchRelatedNews: vi.fn() }));
 

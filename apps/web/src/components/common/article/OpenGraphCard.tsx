@@ -1,6 +1,6 @@
 import { queryKeys } from '@/api/queryKeys';
 import { useQuery } from '@tanstack/react-query';
-import { NewsInfo as INewsInfo } from '@/models/article.model';
+import { NewsInfo as INewsInfo } from '@/types/article';
 import { dateFormatter } from '@/utils/formatter';
 import { getRelatedNews } from '@/hooks/useArticle';
 import { DEFAULT_IMAGES } from '@/constants/images';

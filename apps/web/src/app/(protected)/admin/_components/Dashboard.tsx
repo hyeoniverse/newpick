@@ -31,13 +31,10 @@ import { SkeletonBlock } from '@/components/common/loader/Skeleton';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 import MoreLink from '@/components/common/MoreLink';
 
-/** 작업 이름 · 지금 상태는 @newpick/shared (api와 같은 타입) */
-type JobKey = JobName;
-
 /** 대시보드 응답 (@newpick/shared, api 응답과 같다) */
 
 /** 작업마다: API 이름 · 언제 도는지 · 지금 실행 전 확인 문구 */
-const JOBS: Record<JobKey, { label: string; warning: string }> = {
+const JOBS: Record<JobName, { label: string; warning: string }> = {
 	crawling: {
 		label: '기사 수집',
 		warning: '언론사 기사를 지금 모읍니다. 분야가 없는 기사는 Claude로 분류해 비용이 조금 듭니다.',
@@ -61,7 +58,7 @@ const STATUS_LABEL: Record<JobResult, string> = {
 };
 
 /** 작업마다 언제 도는지: '매시 00분' · '매일 08:30' · '매주 월요일 08:40' */
-const scheduleText = (job: JobKey, schedule: Schedule) =>
+const scheduleText = (job: JobName, schedule: Schedule) =>
 	job === 'crawling'
 		? `매시 ${String(schedule.crawl.minute).padStart(2, '0')}분`
 		: job === 'summary'
@@ -126,7 +123,7 @@ export default function Dashboard() {
 			/>,
 		);
 
-	const toggle = async (job: JobKey, enable: boolean) => {
+	const toggle = async (job: JobName, enable: boolean) => {
 		try {
 			await toggleJob(job, enable);
 			showToast(
@@ -159,7 +156,7 @@ export default function Dashboard() {
 			/>,
 		);
 
-	const runNow = (job: JobKey) =>
+	const runNow = (job: JobName) =>
 		openModal(
 			<ModalContents
 				icon={<LuTriangleAlert />}
@@ -287,7 +284,7 @@ export default function Dashboard() {
 					</p>
 				)}
 				<ul className="jobs">
-					{(Object.keys(JOBS) as JobKey[]).map((job) => {
+					{(Object.keys(JOBS) as JobName[]).map((job) => {
 						const run = scheduler.runs[job];
 						const enabled = scheduler.enabled[job];
 						const state = run.running ? 'running' : (run.status ?? 'none');

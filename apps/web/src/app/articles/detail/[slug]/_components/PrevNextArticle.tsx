@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { IoArrowUp, IoArrowDown } from 'react-icons/io5';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import Link from 'next/link';
-import { ArticleDetail as IArticleDetail } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail } from '@/types/article';
 import { dateFormatter } from '@/utils/formatter';
 import { cx } from '@/styles/tw';
 

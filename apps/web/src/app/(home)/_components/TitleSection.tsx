@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { DEFAULT_IMAGES } from '@/constants/images';
-import { ArticleDetail as IArticleDetail } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail } from '@/types/article';
 import { getFirstImage } from '@/utils/getFirstImage';
 
 import { PCLogo } from '@/components/common/svg/LogoSVG';

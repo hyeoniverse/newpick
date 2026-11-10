@@ -1,6 +1,6 @@
 import { queryKeys } from '@/api/queryKeys';
 import { ApiError } from '@/api/client';
-import { NewsInfo as INewsInfo } from '@/models/article.model';
+import { NewsInfo as INewsInfo } from '@/types/article';
 import {
 	fetchArticle,
 	fetchArticleByCategory,
@@ -9,7 +9,7 @@ import {
 	fetchRelatedNews,
 	fetchTrendList,
 } from '@/api/article';
-import { ArticleInfo as IArticleInfo, ArticleDetail as IArticleDetail } from '@/models/article.model';
+import { ArticleInfo as IArticleInfo, ArticleDetail as IArticleDetail } from '@/types/article';
 import { useQuery } from '@tanstack/react-query';
 
 /**

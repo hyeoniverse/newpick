@@ -1,7 +1,7 @@
 import { queryKeys } from '@/api/queryKeys';
 import { useQuery } from '@tanstack/react-query';
 import { fetchTrendList } from '@/api/article';
-import { ArticleSummary } from '@/models/article.model';
+import { ArticleSummary } from '@/types/article';
 import { parseArticles } from '@/utils/parseArticles';
 
 export const TRENDS_QUERY_KEY = queryKeys.trends;

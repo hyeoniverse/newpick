@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { fetchSubscription, startSubscription, pauseSubscription, cancelSubscription } from '@/api/subscription';
 import { fetchInterests, updateInterests } from '@/api/interests';
-import { ToastType } from '@/models/toast.model';
+import { ToastType } from '@/types/toast';
 
 // 실패는 mutation의 onError에서 토스트 한 번으로 알립니다. (호출하는 쪽은 성공 여부만 받습니다)
 const handleError = (message: string, showToast: (msg: string, type: ToastType) => void) => showToast(message, 'error');

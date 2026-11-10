@@ -1,5 +1,5 @@
 import { ROUTES } from '@/constants/routes';
-import { Navigation as INavigation } from '@/models/navigation.model';
+import { Navigation as INavigation } from '@/types/navigation';
 
 export const NAVIGATION: INavigation[] = [
 	{

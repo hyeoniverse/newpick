@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { TOAST } from '@/constants/numbers';
-import { ToastItem, ToastType } from '@/models/toast.model';
+import { ToastItem, ToastType } from '@/types/toast';
 import { useToast } from '@/hooks/useToast';
 
 import { cx } from '@/styles/tw';

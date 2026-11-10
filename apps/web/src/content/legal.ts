@@ -1,4 +1,4 @@
-import type { LegalSection, LegalSummary } from '@/components/common/legal/LegalDocument';
+import type { LegalSection, LegalSummary } from '@/types/legal';
 
 /**
  * 이용약관·개인정보 처리방침 (#59).

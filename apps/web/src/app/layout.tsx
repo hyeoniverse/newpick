@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/types/article';
 import { fetchTrendList } from '@/api/article';
 import { fetchContactEmail } from '@/api/contact';
 import { parseArticles } from '@/utils/parseArticles';

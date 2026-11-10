@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import useInterestsStore from '@/stores/useInterestStore';
-import { Category } from '@/models/category.model';
+import { Category } from '@/types/category';
 import { CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
 import { mapIdToTitle } from '@/utils/mapInterests';

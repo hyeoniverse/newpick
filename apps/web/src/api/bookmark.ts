@@ -1,6 +1,6 @@
 import type { BookmarkPage } from '@newpick/shared';
 import API_ENDPOINTS from '@/constants/api';
-import { IBookmarkItem } from '@/models/bookmark.model';
+import { IBookmarkItem } from '@/types/bookmark';
 import { ApiError, apiFetch } from '@/api/client';
 
 export async function fetchUserBookmarksApi(): Promise<IBookmarkItem[]> {

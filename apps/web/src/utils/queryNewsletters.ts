@@ -1,4 +1,4 @@
-import { ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleSummary as IArticleSummary } from '@/types/article';
 
 export const filterByCategories = (newsletters: IArticleSummary[], categories: string[]): IArticleSummary[] => {
 	// '전체' 카테고리일 경우 모든 뉴스레터 반환
@@ -50,7 +50,7 @@ export const filterLatestByCategory = (articles: IArticleSummary[]): IArticleSum
 
 export const sortNewsletters = (
 	newsletters: IArticleSummary[],
-	sortBy: 'latest' | 'bookmarks' | 'views'
+	sortBy: 'latest' | 'bookmarks' | 'views',
 ): IArticleSummary[] => {
 	return [...newsletters].sort((a, b) => {
 		if (sortBy === 'latest') {

@@ -29,8 +29,6 @@ const COLS = ['3rem', undefined, '5rem', '9rem', '9rem', '11rem'];
 
 const PAGE_SIZE = 30;
 
-type Rule = TagRule;
-
 /** 합치기 · 이름 바꾸기 창: 고른 태그들을 새 이름 하나로 (기본은 가장 많이 쓴 태그 이름) */
 function MergeSheet({
 	tags,
@@ -172,7 +170,7 @@ export default function TagsAdmin() {
 			/>,
 		);
 
-	const deleteRule = async (rule: Rule) => {
+	const deleteRule = async (rule: TagRule) => {
 		try {
 			await deleteTagRule(rule.id);
 			showToast('규칙을 지웠어요. 앞으로의 새 뉴스레터부터 적용돼요.', 'info');

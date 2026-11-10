@@ -1,6 +1,6 @@
 'use client';
 
-import { NavigationItem as INavigationItem } from '@/models/navigation.model';
+import { NavigationItem as INavigationItem } from '@/types/navigation';
 import useTabStore from '@/stores/useTabStore';
 import { Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';

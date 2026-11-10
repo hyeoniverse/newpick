@@ -1,5 +1,5 @@
 import { CATEGORIES } from '@/constants/categories';
-import { ArticleDetail } from '@/models/article.model';
+import { ArticleDetail } from '@/types/article';
 
 const DESCRIPTION_MAX = 120;
 

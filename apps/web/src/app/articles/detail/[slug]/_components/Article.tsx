@@ -21,7 +21,7 @@ import Title from '@/components/common/Title';
 import Tags from '@/components/common/Tags';
 import { useArticleContentQuery } from '@/hooks/useArticle';
 import { useViewCount } from '@/hooks/useViewCount';
-import { ArticleInfo as IArticleInfo } from '@/models/article.model';
+import { ArticleInfo as IArticleInfo } from '@/types/article';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { parseUrls, extractStories } from '@/utils/parseArticles';

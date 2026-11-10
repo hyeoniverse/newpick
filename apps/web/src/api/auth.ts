@@ -1,4 +1,4 @@
-import { User } from '@/models/user.model';
+import { User } from '@/types/user';
 import { API_ENDPOINTS } from '@/constants/api';
 import { fetchSubscription } from '@/api/subscription';
 import { fetchInterests } from '@/api/interests';

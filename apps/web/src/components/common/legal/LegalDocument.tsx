@@ -1,6 +1,7 @@
 'use client';
 
 import { ROUTES } from '@/constants/routes';
+import type { LegalSection, LegalSummary } from '@/types/legal';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import ExternalLink from '@/components/common/ExternalLink';
@@ -15,17 +16,6 @@ import {
 	LuSparkles,
 	LuTarget,
 } from 'react-icons/lu';
-
-/** 문단: 글자, 목록, 표 */
-export type LegalBlock = string | { list: string[] } | { table: { head: string[]; rows: string[][] } };
-export type LegalSection = { title: string; blocks: LegalBlock[] };
-
-/** 한눈에 보기 카드 (개인정보 처리방침 작성지침의 "주요 처리 사항" 요약) */
-export type LegalSummary = {
-	icon: 'collect' | 'purpose' | 'period' | 'share' | 'global' | 'contact' | 'free' | 'ai' | 'mail';
-	title: string;
-	text: string;
-};
 
 const ICONS: Record<LegalSummary['icon'], React.ReactNode> = {
 	collect: <LuDatabase />,

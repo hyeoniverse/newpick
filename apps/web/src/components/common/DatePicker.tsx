@@ -1,5 +1,6 @@
 'use client';
 
+import type { FieldSize } from '@/types/ui';
 import { forwardRef, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import ReactDatePicker, { registerLocale, type ReactDatePickerCustomHeaderProps } from 'react-datepicker';
@@ -20,7 +21,7 @@ const toDate = (value?: DateString | null) => {
 };
 const toValue = (date: Date | null) => (date ? format(date, 'yyyy-MM-dd') : '');
 
-type Size = 'medium' | 'small';
+type Size = FieldSize;
 
 const YEARS_PER_PAGE = 12;
 

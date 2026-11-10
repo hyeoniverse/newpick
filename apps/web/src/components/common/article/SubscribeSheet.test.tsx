@@ -1,7 +1,7 @@
 import { createElement, type ReactNode } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { User } from '@/models/user.model';
+import { User } from '@/types/user';
 import SubscribeSheet from '@/components/common/article/SubscribeSheet';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import useInterestsStore from '@/stores/useInterestStore';

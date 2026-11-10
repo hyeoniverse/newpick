@@ -3,7 +3,7 @@
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleSummary as IArticleSummary } from '@/types/article';
 import { CATEGORIES } from '@/constants/categories';
 
 import { LuCoffee, LuCpu, LuGlobe, LuLandmark, LuNewspaper, LuTrendingUp, LuUsers } from 'react-icons/lu';

@@ -1,4 +1,4 @@
-import { ArticleDetail as IArticleDetail } from '@/models/article.model';
+import { ArticleDetail as IArticleDetail } from '@/types/article';
 import { fetchArticleList } from '@/api/article';
 
 import HeroSection from '@/app/(home)/_components/HeroSection';

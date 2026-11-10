@@ -2,7 +2,7 @@
 
 import { ROUTES } from '@/constants/routes';
 import { Suspense, lazy } from 'react';
-import { ArticleSummary as IArticleSummary } from '@/models/article.model';
+import { ArticleSummary as IArticleSummary } from '@/types/article';
 import Text from '@/components/common/Text';
 import Skeleton from '@/components/common/loader/Skeleton';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';

@@ -1,4 +1,4 @@
-import { ToastAction, ToastType } from '@/models/toast.model';
+import { ToastAction, ToastType } from '@/types/toast';
 import useToastStore from '@/stores/useToastStore';
 
 export const useToast = () => {

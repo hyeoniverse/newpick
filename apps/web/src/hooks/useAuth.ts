@@ -3,7 +3,7 @@ import { useCallback, useEffect } from 'react';
 import { type QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePathname, useRouter } from 'next/navigation';
 
-import { User } from '@/models/user.model';
+import { User } from '@/types/user';
 import { AUTH } from '@/constants/numbers';
 import { isProtectedPath } from '@/constants/routes';
 import { fetchUser, logoutUser } from '@/api/auth';
