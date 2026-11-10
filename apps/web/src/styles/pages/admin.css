@@ -271,8 +271,12 @@
 		color: var(--np-color-sub-text);
 	}
 
-	/* 표: 좁은 화면은 표만 옆으로 넘긴다 */
+	/*
+	 * 표: 좁은 화면은 표만 옆으로 넘긴다. position: relative는 표 안의 숨김 글자(.sr-only, absolute)가
+	 * 이 상자를 기준으로 잘리게 하려고 (없으면 상자 밖으로 빠져 페이지 전체가 옆으로 넘친다)
+	 */
 	.table-wrap {
+		position: relative;
 		overflow-x: auto;
 	}
 
@@ -1084,8 +1088,9 @@
 		}
 	}
 
-	/* AI 기록 표: 좁은 화면은 표만 옆으로 넘긴다 */
+	/* AI 기록 표: 좁은 화면은 표만 옆으로 넘긴다 (position: relative는 위 표와 같은 이유) */
 	.table-wrap {
+		position: relative;
 		overflow-x: auto;
 	}
 

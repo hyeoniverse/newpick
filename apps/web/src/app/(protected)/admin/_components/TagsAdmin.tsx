@@ -20,9 +20,12 @@ import FilterChips from '@/components/common/FilterChips';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
 import ModalContents from '@/components/common/modal/ModalContent';
-import AdminSubPage, { Cols } from './AdminSubPage';
+import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { when } from './format';
 import { kstDate } from '@/utils/formatter';
+
+/** 표 칸 폭 (정하지 않은 칸은 나머지) */
+const COLS = ['3rem', undefined, '5rem', '9rem', '9rem', '11rem'];
 
 const PAGE_SIZE = 30;
 
@@ -245,8 +248,8 @@ export default function TagsAdmin() {
 					<p className="state">이 조건의 태그가 없어요.</p>
 				) : (
 					<div className="table-wrap">
-						<table>
-							<Cols widths={['3rem', undefined, '5rem', '9rem', '9rem', '11rem']} />
+						<table style={{ minWidth: tableMinWidth(COLS) }}>
+							<Cols widths={COLS} />
 							<thead>
 								<tr>
 									<th scope="col">

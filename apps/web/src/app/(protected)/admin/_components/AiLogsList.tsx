@@ -10,7 +10,7 @@ import { LuRotateCw, LuTriangleAlert } from 'react-icons/lu';
 import { ApiError } from '@/api/client';
 import Pagination from '@/components/common/Pagination';
 import FilterChips from '@/components/common/FilterChips';
-import AdminSubPage, { Cols } from './AdminSubPage';
+import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
@@ -24,6 +24,8 @@ const PAGE_SIZE = 20;
 
 /** 가로로 넘겨도 왼쪽에 고정하는 칸 폭: 시각 · 분야 · 결과 (무엇이 언제 어떻게 됐는지) */
 const PINNED = ['9rem', '3.5rem', '9rem'];
+/** 표 칸 폭 (정하지 않은 칸은 나머지) */
+const COLS = [...PINNED, '5rem', '6.5rem', '6.5rem', '8.5rem', '5rem', undefined];
 
 /** 한 줄 (@newpick/shared, api 응답과 같다) */
 type Row = AiLogRow;
@@ -153,10 +155,10 @@ export default function AiLogsList() {
 				<p className="state">이 조건의 기록이 없어요.</p>
 			) : (
 				<div className="np-admin-ai-logs-list-chains table-wrap">
-					<table className="wide">
+					<table className="wide" style={{ minWidth: tableMinWidth(COLS, '60rem') }}>
 						{/* 칸 폭 = 내용 · 머리글(정렬 아이콘 포함) + 오른쪽 여백 1rem. 좁으면 옆 칸에 붙는다.
 						    앞 세 칸(시각 · 분야 · 결과)은 가로로 넘겨도 왼쪽에 고정 (PINNED) */}
-						<Cols widths={[...PINNED, '5rem', '6.5rem', '6.5rem', '8.5rem', '5rem', undefined]} />
+						<Cols widths={COLS} />
 						<thead>
 							<tr>
 								{/* 위 거르기와 같은 조건을 표 머리에서도 */}

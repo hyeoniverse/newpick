@@ -72,6 +72,18 @@ export default function AdminSubPage({ title, summary, filters, period = true, b
 /**
  * 표 칸 폭을 미리 정한다 (빈 값 = 남는 폭). 내용에 맞춰 폭을 정하면 정렬 · 거르기로 줄이 바뀔 때마다 칸이 움직여서
  */
+/** 폭을 정하지 않은 칸(나머지를 받는 칸)이 좁은 화면에서도 지키는 최소 폭 */
+const AUTO_COL_MIN_REM = 10;
+
+/**
+ * 표의 최소 폭: 정한 칸 폭의 합 + 정하지 않은 칸마다 최소 폭. 이보다 좁은 화면에서는 표만 옆으로 넘긴다
+ * (table-layout: fixed라 이게 없으면 정하지 않은 칸이 0까지 줄어 글자가 한 자씩 세로로 쌓인다)
+ */
+export const tableMinWidth = (widths: (string | undefined)[], base = '44rem') => {
+	const rem = widths.reduce((sum, w) => sum + (w ? parseFloat(w) : AUTO_COL_MIN_REM), 0);
+	return `max(${base}, ${rem}rem)`;
+};
+
 export function Cols({ widths }: { widths: (string | undefined)[] }) {
 	return (
 		<colgroup>
