@@ -5,7 +5,7 @@ import { queryKeys } from '@/api/queryKeys';
 
 import type { AdminUserRow } from '@newpick/shared';
 import { useEffect, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { LuTriangleAlert } from 'react-icons/lu';
 import { ApiError } from '@/api/client';
 import { useToast } from '@/hooks/useToast';
@@ -13,9 +13,9 @@ import { useModal } from '@/hooks/useModal';
 import { useAuth } from '@/hooks/useAuth';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
-import Pagination from '@/components/common/Pagination';
 import StatusBadge from '@/components/common/StatusBadge';
 import ModalContents from '@/components/common/modal/ModalContent';
+import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
 import { when } from '../_lib/format';
@@ -23,8 +23,6 @@ import { cx } from '@/styles/tw';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = ['3.5rem', undefined, '6.5rem', '5.5rem', '6.5rem', '7rem', '4.5rem', '9rem', '8.5rem'];
-
-const PAGE_SIZE = 20;
 
 const ROLES = [
 	{ value: '', label: '전체' },
@@ -42,7 +40,7 @@ export const subscriptionTone = (status: string | null) =>
  * 내 계정은 바꾸거나 지울 수 없다 (서버에서도 막음)
  */
 export default function UsersAdmin() {
-	const { page, set, get, today } = useAdminQuery();
+	const { set, get, today } = useAdminQuery();
 	const { user: me } = useAuth();
 	const { showToast } = useToast();
 	const { openModal, closeModal } = useModal();
@@ -52,15 +50,13 @@ export default function UsersAdmin() {
 	const [input, setInput] = useState(q);
 	useEffect(() => setInput(q), [q]);
 
-	const query = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
-	if (role) query.set('role', role);
-	if (q) query.set('q', q);
-
-	const { data, isPending, isError } = useQuery({
-		queryKey: queryKeys.admin.users.list(query.toString()),
-		queryFn: () => fetchUsers(query.toString()),
-		placeholderData: (previous) => previous,
+	const list = useAdminList({
+		queryKey: queryKeys.admin.users.list,
+		fetch: fetchUsers,
+		params: { role, q },
+		period: false,
 	});
+	const { data } = list;
 	const refresh = () => queryClient.invalidateQueries({ queryKey: queryKeys.admin.users.all });
 
 	const changeRole = (row: AdminUserRow) => {
@@ -144,87 +140,75 @@ export default function UsersAdmin() {
 			}
 		>
 			<AdminActions>
-				{isPending ? (
-					<p className="state">불러오는 중…</p>
-				) : isError ? (
-					<p className="state">불러오지 못했어요.</p>
-				) : data.items.length === 0 ? (
-					<p className="state">이 조건의 사용자가 없어요.</p>
-				) : (
-					<div className="table-wrap">
-						<table style={{ minWidth: tableMinWidth(COLS) }}>
-							<Cols widths={COLS} />
-							<thead>
-								<tr>
-									<th scope="col">id</th>
-									<th scope="col">이메일</th>
-									<th scope="col">이름</th>
-									<th scope="col">권한</th>
-									<th scope="col">구독</th>
-									<th scope="col">관심사</th>
-									<th scope="col">북마크</th>
-									<th scope="col">가입</th>
-									<th scope="col">
-										<span className="sr-only">동작</span>
-									</th>
-								</tr>
-							</thead>
-							<tbody>
-								{data.items.map((row) => {
-									const self = me?.id === row.id;
-									return (
-										<tr key={row.id}>
-											<td className="num">{row.id}</td>
-											<td>
-												{row.email}
-												{self && <span className="me">나</span>}
-											</td>
-											<td>{row.username ?? '-'}</td>
-											<td>
-												<StatusBadge tone={row.role === 'admin' ? 'success' : 'neutral'}>
-													{row.role === 'admin' ? '관리자' : '사용자'}
-												</StatusBadge>
-											</td>
-											<td>
-												{row.subscription ? (
-													<StatusBadge tone={subscriptionTone(row.subscription)}>
-														{SUBSCRIPTION_LABEL[row.subscription] ?? row.subscription}
+				<AdminListState list={list} empty="이 조건의 사용자가 없어요.">
+					{(data) => (
+						<div className="table-wrap">
+							<table style={{ minWidth: tableMinWidth(COLS) }}>
+								<Cols widths={COLS} />
+								<thead>
+									<tr>
+										<th scope="col">id</th>
+										<th scope="col">이메일</th>
+										<th scope="col">이름</th>
+										<th scope="col">권한</th>
+										<th scope="col">구독</th>
+										<th scope="col">관심사</th>
+										<th scope="col">북마크</th>
+										<th scope="col">가입</th>
+										<th scope="col">
+											<span className="sr-only">동작</span>
+										</th>
+									</tr>
+								</thead>
+								<tbody>
+									{data.items.map((row) => {
+										const self = me?.id === row.id;
+										return (
+											<tr key={row.id}>
+												<td className="num">{row.id}</td>
+												<td>
+													{row.email}
+													{self && <span className="me">나</span>}
+												</td>
+												<td>{row.username ?? '-'}</td>
+												<td>
+													<StatusBadge tone={row.role === 'admin' ? 'success' : 'neutral'}>
+														{row.role === 'admin' ? '관리자' : '사용자'}
 													</StatusBadge>
-												) : (
-													'-'
-												)}
-											</td>
-											<td className="category">{mapIdToTitle(row.interests).join(' · ') || '-'}</td>
-											<td className="num">{row.bookmarks}</td>
-											<td className="nowrap num">{when(row.createdAt, today)}</td>
-											<td className="row-actions">
-												{!self && (
-													<>
-														<button type="button" onClick={() => changeRole(row)}>
-															{row.role === 'admin' ? '권한 빼기' : '관리자로'}
-														</button>
-														<button type="button" className="danger" onClick={() => remove(row)}>
-															지우기
-														</button>
-													</>
-												)}
-											</td>
-										</tr>
-									);
-								})}
-							</tbody>
-						</table>
-					</div>
-				)}
-				{data && (
-					<Pagination
-						className="pagination"
-						page={page}
-						total={data.total}
-						pageSize={PAGE_SIZE}
-						onChange={(next) => set({ page: next })}
-					/>
-				)}
+												</td>
+												<td>
+													{row.subscription ? (
+														<StatusBadge tone={subscriptionTone(row.subscription)}>
+															{SUBSCRIPTION_LABEL[row.subscription] ?? row.subscription}
+														</StatusBadge>
+													) : (
+														'-'
+													)}
+												</td>
+												<td className="category">{mapIdToTitle(row.interests).join(' · ') || '-'}</td>
+												<td className="num">{row.bookmarks}</td>
+												<td className="nowrap num">{when(row.createdAt, today)}</td>
+												<td className="row-actions">
+													{!self && (
+														<>
+															<button type="button" onClick={() => changeRole(row)}>
+																{row.role === 'admin' ? '권한 빼기' : '관리자로'}
+															</button>
+															<button type="button" className="danger" onClick={() => remove(row)}>
+																지우기
+															</button>
+														</>
+													)}
+												</td>
+											</tr>
+										);
+									})}
+								</tbody>
+							</table>
+						</div>
+					)}
+				</AdminListState>
+				<AdminListPagination list={list} />
 			</AdminActions>
 		</AdminSubPage>
 	);

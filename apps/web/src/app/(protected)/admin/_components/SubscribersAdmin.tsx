@@ -4,12 +4,11 @@ import { fetchSubscribers } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import { useEffect, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
-import Pagination from '@/components/common/Pagination';
 import StatusBadge from '@/components/common/StatusBadge';
+import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
 import { when } from '../_lib/format';
@@ -18,32 +17,25 @@ import { AdminActions, SUBSCRIPTION_LABEL, subscriptionTone } from './UsersAdmin
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = [undefined, '8rem', '7rem', '12rem', '9rem', '9rem'];
 
-const PAGE_SIZE = 20;
-
-/** 한 줄 (@newpick/shared, api 응답과 같다) */
-
 /**
  * 관리자 CMS (#31): 구독자. 구독 상태(구독 중 · 일시 정지 · 해지) · 관심사 · 이메일로 찾고,
  * 상태 칩에 상태별 전체 수를 함께 보여 준다
  */
 export default function SubscribersAdmin() {
-	const { page, set, get, today } = useAdminQuery();
+	const { set, get, today } = useAdminQuery();
 	const status = get('status');
 	const categoryId = get('categoryId');
 	const q = get('q');
 	const [input, setInput] = useState(q);
 	useEffect(() => setInput(q), [q]);
 
-	const query = new URLSearchParams({ limit: String(PAGE_SIZE), offset: String((page - 1) * PAGE_SIZE) });
-	if (status) query.set('status', status);
-	if (categoryId) query.set('categoryId', categoryId);
-	if (q) query.set('q', q);
-
-	const { data, isPending, isError } = useQuery({
-		queryKey: queryKeys.admin.subscribers(query.toString()),
-		queryFn: () => fetchSubscribers(query.toString()),
-		placeholderData: (previous) => previous,
+	const list = useAdminList({
+		queryKey: queryKeys.admin.subscribers,
+		fetch: fetchSubscribers,
+		params: { status, categoryId, q },
+		period: false,
 	});
+	const { data } = list;
 
 	const count = (key: string) => (data ? ` ${data.byStatus[key] ?? 0}` : '');
 	const statuses = [
@@ -91,54 +83,42 @@ export default function SubscribersAdmin() {
 			}
 		>
 			<AdminActions>
-				{isPending ? (
-					<p className="state">불러오는 중…</p>
-				) : isError ? (
-					<p className="state">불러오지 못했어요.</p>
-				) : data.items.length === 0 ? (
-					<p className="state">이 조건의 구독자가 없어요.</p>
-				) : (
-					<div className="table-wrap">
-						<table style={{ minWidth: tableMinWidth(COLS) }}>
-							<Cols widths={COLS} />
-							<thead>
-								<tr>
-									<th scope="col">이메일</th>
-									<th scope="col">이름</th>
-									<th scope="col">상태</th>
-									<th scope="col">관심사</th>
-									<th scope="col">시작</th>
-									<th scope="col">해지</th>
-								</tr>
-							</thead>
-							<tbody>
-								{data.items.map((row) => (
-									<tr key={row.id}>
-										<td>{row.email}</td>
-										<td>{row.username ?? '-'}</td>
-										<td>
-											<StatusBadge tone={subscriptionTone(row.status)}>
-												{SUBSCRIPTION_LABEL[row.status] ?? row.status}
-											</StatusBadge>
-										</td>
-										<td className="category">{mapIdToTitle(row.interests).join(' · ') || '-'}</td>
-										<td className="nowrap num">{when(row.startedAt, today)}</td>
-										<td className="nowrap num">{row.endAt ? when(row.endAt, today) : '-'}</td>
+				<AdminListState list={list} empty="이 조건의 구독자가 없어요.">
+					{(data) => (
+						<div className="table-wrap">
+							<table style={{ minWidth: tableMinWidth(COLS) }}>
+								<Cols widths={COLS} />
+								<thead>
+									<tr>
+										<th scope="col">이메일</th>
+										<th scope="col">이름</th>
+										<th scope="col">상태</th>
+										<th scope="col">관심사</th>
+										<th scope="col">시작</th>
+										<th scope="col">해지</th>
 									</tr>
-								))}
-							</tbody>
-						</table>
-					</div>
-				)}
-				{data && (
-					<Pagination
-						className="pagination"
-						page={page}
-						total={data.total}
-						pageSize={PAGE_SIZE}
-						onChange={(next) => set({ page: next })}
-					/>
-				)}
+								</thead>
+								<tbody>
+									{data.items.map((row) => (
+										<tr key={row.id}>
+											<td>{row.email}</td>
+											<td>{row.username ?? '-'}</td>
+											<td>
+												<StatusBadge tone={subscriptionTone(row.status)}>
+													{SUBSCRIPTION_LABEL[row.status] ?? row.status}
+												</StatusBadge>
+											</td>
+											<td className="category">{mapIdToTitle(row.interests).join(' · ') || '-'}</td>
+											<td className="nowrap num">{when(row.startedAt, today)}</td>
+											<td className="nowrap num">{row.endAt ? when(row.endAt, today) : '-'}</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					)}
+				</AdminListState>
+				<AdminListPagination list={list} />
 			</AdminActions>
 		</AdminSubPage>
 	);
