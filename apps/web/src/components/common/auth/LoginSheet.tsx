@@ -64,15 +64,15 @@ export default function LoginSheet({ reason }: Props) {
 			</Button>
 
 			<p className="notice mt-2 text-extra-small leading-[1.6] text-sub-text [word-break:keep-all]">
-				로그인하면 뉴픽의 {/* 로그인 창을 닫지 않고 읽을 수 있게 새 탭으로 */}
+				로그인 시 뉴픽의 {/* 로그인 창을 닫지 않고 읽을 수 있게 새 탭으로 */}
 				<Link href={ROUTES.terms} target="_blank" className={LINK}>
 					이용약관
-				</Link>
-				과{' '}
+				</Link>{' '}
+				및{' '}
 				<Link href={ROUTES.privacy} target="_blank" className={LINK}>
 					개인정보 처리방침
 				</Link>
-				에 동의하는 것으로 봅니다.
+				에 동의한 것으로 간주합니다.
 			</p>
 		</div>
 	);
