@@ -21,7 +21,8 @@ function Harness() {
 	confirm = useConfirmAction();
 	return <Modal />;
 }
-const ask = (options: Partial<Options>) => {
+// 시험마다 run의 결과 모양이 달라 옵션은 느슨하게 받는다
+const ask = (options: Record<string, unknown>) => {
 	render(<Harness />);
 	act(() =>
 		confirm({
@@ -30,7 +31,7 @@ const ask = (options: Partial<Options>) => {
 			failure: '지우지 못했어요.',
 			run: async () => 1,
 			...options,
-		}),
+		} as Options),
 	);
 };
 const toasts = () => useToastStore.getState().toasts.map((t) => [t.type, t.message]);
