@@ -1,0 +1,8 @@
+{
+	"api": [
+		["edition/compose.ts", "edition/personalize.ts", "edition/personal-note.ts"],
+		["edition/personalize.ts", "edition/personal-note.ts"],
+		["edition/personalize.ts", "recommend/pick.ts"]
+	],
+	"web": []
+}

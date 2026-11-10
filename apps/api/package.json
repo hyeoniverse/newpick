@@ -18,6 +18,7 @@
     "test": "NODE_ENV=test jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
+    "cycles": "node ../../scripts/check-cycles.mjs",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:mongo": "ts-node scripts/test-mongo.ts",
     "test:mysql": "ts-node scripts/test-mysql.ts",
