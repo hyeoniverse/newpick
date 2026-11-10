@@ -10,7 +10,7 @@ import {
 	moveBookmarks,
 } from '@/api/bookmark';
 import { useAuth } from '@/hooks/useAuth';
-import { ApiError } from '@/api/client';
+import { errorMessage } from '@/api/client';
 import { useToast } from '@/hooks/useToast';
 
 interface BookmarkVariables {
@@ -103,7 +103,6 @@ export const useMoveBookmarksMutation = () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
 			showToast(`${count}개를 옮겼어요.`, 'success');
 		},
-		onError: (error: Error) =>
-			showToast(error instanceof ApiError ? error.message : '옮기지 못했어요. 잠시 뒤 다시 시도해 주세요.', 'error'),
+		onError: (error: Error) => showToast(errorMessage(error, '옮기지 못했어요. 잠시 뒤 다시 시도해 주세요.'), 'error'),
 	});
 };

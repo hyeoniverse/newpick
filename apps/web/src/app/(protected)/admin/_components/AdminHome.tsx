@@ -4,7 +4,7 @@ import { ROUTES } from '@/constants/routes';
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
 import { refreshSiteCache } from '@/api/admin';
-import { ApiError } from '@/api/client';
+import { errorMessage } from '@/api/client';
 import { useToast } from '@/hooks/useToast';
 import AdminGate from '@/components/common/auth/AdminGate';
 import Title from '@/components/common/Title';
@@ -27,7 +27,7 @@ function SiteCacheTool() {
 			setLastAt(data.refreshedAt);
 			showToast('사이트 캐시를 비웠습니다. 다음 접속부터 새 내용이 보여요.', 'success');
 		} catch (error) {
-			showToast(error instanceof ApiError ? error.message : '사이트 캐시를 비우지 못했습니다.', 'error');
+			showToast(errorMessage(error, '사이트 캐시를 비우지 못했습니다.'), 'error');
 		} finally {
 			setPending(false);
 		}

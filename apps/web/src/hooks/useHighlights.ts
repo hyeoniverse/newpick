@@ -12,7 +12,7 @@ import {
 	updateHighlight,
 } from '@/api/highlights';
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ApiError } from '@/api/client';
+import { errorMessage } from '@/api/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 
@@ -67,7 +67,7 @@ export function useHighlightMutations() {
 		queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
 	};
 	const fail = (error: Error) =>
-		showToast(error instanceof ApiError ? error.message : '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.', 'error');
+		showToast(errorMessage(error, '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.'), 'error');
 
 	const create = useMutation({
 		mutationFn: createHighlight,

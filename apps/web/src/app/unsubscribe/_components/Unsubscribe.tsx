@@ -7,7 +7,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { LuMailX, LuMailCheck, LuLink2Off, LuX, LuCheck } from 'react-icons/lu';
-import { ApiError } from '@/api/client';
+import { errorMessage } from '@/api/client';
 import { fetchUnsubscribeTarget, unsubscribeByToken } from '@/api/subscription';
 import Button from '@/components/common/Button';
 import Spinner from '@/components/common/loader/Spinner';
@@ -41,7 +41,7 @@ export default function Unsubscribe() {
 			await unsubscribeByToken(token);
 			setDone(true);
 		} catch (e) {
-			setFailed(e instanceof ApiError ? e.message : '해지하지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+			setFailed(errorMessage(e, '해지하지 못했어요. 잠시 뒤 다시 시도해 주세요.'));
 		} finally {
 			setPending(false);
 		}

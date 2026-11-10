@@ -1,5 +1,6 @@
 'use client';
 
+import { useConfirmAction } from '@/hooks/useConfirmAction';
 import { ROUTES } from '@/constants/routes';
 import {
 	fetchDashboard,
@@ -16,9 +17,9 @@ import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from '../_lib/format';
-import { LuArrowRight, LuCalendarPlus, LuChevronDown, LuClock, LuInfo, LuPlay, LuTriangleAlert } from 'react-icons/lu';
+import { LuArrowRight, LuCalendarPlus, LuChevronDown, LuClock, LuInfo, LuPlay } from 'react-icons/lu';
 import ScheduleEditor, { describe, type Schedule } from './ScheduleEditor';
-import { ApiError } from '@/api/client';
+import { errorMessage } from '@/api/client';
 import { useToast } from '@/hooks/useToast';
 import { useModal } from '@/hooks/useModal';
 import { mapIdToTitle } from '@/utils/mapInterests';
@@ -95,6 +96,7 @@ export default function Dashboard() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
 	const { openModal, closeModal } = useModal();
+	const confirm = useConfirmAction();
 	// 고른 기간은 주소(?from=&to=)에. 상세 화면으로 같은 기간을 들고 간다
 	const { today, from, to, periodQuery } = useAdminQuery();
 	const [openDay, setOpenDay] = useState<string | null>(null);
@@ -134,7 +136,7 @@ export default function Dashboard() {
 			);
 			refresh();
 		} catch (error) {
-			showToast(error instanceof ApiError ? error.message : '바꾸지 못했습니다.', 'error');
+			showToast(errorMessage(error, '바꾸지 못했습니다.'), 'error');
 		}
 	};
 
@@ -150,37 +152,25 @@ export default function Dashboard() {
 						showToast(`${date} 누락된 뉴스레터 생성을 시작했습니다. 관심사당 1~2분 소요됩니다.`, 'success');
 						setTimeout(refresh, 800);
 					} catch (error) {
-						showToast(error instanceof ApiError ? error.message : '시작하지 못했습니다.', 'error');
+						showToast(errorMessage(error, '시작하지 못했습니다.'), 'error');
 					}
 				}}
 			/>,
 		);
 
 	const runNow = (job: JobName) =>
-		openModal(
-			<ModalContents
-				icon={<LuTriangleAlert />}
-				title={`${JOBS[job].label}을 지금 실행하시겠습니까?`}
-				content={JOBS[job].warning}
-				outlineButton="취소"
-				filledButton="지금 실행"
-				onCancelClick={closeModal}
-				onConfirmClick={async () => {
-					closeModal();
-					try {
-						await runJobNow(job);
-						showToast(`${JOBS[job].label}을 시작했습니다.`, 'success');
-						// 서버가 실행 기록을 남길 틈을 주고 새로 고친다
-						setTimeout(refresh, 800);
-					} catch (error) {
-						showToast(error instanceof ApiError ? error.message : '시작하지 못했습니다.', 'error');
-					}
-				}}
-			>
-				{/* AI 요약은 오늘 아직 없는 분야만 만들므로, 어느 분야를 만드는지 보여 준다 */}
-				{job === 'summary' && <MissingCategories date={kstDay(0)} label="재생성 항목" />}
-			</ModalContents>,
-		);
+		confirm({
+			title: `${JOBS[job].label}을 지금 실행하시겠습니까?`,
+			content: JOBS[job].warning,
+			confirmLabel: '지금 실행',
+			// AI 요약은 오늘 아직 없는 분야만 만들므로, 어느 분야를 만드는지 보여 준다
+			children: job === 'summary' && <MissingCategories date={kstDay(0)} label="재생성 항목" />,
+			run: () => runJobNow(job),
+			success: `${JOBS[job].label}을 시작했습니다.`,
+			failure: '시작하지 못했습니다.',
+			// 서버가 실행 기록을 남길 틈을 주고 새로 고친다
+			onDone: () => setTimeout(refresh, 800),
+		});
 
 	if (isPending) {
 		return (

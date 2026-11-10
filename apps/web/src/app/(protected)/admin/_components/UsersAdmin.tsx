@@ -1,20 +1,17 @@
 'use client';
 
+import { useConfirmAction } from '@/hooks/useConfirmAction';
 import { changeUserRole, deleteUser, fetchUsers } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import type { AdminUserRow } from '@newpick/shared';
 import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { LuTriangleAlert } from 'react-icons/lu';
-import { ApiError } from '@/api/client';
-import { useToast } from '@/hooks/useToast';
-import { useModal } from '@/hooks/useModal';
+
 import { useAuth } from '@/hooks/useAuth';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
 import StatusBadge from '@/components/common/StatusBadge';
-import ModalContents from '@/components/common/modal/ModalContent';
 import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
@@ -42,8 +39,7 @@ export const subscriptionTone = (status: string | null) =>
 export default function UsersAdmin() {
 	const { set, get, today } = useAdminQuery();
 	const { user: me } = useAuth();
-	const { showToast } = useToast();
-	const { openModal, closeModal } = useModal();
+	const confirm = useConfirmAction();
 	const queryClient = useQueryClient();
 	const role = get('role');
 	const q = get('q');
@@ -61,53 +57,30 @@ export default function UsersAdmin() {
 
 	const changeRole = (row: AdminUserRow) => {
 		const next = row.role === 'admin' ? 'user' : 'admin';
-		openModal(
-			<ModalContents
-				icon={<LuTriangleAlert />}
-				title={next === 'admin' ? `${row.email}을 관리자로 바꿀까요?` : `${row.email}의 관리자 권한을 뺄까요?`}
-				content={
-					next === 'admin'
-						? '관리자는 관리자 화면에서 뉴스레터 · 사용자 · 예약 작업을 모두 바꿀 수 있어요.'
-						: '이 사용자는 관리자 화면에 들어올 수 없게 돼요.'
-				}
-				outlineButton="취소"
-				filledButton={next === 'admin' ? '관리자로' : '권한 빼기'}
-				onCancelClick={closeModal}
-				onConfirmClick={async () => {
-					closeModal();
-					try {
-						await changeUserRole(row.id, next);
-						showToast('권한을 바꿨어요.', 'success');
-						refresh();
-					} catch (error) {
-						showToast(error instanceof ApiError ? error.message : '바꾸지 못했어요.', 'error');
-					}
-				}}
-			/>,
-		);
+		confirm({
+			title: next === 'admin' ? `${row.email}을 관리자로 바꿀까요?` : `${row.email}의 관리자 권한을 뺄까요?`,
+			content:
+				next === 'admin'
+					? '관리자는 관리자 화면에서 뉴스레터 · 사용자 · 예약 작업을 모두 바꿀 수 있어요.'
+					: '이 사용자는 관리자 화면에 들어올 수 없게 돼요.',
+			confirmLabel: next === 'admin' ? '관리자로' : '권한 빼기',
+			run: () => changeUserRole(row.id, next),
+			success: '권한을 바꿨어요.',
+			failure: '바꾸지 못했어요.',
+			onDone: refresh,
+		});
 	};
 
 	const remove = (row: AdminUserRow) =>
-		openModal(
-			<ModalContents
-				icon={<LuTriangleAlert />}
-				title={`${row.email} 계정을 지울까요?`}
-				content="회원 탈퇴와 같아요. 관심사 · 구독 · 북마크 · 메일 발송 기록이 함께 지워지고 되돌릴 수 없어요."
-				outlineButton="취소"
-				filledButton="지우기"
-				onCancelClick={closeModal}
-				onConfirmClick={async () => {
-					closeModal();
-					try {
-						await deleteUser(row.id);
-						showToast('계정을 지웠어요.', 'success');
-						refresh();
-					} catch (error) {
-						showToast(error instanceof ApiError ? error.message : '지우지 못했어요.', 'error');
-					}
-				}}
-			/>,
-		);
+		confirm({
+			title: `${row.email} 계정을 지울까요?`,
+			content: '회원 탈퇴와 같아요. 관심사 · 구독 · 북마크 · 메일 발송 기록이 함께 지워지고 되돌릴 수 없어요.',
+			confirmLabel: '지우기',
+			run: () => deleteUser(row.id),
+			success: '계정을 지웠어요.',
+			failure: '지우지 못했어요.',
+			onDone: refresh,
+		});
 
 	return (
 		<AdminSubPage

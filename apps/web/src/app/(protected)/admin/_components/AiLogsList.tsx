@@ -1,13 +1,14 @@
 'use client';
 
+import { useConfirmAction } from '@/hooks/useConfirmAction';
 import { fetchAiLogs, rerunSummary } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import type { AiLogRow } from '@newpick/shared';
 import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { LuRotateCw, LuTriangleAlert } from 'react-icons/lu';
-import { ApiError } from '@/api/client';
+import { LuRotateCw } from 'react-icons/lu';
+
 import FilterChips from '@/components/common/FilterChips';
 import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
@@ -16,9 +17,6 @@ import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from '../_lib/format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
-import ModalContents from '@/components/common/modal/ModalContent';
-import { useModal } from '@/hooks/useModal';
-import { useToast } from '@/hooks/useToast';
 
 /** 가로로 넘겨도 왼쪽에 고정하는 칸 폭: 시각 · 분야 · 결과 (무엇이 언제 어떻게 됐는지) */
 const PINNED = ['9rem', '3.5rem', '9rem'];
@@ -52,34 +50,20 @@ const canRerun = (log: AiLogRow) =>
 
 /** 실패한 요약을 그날 · 그 분야로 다시 만든다 (서버가 그날 이미 있는 분야는 건너뛴다) */
 function useRerun() {
-	const { openModal, closeModal } = useModal();
-	const { showToast } = useToast();
+	const confirm = useConfirmAction();
 	const queryClient = useQueryClient();
 	return (log: AiLogRow) => {
 		const date = kstDay(log.createdAt);
-		openModal(
-			<ModalContents
-				icon={<LuTriangleAlert />}
-				title={`${date} ${log.category ?? ''} 뉴스레터를 다시 생성하시겠습니까?`}
-				content="해당 날짜에 수집된 기사로 다시 요약해 그날 날짜로 게시합니다. 그날 이 관심사의 뉴스레터가 이미 있으면 건너뜁니다. 구독 메일은 발송하지 않으며, Claude 비용이 발생합니다."
-				outlineButton="취소"
-				filledButton="다시 생성"
-				onCancelClick={closeModal}
-				onConfirmClick={async () => {
-					closeModal();
-					try {
-						await rerunSummary({ date, categoryId: log.categoryId });
-						showToast(
-							`${date} ${log.category ?? ''} 뉴스레터 생성을 시작했습니다. 몇 분 후 기록에 표시됩니다.`,
-							'success',
-						);
-						setTimeout(() => queryClient.invalidateQueries({ queryKey: queryKeys.admin.aiLogs.all }), 60_000);
-					} catch (error) {
-						showToast(error instanceof ApiError ? error.message : '시작하지 못했습니다.', 'error');
-					}
-				}}
-			/>,
-		);
+		confirm({
+			title: `${date} ${log.category ?? ''} 뉴스레터를 다시 생성하시겠습니까?`,
+			content:
+				'해당 날짜에 수집된 기사로 다시 요약해 그날 날짜로 게시합니다. 그날 이 관심사의 뉴스레터가 이미 있으면 건너뜁니다. 구독 메일은 발송하지 않으며, Claude 비용이 발생합니다.',
+			confirmLabel: '다시 생성',
+			run: () => rerunSummary({ date, categoryId: log.categoryId }),
+			success: `${date} ${log.category ?? ''} 뉴스레터 생성을 시작했습니다. 몇 분 후 기록에 표시됩니다.`,
+			failure: '시작하지 못했습니다.',
+			onDone: () => setTimeout(() => queryClient.invalidateQueries({ queryKey: queryKeys.admin.aiLogs.all }), 60_000),
+		});
 	};
 }
 

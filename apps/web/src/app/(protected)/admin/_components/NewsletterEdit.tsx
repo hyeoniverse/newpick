@@ -1,5 +1,6 @@
 'use client';
 
+import { useConfirmAction } from '@/hooks/useConfirmAction';
 import { ROUTES } from '@/constants/routes';
 import { deleteNewsletter, fetchNewsletter, rerunSummary, resetNewsletterViews, updateNewsletter } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
@@ -9,16 +10,15 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { LuTriangleAlert } from 'react-icons/lu';
-import { ApiError } from '@/api/client';
+
+import { errorMessage } from '@/api/client';
 import { CATEGORIES } from '@/constants/categories';
 import { useToast } from '@/hooks/useToast';
-import { useModal } from '@/hooks/useModal';
+
 import AdminGate from '@/components/common/auth/AdminGate';
 import BackBar from '@/components/common/BackBar';
 import Title from '@/components/common/Title';
 import Button from '@/components/common/Button';
-import ModalContents from '@/components/common/modal/ModalContent';
 import ArticleContent from '@/app/articles/detail/[slug]/_components/content/ArticleContent';
 import InputSelect from '@/components/common/InputSelect';
 import HtmlCodeEditor from './HtmlCodeEditor';
@@ -47,7 +47,6 @@ export default function NewsletterEdit({ id }: { id: number }) {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
-	const { openModal, closeModal } = useModal();
 	const [form, setForm] = useState<Form | null>(null);
 	const [pending, setPending] = useState(false);
 	const [error, setError] = useState('');
@@ -87,31 +86,16 @@ export default function NewsletterEdit({ id }: { id: number }) {
 			queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id) });
 			queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters.all });
 		} catch (e) {
-			setError(e instanceof ApiError ? e.message : '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.');
+			setError(errorMessage(e, '저장하지 못했어요. 잠시 뒤 다시 시도해 주세요.'));
 		} finally {
 			setPending(false);
 		}
 	};
 
+	const confirmAction = useConfirmAction();
+	/** 묻고 실행 (알림은 run 안에서) */
 	const confirm = (title: string, content: string, label: string, run: () => Promise<void>) =>
-		openModal(
-			<ModalContents
-				icon={<LuTriangleAlert />}
-				title={title}
-				content={content}
-				outlineButton="취소"
-				filledButton={label}
-				onCancelClick={closeModal}
-				onConfirmClick={async () => {
-					closeModal();
-					try {
-						await run();
-					} catch (e) {
-						showToast(e instanceof ApiError ? e.message : '하지 못했어요.', 'error');
-					}
-				}}
-			/>,
-		);
+		confirmAction({ title, content, confirmLabel: label, run, failure: '하지 못했어요.' });
 
 	const resetViews = () =>
 		confirm('조회수를 0으로 되돌릴까요?', '인기 순위에서 이 뉴스레터가 아래로 내려가요.', '되돌리기', async () => {
