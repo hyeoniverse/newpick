@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ColorKey } from '@/styles/theme';
+import type { ColorKey } from '@/styles/tokens/theme';
 import { PART_BG_COLOR, PART_BORDER_COLOR, cx, PART_TEXT_COLOR } from '@/styles/tw';
 
 interface Props {

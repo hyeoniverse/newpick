@@ -1,4 +1,4 @@
-import type { ColorKey, FontWeight, HeadingSize } from '@/styles/theme';
+import type { ColorKey, FontWeight, HeadingSize } from '@/styles/tokens/theme';
 import { cx, PART_FONT_WEIGHT, PART_HEADING_SIZE, PART_TEXT_COLOR } from '@/styles/tw';
 
 interface Props {

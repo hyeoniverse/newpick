@@ -9,7 +9,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "test": "vitest run",
-    "tokens": "UPDATE_TOKENS=1 vitest run src/styles/tokens.test.ts",
+    "tokens": "UPDATE_TOKENS=1 vitest run src/styles/tokens/tokens.test.ts",
     "e2e:seed": "node e2e/seed.mjs",
     "e2e": "playwright test",
     "format": "prettier --write"

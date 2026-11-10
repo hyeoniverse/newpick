@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ThemeName } from '@/styles/theme';
+import { ThemeName } from '@/styles/tokens/theme';
 import React from 'react';
 
 import { STORAGE_KEYS } from '@/constants/storage';

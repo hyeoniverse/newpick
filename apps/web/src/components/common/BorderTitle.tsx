@@ -1,5 +1,5 @@
 import Title from '@/components/common/Title';
-import type { ColorKey } from '@/styles/theme';
+import type { ColorKey } from '@/styles/tokens/theme';
 import { cx, PART_TEXT_COLOR } from '@/styles/tw';
 
 interface Props {

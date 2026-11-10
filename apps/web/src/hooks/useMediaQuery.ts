@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getTheme } from '@/styles/theme';
+import { getTheme } from '@/styles/tokens/theme';
 
 export const useMediaQuery = () => {
 	const [isMobile, setIsMobile] = useState(false);

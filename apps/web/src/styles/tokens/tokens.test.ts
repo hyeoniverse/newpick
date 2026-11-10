@@ -1,11 +1,11 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { cssVarTheme, darkTheme, lightTheme, tokensCss } from '@/styles/theme';
+import { cssVarTheme, darkTheme, lightTheme, tokensCss } from '@/styles/tokens/theme';
 
 const file = join(__dirname, 'tokens.css');
 
-describe('styles/tokens.css', () => {
+describe('styles/tokens/tokens.css', () => {
 	it('theme.ts에서 만든 내용과 같다 (어긋나면 npm run tokens)', () => {
 		if (process.env.UPDATE_TOKENS) writeFileSync(file, tokensCss());
 		expect(readFileSync(file, 'utf8')).toBe(tokensCss());
