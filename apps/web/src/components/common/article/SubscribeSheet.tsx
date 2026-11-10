@@ -6,7 +6,7 @@ import { useModal } from '@/hooks/useModal';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSelectInterests } from '@/hooks/useInterests';
 import useSubscribe from '@/hooks/useSubscribe';
-import useInterestsStore from '@/stores/useInterestStore';
+import { useInterestStore } from '@/stores/useInterestStore';
 
 import { useEffect } from 'react';
 
@@ -30,7 +30,7 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 	const { selectedInterests = [], handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck(CHECK_NAME);
 	const { openModal, closeModal } = useModal();
-	const setSelectedInterests = useInterestsStore((state) => state.setSelectedInterests);
+	const setSelectedInterests = useInterestStore((state) => state.setSelectedInterests);
 
 	// useSelectInterests가 user 기준으로 선택을 초기화한 뒤에 덮어써야 한다 (effect는 선언 순서대로 돈다)
 	useEffect(() => {

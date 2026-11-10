@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { User } from '@/types/user';
 import SubscribeSheet from '@/components/common/article/SubscribeSheet';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
-import useInterestsStore from '@/stores/useInterestStore';
+import { useInterestStore } from '@/stores/useInterestStore';
 import { useInputCheckStore } from '@/stores/useInputCheckStore';
 
 let user: Partial<User> | null = null;
@@ -28,7 +28,7 @@ afterEach(cleanup);
 beforeEach(() => {
 	vi.clearAllMocks();
 	// 선택 분야와 약관 체크는 전역 스토어라 테스트마다 비운다
-	useInterestsStore.setState({ selectedInterests: [] });
+	useInterestStore.setState({ selectedInterests: [] });
 	useInputCheckStore.setState({ values: {} });
 	user = { id: 1, isSubscribed: null };
 });

@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import useMountStore from '@/stores/useMountStore';
+import { useMountStore } from '@/stores/useMountStore';
 
 export const useMount = () => {
 	const { isMounted, setMounted } = useMountStore();

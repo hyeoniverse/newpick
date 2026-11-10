@@ -5,10 +5,7 @@ interface InterestState {
 	setSelectedInterests: (interests: string[]) => void;
 }
 
-const useInterestsStore = create<InterestState>((set) => ({
+export const useInterestStore = create<InterestState>((set) => ({
 	selectedInterests: [],
-	addInterest: (interest: string) => set((state) => ({ selectedInterests: [...state.selectedInterests, interest] })),
 	setSelectedInterests: (interests) => set({ selectedInterests: interests }),
 }));
-
-export default useInterestsStore;
