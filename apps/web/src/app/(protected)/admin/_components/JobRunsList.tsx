@@ -11,7 +11,7 @@ import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
-import { when } from './format';
+import { when } from '../_lib/format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */

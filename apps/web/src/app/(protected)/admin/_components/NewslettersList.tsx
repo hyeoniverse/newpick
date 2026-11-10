@@ -14,7 +14,7 @@ import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
-import { when } from './format';
+import { when } from '../_lib/format';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = ['10rem', '7rem', undefined, '6rem', '5rem'];

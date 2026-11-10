@@ -18,7 +18,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import ModalContents from '@/components/common/modal/ModalContent';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
-import { when } from './format';
+import { when } from '../_lib/format';
 import { cx } from '@/styles/tw';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */

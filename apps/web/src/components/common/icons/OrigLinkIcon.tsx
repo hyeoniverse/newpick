@@ -1,4 +1,4 @@
-import { IconButton } from '@/styles/Icon';
+import { IconButton } from '@/components/common/icons/IconButton';
 import { ExternalGlyph } from '@/components/common/icons/Glyphs';
 
 interface Props {

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { PCLogo, MoLogo } from '@/components/common/svg/LogoSVG';
+import { PCLogo, MoLogo } from '@/components/common/icons/LogoSVG';
 
 interface Props {
 	logoType?: 'footer-logo'; // 허용 가능한 값 명시

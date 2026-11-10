@@ -1,7 +1,7 @@
 import { ROUTES } from '@/constants/routes';
 import { useEffect, useState } from 'react';
 import { CheckGlyph, LinkGlyph } from '@/components/common/icons/Glyphs';
-import { IconButton } from '@/styles/Icon';
+import { IconButton } from '@/components/common/icons/IconButton';
 import { useToast } from '@/hooks/useToast';
 
 interface Props {

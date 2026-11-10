@@ -12,7 +12,7 @@ import Pagination from '@/components/common/Pagination';
 import StatusBadge from '@/components/common/StatusBadge';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
-import { when } from './format';
+import { when } from '../_lib/format';
 import { AdminActions, SUBSCRIPTION_LABEL, subscriptionTone } from './UsersAdmin';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */

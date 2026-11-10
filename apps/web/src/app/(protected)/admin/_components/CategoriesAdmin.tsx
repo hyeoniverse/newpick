@@ -8,7 +8,7 @@ import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
-import { when } from './format';
+import { when } from '../_lib/format';
 import { AdminActions } from './UsersAdmin';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */

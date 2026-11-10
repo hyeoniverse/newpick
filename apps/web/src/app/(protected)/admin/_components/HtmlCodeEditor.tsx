@@ -1,7 +1,7 @@
 'use client';
 
 import { Fragment } from 'react';
-import { INDENT } from './htmlFormat';
+import { INDENT } from '../_lib/htmlFormat';
 
 interface Props {
 	value: string;

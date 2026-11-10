@@ -12,7 +12,7 @@ import BarList from '@/components/common/charts/BarList';
 import AdminSubPage from './AdminSubPage';
 import { useAdminQuery } from './period';
 import Heatmap from './Heatmap';
-import { DEVICE_LABEL, duration, routeName, sectionName } from './trafficLabels';
+import { DEVICE_LABEL, duration, routeName, sectionName } from '../_lib/trafficLabels';
 
 const DEVICES = (['desktop', 'tablet', 'mobile'] as const).map((value) => ({ value, label: DEVICE_LABEL[value] }));
 

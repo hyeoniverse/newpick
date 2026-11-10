@@ -3,7 +3,7 @@
 import type { HeatmapClick } from '@newpick/shared';
 
 import { useEffect, useRef, useState } from 'react';
-import { duration } from './trafficLabels';
+import { duration } from '../_lib/trafficLabels';
 
 type Mode = 'attention' | 'clicks';
 

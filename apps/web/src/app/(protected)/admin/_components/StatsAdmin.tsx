@@ -19,8 +19,8 @@ import TrendChart from '@/components/common/charts/TrendChart';
 import BarList from '@/components/common/charts/BarList';
 import AdminSubPage from './AdminSubPage';
 import { PRESETS, useAdminQuery } from './period';
-import { usd } from './format';
-import { CHANNEL_LABEL, DEVICE_LABEL, duration, routeName } from './trafficLabels';
+import { usd } from '../_lib/format';
+import { CHANNEL_LABEL, DEVICE_LABEL, duration, routeName } from '../_lib/trafficLabels';
 import Link from 'next/link';
 
 const TYPE_LABEL: Record<string, string> = {

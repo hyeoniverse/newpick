@@ -15,7 +15,7 @@ import type { JobName, JobResult } from '@newpick/shared';
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { PeriodPicker, PeriodTitle, useAdminQuery } from './period';
-import { PROCESS_LABEL, usd, when } from './format';
+import { PROCESS_LABEL, usd, when } from '../_lib/format';
 import { LuArrowRight, LuCalendarPlus, LuChevronDown, LuClock, LuInfo, LuPlay, LuTriangleAlert } from 'react-icons/lu';
 import ScheduleEditor, { describe, type Schedule } from './ScheduleEditor';
 import { ApiError } from '@/api/client';

@@ -16,7 +16,7 @@ import { useFolders } from '@/hooks/useFolders';
 import { dateFormatter } from '@/utils/formatter';
 import { getFirstImage } from '@/utils/getFirstImage';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
-import { setFolderDragGhost } from './folders/dragGhost';
+import { setFolderDragGhost } from '../_lib/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { FilterRow, SortSelect } from './list/ListHead';
 import LoadMore from './list/LoadMore';
