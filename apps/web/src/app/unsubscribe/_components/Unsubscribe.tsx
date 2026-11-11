@@ -41,7 +41,7 @@ export default function Unsubscribe() {
 			await unsubscribeByToken(token);
 			setDone(true);
 		} catch (e) {
-			setFailed(errorMessage(e, '해지하지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'));
+			setFailed(errorMessage(e, '해지하지 못했습니다. 잠시 후 다시 시도해 주십시오.'));
 		} finally {
 			setPending(false);
 		}
@@ -64,7 +64,7 @@ export default function Unsubscribe() {
 				<p className="eyebrow">수신 거부</p>
 				<h1 className="title">링크가 올바르지 않습니다</h1>
 				<p className="description">
-					메일 아래쪽의 &quot;수신 거부&quot;를 다시 눌러 주십시오. 로그인했다면 마이페이지에서도 해지할 수 있습니다.
+					메일 아래쪽의 &quot;수신 거부&quot;를 다시 눌러 주십시오. 로그인하면 마이페이지에서도 해지할 수 있습니다.
 				</p>
 				<div className="actions">
 					<Button scheme="primary" size="medium" onClick={() => router.push(ROUTES.mypage('settings'))}>
@@ -88,7 +88,8 @@ export default function Unsubscribe() {
 				<h1 className="title">{done ? '구독을 해지했습니다' : '이미 수신 거부된 메일입니다'}</h1>
 				<p className="email">{data.email}</p>
 				<p className="description">
-					이 주소로 뉴스레터를 더 보내지 않습니다. 다시 받고 싶으면 로그인해서 마이페이지에서 언제든 구독할 수 있습니다.
+					이 주소로는 더 이상 뉴스레터를 보내지 않습니다. 다시 받으려면 로그인한 뒤 마이페이지에서 언제든 구독할 수
+					있습니다.
 				</p>
 				<div className="actions">
 					<Button scheme="primary" size="medium" onClick={() => router.push(ROUTES.articles)}>

@@ -131,7 +131,7 @@ export default function TagIndex() {
 				<EmptyState
 					icon={LuTags}
 					title={q ? `‘${q}’이(가) 들어간 태그가 없습니다` : '아직 태그가 없습니다'}
-					description="다른 이름으로 찾거나 관심사를 바꿔 보십시오."
+					description="다른 이름으로 찾거나 관심사를 바꿔 주십시오."
 				/>
 			) : (
 				<>

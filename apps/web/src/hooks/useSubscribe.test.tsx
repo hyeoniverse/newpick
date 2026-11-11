@@ -48,7 +48,7 @@ describe('useSubscribe: 실패는 토스트 한 번으로 알리고 false를 돌
 		});
 
 		expect(ok).toBe(false);
-		expect(errorToasts()).toEqual([['구독 중 오류가 발생했습니다. 다시 시도해주십시오.', 'error']]);
+		expect(errorToasts()).toEqual([['구독 중 오류가 발생했습니다. 다시 시도해 주십시오.', 'error']]);
 	});
 
 	it('구독 중인 사용자의 관심사 변경 실패 (이전에는 이 경우만 일반 문구)', async () => {
@@ -63,12 +63,12 @@ describe('useSubscribe: 실패는 토스트 한 번으로 알리고 false를 돌
 
 		expect(ok).toBe(false);
 		expect(api.startSubscription).not.toHaveBeenCalled();
-		expect(errorToasts()).toEqual([['관심사 변경 중 오류가 발생했습니다. 다시 시도해주십시오.', 'error']]);
+		expect(errorToasts()).toEqual([['관심사 변경 중 오류가 발생했습니다. 다시 시도해 주십시오.', 'error']]);
 	});
 
 	it.each([
-		['handlePause', 'pauseSubscription', '구독 일시정지 중 오류가 발생했습니다. 다시 시도해주십시오.'],
-		['handleCancel', 'cancelSubscription', '구독 해지 중 오류가 발생했습니다. 다시 시도해주십시오.'],
+		['handlePause', 'pauseSubscription', '구독 일시정지 중 오류가 발생했습니다. 다시 시도해 주십시오.'],
+		['handleCancel', 'cancelSubscription', '구독 해지 중 오류가 발생했습니다. 다시 시도해 주십시오.'],
 	] as const)('%s 실패', async (handler, apiName, message) => {
 		api[apiName].mockRejectedValue(new Error('500'));
 		const { result } = setup(true);
@@ -102,7 +102,7 @@ describe('useSubscribe: 성공과 입력 검사', () => {
 	});
 
 	it.each([
-		['관심사가 없으면', { interests: [], isChecked: true }, '최소 한 개 이상의 관심사를 선택해야 합니다.'],
+		['관심사가 없으면', { interests: [], isChecked: true }, '관심사를 한 개 이상 선택해 주십시오.'],
 		[
 			'처음 구독인데 약관에 동의하지 않으면',
 			{ interests: ['IT'], isChecked: false },

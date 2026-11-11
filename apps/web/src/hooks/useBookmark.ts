@@ -86,7 +86,7 @@ export const useRemoveBookmarkMutation = () => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
-			showToast('북마크가 삭제되었습니다.', 'success');
+			showToast('북마크를 해제했습니다.', 'success');
 		},
 	});
 };
@@ -104,6 +104,6 @@ export const useMoveBookmarksMutation = () => {
 			showToast(`${count}개를 옮겼습니다.`, 'success');
 		},
 		onError: (error: Error) =>
-			showToast(errorMessage(error, '옮기지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'), 'error'),
+			showToast(errorMessage(error, '옮기지 못했습니다. 잠시 후 다시 시도해 주십시오.'), 'error'),
 	});
 };

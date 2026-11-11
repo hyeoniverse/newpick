@@ -138,7 +138,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 						disabled={busy}
 						onClick={() => {
 							if (!user) {
-								openLogin('후속 기사를 받으려면 로그인해 주십시오');
+								openLogin('후속 소식을 받으려면 로그인이 필요합니다');
 								return;
 							}
 							if (current) {

@@ -134,7 +134,7 @@ export default function StatsAdmin() {
 											format={visits}
 										/>
 									</Chart>
-									<Chart title="이전 사이트" hint="주소 전체가 아니라 사이트 이름만 남깁니다">
+									<Chart title="이전 사이트" hint="주소 전체가 아닌 사이트 이름만 기록합니다.">
 										{t.referrers.length ? (
 											<BarList label="이전 사이트별 방문" rows={rows(t.referrers)} format={visits} />
 										) : (
@@ -155,7 +155,10 @@ export default function StatsAdmin() {
 										<BarList label="기기별 방문" rows={rows(t.devices, (k) => DEVICE_LABEL[k] ?? k)} format={visits} />
 									</Chart>
 								</div>
-								<Chart title="페이지별" hint="히트맵 보기에서 섹션별 체류 시간 · 어텐션 맵 · 클릭 맵을 봅니다">
+								<Chart
+									title="페이지별"
+									hint="히트맵 보기에서 섹션별 체류 시간 · 어텐션 맵 · 클릭 맵을 확인할 수 있습니다."
+								>
 									{t.pages.length ? (
 										<div className="table-wrap">
 											<table>
@@ -236,8 +239,8 @@ export default function StatsAdmin() {
 								</dl>
 								{s.since && s.since > dates[0] && (
 									<p className="note" role="note">
-										구독 기록은 {s.since}부터 쌓입니다. 그 전 날짜는 그때의 구독 상태로 채운 추정값이라 해지 · 재구독이
-										빠져 있습니다.
+										구독 기록은 {s.since}부터 쌓였습니다. 그 전 날짜는 당시 구독 상태로 채운 추정값이라 해지 · 재구독이
+										반영되어 있지 않습니다.
 									</p>
 								)}
 								<div className="charts">
@@ -273,7 +276,7 @@ export default function StatsAdmin() {
 								</div>
 								<Chart
 									title="관심사별 지금 구독 중"
-									hint="한 사람이 관심사를 여럿 고를 수 있어 합이 구독자 수보다 큽니다"
+									hint="한 사람이 관심사를 여러 개 고를 수 있어 합계가 구독자 수보다 클 수 있습니다."
 								>
 									<BarList
 										label="관심사별 구독 중"
@@ -470,8 +473,8 @@ export default function StatsAdmin() {
 							<p className="note" role="note">
 								기간과 상관없이 지금 점수입니다. 북마크 {t.weights.bookmark} · 스크랩 {t.weights.scrap} · 메모{' '}
 								{t.weights.memo}
-								점, 문장에 그 주제가 나오면 +1, {t.halfLifeDays}일마다 절반으로 줄어듭니다. 사람마다 계산해 더해서, 한
-								사람이 많이 남겨도 그 사람 몫만큼만 올라갑니다.
+								점이고, 문장에 그 주제가 나오면 1점을 더하며, {t.halfLifeDays}일마다 절반으로 줄어듭니다. 사람별로
+								계산해 더하므로 한 사람이 신호를 많이 남겨도 그 사람 몫만큼만 반영됩니다.
 							</p>
 							<div className="charts">
 								<Chart title="많이 모인 주제" hint="옆 숫자는 그 주제를 가진 사람 수">

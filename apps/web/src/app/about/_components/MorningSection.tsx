@@ -10,18 +10,18 @@ import { useScrollProgress } from '@/hooks/useScrollProgress';
  * from → to는 그 단계를 지나는 동안 시계가 흘러가는 분 (스크롤에 맞춰 08:00 → 08:40)
  */
 const STEPS = [
-	{ from: 0, to: 30, title: '기사 모으기', text: '6개 관심사의 그날 기사가 쏟아져 들어옵니다.' },
+	{ from: 0, to: 30, title: '기사 모으기', text: '6개 관심사의 그날 기사가 쏟아져 들어와요.' },
 	{
 		from: 30,
 		to: 30,
 		title: '중요한 소식 고르기',
-		text: '같은 사건은 한 묶음으로. AI가 제목과 첫 부분만 읽고 그날 중요한 소식을 고릅니다.',
+		text: '같은 사건은 한 묶음으로 모아요. AI가 제목과 첫 부분만 읽고 그날 중요한 소식을 골라요.',
 	},
 	{
 		from: 30,
 		to: 40,
 		title: '뉴스레터 쓰기',
-		text: '선별된 소식만 다시 읽고 요약 · 시사점 · Q&A를 작성합니다.',
+		text: '고른 소식만 다시 읽고 요약 · 시사점 · Q&A를 써요.',
 	},
 	{
 		from: 40,
@@ -94,8 +94,8 @@ export default function MorningSection() {
 		>
 			<SectionHeading
 				label="08:00 → 08:40"
-				title="뉴스레터가 만들어지는 아침 40분."
-				sub="기사를 모으고, 고르고, 쓰고, 보내기까지. 스크롤하며 따라가 보십시오."
+				title="뉴스레터가 만들어지는 아침 40분"
+				sub="기사를 모으고 고르고 써서 보내기까지, 스크롤을 내리며 따라가 보세요."
 			/>
 
 			<div ref={ref} className="track">

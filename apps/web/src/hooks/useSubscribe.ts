@@ -60,20 +60,20 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 
 	return {
 		startMutation: useMutation(
-			startOptions(startSubscription, '구독이 완료되었습니다!', '구독 중 오류가 발생했습니다. 다시 시도해주십시오.'),
+			startOptions(startSubscription, '구독이 완료되었습니다.', '구독 중 오류가 발생했습니다. 다시 시도해 주십시오.'),
 		),
 		pauseMutation: useMutation(
 			suspendOptions(
 				pauseSubscription,
 				'구독이 일시정지되었습니다.',
-				'구독 일시정지 중 오류가 발생했습니다. 다시 시도해주십시오.',
+				'구독 일시정지 중 오류가 발생했습니다. 다시 시도해 주십시오.',
 			),
 		),
 		cancelMutation: useMutation(
 			suspendOptions(
 				cancelSubscription,
 				'구독이 해지되었습니다.',
-				'구독 해지 중 오류가 발생했습니다. 다시 시도해주십시오.',
+				'구독 해지 중 오류가 발생했습니다. 다시 시도해 주십시오.',
 			),
 		),
 	};
@@ -98,7 +98,7 @@ export const useSubscribeInterests = () => {
 
 	const updateMutation = useMutation({
 		mutationFn: updateInterests,
-		onError: () => handleError('관심사 변경 중 오류가 발생했습니다. 다시 시도해주십시오.', showToast),
+		onError: () => handleError('관심사 변경 중 오류가 발생했습니다. 다시 시도해 주십시오.', showToast),
 	});
 
 	return { interests, isInterestsLoading, updateMutation };
@@ -121,8 +121,7 @@ export const useSubscribe = () => {
 	}) => {
 		if (!user) return (showToast('로그인이 필요합니다.', 'info'), false);
 		if (!user.id) return (showToast('로그인 정보를 불러올 수 없습니다.', 'error'), false);
-		if (selectedInterests.length === 0)
-			return (showToast('최소 한 개 이상의 관심사를 선택해야 합니다.', 'warning'), false);
+		if (selectedInterests.length === 0) return (showToast('관심사를 한 개 이상 선택해 주십시오.', 'warning'), false);
 		if (user.isSubscribed === null && !isChecked)
 			return (showToast('약관에 동의해야 구독할 수 있습니다.', 'warning'), false);
 		return true;

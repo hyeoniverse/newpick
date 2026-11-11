@@ -57,7 +57,7 @@ function useRerun() {
 		confirm({
 			title: `${date} ${log.category ?? ''} 뉴스레터를 다시 생성하시겠습니까?`,
 			content:
-				'해당 날짜에 수집된 기사로 다시 요약해 그날 날짜로 게시합니다. 그날 이 관심사의 뉴스레터가 이미 있으면 건너뜁니다. 구독 메일은 발송하지 않으며, Claude 비용이 발생합니다.',
+				'그날 수집한 기사로 다시 요약해 그 날짜로 게시합니다. 이 관심사의 뉴스레터가 그날 이미 있으면 건너뜁니다. 구독 메일은 보내지 않으며, Claude 비용이 발생합니다.',
 			confirmLabel: '다시 생성',
 			run: () => rerunSummary({ date, categoryId: log.categoryId }),
 			success: `${date} ${log.category ?? ''} 뉴스레터 생성을 시작했습니다. 몇 분 후 기록에 표시됩니다.`,

@@ -37,9 +37,9 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 				AI 뉴스레터 서비스 뉴픽
 			</Title>
 			<p>
-				AI로 카테고리별 주요 뉴스를 아티클로 만들어 뉴스레터로 제공하고 있습니다.
+				AI가 분야별 주요 뉴스를 골라 정리해요.
 				<br />
-				뉴픽과 함께 시간의 가치와 지식의 채움을 누려보십시오
+				짧은 시간에 꼭 필요한 소식만 챙길 수 있어요.
 			</p>
 			<Swiper
 				dir={'rtl'}

@@ -38,7 +38,7 @@ import MoreLink from '@/components/common/MoreLink';
 const JOBS: Record<JobName, { label: string; warning: string }> = {
 	crawling: {
 		label: '기사 수집',
-		warning: '언론사 기사를 지금 모읍니다. 분야가 없는 기사는 Claude로 분류해 비용이 조금 듭니다.',
+		warning: '지금 언론사 기사를 수집합니다. 분야가 없는 기사는 Claude로 분류하므로 비용이 조금 발생합니다.',
 	},
 	summary: {
 		label: 'AI 요약',
@@ -47,7 +47,8 @@ const JOBS: Record<JobName, { label: string; warning: string }> = {
 	},
 	mail: {
 		label: '구독 메일',
-		warning: '모든 구독자에게 오늘 뉴스레터를 지금 보냅니다. 이미 보냈다면 같은 메일을 한 번 더 받습니다.',
+		warning:
+			'모든 구독자에게 오늘 뉴스레터를 지금 발송합니다. 이미 발송했다면 구독자가 같은 메일을 한 번 더 받게 됩니다.',
 	},
 };
 
@@ -136,7 +137,7 @@ export default function Dashboard() {
 			);
 			refresh();
 		} catch (error) {
-			showToast(errorMessage(error, '바꾸지 못했습니다.'), 'error');
+			showToast(errorMessage(error, '변경하지 못했습니다.'), 'error');
 		}
 	};
 
@@ -268,7 +269,7 @@ export default function Dashboard() {
 					<p className="auto-off" role="note">
 						<LuInfo aria-hidden />
 						<span>
-							이 서버는 예약 시각에 저절로 돌지 않습니다. 필요할 때 &lsquo;지금 실행&rsquo;으로 돌려 주십시오.
+							이 서버는 예약 시각에 자동으로 실행되지 않습니다. 필요할 때 &lsquo;지금 실행&rsquo;을 눌러 주십시오.
 							<code>SCHEDULER_ENABLED=false</code>
 						</span>
 					</p>
@@ -336,7 +337,8 @@ export default function Dashboard() {
 					})}
 				</ul>
 				<Text size="extraSmall" color="subText" className="note">
-					켜기 · 끄기는 서버 메모리에만 있어 서버를 다시 시작하면 켜짐으로 돌아갑니다. 시간과 실행 기록은 남습니다.
+					켜기 · 끄기 상태는 서버 메모리에만 저장되므로 서버를 다시 시작하면 다시 켜집니다. 예약 시간과 실행 기록은
+					유지됩니다.
 				</Text>
 			</section>
 

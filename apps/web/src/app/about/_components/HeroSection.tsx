@@ -7,7 +7,7 @@ import Button from '@/components/common/Button';
 import { useOpenSubscribe } from '@/hooks/useOpenSubscribe';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 
-const HEADLINE = ['내 관심사만 골라,', '매일 아침 한 통으로.'];
+const HEADLINE = ['내 관심사만 골라,', '매일 아침 한 통으로'];
 
 /** 메일 미리보기에 보이는 소식 (모양만 보여 주는 장식) */
 const PREVIEW = [
@@ -36,8 +36,8 @@ export default function HeroSection() {
 				))}
 			</h1>
 			<p className="lead">
-				AI가 그날의 기사를 읽고 중요한 소식만 골라 요약합니다.
-				<br className="desktop-only" /> 고른 관심사를 엮은 메일 한 통을 매일 아침 받아 보십시오.
+				AI가 그날의 기사를 읽고 중요한 소식만 골라 요약해요.
+				<br className="desktop-only" /> 고른 관심사를 엮은 메일 한 통을 매일 아침 보내 드려요.
 			</p>
 			<div className="actions">
 				<Button scheme="primary" size="large" onClick={() => openSubscribe()}>

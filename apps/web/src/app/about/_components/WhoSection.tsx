@@ -63,7 +63,7 @@ export default function WhoSection() {
 			<FullWidthPanel background="mono" className="panel">
 				<div className="content">
 					<BorderTitle text="WHO WE ARE" color="white" className="title" />
-					<p className="lead">뉴픽을 만든 사람들을 소개합니다.</p>
+					<p className="lead">뉴픽을 만든 사람들을 소개해요.</p>
 
 					{/* v2: 팀 프로젝트를 이어 혼자 다시 만든 지금의 뉴픽 */}
 					<section className="version" aria-label="v2">

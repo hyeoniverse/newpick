@@ -37,7 +37,7 @@ export default function StartSubscription() {
 				<ModalContent
 					icon={<LuMailCheck />}
 					title="구독 설정이 완료되었습니다"
-					content={`내일부터 새로운 뉴스레터를 보내드립니다.`}
+					content={`내일부터 새로운 뉴스레터를 보내 드립니다.`}
 					filledButton="확인"
 					onConfirmClick={closeModal}
 				/>,
@@ -85,7 +85,7 @@ export default function StartSubscription() {
 					)}
 				</div>
 				<Text size="small" color="subText">
-					구독할 관심사를 선택한 후 완료 버튼을 눌러주십시오.
+					구독할 관심사를 고른 뒤 완료를 눌러 주십시오.
 					<br />
 					{isSubscribed !== null && '내일 보내드리는 뉴스레터부터 적용됩니다.'}
 				</Text>

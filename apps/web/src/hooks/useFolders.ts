@@ -13,9 +13,9 @@ export type { Folder };
 export type { FolderContents };
 
 const REMOVED: Record<FolderContents, string> = {
-	keep: '폴더를 지웠습니다. 안의 것들은 폴더 없음으로 남겼습니다.',
-	delete: '폴더와 안의 것들을 지웠습니다.',
-	move: '폴더를 지우고 안의 것들을 옮겼습니다.',
+	keep: '폴더를 삭제했습니다. 안에 있던 항목은 폴더 없음으로 옮겼습니다.',
+	delete: '폴더와 안에 있던 항목을 삭제했습니다.',
+	move: '폴더를 삭제하고 안에 있던 항목을 옮겼습니다.',
 };
 
 /** 폴더 안의 것들이 바뀌면 다시 불러올 목록들 */
@@ -41,7 +41,7 @@ export function useFolderMutations() {
 	const { showToast } = useToast();
 	const refresh = () => FOLDER_CONTENT_KEYS.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
 	const fail = (error: Error) =>
-		showToast(errorMessage(error, '저장하지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'), 'error');
+		showToast(errorMessage(error, '저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.'), 'error');
 
 	const create = useMutation({
 		mutationFn: (name: string) => createFolder(name),

@@ -46,7 +46,7 @@ function SubscribeDemo() {
 				))}
 			</div>
 			<p className="count">
-				관심사 <strong>3개</strong>를 골랐습니다
+				관심사 <strong>3개</strong>를 골랐어요
 			</p>
 		</div>
 	);
@@ -75,20 +75,20 @@ function SendDemo() {
 const FEATURES = [
 	{
 		name: 'AI 큐레이션',
-		headline: '필요한 것만 남기고,\n핵심만 정리.',
-		text: '방대한 기사 중 중요한 소식만 고르고, 요약 · 시사점 · 문답으로 정리합니다.',
+		headline: '필요한 것만 남기고,\n핵심만 정리',
+		text: '방대한 기사 중 중요한 소식만 골라 요약 · 시사점 · 문답으로 정리해요.',
 		Demo: CurationDemo,
 	},
 	{
 		name: '맞춤 구독',
-		headline: '내 관심사만.\n메일은 한 통.',
-		text: '원하는 관심사만 고르면, 여러 개를 골라도 한 통으로 엮어 보냅니다.',
+		headline: '내 관심사만,\n메일은 한 통',
+		text: '원하는 관심사만 고르세요. 여러 개를 골라도 한 통으로 엮어 보내 드려요.',
 		Demo: SubscribeDemo,
 	},
 	{
 		name: '자동 발송',
-		headline: '찾아보지 않아도,\n아침 8시 40분.',
-		text: '매일 아침 정해진 시간에 메일함으로 도착합니다.',
+		headline: '찾아보지 않아도,\n아침 8시 40분',
+		text: '매일 아침 정해진 시간에 메일함으로 도착해요.',
 		Demo: SendDemo,
 	},
 ];

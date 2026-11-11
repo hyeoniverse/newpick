@@ -25,7 +25,7 @@ export default function BookmarkIcon({ newsId, className, newsletterId }: Bookma
 
 	const handleToggle = async () => {
 		if (!user) {
-			openLogin('북마크하려면 로그인해 주십시오');
+			openLogin('북마크하려면 로그인이 필요합니다');
 			return;
 		}
 
@@ -36,7 +36,7 @@ export default function BookmarkIcon({ newsId, className, newsletterId }: Bookma
 				await addBookmarkMutation.mutateAsync({ newsId, newsletterId });
 			}
 		} catch (error: unknown) {
-			let errorMessage = '북마크 설정에 실패했습니다.';
+			let errorMessage = '북마크를 저장하지 못했습니다.';
 
 			if (error instanceof Error) {
 				errorMessage = error.message;

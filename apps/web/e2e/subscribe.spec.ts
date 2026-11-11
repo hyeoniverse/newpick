@@ -19,7 +19,7 @@ test('홈의 빠른 구독: 관심사를 고르고 약관에 동의하면 구독
 	await form.getByRole('checkbox').check({ force: true });
 	await form.getByRole('button', { name: '구독 신청' }).click();
 
-	await expect(page.getByText('구독 설정이 완료되었습니다')).toBeVisible();
+	await expect(page.getByText('구독 설정이 완료됐어요')).toBeVisible();
 
 	const status = await request.get(`${E2E.apiUrl}/subscribers/status`, { headers: authHeaders(userId()) });
 	expect((await status.json()).status).toBe('active');

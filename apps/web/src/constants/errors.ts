@@ -13,7 +13,7 @@ export interface ErrorStateCopy {
 	action: ErrorAction;
 }
 
-const RETRY_LATER = '잠시 뒤 다시 시도해 주십시오.';
+const RETRY_LATER = '잠시 후 다시 시도해 주십시오.';
 
 /**
  * HTTP 표준 4xx·5xx 전부. 3xx(301·302·303·307·308)는 오류가 아니라 다른 주소로 옮기라는 응답이라
@@ -77,13 +77,13 @@ export const ERROR_STATES: Record<number, ErrorStateCopy> = {
 	409: {
 		icon: 'refresh',
 		title: '다른 곳에서 먼저 바뀌었습니다',
-		description: '그 사이 내용이 바뀌었습니다. 새로 고친 뒤 다시 해 주십시오.',
+		description: '그사이 내용이 바뀌었습니다. 새로고침한 뒤 다시 시도해 주십시오.',
 		action: 'retry',
 	},
 	410: {
 		icon: 'deleted',
 		title: '삭제된 페이지입니다',
-		description: '더 이상 제공하지 않는 페이지입니다. 다른 뉴스레터를 둘러보십시오.',
+		description: '더 이상 제공하지 않는 페이지입니다. 다른 뉴스레터를 확인해 주십시오.',
 		action: 'articles',
 	},
 	411: {
@@ -95,7 +95,7 @@ export const ERROR_STATES: Record<number, ErrorStateCopy> = {
 	412: {
 		icon: 'refresh',
 		title: '다른 곳에서 먼저 바뀌었습니다',
-		description: '그 사이 내용이 바뀌었습니다. 새로 고친 뒤 다시 해 주십시오.',
+		description: '그사이 내용이 바뀌었습니다. 새로고침한 뒤 다시 시도해 주십시오.',
 		action: 'retry',
 	},
 	413: {
@@ -119,7 +119,7 @@ export const ERROR_STATES: Record<number, ErrorStateCopy> = {
 	},
 	417: { icon: 'alert', title: '요청을 처리할 수 없습니다', description: '다시 시도해 주십시오.', action: 'retry' },
 	418: { icon: 'alert', title: '요청을 처리할 수 없습니다', description: '다시 시도해 주십시오.', action: 'retry' },
-	421: { icon: 'server', title: '잘못된 서버로 연결됐습니다', description: `${RETRY_LATER}`, action: 'retry' },
+	421: { icon: 'server', title: '잘못된 서버에 연결되었습니다', description: `${RETRY_LATER}`, action: 'retry' },
 	422: {
 		icon: 'alert',
 		title: '입력한 내용을 확인해 주십시오',
@@ -138,16 +138,16 @@ export const ERROR_STATES: Record<number, ErrorStateCopy> = {
 		description: '처음부터 다시 시도해 주십시오.',
 		action: 'retry',
 	},
-	425: { icon: 'clock', title: '조금 이른 요청입니다', description: `${RETRY_LATER}`, action: 'retry' },
+	425: { icon: 'clock', title: '요청이 너무 이릅니다', description: `${RETRY_LATER}`, action: 'retry' },
 	426: {
 		icon: 'refresh',
 		title: '새 버전이 나왔습니다',
-		description: '새로 고쳐서 최신 화면으로 이용해 주십시오.',
+		description: '새로고침해서 최신 화면으로 이용해 주십시오.',
 		action: 'retry',
 	},
 	428: {
 		icon: 'refresh',
-		title: '새로 고친 뒤 다시 해 주십시오',
+		title: '새로고침한 뒤 다시 시도해 주십시오',
 		description: '최신 내용을 확인한 뒤에 바꿀 수 있습니다.',
 		action: 'retry',
 	},
@@ -160,7 +160,7 @@ export const ERROR_STATES: Record<number, ErrorStateCopy> = {
 	431: {
 		icon: 'alert',
 		title: '브라우저에 저장된 정보가 너무 많습니다',
-		description: '이 사이트의 쿠키를 지운 뒤 다시 들어와 주십시오.',
+		description: '이 사이트의 쿠키를 삭제한 뒤 다시 접속해 주십시오.',
 		action: 'home',
 	},
 	451: {
@@ -171,33 +171,34 @@ export const ERROR_STATES: Record<number, ErrorStateCopy> = {
 	},
 	500: {
 		icon: 'server',
-		title: '일시적인 오류가 생겼습니다',
-		description: '서버에 문제가 생겼습니다. 잠시 뒤 다시 시도해 주십시오. 계속되면 아래 문의처로 알려 주십시오.',
+		title: '일시적인 오류가 발생했습니다',
+		description:
+			'서버에 문제가 발생했습니다. 잠시 후 다시 시도해 주십시오. 문제가 계속되면 아래 문의처로 알려 주십시오.',
 		action: 'retry',
 	},
 	501: {
 		icon: 'tool',
 		title: '아직 준비 중인 기능입니다',
-		description: '곧 이용할 수 있게 하겠습니다.',
+		description: '곧 이용하실 수 있도록 준비하겠습니다.',
 		action: 'home',
 	},
 	502: { icon: 'server', title: '서버와 연결하지 못했습니다', description: `${RETRY_LATER}`, action: 'retry' },
 	503: {
 		icon: 'tool',
 		title: '잠시 점검 중입니다',
-		description: '더 나은 서비스를 위해 점검하고 있습니다. 잠시 뒤 다시 들러 주십시오.',
+		description: '더 나은 서비스를 위해 점검하고 있습니다. 잠시 후 다시 접속해 주십시오.',
 		action: 'retry',
 	},
 	504: { icon: 'clock', title: '서버 응답이 늦습니다', description: `${RETRY_LATER}`, action: 'retry' },
 	505: {
 		icon: 'refresh',
 		title: '브라우저를 업데이트해 주십시오',
-		description: '지원하지 않는 방식으로 연결됐습니다. 최신 브라우저로 다시 시도해 주십시오.',
+		description: '지원하지 않는 방식으로 연결되었습니다. 최신 브라우저로 다시 시도해 주십시오.',
 		action: 'retry',
 	},
 	506: { icon: 'server', title: '서버 설정에 문제가 있습니다', description: `${RETRY_LATER}`, action: 'retry' },
 	507: { icon: 'server', title: '서버 저장 공간이 부족합니다', description: `${RETRY_LATER}`, action: 'retry' },
-	508: { icon: 'server', title: '서버 처리 중 문제가 생겼습니다', description: `${RETRY_LATER}`, action: 'retry' },
+	508: { icon: 'server', title: '서버 처리 중 문제가 발생했습니다', description: `${RETRY_LATER}`, action: 'retry' },
 	510: { icon: 'server', title: '요청을 처리할 수 없습니다', description: `${RETRY_LATER}`, action: 'retry' },
 	511: {
 		icon: 'wifi',
@@ -210,8 +211,8 @@ export const ERROR_STATES: Record<number, ErrorStateCopy> = {
 /** 지운 뉴스레터 주소로 들어왔을 때 */
 export const DELETED_NEWSLETTER: ErrorStateCopy = {
 	icon: 'deleted',
-	title: '삭제되었거나 없는 뉴스레터입니다',
-	description: '뉴스레터가 내려갔거나 주소가 잘못되었습니다. 다른 뉴스레터를 둘러보십시오.',
+	title: '뉴스레터를 찾을 수 없습니다',
+	description: '삭제되었거나 주소가 잘못된 뉴스레터입니다. 다른 뉴스레터를 확인해 주십시오.',
 	action: 'articles',
 };
 

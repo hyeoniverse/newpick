@@ -30,7 +30,7 @@ const errorText = (error: unknown) => {
 const LINK_RESULTS: Record<string, [string, 'success' | 'error' | 'info']> = {
 	linked: ['Google 계정을 변경했습니다. 로그인 계정과 수신 이메일이 함께 변경되었습니다.', 'success'],
 	same: ['현재 연결된 Google 계정과 같습니다.', 'info'],
-	taken: ['다른 뉴픽 계정에 연결된 Google 계정(또는 이메일)이라 변경하지 않았습니다.', 'error'],
+	taken: ['이미 다른 뉴픽 계정에 연결된 Google 계정(또는 이메일)이라 변경할 수 없습니다.', 'error'],
 	failed: ['Google 계정을 변경하지 못했습니다. 다시 시도해 주십시오.', 'error'],
 };
 
@@ -238,7 +238,7 @@ export default function AccountEmail() {
 										남은 시간 <span className="clock">{clock(step.expiresAt - now)}</span>
 									</>
 								) : (
-									'인증 코드가 만료되었습니다. 재전송해 주십시오.'
+									'인증 코드가 만료되었습니다. 코드를 다시 받아 주십시오.'
 								)}
 							</span>
 							<button

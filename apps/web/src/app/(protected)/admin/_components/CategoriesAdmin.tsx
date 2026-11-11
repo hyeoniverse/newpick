@@ -29,7 +29,7 @@ export default function CategoriesAdmin() {
 		<AdminSubPage
 			title="관심사"
 			period={false}
-			summary="관심사 이름은 수집(네이버 섹션) · 화면 · 메일과 묶여 있어 여기서는 보기만 합니다. 바꾸려면 코드와 함께 바꿔야 합니다."
+			summary="관심사 이름은 수집(네이버 섹션) · 화면 · 메일과 연결되어 있어 여기서는 볼 수만 있습니다. 이름을 바꾸려면 코드도 함께 고쳐야 합니다."
 		>
 			<AdminActions>
 				{isPending ? (

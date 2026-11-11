@@ -40,8 +40,8 @@ function SiteCacheTool() {
 					사이트 캐시 비우기
 				</Title>
 				<Text size="small" color="subText">
-					첫 화면 · 목록은 빠르게 보여 주기 위해 최대 10분 동안 저장해 둔 내용을 씁니다. 뉴스레터를 만들거나 지우면
-					저절로 비워지고, DB를 손으로 고쳤을 때는 여기서 바로 비웁니다.
+					첫 화면과 목록은 빠르게 띄우려고 최대 10분 동안 저장해 둔 내용을 보여 줍니다. 뉴스레터를 만들거나 지우면
+					자동으로 비워지며, DB를 직접 고쳤을 때는 여기서 바로 비울 수 있습니다.
 				</Text>
 				{lastAt && (
 					<Text size="small" color="primary" className="last">

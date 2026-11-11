@@ -22,8 +22,8 @@ export default function RootError({ reset }: { error: Error & { digest?: string 
 				}}
 			>
 				<p style={{ margin: 0, fontWeight: 800, color: '#3610e1' }}>NewPick</p>
-				<h1 style={{ margin: 0, fontSize: '1.5rem' }}>일시적인 오류가 생겼습니다</h1>
-				<p style={{ margin: 0, color: '#808080' }}>잠시 뒤 다시 시도해 주십시오.</p>
+				<h1 style={{ margin: 0, fontSize: '1.5rem' }}>일시적인 오류가 발생했습니다</h1>
+				<p style={{ margin: 0, color: '#808080' }}>잠시 후 다시 시도해 주십시오.</p>
 				<button
 					type="button"
 					onClick={reset}

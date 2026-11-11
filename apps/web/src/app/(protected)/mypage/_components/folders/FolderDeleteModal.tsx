@@ -33,7 +33,7 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 		return (
 			<ModalContents
 				icon={<LuTriangleAlert />}
-				title={`'${folder.name}' 폴더를 지우시겠습니까?`}
+				title={`'${folder.name}' 폴더를 삭제하시겠습니까?`}
 				content="빈 폴더입니다."
 				outlineButton="취소"
 				filledButton="폴더 지우기"
@@ -47,8 +47,8 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 	return (
 		<ModalContents
 			icon={<LuTriangleAlert />}
-			title={`'${folder.name}' 폴더를 지우시겠습니까?`}
-			content={`안에 ${inside.join(' · ')}가 있습니다.\n처리 방법을 선택하십시오.`}
+			title={`'${folder.name}' 폴더를 삭제하시겠습니까?`}
+			content={`안에 ${inside.join(' · ')}가 있습니다.\n안의 항목을 어떻게 처리할지 선택해 주십시오.`}
 			outlineButton="취소"
 			filledButton={contents === 'delete' ? '모두 지우기' : '폴더 지우기'}
 			onCancelClick={onCancel}
@@ -57,7 +57,7 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 			<div className="np-mypage-folder-delete-modal-choices">
 				<InputRadio<FolderContents>
 					name="folder-contents"
-					label="안의 것들"
+					label="안에 있는 항목"
 					value={contents}
 					onChange={setContents}
 					options={[
@@ -78,8 +78,8 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 				)}
 				{contents === 'delete' && (
 					<p className="warn">
-						{erasable.length ? `${erasable.join(' · ')}를 지웁니다. 되돌릴 수 없습니다.` : ''}
-						{mails ? `${erasable.length ? '\n' : ''}받은 메일은 지울 수 없어 폴더 없음으로 남습니다.` : ''}
+						{erasable.length ? `${erasable.join(' · ')}를 삭제합니다. 되돌릴 수 없습니다.` : ''}
+						{mails ? `${erasable.length ? '\n' : ''}받은 메일은 삭제할 수 없어 폴더 없음으로 옮겨집니다.` : ''}
 					</p>
 				)}
 			</div>

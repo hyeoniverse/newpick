@@ -27,7 +27,7 @@ test.describe('비로그인 탐색', () => {
 		const response = await page.goto('/articles/detail/99999999');
 
 		expect(response?.status()).toBe(404);
-		await expect(page.getByRole('heading', { name: '삭제되었거나 없는 뉴스레터입니다' })).toBeVisible();
+		await expect(page.getByRole('heading', { name: '뉴스레터를 찾을 수 없습니다' })).toBeVisible();
 		await page.getByRole('button', { name: '뉴스레터 둘러보기' }).click();
 		await expect(page).toHaveURL(/\/articles$/);
 	});
@@ -59,7 +59,7 @@ test.describe('비로그인 탐색', () => {
 
 		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('없는검색어입니다');
 		await page.keyboard.press('Enter');
-		await expect(page.getByText('찾는 뉴스레터가 없습니다')).toBeVisible();
+		await expect(page.getByText('검색 결과가 없습니다')).toBeVisible();
 	});
 
 	// #32: 서버 렌더링 중에 조회수를 올리면 봇·서버 요청에도 늘고, 실패하면 페이지가 500이었다

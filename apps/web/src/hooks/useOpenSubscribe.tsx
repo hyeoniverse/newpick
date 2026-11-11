@@ -22,14 +22,14 @@ export function useOpenSubscribe() {
 			openModal(
 				<ModalContent
 					icon={<LuMailCheck />}
-					title="이미 구독중입니다."
-					content="구독중인 뉴스레터가 있습니다."
+					title="이미 구독 중입니다"
+					content="구독 중인 뉴스레터가 있습니다."
 					filledButton="확인"
 					onConfirmClick={closeModal}
 				/>,
 			);
 		} else {
-			openLogin('구독하려면 로그인해 주십시오');
+			openLogin('구독하려면 로그인이 필요합니다');
 		}
 	};
 }

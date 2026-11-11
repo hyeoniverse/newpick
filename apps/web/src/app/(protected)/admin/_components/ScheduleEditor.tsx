@@ -45,7 +45,7 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 		event.preventDefault();
 		const next: Schedule = { crawl: parse(crawl), summary: parse(summary), mail: { ...parse(mail), day } };
 		if (!(minutesOf(next.crawl) < minutesOf(next.summary) && minutesOf(next.summary) < minutesOf(next.mail))) {
-			setError('기사 수집 → AI 요약 → 구독 메일 순서로, 앞 작업보다 늦은 시각을 골라 주십시오.');
+			setError('기사 수집 → AI 요약 → 구독 메일 순서가 되도록, 앞 작업보다 늦은 시각을 골라 주십시오.');
 			return;
 		}
 		setPending(true);
@@ -54,7 +54,7 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 			const data = await saveSchedule(next);
 			onSaved(data);
 		} catch (e) {
-			setError(errorMessage(e, '바꾸지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'));
+			setError(errorMessage(e, '변경하지 못했습니다. 잠시 후 다시 시도해 주십시오.'));
 		} finally {
 			setPending(false);
 		}
@@ -64,8 +64,9 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 		<form className="np-admin-schedule-editor-editor" onSubmit={save}>
 			<h2 className="title">예약 시간 바꾸기</h2>
 			<p className="desc">
-				기사 수집 → AI 요약 → 구독 메일 순서로 돌습니다. 수집은 매시간(이 시각의 분에) 하고, 요약은 그 전 24시간 동안
-				모은 기사로, 메일은 그날 요약으로 만들어서 앞 작업보다 늦게 잡아야 합니다. 저장하면 바로 적용됩니다.
+				기사 수집 → AI 요약 → 구독 메일 순서로 실행됩니다. 수집은 매시간 정한 분에 실행되고, 요약은 직전 24시간 동안
+				모은 기사로, 메일은 그날 요약으로 만들기 때문에 각 작업은 앞 작업보다 늦게 잡아야 합니다. 저장하면 바로
+				적용됩니다.
 			</p>
 			<div className="row">
 				<span className="name">기사 수집</span>

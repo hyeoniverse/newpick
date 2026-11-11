@@ -22,7 +22,7 @@ function SubscribeInduce({ className }: Props) {
 			data-track-section="subscribe-cta"
 		>
 			<p className="w-full bg-[linear-gradient(to_right_top,#0c0042,#2d11b1,#5537dd,#0e004d)] [-webkit-background-clip:text] bg-clip-text text-extra-large font-semi-bold text-transparent [word-break:keep-all] dark:bg-[linear-gradient(to_right_top,#3b1d91,#5b40e0,#7761ff,#a28eff)]">
-				뉴픽이 보내드리는 뉴스레터를 구독해보십시오!
+				뉴픽 뉴스레터, 메일로 받아 보기
 			</p>
 			{/* 단추 크기는 Button의 변수로 (Button 안의 크기 규칙이 이 변수를 읽는다) */}
 			<Button

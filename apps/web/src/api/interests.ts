@@ -13,7 +13,7 @@ export const fetchInterests = async (): Promise<string[]> =>
  */
 export const updateInterests = async (interests: string[]): Promise<string[]> => {
 	if (interests.length === 0) {
-		throw new Error('최소 한 개 이상의 관심사를 선택해야 합니다.');
+		throw new Error('관심사를 한 개 이상 선택해 주십시오.');
 	}
 	const interestsId = mapTitleToId(interests).filter((id) => id !== 0);
 	const result = await apiFetch<{ interests: number[] }>(API_ENDPOINTS.SUBSCRIBERS.INTERESTS(), {

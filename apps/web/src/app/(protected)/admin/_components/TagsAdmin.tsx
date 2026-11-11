@@ -47,7 +47,7 @@ function MergeSheet({
 	const submit = async (event: React.FormEvent) => {
 		event.preventDefault();
 		const name = to.trim();
-		if (!name) return setError('새 이름을 적어 주십시오.');
+		if (!name) return setError('새 이름을 입력해 주십시오.');
 		setPending(true);
 		setError('');
 		try {
@@ -57,7 +57,7 @@ function MergeSheet({
 			);
 			onDone(data.changed, name);
 		} catch (e) {
-			setError(errorMessage(e, '바꾸지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'));
+			setError(errorMessage(e, '변경하지 못했습니다. 잠시 후 다시 시도해 주십시오.'));
 		} finally {
 			setPending(false);
 		}
@@ -143,7 +143,7 @@ export default function TagsAdmin() {
 				onCancel={closeModal}
 				onDone={(changed, to) => {
 					closeModal();
-					showToast(`#${to}(으)로 바꿨습니다. 뉴스레터 ${changed}편의 태그를 고쳤습니다.`, 'success');
+					showToast(`#${to}(으)로 바꿨습니다. 뉴스레터 ${changed}편의 태그를 수정했습니다.`, 'success');
 					refresh();
 				}}
 			/>,
@@ -151,23 +151,23 @@ export default function TagsAdmin() {
 
 	const remove = (keyword: string) =>
 		confirm({
-			title: `#${keyword} 태그를 지우시겠습니까?`,
+			title: `#${keyword} 태그를 삭제하시겠습니까?`,
 			content:
 				'이미 발행한 뉴스레터에서 이 태그를 빼고, 앞으로 새 뉴스레터에도 붙이지 않습니다. 규칙을 지우면 앞으로는 다시 붙을 수 있습니다.',
 			confirmLabel: '지우기',
 			run: () => removeTag(keyword),
-			success: (data) => `#${keyword}을(를) 지웠습니다. 뉴스레터 ${data.changed}편의 태그를 고쳤습니다.`,
-			failure: '지우지 못했습니다.',
+			success: (data) => `#${keyword}을(를) 삭제했습니다. 뉴스레터 ${data.changed}편의 태그를 수정했습니다.`,
+			failure: '삭제하지 못했습니다.',
 			onDone: refresh,
 		});
 
 	const deleteRule = async (rule: TagRule) => {
 		try {
 			await deleteTagRule(rule.id);
-			showToast('규칙을 지웠습니다. 앞으로의 새 뉴스레터부터 적용됩니다.', 'info');
+			showToast('규칙을 삭제했습니다. 앞으로 발행하는 뉴스레터부터 적용됩니다.', 'info');
 			refresh();
 		} catch (error) {
-			showToast(errorMessage(error, '지우지 못했습니다.'), 'error');
+			showToast(errorMessage(error, '삭제하지 못했습니다.'), 'error');
 		}
 	};
 
@@ -316,7 +316,7 @@ export default function TagsAdmin() {
 							))}
 						</ul>
 					) : (
-						<p className="state">아직 규칙이 없습니다. 태그를 합치거나 지우면 생깁니다.</p>
+						<p className="state">아직 규칙이 없습니다. 태그를 합치거나 삭제하면 규칙이 만들어집니다.</p>
 					)}
 				</section>
 			</div>

@@ -107,7 +107,7 @@ export default function ArticlesList() {
 	return (
 		<AdminSubPage
 			title="수집한 기사"
-			summary={data && `${data.total.toLocaleString()}건 · 원문은 수집하고 30일 뒤 지워집니다`}
+			summary={data && `${data.total.toLocaleString()}건 · 원문은 수집 후 30일이 지나면 삭제됩니다`}
 			filters={
 				<>
 					<FilterChips

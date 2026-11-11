@@ -37,8 +37,8 @@ export default function DeleteAccount() {
 					회원 탈퇴
 				</Title>
 				<Text size="small" color="subText">
-					탈퇴 시 계정 정보와 구독·북마크 기록이 모두 삭제되며 복구할 수 없습니다. 메일 수신만 중단하려면 상단에서
-					구독을 해지하십시오.
+					탈퇴 시 계정 정보와 구독·북마크 기록이 모두 삭제되며 복구할 수 없습니다. 메일만 그만 받으려면 위에서 구독을
+					해지하면 됩니다.
 				</Text>
 			</div>
 			<Button scheme="monoOutline" size="small" onClick={() => openModal(<DeleteAccountSheet />)}>
@@ -67,9 +67,9 @@ export function DeleteAccountSheet() {
 			setChecked(false);
 			closeModal();
 			resetSession();
-			showToast('탈퇴했습니다. 그동안 뉴픽을 이용해 주셔서 고맙습니다.', 'success');
+			showToast('탈퇴가 완료되었습니다. 그동안 뉴픽을 이용해 주셔서 감사합니다.', 'success');
 		} catch {
-			showToast('탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주십시오.', 'error');
+			showToast('탈퇴하지 못했습니다. 잠시 후 다시 시도해 주십시오.', 'error');
 		} finally {
 			setIsDeleting(false);
 		}
@@ -84,7 +84,7 @@ export function DeleteAccountSheet() {
 				정말 탈퇴하시겠습니까?
 			</Title>
 			<Text size="small" color="subText">
-				아래 정보가 바로 지워지며 되돌릴 수 없습니다.
+				아래 정보가 즉시 삭제되며 되돌릴 수 없습니다.
 			</Text>
 			<ul>
 				{DELETED.map((item) => (

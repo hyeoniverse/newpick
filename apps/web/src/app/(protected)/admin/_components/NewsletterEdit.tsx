@@ -82,11 +82,11 @@ export default function NewsletterEdit({ id }: { id: number }) {
 				categoryId: Number(form.categoryId),
 				...(form.html !== toForm(data).html && { contentAsHTML: compactHtml(form.html) }),
 			});
-			showToast('고쳤습니다. 상세 페이지와 이후 메일에 반영됩니다.', 'success');
+			showToast('저장했습니다. 상세 페이지와 이후 메일에 반영됩니다.', 'success');
 			queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletter(id) });
 			queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters.all });
 		} catch (e) {
-			setError(errorMessage(e, '저장하지 못했습니다. 잠시 뒤 다시 시도해 주십시오.'));
+			setError(errorMessage(e, '저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.'));
 		} finally {
 			setPending(false);
 		}
@@ -95,7 +95,7 @@ export default function NewsletterEdit({ id }: { id: number }) {
 	const confirmAction = useConfirmAction();
 	/** 묻고 실행 (알림은 run 안에서) */
 	const confirm = (title: string, content: string, label: string, run: () => Promise<void>) =>
-		confirmAction({ title, content, confirmLabel: label, run, failure: '하지 못했습니다.' });
+		confirmAction({ title, content, confirmLabel: label, run, failure: '처리하지 못했습니다.' });
 
 	const resetViews = () =>
 		confirm(
@@ -127,12 +127,12 @@ export default function NewsletterEdit({ id }: { id: number }) {
 
 	const remove = () =>
 		confirm(
-			'이 뉴스레터를 지우시겠습니까?',
-			'상세 페이지 · 목록에서 사라지고 북마크 · 발송 기록도 함께 지워집니다. 되돌릴 수 없습니다.',
+			'이 뉴스레터를 삭제하시겠습니까?',
+			'상세 페이지 · 목록에서 사라지고 북마크 · 발송 기록도 함께 삭제됩니다. 되돌릴 수 없습니다.',
 			'지우기',
 			async () => {
 				await deleteNewsletter(id);
-				showToast('지웠습니다.', 'success');
+				showToast('삭제했습니다.', 'success');
 				queryClient.invalidateQueries({ queryKey: queryKeys.admin.newsletters.all });
 				router.push(ROUTES.admin.newsletters);
 			},
@@ -217,7 +217,9 @@ export default function NewsletterEdit({ id }: { id: number }) {
 										</button>
 									</div>
 									<HtmlCodeEditor id="newsletter-html" value={form.html} onChange={set('html')} rows={22} />
-									<small>저장할 때 뉴스레터 템플릿이 쓰는 태그 · class만 남기고 script · 이벤트 속성은 지웁니다.</small>
+									<small>
+										저장할 때 뉴스레터 템플릿에서 쓰는 태그 · class만 남기고 script와 이벤트 속성은 제거합니다.
+									</small>
 								</div>
 								{error && <p className="error">{error}</p>}
 								<div className="actions">

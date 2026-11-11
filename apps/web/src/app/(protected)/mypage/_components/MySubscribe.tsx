@@ -46,7 +46,7 @@ const useMarkMail = () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.mails.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
 		},
-		onError: () => showToast('바꾸지 못했습니다. 잠시 뒤 다시 해 주십시오.', 'error'),
+		onError: () => showToast('변경하지 못했습니다. 잠시 후 다시 시도해 주십시오.', 'error'),
 	});
 };
 
@@ -161,14 +161,14 @@ export default function MySubscribe() {
 			<EmptyState
 				icon={LuMailPlus}
 				title="아직 구독하지 않았습니다"
-				description={'관심사를 고르면 매일 아침 8시 40분에\n그 관심사만 엮은 뉴스레터를 보내 드립니다.'}
+				description={'관심사를 고르면 매일 아침 8시 40분에\n고른 관심사로 엮은 뉴스레터를 보내 드립니다.'}
 				action={{ label: '구독 시작하기', onClick: () => setActiveTab('settings') }}
 			/>
 		) : (
 			<EmptyState
 				icon={LuMail}
 				title="아직 받은 메일이 없습니다"
-				description={'매일 아침 8시 40분에 첫 메일이 갑니다.\n보낸 메일은 여기에 날짜별로 모입니다.'}
+				description={'매일 아침 8시 40분에 메일을 보내 드립니다.\n받은 메일은 여기에 날짜별로 모입니다.'}
 				action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 			/>
 		);
@@ -377,7 +377,7 @@ export default function MySubscribe() {
 			{/* 무한 스크롤: 이 표시가 보이면 다음 묶음 */}
 			<div ref={endRef} className="list-end" aria-hidden />
 			{isFetchingNextPage && <p className="list-status">메일을 더 불러오는 중…</p>}
-			{!hasNextPage && data.total > PAGE_SIZE && <p className="list-status">받은 메일을 모두 봤습니다.</p>}
+			{!hasNextPage && data.total > PAGE_SIZE && <p className="list-status">마지막 메일입니다.</p>}
 		</div>
 	);
 }

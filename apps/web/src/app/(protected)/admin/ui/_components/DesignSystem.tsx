@@ -215,7 +215,7 @@ function DesignSystemBody() {
 					{(SIZES as readonly FontSize[]).map((size) => (
 						<div key={size} className="row">
 							<code>Text {size}</code>
-							<Text size={size}>오늘 꼭 알아야 할 소식만 골라 보내드립니다.</Text>
+							<Text size={size}>오늘 꼭 알아야 할 소식만 골라 보내 드립니다.</Text>
 							<span className="hex">{theme.fontSize[size]}</span>
 						</div>
 					))}
@@ -385,7 +385,7 @@ function DesignSystemBody() {
 							openModal(
 								<ModalContent
 									icon={<LuMailCheck />}
-									title="구독이 시작되었습니다."
+									title="구독이 시작되었습니다"
 									content="내일 아침 8시 40분에 첫 메일이 도착합니다."
 									outlineButton="닫기"
 									filledButton="확인"
@@ -462,7 +462,7 @@ function DesignSystemBody() {
 					<MoveButton text="비활성" disabled />
 				</div>
 				<Text size="extraSmall" color="subText">
-					Dropdown은 헤더(프로필 메뉴·모바일 메뉴) 위치에 맞춰진 컴포넌트라, 헤더의 프로필 사진을 눌러 확인하십시오.
+					Dropdown은 헤더(프로필 메뉴·모바일 메뉴) 위치에 맞춘 컴포넌트이므로 헤더의 프로필 사진을 눌러 확인합니다.
 				</Text>
 			</Section>
 
@@ -514,7 +514,7 @@ function DesignSystemBody() {
 					<DatePicker label="날짜" value={pickedDate} onChange={setPickedDate} />
 					<TimePicker label="시각" value={time} onChange={setTime} />
 				</div>
-				<BackBar text="목록으로" onClick={() => showToast('뒤로 막대를 눌렀습니다', 'info')} />
+				<BackBar text="목록으로" onClick={() => showToast('뒤로 막대를 눌렀습니다.', 'info')} />
 				<FilterChips label="관심사" options={CATEGORY_OPTIONS} value={chip} onChange={setChip} />
 				<table className="ds-table">
 					<thead>
