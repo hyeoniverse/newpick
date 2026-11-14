@@ -18,7 +18,7 @@ export default function CategoryTags({ className, selectType = 'multiple', selec
 	return (
 		<div className={cx('np-category-tags', className)}>
 			<ul className="categories">
-				{CATEGORIES.slice(selectType === 'single' || 'localSingle' ? 1 : 0).map((category, index) => (
+				{CATEGORIES.slice(selectType === 'multiple' ? 0 : 1).map((category, index) => (
 					<li key={index}>
 						<Button
 							type="button"
