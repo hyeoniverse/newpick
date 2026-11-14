@@ -29,6 +29,8 @@ const Drawer = () => {
 		<Dropdown
 			type="drawer"
 			className="drawer"
+			// 오버레이(::before)는 클릭을 받지 않으므로, 오버레이를 눌러 닫을 때 뒤의 링크 · 카드까지 눌리지 않게
+			overlay
 			label="메뉴"
 			// 줄 수(--n): 패널이 접히는 전체 시간(마지막 줄까지)을 계산해 그때까지 보이게 둔다
 			style={{ '--n': NAVIGATION.length + CATEGORIES.length } as React.CSSProperties}

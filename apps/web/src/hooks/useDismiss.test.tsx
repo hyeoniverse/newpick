@@ -84,4 +84,37 @@ describe('useDismiss', () => {
 		fireEvent(window, new Event('resize'));
 		expect(onClose).toHaveBeenCalledTimes(2);
 	});
+
+	it('blockClickThrough면 바깥을 눌러 닫을 때 그 클릭은 막고, 다음 클릭은 그대로', () => {
+		const onClose = vi.fn();
+		const reached = vi.fn();
+		const { getByTestId } = render(<Popup open onClose={onClose} blockClickThrough />);
+		const outside = getByTestId('outside');
+		outside.addEventListener('click', reached);
+
+		fireEvent.mouseDown(outside);
+		fireEvent.mouseUp(outside);
+		fireEvent.click(outside);
+		expect(onClose).toHaveBeenCalledTimes(1);
+		expect(reached).not.toHaveBeenCalled();
+
+		// 막기는 한 번만: mouseup 다음 차례에 풀린다
+		return new Promise<void>((resolve) =>
+			setTimeout(() => {
+				fireEvent.click(outside);
+				expect(reached).toHaveBeenCalledTimes(1);
+				resolve();
+			}, 10),
+		);
+	});
+
+	it('blockClickThrough가 없으면 닫으면서 그 클릭도 뒤로 간다 (기본)', () => {
+		const reached = vi.fn();
+		const { getByTestId } = render(<Popup open onClose={() => {}} />);
+		const outside = getByTestId('outside');
+		outside.addEventListener('click', reached);
+		fireEvent.mouseDown(outside);
+		fireEvent.click(outside);
+		expect(reached).toHaveBeenCalledTimes(1);
+	});
 });
