@@ -8,7 +8,7 @@ import { useTab } from '@/hooks/useTab';
 
 import { LuBell, LuBellOff } from 'react-icons/lu';
 import { SwitchTrack } from '@/components/common/Switch';
-import ModalContents from '@/components/common/modal/ModalContent';
+import ModalContent from '@/components/common/modal/ModalContent';
 
 function SubscribeToggle() {
 	const { user } = useAuth();
@@ -35,7 +35,7 @@ function SubscribeToggle() {
 						className="not-subscribe"
 						onClick={() =>
 							openModal(
-								<ModalContents
+								<ModalContent
 									icon={<LuBell />}
 									title={SUBSCRIPTION.notSubscribed.title}
 									content={SUBSCRIPTION.notSubscribed.body}

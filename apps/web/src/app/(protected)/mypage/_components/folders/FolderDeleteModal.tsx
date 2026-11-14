@@ -3,7 +3,7 @@
 import { ACTIONS, FOLDERS } from '@/copy';
 import { useState } from 'react';
 import { LuTriangleAlert } from 'react-icons/lu';
-import ModalContents from '@/components/common/modal/ModalContent';
+import ModalContent from '@/components/common/modal/ModalContent';
 import InputRadio from '@/components/common/InputRadio';
 import InputSelect from '@/components/common/InputSelect';
 import { Folder, FolderContents } from '@/hooks/useFolders';
@@ -32,7 +32,7 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 
 	if (!inside.length) {
 		return (
-			<ModalContents
+			<ModalContent
 				icon={<LuTriangleAlert />}
 				title={FOLDERS.deleteTitle(folder.name)}
 				content={FOLDERS.emptyFolder}
@@ -46,7 +46,7 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 
 	const erasable = [highlights && `스크랩 ${highlights}개`, bookmarks && `북마크 ${bookmarks}개`].filter(Boolean);
 	return (
-		<ModalContents
+		<ModalContent
 			icon={<LuTriangleAlert />}
 			title={FOLDERS.deleteTitle(folder.name)}
 			content={FOLDERS.inside(inside.join(' · '))}
@@ -84,6 +84,6 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 					</p>
 				)}
 			</div>
-		</ModalContents>
+		</ModalContent>
 	);
 }

@@ -13,11 +13,13 @@ import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
 import StatusBadge from '@/components/common/StatusBadge';
 import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
-import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
+import AdminSubPage from './AdminSubPage';
+import { Cols, tableMinWidth } from '@/components/common/TableHeader';
 import { useAdminQuery } from './period';
 import AdminSearchField from './AdminSearchField';
 import { when } from '../_lib/format';
-import { cx } from '@/styles/tw';
+import { SUBSCRIPTION_LABEL, subscriptionTone } from '../_lib/subscription';
+import { AdminActions } from './AdminActions';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = ['3.5rem', undefined, '6.5rem', '5.5rem', '6.5rem', '7rem', '4.5rem', '9rem', '8.5rem'];
@@ -27,11 +29,6 @@ const ROLES = [
 	{ value: 'user', label: '사용자' },
 	{ value: 'admin', label: '관리자' },
 ];
-
-/** 구독 상태 이름 · 배지 색 (구독자 화면과 같이 씀) */
-export const SUBSCRIPTION_LABEL: Record<string, string> = { active: '구독 중', paused: '일시 정지', cancelled: '해지' };
-export const subscriptionTone = (status: string | null) =>
-	status === 'active' ? 'success' : status === 'paused' ? 'warning' : 'neutral';
 
 /**
  * 관리자 CMS (#31): 사용자. 이메일 · 이름 · 권한으로 찾고, 권한을 바꾸거나 지운다(회원 탈퇴와 같은 경로).
@@ -169,8 +166,3 @@ export default function UsersAdmin() {
 		</AdminSubPage>
 	);
 }
-
-/** 표 안의 줄 동작(권한 · 지우기)과 '나' 표시 — 수집 기사 · 태그 화면과 같은 모양 */
-export const AdminActions = ({ className, ...props }: React.ComponentProps<'div'>) => (
-	<div className={cx('np-admin-users-admin-actions', className)} {...props} />
-);
