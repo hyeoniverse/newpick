@@ -1,5 +1,6 @@
 'use client';
 
+import { ARTICLES } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
@@ -27,7 +28,7 @@ import { DEFAULT_IMAGES } from '@/constants/images';
 import { parseUrls, extractStories } from '@/utils/parseArticles';
 import Skeleton from '@/components/common/loader/Skeleton';
 import ErrorState from '@/components/common/ErrorState';
-import { DELETED_NEWSLETTER, errorStateFor, statusOf } from '@/constants/errors';
+import { DELETED_NEWSLETTER, errorStateFor, statusOf } from '@/copy/errors';
 import { cx } from '@/styles/tw';
 
 interface Props {
@@ -122,8 +123,7 @@ function Article({ initial }: Props) {
 				</Suspense>
 				{/* 생성형 AI 결과물 표시 (인공지능 기본법 제31조, 이용약관 제5조) */}
 				<Text as="p" size="extraSmall" color="subText" className="ai-notice">
-					이 뉴스레터는 AI가 여러 언론사 기사를 요약·재구성한 글입니다. 수치와 발언은 각 소식의 출처 기사에서 함께
-					확인해 주십시오.
+					{ARTICLES.aiNotice}
 				</Text>
 				<div className="content-section">
 					<Suspense fallback={<Skeleton />}>

@@ -1,5 +1,6 @@
 'use client';
 
+import { ABOUT } from '@/copy';
 import { useEffect, useRef, useState } from 'react';
 import SectionHeading from '@/app/about/_components/SectionHeading';
 
@@ -74,7 +75,7 @@ export default function NumbersSection() {
 			id="about-numbers"
 			aria-label="숫자로 보는 NEWPICK"
 		>
-			<SectionHeading label="IN NUMBERS" title="하루 한 통이면 충분해요" />
+			<SectionHeading label="IN NUMBERS" title={ABOUT.numbersTitle} />
 			<ul ref={ref} className="list">
 				{NUMBERS.map((item) => (
 					<NumberItem key={item.text} {...item} start={start} />

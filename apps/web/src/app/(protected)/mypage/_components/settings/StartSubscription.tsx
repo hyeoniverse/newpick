@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, SUBSCRIPTION } from '@/copy';
 import { CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
@@ -36,9 +37,9 @@ export default function StartSubscription() {
 			openModal(
 				<ModalContent
 					icon={<LuMailCheck />}
-					title="구독 설정이 완료되었습니다"
-					content={`내일부터 새로운 뉴스레터를 보내 드립니다.`}
-					filledButton="확인"
+					title={SUBSCRIPTION.done.title}
+					content={SUBSCRIPTION.done.body}
+					filledButton={ACTIONS.confirm}
 					onConfirmClick={closeModal}
 				/>,
 			);
@@ -69,11 +70,11 @@ export default function StartSubscription() {
 								openModal(
 									<ModalContent
 										icon={<LuMailX />}
-										title={`구독을 해지하면 구독과 관련된\n모든 정보가 삭제됩니다.`}
-										content="정말로 해지하시겠습니까?"
-										outlineButton="확인"
+										title={SUBSCRIPTION.cancelConfirm.body}
+										content={SUBSCRIPTION.cancelConfirm.title}
+										outlineButton={ACTIONS.confirm}
 										onCancelClick={handleCancel}
-										filledButton="취소"
+										filledButton={ACTIONS.cancel}
 										onConfirmClick={closeModal}
 									/>,
 								)
@@ -85,9 +86,9 @@ export default function StartSubscription() {
 					)}
 				</div>
 				<Text size="small" color="subText">
-					구독할 관심사를 고른 뒤 완료를 눌러 주십시오.
+					{SUBSCRIPTION.pickThenDone}
 					<br />
-					{isSubscribed !== null && '내일 보내드리는 뉴스레터부터 적용됩니다.'}
+					{isSubscribed !== null && SUBSCRIPTION.appliesTomorrow}
 				</Text>
 			</div>
 			<div className="category-section">

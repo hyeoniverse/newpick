@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, HIGHLIGHTS } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -14,7 +15,7 @@ import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
 import InputCheck from '@/components/common/InputCheck';
 import Skeleton from '@/components/common/loader/Skeleton';
-import { errorStateFor, statusOf } from '@/constants/errors';
+import { errorStateFor, statusOf } from '@/copy/errors';
 import { Highlight, useHighlightMutations, useHighlightPages } from '@/hooks/useHighlights';
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/useToast';
@@ -198,8 +199,8 @@ export default function MyHighlights() {
 				<MyTaste />
 				<EmptyState
 					icon={LuHighlighter}
-					title="스크랩한 문장이 없습니다"
-					description="뉴스레터를 읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남기면 여기에 모입니다."
+					title={HIGHLIGHTS.empty.title}
+					description={HIGHLIGHTS.empty.body}
 					action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 				/>
 			</div>
@@ -218,9 +219,9 @@ export default function MyHighlights() {
 	const copy = async () => {
 		try {
 			await navigator.clipboard.writeText(asText(picked));
-			showToast(`${picked.length}개를 복사했습니다.`, 'success');
+			showToast(HIGHLIGHTS.copied(picked.length), 'success');
 		} catch {
-			showToast('복사하지 못했습니다.', 'error');
+			showToast(HIGHLIGHTS.copyFailed, 'error');
 		}
 	};
 	const allShownSelected = shown.length > 0 && shown.every((h) => selected.has(h.id));
@@ -284,10 +285,10 @@ export default function MyHighlights() {
 			{shown.length === 0 && (
 				<p className="empty">
 					{filter === 'starred'
-						? '중요 표시한 문장이 없습니다. 문장 옆 별을 누르면 여기에 모입니다.'
+						? HIGHLIGHTS.emptyStarred
 						: filter === 'memo'
-							? '메모를 남긴 문장이 없습니다.'
-							: "이 폴더에 스크랩이 없습니다. 문장 아래 '폴더 옮기기'나 '선택'으로 옮길 수 있습니다."}
+							? HIGHLIGHTS.emptyMemo
+							: HIGHLIGHTS.emptyFolder}
 				</p>
 			)}
 			{shown.length > 0 && (
@@ -475,7 +476,7 @@ export default function MyHighlights() {
 							복사
 						</button>
 						<button type="button" onClick={stopSelecting}>
-							취소
+							{ACTIONS.cancel}
 						</button>
 						<button
 							type="button"
@@ -588,7 +589,7 @@ function HighlightItem({
 					onPick={(folderId) => bulk.mutate({ ids: [highlight.id], action: 'move', folderId })}
 				/>
 				<button type="button" className="danger" onClick={onRemove}>
-					지우기
+					{ACTIONS.remove}
 				</button>
 			</div>
 			{editing ? (
@@ -616,10 +617,10 @@ function HighlightItem({
 								setEditing(false);
 							}}
 						>
-							취소
+							{ACTIONS.cancel}
 						</button>
 						<button type="submit" className="primary" disabled={update.isPending}>
-							저장
+							{ACTIONS.save}
 						</button>
 					</div>
 				</form>

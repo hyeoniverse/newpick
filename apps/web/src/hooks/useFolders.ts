@@ -1,3 +1,4 @@
+import { COMMON, FOLDERS } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 import type { Folder } from '@newpick/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -13,9 +14,9 @@ export type { Folder };
 export type { FolderContents };
 
 const REMOVED: Record<FolderContents, string> = {
-	keep: '폴더를 삭제했습니다. 안에 있던 항목은 폴더 없음으로 옮겼습니다.',
-	delete: '폴더와 안에 있던 항목을 삭제했습니다.',
-	move: '폴더를 삭제하고 안에 있던 항목을 옮겼습니다.',
+	keep: FOLDERS.removed.keep,
+	delete: FOLDERS.removed.delete,
+	move: FOLDERS.removed.move,
 };
 
 /** 폴더 안의 것들이 바뀌면 다시 불러올 목록들 */
@@ -40,8 +41,7 @@ export function useFolderMutations() {
 	const queryClient = useQueryClient();
 	const { showToast } = useToast();
 	const refresh = () => FOLDER_CONTENT_KEYS.forEach((queryKey) => queryClient.invalidateQueries({ queryKey }));
-	const fail = (error: Error) =>
-		showToast(errorMessage(error, '저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.'), 'error');
+	const fail = (error: Error) => showToast(errorMessage(error, COMMON.saveFailed), 'error');
 
 	const create = useMutation({
 		mutationFn: (name: string) => createFolder(name),
@@ -52,7 +52,7 @@ export function useFolderMutations() {
 		mutationFn: ({ id, name }: { id: number; name: string }) => renameFolder(id, name),
 		onSuccess: () => {
 			refresh();
-			showToast('폴더 이름을 바꿨습니다.', 'success');
+			showToast(FOLDERS.renamed, 'success');
 		},
 		onError: fail,
 	});

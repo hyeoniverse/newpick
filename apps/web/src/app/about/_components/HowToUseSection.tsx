@@ -1,5 +1,6 @@
 'use client';
 
+import { ABOUT } from '@/copy';
 import Img from 'next/image';
 import { FcGoogle } from 'react-icons/fc';
 import SectionHeading from '@/app/about/_components/SectionHeading';
@@ -27,18 +28,18 @@ interface Shot {
 const STEPS: Step[] = [
 	{
 		title: '구글로 로그인',
-		text: '구글 계정으로 바로 시작해요. 따로 가입 양식을 채울 필요가 없어요.',
+		text: ABOUT.howTo.login,
 	},
 	{
 		title: '관심사 고르기',
-		text: 'IT · 정치 · 경제 · 사회 · 생활 · 세계, 다양한 분야의 뉴스 가운데 중요한 것만 골라 보내 드려요. 놓치고 싶지 않은 소식을 매일 아침 메일 한 통으로 받아 보세요.',
+		text: ABOUT.howTo.pick,
 		image: '/img/about_categories.jpg',
 		size: [1390, 334],
 		alt: '관심사를 고르는 화면',
 	},
 	{
 		title: '구독 완료',
-		text: '다음 날 아침부터 뉴스레터가 도착해요. 관심사는 마이페이지에서 언제든 바꿀 수 있어요.',
+		text: ABOUT.howTo.done,
 		image: '/img/about_sns-login.jpg',
 		size: [1534, 756],
 		alt: '구독 설정이 완료되었다는 안내',
@@ -46,7 +47,7 @@ const STEPS: Step[] = [
 	// 4~8: 같은 예시(기준금리 동결 → 예금금리 인하 → 연내 인하 신호)로 이어지는 화면
 	{
 		title: '북마크',
-		text: '다시 보고 싶은 뉴스레터는 북마크해 두세요. 북마크한 뉴스레터는 마이페이지에 모이고, 폴더로 정리할 수 있어요.',
+		text: ABOUT.howTo.bookmark,
 		pair: [
 			{
 				label: '뉴스레터',
@@ -64,7 +65,7 @@ const STEPS: Step[] = [
 	},
 	{
 		title: '스크랩 · 메모',
-		text: '읽다가 중요한 문장은 드래그해 스크랩하거나 메모를 남겨 보세요. 스크랩한 문장은 마이페이지에 차곡차곡 쌓이고, 폴더로 정리할 수 있어요.',
+		text: ABOUT.howTo.scrap,
 		pair: [
 			{
 				label: '뉴스레터',
@@ -82,7 +83,7 @@ const STEPS: Step[] = [
 	},
 	{
 		title: '후속 지켜보기',
-		text: "각 소식의 관전 포인트에서 '후속 지켜보기'를 켜면 이어지는 새 소식을 메일로 알려 드려요. 마이페이지에서도 확인하고 관리할 수 있어요.",
+		text: ABOUT.howTo.follow,
 		pair: [
 			{
 				label: '뉴스레터',
@@ -100,7 +101,7 @@ const STEPS: Step[] = [
 	},
 	{
 		title: '태그 팔로우',
-		text: '관심 있는 태그를 팔로우하면 그 태그의 새 소식을 메일로 따로 모아 보내 드려요. 받은 소식은 모두 마이페이지에 시간순으로 모여요.',
+		text: ABOUT.howTo.tagFollow,
 		pair: [
 			{
 				label: '태그 목록',
@@ -118,7 +119,7 @@ const STEPS: Step[] = [
 	},
 	{
 		title: '맞춤형 뉴스레터 받기',
-		text: '매일 아침 8시 40분, 출근길에 메일함을 열면 오늘 꼭 알아야 할 소식이 한 통으로 정리돼 있어요. 북마크 · 스크랩, 지켜보는 소식, 팔로우한 태그를 엮어 맞춤 브리핑부터 후속 소식까지 나에게 맞춰 써 드려요. 지난 소식은 마이페이지에서 언제든 다시 볼 수 있어요.',
+		text: ABOUT.howTo.personal,
 		image: '/img/about_how-7-mail.jpg',
 		size: [1280, 2000],
 		alt: '맞춤 브리핑 · 지켜보던 소식의 후속 · 팔로우한 태그가 담긴 맞춤 메일',
@@ -195,11 +196,7 @@ function StepRow({ step, index }: { step: Step; index: number }) {
 export default function HowToUseSection() {
 	return (
 		<section className="np-about-how-to-use-section-how-to-use" data-track-section="about-how-to-use">
-			<SectionHeading
-				label="HOW TO USE"
-				title="세 번의 클릭으로, 간단하게 시작"
-				sub="간편하게 로그인하고 원하는 분야를 고르세요. 매일 아침 출근 전, 간밤에 놓친 중요한 소식과 아침 속보까지 한 통으로 받아 볼 수 있어요."
-			/>
+			<SectionHeading label="HOW TO USE" title="세 번의 클릭으로, 간단하게 시작" sub={ABOUT.howTo.startSub} />
 			<ol className="rows">
 				{STEPS.slice(0, FIRST_PART).map((step, i) => (
 					<StepRow key={step.title} step={step} index={i} />
@@ -208,10 +205,7 @@ export default function HowToUseSection() {
 			{/* 받은 뒤의 흐름: 뒤 다섯 단계 앞에 두 번째 제목 */}
 			<div className="mid">
 				<h3 className="mid-title">유기적으로 이어지는 흐름</h3>
-				<p className="mid-sub">
-					한 번 읽고 끝나지 않아요. 북마크와 스크랩으로 중요한 내용을 저장하고, 후속 뉴스 지켜보기와 태그 팔로우로
-					나에게 맞춘 뉴스레터를 받아 보세요.
-				</p>
+				<p className="mid-sub">{ABOUT.howTo.flowSub}</p>
 			</div>
 			<ol className="rows">
 				{STEPS.slice(FIRST_PART).map((step, i) => (

@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN } from '@/copy';
 import { fetchSubscribers } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
@@ -83,7 +84,7 @@ export default function SubscribersAdmin() {
 			}
 		>
 			<AdminActions>
-				<AdminListState list={list} empty="이 조건의 구독자가 없습니다.">
+				<AdminListState list={list} empty={ADMIN.empty.subscribers}>
 					{(data) => (
 						<div className="table-wrap">
 							<table style={{ minWidth: tableMinWidth(COLS) }}>

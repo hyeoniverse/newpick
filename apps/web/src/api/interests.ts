@@ -1,3 +1,4 @@
+import { SUBSCRIPTION } from '@/copy';
 import { API_ENDPOINTS } from '@/constants/api';
 import { mapIdToTitle, mapTitleToId } from '@/utils/mapInterests';
 import { apiFetch } from '@/api/client';
@@ -13,7 +14,7 @@ export const fetchInterests = async (): Promise<string[]> =>
  */
 export const updateInterests = async (interests: string[]): Promise<string[]> => {
 	if (interests.length === 0) {
-		throw new Error('관심사를 한 개 이상 선택해 주십시오.');
+		throw new Error(SUBSCRIPTION.pickOneOrMore);
 	}
 	const interestsId = mapTitleToId(interests).filter((id) => id !== 0);
 	const result = await apiFetch<{ interests: number[] }>(API_ENDPOINTS.SUBSCRIBERS.INTERESTS(), {

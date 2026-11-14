@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, SUBSCRIPTION } from '@/copy';
 import { useAuth } from '@/hooks/useAuth';
 import { useSubscribe } from '@/hooks/useSubscribe';
 import { useModal } from '@/hooks/useModal';
@@ -36,10 +37,10 @@ function SubscribeToggle() {
 							openModal(
 								<ModalContents
 									icon={<LuBell />}
-									title="구독 상태가 아닙니다"
-									content={`새롭게 뉴스레터를 구독해보시겠습니까?\n확인을 누르시면 구독페이지로 넘어갑니다.`}
-									outlineButton="취소"
-									filledButton="확인"
+									title={SUBSCRIPTION.notSubscribed.title}
+									content={SUBSCRIPTION.notSubscribed.body}
+									outlineButton={ACTIONS.cancel}
+									filledButton={ACTIONS.confirm}
 									onCancelClick={closeModal}
 									onConfirmClick={handleConfirm}
 								/>,
@@ -47,7 +48,7 @@ function SubscribeToggle() {
 						}
 					>
 						<LuBellOff aria-hidden />
-						<span>구독 상태가 아닙니다.</span>
+						<span>{SUBSCRIPTION.notSubscribed.status}</span>
 					</button>
 				</>
 			) : (

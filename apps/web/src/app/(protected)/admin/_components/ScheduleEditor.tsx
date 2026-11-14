@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, ADMIN, COMMON } from '@/copy';
 import type { ClockTime, Schedule } from '@newpick/shared';
 import { useState } from 'react';
 import { saveSchedule } from '@/api/admin';
@@ -45,7 +46,7 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 		event.preventDefault();
 		const next: Schedule = { crawl: parse(crawl), summary: parse(summary), mail: { ...parse(mail), day } };
 		if (!(minutesOf(next.crawl) < minutesOf(next.summary) && minutesOf(next.summary) < minutesOf(next.mail))) {
-			setError('기사 수집 → AI 요약 → 구독 메일 순서가 되도록, 앞 작업보다 늦은 시각을 골라 주십시오.');
+			setError(ADMIN.schedule.order);
 			return;
 		}
 		setPending(true);
@@ -54,7 +55,7 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 			const data = await saveSchedule(next);
 			onSaved(data);
 		} catch (e) {
-			setError(errorMessage(e, '변경하지 못했습니다. 잠시 후 다시 시도해 주십시오.'));
+			setError(errorMessage(e, COMMON.changeFailedRetry));
 		} finally {
 			setPending(false);
 		}
@@ -63,11 +64,7 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 	return (
 		<form className="np-admin-schedule-editor-editor" onSubmit={save}>
 			<h2 className="title">예약 시간 바꾸기</h2>
-			<p className="desc">
-				기사 수집 → AI 요약 → 구독 메일 순서로 실행됩니다. 수집은 매시간 정한 분에 실행되고, 요약은 직전 24시간 동안
-				모은 기사로, 메일은 그날 요약으로 만들기 때문에 각 작업은 앞 작업보다 늦게 잡아야 합니다. 저장하면 바로
-				적용됩니다.
-			</p>
+			<p className="desc">{ADMIN.schedule.lead}</p>
 			<div className="row">
 				<span className="name">기사 수집</span>
 				<span className="when">매시간</span>
@@ -102,10 +99,10 @@ export default function ScheduleEditor({ initial, onSaved, onCancel }: Props) {
 			)}
 			<div className="actions">
 				<Button type="button" scheme="outline" size="medium" onClick={onCancel}>
-					취소
+					{ACTIONS.cancel}
 				</Button>
 				<Button type="submit" scheme="primary" size="medium" disabled={pending}>
-					{pending ? '저장하는 중…' : '저장'}
+					{pending ? ACTIONS.saving : ACTIONS.save}
 				</Button>
 			</div>
 		</form>

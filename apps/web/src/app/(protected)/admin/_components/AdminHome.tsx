@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { Suspense, useState } from 'react';
 import Link from 'next/link';
@@ -25,9 +26,9 @@ function SiteCacheTool() {
 		try {
 			const data = await refreshSiteCache();
 			setLastAt(data.refreshedAt);
-			showToast('사이트 캐시를 비웠습니다. 다음 접속부터 새 내용이 보입니다.', 'success');
+			showToast(ADMIN.cache.cleared, 'success');
 		} catch (error) {
-			showToast(errorMessage(error, '사이트 캐시를 비우지 못했습니다.'), 'error');
+			showToast(errorMessage(error, ADMIN.cache.clearFailed), 'error');
 		} finally {
 			setPending(false);
 		}
@@ -40,8 +41,7 @@ function SiteCacheTool() {
 					사이트 캐시 비우기
 				</Title>
 				<Text size="small" color="subText">
-					첫 화면과 목록은 빠르게 띄우려고 최대 10분 동안 저장해 둔 내용을 보여 줍니다. 뉴스레터를 만들거나 지우면
-					자동으로 비워지며, DB를 직접 고쳤을 때는 여기서 바로 비울 수 있습니다.
+					{ADMIN.cache.lead}
 				</Text>
 				{lastAt && (
 					<Text size="small" color="primary" className="last">
@@ -69,7 +69,7 @@ export default function AdminHome() {
 							디자인 시스템
 						</Title>
 						<Text size="small" color="subText">
-							테마 값과 공통 컴포넌트를 한 화면에서 확인합니다.
+							{ADMIN.home.designLead}
 						</Text>
 					</div>
 					<Link href={ROUTES.admin.ui}>
@@ -85,8 +85,7 @@ export default function AdminHome() {
 							콘텐츠 · 회원 관리
 						</Title>
 						<Text size="small" color="subText">
-							구독자 · AI 비용 · 발송 추이를 보고, 발행한 뉴스레터를 고치거나 지우고, 사용자 권한 · 구독자 · 관심사
-							현황을 보고, 갈라진 태그를 합칩니다.
+							{ADMIN.home.cmsLead}
 						</Text>
 					</div>
 					<nav className="manage" aria-label="콘텐츠 · 회원 관리">

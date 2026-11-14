@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, HOME } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
@@ -35,7 +36,7 @@ const SubscribeSection = () => {
 	const handleSubscribe = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!user) {
-			openLogin('구독하려면 로그인이 필요해요');
+			openLogin(HOME.loginForSubscribe);
 			return;
 		}
 
@@ -45,9 +46,9 @@ const SubscribeSection = () => {
 			openModal(
 				<ModalContents
 					icon={<LuMailCheck />}
-					title="구독 설정이 완료됐어요"
-					content={`내일부터 새로운 뉴스레터를 보내 드릴게요.`}
-					filledButton="확인"
+					title={HOME.subscribed.title}
+					content={HOME.subscribed.body}
+					filledButton={ACTIONS.confirm}
 					onConfirmClick={closeModal}
 				/>,
 			);
@@ -82,7 +83,7 @@ const SubscribeSection = () => {
 							header: category.name,
 							main: {
 								title: undefined,
-								description: `${category.name} 분야의 최신 뉴스레터를 보내 드려요.`,
+								description: HOME.categoryCard(category.name),
 							},
 							footer: (
 								<Button
@@ -106,7 +107,7 @@ const SubscribeSection = () => {
 					<Title as="h2" size="medium" weight="bold">
 						주요 분야 빠른 구독하기
 					</Title>
-					<Text size="small">고른 분야의 뉴스레터를 메일로 보내 드려요.</Text>
+					<Text size="small">{HOME.quickLead}</Text>
 					<div className="main">
 						<Button
 							type="submit"

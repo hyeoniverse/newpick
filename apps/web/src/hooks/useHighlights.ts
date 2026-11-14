@@ -1,3 +1,4 @@
+import { COMMON, HIGHLIGHTS } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
 import type { Highlight, HighlightPage } from '@newpick/shared';
@@ -66,23 +67,17 @@ export function useHighlightMutations() {
 		queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
 		queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
 	};
-	const fail = (error: Error) =>
-		showToast(errorMessage(error, '저장하지 못했습니다. 잠시 후 다시 시도해 주십시오.'), 'error');
+	const fail = (error: Error) => showToast(errorMessage(error, COMMON.saveFailed), 'error');
 
 	const create = useMutation({
 		mutationFn: createHighlight,
 		onSuccess: (saved, body) => {
 			refresh();
 			// 마이페이지 스크랩 탭의 이 문장으로 바로 (#hl-번호로 스크롤 · 잠깐 강조)
-			showToast(
-				body.note ? '메모를 남겼습니다.' : '스크랩했습니다. 마이페이지에서 모아 볼 수 있습니다.',
-				'success',
-				undefined,
-				{
-					label: '스크랩 모아 보기 →',
-					href: `${ROUTES.mypage('highlights')}#hl-${saved.id}`,
-				},
-			);
+			showToast(body.note ? HIGHLIGHTS.memoSaved : HIGHLIGHTS.scrapped, 'success', undefined, {
+				label: '스크랩 모아 보기 →',
+				href: `${ROUTES.mypage('highlights')}#hl-${saved.id}`,
+			});
 		},
 		onError: fail,
 	});
@@ -91,9 +86,8 @@ export function useHighlightMutations() {
 		mutationFn: ({ id, ...body }: { id: number; note?: string; starred?: boolean }) => updateHighlight(id, body),
 		onSuccess: (_, body) => {
 			refresh();
-			if (body.starred !== undefined)
-				showToast(body.starred ? '중요 표시했습니다.' : '중요 표시를 해제했습니다.', 'success');
-			else showToast('메모를 수정했습니다.', 'success');
+			if (body.starred !== undefined) showToast(body.starred ? HIGHLIGHTS.starred : HIGHLIGHTS.unstarred, 'success');
+			else showToast(HIGHLIGHTS.memoUpdated, 'success');
 		},
 		onError: fail,
 	});
@@ -101,7 +95,7 @@ export function useHighlightMutations() {
 		mutationFn: deleteHighlight,
 		onSuccess: () => {
 			refresh();
-			showToast('스크랩을 삭제했습니다.', 'success');
+			showToast(HIGHLIGHTS.deleted, 'success');
 		},
 		onError: fail,
 	});
@@ -109,7 +103,7 @@ export function useHighlightMutations() {
 		mutationFn: (ids: number[]) => deleteHighlights(ids),
 		onSuccess: ({ count }) => {
 			refresh();
-			showToast(`스크랩 ${count}개를 삭제했습니다.`, 'success');
+			showToast(HIGHLIGHTS.deletedMany(count), 'success');
 		},
 		onError: fail,
 	});
@@ -120,10 +114,10 @@ export function useHighlightMutations() {
 			refresh();
 			showToast(
 				body.action === 'move'
-					? `${count}개를 옮겼습니다.`
+					? COMMON.moved(count)
 					: body.action === 'star'
-						? `${count}개를 중요 표시했습니다.`
-						: `${count}개의 중요 표시를 해제했습니다.`,
+						? HIGHLIGHTS.starredMany(count)
+						: HIGHLIGHTS.unstarredMany(count),
 				'success',
 			);
 		},

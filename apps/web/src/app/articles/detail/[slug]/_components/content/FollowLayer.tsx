@@ -1,5 +1,6 @@
 'use client';
 
+import { LOGIN } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { RefObject, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -138,7 +139,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 						disabled={busy}
 						onClick={() => {
 							if (!user) {
-								openLogin('후속 소식을 받으려면 로그인이 필요합니다');
+								openLogin(LOGIN.loginRequired.follow);
 								return;
 							}
 							if (current) {

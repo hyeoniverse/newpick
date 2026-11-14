@@ -1,5 +1,6 @@
 'use client';
 
+import { ACCOUNT } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -36,9 +37,9 @@ export default function PersonalMail() {
 		},
 		onError: (_error, _enabled, context) => {
 			queryClient.setQueryData(PERSONAL_MAIL_KEY, context?.before);
-			showToast('설정을 변경하지 못했습니다. 잠시 후 다시 시도해 주십시오.', 'error');
+			showToast(ACCOUNT.personalMail.saveFailed, 'error');
 		},
-		onSuccess: ({ enabled }) => showToast(enabled ? '맞춤 메일을 켰습니다.' : '맞춤 메일을 껐습니다.', 'success'),
+		onSuccess: ({ enabled }) => showToast(enabled ? ACCOUNT.personalMail.on : ACCOUNT.personalMail.off, 'success'),
 	});
 
 	// 구독 기록이 있을 때만 (구독 해지 단추와 같은 기준). 일시 중지 중에도 미리 정해 둘 수 있다
@@ -52,13 +53,13 @@ export default function PersonalMail() {
 					맞춤 메일
 				</Title>
 				<Text size="small" color="subText">
-					북마크 · 스크랩한 소식을 바탕으로, 그날 모든 분야에서 관심을 가질 만한 소식을 골라 보내 드립니다.
+					{ACCOUNT.personalMail.lead}
 					<br />
-					끄면 구독한 분야의 뉴스레터를 분야별로 받습니다. 다음 메일부터 적용됩니다.
+					{ACCOUNT.personalMail.offNote}
 					{user.isSubscribed === false && (
 						<>
 							<br />
-							지금은 구독이 일시정지되어 있습니다. 구독을 다시 시작하면 이 설정대로 보내 드립니다.
+							{ACCOUNT.personalMail.paused}
 						</>
 					)}
 				</Text>

@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, ADMIN, COMMON } from '@/copy';
 import { useConfirmAction } from '@/hooks/useConfirmAction';
 import { ROUTES } from '@/constants/routes';
 import {
@@ -38,17 +39,15 @@ import MoreLink from '@/components/common/MoreLink';
 const JOBS: Record<JobName, { label: string; warning: string }> = {
 	crawling: {
 		label: '기사 수집',
-		warning: '지금 언론사 기사를 수집합니다. 분야가 없는 기사는 Claude로 분류하므로 비용이 조금 발생합니다.',
+		warning: ADMIN.jobs.crawlWarning,
 	},
 	summary: {
 		label: 'AI 요약',
-		warning:
-			'생성에 실패한 분야의 뉴스레터를 다시 시도합니다. 생성에 성공한 항목을 제외하고, 실패한 항목만 재시도하며, Claude 비용이 발생합니다.',
+		warning: ADMIN.jobs.summaryWarning,
 	},
 	mail: {
 		label: '구독 메일',
-		warning:
-			'모든 구독자에게 오늘 뉴스레터를 지금 발송합니다. 이미 발송했다면 구독자가 같은 메일을 한 번 더 받게 됩니다.',
+		warning: ADMIN.jobs.mailWarning,
 	},
 };
 
@@ -73,9 +72,9 @@ function MailRecipients({ date, today }: { date: string; today: string }) {
 		queryKey: queryKeys.admin.mailRecipients(date),
 		queryFn: () => fetchMailRecipients(date),
 	});
-	if (isPending) return <p className="recipients-state">불러오는 중…</p>;
-	if (isError) return <p className="recipients-state">받은 사람을 불러오지 못했습니다.</p>;
-	if (data.length === 0) return <p className="recipients-state">기록이 없습니다.</p>;
+	if (isPending) return <p className="recipients-state">{COMMON.loading}</p>;
+	if (isError) return <p className="recipients-state">{ADMIN.jobs.recipientsFailed}</p>;
+	if (data.length === 0) return <p className="recipients-state">{ADMIN.empty.recipients}</p>;
 	return (
 		<ul className="recipients">
 			{data.map((row) => (
@@ -120,7 +119,7 @@ export default function Dashboard() {
 				onCancel={closeModal}
 				onSaved={() => {
 					closeModal();
-					showToast('예약 시간을 바꿨습니다. 다음 실행부터 적용됩니다.', 'success');
+					showToast(ADMIN.jobs.scheduleSaved, 'success');
 					refresh();
 				}}
 			/>,
@@ -129,15 +128,10 @@ export default function Dashboard() {
 	const toggle = async (job: JobName, enable: boolean) => {
 		try {
 			await toggleJob(job, enable);
-			showToast(
-				enable
-					? `${JOBS[job].label}을 켰습니다.`
-					: `${JOBS[job].label}을 껐습니다. 서버를 다시 시작하면 다시 켜집니다.`,
-				'info',
-			);
+			showToast(enable ? ADMIN.jobs.enabled(JOBS[job].label) : ADMIN.jobs.disabled(JOBS[job].label), 'info');
 			refresh();
 		} catch (error) {
-			showToast(errorMessage(error, '변경하지 못했습니다.'), 'error');
+			showToast(errorMessage(error, COMMON.changeFailed), 'error');
 		}
 	};
 
@@ -150,10 +144,10 @@ export default function Dashboard() {
 					closeModal();
 					try {
 						await rerunSummary({ date });
-						showToast(`${date} 누락된 뉴스레터 생성을 시작했습니다. 관심사당 1~2분 소요됩니다.`, 'success');
+						showToast(ADMIN.jobs.fillStarted(date), 'success');
 						setTimeout(refresh, 800);
 					} catch (error) {
-						showToast(errorMessage(error, '시작하지 못했습니다.'), 'error');
+						showToast(errorMessage(error, COMMON.startFailed), 'error');
 					}
 				}}
 			/>,
@@ -161,14 +155,14 @@ export default function Dashboard() {
 
 	const runNow = (job: JobName) =>
 		confirm({
-			title: `${JOBS[job].label}을 지금 실행하시겠습니까?`,
+			title: ADMIN.jobs.runTitle(JOBS[job].label),
 			content: JOBS[job].warning,
 			confirmLabel: '지금 실행',
 			// AI 요약은 오늘 아직 없는 분야만 만들므로, 어느 분야를 만드는지 보여 준다
 			children: job === 'summary' && <MissingCategories date={kstDay(0)} label="재생성 항목" />,
 			run: () => runJobNow(job),
-			success: `${JOBS[job].label}을 시작했습니다.`,
-			failure: '시작하지 못했습니다.',
+			success: ADMIN.jobs.runStarted(JOBS[job].label),
+			failure: COMMON.startFailed,
 			// 서버가 실행 기록을 남길 틈을 주고 새로 고친다
 			onDone: () => setTimeout(refresh, 800),
 		});
@@ -185,9 +179,9 @@ export default function Dashboard() {
 		return (
 			<div className="np-admin-dashboard-dashboard">
 				<Text size="small" color="subText">
-					대시보드를 불러오지 못했습니다.{' '}
+					{ADMIN.dashboardLoadFailed}{' '}
 					<button type="button" className="retry" onClick={() => refetch()}>
-						다시 시도
+						{ACTIONS.retry}
 					</button>
 				</Text>
 			</div>
@@ -269,7 +263,7 @@ export default function Dashboard() {
 					<p className="auto-off" role="note">
 						<LuInfo aria-hidden />
 						<span>
-							이 서버는 예약 시각에 자동으로 실행되지 않습니다. 필요할 때 &lsquo;지금 실행&rsquo;을 눌러 주십시오.
+							{ADMIN.jobs.autoOff}
 							<code>SCHEDULER_ENABLED=false</code>
 						</span>
 					</p>
@@ -305,7 +299,7 @@ export default function Dashboard() {
 											? `${when(run.startedAt, today)} 시작`
 											: run.finishedAt
 												? `${when(run.finishedAt, today)}${run.trigger === 'manual' ? ' · 지금 실행' : ''} · ${run.message}`
-												: '아직 실행 기록이 없습니다'}
+												: ADMIN.jobs.noRunsYet}
 									</span>
 								</div>
 								<div className="job-actions">
@@ -337,8 +331,7 @@ export default function Dashboard() {
 					})}
 				</ul>
 				<Text size="extraSmall" color="subText" className="note">
-					켜기 · 끄기 상태는 서버 메모리에만 저장되므로 서버를 다시 시작하면 다시 켜집니다. 예약 시간과 실행 기록은
-					유지됩니다.
+					{ADMIN.jobs.toggleNote}
 				</Text>
 			</section>
 
@@ -354,7 +347,7 @@ export default function Dashboard() {
 					</div>
 					{newsletters.items.length === 0 ? (
 						<Text size="small" color="subText">
-							이 기간에 발행한 뉴스레터가 없습니다.
+							{ADMIN.empty.newsletters}
 						</Text>
 					) : (
 						<ul className="list">
@@ -382,7 +375,7 @@ export default function Dashboard() {
 					</div>
 					{mail.byDay.length === 0 ? (
 						<Text size="small" color="subText">
-							이 기간에 보낸 메일이 없습니다.
+							{ADMIN.empty.mails}
 						</Text>
 					) : (
 						<ul className="list">
@@ -421,7 +414,7 @@ export default function Dashboard() {
 				</div>
 				{summaryLogs.items.length === 0 ? (
 					<Text size="small" color="subText">
-						이 기간에 기록이 없습니다.
+						{ADMIN.empty.periodLogs}
 					</Text>
 				) : (
 					<div className="table-wrap">
@@ -487,9 +480,9 @@ function MissingCategories({ date, label }: { date: string; label: string }) {
 		<p className="np-admin-dashboard-missing" aria-live="polite">
 			<span className="label">{label}</span>
 			{isPending
-				? '확인 중입니다.'
+				? ADMIN.jobs.checking
 				: !missing?.length
-					? '모든 분야가 이미 생성되어 대상이 없습니다.'
+					? ADMIN.jobs.allDone
 					: missing.map((category) => category.name).join(' · ')}
 		</p>
 	);
@@ -503,8 +496,8 @@ function FillDay({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (da
 		<ModalContents
 			icon={<LuCalendarPlus />}
 			title="누락된 날짜 채우기"
-			content="선택한 날짜에 수집된 기사로, 그날 발행되지 않은 관심사의 뉴스레터를 생성해 해당 날짜로 게시합니다. 구독 메일은 발송하지 않으며, Claude 비용이 발생합니다."
-			outlineButton="취소"
+			content={ADMIN.jobs.fillBody}
+			outlineButton={ACTIONS.cancel}
 			filledButton="생성"
 			onCancelClick={onCancel}
 			onConfirmClick={() => date && onConfirm(date)}

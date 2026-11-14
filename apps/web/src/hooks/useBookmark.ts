@@ -1,3 +1,4 @@
+import { BOOKMARKS, COMMON } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 import type { BookmarkPage } from '@newpick/shared';
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -69,7 +70,7 @@ export const useAddBookmarkMutation = () => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
-			showToast('북마크가 추가되었습니다.', 'success');
+			showToast(BOOKMARKS.added, 'success');
 		},
 	});
 };
@@ -86,7 +87,7 @@ export const useRemoveBookmarkMutation = () => {
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.taste.all });
-			showToast('북마크를 해제했습니다.', 'success');
+			showToast(BOOKMARKS.removed, 'success');
 		},
 	});
 };
@@ -101,9 +102,8 @@ export const useMoveBookmarksMutation = () => {
 		onSuccess: ({ count }) => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.bookmarks.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
-			showToast(`${count}개를 옮겼습니다.`, 'success');
+			showToast(COMMON.moved(count), 'success');
 		},
-		onError: (error: Error) =>
-			showToast(errorMessage(error, '옮기지 못했습니다. 잠시 후 다시 시도해 주십시오.'), 'error'),
+		onError: (error: Error) => showToast(errorMessage(error, BOOKMARKS.moveFailed), 'error'),
 	});
 };

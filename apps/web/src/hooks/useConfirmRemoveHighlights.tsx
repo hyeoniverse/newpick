@@ -1,3 +1,4 @@
+import { ACTIONS, HIGHLIGHTS } from '@/copy';
 import { useCallback } from 'react';
 import { LuStar, LuTriangleAlert } from 'react-icons/lu';
 import ModalContents from '@/components/common/modal/ModalContent';
@@ -32,14 +33,10 @@ export function useConfirmRemoveHighlights() {
 				openModal(
 					<ModalContents
 						icon={<LuStar />}
-						title={
-							items.length === 1
-								? '중요 표시한 문장입니다. 그래도 삭제하시겠습니까?'
-								: `중요 표시한 문장이 ${starred}개 있습니다. 그래도 삭제하시겠습니까?`
-						}
-						content="중요하다고 표시해 둔 문장입니다. 지우면 되돌릴 수 없습니다."
+						title={items.length === 1 ? HIGHLIGHTS.confirm.starredOne : HIGHLIGHTS.confirm.starredMany(starred)}
+						content={HIGHLIGHTS.confirm.starredBody}
 						outlineButton="그만두기"
-						filledButton="지우기"
+						filledButton={ACTIONS.remove}
 						onCancelClick={closeModal}
 						onConfirmClick={run}
 					/>,
@@ -54,16 +51,16 @@ export function useConfirmRemoveHighlights() {
 			openModal(
 				<ModalContents
 					icon={<LuTriangleAlert />}
-					title={items.length === 1 ? '이 스크랩을 삭제하시겠습니까?' : `스크랩 ${items.length}개를 삭제하시겠습니까?`}
+					title={items.length === 1 ? HIGHLIGHTS.confirm.deleteOne : HIGHLIGHTS.confirm.deleteMany(items.length)}
 					content={
 						items.length === 1
 							? one.note
-								? '메모도 함께 삭제됩니다.'
-								: '문장만 지워지고 뉴스레터는 그대로입니다.'
-							: '스크랩한 문장과 그 메모가 함께 삭제됩니다. 뉴스레터는 그대로입니다.'
+								? HIGHLIGHTS.confirm.memoToo
+								: HIGHLIGHTS.confirm.sentenceOnly
+							: HIGHLIGHTS.confirm.withMemo
 					}
-					outlineButton="취소"
-					filledButton="지우기"
+					outlineButton={ACTIONS.cancel}
+					filledButton={ACTIONS.remove}
 					onCancelClick={closeModal}
 					onConfirmClick={() => {
 						closeModal();

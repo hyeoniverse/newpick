@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, ARTICLES } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ArticleSummary as IArticleSummary } from '@/types/article';
@@ -68,7 +69,7 @@ export default function ListSection() {
 		} catch {
 			// 실패한 채로 두면 화면 끝에 닿을 때마다 다시 요청하므로, 더 불러오지 않고 알립니다.
 			setHasMore(false);
-			showToast('뉴스레터를 더 불러오지 못했습니다.', 'error');
+			showToast(ARTICLES.loadMoreFailed, 'error');
 		} finally {
 			loadingRef.current = false;
 			setIsLoading(false);
@@ -181,7 +182,7 @@ export default function ListSection() {
 									들어간 뉴스레터
 									{count}
 									<button type="button" className="clear" onClick={() => go({ keywords: [] })}>
-										지우기
+										{ACTIONS.remove}
 									</button>
 								</div>
 							)}
@@ -209,8 +210,8 @@ export default function ListSection() {
 			{total === 0 && !isLoading ? (
 				<EmptyState
 					icon={LuSearchX}
-					title="검색 결과가 없습니다"
-					description={'검색어를 바꾸거나 기간 · 관심사 조건을 넓혀 주십시오.'}
+					title={ARTICLES.searchEmpty.title}
+					description={ARTICLES.searchEmpty.body}
 					action={{ label: '조건 지우기', href: ROUTES.articles }}
 				/>
 			) : (

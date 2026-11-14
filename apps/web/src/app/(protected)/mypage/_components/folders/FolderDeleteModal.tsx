@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, FOLDERS } from '@/copy';
 import { useState } from 'react';
 import { LuTriangleAlert } from 'react-icons/lu';
 import ModalContents from '@/components/common/modal/ModalContent';
@@ -33,9 +34,9 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 		return (
 			<ModalContents
 				icon={<LuTriangleAlert />}
-				title={`'${folder.name}' 폴더를 삭제하시겠습니까?`}
-				content="빈 폴더입니다."
-				outlineButton="취소"
+				title={FOLDERS.deleteTitle(folder.name)}
+				content={FOLDERS.emptyFolder}
+				outlineButton={ACTIONS.cancel}
 				filledButton="폴더 지우기"
 				onCancelClick={onCancel}
 				onConfirmClick={() => onConfirm('keep')}
@@ -47,9 +48,9 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 	return (
 		<ModalContents
 			icon={<LuTriangleAlert />}
-			title={`'${folder.name}' 폴더를 삭제하시겠습니까?`}
-			content={`안에 ${inside.join(' · ')}가 있습니다.\n안의 항목을 어떻게 처리할지 선택해 주십시오.`}
-			outlineButton="취소"
+			title={FOLDERS.deleteTitle(folder.name)}
+			content={FOLDERS.inside(inside.join(' · '))}
+			outlineButton={ACTIONS.cancel}
 			filledButton={contents === 'delete' ? '모두 지우기' : '폴더 지우기'}
 			onCancelClick={onCancel}
 			onConfirmClick={() => onConfirm(contents, contents === 'move' ? Number(to) : undefined)}
@@ -78,8 +79,8 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 				)}
 				{contents === 'delete' && (
 					<p className="warn">
-						{erasable.length ? `${erasable.join(' · ')}를 삭제합니다. 되돌릴 수 없습니다.` : ''}
-						{mails ? `${erasable.length ? '\n' : ''}받은 메일은 삭제할 수 없어 폴더 없음으로 옮겨집니다.` : ''}
+						{erasable.length ? FOLDERS.erase(erasable.join(' · ')) : ''}
+						{mails ? `${erasable.length ? '\n' : ''}${FOLDERS.mailsKept}` : ''}
 					</p>
 				)}
 			</div>

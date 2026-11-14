@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { ApiError } from '@/api/client';
-import { ERROR_STATES, errorStateFor, statusOf } from '@/constants/errors';
+import { ERROR_STATES, errorStateFor, statusOf } from '@/copy/errors';
 
 describe('statusOf', () => {
 	it('ApiError는 status를 쓴다', () => {

@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN, COMMON } from '@/copy';
 import { useConfirmAction } from '@/hooks/useConfirmAction';
 import { fetchAiLogs, rerunSummary } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
@@ -55,13 +56,12 @@ function useRerun() {
 	return (log: AiLogRow) => {
 		const date = kstDay(log.createdAt);
 		confirm({
-			title: `${date} ${log.category ?? ''} 뉴스레터를 다시 생성하시겠습니까?`,
-			content:
-				'그날 수집한 기사로 다시 요약해 그 날짜로 게시합니다. 이 관심사의 뉴스레터가 그날 이미 있으면 건너뜁니다. 구독 메일은 보내지 않으며, Claude 비용이 발생합니다.',
+			title: ADMIN.aiLogs.rerunTitle(date, log.category ?? ''),
+			content: ADMIN.aiLogs.rerunBody,
 			confirmLabel: '다시 생성',
 			run: () => rerunSummary({ date, categoryId: log.categoryId }),
-			success: `${date} ${log.category ?? ''} 뉴스레터 생성을 시작했습니다. 몇 분 후 기록에 표시됩니다.`,
-			failure: '시작하지 못했습니다.',
+			success: ADMIN.aiLogs.rerunStarted(date, log.category ?? ''),
+			failure: COMMON.startFailed,
 			onDone: () => setTimeout(() => queryClient.invalidateQueries({ queryKey: queryKeys.admin.aiLogs.all }), 60_000),
 		});
 	};
@@ -123,7 +123,7 @@ export default function AiLogsList() {
 				</>
 			}
 		>
-			<AdminListState list={list} empty="이 조건의 기록이 없습니다.">
+			<AdminListState list={list} empty={ADMIN.empty.logs}>
 				{() => (
 					<div className="np-admin-ai-logs-list-chains table-wrap">
 						<table className="wide" style={{ minWidth: tableMinWidth(COLS, '60rem') }}>

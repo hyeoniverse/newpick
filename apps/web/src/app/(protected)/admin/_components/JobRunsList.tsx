@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN } from '@/copy';
 import { fetchJobRuns } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
@@ -65,7 +66,7 @@ export default function JobRunsList() {
 				</>
 			}
 		>
-			<AdminListState list={list} empty="이 조건의 실행 기록이 없습니다.">
+			<AdminListState list={list} empty={ADMIN.empty.jobRuns}>
 				{(data) => (
 					<div className="table-wrap">
 						<table style={{ minWidth: tableMinWidth(COLS) }}>

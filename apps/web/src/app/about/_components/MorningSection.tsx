@@ -1,5 +1,6 @@
 'use client';
 
+import { ABOUT } from '@/copy';
 import { CATEGORY_NAMES } from '@newpick/shared';
 import { useState } from 'react';
 import SectionHeading from '@/app/about/_components/SectionHeading';
@@ -10,24 +11,24 @@ import { useScrollProgress } from '@/hooks/useScrollProgress';
  * from → to는 그 단계를 지나는 동안 시계가 흘러가는 분 (스크롤에 맞춰 08:00 → 08:40)
  */
 const STEPS = [
-	{ from: 0, to: 30, title: '기사 모으기', text: '6개 관심사의 그날 기사가 쏟아져 들어와요.' },
+	{ from: 0, to: 30, title: '기사 모으기', text: ABOUT.morning.collect },
 	{
 		from: 30,
 		to: 30,
 		title: '중요한 소식 고르기',
-		text: '같은 사건은 한 묶음으로 모아요. AI가 제목과 첫 부분만 읽고 그날 중요한 소식을 골라요.',
+		text: ABOUT.morning.pick,
 	},
 	{
 		from: 30,
 		to: 40,
 		title: '뉴스레터 쓰기',
-		text: '고른 소식만 다시 읽고 요약 · 시사점 · Q&A를 써요.',
+		text: ABOUT.morning.write,
 	},
 	{
 		from: 40,
 		to: 40,
 		title: '내 메일 한 통',
-		text: '내 관심사를 엮어 메일 한 통으로. 출근길에 뉴픽만 읽어도 그날의 소식은 끝.',
+		text: ABOUT.morning.send,
 	},
 ];
 
@@ -92,11 +93,7 @@ export default function MorningSection() {
 			aria-label="뉴스레터가 만들어지는 아침"
 			style={{ '--steps': STEPS.length } as React.CSSProperties}
 		>
-			<SectionHeading
-				label="08:00 → 08:40"
-				title="뉴스레터가 만들어지는 아침 40분"
-				sub="기사를 모으고 고르고 써서 보내기까지, 스크롤을 내리며 따라가 보세요."
-			/>
+			<SectionHeading label="08:00 → 08:40" title="뉴스레터가 만들어지는 아침 40분" sub={ABOUT.morning.sub} />
 
 			<div ref={ref} className="track">
 				<div className="scene" data-phase={active}>

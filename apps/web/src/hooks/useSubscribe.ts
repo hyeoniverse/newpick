@@ -1,3 +1,4 @@
+import { SUBSCRIPTION } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
@@ -59,23 +60,9 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 	});
 
 	return {
-		startMutation: useMutation(
-			startOptions(startSubscription, '구독이 완료되었습니다.', '구독 중 오류가 발생했습니다. 다시 시도해 주십시오.'),
-		),
-		pauseMutation: useMutation(
-			suspendOptions(
-				pauseSubscription,
-				'구독이 일시정지되었습니다.',
-				'구독 일시정지 중 오류가 발생했습니다. 다시 시도해 주십시오.',
-			),
-		),
-		cancelMutation: useMutation(
-			suspendOptions(
-				cancelSubscription,
-				'구독이 해지되었습니다.',
-				'구독 해지 중 오류가 발생했습니다. 다시 시도해 주십시오.',
-			),
-		),
+		startMutation: useMutation(startOptions(startSubscription, SUBSCRIPTION.started, SUBSCRIPTION.startFailed)),
+		pauseMutation: useMutation(suspendOptions(pauseSubscription, SUBSCRIPTION.paused, SUBSCRIPTION.pauseFailed)),
+		cancelMutation: useMutation(suspendOptions(cancelSubscription, SUBSCRIPTION.cancelled, SUBSCRIPTION.cancelFailed)),
 	};
 };
 
@@ -98,7 +85,7 @@ export const useSubscribeInterests = () => {
 
 	const updateMutation = useMutation({
 		mutationFn: updateInterests,
-		onError: () => handleError('관심사 변경 중 오류가 발생했습니다. 다시 시도해 주십시오.', showToast),
+		onError: () => handleError(SUBSCRIPTION.interestsFailed, showToast),
 	});
 
 	return { interests, isInterestsLoading, updateMutation };
@@ -119,11 +106,10 @@ export const useSubscribe = () => {
 		selectedInterests: string[];
 		isChecked: boolean | undefined;
 	}) => {
-		if (!user) return (showToast('로그인이 필요합니다.', 'info'), false);
-		if (!user.id) return (showToast('로그인 정보를 불러올 수 없습니다.', 'error'), false);
-		if (selectedInterests.length === 0) return (showToast('관심사를 한 개 이상 선택해 주십시오.', 'warning'), false);
-		if (user.isSubscribed === null && !isChecked)
-			return (showToast('약관에 동의해야 구독할 수 있습니다.', 'warning'), false);
+		if (!user) return (showToast(SUBSCRIPTION.loginRequired, 'info'), false);
+		if (!user.id) return (showToast(SUBSCRIPTION.userLoadFailed, 'error'), false);
+		if (selectedInterests.length === 0) return (showToast(SUBSCRIPTION.pickOneOrMore, 'warning'), false);
+		if (user.isSubscribed === null && !isChecked) return (showToast(SUBSCRIPTION.agreeRequired, 'warning'), false);
 		return true;
 	};
 

@@ -1,3 +1,4 @@
+import { LOGIN } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 import { useCallback, useEffect } from 'react';
 import { type QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -55,7 +56,7 @@ export const useAuth = () => {
 			await logoutUser();
 			resetSession();
 		} catch {
-			showToast('로그아웃 중 오류가 발생했습니다.', 'error');
+			showToast(LOGIN.logoutFailed, 'error');
 		}
 	}, [resetSession, showToast]);
 

@@ -1,0 +1,31 @@
+/** 스크랩 · 메모 */
+export const HIGHLIGHTS = {
+	memoSaved: '메모를 남겼습니다.',
+	scrapped: '스크랩했습니다. 마이페이지에서 모아 볼 수 있습니다.',
+	starred: '중요 표시했습니다.',
+	unstarred: '중요 표시를 해제했습니다.',
+	memoUpdated: '메모를 수정했습니다.',
+	deleted: '스크랩을 삭제했습니다.',
+	deletedMany: (count: number) => `스크랩 ${count}개를 삭제했습니다.`,
+	starredMany: (count: number) => `${count}개를 중요 표시했습니다.`,
+	unstarredMany: (count: number) => `${count}개의 중요 표시를 해제했습니다.`,
+	copied: (count: number) => `${count}개를 복사했습니다.`,
+	copyFailed: '복사하지 못했습니다.',
+	empty: {
+		title: '스크랩한 문장이 없습니다',
+		body: '뉴스레터를 읽다가 중요한 문장을 드래그해 스크랩하거나 메모를 남기면 여기에 모입니다.',
+	},
+	emptyStarred: '중요 표시한 문장이 없습니다. 문장 옆 별을 누르면 여기에 모입니다.',
+	emptyMemo: '메모를 남긴 문장이 없습니다.',
+	emptyFolder: "이 폴더에 스크랩이 없습니다. 문장 아래 '폴더 옮기기'나 '선택'으로 옮길 수 있습니다.",
+	confirm: {
+		starredOne: '중요 표시한 문장입니다. 그래도 삭제하시겠습니까?',
+		starredMany: (count: number) => `중요 표시한 문장이 ${count}개 있습니다. 그래도 삭제하시겠습니까?`,
+		starredBody: '중요하다고 표시해 둔 문장입니다. 삭제하면 되돌릴 수 없습니다.',
+		deleteOne: '이 스크랩을 삭제하시겠습니까?',
+		deleteMany: (count: number) => `스크랩 ${count}개를 삭제하시겠습니까?`,
+		memoToo: '메모도 함께 삭제됩니다.',
+		sentenceOnly: '문장만 삭제되고 뉴스레터는 그대로입니다.',
+		withMemo: '스크랩한 문장과 그 메모가 함께 삭제됩니다. 뉴스레터는 그대로입니다.',
+	},
+};

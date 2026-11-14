@@ -1,5 +1,6 @@
 'use client';
 
+import { ABOUT } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { useRouter } from 'next/navigation';
 import { LuChevronRight } from 'react-icons/lu';
@@ -36,8 +37,8 @@ export default function HeroSection() {
 				))}
 			</h1>
 			<p className="lead">
-				AI가 그날의 기사를 읽고 중요한 소식만 골라 요약해요.
-				<br className="desktop-only" /> 고른 관심사를 엮은 메일 한 통을 매일 아침 보내 드려요.
+				{ABOUT.heroLead}
+				<br className="desktop-only" /> {ABOUT.heroSub}
 			</p>
 			<div className="actions">
 				<Button scheme="primary" size="large" onClick={() => openSubscribe()}>

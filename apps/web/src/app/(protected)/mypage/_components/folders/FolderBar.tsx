@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, FOLDERS } from '@/copy';
 import { useState } from 'react';
 import { LuFolder, LuFolderPlus } from 'react-icons/lu';
 import { useModal } from '@/hooks/useModal';
@@ -132,7 +133,7 @@ export default function FolderBar({
 								<LuFolder /> {f.name}
 							</div>
 						))}
-						{folders.length === 0 && <span className="hint">먼저 &lsquo;새 폴더&rsquo;로 폴더를 만들어 주십시오.</span>}
+						{folders.length === 0 && <span className="hint">{FOLDERS.createFirst}</span>}
 					</div>
 				</div>
 			)}
@@ -177,7 +178,7 @@ export default function FolderBar({
 							만들기
 						</button>
 						<button type="button" className="cancel" onClick={() => setAdding(false)}>
-							취소
+							{ACTIONS.cancel}
 						</button>
 					</form>
 				) : (
@@ -208,10 +209,10 @@ export default function FolderBar({
 								autoFocus
 							/>
 							<button type="submit" className="save" disabled={!name.trim() || rename.isPending}>
-								저장
+								{ACTIONS.save}
 							</button>
 							<button type="button" className="cancel" onClick={() => setRenaming(false)}>
-								취소
+								{ACTIONS.cancel}
 							</button>
 						</form>
 					) : (

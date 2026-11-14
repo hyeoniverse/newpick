@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { errorStateFor, statusOf } from '@/constants/errors';
+import { errorStateFor, statusOf } from '@/copy/errors';
 import ErrorState from '@/components/common/ErrorState';
 
 /**

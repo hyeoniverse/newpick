@@ -1,5 +1,6 @@
 'use client';
 
+import { BOOKMARKS } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { useState } from 'react';
 import Link from 'next/link';
@@ -9,7 +10,7 @@ import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import FilterChips from '@/components/common/FilterChips';
 import Skeleton from '@/components/common/loader/Skeleton';
-import { errorStateFor, statusOf } from '@/constants/errors';
+import { errorStateFor, statusOf } from '@/copy/errors';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useBookmarkPages, useMoveBookmarksMutation } from '@/hooks/useBookmark';
 import { useFolders } from '@/hooks/useFolders';
@@ -69,8 +70,8 @@ function MyBookmark() {
 		return (
 			<EmptyState
 				icon={LuBookmark}
-				title="북마크한 뉴스레터가 없습니다"
-				description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모입니다."
+				title={BOOKMARKS.empty.title}
+				description={BOOKMARKS.empty.body}
 				action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 			/>
 		);
@@ -114,7 +115,7 @@ function MyBookmark() {
 				</FilterRow>
 			)}
 			{shown.length === 0 ? (
-				<p className="empty">이 조건의 북마크가 없습니다.</p>
+				<p className="empty">{BOOKMARKS.noMatch}</p>
 			) : (
 				/* 북마크: 그림이 위에 오는 작은 카드 격자 (줄 목록인 내 뉴스레터와 다르게 모아 둔 기사 모음처럼, 한 줄에 4장 · 휴대폰 2장). 카드를 끌면 폴더로 */
 				<ul className="card-grid">

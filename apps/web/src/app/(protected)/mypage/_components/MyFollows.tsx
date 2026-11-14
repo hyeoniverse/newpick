@@ -1,5 +1,6 @@
 'use client';
 
+import { FOLLOWS } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -45,7 +46,7 @@ export default function MyFollows() {
 					<Skeleton />
 				) : follows?.length ? (
 					<>
-						<p className="intro">이어지는 새 소식은 하루 한 번 확인해 메일과 이 목록에 표시합니다.</p>
+						<p className="intro">{FOLLOWS.listHint}</p>
 						<ul className="follows">
 							{follows.map((f) => (
 								<FollowCard
@@ -61,8 +62,8 @@ export default function MyFollows() {
 				) : (
 					<EmptyState
 						icon={LuBellPlus}
-						title="지켜보는 소식이 없습니다"
-						description="뉴스레터의 각 소식에서 '후속 지켜보기'를 누르면 이어지는 새 소식이 여기에 모이고 머리글에도 표시됩니다."
+						title={FOLLOWS.empty.title}
+						description={FOLLOWS.empty.body}
 						action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 					/>
 				)}
@@ -115,12 +116,12 @@ function FollowCard({
 					))}
 				</ol>
 			) : (
-				<p className="empty">아직 이어진 소식이 없습니다. 새 소식이 나오면 여기에 표시됩니다.</p>
+				<p className="empty">{FOLLOWS.noUpdatesYet}</p>
 			)}
 
 			{follow.quiet && (
 				<div className="quiet">
-					<p>30일 넘게 새 소식이 없습니다. 마무리된 일이라면 지켜보기를 그만둘 수 있습니다.</p>
+					<p>{FOLLOWS.quiet}</p>
 					<div className="quiet-actions">
 						<Button scheme="outline" size="small" onClick={onKeep}>
 							계속 지켜보기

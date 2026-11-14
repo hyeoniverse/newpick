@@ -1,3 +1,4 @@
+import { META } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/constants/site';
@@ -5,7 +6,7 @@ import { fetchContactEmail } from '@/api/contact';
 import { LEGAL_EFFECTIVE_DATE, termsSections, termsSummary } from '@/content/legal';
 import LegalDocument from '@/components/common/legal/LegalDocument';
 
-export const metadata: Metadata = pageMetadata('이용약관', '뉴픽 서비스 이용약관입니다.', ROUTES.terms);
+export const metadata: Metadata = pageMetadata('이용약관', META.terms, ROUTES.terms);
 
 export default async function Page() {
 	const email = await fetchContactEmail();
@@ -14,7 +15,7 @@ export default async function Page() {
 			doc="terms"
 			title="이용약관"
 			effectiveDate={LEGAL_EFFECTIVE_DATE}
-			intro="뉴픽 서비스를 이용하는 조건과 절차, 서비스와 이용자의 권리·의무를 안내합니다."
+			intro={META.termsLead}
 			summary={termsSummary}
 			sections={termsSections(email)}
 		/>

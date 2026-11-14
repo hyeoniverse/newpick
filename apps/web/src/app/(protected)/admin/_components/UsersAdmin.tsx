@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, ADMIN, COMMON } from '@/copy';
 import { useConfirmAction } from '@/hooks/useConfirmAction';
 import { changeUserRole, deleteUser, fetchUsers } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
@@ -58,30 +59,24 @@ export default function UsersAdmin() {
 	const changeRole = (row: AdminUserRow) => {
 		const next = row.role === 'admin' ? 'user' : 'admin';
 		confirm({
-			title:
-				next === 'admin'
-					? `${row.email} 계정을 관리자로 지정하시겠습니까?`
-					: `${row.email} 계정의 관리자 권한을 해제하시겠습니까?`,
-			content:
-				next === 'admin'
-					? '관리자는 관리자 화면에서 뉴스레터 · 사용자 · 예약 작업을 모두 바꿀 수 있습니다.'
-					: '이 사용자는 더 이상 관리자 화면에 들어올 수 없습니다.',
+			title: next === 'admin' ? ADMIN.users.promoteTitle(row.email) : ADMIN.users.demoteTitle(row.email),
+			content: next === 'admin' ? ADMIN.users.promoteBody : ADMIN.users.demoteBody,
 			confirmLabel: next === 'admin' ? '관리자로' : '권한 빼기',
 			run: () => changeUserRole(row.id, next),
-			success: '권한을 변경했습니다.',
-			failure: '변경하지 못했습니다.',
+			success: ADMIN.users.roleChanged,
+			failure: COMMON.changeFailed,
 			onDone: refresh,
 		});
 	};
 
 	const remove = (row: AdminUserRow) =>
 		confirm({
-			title: `${row.email} 계정을 삭제하시겠습니까?`,
-			content: '회원 탈퇴와 같습니다. 관심사 · 구독 · 북마크 · 메일 발송 기록이 함께 삭제되며 되돌릴 수 없습니다.',
-			confirmLabel: '지우기',
+			title: ADMIN.users.deleteTitle(row.email),
+			content: ADMIN.users.deleteBody,
+			confirmLabel: ACTIONS.remove,
 			run: () => deleteUser(row.id),
-			success: '계정을 삭제했습니다.',
-			failure: '삭제하지 못했습니다.',
+			success: ADMIN.users.deleted,
+			failure: COMMON.deleteFailed,
 			onDone: refresh,
 		});
 
@@ -116,7 +111,7 @@ export default function UsersAdmin() {
 			}
 		>
 			<AdminActions>
-				<AdminListState list={list} empty="이 조건의 사용자가 없습니다.">
+				<AdminListState list={list} empty={ADMIN.empty.users}>
 					{(data) => (
 						<div className="table-wrap">
 							<table style={{ minWidth: tableMinWidth(COLS) }}>
@@ -171,7 +166,7 @@ export default function UsersAdmin() {
 																{row.role === 'admin' ? '권한 빼기' : '관리자로'}
 															</button>
 															<button type="button" className="danger" onClick={() => remove(row)}>
-																지우기
+																{ACTIONS.remove}
 															</button>
 														</>
 													)}

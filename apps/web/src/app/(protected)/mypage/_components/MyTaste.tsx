@@ -1,5 +1,6 @@
 'use client';
 
+import { ACCOUNT } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { useTaste } from '@/hooks/useHighlights';
@@ -22,7 +23,7 @@ export default function MyTaste() {
 		<section className="np-mypage-my-taste-taste" aria-labelledby="my-taste">
 			<div className="head">
 				<h3 id="my-taste">요즘 관심 있게 본 주제</h3>
-				<p>앞으로 맞춤 뉴스레터에서 이 주제를 먼저 다룹니다.</p>
+				<p>{ACCOUNT.tasteLead}</p>
 			</div>
 			<ol>
 				{data.topics.slice(0, SHOWN).map((t, i) => (

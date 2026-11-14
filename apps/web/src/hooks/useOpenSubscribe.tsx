@@ -1,3 +1,4 @@
+import { ACTIONS, LOGIN, SUBSCRIPTION } from '@/copy';
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
@@ -22,14 +23,14 @@ export function useOpenSubscribe() {
 			openModal(
 				<ModalContent
 					icon={<LuMailCheck />}
-					title="이미 구독 중입니다"
-					content="구독 중인 뉴스레터가 있습니다."
-					filledButton="확인"
+					title={SUBSCRIPTION.already.title}
+					content={SUBSCRIPTION.already.body}
+					filledButton={ACTIONS.confirm}
 					onConfirmClick={closeModal}
 				/>,
 			);
 		} else {
-			openLogin('구독하려면 로그인이 필요합니다');
+			openLogin(LOGIN.loginRequired.subscribe);
 		}
 	};
 }

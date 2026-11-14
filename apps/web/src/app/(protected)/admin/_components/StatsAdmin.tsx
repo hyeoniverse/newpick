@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN, COMMON } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import {
 	fetchCostStats,
@@ -134,11 +135,11 @@ export default function StatsAdmin() {
 											format={visits}
 										/>
 									</Chart>
-									<Chart title="이전 사이트" hint="주소 전체가 아닌 사이트 이름만 기록합니다.">
+									<Chart title="이전 사이트" hint={ADMIN.stats.referrerHint}>
 										{t.referrers.length ? (
 											<BarList label="이전 사이트별 방문" rows={rows(t.referrers)} format={visits} />
 										) : (
-											<p className="empty">아직 없습니다.</p>
+											<p className="empty">{COMMON.noneYet}</p>
 										)}
 									</Chart>
 									<Chart title="처음 들어온 페이지">
@@ -148,17 +149,14 @@ export default function StatsAdmin() {
 										{t.campaigns.length ? (
 											<BarList label="캠페인별 방문" rows={rows(t.campaigns)} format={visits} />
 										) : (
-											<p className="empty">아직 없습니다.</p>
+											<p className="empty">{COMMON.noneYet}</p>
 										)}
 									</Chart>
 									<Chart title="기기">
 										<BarList label="기기별 방문" rows={rows(t.devices, (k) => DEVICE_LABEL[k] ?? k)} format={visits} />
 									</Chart>
 								</div>
-								<Chart
-									title="페이지별"
-									hint="히트맵 보기에서 섹션별 체류 시간 · 어텐션 맵 · 클릭 맵을 확인할 수 있습니다."
-								>
+								<Chart title="페이지별" hint={ADMIN.stats.pagesHint}>
 									{t.pages.length ? (
 										<div className="table-wrap">
 											<table>
@@ -200,7 +198,7 @@ export default function StatsAdmin() {
 											</table>
 										</div>
 									) : (
-										<p className="empty">아직 기록이 없습니다.</p>
+										<p className="empty">{COMMON.noRecordsYet}</p>
 									)}
 								</Chart>
 								<DayTable
@@ -239,8 +237,7 @@ export default function StatsAdmin() {
 								</dl>
 								{s.since && s.since > dates[0] && (
 									<p className="note" role="note">
-										구독 기록은 {s.since}부터 쌓였습니다. 그 전 날짜는 당시 구독 상태로 채운 추정값이라 해지 · 재구독이
-										반영되어 있지 않습니다.
+										{ADMIN.stats.subscribersSince(s.since)}
 									</p>
 								)}
 								<div className="charts">
@@ -274,10 +271,7 @@ export default function StatsAdmin() {
 										/>
 									</Chart>
 								</div>
-								<Chart
-									title="관심사별 지금 구독 중"
-									hint="한 사람이 관심사를 여러 개 고를 수 있어 합계가 구독자 수보다 클 수 있습니다."
-								>
+								<Chart title="관심사별 지금 구독 중" hint={ADMIN.stats.interestsHint}>
 									<BarList
 										label="관심사별 구독 중"
 										rows={s.byCategory.map((c) => ({
@@ -471,10 +465,7 @@ export default function StatsAdmin() {
 								<Stat label="북마크" value={`${t.signals.bookmark.toLocaleString()}개`} />
 							</dl>
 							<p className="note" role="note">
-								기간과 상관없이 지금 점수입니다. 북마크 {t.weights.bookmark} · 스크랩 {t.weights.scrap} · 메모{' '}
-								{t.weights.memo}
-								점이고, 문장에 그 주제가 나오면 1점을 더하며, {t.halfLifeDays}일마다 절반으로 줄어듭니다. 사람별로
-								계산해 더하므로 한 사람이 신호를 많이 남겨도 그 사람 몫만큼만 반영됩니다.
+								{ADMIN.stats.tasteNote(t.weights.bookmark, t.weights.scrap, t.weights.memo, t.halfLifeDays)}
 							</p>
 							<div className="charts">
 								<Chart title="많이 모인 주제" hint="옆 숫자는 그 주제를 가진 사람 수">
@@ -490,7 +481,7 @@ export default function StatsAdmin() {
 											format={(v) => v.toFixed(1)}
 										/>
 									) : (
-										<p className="empty">아직 없습니다.</p>
+										<p className="empty">{COMMON.noneYet}</p>
 									)}
 								</Chart>
 								<Chart title="관심사별">
@@ -505,7 +496,7 @@ export default function StatsAdmin() {
 											format={(v) => v.toFixed(1)}
 										/>
 									) : (
-										<p className="empty">아직 없습니다.</p>
+										<p className="empty">{COMMON.noneYet}</p>
 									)}
 								</Chart>
 							</div>
@@ -537,7 +528,7 @@ function Section<T>({
 			{state.data ? (
 				children(state.data)
 			) : (
-				<p className="state">{state.isError ? '불러오지 못했습니다.' : '불러오는 중…'}</p>
+				<p className="state">{state.isError ? COMMON.loadFailed : COMMON.loading}</p>
 			)}
 		</section>
 	);

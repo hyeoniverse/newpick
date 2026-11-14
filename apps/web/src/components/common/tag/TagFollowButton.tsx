@@ -1,5 +1,6 @@
 'use client';
 
+import { LOGIN } from '@/copy';
 import { LuCheck, LuPlus } from 'react-icons/lu';
 import { useAuth } from '@/hooks/useAuth';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
@@ -39,7 +40,7 @@ export default function TagFollowButton({ tag, className, tagOnly }: Props) {
 			disabled={busy}
 			onClick={() => {
 				if (!user) {
-					openLogin('태그를 팔로우하려면 로그인이 필요합니다');
+					openLogin(LOGIN.loginRequired.tagFollow);
 					return;
 				}
 				if (on) unfollow.mutate(tag);

@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN, COMMON } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import type { PageStats } from '@newpick/shared';
 
@@ -50,11 +51,11 @@ export default function PageStatsAdmin() {
 		>
 			<div className="np-admin-page-stats-admin-page">
 				{isPending ? (
-					<p className="state">불러오는 중…</p>
+					<p className="state">{COMMON.loading}</p>
 				) : isError || !data ? (
-					<p className="state">불러오지 못했습니다.</p>
+					<p className="state">{COMMON.loadFailed}</p>
 				) : data.views === 0 ? (
-					<p className="state">이 기간 · 기기의 기록이 없습니다.</p>
+					<p className="state">{ADMIN.empty.pageStats}</p>
 				) : (
 					<>
 						<dl className="numbers">
@@ -93,9 +94,7 @@ export default function PageStatsAdmin() {
 							<figure className="chart">
 								<figcaption>
 									히트맵
-									<small>
-										{data.samplePath} 을 지금 모습으로 띄웠습니다. 내용이 바뀐 페이지는 위치가 조금 어긋날 수 있습니다.
-									</small>
+									<small>{ADMIN.pageStatsSample(data.samplePath)}</small>
 								</figcaption>
 								<Heatmap path={data.samplePath} device={device} attention={data.attention} clicks={data.clicks} />
 							</figure>

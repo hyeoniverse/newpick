@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN } from '@/copy';
 import { fetchMailList } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
@@ -67,10 +68,7 @@ export default function MailList() {
 				</>
 			}
 		>
-			<AdminListState
-				list={list}
-				empty={email ? `‘${email}’이(가) 포함된 수신자가 없습니다.` : '이 기간에 보낸 메일이 없습니다.'}
-			>
+			<AdminListState list={list} empty={email ? ADMIN.empty.mailsFor(email) : ADMIN.empty.mails}>
 				{(data) => (
 					<div className="table-wrap">
 						<table style={{ minWidth: tableMinWidth(COLS) }}>

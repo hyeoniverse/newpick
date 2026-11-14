@@ -1,5 +1,6 @@
 'use client';
 
+import { ACCOUNT, ACTIONS, COMMON } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -38,14 +39,14 @@ export default function LoginSessions() {
 	const refresh = () => queryClient.invalidateQueries({ queryKey: SESSIONS_KEY });
 	const removeOne = useMutation({
 		mutationFn: (session: LoginSession) => logoutSession(session.id),
-		onSuccess: () => showToast('선택한 기기에서 로그아웃했습니다.', 'success'),
-		onError: () => showToast('로그아웃하지 못했습니다. 잠시 후 다시 시도해 주십시오.', 'error'),
+		onSuccess: () => showToast(ACCOUNT.sessions.loggedOut, 'success'),
+		onError: () => showToast(ACCOUNT.sessions.logoutFailed, 'error'),
 		onSettled: refresh,
 	});
 	const removeOthers = useMutation({
 		mutationFn: logoutOtherSessions,
-		onSuccess: ({ removed }) => showToast(`다른 기기 ${removed}대에서 로그아웃했습니다.`, 'success'),
-		onError: () => showToast('로그아웃하지 못했습니다. 잠시 후 다시 시도해 주십시오.', 'error'),
+		onSuccess: ({ removed }) => showToast(ACCOUNT.sessions.loggedOutOthers(removed), 'success'),
+		onError: () => showToast(ACCOUNT.sessions.logoutFailed, 'error'),
 		onSettled: refresh,
 	});
 
@@ -59,7 +60,7 @@ export default function LoginSessions() {
 						로그인한 기기
 					</Title>
 					<Text size="small" color="subText">
-						30일간 사용하지 않은 기기는 자동으로 로그아웃됩니다. 다른 기기 로그아웃은 최대 30분 후 적용됩니다.
+						{ACCOUNT.sessions.lead}
 					</Text>
 				</div>
 				{others > 0 && (
@@ -76,9 +77,9 @@ export default function LoginSessions() {
 
 			{/* 목록이 없을 때 빈 상자를 그리지 않는다 (빈 상자는 위 · 아래 테두리가 붙어 굵은 줄 하나로 보인다) */}
 			{isPending ? (
-				<p className="status">불러오는 중…</p>
+				<p className="status">{COMMON.loading}</p>
 			) : isError || sessions.length === 0 ? (
-				<p className="status">로그인한 기기 목록을 불러오지 못했습니다. 잠시 후 다시 확인해 주십시오.</p>
+				<p className="status">{ACCOUNT.sessions.loadFailed}</p>
 			) : (
 				<ul>
 					{sessions.map((session) => {
@@ -106,7 +107,7 @@ export default function LoginSessions() {
 										disabled={removeOne.isPending && removeOne.variables?.id === session.id}
 										onClick={() => removeOne.mutate(session)}
 									>
-										로그아웃
+										{ACTIONS.logout}
 									</Button>
 								)}
 							</li>

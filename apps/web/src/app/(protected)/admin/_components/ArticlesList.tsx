@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { fetchArticleList, fetchSchedule } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
@@ -107,7 +108,7 @@ export default function ArticlesList() {
 	return (
 		<AdminSubPage
 			title="수집한 기사"
-			summary={data && `${data.total.toLocaleString()}건 · 원문은 수집 후 30일이 지나면 삭제됩니다`}
+			summary={data && ADMIN.articlesSummary(data.total.toLocaleString())}
 			filters={
 				<>
 					<FilterChips
@@ -176,7 +177,7 @@ export default function ArticlesList() {
 				</>
 			}
 		>
-			<AdminListState list={list} empty="이 조건의 수집 기사가 없습니다.">
+			<AdminListState list={list} empty={ADMIN.empty.articles}>
 				{(data) => (
 					<div className="table-wrap">
 						<table style={{ minWidth: tableMinWidth(COLS) }}>

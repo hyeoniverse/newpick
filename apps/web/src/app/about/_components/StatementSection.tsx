@@ -1,10 +1,10 @@
 'use client';
 
+import { ABOUT } from '@/copy';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 
 /** 강조할 낱말은 ** 로 감싼다 */
-const STATEMENT =
-	'매일 쏟아지는 수많은 뉴스, 다 챙기기는 어려워요. NEWPICK은 그중 **내 관심사**의 **중요한 소식만** 골라, **읽기 좋게** 정리해 보내 드려요.';
+const STATEMENT = ABOUT.statement;
 
 const WORDS = STATEMENT.split(' ').map((word) => ({
 	text: word.replaceAll('**', ''),

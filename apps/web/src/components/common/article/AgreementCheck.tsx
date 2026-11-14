@@ -1,3 +1,4 @@
+import { SUBSCRIPTION } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { useId } from 'react';
 import Link from 'next/link';
@@ -52,7 +53,7 @@ export default function ArgreementCheck({ name, className }: Props) {
 							개인정보 처리방침
 						</Link>
 						<Text size="extraSmall" className={INLINE}>
-							에 동의합니다.
+							{SUBSCRIPTION.agree}
 						</Text>
 					</div>
 				</>
@@ -67,7 +68,7 @@ export default function ArgreementCheck({ name, className }: Props) {
 					<Link href={ROUTES.privacy} target="_blank" className="font-[inherit] text-inherit underline">
 						개인정보 처리방침
 					</Link>
-					에 동의했습니다.
+					{SUBSCRIPTION.agreed}
 				</p>
 			)}
 		</div>

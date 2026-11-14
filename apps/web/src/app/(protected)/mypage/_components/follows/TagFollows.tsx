@@ -1,5 +1,6 @@
 'use client';
 
+import { TAGS } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
 
@@ -50,8 +51,7 @@ export default function TagFollows() {
 			<div className="tag-follows-head">
 				<ListHead title="팔로우한 태그" count={follows.length} />
 				<Text size="small" color="subText">
-					매일 메일의 ‘팔로우한 태그’ 칸에 태그마다 그날 소식과 관련 기사를 모아 드리고, 여기에는 그 태그의 뉴스레터가
-					시간순으로 쌓입니다. 20개까지 팔로우할 수 있습니다.
+					{TAGS.followsHint}
 				</Text>
 			</div>
 			<form
@@ -133,7 +133,7 @@ export default function TagFollows() {
 										))}
 									</ol>
 								) : (
-									<p className="none">아직 이 태그가 붙은 뉴스레터가 없습니다. 새 소식이 나오면 여기에 쌓입니다.</p>
+									<p className="none">{TAGS.noNewslettersYet}</p>
 								)}
 								{news.length >= 5 && (
 									<Link href={href} className="all">
@@ -147,8 +147,8 @@ export default function TagFollows() {
 			) : (
 				!isPending && (
 					<p className="empty">
-						아직 팔로우한 태그가 없습니다. 위에서 찾아 추가하거나, <Link href={ROUTES.tags}>태그 전체 보기</Link>에서
-						태그를 눌러 목록 위의 &lsquo;팔로우&rsquo;로 추가할 수 있습니다.
+						{TAGS.emptyFollows.before} <Link href={ROUTES.tags}>{TAGS.emptyFollows.link}</Link>
+						{TAGS.emptyFollows.after}
 					</p>
 				)
 			)}

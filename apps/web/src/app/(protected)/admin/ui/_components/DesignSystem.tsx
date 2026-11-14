@@ -48,7 +48,7 @@ import BarWidth from '@/components/common/BarWidth';
 import EmptyState from '@/components/common/EmptyState';
 import { LuBookmark } from 'react-icons/lu';
 import ErrorState from '@/components/common/ErrorState';
-import { DELETED_NEWSLETTER, ERROR_STATES } from '@/constants/errors';
+import { DELETED_NEWSLETTER, ERROR_STATES } from '@/copy/errors';
 import AgreementCheck from '@/components/common/article/AgreementCheck';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import CustomIcon from '@/components/common/icons/CustomIcon';
@@ -571,7 +571,7 @@ function DesignSystemBody() {
 				<Skeleton />
 			</Section>
 
-			<Section id="error" title="오류 화면" note="ErrorState · constants/errors.ts (HTTP 4xx·5xx 전부 + 지운 뉴스레터)">
+			<Section id="error" title="오류 화면" note="ErrorState · copy/errors.ts (HTTP 4xx·5xx 전부 + 지운 뉴스레터)">
 				<InputSelect
 					name="ds-error"
 					label="상태"

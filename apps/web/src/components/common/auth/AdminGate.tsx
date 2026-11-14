@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuth } from '@/hooks/useAuth';
-import { ERROR_STATES } from '@/constants/errors';
+import { ERROR_STATES } from '@/copy/errors';
 import ErrorState from '@/components/common/ErrorState';
 import Spinner from '@/components/common/loader/Spinner';
 

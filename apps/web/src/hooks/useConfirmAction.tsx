@@ -1,3 +1,4 @@
+import { ACTIONS } from '@/copy';
 import { LuTriangleAlert } from 'react-icons/lu';
 import { errorMessage } from '@/api/client';
 import ModalContents from '@/components/common/modal/ModalContent';
@@ -40,7 +41,7 @@ export function useConfirmAction() {
 				icon={<LuTriangleAlert />}
 				title={title}
 				content={content}
-				outlineButton="취소"
+				outlineButton={ACTIONS.cancel}
 				filledButton={confirmLabel}
 				onCancelClick={closeModal}
 				onConfirmClick={async () => {

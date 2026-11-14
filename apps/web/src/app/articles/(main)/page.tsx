@@ -1,3 +1,4 @@
+import { META } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { ArticleDetail as IArticleDetail, ArticleSummary as IArticleSummary } from '@/types/article';
 import { parseArticles } from '@/utils/parseArticles';
@@ -36,10 +37,10 @@ export async function generateMetadata({
 	return category
 		? pageMetadata(
 				`${category.name} 뉴스레터`,
-				`${category.name}: ${category.description}. AI가 고르고 요약한 뉴픽 뉴스레터.`,
+				META.articlesCategory(category.name, category.description),
 				ROUTES.articlesByCategory(category.id),
 			)
-		: pageMetadata('뉴스레터', '관심사별로 AI가 고르고 요약한 뉴픽 뉴스레터를 모아 봅니다.', ROUTES.articles);
+		: pageMetadata('뉴스레터', META.articles, ROUTES.articles);
 }
 
 /**
