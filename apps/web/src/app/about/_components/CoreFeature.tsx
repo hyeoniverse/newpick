@@ -46,7 +46,11 @@ function SubscribeDemo() {
 					</span>
 				))}
 			</div>
-			<p className="count">{ABOUT.core.picked}</p>
+			<p className="count">
+				{ABOUT.core.picked.before}
+				<strong>{ABOUT.core.picked.count}</strong>
+				{ABOUT.core.picked.after}
+			</p>
 		</div>
 	);
 }

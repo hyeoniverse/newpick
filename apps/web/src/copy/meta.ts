@@ -1,7 +1,7 @@
 /** 검색 결과 · 공유 미리보기에 쓰는 설명 (페이지 metadata) */
 export const META = {
 	site: 'AI가 그날의 기사를 읽고 중요한 소식만 골라 요약합니다. 고른 관심사를 엮은 메일 한 통을 매일 아침 보내 드립니다.',
-	siteTitle: '뉴픽 — 내 관심사만 골라, 매일 아침 한 통으로.',
+	siteTitle: '뉴픽 — 내 관심사만 골라, 매일 아침 한 통으로',
 	about: '내 관심사만 골라, 매일 아침 한 통으로. 뉴픽이 뉴스레터를 만드는 방법과 시작하는 법을 소개합니다.',
 	articles: '관심사별로 AI가 고르고 요약한 뉴픽 뉴스레터를 모아 봅니다.',
 	articlesCategory: (name: string, description: string | undefined) =>

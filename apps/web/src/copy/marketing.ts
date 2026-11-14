@@ -29,7 +29,11 @@ export const ABOUT = {
 		answer: '간편하고 빠르게 받아 볼 수 있도록 도와 드려요.',
 	},
 	core: {
-		picked: '관심사 <strong>3개</strong>를 골랐어요',
+		picked: {
+			before: '관심사 ',
+			count: '3개',
+			after: '를 골랐어요',
+		},
 		summarize: '방대한 기사 중 중요한 소식만 골라 요약 · 시사점 · 문답으로 정리해요.',
 		oneMail: '원하는 관심사만 고르세요. 여러 개를 골라도 한 통으로 엮어 보내 드려요.',
 		onTime: '매일 아침 정해진 시간에 메일함으로 도착해요.',

@@ -70,8 +70,8 @@ export default function StartSubscription() {
 								openModal(
 									<ModalContent
 										icon={<LuMailX />}
-										title={SUBSCRIPTION.cancelConfirm.body}
-										content={SUBSCRIPTION.cancelConfirm.title}
+										title={SUBSCRIPTION.cancelConfirm.title}
+										content={SUBSCRIPTION.cancelConfirm.body}
 										outlineButton={ACTIONS.confirm}
 										onCancelClick={handleCancel}
 										filledButton={ACTIONS.cancel}
