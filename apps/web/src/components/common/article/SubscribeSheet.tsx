@@ -1,22 +1,19 @@
 'use client';
 
-import { ACTIONS, SUBSCRIPTION } from '@/copy';
+import { SUBSCRIPTION } from '@/copy';
 import { CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
-import { useModal } from '@/hooks/useModal';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSelectInterests } from '@/hooks/useInterests';
-import useSubscribe from '@/hooks/useSubscribe';
+import { useSubscribeFlow } from '@/hooks/useSubscribeFlow';
 import { useInterestStore } from '@/stores/useInterestStore';
 
 import { useEffect } from 'react';
 
 import { cx } from '@/styles/tw';
-import { LuMailCheck } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
-import ModalContent from '@/components/common/modal/ModalContent';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
 
 const CHECK_NAME = 'sheet-agreement';
@@ -27,10 +24,9 @@ const CHECK_NAME = 'sheet-agreement';
  */
 export default function SubscribeSheet({ initialInterests }: { initialInterests?: string[] }) {
 	const { user } = useAuth();
-	const { isChanging, handleSubscribe } = useSubscribe();
+	const { isChanging, subscribe } = useSubscribeFlow(SUBSCRIPTION.sheetDone);
 	const { selectedInterests = [], handleSelectInterests } = useSelectInterests();
 	const { isChecked, setChecked } = useInputCheck(CHECK_NAME);
-	const { openModal, closeModal } = useModal();
 	const setSelectedInterests = useInterestStore((state) => state.setSelectedInterests);
 
 	// useSelectInterests가 user 기준으로 선택을 초기화한 뒤에 덮어써야 한다 (effect는 선언 순서대로 돈다)
@@ -45,18 +41,7 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 	const canSubmit = selectedInterests.length > 0 && (!needsAgreement || isChecked) && !isChanging;
 
 	const onSubmit = async () => {
-		const isSuccess = await handleSubscribe({ interests: selectedInterests, isChecked });
-		if (!isSuccess) return;
-		setChecked(false);
-		openModal(
-			<ModalContent
-				icon={<LuMailCheck />}
-				title={SUBSCRIPTION.sheetDone.title}
-				content={SUBSCRIPTION.sheetDone.body}
-				filledButton={ACTIONS.confirm}
-				onConfirmClick={closeModal}
-			/>,
-		);
+		if (await subscribe({ interests: selectedInterests, isChecked })) setChecked(false);
 	};
 
 	return (

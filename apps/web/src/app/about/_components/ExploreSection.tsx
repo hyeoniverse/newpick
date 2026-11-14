@@ -1,17 +1,14 @@
 'use client';
 
-import { ABOUT, ACTIONS, HOME } from '@/copy';
-import { useModal } from '@/hooks/useModal';
+import { ABOUT, HOME } from '@/copy';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSelectInterests } from '@/hooks/useInterests';
-import useSubscribe from '@/hooks/useSubscribe';
+import { useSubscribeFlow } from '@/hooks/useSubscribeFlow';
 
-import { LuMailCheck } from 'react-icons/lu';
 import Text from '@/components/common/Text';
 import CategoryTags from '@/components/common/article/CategoryTags';
 import Button from '@/components/common/Button';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
-import ModalContent from '@/components/common/modal/ModalContent';
 import BorderTitle from '@/components/common/BorderTitle';
 import { cx } from '@/styles/tw';
 
@@ -20,27 +17,13 @@ interface Props {
 }
 
 function WhyNewpickSection({ className }: Props) {
-	const { openModal, closeModal } = useModal();
 	const checkName = 'about-agreement';
 	const { isChecked, setChecked } = useInputCheck(checkName);
-	const { isChanging: isChangingSubscription, handleSubscribe: startSubscription } = useSubscribe();
+	const { isChanging: isChangingSubscription, subscribe } = useSubscribeFlow(HOME.subscribed);
 	const { selectedInterests } = useSelectInterests();
 
 	const handleSubscribe = async () => {
-		const isSuccess = await startSubscription({ interests: selectedInterests, isChecked: isChecked });
-
-		if (isSuccess) {
-			openModal(
-				<ModalContent
-					icon={<LuMailCheck />}
-					title={HOME.subscribed.title}
-					content={HOME.subscribed.body}
-					filledButton={ACTIONS.confirm}
-					onConfirmClick={closeModal}
-				/>,
-			);
-			setChecked(false);
-		}
+		if (await subscribe({ interests: selectedInterests, isChecked: isChecked })) setChecked(false);
 	};
 
 	return (
