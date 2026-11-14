@@ -1,3 +1,4 @@
+import { ARTICLES } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { useEffect, useState } from 'react';
 import { CheckGlyph, LinkGlyph } from '@/components/common/icons/Glyphs';
@@ -24,10 +25,10 @@ function LinkCopyIcon({ className, id }: Props) {
 		try {
 			await navigator.clipboard.writeText(text);
 			setCopied(true);
-			showToast('주소가 복사되었습니다.', 'success');
+			showToast(ARTICLES.linkCopied, 'success');
 		} catch {
 			// 권한이 없거나 보안 컨텍스트(https)가 아니면 실패합니다.
-			showToast('주소를 복사하지 못했습니다.', 'error');
+			showToast(ARTICLES.linkCopyFailed, 'error');
 		}
 	};
 

@@ -1,5 +1,7 @@
 'use client';
 
+import { ACTIONS } from '@/copy';
+
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { Suspense, useCallback, useEffect, useRef } from 'react';
@@ -139,7 +141,7 @@ export default function Header() {
 										</Link>
 									)}
 									<Button className="item" onClick={handleLogout}>
-										로그아웃
+										{ACTIONS.logout}
 									</Button>
 								</>
 							</Dropdown>
@@ -154,7 +156,7 @@ export default function Header() {
 						<div className={cx('auth-out flex items-center gap-2', AUTH_OUT)}>
 							<ThemeSwitcher scheme="secondary" className="item" />
 							<Button scheme="outline" onClick={() => openLogin()} icon={<IoLogoGoogle />} iconPosition="left">
-								로그인
+								{ACTIONS.login}
 							</Button>
 						</div>
 					)}

@@ -1,5 +1,6 @@
 'use client';
 
+import { LOGIN } from '@/copy';
 import { useEffect } from 'react';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 import { useToast } from '@/hooks/useToast';
@@ -18,9 +19,9 @@ export default function LoginParamNotice() {
 		const reason = url.searchParams.get('login');
 		if (!reason) return;
 
-		if (reason === 'required') openLogin('로그인이 필요한 화면이에요');
+		if (reason === 'required') openLogin(LOGIN.loginRequired.page);
 		if (reason === 'failed') {
-			showToast('로그인하지 못했어요. 다시 시도해 주세요.', 'error');
+			showToast(LOGIN.loginFailed, 'error');
 			openLogin();
 		}
 

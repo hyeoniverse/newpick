@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN, COMMON } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { fetchCategories } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
@@ -26,16 +27,12 @@ export default function CategoriesAdmin() {
 	});
 
 	return (
-		<AdminSubPage
-			title="관심사"
-			period={false}
-			summary="관심사 이름은 수집(네이버 섹션) · 화면 · 메일과 묶여 있어 여기서는 보기만 해요. 바꾸려면 코드와 함께 바꿔야 해요."
-		>
+		<AdminSubPage title="관심사" period={false} summary={ADMIN.categoriesLead}>
 			<AdminActions>
 				{isPending ? (
-					<p className="state">불러오는 중…</p>
+					<p className="state">{COMMON.loading}</p>
 				) : isError ? (
-					<p className="state">불러오지 못했어요.</p>
+					<p className="state">{COMMON.loadFailed}</p>
 				) : (
 					<div className="table-wrap">
 						<table style={{ minWidth: tableMinWidth(COLS) }}>

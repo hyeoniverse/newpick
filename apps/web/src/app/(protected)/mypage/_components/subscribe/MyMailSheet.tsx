@@ -7,7 +7,7 @@ import { fetchMyMail } from '@/api/mails';
 import MailView from '@/components/common/MailView';
 import Skeleton from '@/components/common/loader/Skeleton';
 import ErrorState from '@/components/common/ErrorState';
-import { errorStateFor, statusOf } from '@/constants/errors';
+import { errorStateFor, statusOf } from '@/copy/errors';
 
 /** 내 뉴스레터에서 메일 한 통을 연 시트: 받은 그대로의 메일 (체험하기와 같은 모양) */
 export default function MyMailSheet({ sentAt }: { sentAt: string }) {

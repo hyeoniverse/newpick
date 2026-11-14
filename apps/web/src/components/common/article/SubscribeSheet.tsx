@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, SUBSCRIPTION } from '@/copy';
 import { CATEGORIES } from '@/constants/categories';
 import { useAuth } from '@/hooks/useAuth';
 import { useModal } from '@/hooks/useModal';
@@ -50,9 +51,9 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 		openModal(
 			<ModalContent
 				icon={<LuMailCheck />}
-				title="구독이 완료되었습니다"
-				content="내일 아침부터 선택한 분야의 뉴스레터를 보내드려요."
-				filledButton="확인"
+				title={SUBSCRIPTION.sheetDone.title}
+				content={SUBSCRIPTION.sheetDone.body}
+				filledButton={ACTIONS.confirm}
 				onConfirmClick={closeModal}
 			/>,
 		);
@@ -65,7 +66,7 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 					뉴스레터 구독
 				</Title>
 				<Text size="small" color="subText">
-					받아 볼 분야를 고르면 주요 소식만 골라 메일로 보내드려요.
+					{SUBSCRIPTION.sheetLead}
 				</Text>
 			</div>
 
@@ -105,7 +106,7 @@ export default function SubscribeSheet({ initialInterests }: { initialInterests?
 			>
 				{selectedInterests.length
 					? `${isAll ? '전체' : `${selectedInterests.length}개`} 분야 구독하기`
-					: '분야를 골라 주세요'}
+					: SUBSCRIPTION.pickCategory}
 			</Button>
 		</div>
 	);

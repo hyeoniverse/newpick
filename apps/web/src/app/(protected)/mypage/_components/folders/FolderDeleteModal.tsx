@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, FOLDERS } from '@/copy';
 import { useState } from 'react';
 import { LuTriangleAlert } from 'react-icons/lu';
 import ModalContents from '@/components/common/modal/ModalContent';
@@ -33,9 +34,9 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 		return (
 			<ModalContents
 				icon={<LuTriangleAlert />}
-				title={`'${folder.name}' 폴더를 지울까요?`}
-				content="빈 폴더예요."
-				outlineButton="취소"
+				title={FOLDERS.deleteTitle(folder.name)}
+				content={FOLDERS.emptyFolder}
+				outlineButton={ACTIONS.cancel}
 				filledButton="폴더 지우기"
 				onCancelClick={onCancel}
 				onConfirmClick={() => onConfirm('keep')}
@@ -47,9 +48,9 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 	return (
 		<ModalContents
 			icon={<LuTriangleAlert />}
-			title={`'${folder.name}' 폴더를 지울까요?`}
-			content={`안에 ${inside.join(' · ')}가 있어요.\n처리 방법을 선택하세요.`}
-			outlineButton="취소"
+			title={FOLDERS.deleteTitle(folder.name)}
+			content={FOLDERS.inside(inside.join(' · '))}
+			outlineButton={ACTIONS.cancel}
 			filledButton={contents === 'delete' ? '모두 지우기' : '폴더 지우기'}
 			onCancelClick={onCancel}
 			onConfirmClick={() => onConfirm(contents, contents === 'move' ? Number(to) : undefined)}
@@ -57,7 +58,7 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 			<div className="np-mypage-folder-delete-modal-choices">
 				<InputRadio<FolderContents>
 					name="folder-contents"
-					label="안의 것들"
+					label="안에 있는 항목"
 					value={contents}
 					onChange={setContents}
 					options={[
@@ -78,8 +79,8 @@ export default function FolderDeleteModal({ folder, others, onCancel, onConfirm 
 				)}
 				{contents === 'delete' && (
 					<p className="warn">
-						{erasable.length ? `${erasable.join(' · ')}를 지워요. 되돌릴 수 없어요.` : ''}
-						{mails ? `${erasable.length ? '\n' : ''}받은 메일은 지울 수 없어 폴더 없음으로 남아요.` : ''}
+						{erasable.length ? FOLDERS.erase(erasable.join(' · ')) : ''}
+						{mails ? `${erasable.length ? '\n' : ''}${FOLDERS.mailsKept}` : ''}
 					</p>
 				)}
 			</div>

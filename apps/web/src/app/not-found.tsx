@@ -1,6 +1,6 @@
 'use client';
 
-import { ERROR_STATES } from '@/constants/errors';
+import { ERROR_STATES } from '@/copy/errors';
 import ErrorState from '@/components/common/ErrorState';
 
 /** 없는 주소 (404) */

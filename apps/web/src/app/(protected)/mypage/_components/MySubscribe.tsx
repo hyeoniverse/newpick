@@ -1,5 +1,6 @@
 'use client';
 
+import { COMMON, MAILS } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
 
@@ -19,7 +20,7 @@ import StarToggle from '@/components/common/icons/StarToggle';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
 import FilterChips from '@/components/common/FilterChips';
-import { errorStateFor, statusOf } from '@/constants/errors';
+import { errorStateFor, statusOf } from '@/copy/errors';
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/useToast';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
@@ -46,7 +47,7 @@ const useMarkMail = () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.mails.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
 		},
-		onError: () => showToast('바꾸지 못했어요. 잠시 뒤 다시 해 주세요.', 'error'),
+		onError: () => showToast(COMMON.changeFailedRetry, 'error'),
 	});
 };
 
@@ -160,15 +161,15 @@ export default function MySubscribe() {
 		return isSubscribed === null ? (
 			<EmptyState
 				icon={LuMailPlus}
-				title="아직 구독하지 않았어요"
-				description={'관심사를 고르면 매일 아침 8시 40분에\n그 관심사만 엮은 뉴스레터를 보내 드려요.'}
+				title={MAILS.emptyNotSubscribed.title}
+				description={MAILS.emptyNotSubscribed.body}
 				action={{ label: '구독 시작하기', onClick: () => setActiveTab('settings') }}
 			/>
 		) : (
 			<EmptyState
 				icon={LuMail}
-				title="아직 받은 메일이 없어요"
-				description={'매일 아침 8시 40분에 첫 메일이 가요.\n보낸 메일은 여기에 날짜별로 모여요.'}
+				title={MAILS.empty.title}
+				description={MAILS.empty.body}
 				action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 			/>
 		);
@@ -218,7 +219,7 @@ export default function MySubscribe() {
 				/>
 			</ListHead>
 			{data.total === 0 ? (
-				<p className="empty">이 조건의 메일이 없어요.</p>
+				<p className="empty">{MAILS.noMatch}</p>
 			) : (
 				/* 받은편지함: 한 줄이 메일 한 통. 누르면 받은 그대로의 메일을 시트로 */
 				/* 원래 마이페이지(/legacy/mypage)의 '오늘의 뉴스레터' 모양: 받은 메일마다 날짜 막대(날짜 · 관심사 바로가기)와
@@ -377,7 +378,7 @@ export default function MySubscribe() {
 			{/* 무한 스크롤: 이 표시가 보이면 다음 묶음 */}
 			<div ref={endRef} className="list-end" aria-hidden />
 			{isFetchingNextPage && <p className="list-status">메일을 더 불러오는 중…</p>}
-			{!hasNextPage && data.total > PAGE_SIZE && <p className="list-status">받은 메일을 모두 봤어요.</p>}
+			{!hasNextPage && data.total > PAGE_SIZE && <p className="list-status">{MAILS.end}</p>}
 		</div>
 	);
 }

@@ -1,5 +1,7 @@
 'use client';
 
+import { ACTIONS } from '@/copy';
+
 import { ROUTES } from '@/constants/routes';
 import { useRouter } from 'next/navigation';
 import type { IconType } from 'react-icons';
@@ -17,7 +19,7 @@ import {
 	LuWifiOff,
 	LuWrench,
 } from 'react-icons/lu';
-import { ErrorAction, ErrorIcon, ErrorStateCopy } from '@/constants/errors';
+import { ErrorAction, ErrorIcon, ErrorStateCopy } from '@/copy/errors';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 
 import { cx } from '@/styles/tw';
@@ -40,8 +42,8 @@ const ICONS: Record<ErrorIcon, IconType> = {
 
 const ACTION_LABELS: Record<ErrorAction, string> = {
 	home: '홈으로',
-	retry: '다시 시도',
-	login: '로그인',
+	retry: ACTIONS.retry,
+	login: ACTIONS.login,
 	back: '이전 화면으로',
 	articles: '뉴스레터 둘러보기',
 };

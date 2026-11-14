@@ -32,7 +32,7 @@ const InputSelect: React.FC<Props> = ({
 	options,
 	onChange,
 	onBlur,
-	placeholder = '선택하세요',
+	placeholder = '선택',
 	children,
 	size = 'medium',
 	ariaLabel,

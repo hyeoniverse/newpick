@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, ADMIN, COMMON } from '@/copy';
 import { useConfirmAction } from '@/hooks/useConfirmAction';
 import { ROUTES } from '@/constants/routes';
 import type { TagRule } from '@newpick/shared';
@@ -47,7 +48,7 @@ function MergeSheet({
 	const submit = async (event: React.FormEvent) => {
 		event.preventDefault();
 		const name = to.trim();
-		if (!name) return setError('새 이름을 적어 주세요.');
+		if (!name) return setError(ADMIN.tags.nameRequired);
 		setPending(true);
 		setError('');
 		try {
@@ -57,7 +58,7 @@ function MergeSheet({
 			);
 			onDone(data.changed, name);
 		} catch (e) {
-			setError(errorMessage(e, '바꾸지 못했어요. 잠시 뒤 다시 시도해 주세요.'));
+			setError(errorMessage(e, COMMON.changeFailedRetry));
 		} finally {
 			setPending(false);
 		}
@@ -68,8 +69,7 @@ function MergeSheet({
 			<h2 className="title">{rename ? '태그 이름 바꾸기' : `태그 ${tags.length}개 합치기`}</h2>
 			<p className="desc">
 				{tags.map((t) => `#${t.keyword}`).join(' · ')}
-				{rename ? '의 이름을 바꿔요.' : '을(를) 한 이름으로 합쳐요.'} 이미 발행한 뉴스레터의 태그도 바뀌고, 앞으로 새
-				뉴스레터에 같은 태그가 나와도 새 이름으로 바꿔 저장해요.
+				{rename ? ADMIN.tags.renameDesc : ADMIN.tags.mergeDesc} {ADMIN.tags.mergeNote}
 			</p>
 			<label className="field">
 				<span className="np-field-label">새 이름</span>
@@ -84,7 +84,7 @@ function MergeSheet({
 			{error && <p className="error">{error}</p>}
 			<div className="actions">
 				<Button type="button" scheme="outline" size="medium" onClick={onCancel}>
-					취소
+					{ACTIONS.cancel}
 				</Button>
 				<Button type="submit" scheme="primary" size="medium" disabled={pending}>
 					{pending ? '바꾸는 중…' : rename ? '이름 바꾸기' : '합치기'}
@@ -143,7 +143,7 @@ export default function TagsAdmin() {
 				onCancel={closeModal}
 				onDone={(changed, to) => {
 					closeModal();
-					showToast(`#${to}(으)로 바꿨어요. 뉴스레터 ${changed}편의 태그를 고쳤어요.`, 'success');
+					showToast(ADMIN.tags.merged(to, changed), 'success');
 					refresh();
 				}}
 			/>,
@@ -151,23 +151,22 @@ export default function TagsAdmin() {
 
 	const remove = (keyword: string) =>
 		confirm({
-			title: `#${keyword} 태그를 지울까요?`,
-			content:
-				'이미 발행한 뉴스레터에서 이 태그를 빼고, 앞으로 새 뉴스레터에도 붙이지 않아요. 규칙을 지우면 앞으로는 다시 붙을 수 있어요.',
-			confirmLabel: '지우기',
+			title: ADMIN.tags.deleteTitle(keyword),
+			content: ADMIN.tags.deleteBody,
+			confirmLabel: ACTIONS.remove,
 			run: () => removeTag(keyword),
-			success: (data) => `#${keyword}을(를) 지웠어요. 뉴스레터 ${data.changed}편의 태그를 고쳤어요.`,
-			failure: '지우지 못했어요.',
+			success: (data) => ADMIN.tags.deleted(keyword, data.changed),
+			failure: COMMON.deleteFailed,
 			onDone: refresh,
 		});
 
 	const deleteRule = async (rule: TagRule) => {
 		try {
 			await deleteTagRule(rule.id);
-			showToast('규칙을 지웠어요. 앞으로의 새 뉴스레터부터 적용돼요.', 'info');
+			showToast(ADMIN.tags.ruleDeleted, 'info');
 			refresh();
 		} catch (error) {
-			showToast(errorMessage(error, '지우지 못했어요.'), 'error');
+			showToast(errorMessage(error, COMMON.deleteFailed), 'error');
 		}
 	};
 
@@ -212,7 +211,7 @@ export default function TagsAdmin() {
 		>
 			<div className="np-admin-tags-admin-tags">
 				<div className="bulk" aria-live="polite">
-					<span>{selected.length ? `${selected.length}개 고름` : '합칠 태그를 골라 주세요'}</span>
+					<span>{selected.length ? `${selected.length}개 고름` : ADMIN.tags.pickToMerge}</span>
 					<Button
 						type="button"
 						scheme="primary"
@@ -230,11 +229,11 @@ export default function TagsAdmin() {
 				</div>
 
 				{tags.isPending ? (
-					<p className="state">불러오는 중…</p>
+					<p className="state">{COMMON.loading}</p>
 				) : tags.isError ? (
-					<p className="state">불러오지 못했어요.</p>
+					<p className="state">{COMMON.loadFailed}</p>
 				) : list.length === 0 ? (
-					<p className="state">이 조건의 태그가 없어요.</p>
+					<p className="state">{ADMIN.empty.tags}</p>
 				) : (
 					<div className="table-wrap">
 						<table style={{ minWidth: tableMinWidth(COLS) }}>
@@ -279,7 +278,7 @@ export default function TagsAdmin() {
 												이름 바꾸기
 											</button>
 											<button type="button" className="danger" onClick={() => remove(t.keyword)}>
-												지우기
+												{ACTIONS.remove}
 											</button>
 										</td>
 									</tr>
@@ -292,7 +291,7 @@ export default function TagsAdmin() {
 
 				<section className="rules" aria-labelledby="tag-rules">
 					<h2 id="tag-rules">규칙</h2>
-					<p className="rules-desc">새 뉴스레터를 저장할 때 태그에 적용돼요. 지워도 이미 바꾼 태그는 그대로예요.</p>
+					<p className="rules-desc">{ADMIN.tags.rulesDesc}</p>
 					{rules.data?.length ? (
 						<ul>
 							{rules.data.map((rule) => (
@@ -316,7 +315,7 @@ export default function TagsAdmin() {
 							))}
 						</ul>
 					) : (
-						<p className="state">아직 규칙이 없어요. 태그를 합치거나 지우면 생겨요.</p>
+						<p className="state">{ADMIN.tags.noRules}</p>
 					)}
 				</section>
 			</div>

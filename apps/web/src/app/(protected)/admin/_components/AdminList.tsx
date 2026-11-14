@@ -1,5 +1,6 @@
 'use client';
 
+import { COMMON } from '@/copy';
 import { useQuery, type QueryKey } from '@tanstack/react-query';
 import Pagination from '@/components/common/Pagination';
 import { useSortQuery } from './HeaderFilter';
@@ -61,8 +62,8 @@ export function AdminListState<T extends { items: unknown[] }>({
 	empty: React.ReactNode;
 	children: (data: T) => React.ReactNode;
 }) {
-	if (list.isPending) return <p className="state">불러오는 중…</p>;
-	if (list.isError || !list.data) return <p className="state">불러오지 못했어요.</p>;
+	if (list.isPending) return <p className="state">{COMMON.loading}</p>;
+	if (list.isError || !list.data) return <p className="state">{COMMON.loadFailed}</p>;
 	if (list.data.items.length === 0) return <p className="state">{empty}</p>;
 	return <>{children(list.data)}</>;
 }

@@ -1,5 +1,6 @@
 'use client';
 
+import { ABOUT } from '@/copy';
 import BorderTitle from '@/components/common/BorderTitle';
 import { useScrollProgress } from '@/hooks/useScrollProgress';
 
@@ -48,11 +49,11 @@ export default function WhyNewpickSection() {
 		>
 			<BorderTitle text="WHY NEWPICK?" />
 			<p className="sub-text">
-				매일 새로운 소식, 중요한 소식이 쏟아지지만 모두 챙기기 힘드셨다면?
+				{ABOUT.why.question}
 				<br />
 				NEWPICK은 AI 큐레이션을 통해 원하는 관심사의 뉴스만 골라서
 				<br />
-				간편하고 빠르게 받아볼 수 있도록 도와드립니다.
+				{ABOUT.why.answer}
 			</p>
 			<div ref={designRef} className="design-text" aria-hidden>
 				VALUE PROPOSITION

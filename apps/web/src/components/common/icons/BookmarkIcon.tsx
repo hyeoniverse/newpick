@@ -1,5 +1,6 @@
 'use client';
 
+import { BOOKMARKS, LOGIN } from '@/copy';
 import BookmarkToggle from '@/components/common/icons/BookmarkToggle';
 import { useAuthStore } from '@/stores/useAuthStore';
 import { useToast } from '@/hooks/useToast'; // Toast 훅 (필요 시)
@@ -25,7 +26,7 @@ export default function BookmarkIcon({ newsId, className, newsletterId }: Bookma
 
 	const handleToggle = async () => {
 		if (!user) {
-			openLogin('북마크하려면 로그인해 주세요');
+			openLogin(LOGIN.loginRequired.bookmark);
 			return;
 		}
 
@@ -36,7 +37,7 @@ export default function BookmarkIcon({ newsId, className, newsletterId }: Bookma
 				await addBookmarkMutation.mutateAsync({ newsId, newsletterId });
 			}
 		} catch (error: unknown) {
-			let errorMessage = '북마크 설정에 실패했습니다.';
+			let errorMessage = BOOKMARKS.saveFailed;
 
 			if (error instanceof Error) {
 				errorMessage = error.message;

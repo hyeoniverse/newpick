@@ -1,5 +1,6 @@
 'use client';
 
+import { HOME } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { Autoplay } from 'swiper/modules';
@@ -37,9 +38,9 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 				AI 뉴스레터 서비스 뉴픽
 			</Title>
 			<p>
-				AI로 카테고리별 주요 뉴스를 아티클로 만들어 뉴스레터로 제공하고 있습니다.
+				{HOME.heroLead}
 				<br />
-				뉴픽과 함께 시간의 가치와 지식의 채움을 누려보세요
+				{HOME.heroSub}
 			</p>
 			<Swiper
 				dir={'rtl'}

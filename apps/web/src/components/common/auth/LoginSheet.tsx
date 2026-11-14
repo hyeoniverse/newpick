@@ -1,5 +1,6 @@
 'use client';
 
+import { LOGIN } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { IoLogoGoogle } from 'react-icons/io';
@@ -32,8 +33,8 @@ export default function LoginSheet({ reason }: Props) {
 		const result = await loginUser();
 		// iframe 안 팝업 로그인의 결과. 성공하면 새로 고쳐 로그인 상태로 (쿠키는 같은 사이트라 그대로 쓰인다)
 		if (result === 'ok') return window.location.reload();
-		if (result === 'blocked') showToast('팝업이 막혀 있어요. 이 사이트의 팝업을 허용한 뒤 다시 눌러 주세요.', 'error');
-		if (result === 'failed') showToast('로그인하지 못했어요. 다시 시도해 주세요.', 'error');
+		if (result === 'blocked') showToast(LOGIN.popupBlocked, 'error');
+		if (result === 'failed') showToast(LOGIN.loginFailed, 'error');
 		setWaiting(false);
 	};
 
@@ -46,7 +47,7 @@ export default function LoginSheet({ reason }: Props) {
 				{reason ?? '뉴픽 로그인'}
 			</Title>
 			<Text size="small" color="subText">
-				구글 계정으로 바로 시작할 수 있어요.
+				{LOGIN.sheetLead}
 			</Text>
 
 			<Button
@@ -63,15 +64,15 @@ export default function LoginSheet({ reason }: Props) {
 			</Button>
 
 			<p className="notice mt-2 text-extra-small leading-[1.6] text-sub-text [word-break:keep-all]">
-				로그인하면 뉴픽의 {/* 로그인 창을 닫지 않고 읽을 수 있게 새 탭으로 */}
+				{LOGIN.agreeBefore} {/* 로그인 창을 닫지 않고 읽을 수 있게 새 탭으로 */}
 				<Link href={ROUTES.terms} target="_blank" className={LINK}>
 					이용약관
-				</Link>
-				과{' '}
+				</Link>{' '}
+				{LOGIN.agreeAnd}{' '}
 				<Link href={ROUTES.privacy} target="_blank" className={LINK}>
 					개인정보 처리방침
 				</Link>
-				에 동의하는 것으로 봅니다.
+				{LOGIN.agreeAfter}
 			</p>
 		</div>
 	);

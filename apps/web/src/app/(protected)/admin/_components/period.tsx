@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN } from '@/copy';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { kstDate } from '@/utils/formatter';
 import { useToast } from '@/hooks/useToast';
@@ -106,11 +107,11 @@ export function PeriodTitle({ id }: { id?: string }) {
 		if (!start || !end) return;
 		const days = (new Date(end).getTime() - new Date(start).getTime()) / 86400000;
 		if (days < 0) {
-			showToast('시작 날짜가 종료 날짜보다 늦어요.', 'error');
+			showToast(ADMIN.period.reversed, 'error');
 			return;
 		}
 		if (days > MAX_RANGE_DAYS) {
-			showToast(`기간은 ${MAX_RANGE_DAYS}일까지 고를 수 있어요.`, 'error');
+			showToast(ADMIN.period.tooLong(MAX_RANGE_DAYS), 'error');
 			return;
 		}
 		set({ from: start, to: end });

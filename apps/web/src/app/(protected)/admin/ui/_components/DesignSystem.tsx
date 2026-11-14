@@ -48,7 +48,7 @@ import BarWidth from '@/components/common/BarWidth';
 import EmptyState from '@/components/common/EmptyState';
 import { LuBookmark } from 'react-icons/lu';
 import ErrorState from '@/components/common/ErrorState';
-import { DELETED_NEWSLETTER, ERROR_STATES } from '@/constants/errors';
+import { DELETED_NEWSLETTER, ERROR_STATES } from '@/copy/errors';
 import AgreementCheck from '@/components/common/article/AgreementCheck';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import CustomIcon from '@/components/common/icons/CustomIcon';
@@ -161,7 +161,7 @@ function DesignSystemBody() {
 					디자인 시스템
 				</Title>
 				<Text size="small" color="subText">
-					지금 테마: {themeName === 'dark' ? '다크' : '라이트'} · 오른쪽 위 해/달 버튼으로 바꿔 보세요
+					지금 테마: {themeName === 'dark' ? '다크' : '라이트'} · 오른쪽 위 해/달 버튼으로 바꿔 보십시오
 				</Text>
 				<nav className="toc" aria-label="목차">
 					{SECTIONS.map((s) => (
@@ -215,7 +215,7 @@ function DesignSystemBody() {
 					{(SIZES as readonly FontSize[]).map((size) => (
 						<div key={size} className="row">
 							<code>Text {size}</code>
-							<Text size={size}>오늘 꼭 알아야 할 소식만 골라 보내드려요.</Text>
+							<Text size={size}>오늘 꼭 알아야 할 소식만 골라 보내 드립니다.</Text>
 							<span className="hex">{theme.fontSize[size]}</span>
 						</div>
 					))}
@@ -327,7 +327,7 @@ function DesignSystemBody() {
 						label="분야"
 						value={selectValue}
 						onChange={setSelectValue}
-						placeholder="분야를 고르세요"
+						placeholder="분야를 고르십시오"
 						options={[
 							{ label: 'IT', value: 'IT' },
 							{ label: '경제', value: '경제' },
@@ -385,8 +385,8 @@ function DesignSystemBody() {
 							openModal(
 								<ModalContent
 									icon={<LuMailCheck />}
-									title="구독이 시작되었습니다."
-									content="내일 아침 8시 40분에 첫 메일이 도착해요."
+									title="구독이 시작되었습니다"
+									content="내일 아침 8시 40분에 첫 메일이 도착합니다."
 									outlineButton="닫기"
 									filledButton="확인"
 									onCancelClick={closeModal}
@@ -462,7 +462,7 @@ function DesignSystemBody() {
 					<MoveButton text="비활성" disabled />
 				</div>
 				<Text size="extraSmall" color="subText">
-					Dropdown은 헤더(프로필 메뉴·모바일 메뉴) 위치에 맞춰진 컴포넌트라, 헤더의 프로필 사진을 눌러 확인하세요.
+					Dropdown은 헤더(프로필 메뉴·모바일 메뉴) 위치에 맞춘 컴포넌트이므로 헤더의 프로필 사진을 눌러 확인합니다.
 				</Text>
 			</Section>
 
@@ -514,7 +514,7 @@ function DesignSystemBody() {
 					<DatePicker label="날짜" value={pickedDate} onChange={setPickedDate} />
 					<TimePicker label="시각" value={time} onChange={setTime} />
 				</div>
-				<BackBar text="목록으로" onClick={() => showToast('뒤로 막대를 눌렀어요', 'info')} />
+				<BackBar text="목록으로" onClick={() => showToast('뒤로 막대를 눌렀습니다.', 'info')} />
 				<FilterChips label="관심사" options={CATEGORY_OPTIONS} value={chip} onChange={setChip} />
 				<table className="ds-table">
 					<thead>
@@ -550,8 +550,8 @@ function DesignSystemBody() {
 			<Section id="empty" title="빈 화면 · 구분선" note="EmptyState · BarWidth · BarHeight">
 				<EmptyState
 					icon={LuBookmark}
-					title="북마크한 뉴스레터가 없어요"
-					description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모여요."
+					title="북마크한 뉴스레터가 없습니다"
+					description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모입니다."
 					action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 				/>
 				<BarWidth />
@@ -571,7 +571,7 @@ function DesignSystemBody() {
 				<Skeleton />
 			</Section>
 
-			<Section id="error" title="오류 화면" note="ErrorState · constants/errors.ts (HTTP 4xx·5xx 전부 + 지운 뉴스레터)">
+			<Section id="error" title="오류 화면" note="ErrorState · copy/errors.ts (HTTP 4xx·5xx 전부 + 지운 뉴스레터)">
 				<InputSelect
 					name="ds-error"
 					label="상태"

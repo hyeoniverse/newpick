@@ -1,5 +1,6 @@
 'use client';
 
+import { ARTICLES } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -125,7 +126,7 @@ export default function HotSection({ trends: initiallData = [], stats, latest }:
 						</Title>
 						{category?.description && (
 							<Text size="medium" color="subText" className="description">
-								{category.description}을 매일 아침 정리합니다.
+								{ARTICLES.categoryLead(category.description)}
 							</Text>
 						)}
 						{/* 요약 줄은 전체·분야 모두 같은 자리에 한 줄 (분야를 바꿔도 높이가 같게) */}

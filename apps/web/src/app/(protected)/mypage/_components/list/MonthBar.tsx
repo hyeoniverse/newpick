@@ -1,5 +1,6 @@
 'use client';
 
+import { COMMON } from '@/copy';
 import type { MonthIndex } from '@newpick/shared';
 import { useEffect, useRef, useState } from 'react';
 import { LuChevronDown, LuChevronLeft, LuChevronRight, LuChevronUp } from 'react-icons/lu';
@@ -67,7 +68,7 @@ export function LoadNewer({ label, loading, onClick }: { label: string; loading:
 	return (
 		<button className="np-mypage-month-bar-load-newer" type="button" disabled={loading} onClick={onClick}>
 			<LuChevronUp aria-hidden />
-			{loading ? '불러오는 중…' : label}
+			{loading ? COMMON.loading : label}
 		</button>
 	);
 }

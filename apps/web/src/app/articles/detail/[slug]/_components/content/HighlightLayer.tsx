@@ -1,5 +1,6 @@
 'use client';
 
+import { ACTIONS, LOGIN } from '@/copy';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSearchParams } from 'next/navigation';
@@ -243,7 +244,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 	}, [highlights, readSelection, rootRef]);
 
 	const needLogin = () => {
-		openLogin('스크랩 · 메모는 로그인하면 쓸 수 있어요.');
+		openLogin(LOGIN.loginRequired.highlight);
 		setPopover(null);
 	};
 
@@ -344,7 +345,7 @@ export default function HighlightLayer({ newsletterId, rootRef }: Props) {
 								/>
 								<div className="actions">
 									<button type="button" onClick={() => setPopover(null)}>
-										취소
+										{ACTIONS.cancel}
 									</button>
 									<button type="submit" className="primary" disabled={!memo.trim()}>
 										메모 저장

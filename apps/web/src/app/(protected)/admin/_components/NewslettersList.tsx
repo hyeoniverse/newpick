@@ -1,5 +1,6 @@
 'use client';
 
+import { ADMIN } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { fetchNewsletterList } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
@@ -45,7 +46,7 @@ export default function NewslettersList() {
 				/>
 			}
 		>
-			<AdminListState list={list} empty="이 기간에 발행한 뉴스레터가 없어요.">
+			<AdminListState list={list} empty={ADMIN.empty.newsletters}>
 				{(data) => (
 					<div className="table-wrap">
 						<table style={{ minWidth: tableMinWidth(COLS) }}>

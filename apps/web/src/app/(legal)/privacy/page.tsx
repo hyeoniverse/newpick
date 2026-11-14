@@ -1,3 +1,4 @@
+import { META } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import type { Metadata } from 'next';
 import { pageMetadata } from '@/constants/site';
@@ -5,11 +6,7 @@ import { fetchContactEmail } from '@/api/contact';
 import { PRIVACY_EFFECTIVE_DATE, privacySections, privacySummary } from '@/content/legal';
 import LegalDocument from '@/components/common/legal/LegalDocument';
 
-export const metadata: Metadata = pageMetadata(
-	'개인정보 처리방침',
-	'뉴픽이 어떤 개인정보를 왜, 얼마나 보관하는지 안내합니다.',
-	ROUTES.privacy,
-);
+export const metadata: Metadata = pageMetadata('개인정보 처리방침', META.privacy, ROUTES.privacy);
 
 export default async function Page() {
 	const email = await fetchContactEmail();
@@ -18,7 +15,7 @@ export default async function Page() {
 			doc="privacy"
 			title="개인정보 처리방침"
 			effectiveDate={PRIVACY_EFFECTIVE_DATE}
-			intro="뉴픽은 「개인정보 보호법」 제30조에 따라 이용자의 개인정보를 어떤 목적으로 처리하고 어떻게 보호하는지 알려 드립니다. 서비스 운영에 꼭 필요한 정보만 처리합니다."
+			intro={META.privacyLead}
 			summary={privacySummary}
 			sections={privacySections(email)}
 		/>

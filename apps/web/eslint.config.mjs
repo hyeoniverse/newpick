@@ -22,6 +22,7 @@ const eslintConfig = [
    * - 환경 변수는 constants/ (설정) · app/api/ (서버 경로)에서만
    * - fetch는 api/client.ts에서만. middleware(토큰 갱신)와 Tracker(페이지를 떠날 때 keepalive 전송)는 apiFetch를 쓸 수 없어 예외
    * - 화면 경로는 constants/routes.ts의 ROUTES로, React Query 열쇠는 api/queryKeys.ts로
+   * - 화면 문구(문장)는 src/copy/에 (#248). 짧은 단추 · 라벨은 아직 막지 않는다
    */
   {
     files: ["src/**/*.{ts,tsx}"],
@@ -57,6 +58,12 @@ const eslintConfig = [
       "src/api/queryKeys.ts",
       "src/app/(protected)/admin/_lib/trafficLabels.ts",
       "src/**/*.test.{ts,tsx}",
+      // 화면 문구 모음 · 문서 내용 · 디자인 견본 · 서버 전용(로그 · api 응답)
+      "src/copy/**",
+      "src/content/**",
+      "src/app/(protected)/admin/ui/**",
+      "src/app/api/**",
+      "src/app/sitemap.ts",
     ],
     rules: {
       "no-restricted-syntax": [
@@ -68,6 +75,18 @@ const eslintConfig = [
         {
           selector: "TemplateLiteral > TemplateElement:first-child[value.raw=/^\\x2F(articles|mypage|admin|about|tags|terms|privacy|unsubscribe|login-popup)(\\x2F|\\?|#|$)/]",
           message: "화면 경로는 constants/routes.ts의 ROUTES로 만드세요.",
+        },
+        {
+          selector: "Literal[value=/[가-힣][^\\n]*(니다|어요|아요|해요|돼요|예요|에요|세요|까요|게요|려요|워요|져요|여요|십시오|니까)[.?!]?\\s*$/]",
+          message: "화면 문구는 src/copy/에 두고 가져다 쓰세요.",
+        },
+        {
+          selector: "TemplateElement[value.raw=/[가-힣][^\\n]*(니다|어요|아요|해요|돼요|예요|에요|세요|까요|게요|려요|워요|져요|여요|십시오|니까)[.?!]?\\s*$/]",
+          message: "화면 문구는 src/copy/에 두고 가져다 쓰세요 (값이 들어가면 함수로).",
+        },
+        {
+          selector: "JSXText[value=/[가-힣][^\\n]*(니다|어요|아요|해요|돼요|예요|에요|세요|까요|게요|려요|워요|져요|여요|십시오|니까)[.?!]?\\s*$/]",
+          message: "화면 문구는 src/copy/에 두고 가져다 쓰세요.",
         },
         {
           selector: "Property[key.name='queryKey'] > ArrayExpression",

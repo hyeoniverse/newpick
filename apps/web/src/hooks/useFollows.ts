@@ -1,3 +1,4 @@
+import { COMMON, FOLLOWS } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
@@ -67,14 +68,14 @@ export function useFollowMutations() {
 
 	const follow = useMutation({
 		mutationFn: followStory,
-		onSuccess: () => showToast("후속이 나오면 마이페이지 '지켜보기'와 머리글에 표시합니다.", 'success'),
-		onError: () => showToast('지켜보기를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error'),
+		onSuccess: () => showToast(FOLLOWS.followed, 'success'),
+		onError: () => showToast(FOLLOWS.followFailed, 'error'),
 		onSettled: refresh,
 	});
 	const unfollow = useMutation({
 		mutationFn: unfollowStory,
-		onSuccess: () => showToast('지켜보기를 그만두었습니다.', 'success'),
-		onError: () => showToast('지켜보기를 끄지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error'),
+		onSuccess: () => showToast(FOLLOWS.unfollowed, 'success'),
+		onError: () => showToast(FOLLOWS.unfollowFailed, 'error'),
 		onSettled: refresh,
 	});
 	// newsletterId가 있으면 그 뉴스레터 상세에서 본 후속만
@@ -84,8 +85,8 @@ export function useFollowMutations() {
 	});
 	const keep = useMutation({
 		mutationFn: keepFollow,
-		onSuccess: () => showToast('계속 지켜봅니다. 30일 뒤 다시 확인합니다.', 'success'),
-		onError: () => showToast('잠시 후 다시 시도해 주세요.', 'error'),
+		onSuccess: () => showToast(FOLLOWS.kept, 'success'),
+		onError: () => showToast(COMMON.retryLater, 'error'),
 		onSettled: refresh,
 	});
 	return { follow, unfollow, markSeen, keep };

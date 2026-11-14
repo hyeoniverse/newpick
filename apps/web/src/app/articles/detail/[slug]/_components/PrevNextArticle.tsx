@@ -1,5 +1,6 @@
 'use client';
 
+import { ARTICLES } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { useState } from 'react';
 import { IoArrowUp, IoArrowDown } from 'react-icons/io5';
@@ -30,7 +31,7 @@ function PrevNextArticle({ className, prev, next }: Props) {
 		const icon = isPrev ? <IoArrowUp /> : <IoArrowDown />;
 		const isActive = activeArticle === type;
 
-		const title = article ? article.title : isPrev ? '이전글이 없습니다.' : '다음글이 없습니다.';
+		const title = article ? article.title : isPrev ? ARTICLES.noPrev : ARTICLES.noNext;
 		const date = article ? dateFormatter(article.createdAt) : '';
 		const src = article?.imageUrl;
 

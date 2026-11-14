@@ -1,5 +1,6 @@
 'use client';
 
+import { ACCOUNT, ACTIONS, COMMON } from '@/copy';
 import { AnimationEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import { linkGoogleAccount, sendEmailCode, verifyEmailCode } from '@/api/auth';
 import { ApiError } from '@/api/client';
@@ -21,17 +22,17 @@ const clock = (ms: number) => {
 
 /** API 오류 message는 사용자에게 그대로 보여 줘도 되는 글 (남은 횟수가 있으면 덧붙인다) */
 const errorText = (error: unknown) => {
-	if (!(error instanceof ApiError)) return '잠시 후 다시 시도해 주세요.';
+	if (!(error instanceof ApiError)) return COMMON.retryLater;
 	const left = (error.body as { details?: { attemptsLeft?: number } } | undefined)?.details?.attemptsLeft;
 	return left ? `${error.message} (${left}번 남음)` : error.message;
 };
 
 /** 다른 Google 계정으로 바꾸고 돌아왔을 때(?google=…) 안내 */
 const LINK_RESULTS: Record<string, [string, 'success' | 'error' | 'info']> = {
-	linked: ['Google 계정을 변경했습니다. 로그인 계정과 수신 이메일이 함께 변경되었습니다.', 'success'],
-	same: ['현재 연결된 Google 계정과 같습니다.', 'info'],
-	taken: ['다른 뉴픽 계정에 연결된 Google 계정(또는 이메일)이라 변경하지 않았습니다.', 'error'],
-	failed: ['Google 계정을 변경하지 못했습니다. 다시 시도해 주세요.', 'error'],
+	linked: [ACCOUNT.email.linked, 'success'],
+	same: [ACCOUNT.email.same, 'info'],
+	taken: [ACCOUNT.email.taken, 'error'],
+	failed: [ACCOUNT.email.linkFailed, 'error'],
 };
 
 /**
@@ -71,7 +72,7 @@ export default function AccountEmail() {
 		try {
 			await linkGoogleAccount();
 		} catch {
-			showToast('잠시 후 다시 시도해 주세요.', 'error');
+			showToast(COMMON.retryLater, 'error');
 			setBusy(false);
 		}
 	};
@@ -139,7 +140,7 @@ export default function AccountEmail() {
 			const changed = await verifyEmailCode(code);
 			await refetchUser();
 			close();
-			showToast(`수신 이메일을 ${changed.email}(으)로 변경했습니다.`, 'success');
+			showToast(ACCOUNT.email.changed(changed.email), 'success');
 		} catch (e) {
 			setError(errorText(e));
 			setInvalid(e instanceof ApiError && e.code === 'EMAIL_CODE_INVALID');
@@ -160,8 +161,7 @@ export default function AccountEmail() {
 						이메일
 					</Title>
 					<Text size="small" color="subText">
-						Google 계정 변경 시 로그인 계정과 수신 이메일이 함께 변경됩니다. 수신 이메일 변경 시 로그인 계정은
-						유지됩니다.
+						{ACCOUNT.email.lead}
 					</Text>
 				</div>
 			</div>
@@ -201,7 +201,7 @@ export default function AccountEmail() {
 								인증 코드 요청
 							</Button>
 							<Button type="button" scheme="outline" size="small" onClick={close}>
-								취소
+								{ACTIONS.cancel}
 							</Button>
 						</div>
 					</form>
@@ -212,7 +212,8 @@ export default function AccountEmail() {
 				<div {...revealProps}>
 					<form ref={codeForm} className="form" onSubmit={onVerify}>
 						<label htmlFor="email-code">
-							<b>{step.email}</b>(으)로 보낸 인증 코드 6자리를 입력해 주세요.
+							<b>{step.email}</b>
+							{ACCOUNT.email.codePrompt}
 						</label>
 						<CodeInput
 							id="email-code"
@@ -238,7 +239,7 @@ export default function AccountEmail() {
 										남은 시간 <span className="clock">{clock(step.expiresAt - now)}</span>
 									</>
 								) : (
-									'인증 코드가 만료되었습니다. 재전송해 주세요.'
+									ACCOUNT.email.codeExpired
 								)}
 							</span>
 							<button
@@ -252,10 +253,10 @@ export default function AccountEmail() {
 						</p>
 						<div className="row end">
 							<Button type="submit" scheme="primary" size="small" isLoading={busy} disabled={code.length !== 6}>
-								확인
+								{ACTIONS.confirm}
 							</Button>
 							<Button type="button" scheme="outline" size="small" onClick={close}>
-								취소
+								{ACTIONS.cancel}
 							</Button>
 						</div>
 					</form>

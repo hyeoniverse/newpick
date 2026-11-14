@@ -1,3 +1,4 @@
+import { TAGS } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { errorMessage } from '@/api/client';
@@ -20,18 +21,14 @@ export function useTagFollows() {
 	const refresh = () => queryClient.invalidateQueries({ queryKey: TAG_FOLLOWS_KEY });
 	const follow = useMutation({
 		mutationFn: followTag,
-		onSuccess: ({ tag }) =>
-			showToast(
-				`#${tag} 태그를 팔로우했습니다. 다음 메일부터 '팔로우한 태그' 칸에 이 태그의 소식을 모아 드립니다.`,
-				'success',
-			),
+		onSuccess: ({ tag }) => showToast(TAGS.followed(tag), 'success'),
 		// 오류 메시지는 API 문장 그대로 (예: 20개 넘음)
-		onError: (error) => showToast(errorMessage(error, '팔로우하지 못했습니다. 잠시 후 다시 시도해 주세요.'), 'error'),
+		onError: (error) => showToast(errorMessage(error, TAGS.followFailed), 'error'),
 		onSettled: refresh,
 	});
 	const unfollow = useMutation({
 		mutationFn: unfollowTag,
-		onError: () => showToast('팔로우를 끊지 못했습니다. 잠시 후 다시 시도해 주세요.', 'error'),
+		onError: () => showToast(TAGS.unfollowFailed, 'error'),
 		onSettled: refresh,
 	});
 	return {

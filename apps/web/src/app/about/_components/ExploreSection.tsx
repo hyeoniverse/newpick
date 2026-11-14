@@ -1,5 +1,6 @@
 'use client';
 
+import { ABOUT, ACTIONS, HOME } from '@/copy';
 import { useModal } from '@/hooks/useModal';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSelectInterests } from '@/hooks/useInterests';
@@ -32,9 +33,9 @@ function WhyNewpickSection({ className }: Props) {
 			openModal(
 				<ModalContent
 					icon={<LuMailCheck />}
-					title="구독 설정이 완료되었습니다"
-					content={`내일부터 새로운 뉴스레터를 보내드려요.`}
-					filledButton="확인"
+					title={HOME.subscribed.title}
+					content={HOME.subscribed.body}
+					filledButton={ACTIONS.confirm}
 					onConfirmClick={closeModal}
 				/>,
 			);
@@ -47,15 +48,15 @@ function WhyNewpickSection({ className }: Props) {
 			<BorderTitle text="EXPLORE" />
 			<div>
 				<Text size="medium" color="mediumGrey" className="sub-text">
-					다양한 카테고리로 관심사를 더욱 세분화하여
+					{ABOUT.explore.lead}
 					<br />
-					확장된 경험과 지식을 보여드립니다.
+					{ABOUT.explore.more}
 				</Text>
 			</div>
 			<div className="subscription">
 				<CategoryTags className="categories" />
 				<Text size="medium" weight="bold">
-					평소에 관심있던 카테고리를 선택해보세요.
+					{ABOUT.explore.pick}
 				</Text>
 				<ArgreementCheck className="agreement" name={checkName} />
 				<Button

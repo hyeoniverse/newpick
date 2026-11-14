@@ -1,5 +1,6 @@
 'use client';
 
+import { TAGS } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 
 import { useMemo, useState } from 'react';
@@ -16,7 +17,7 @@ import FilterChips from '@/components/common/FilterChips';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
 import Skeleton from '@/components/common/loader/Skeleton';
-import { errorStateFor, statusOf } from '@/constants/errors';
+import { errorStateFor, statusOf } from '@/copy/errors';
 
 type Sort = 'count' | 'recent' | 'name';
 
@@ -95,7 +96,7 @@ export default function TagIndex() {
 					태그
 				</Title>
 				<Text size="small" color="subText">
-					뉴스레터에 붙은 태그를 모았어요. 누르면 그 태그가 붙은 뉴스레터를 볼 수 있어요.
+					{TAGS.indexLead}
 				</Text>
 			</header>
 
@@ -128,11 +129,7 @@ export default function TagIndex() {
 			) : isError ? (
 				<ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />
 			) : groups.total === 0 ? (
-				<EmptyState
-					icon={LuTags}
-					title={q ? `‘${q}’이(가) 들어간 태그가 없어요` : '아직 태그가 없어요'}
-					description="다른 이름으로 찾거나 관심사를 바꿔 보세요."
-				/>
+				<EmptyState icon={LuTags} title={q ? TAGS.noMatch(q) : TAGS.none} description={TAGS.noneHint} />
 			) : (
 				<>
 					{groups.frequent.length > 0 && (

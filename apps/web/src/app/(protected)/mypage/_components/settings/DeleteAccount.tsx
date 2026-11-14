@@ -1,5 +1,6 @@
 'use client';
 
+import { ACCOUNT, ACTIONS } from '@/copy';
 import { useState } from 'react';
 import { deleteAccount } from '@/api/auth';
 import { useAuth } from '@/hooks/useAuth';
@@ -37,8 +38,7 @@ export default function DeleteAccount() {
 					회원 탈퇴
 				</Title>
 				<Text size="small" color="subText">
-					탈퇴 시 계정 정보와 구독·북마크 기록이 모두 삭제되며 복구할 수 없습니다. 메일 수신만 중단하려면 상단에서
-					구독을 해지하세요.
+					{ACCOUNT.delete.lead}
 				</Text>
 			</div>
 			<Button scheme="monoOutline" size="small" onClick={() => openModal(<DeleteAccountSheet />)}>
@@ -67,9 +67,9 @@ export function DeleteAccountSheet() {
 			setChecked(false);
 			closeModal();
 			resetSession();
-			showToast('탈퇴했습니다. 그동안 뉴픽을 이용해 주셔서 고맙습니다.', 'success');
+			showToast(ACCOUNT.delete.done, 'success');
 		} catch {
-			showToast('탈퇴하지 못했습니다. 잠시 뒤 다시 시도해 주세요.', 'error');
+			showToast(ACCOUNT.delete.failed, 'error');
 		} finally {
 			setIsDeleting(false);
 		}
@@ -81,20 +81,20 @@ export function DeleteAccountSheet() {
 				<LuTriangleAlert />
 			</span>
 			<Title size="extraSmall" weight="bold">
-				정말 탈퇴할까요?
+				{ACCOUNT.delete.title}
 			</Title>
 			<Text size="small" color="subText">
-				아래 정보가 바로 지워지며 되돌릴 수 없습니다.
+				{ACCOUNT.delete.body}
 			</Text>
 			<ul>
 				{DELETED.map((item) => (
 					<li key={item}>{item}</li>
 				))}
 			</ul>
-			<InputCheck name={CONFIRM_NAME} label="위 내용을 확인했습니다" size="medium" />
+			<InputCheck name={CONFIRM_NAME} label={ACCOUNT.delete.confirmCheck} size="medium" />
 			<div className="buttons">
 				<Button scheme="outline" size="medium" onClick={close}>
-					취소
+					{ACTIONS.cancel}
 				</Button>
 				<Button scheme="danger" size="medium" disabled={!isChecked} isLoading={isDeleting} onClick={onDelete}>
 					탈퇴하기
