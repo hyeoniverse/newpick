@@ -43,19 +43,16 @@ import InputRadio from '@/components/common/InputRadio';
 import Spinner from '@/components/common/loader/Spinner';
 import Skeleton from '@/components/common/loader/Skeleton';
 import ModalContent from '@/components/common/modal/ModalContent';
-import BarHeight from '@/components/common/BarHeight';
-import BarWidth from '@/components/common/BarWidth';
 import EmptyState from '@/components/common/EmptyState';
 import { LuBookmark } from 'react-icons/lu';
 import ErrorState from '@/components/common/ErrorState';
 import { DELETED_NEWSLETTER, ERROR_STATES } from '@/copy/errors';
 import AgreementCheck from '@/components/common/article/AgreementCheck';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
-import CustomIcon from '@/components/common/icons/CustomIcon';
+import { IconButton } from '@/components/common/icons/IconButton';
 import BookmarkToggle from '@/components/common/icons/BookmarkToggle';
 import StarToggle from '@/components/common/icons/StarToggle';
 import { BellGlyph, ShareGlyph } from '@/components/common/icons/Glyphs';
-import OrigLinkIcon from '@/components/common/icons/OrigLinkIcon';
 import LinkCopyIcon from '@/components/common/icons/LinkCopyIcon';
 import ExternalLink from '@/components/common/ExternalLink';
 import MoveButton from '@/components/common/MoveButton';
@@ -469,17 +466,16 @@ function DesignSystemBody() {
 			<Section
 				id="link"
 				title="링크 · 아이콘"
-				note="ExternalLink(바깥 링크) · LinkCopyIcon · OrigLinkIcon · CustomIcon · BookmarkToggle · StarToggle · BellGlyph"
+				note="ExternalLink(바깥 링크) · LinkCopyIcon · IconButton · BookmarkToggle · StarToggle · BellGlyph"
 			>
 				<Text size="small">
 					<ExternalLink href="https://kopico.go.kr">kopico.go.kr</ExternalLink> — 마우스를 올리면 화살표가 움직입니다
 				</Text>
 				<div className="wrap">
 					<LinkCopyIcon id="ds" />
-					<OrigLinkIcon />
-					<CustomIcon label="공유" onClick={() => showToast('아이콘을 눌렀습니다.', 'info')}>
+					<IconButton aria-label="공유" onClick={() => showToast('아이콘을 눌렀습니다.', 'info')}>
 						<ShareGlyph />
-					</CustomIcon>
+					</IconButton>
 				</div>
 				<div className="wrap">
 					<BookmarkToggle pressed={bookmarked} onToggle={() => setBookmarked((v) => !v)} />
@@ -495,9 +491,9 @@ function DesignSystemBody() {
 					</Text>
 				</div>
 				<div className="wrap">
-					<CustomIcon label="후속 지켜보기" onClick={() => setWatching((v) => !v)}>
+					<IconButton aria-label="후속 지켜보기" onClick={() => setWatching((v) => !v)}>
 						<BellGlyph on={watching} ring={watching} />
-					</CustomIcon>
+					</IconButton>
 					<Text size="extraSmall" color="subText">
 						BellGlyph — 후속 지켜보기(뉴스레터 상세). 가리키면 종이 흔들리고 추가 따라가며, 켜면 한 번 울리고 양옆에
 						울림이 퍼집니다
@@ -547,19 +543,13 @@ function DesignSystemBody() {
 				<AgreementCheck name="ds-agreement" />
 			</Section>
 
-			<Section id="empty" title="빈 화면 · 구분선" note="EmptyState · BarWidth · BarHeight">
+			<Section id="empty" title="빈 화면" note="EmptyState">
 				<EmptyState
 					icon={LuBookmark}
 					title="북마크한 뉴스레터가 없습니다"
 					description="마음에 드는 뉴스레터에서 북마크를 누르면 여기에 모입니다."
 					action={{ label: '뉴스레터 둘러보기', href: ROUTES.articles }}
 				/>
-				<BarWidth />
-				<div className="wrap">
-					<Text size="small">왼쪽</Text>
-					<BarHeight height="1rem" />
-					<Text size="small">오른쪽</Text>
-				</div>
 			</Section>
 
 			<Section id="loading" title="로딩" note="Spinner · Skeleton">
