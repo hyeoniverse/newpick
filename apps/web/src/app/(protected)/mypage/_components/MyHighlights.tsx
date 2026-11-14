@@ -28,6 +28,7 @@ import { setFolderDragGhost } from '../_lib/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
 import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
+import { useToggleSet } from '@/hooks/useToggleSet';
 
 /** 구역 이름: 브리핑은 '에디터 브리핑', 소식은 뉴스레터 본문처럼 번호(01) + 그 소식의 제목 */
 function sectionName(highlight: Highlight) {
@@ -149,14 +150,14 @@ export default function MyHighlights() {
 	const { showToast } = useToast();
 	// 선택해서 지우기: 고르는 중인지, 고른 번호
 	const [selecting, setSelecting] = useState(false);
-	const [selected, setSelected] = useState<Set<number>>(new Set());
+	const { set: selected, toggle, setMany: setManySelected, clear: clearSelected } = useToggleSet<number>();
 	const confirmRemove = useConfirmRemoveHighlights();
 	const stopSelecting = () => {
 		setSelecting(false);
-		setSelected(new Set());
+		clearSelected();
 	};
 	// 작은 화면에서 문장을 모두 펼친 블록 (블록 첫 스크랩 번호)
-	const [openBlocks, setOpenBlocks] = useState<Set<number>>(new Set());
+	const { set: openBlocks, add: openBlock } = useToggleSet<number>();
 	// 스크랩 알림의 '모아 보기'로 오면(#hl-번호) 그 문장으로 스크롤하고 잠깐 강조
 	const [focused, setFocused] = useState<number | null>(null);
 	useEffect(() => {
@@ -205,13 +206,6 @@ export default function MyHighlights() {
 		}
 	};
 	const allShownSelected = shown.length > 0 && shown.every((h) => selected.has(h.id));
-	const toggle = (id: number) =>
-		setSelected((prev) => {
-			const next = new Set(prev);
-			if (next.has(id)) next.delete(id);
-			else next.add(id);
-			return next;
-		});
 
 	return (
 		<div className="np-mypage-my-highlights-highlights">
@@ -223,7 +217,7 @@ export default function MyHighlights() {
 				value={folder}
 				onChange={(next) => {
 					refilter(setFolder)(next);
-					setSelected(new Set());
+					clearSelected();
 				}}
 				total={first.counts.all}
 				unfiled={first.counts.unfiled}
@@ -387,7 +381,7 @@ export default function MyHighlights() {
 																<button
 																	type="button"
 																	className="more-quotes"
-																	onClick={() => setOpenBlocks((prev) => new Set(prev).add(block.items[0].id))}
+																	onClick={() => openBlock(block.items[0].id)}
 																>
 																	문장 {block.items.length - QUOTES_SMALL}개 더 보기
 																</button>
@@ -417,14 +411,10 @@ export default function MyHighlights() {
 						label={allShownSelected ? '전체 해제' : `전체 선택 (${shown.length})`}
 						checked={allShownSelected}
 						onCheckedChange={() =>
-							setSelected((prev) => {
-								const next = new Set(prev);
-								for (const h of shown) {
-									if (allShownSelected) next.delete(h.id);
-									else next.add(h.id);
-								}
-								return next;
-							})
+							setManySelected(
+								shown.map((h) => h.id),
+								!allShownSelected,
+							)
 						}
 					/>
 					<span className="picked">{selected.size}개 선택</span>

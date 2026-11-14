@@ -19,6 +19,7 @@ import { useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from '../_lib/format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 import { kstDateOf } from '@/utils/formatter';
+import { useToggleSet } from '@/hooks/useToggleSet';
 
 /** 가로로 넘겨도 왼쪽에 고정하는 칸 폭: 시각 · 분야 · 결과 (무엇이 언제 어떻게 됐는지) */
 const PINNED = ['9rem', '3.5rem', '9rem'];
@@ -82,14 +83,7 @@ export default function AiLogsList() {
 
 	// 기본 정렬(최신순)일 때 같은 묶음의 시도를 붙여 놓는다 (묶음 자리는 가장 최근 시도 자리)
 	// 내용은 두 줄까지만, 누르면 펼친다 (펼친 기록 id)
-	const [open, setOpen] = useState<Set<number>>(new Set());
-	const toggle = (id: number) =>
-		setOpen((prev) => {
-			const next = new Set(prev);
-			if (next.has(id)) next.delete(id);
-			else next.add(id);
-			return next;
-		});
+	const { set: open, toggle } = useToggleSet<number>();
 	const rows = useMemo(
 		() => (data ? (Object.keys(sortQuery).length ? data.items : groupAttempts(data.items)) : []),
 		[data, sortQuery],

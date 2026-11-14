@@ -2956,11 +2956,6 @@
 				color 0.5s;
 		}
 
-		.svg {
-			height: 2rem;
-			width: 3.25rem;
-		}
-
 		/* 휴대폰: 프로필 아래 한 줄을 다 채운다 */
 		@variant mobile {
 			width: 100%;
