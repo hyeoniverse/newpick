@@ -13,10 +13,7 @@ import { useTagFollows } from '@/hooks/useTagFollows';
 import { toPageHref, readFilters } from '@/utils/newsletterSearch';
 import Text from '@/components/common/Text';
 import ListHead from '@/app/(protected)/mypage/_components/list/ListHead';
-
-/** '10월 31일' (한국 시각) */
-const day = (iso: string) =>
-	new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(iso));
+import { monthDay } from '@/utils/formatter';
 
 /**
  * 마이페이지 > 지켜보기의 팔로우한 태그 (#123, 지켜보는 소식 위): 매일 메일의 '팔로우한 태그' 칸에 태그마다 그날 소식(모든 분야)과
@@ -101,7 +98,7 @@ export default function TagFollows() {
 							<li key={tag} className="tag-card">
 								<div className="tag-head">
 									<p className="meta">
-										<span className="nowrap">{day(createdAt)}부터 팔로우</span>
+										<span className="nowrap">{monthDay(createdAt)}부터 팔로우</span>
 									</p>
 									<button
 										type="button"
@@ -123,7 +120,7 @@ export default function TagFollows() {
 										{news.map((n) => (
 											<li key={n.id}>
 												<p className="when">
-													{day(n.createdAt)}
+													{monthDay(n.createdAt)}
 													<span className="category">{n.category}</span>
 												</p>
 												<Link href={ROUTES.article(n.id)} className="heading">

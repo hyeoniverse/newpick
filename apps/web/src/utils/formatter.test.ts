@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { kstDate } from '@/utils/formatter';
+import { kstDate, kstDateOf, monthDay, pad2 } from '@/utils/formatter';
 
 const ORIGINAL_TZ = process.env.TZ;
 
@@ -29,5 +29,22 @@ describe('kstDate', () => {
 		const date = kstDate(1, new Date('2026-10-25T16:00:00Z'));
 		expect(date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
 		expect(Number.isNaN(new Date(date).getTime())).toBe(false);
+	});
+});
+
+describe('kstDateOf · monthDay · pad2', () => {
+	it('그 순간의 한국 날짜: UTC 15시는 한국 다음 날 0시', () => {
+		expect(kstDateOf('2026-10-31T14:59:00Z')).toBe('2026-10-31');
+		expect(kstDateOf('2026-10-31T15:00:00Z')).toBe('2026-11-01');
+		expect(kstDateOf(new Date('2026-01-01T00:00:00+09:00'))).toBe('2026-01-01');
+	});
+
+	it("'10월 31일' (한국 시각 기준)", () => {
+		expect(monthDay('2026-10-31T03:00:00Z')).toBe('10월 31일');
+		expect(monthDay('2026-10-31T15:00:00Z')).toBe('11월 1일');
+	});
+
+	it('두 자리로', () => {
+		expect([pad2(0), pad2(7), pad2(12)]).toEqual(['00', '07', '12']);
 	});
 });

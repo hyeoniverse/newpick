@@ -32,6 +32,7 @@ import ModalContents from '@/components/common/modal/ModalContent';
 import { SkeletonBlock } from '@/components/common/loader/Skeleton';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 import MoreLink from '@/components/common/MoreLink';
+import { kstDate } from '@/utils/formatter';
 
 /** 대시보드 응답 (@newpick/shared, api 응답과 같다) */
 
@@ -159,7 +160,7 @@ export default function Dashboard() {
 			content: JOBS[job].warning,
 			confirmLabel: '지금 실행',
 			// AI 요약은 오늘 아직 없는 분야만 만들므로, 어느 분야를 만드는지 보여 준다
-			children: job === 'summary' && <MissingCategories date={kstDay(0)} label="재생성 항목" />,
+			children: job === 'summary' && <MissingCategories date={kstDate(0)} label="재생성 항목" />,
 			run: () => runJobNow(job),
 			success: ADMIN.jobs.runStarted(JOBS[job].label),
 			failure: COMMON.startFailed,
@@ -461,10 +462,6 @@ export default function Dashboard() {
 	);
 }
 
-/** KST로 daysAgo일 전 날짜 (YYYY-MM-DD) */
-const kstDay = (daysAgo: number) =>
-	new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-
 /** 그날 아직 뉴스레터가 없는 분야: 서버가 만들 분야와 같다 (있는 분야는 건너뛴다) */
 function MissingCategories({ date, label }: { date: string; label: string }) {
 	const { data: missing, isPending } = useQuery({
@@ -490,8 +487,7 @@ function MissingCategories({ date, label }: { date: string; label: string }) {
 
 /** 빠진 날 채우기 창: 날짜 하나 고르기 (어제부터 모은 기사가 남아 있는 29일 전까지) */
 function FillDay({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (date: string) => void }) {
-	const day = kstDay;
-	const [date, setDate] = useState(day(1));
+	const [date, setDate] = useState(kstDate(1));
 	return (
 		<ModalContents
 			icon={<LuCalendarPlus />}
@@ -508,8 +504,8 @@ function FillDay({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (da
 					type="date"
 					className="np-field-control"
 					value={date}
-					min={day(29)}
-					max={day(1)}
+					min={kstDate(29)}
+					max={kstDate(1)}
 					onChange={(event) => setDate(event.target.value)}
 				/>
 			</label>

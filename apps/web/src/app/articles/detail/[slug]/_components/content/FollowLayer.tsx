@@ -10,6 +10,7 @@ import { useOpenLogin } from '@/hooks/useOpenLogin';
 import { useFollowMutations, useNewsletterFollowUpdates, useNewsletterFollows } from '@/hooks/useFollows';
 import { BellGlyph } from '@/components/common/icons/Glyphs';
 import { cx } from '@/styles/tw';
+import { monthDay } from '@/utils/formatter';
 
 interface Props {
 	newsletterId: number;
@@ -25,9 +26,6 @@ interface Props {
  * 거꾸로 이 소식이 내가 지켜보던 소식의 후속이면 소식 맨 위에 '지켜보던 소식의 후속'과 원래 소식을 보여 주고, 본 것으로 한다.
  * 본문은 React 밖 HTML이라, 소식마다 자리(span)를 만들어 그 안에 단추를 그린다
  */
-/** '10월 31일' (한국 시각) */
-const day = (iso: string) =>
-	new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(iso));
 
 export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 	const { user } = useAuth();
@@ -118,7 +116,7 @@ export default function FollowLayer({ newsletterId, rootRef, content }: Props) {
 						</span>
 						{from.map((u) => (
 							<Link key={u.id} href={ROUTES.article(u.follow.newsletter.id)} className="origin">
-								<span className="date">{day(u.follow.newsletter.createdAt)}</span>
+								<span className="date">{monthDay(u.follow.newsletter.createdAt)}</span>
 								{u.follow.heading}
 							</Link>
 						))}

@@ -3,19 +3,15 @@
 import { ADMIN } from '@/copy';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { kstDate } from '@/utils/formatter';
+import { DATE_PRESETS, presetRange } from '@/constants/periods';
 import { useToast } from '@/hooks/useToast';
 import { DatePicker, DateRangePicker } from '@/components/common/DatePicker';
 
 /** 고를 수 있는 가장 긴 기간 (API와 같음) */
 export const MAX_RANGE_DAYS = 92;
 
-/** 기간 고르기: 끝은 늘 오늘, 시작은 며칠 전 (어제만 하루) */
-export const PRESETS: { key: string; label: string; range: () => { from: string; to: string } }[] = [
-	{ key: 'today', label: '오늘', range: () => ({ from: kstDate(0), to: kstDate(0) }) },
-	{ key: 'yesterday', label: '어제', range: () => ({ from: kstDate(1), to: kstDate(1) }) },
-	{ key: '7d', label: '최근 7일', range: () => ({ from: kstDate(6), to: kstDate(0) }) },
-	{ key: '30d', label: '최근 30일', range: () => ({ from: kstDate(29), to: kstDate(0) }) },
-];
+/** 기간 고르기: 미리 정한 기간(constants/periods)에 날짜 계산을 붙인 것 */
+export const PRESETS = DATE_PRESETS.map((preset) => ({ ...preset, range: () => presetRange(preset) }));
 
 const isDate = (value: string | null): value is string => Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
 

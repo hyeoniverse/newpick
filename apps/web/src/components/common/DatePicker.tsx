@@ -7,7 +7,7 @@ import ReactDatePicker, { registerLocale, type ReactDatePickerCustomHeaderProps 
 import { ko } from 'date-fns/locale';
 import { format } from 'date-fns';
 import { LuCalendar, LuChevronDown, LuChevronLeft, LuChevronRight } from 'react-icons/lu';
-import { kstDate } from '@/utils/formatter';
+import { DATE_PRESETS, DAY_PRESETS, presetRange } from '@/constants/periods';
 
 registerLocale('ko', ko);
 
@@ -188,18 +188,19 @@ export interface QuickPick<T> {
 }
 
 /** 날짜 하나 빠른 선택 (오늘 · 어제) */
-export const DAY_PICKS: QuickPick<DateString>[] = [
-	{ label: '오늘', value: () => kstDate(0) },
-	{ label: '어제', value: () => kstDate(1) },
-];
+export const DAY_PICKS: QuickPick<DateString>[] = DAY_PRESETS.map((preset) => ({
+	label: preset.label,
+	value: () => presetRange(preset).from,
+}));
 
-/** 기간 빠른 선택 (끝은 늘 오늘, 어제만 하루) */
-export const RANGE_PICKS: QuickPick<{ start: DateString; end: DateString }>[] = [
-	{ label: '오늘', value: () => ({ start: kstDate(0), end: kstDate(0) }) },
-	{ label: '어제', value: () => ({ start: kstDate(1), end: kstDate(1) }) },
-	{ label: '최근 7일', value: () => ({ start: kstDate(6), end: kstDate(0) }) },
-	{ label: '최근 30일', value: () => ({ start: kstDate(29), end: kstDate(0) }) },
-];
+/** 기간 빠른 선택 (constants/periods의 미리 정한 기간) */
+export const RANGE_PICKS: QuickPick<{ start: DateString; end: DateString }>[] = DATE_PRESETS.map((preset) => ({
+	label: preset.label,
+	value: () => {
+		const { from, to } = presetRange(preset);
+		return { start: from, end: to };
+	},
+}));
 
 const inRange = (value: DateString, min?: DateString, max?: DateString) =>
 	(!min || value >= min) && (!max || value <= max);

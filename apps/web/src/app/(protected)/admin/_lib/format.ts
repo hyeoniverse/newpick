@@ -1,3 +1,5 @@
+import { kstDateOf } from '@/utils/formatter';
+
 /** 관리자 화면 공통 표시 (#21) */
 
 /** 달러: 1센트 미만은 소수 넷째 자리까지, 모르면 - */
@@ -10,7 +12,7 @@ export const PROCESS_LABEL: Record<string, string> = { summarization: '요약', 
 export function when(iso: string | null, today: string) {
 	if (!iso) return '-';
 	const date = new Date(iso);
-	const day = date.toLocaleDateString('en-CA', { timeZone: 'Asia/Seoul' });
+	const day = kstDateOf(date);
 	const time = date.toLocaleTimeString('ko-KR', { timeZone: 'Asia/Seoul', hour: '2-digit', minute: '2-digit' });
 	return day === today ? time : `${day.slice(5)} ${time}`;
 }

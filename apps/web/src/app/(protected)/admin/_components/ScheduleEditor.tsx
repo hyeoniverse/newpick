@@ -7,13 +7,13 @@ import { saveSchedule } from '@/api/admin';
 import { errorMessage } from '@/api/client';
 import Button from '@/components/common/Button';
 import TimePicker from '@/components/common/TimePicker';
+import { pad2 } from '@/utils/formatter';
 
 /** 예약 시각 (@newpick/shared, api와 같다) */
 export type { ClockTime, Schedule };
 
 const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
-const pad = (n: number) => String(n).padStart(2, '0');
-export const clock = ({ hour, minute }: ClockTime) => `${pad(hour)}:${pad(minute)}`;
+export const clock = ({ hour, minute }: ClockTime) => `${pad2(hour)}:${pad2(minute)}`;
 const parse = (value: string): ClockTime => {
 	const [hour, minute] = value.split(':').map(Number);
 	return { hour, minute };
