@@ -4,7 +4,6 @@ import { ADMIN } from '@/copy';
 import { fetchSubscribers } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
-import { useEffect, useState } from 'react';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
@@ -12,6 +11,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
+import AdminSearchField from './AdminSearchField';
 import { when } from '../_lib/format';
 import { AdminActions, SUBSCRIPTION_LABEL, subscriptionTone } from './UsersAdmin';
 
@@ -27,8 +27,6 @@ export default function SubscribersAdmin() {
 	const status = get('status');
 	const categoryId = get('categoryId');
 	const q = get('q');
-	const [input, setInput] = useState(q);
-	useEffect(() => setInput(q), [q]);
 
 	const list = useAdminList({
 		queryKey: queryKeys.admin.subscribers,
@@ -61,25 +59,12 @@ export default function SubscribersAdmin() {
 						value={categoryId}
 						onChange={(v) => set({ categoryId: v || null })}
 					/>
-					<form
-						role="search"
-						className="searches"
-						onSubmit={(event) => {
-							event.preventDefault();
-							set({ q: input.trim() || null });
-						}}
-					>
-						<span className="chips-label">찾기</span>
-						<input
-							type="search"
-							className="search"
-							value={input}
-							onChange={(event) => setInput(event.target.value)}
-							placeholder="이메일 · 이름 일부"
-							aria-label="이메일 · 이름으로 찾기"
-							maxLength={100}
-						/>
-					</form>
+					<AdminSearchField
+						param="q"
+						label="찾기"
+						placeholder="이메일 · 이름 일부"
+						ariaLabel="이메일 · 이름으로 찾기"
+					/>
 				</>
 			}
 		>

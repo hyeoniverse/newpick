@@ -6,7 +6,6 @@ import { changeUserRole, deleteUser, fetchUsers } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
 import type { AdminUserRow } from '@newpick/shared';
-import { useEffect, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/hooks/useAuth';
@@ -16,6 +15,7 @@ import StatusBadge from '@/components/common/StatusBadge';
 import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { useAdminQuery } from './period';
+import AdminSearchField from './AdminSearchField';
 import { when } from '../_lib/format';
 import { cx } from '@/styles/tw';
 
@@ -44,8 +44,6 @@ export default function UsersAdmin() {
 	const queryClient = useQueryClient();
 	const role = get('role');
 	const q = get('q');
-	const [input, setInput] = useState(q);
-	useEffect(() => setInput(q), [q]);
 
 	const list = useAdminList({
 		queryKey: queryKeys.admin.users.list,
@@ -88,25 +86,12 @@ export default function UsersAdmin() {
 			filters={
 				<>
 					<FilterChips label="권한" options={ROLES} value={role} onChange={(v) => set({ role: v || null })} />
-					<form
-						role="search"
-						className="searches"
-						onSubmit={(event) => {
-							event.preventDefault();
-							set({ q: input.trim() || null });
-						}}
-					>
-						<span className="chips-label">찾기</span>
-						<input
-							type="search"
-							className="search"
-							value={input}
-							onChange={(event) => setInput(event.target.value)}
-							placeholder="이메일 · 이름 일부"
-							aria-label="이메일 · 이름으로 찾기"
-							maxLength={100}
-						/>
-					</form>
+					<AdminSearchField
+						param="q"
+						label="찾기"
+						placeholder="이메일 · 이름 일부"
+						ariaLabel="이메일 · 이름으로 찾기"
+					/>
 				</>
 			}
 		>

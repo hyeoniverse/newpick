@@ -4,7 +4,6 @@ import { ADMIN } from '@/copy';
 import { fetchMailList } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
-import { useEffect, useState } from 'react';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
@@ -13,6 +12,7 @@ import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter } from './HeaderFilter';
 import { useAdminQuery } from './period';
+import AdminSearchField from './AdminSearchField';
 import { when } from '../_lib/format';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
@@ -23,8 +23,6 @@ export default function MailList() {
 	const { set, get, today } = useAdminQuery();
 	const email = get('email');
 	const categoryId = Number(get('categoryId')) || 0;
-	const [input, setInput] = useState(email);
-	useEffect(() => setInput(email), [email]);
 
 	const list = useAdminList({
 		queryKey: queryKeys.admin.mails,
@@ -46,25 +44,12 @@ export default function MailList() {
 						value={categoryId ? String(categoryId) : ''}
 						onChange={(v) => set({ categoryId: v || null })}
 					/>
-					<form
-						role="search"
-						className="searches"
-						onSubmit={(event) => {
-							event.preventDefault();
-							set({ email: input.trim() || null });
-						}}
-					>
-						<span className="chips-label">이메일</span>
-						<input
-							type="search"
-							className="search"
-							value={input}
-							onChange={(event) => setInput(event.target.value)}
-							placeholder="이메일 일부로 찾기"
-							aria-label="받은 사람 이메일로 찾기"
-							maxLength={100}
-						/>
-					</form>
+					<AdminSearchField
+						param="email"
+						label="이메일"
+						placeholder="이메일 일부로 찾기"
+						ariaLabel="받은 사람 이메일로 찾기"
+					/>
 				</>
 			}
 		>
