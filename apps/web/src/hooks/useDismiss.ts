@@ -18,12 +18,45 @@ type Options = {
 	scroll?: 'outside' | number;
 	/** 창 크기가 바뀌면 닫기 */
 	resize?: boolean;
+	/**
+	 * 바깥을 눌러 닫을 때 그 클릭이 뒤 화면(링크 · 카드)까지 가지 않게 막기.
+	 * 클릭을 받지 않는 오버레이(::before)를 깐 메뉴처럼, 바깥을 누르는 것이 '닫기'로만 보이는 곳에 켠다
+	 */
+	blockClickThrough?: boolean;
 };
+
+/** 바로 다음 클릭 한 번을 막는다. 끌다가 놓아 클릭이 생기지 않으면 손을 뗀 직후(늦어도 1초 뒤) 푼다 */
+function blockNextClick() {
+	const release = () => {
+		document.removeEventListener('click', stop, true);
+		document.removeEventListener('mouseup', releaseSoon, true);
+		window.clearTimeout(timer);
+	};
+	const stop = (event: Event) => {
+		event.preventDefault();
+		event.stopPropagation();
+		release();
+	};
+	// 클릭은 mouseup 바로 뒤에 오므로, mouseup 다음 차례에 푼다
+	const releaseSoon = () => window.setTimeout(release, 0);
+	const timer = window.setTimeout(release, 1000);
+	document.addEventListener('click', stop, true);
+	document.addEventListener('mouseup', releaseSoon, true);
+}
 
 /**
  * 띄운 목록 · 메뉴 닫기 (#230): 바깥을 누르거나 Esc, 고르면 스크롤 · 창 크기 변경 때 onClose
  */
-export function useDismiss({ open, refs, onClose, escape = true, afterEscape, scroll, resize = false }: Options) {
+export function useDismiss({
+	open,
+	refs,
+	onClose,
+	escape = true,
+	afterEscape,
+	scroll,
+	resize = false,
+	blockClickThrough = false,
+}: Options) {
 	// 그릴 때마다 새로 만든 함수여도 듣기를 다시 걸지 않게 최신 값만 들고 있는다
 	const latest = useRef({ refs, onClose, afterEscape });
 	latest.current = { refs, onClose, afterEscape };
@@ -35,7 +68,9 @@ export function useDismiss({ open, refs, onClose, escape = true, afterEscape, sc
 		const close = () => latest.current.onClose();
 
 		const onDown = (event: MouseEvent) => {
-			if (!inside(event.target)) close();
+			if (inside(event.target)) return;
+			if (blockClickThrough) blockNextClick();
+			close();
 		};
 		const onKey = (event: KeyboardEvent) => {
 			if (event.key !== 'Escape') return;
@@ -62,5 +97,5 @@ export function useDismiss({ open, refs, onClose, escape = true, afterEscape, sc
 			window.removeEventListener('scroll', onScroll, scroll === 'outside');
 			window.removeEventListener('resize', close);
 		};
-	}, [open, escape, scroll, resize]);
+	}, [open, escape, scroll, resize, blockClickThrough]);
 }
