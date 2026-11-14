@@ -5,6 +5,7 @@ import type { MonthIndex } from '@newpick/shared';
 import { useEffect, useRef, useState } from 'react';
 import { LuChevronDown, LuChevronLeft, LuChevronRight, LuChevronUp } from 'react-icons/lu';
 import { cx } from '@/styles/tw';
+import { useDismiss } from '@/hooks/useDismiss';
 
 /** 바로 가기용 달 (서버가 거르기 · 정렬을 적용한 순서로 준다): 그 달 개수와 그 달 첫 항목의 순번 */
 /** 달 이동 (@newpick/shared) */
@@ -230,19 +231,7 @@ export default function MonthBar({
 	}, [active, daysMonth]);
 
 	// 펼친 달 목록: 바깥을 누르거나 Esc면 닫는다
-	useEffect(() => {
-		if (!open) return;
-		const close = (event: MouseEvent | KeyboardEvent) => {
-			if (event instanceof KeyboardEvent ? event.key === 'Escape' : !ref.current?.contains(event.target as Node))
-				setOpen(null);
-		};
-		document.addEventListener('mousedown', close);
-		document.addEventListener('keydown', close);
-		return () => {
-			document.removeEventListener('mousedown', close);
-			document.removeEventListener('keydown', close);
-		};
-	}, [open]);
+	useDismiss({ open: !!open, refs: [ref], onClose: () => setOpen(null) });
 
 	return (
 		<div

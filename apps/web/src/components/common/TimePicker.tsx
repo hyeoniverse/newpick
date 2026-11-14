@@ -2,6 +2,7 @@
 
 import type { FieldSize } from '@/types/ui';
 import { useEffect, useId, useRef, useState } from 'react';
+import { useDismiss } from '@/hooks/useDismiss';
 import { LuClock } from 'react-icons/lu';
 
 type Size = FieldSize;
@@ -35,25 +36,8 @@ export default function TimePicker({ value, onChange, label, minuteStep = 5, siz
 	// 간격에 없는 분(예: 08:07)도 목록에 보이게
 	const minutes = steps.includes(minute) ? steps : [...steps, minute].sort((a, b) => a - b);
 
-	// 바깥을 누르거나 Esc면 닫기
-	useEffect(() => {
-		if (!open) return;
-		const onDown = (event: MouseEvent) => {
-			if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-		};
-		const onKey = (event: KeyboardEvent) => {
-			if (event.key !== 'Escape') return;
-			// 시각 목록만 닫고, 이 칸을 담은 시트(모달)까지 닫히지 않게 여기서 멈춘다
-			event.stopPropagation();
-			setOpen(false);
-		};
-		document.addEventListener('mousedown', onDown);
-		document.addEventListener('keydown', onKey);
-		return () => {
-			document.removeEventListener('mousedown', onDown);
-			document.removeEventListener('keydown', onKey);
-		};
-	}, [open]);
+	// 바깥을 누르거나 Esc면 닫기. Esc는 시각 목록만 닫고, 이 칸을 담은 시트(모달)까지 닫히지 않게 멈춘다
+	useDismiss({ open, refs: [rootRef], onClose: () => setOpen(false), escape: 'stop' });
 
 	// 열면 고른 시 · 분이 보이게
 	useEffect(() => {

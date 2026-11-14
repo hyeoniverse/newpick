@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useDismiss } from '@/hooks/useDismiss';
 import { cx } from '@/styles/tw';
 import { LuArrowDown, LuArrowUp, LuArrowUpDown, LuChevronDown } from 'react-icons/lu';
 
@@ -37,29 +38,8 @@ export function HeaderSelect({ label, options, value, onChange, highlight = true
 	const rootRef = useRef<HTMLSpanElement>(null);
 	const open = pos !== null;
 
-	// 바깥을 누르거나 Esc · 스크롤 · 창 크기 바꾸면 닫기 (fixed라 자리가 어긋나지 않게)
-	useEffect(() => {
-		if (!open) return;
-		const close = () => setPos(null);
-		const onDown = (event: MouseEvent) => {
-			if (!rootRef.current?.contains(event.target as Node)) close();
-		};
-		const onKey = (event: KeyboardEvent) => event.key === 'Escape' && close();
-		// 목록 안을 스크롤할 때는 닫지 않는다 (바깥 페이지 · 표가 움직일 때만)
-		const onScroll = (event: Event) => {
-			if (!rootRef.current?.contains(event.target as Node)) close();
-		};
-		document.addEventListener('mousedown', onDown);
-		document.addEventListener('keydown', onKey);
-		window.addEventListener('scroll', onScroll, true);
-		window.addEventListener('resize', close);
-		return () => {
-			document.removeEventListener('mousedown', onDown);
-			document.removeEventListener('keydown', onKey);
-			window.removeEventListener('scroll', onScroll, true);
-			window.removeEventListener('resize', close);
-		};
-	}, [open]);
+	// 바깥을 누르거나 Esc · 스크롤 · 창 크기 바꾸면 닫기 (fixed라 자리가 어긋나지 않게). 목록 안 스크롤은 그대로
+	useDismiss({ open, refs: [rootRef], onClose: () => setPos(null), scroll: 'outside', resize: true });
 
 	return (
 		<span ref={rootRef}>
