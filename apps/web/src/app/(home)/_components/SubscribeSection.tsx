@@ -1,10 +1,10 @@
 'use client';
 
-import { ACTIONS, HOME } from '@/copy';
+import { HOME } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { CATEGORIES } from '@/constants/categories';
 import { useInputCheck } from '@/hooks/useInputCheck';
-import { useSubscribe } from '@/hooks/useSubscribe';
+import { useSubscribeFlow } from '@/hooks/useSubscribeFlow';
 import { useSelectInterests } from '@/hooks/useInterests';
 import { useAuth } from '@/hooks/useAuth';
 import { useTrends } from '@/hooks/useTrends';
@@ -14,10 +14,7 @@ import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
 import CardSlider from '@/components/common/slider/CardSlider';
 
-import ModalContents from '@/components/common/modal/ModalContent';
 import { BiCheck, BiPlus } from 'react-icons/bi';
-import { LuMailCheck } from 'react-icons/lu';
-import { useModal } from '@/hooks/useModal';
 import { useOpenLogin } from '@/hooks/useOpenLogin';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
@@ -25,12 +22,11 @@ import FullWidthPanel from '@/components/common/FullWidthPanel';
 const SubscribeSection = () => {
 	const { user } = useAuth();
 	const { trends } = useTrends();
-	const { isChanging: isChangingSubscription, handleSubscribe: startSubscription } = useSubscribe();
+	const { isChanging: isChangingSubscription, subscribe } = useSubscribeFlow(HOME.subscribed);
 
 	const { selectedInterests, handleSelectInterests } = useSelectInterests();
 	const checkName = 'home-agreement';
 	const { isChecked } = useInputCheck(checkName);
-	const { openModal, closeModal } = useModal();
 	const openLogin = useOpenLogin();
 
 	const handleSubscribe = async (e: React.FormEvent) => {
@@ -40,19 +36,7 @@ const SubscribeSection = () => {
 			return;
 		}
 
-		const isSuccess = await startSubscription({ interests: selectedInterests, isChecked: isChecked });
-
-		if (isSuccess) {
-			openModal(
-				<ModalContents
-					icon={<LuMailCheck />}
-					title={HOME.subscribed.title}
-					content={HOME.subscribed.body}
-					filledButton={ACTIONS.confirm}
-					onConfirmClick={closeModal}
-				/>,
-			);
-		}
+		await subscribe({ interests: selectedInterests, isChecked: isChecked });
 	};
 
 	if (!trends) return null;

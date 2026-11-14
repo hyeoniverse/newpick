@@ -7,11 +7,11 @@ import { useModal } from '@/hooks/useModal';
 import { useInputCheck } from '@/hooks/useInputCheck';
 import { useSelectInterests } from '@/hooks/useInterests';
 
-import { LuMailCheck, LuMailX } from 'react-icons/lu';
+import { LuMailX } from 'react-icons/lu';
 import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import ModalContent from '@/components/common/modal/ModalContent';
-import useSubscribe from '@/hooks/useSubscribe';
+import { useSubscribeFlow } from '@/hooks/useSubscribeFlow';
 import Title from '@/components/common/Title';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import ArgreementCheck from '@/components/common/article/AgreementCheck';
@@ -21,9 +21,9 @@ export default function StartSubscription() {
 	const {
 		status: isSubscribed = user?.isSubscribed,
 		isChanging: isChangingSubscription,
-		handleSubscribe: startSubscription,
+		subscribe,
 		handleCancel: cancelSubscription,
-	} = useSubscribe();
+	} = useSubscribeFlow(SUBSCRIPTION.done);
 	const initialInterests = mapIdToTitle(user?.interests ?? []);
 	const { selectedInterests = initialInterests || [], handleSelectInterests } = useSelectInterests();
 	const checkName = 'mypage-agreement';
@@ -31,20 +31,7 @@ export default function StartSubscription() {
 	const { openModal, closeModal } = useModal();
 
 	const handleSubscribe = async () => {
-		const isSuccess = await startSubscription({ interests: selectedInterests, isChecked: isChecked });
-
-		if (isSuccess) {
-			openModal(
-				<ModalContent
-					icon={<LuMailCheck />}
-					title={SUBSCRIPTION.done.title}
-					content={SUBSCRIPTION.done.body}
-					filledButton={ACTIONS.confirm}
-					onConfirmClick={closeModal}
-				/>,
-			);
-			setChecked(false);
-		}
+		if (await subscribe({ interests: selectedInterests, isChecked: isChecked })) setChecked(false);
 	};
 
 	const handleCancel = async () => {
