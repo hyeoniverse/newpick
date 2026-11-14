@@ -5,7 +5,7 @@ import { ROUTES } from '@/constants/routes';
 import { fetchArticleList, fetchSchedule } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { CATEGORY_OPTIONS } from '@/constants/categories';
 import FilterChips from '@/components/common/FilterChips';
@@ -17,6 +17,7 @@ import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
+import { useUrlDraft } from './AdminSearchField';
 import { when } from '../_lib/format';
 import type { ClockTime } from './ScheduleEditor';
 
@@ -74,12 +75,10 @@ export default function ArticlesList() {
 	const categoryId = Number(get('categoryId')) || 0;
 	const source = get('source');
 	const title = get('title');
-	const [titleInput, setTitleInput] = useState(title);
-	const [sourceInput, setSourceInput] = useState(source);
+	const [titleInput, setTitleInput] = useUrlDraft('title');
+	const [sourceInput, setSourceInput] = useUrlDraft('source');
 	// 목록에 없는 언론사로 거르는 중이면 직접 입력 칸을 연다
 	const [customSource, setCustomSource] = useState(false);
-	useEffect(() => setTitleInput(title), [title]);
-	useEffect(() => setSourceInput(source), [source]);
 
 	const sortQuery = useSortQuery();
 	// 주기를 나누는 기준: 관리자가 정한 AI 요약 시각 (기본 08:30)

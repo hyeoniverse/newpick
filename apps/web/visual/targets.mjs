@@ -27,6 +27,12 @@ export const PAGES = [
 	'/admin/users',
 	'/admin/subscribers',
 	'/admin/tags',
+	'/admin/mail',
+	// 검색어가 든 검색 칸 (주소 → 칸에 채워짐, #230 AdminSearchField)
+	'/admin/users?q=gmail',
+	'/admin/subscribers?q=gmail',
+	'/admin/mail?email=gmail',
+	'/admin/articles?title=%EA%B8%88%EB%A6%AC',
 ];
 
 /** 열린 상태: [이름, 화면, 할 일, 찍을 방식들] */
