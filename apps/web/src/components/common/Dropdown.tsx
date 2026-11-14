@@ -3,6 +3,7 @@
 import React, { useEffect, useId, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useDropdown } from '@/hooks/useDropdown';
+import { useDismiss } from '@/hooks/useDismiss';
 import { cx } from '@/styles/tw';
 
 interface Props {
@@ -28,32 +29,13 @@ const Dropdown = ({ type, children, toggleButton, className, label, style }: Pro
 		closeDropdown();
 	}, [pathname, closeDropdown]);
 
-	// 외부 클릭 시 닫기
-	useEffect(() => {
-		const handleOutsideClick = (event: MouseEvent) => {
-			if (!dropdownRef.current || dropdownRef.current.contains(event.target as Node)) return;
-			closeDropdown();
-		};
-
-		if (isDropdownOpen) {
-			document.addEventListener('mousedown', handleOutsideClick);
-		}
-		return () => {
-			document.removeEventListener('mousedown', handleOutsideClick);
-		};
-	}, [isDropdownOpen, closeDropdown]);
-
-	// Esc로 닫기
-	useEffect(() => {
-		if (!isDropdownOpen) return;
-		const handleKeydown = (event: KeyboardEvent) => {
-			if (event.key !== 'Escape') return;
-			closeDropdown();
-			buttonRef.current?.focus();
-		};
-		document.addEventListener('keydown', handleKeydown);
-		return () => document.removeEventListener('keydown', handleKeydown);
-	}, [isDropdownOpen, closeDropdown]);
+	// 바깥을 누르거나 Esc면 닫기. Esc면 여는 단추로 포커스를 돌린다
+	useDismiss({
+		open: isDropdownOpen,
+		refs: [dropdownRef],
+		onClose: closeDropdown,
+		afterEscape: () => buttonRef.current?.focus(),
+	});
 
 	return (
 		<div ref={dropdownRef} className={cx('np-dropdown', className)} style={style}>

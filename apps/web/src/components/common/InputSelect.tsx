@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState, useRef, useCallback, useEffect, useId } from 'react';
+import React, { useState, useRef, useCallback, useId } from 'react';
 import { LuChevronDown, LuCheck } from 'react-icons/lu';
+import { useDismiss } from '@/hooks/useDismiss';
 
 interface Props {
 	id?: string;
@@ -91,17 +92,8 @@ const InputSelect: React.FC<Props> = ({
 		}
 	};
 
-	const handleClickOutside = useCallback(
-		(e: MouseEvent) => {
-			if (isOpen && selectRef.current && !selectRef.current.contains(e.target as Node)) close();
-		},
-		[isOpen, close],
-	);
-
-	useEffect(() => {
-		document.addEventListener('mousedown', handleClickOutside);
-		return () => document.removeEventListener('mousedown', handleClickOutside);
-	}, [handleClickOutside]);
+	// 바깥을 누르면 닫기 (Esc는 위 키 처리가 맡는다)
+	useDismiss({ open: isOpen, refs: [selectRef], onClose: close, escape: false });
 
 	return (
 		<div ref={selectRef} data-open={isOpen || undefined} className={`np-select ${size} ${className ?? ''}`}>

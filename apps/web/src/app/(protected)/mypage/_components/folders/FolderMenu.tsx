@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
+import { useDismiss } from '@/hooks/useDismiss';
 import { createPortal } from 'react-dom';
 import { LuCheck, LuFolder, LuFolderPlus } from 'react-icons/lu';
 import { useFolderMutations, useFolders } from '@/hooks/useFolders';
@@ -35,28 +36,8 @@ export default function FolderMenu({ label, current, onPick, up = false, classNa
 	// 단추 바로 아래(또는 위)에 띄울 자리
 	const [place, setPlace] = useState<React.CSSProperties>({});
 
-	useEffect(() => {
-		if (!open) return;
-		const close = (event: MouseEvent) => {
-			const target = event.target as Node;
-			if (!boxRef.current?.contains(target) && !menuRef.current?.contains(target)) setOpen(false);
-		};
-		const onKey = (event: KeyboardEvent) => event.key === 'Escape' && setOpen(false);
-		// 화면에 붙여 띄우므로 실제로 스크롤하거나(40px 넘게) 크기가 바뀌면 닫는다 (누를 때 생기는 작은 움직임은 무시)
-		const openedAt = window.scrollY;
-		const dismiss = () => Math.abs(window.scrollY - openedAt) > 40 && setOpen(false);
-		document.addEventListener('mousedown', close);
-		document.addEventListener('keydown', onKey);
-		window.addEventListener('scroll', dismiss, { passive: true });
-		const onResize = () => setOpen(false);
-		window.addEventListener('resize', onResize);
-		return () => {
-			document.removeEventListener('mousedown', close);
-			document.removeEventListener('keydown', onKey);
-			window.removeEventListener('scroll', dismiss);
-			window.removeEventListener('resize', onResize);
-		};
-	}, [open]);
+	// 화면에 붙여 띄우므로 실제로 스크롤하거나(40px 넘게) 크기가 바뀌면 닫는다 (누를 때 생기는 작은 움직임은 무시)
+	useDismiss({ open, refs: [boxRef, menuRef], onClose: () => setOpen(false), scroll: 40, resize: true });
 
 	const toggle = () => {
 		const rect = boxRef.current?.getBoundingClientRect();
