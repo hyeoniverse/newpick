@@ -28,7 +28,7 @@ import { CATEGORIES } from '@/constants/categories';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import Button from '@/components/common/Button';
-import ModalContents from '@/components/common/modal/ModalContent';
+import ModalContent from '@/components/common/modal/ModalContent';
 import { SkeletonBlock } from '@/components/common/loader/Skeleton';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 import MoreLink from '@/components/common/MoreLink';
@@ -489,7 +489,7 @@ function MissingCategories({ date, label }: { date: string; label: string }) {
 function FillDay({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (date: string) => void }) {
 	const [date, setDate] = useState(kstDate(1));
 	return (
-		<ModalContents
+		<ModalContent
 			icon={<LuCalendarPlus />}
 			title="누락된 날짜 채우기"
 			content={ADMIN.jobs.fillBody}
@@ -510,6 +510,6 @@ function FillDay({ onCancel, onConfirm }: { onCancel: () => void; onConfirm: (da
 				/>
 			</label>
 			{date && <MissingCategories date={date} label="생성 항목" />}
-		</ModalContents>
+		</ModalContent>
 	);
 }

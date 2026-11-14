@@ -12,7 +12,8 @@ import { LuRotateCw } from 'react-icons/lu';
 
 import FilterChips from '@/components/common/FilterChips';
 import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
-import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
+import AdminSubPage from './AdminSubPage';
+import { Cols, tableMinWidth } from '@/components/common/TableHeader';
 import { HeaderSelect } from '@/components/common/TableHeader';
 import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';

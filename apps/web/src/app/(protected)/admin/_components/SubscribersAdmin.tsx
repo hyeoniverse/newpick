@@ -9,11 +9,13 @@ import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
 import StatusBadge from '@/components/common/StatusBadge';
 import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
-import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
+import AdminSubPage from './AdminSubPage';
+import { Cols, tableMinWidth } from '@/components/common/TableHeader';
 import { useAdminQuery } from './period';
 import AdminSearchField from './AdminSearchField';
 import { when } from '../_lib/format';
-import { AdminActions, SUBSCRIPTION_LABEL, subscriptionTone } from './UsersAdmin';
+import { AdminActions } from './AdminActions';
+import { SUBSCRIPTION_LABEL, subscriptionTone } from '../_lib/subscription';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = [undefined, '8rem', '7rem', '12rem', '9rem', '9rem'];

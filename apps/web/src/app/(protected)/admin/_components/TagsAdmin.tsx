@@ -21,7 +21,8 @@ import { mapIdToTitle } from '@/utils/mapInterests';
 import FilterChips from '@/components/common/FilterChips';
 import Pagination from '@/components/common/Pagination';
 import Button from '@/components/common/Button';
-import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
+import AdminSubPage from './AdminSubPage';
+import { Cols, tableMinWidth } from '@/components/common/TableHeader';
 import { when } from '../_lib/format';
 import { kstDate } from '@/utils/formatter';
 

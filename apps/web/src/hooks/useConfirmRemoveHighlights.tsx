@@ -1,7 +1,7 @@
 import { ACTIONS, HIGHLIGHTS } from '@/copy';
 import { useCallback } from 'react';
 import { LuStar, LuTriangleAlert } from 'react-icons/lu';
-import ModalContents from '@/components/common/modal/ModalContent';
+import ModalContent from '@/components/common/modal/ModalContent';
 import { useModal } from '@/hooks/useModal';
 import { Highlight, useHighlightMutations } from '@/hooks/useHighlights';
 
@@ -31,7 +31,7 @@ export function useConfirmRemoveHighlights() {
 
 			const askStarred = () =>
 				openModal(
-					<ModalContents
+					<ModalContent
 						icon={<LuStar />}
 						title={items.length === 1 ? HIGHLIGHTS.confirm.starredOne : HIGHLIGHTS.confirm.starredMany(starred)}
 						content={HIGHLIGHTS.confirm.starredBody}
@@ -49,7 +49,7 @@ export function useConfirmRemoveHighlights() {
 			}
 			const one = items[0];
 			openModal(
-				<ModalContents
+				<ModalContent
 					icon={<LuTriangleAlert />}
 					title={items.length === 1 ? HIGHLIGHTS.confirm.deleteOne : HIGHLIGHTS.confirm.deleteMany(items.length)}
 					content={

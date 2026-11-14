@@ -7,10 +7,11 @@ import { queryKeys } from '@/api/queryKeys';
 
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
-import AdminSubPage, { Cols, tableMinWidth } from './AdminSubPage';
+import AdminSubPage from './AdminSubPage';
+import { Cols, tableMinWidth } from '@/components/common/TableHeader';
 import { useAdminQuery } from './period';
 import { when } from '../_lib/format';
-import { AdminActions } from './UsersAdmin';
+import { AdminActions } from './AdminActions';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = ['7rem', '8rem', '10rem', '8rem', '8rem', undefined];

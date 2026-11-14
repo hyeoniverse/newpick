@@ -16,7 +16,7 @@ interface Props {
 	className?: string;
 }
 
-function WhyNewpickSection({ className }: Props) {
+function ExploreSection({ className }: Props) {
 	const checkName = 'about-agreement';
 	const { isChecked, setChecked } = useInputCheck(checkName);
 	const { isChanging: isChangingSubscription, subscribe } = useSubscribeFlow(HOME.subscribed);
@@ -57,4 +57,4 @@ function WhyNewpickSection({ className }: Props) {
 	);
 }
 
-export default WhyNewpickSection;
+export default ExploreSection;

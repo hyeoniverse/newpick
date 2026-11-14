@@ -1,7 +1,7 @@
 import { ACTIONS } from '@/copy';
 import { LuTriangleAlert } from 'react-icons/lu';
 import { errorMessage } from '@/api/client';
-import ModalContents from '@/components/common/modal/ModalContent';
+import ModalContent from '@/components/common/modal/ModalContent';
 import { useModal } from '@/hooks/useModal';
 import { useToast } from '@/hooks/useToast';
 
@@ -37,7 +37,7 @@ export function useConfirmAction() {
 		onDone?: (result: T) => void;
 	}) =>
 		openModal(
-			<ModalContents
+			<ModalContent
 				icon={<LuTriangleAlert />}
 				title={title}
 				content={content}
@@ -56,6 +56,6 @@ export function useConfirmAction() {
 				}}
 			>
 				{children}
-			</ModalContents>,
+			</ModalContent>,
 		);
 }

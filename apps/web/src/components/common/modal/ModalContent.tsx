@@ -18,7 +18,7 @@ interface ModalProps {
 const SPLIT = { flex: 1, minWidth: 0, '--btn-height': '2.75rem' } as React.CSSProperties;
 
 /** 확인 창 내용: 아이콘 · 제목 · 설명, 그 아래 단추 한두 개 (시트 ModalContainer 안에 넣는다) */
-function ModalContents({
+function ModalContent({
 	icon,
 	title,
 	content,
@@ -65,4 +65,4 @@ function ModalContents({
 	);
 }
 
-export default ModalContents;
+export default ModalContent;
