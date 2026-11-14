@@ -108,7 +108,7 @@ export class BasicRepositoryController {
     if (query.q && !booleanQuery) {
       throw new AppException(
         'BAD_REQUEST',
-        '검색어는 2글자 이상인 낱말로 입력해 주세요.',
+        '검색어는 두 글자 이상의 단어로 입력해 주십시오.',
       );
     }
     const from = query.from
@@ -116,7 +116,10 @@ export class BasicRepositoryController {
       : undefined;
     const to = query.to ? kstDayRange(query.to, query.to).end : undefined;
     if (from && to && from > to) {
-      throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦어요.');
+      throw new AppException(
+        'BAD_REQUEST',
+        '시작 날짜가 끝 날짜보다 늦습니다.',
+      );
     }
 
     const limit = query.limit ?? 10;

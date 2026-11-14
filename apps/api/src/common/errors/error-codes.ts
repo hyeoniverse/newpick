@@ -15,7 +15,7 @@ export const ERROR_CODES = {
   },
   VALIDATION_FAILED: {
     status: HttpStatus.BAD_REQUEST,
-    message: '입력값을 확인해 주세요.',
+    message: '입력값을 확인해 주십시오.',
   },
   UNAUTHORIZED: {
     status: HttpStatus.UNAUTHORIZED,
@@ -23,12 +23,12 @@ export const ERROR_CODES = {
   },
   SESSION_EXPIRED: {
     status: HttpStatus.UNAUTHORIZED,
-    message: '로그인이 만료되었습니다. 다시 로그인해 주세요.',
+    message: '로그인이 만료되었습니다. 다시 로그인해 주십시오.',
   },
   FORBIDDEN: { status: HttpStatus.FORBIDDEN, message: '권한이 없습니다.' },
   ADMIN_ONLY: {
     status: HttpStatus.FORBIDDEN,
-    message: '관리자만 할 수 있습니다.',
+    message: '관리자만 이용할 수 있습니다.',
   },
   NOT_FOUND: {
     status: HttpStatus.NOT_FOUND,
@@ -53,29 +53,29 @@ export const ERROR_CODES = {
   },
   TOO_MANY_REQUESTS: {
     status: HttpStatus.TOO_MANY_REQUESTS,
-    message: '요청이 너무 많습니다. 잠시 뒤 다시 시도해 주세요.',
+    message: '요청이 너무 많습니다. 잠시 후 다시 시도해 주십시오.',
   },
   INTERNAL_ERROR: {
     status: HttpStatus.INTERNAL_SERVER_ERROR,
-    message: '서버에 일시적인 문제가 생겼습니다. 잠시 뒤 다시 시도해 주세요.',
+    message: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주십시오.',
   },
   BAD_GATEWAY: {
     status: HttpStatus.BAD_GATEWAY,
-    message: '외부 서비스와 연결하지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
+    message: '외부 서비스와 연결하지 못했습니다. 잠시 후 다시 시도해 주십시오.',
   },
   SERVICE_UNAVAILABLE: {
     status: HttpStatus.SERVICE_UNAVAILABLE,
-    message: '지금은 이용할 수 없습니다. 잠시 뒤 다시 시도해 주세요.',
+    message: '지금은 이용할 수 없습니다. 잠시 후 다시 시도해 주십시오.',
   },
   GATEWAY_TIMEOUT: {
     status: HttpStatus.GATEWAY_TIMEOUT,
-    message: '외부 서비스 응답이 늦습니다. 잠시 뒤 다시 시도해 주세요.',
+    message: '외부 서비스 응답이 늦습니다. 잠시 후 다시 시도해 주십시오.',
   },
 
   // 로그인
   GOOGLE_LOGIN_UNAVAILABLE: {
     status: HttpStatus.SERVICE_UNAVAILABLE,
-    message: '지금은 구글 로그인을 쓸 수 없습니다.',
+    message: '지금은 구글 로그인을 이용할 수 없습니다.',
   },
 
   // 사이트 캐시 (#73)
@@ -85,7 +85,7 @@ export const ERROR_CODES = {
   },
   SITE_CACHE_FAILED: {
     status: HttpStatus.BAD_GATEWAY,
-    message: '사이트 캐시를 비우지 못했습니다. 잠시 뒤 다시 시도해 주세요.',
+    message: '사이트 캐시를 비우지 못했습니다. 잠시 후 다시 시도해 주십시오.',
   },
 
   // 뉴스레터·분야·발행본
@@ -103,7 +103,7 @@ export const ERROR_CODES = {
   },
   EDITION_NOT_FOUND: {
     status: HttpStatus.NOT_FOUND,
-    message: '고른 분야의 발행본이 없습니다.',
+    message: '선택한 분야의 뉴스레터가 없습니다.',
   },
   NEWS_NOT_FOUND: {
     status: HttpStatus.NOT_FOUND,
@@ -138,7 +138,7 @@ export const ERROR_CODES = {
   UNSUBSCRIBE_LINK_INVALID: {
     status: HttpStatus.BAD_REQUEST,
     message:
-      '수신 거부 링크가 올바르지 않습니다. 메일의 링크를 다시 눌러 주세요.',
+      '수신 거부 링크가 올바르지 않습니다. 메일의 링크를 다시 눌러 주십시오.',
   },
   ALREADY_SUBSCRIBED: {
     status: HttpStatus.CONFLICT,
@@ -146,7 +146,7 @@ export const ERROR_CODES = {
   },
   INVALID_INTERESTS: {
     status: HttpStatus.BAD_REQUEST,
-    message: '관심 분야를 다시 골라 주세요.',
+    message: '관심 분야를 다시 선택해 주십시오.',
   },
   EMAIL_UNCHANGED: {
     status: HttpStatus.BAD_REQUEST,
@@ -159,7 +159,7 @@ export const ERROR_CODES = {
   EMAIL_CODE_TOO_SOON: {
     status: HttpStatus.TOO_MANY_REQUESTS,
     message:
-      '인증 코드는 1분에 한 번 요청할 수 있습니다. 잠시 후 다시 시도해 주세요.',
+      '인증 코드는 1분에 한 번 요청할 수 있습니다. 잠시 후 다시 시도해 주십시오.',
   },
   EMAIL_CODE_INVALID: {
     status: HttpStatus.BAD_REQUEST,
@@ -167,7 +167,7 @@ export const ERROR_CODES = {
   },
   EMAIL_CODE_EXPIRED: {
     status: HttpStatus.BAD_REQUEST,
-    message: '인증 코드가 만료되었습니다. 인증 코드를 다시 요청해 주세요.',
+    message: '인증 코드가 만료되었습니다. 코드를 다시 받아 주십시오.',
   },
   // 이름 목록은 @newpick/shared (웹과 같은 이름). 하나라도 빠지거나 남으면 타입 오류
 } as const satisfies Record<ErrorCode, { status: HttpStatus; message: string }>;

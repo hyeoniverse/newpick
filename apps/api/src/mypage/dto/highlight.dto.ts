@@ -29,13 +29,13 @@ export class CreateHighlightDto {
   section?: string;
 
   @IsString()
-  @MinLength(2, { message: '두 글자 이상 골라 주세요.' })
-  @MaxLength(500, { message: '한 번에 500자까지 스크랩할 수 있어요.' })
+  @MinLength(2, { message: '두 글자 이상 선택해 주십시오.' })
+  @MaxLength(500, { message: '한 번에 500자까지 스크랩할 수 있습니다.' })
   text: string;
 
   @IsOptional()
   @IsString()
-  @MaxLength(2000, { message: '메모는 2,000자까지 쓸 수 있어요.' })
+  @MaxLength(2000, { message: '메모는 2,000자까지 입력할 수 있습니다.' })
   note?: string;
 }
 
@@ -43,7 +43,7 @@ export class CreateHighlightDto {
 export class UpdateHighlightDto {
   @IsOptional()
   @IsString()
-  @MaxLength(2000, { message: '메모는 2,000자까지 쓸 수 있어요.' })
+  @MaxLength(2000, { message: '메모는 2,000자까지 입력할 수 있습니다.' })
   note?: string;
 
   @IsOptional()
@@ -145,8 +145,8 @@ export class BulkHighlightsDto {
 export class FolderDto {
   @IsString()
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
-  @MinLength(1, { message: '폴더 이름을 적어 주세요.' })
-  @MaxLength(30, { message: '폴더 이름은 30자까지예요.' })
+  @MinLength(1, { message: '폴더 이름을 입력해 주십시오.' })
+  @MaxLength(30, { message: '폴더 이름은 30자까지 입력할 수 있습니다.' })
   name: string;
 }
 
@@ -159,7 +159,7 @@ export class DeleteFolderQueryDto {
   /** move일 때 옮길 폴더 */
   @ValidateIf((o: DeleteFolderQueryDto) => o.contents === 'move')
   @Type(() => Number)
-  @IsInt({ message: '옮길 폴더를 골라 주세요.' })
+  @IsInt({ message: '옮길 폴더를 선택해 주십시오.' })
   @Min(1)
   to?: number;
 }

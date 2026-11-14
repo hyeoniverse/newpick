@@ -120,7 +120,8 @@ export class FollowsService {
     const story = allStories(parseNewsletterHtml(newsletter.contentAsHTML))[
       storyIndex - 1
     ];
-    if (!story) throw new AppException('NOT_FOUND', '그 소식이 없습니다.');
+    if (!story)
+      throw new AppException('NOT_FOUND', '해당 소식을 찾을 수 없습니다.');
     const follow = await this.prisma.storyFollow.upsert({
       where: {
         userId_newsletterId_storyIndex: { userId, newsletterId, storyIndex },

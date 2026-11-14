@@ -53,14 +53,14 @@ export class AdminController {
   async removeTag(@Body() body: RemoveTagDto) {
     const data = await this.tags.remove(body.tag);
     await this.siteCache.refresh('태그 지우기');
-    return { message: '태그를 지웠습니다.', data };
+    return { message: '태그를 삭제했습니다.', data };
   }
 
   /** 규칙 지우기 (이미 바꾼 태그는 그대로, 앞으로의 새 뉴스레터만) */
   @Delete('tags/rules/:id')
   async deleteTagRule(@Param('id', ParseIntPipe) id: number) {
     return {
-      message: '규칙을 지웠습니다.',
+      message: '규칙을 삭제했습니다.',
       data: await this.tags.deleteRule(id),
     };
   }
@@ -97,7 +97,7 @@ export class AdminController {
   @Delete('users/:id')
   async deleteUser(@Param('id', ParseIntPipe) id: number, @Req() req) {
     return {
-      message: '사용자를 지웠습니다.',
+      message: '사용자를 삭제했습니다.',
       data: await this.adminService.deleteUser(id, Number(req.user?.id)),
     };
   }
@@ -135,7 +135,7 @@ export class AdminController {
     @Req() req,
   ) {
     return {
-      message: '권한을 바꿨습니다.',
+      message: '권한을 변경했습니다.',
       data: await this.adminService.updateUser(
         id,
         updateDto,

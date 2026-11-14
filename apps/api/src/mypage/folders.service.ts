@@ -16,7 +16,7 @@ export async function assertOwnFolder(
     where: { id, userId },
     select: { id: true },
   });
-  if (!found) throw new AppException('NOT_FOUND', '폴더를 찾을 수 없어요.');
+  if (!found) throw new AppException('NOT_FOUND', '폴더를 찾을 수 없습니다.');
 }
 
 /**
@@ -55,7 +55,7 @@ export class FoldersService {
     if (count >= MAX_FOLDERS) {
       throw new AppException(
         'BAD_REQUEST',
-        `폴더는 ${MAX_FOLDERS}개까지 만들 수 있어요.`,
+        `폴더는 ${MAX_FOLDERS}개까지 만들 수 있습니다.`,
       );
     }
     await this.uniqueName(userId, name);
@@ -92,7 +92,10 @@ export class FoldersService {
     const inFolder = { userId, folderId: id };
     if (contents === 'move') {
       if (!to || to === id)
-        throw new AppException('BAD_REQUEST', '옮길 다른 폴더를 골라 주세요.');
+        throw new AppException(
+          'BAD_REQUEST',
+          '옮길 다른 폴더를 선택해 주십시오.',
+        );
       await assertOwnFolder(this.prisma, userId, to);
       const data = { folderId: to };
       await this.prisma.$transaction([
@@ -118,6 +121,7 @@ export class FoldersService {
       where: { userId, name, ...(exceptId && { NOT: { id: exceptId } }) },
       select: { id: true },
     });
-    if (same) throw new AppException('CONFLICT', '같은 이름의 폴더가 있어요.');
+    if (same)
+      throw new AppException('CONFLICT', '같은 이름의 폴더가 이미 있습니다.');
   }
 }

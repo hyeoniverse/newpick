@@ -108,7 +108,7 @@ export const backfillAt = (
   if (date < oldest) {
     throw new AppException(
       'BAD_REQUEST',
-      `수집한 기사는 ${BACKFILL_MAX_DAYS}일간 보관되어 ${oldest}부터 다시 생성할 수 있습니다.`,
+      `수집한 기사는 ${BACKFILL_MAX_DAYS}일 동안만 보관하므로 ${oldest}부터 다시 생성할 수 있습니다.`,
     );
   }
   return kstTimeOf(
@@ -240,7 +240,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     if (!(crawl < summary && summary < mail)) {
       throw new AppException(
         'BAD_REQUEST',
-        '기사 수집 → AI 요약 → 구독 메일 순서로, 앞 작업보다 늦은 시각을 골라 주세요.',
+        '기사 수집 → AI 요약 → 구독 메일 순서로, 앞 작업보다 늦은 시각을 선택해 주십시오.',
       );
     }
     const data = {
@@ -863,7 +863,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     if (newsletter.createdAt.getTime() < oldest) {
       throw new AppException(
         'BAD_REQUEST',
-        `수집한 기사는 ${BACKFILL_MAX_DAYS}일간 보관되어 그보다 오래된 뉴스레터는 다시 작성할 수 없습니다.`,
+        `수집한 기사는 ${BACKFILL_MAX_DAYS}일 동안만 보관하므로 그보다 오래된 뉴스레터는 다시 작성할 수 없습니다.`,
       );
     }
     // 그 뉴스레터를 만든 시각까지 모은 기사로 (그때와 같은 재료)

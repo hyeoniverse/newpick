@@ -62,7 +62,7 @@ describe('DashboardService 기간 (#21)', () => {
     const { service } = setup();
     await expect(
       service.getDashboard('2026-10-07', '2026-10-01'),
-    ).rejects.toThrow('시작 날짜가 끝 날짜보다 늦어요.');
+    ).rejects.toThrow('시작 날짜가 끝 날짜보다 늦습니다.');
     await expect(
       service.getDashboard('2026-01-01', '2026-10-01'),
     ).rejects.toThrow('92일');
