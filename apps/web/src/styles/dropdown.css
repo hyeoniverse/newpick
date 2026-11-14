@@ -119,8 +119,8 @@
 				display: block;
 				border-bottom: 1px solid transparent;
 				cursor: default;
-				/* 뒤 화면 어둡게: 패널 뒤에 고정 덮개(::before, z-index -1)를 두고 투명도만 바꾼다 (그림자 100vmax를 매 프레임 다시 그리면 버벅인다).
-				   덮개는 패널 바탕보다 위에 그려지므로, 메뉴 바탕색은 안쪽 nav에 준다 */
+				/* 오버레이: 패널 뒤에 고정 ::before(z-index -1)를 두고 투명도만 바꾼다 (그림자 100vmax를 매 프레임 다시 그리면 버벅인다).
+				   오버레이는 패널 바탕보다 위에 그려지므로, 메뉴 바탕색은 안쪽 nav에 준다. 클릭은 받지 않는다(pointer-events: none) */
 				isolation: isolate;
 
 				&::before {

@@ -86,14 +86,14 @@ test.describe('비로그인 탐색', () => {
 		await expect(page).toHaveURL(/\/$/);
 	});
 
-	test('메뉴의 어두운 덮개를 눌러 닫을 때 뒤의 카드까지 눌리지 않는다', async ({ page }) => {
+	test('메뉴 오버레이를 눌러 닫을 때 뒤의 카드까지 눌리지 않는다', async ({ page }) => {
 		// 메뉴(drawer)는 태블릿 폭 이하에서만 보인다
 		await page.setViewportSize({ width: 900, height: 1000 });
 		await page.goto('/articles');
 		await page.getByRole('button', { name: '메뉴' }).click();
 		await expect(page.getByRole('navigation', { name: '메뉴' })).toBeVisible();
 
-		// 덮개는 그림이라 그 자리의 실제 요소는 뒤의 카드 링크다. 그런 자리를 아래에서부터 찾는다
+		// 오버레이는 ::before라 클릭을 받지 않아, 그 자리의 실제 요소는 뒤의 카드 링크다. 그런 자리를 아래에서부터 찾는다
 		const point = await page.evaluate(() => {
 			for (let y = window.innerHeight - 40; y > window.innerHeight / 2; y -= 20) {
 				const x = window.innerWidth / 2;
