@@ -11,6 +11,7 @@ import Button from '@/components/common/Button';
 import Text from '@/components/common/Text';
 import Title from '@/components/common/Title';
 import { describeUserAgent } from '@/utils/userAgent';
+import { monthDay } from '@/utils/formatter';
 
 const SESSIONS_KEY = queryKeys.loginSessions;
 
@@ -22,9 +23,7 @@ function ago(iso: string) {
 	if (hours < 24) return `${hours}시간 전`;
 	const days = Math.floor(hours / 24);
 	if (days < 7) return `${days}일 전`;
-	return new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(
-		new Date(iso),
-	);
+	return monthDay(iso);
 }
 
 /**

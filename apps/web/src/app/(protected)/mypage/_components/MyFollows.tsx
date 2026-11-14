@@ -11,10 +11,7 @@ import Skeleton from '@/components/common/loader/Skeleton';
 import { StoryFollow, useFollowMutations, useFollows } from '@/hooks/useFollows';
 import ListHead from '@/app/(protected)/mypage/_components/list/ListHead';
 import TagFollows from '@/app/(protected)/mypage/_components/follows/TagFollows';
-
-/** '10월 31일' (한국 시각) */
-const day = (iso: string) =>
-	new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(iso));
+import { monthDay } from '@/utils/formatter';
 
 /**
  * 마이페이지 > 지켜보기: 지켜보는 소식마다 이어진 새 소식을 시간순으로 (처음 소식 → 후속들), 그 위에 팔로우한 태그(#123, 짧아서 먼저).
@@ -88,8 +85,8 @@ function FollowCard({
 			<div className="follow-head">
 				<p className="meta">
 					<span className="category">{follow.newsletter.category.name}</span>
-					<span className="nowrap">{day(follow.newsletter.createdAt)} 소식</span>
-					<span className="nowrap">{day(follow.createdAt)}부터 지켜보는 중</span>
+					<span className="nowrap">{monthDay(follow.newsletter.createdAt)} 소식</span>
+					<span className="nowrap">{monthDay(follow.createdAt)}부터 지켜보는 중</span>
 				</p>
 				<button type="button" className="stop" onClick={onUnfollow}>
 					그만 지켜보기
@@ -104,7 +101,7 @@ function FollowCard({
 					{follow.updates.map((u) => (
 						<li key={u.id}>
 							<p className="when">
-								{day(u.newsletter.createdAt)}
+								{monthDay(u.newsletter.createdAt)}
 								<span className="category">{u.newsletter.category.name}</span>
 								{fresh.has(u.id) && <span className="new">새 소식</span>}
 							</p>

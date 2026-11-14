@@ -4,6 +4,7 @@ import type { FieldSize } from '@/types/ui';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useDismiss } from '@/hooks/useDismiss';
 import { LuClock } from 'react-icons/lu';
+import { pad2 } from '@/utils/formatter';
 
 type Size = FieldSize;
 
@@ -18,8 +19,6 @@ interface Props {
 	size?: Size;
 	className?: string;
 }
-
-const pad = (n: number) => String(n).padStart(2, '0');
 
 /**
  * 시각 고르기 (공통). 날짜 고르기(DatePicker)와 같은 모양의 칸, 늘 24시간 'HH:mm'.
@@ -80,9 +79,9 @@ export default function TimePicker({ value, onChange, label, minuteStep = 5, siz
 									type="button"
 									role="option"
 									aria-selected={h === hour}
-									onClick={() => onChange(`${pad(h)}:${pad(minute)}`)}
+									onClick={() => onChange(`${pad2(h)}:${pad2(minute)}`)}
 								>
-									{pad(h)}
+									{pad2(h)}
 								</button>
 							</li>
 						))}
@@ -95,11 +94,11 @@ export default function TimePicker({ value, onChange, label, minuteStep = 5, siz
 									role="option"
 									aria-selected={m === minute}
 									onClick={() => {
-										onChange(`${pad(hour)}:${pad(m)}`);
+										onChange(`${pad2(hour)}:${pad2(m)}`);
 										setOpen(false);
 									}}
 								>
-									{pad(m)}
+									{pad2(m)}
 								</button>
 							</li>
 						))}

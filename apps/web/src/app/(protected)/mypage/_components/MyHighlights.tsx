@@ -21,7 +21,7 @@ import { uniqueItems, useInfiniteSentinel } from '@/hooks/useBidirectionalPages'
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/useToast';
 import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
-import { dateFormatter } from '@/utils/formatter';
+import { dateFormatter, kstDate, kstDateOf, monthDay } from '@/utils/formatter';
 import MyTaste from './MyTaste';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import { setFolderDragGhost } from '../_lib/dragGhost';
@@ -50,13 +50,10 @@ function asText(items: Highlight[]) {
 		.join('\n\n');
 }
 
-/** 스크랩한 날 (한국 시각 'YYYY-MM-DD') */
-const dayOf = (iso: string) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date(iso));
-
 /** 날짜 머리: 오늘 · 어제 · 올해는 '10월 27일 (화)', 지난해부터는 '2025년 10월 27일 (월)' */
 function dayLabel(day: string) {
-	const today = dayOf(new Date().toISOString());
-	const yesterday = dayOf(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+	const today = kstDate(0);
+	const yesterday = kstDate(1);
 	if (day === today) return '오늘';
 	if (day === yesterday) return '어제';
 	const date = new Date(`${day}T12:00:00+09:00`);
@@ -75,7 +72,7 @@ function dayLabel(day: string) {
 function byDay(items: Highlight[]) {
 	const groups: { day: string; items: Highlight[] }[] = [];
 	for (const item of items) {
-		const day = dayOf(item.createdAt);
+		const day = kstDateOf(item.createdAt);
 		const last = groups[groups.length - 1];
 		if (last?.day === day) last.items.push(item);
 		else groups.push({ day, items: [item] });
@@ -85,10 +82,6 @@ function byDay(items: Highlight[]) {
 
 /** 작은 화면에서 블록마다 처음에 보일 문장 수 (나머지는 '문장 N개 더 보기') */
 const QUOTES_SMALL = 2;
-
-/** 뉴스레터가 나온 날: '10월 28일' (한국 시각) */
-const issuedLabel = (iso: string) =>
-	new Intl.DateTimeFormat('ko-KR', { month: 'long', day: 'numeric', timeZone: 'Asia/Seoul' }).format(new Date(iso));
 
 /** 하루 안에서 이어진 같은 소식(뉴스레터 · 구역)의 스크랩을 한 블록으로: 스크랩은 소식 단위로 하므로 블록도 소식 단위 */
 function byStory(items: Highlight[]) {
@@ -344,7 +337,7 @@ export default function MyHighlights() {
 																		<li>{newsletter.category.name}</li>
 																	</ul>
 																	{/* 이 소식이 실린 뉴스레터가 나온 날 (위 날짜는 스크랩한 날) */}
-																	<p className="news-issued">{issuedLabel(newsletter.createdAt)} 뉴스레터</p>
+																	<p className="news-issued">{monthDay(newsletter.createdAt)} 뉴스레터</p>
 																	{/* 그 소식의 태그 (누르면 그 태그의 뉴스레터 목록) */}
 																	{tags.length > 0 && <Tags tags={tags} max={4} className="news-tags" linkable />}
 																</>

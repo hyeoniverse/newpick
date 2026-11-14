@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from 'react';
 import { LuChevronDown, LuChevronLeft, LuChevronRight, LuChevronUp } from 'react-icons/lu';
 import { cx } from '@/styles/tw';
 import { useDismiss } from '@/hooks/useDismiss';
+import { kstDateOf } from '@/utils/formatter';
 
 /** 바로 가기용 달 (서버가 거르기 · 정렬을 적용한 순서로 준다): 그 달 개수와 그 달 첫 항목의 순번 */
 /** 달 이동 (@newpick/shared) */
@@ -22,8 +23,7 @@ const dayLabel = (iso: string) =>
 	new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', day: 'numeric' }).format(new Date(iso));
 
 /** 한국 시각 달 'YYYY-MM' */
-export const monthOf = (iso: string) =>
-	new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' }).format(new Date(iso)).slice(0, 7);
+export const monthOf = (iso: string) => kstDateOf(iso).slice(0, 7);
 
 /** '2026년 10월' */
 export const monthLabel = (month: string) => `${month.slice(0, 4)}년 ${Number(month.slice(5))}월`;

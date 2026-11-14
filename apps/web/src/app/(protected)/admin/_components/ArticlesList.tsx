@@ -20,6 +20,7 @@ import { useAdminQuery } from './period';
 import { useUrlDraft } from './AdminSearchField';
 import { when } from '../_lib/format';
 import type { ClockTime } from './ScheduleEditor';
+import { pad2 } from '@/utils/formatter';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = ['8.75rem', '8.75rem', '7.5rem', '7.5rem', undefined, '15rem'];
@@ -27,8 +28,6 @@ const COLS = ['8.75rem', '8.75rem', '7.5rem', '7.5rem', undefined, '15rem'];
 /** 기사 작성 시각 'YYYY-MM-DD HH:mm:ss'(KST, 네이버 기사 날짜) → 수집 시각과 같은 모양으로 */
 const publishedText = (value: string | null, today: string) =>
 	value ? when(new Date(`${value.replace(' ', 'T')}+09:00`).toISOString(), today) : '-';
-
-const pad = (n: number) => String(n).padStart(2, '0');
 
 /**
  * 주기 = 수집 → AI 요약 → 뉴스레터 생성 한 바퀴. 전날 요약 시각부터 그날 요약 시각까지 모은 기사가
@@ -46,7 +45,7 @@ const cycleOf = (createdAt: string, summary: ClockTime) => {
 const cycleLabel = (day: string, summary: ClockTime) => {
 	const end = new Date(`${day}T00:00:00Z`);
 	const start = new Date(end.getTime() - 24 * 60 * 60 * 1000);
-	const time = `${pad(summary.hour)}:${pad(summary.minute)}`;
+	const time = `${pad2(summary.hour)}:${pad2(summary.minute)}`;
 	const md = (d: Date) => d.toISOString().slice(5, 10);
 	return `${md(end)} 뉴스레터 · ${md(start)} ${time} ~ ${md(end)} ${time} 수집`;
 };

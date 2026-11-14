@@ -18,6 +18,7 @@ import { PeriodHeaderFilter, SortHeader, useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { PROCESS_LABEL, usd, when } from '../_lib/format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
+import { kstDateOf } from '@/utils/formatter';
 
 /** 가로로 넘겨도 왼쪽에 고정하는 칸 폭: 시각 · 분야 · 결과 (무엇이 언제 어떻게 됐는지) */
 const PINNED = ['9rem', '3.5rem', '9rem'];
@@ -36,9 +37,6 @@ const STATUSES = [
 	{ value: 'error', label: '실패' },
 ];
 
-/** 기록이 남은 날 (KST, YYYY-MM-DD) */
-const kstDay = (iso: string) => new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Seoul' });
-
 /**
  * 다시 만들 수 있는 기록: 분야가 있는 요약이 실패했고, 그 묶음의 마지막 시도도 실패로 끝난 것.
  * (묶음 중간 실패는 뒤에서 이미 다시 시도했다)
@@ -54,7 +52,7 @@ function useRerun() {
 	const confirm = useConfirmAction();
 	const queryClient = useQueryClient();
 	return (log: AiLogRow) => {
-		const date = kstDay(log.createdAt);
+		const date = kstDateOf(log.createdAt);
 		confirm({
 			title: ADMIN.aiLogs.rerunTitle(date, log.category ?? ''),
 			content: ADMIN.aiLogs.rerunBody,
