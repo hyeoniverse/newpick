@@ -2,7 +2,7 @@
 
 import { ACTIONS, HIGHLIGHTS } from '@/copy';
 import { ROUTES } from '@/constants/routes';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import StarToggle from '@/components/common/icons/StarToggle';
 import Tags from '@/components/common/Tags';
@@ -17,6 +17,7 @@ import InputCheck from '@/components/common/InputCheck';
 import Skeleton from '@/components/common/loader/Skeleton';
 import { errorStateFor, statusOf } from '@/copy/errors';
 import { Highlight, useHighlightMutations, useHighlightPages } from '@/hooks/useHighlights';
+import { uniqueItems, useInfiniteSentinel } from '@/hooks/useBidirectionalPages';
 import { useFolders } from '@/hooks/useFolders';
 import { useToast } from '@/hooks/useToast';
 import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
@@ -136,25 +137,11 @@ export default function MyHighlights() {
 		isFetchingNextPage,
 		isFetchingPreviousPage,
 	} = useHighlightPages(filters, startOffset);
-	// 앞 쪽이 겹치지 않게 (건너뛴 자리가 한 쪽 수의 배수가 아니면 앞 쪽 끝이 겹칠 수 있다)
-	const seen = new Set<number>();
-	const items = data?.pages.flatMap((p) => p.items).filter((h) => !seen.has(h.id) && seen.add(h.id));
+	const items = data && uniqueItems(data.pages, (h) => h.id);
 	// 아래 끝 표시: 화면에 들어오면 다음 쪽
-	const endRef = useRef<HTMLDivElement>(null);
+	const endRef = useInfiniteSentinel({ hasNextPage, isFetchingNextPage, fetchNextPage, itemCount: items?.length });
 	// 고르기 막대가 바닥에 붙어 있는 동안 위·아래 스크롤 버튼을 그 위로
 	const liftScrollButtons = useLiftScrollButtons();
-	useEffect(() => {
-		const el = endRef.current;
-		if (!el || !hasNextPage) return;
-		const observer = new IntersectionObserver(
-			(entries) => {
-				if (entries[0].isIntersecting && !isFetchingNextPage) fetchNextPage();
-			},
-			{ rootMargin: '400px 0px' },
-		);
-		observer.observe(el);
-		return () => observer.disconnect();
-	}, [hasNextPage, isFetchingNextPage, fetchNextPage, items?.length]);
 	// 거르기 · 정렬을 바꾸면 맨 위부터
 	const refilter =
 		<T,>(set: (value: T) => void) =>
