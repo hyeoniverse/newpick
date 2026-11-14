@@ -15,10 +15,12 @@ interface Props {
 	style?: React.CSSProperties;
 	/** 여닫는 버튼의 이름 (화면 읽기 프로그램용). 버튼 안이 그림뿐이라 꼭 준다 */
 	label: string;
+	/** 뒤 화면을 어둡게 덮는 메뉴(drawer): 덮개를 눌러 닫을 때 그 클릭이 뒤 화면까지 가지 않게 */
+	overlay?: boolean;
 }
 
 /** 버튼으로 여닫는 메뉴. 키보드로도 열고(Enter · Space) Esc로 닫으면 버튼으로 포커스를 돌린다 (#16) */
-const Dropdown = ({ type, children, toggleButton, className, label, style }: Props) => {
+const Dropdown = ({ type, children, toggleButton, className, label, style, overlay = false }: Props) => {
 	const pathname = usePathname();
 	const { isDropdownOpen, closeDropdown, toggleDropdown } = useDropdown(type);
 	const dropdownRef = useRef<HTMLDivElement>(null);
@@ -35,6 +37,7 @@ const Dropdown = ({ type, children, toggleButton, className, label, style }: Pro
 		refs: [dropdownRef],
 		onClose: closeDropdown,
 		afterEscape: () => buttonRef.current?.focus(),
+		blockClickThrough: overlay,
 	});
 
 	return (
