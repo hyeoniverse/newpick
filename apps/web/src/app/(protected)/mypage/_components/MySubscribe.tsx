@@ -1,13 +1,12 @@
 'use client';
 
-import { COMMON, MAILS } from '@/copy';
+import { MAILS } from '@/copy';
 import { ROUTES } from '@/constants/routes';
-import { queryKeys } from '@/api/queryKeys';
 
-import { useEffect, useRef, useState } from 'react';
-import { useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { LuChevronRight, LuMailPlus, LuMail, LuNewspaper } from 'react-icons/lu';
-import { fetchMyMails, markMail } from '@/api/mails';
+import { MAIL_PAGE_SIZE, useMailPages, useMarkMail } from '@/hooks/useMails';
+import { uniqueItems, useInfiniteSentinel } from '@/hooks/useBidirectionalPages';
 import { useTab } from '@/hooks/useTab';
 import { useAuth } from '@/hooks/useAuth';
 import useSubscribe from '@/hooks/useSubscribe';
@@ -22,7 +21,6 @@ import Skeleton from '@/components/common/loader/Skeleton';
 import FilterChips from '@/components/common/FilterChips';
 import { errorStateFor, statusOf } from '@/copy/errors';
 import { useFolders } from '@/hooks/useFolders';
-import { useToast } from '@/hooks/useToast';
 import FolderBar, { FolderFilter } from './folders/FolderBar';
 import { setFolderDragGhost } from '../_lib/dragGhost';
 import FolderMenu from './folders/FolderMenu';
@@ -32,24 +30,7 @@ import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/M
 /** 작은 화면에서 '오늘을 한눈에' 소식을 몇 개까지 보일지 (나머지는 '외 N개') */
 const GLANCE_SMALL = 3;
 
-/** 한 번에 받아 오는 메일 수 (무한 스크롤 한 묶음, 서버는 20통까지) */
-const PAGE_SIZE = 10;
-
 /** 받은 메일 · 짜임새 · 한 쪽 (@newpick/shared, api 응답과 같다) */
-
-/** 받은 메일 한 통 표시 (중요 · 폴더). 목록 · 폴더 개수를 다시 받는다 */
-const useMarkMail = () => {
-	const queryClient = useQueryClient();
-	const { showToast } = useToast();
-	return useMutation({
-		mutationFn: (body: { sentAt: string; starred?: boolean; folderId?: number | null }) => markMail(body),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.mails.all });
-			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
-		},
-		onError: () => showToast(COMMON.changeFailedRetry, 'error'),
-	});
-};
 
 /** '10월 27일 (월) 오전 8:40' (한국 시각) */
 const sentText = (iso: string) =>
@@ -101,40 +82,13 @@ export default function MySubscribe() {
 		hasPreviousPage,
 		isFetchingNextPage,
 		isFetchingPreviousPage,
-	} = useInfiniteQuery({
-		queryKey: queryKeys.mails.page(user?.id, filters, startOffset),
-		queryFn: async ({ pageParam }) => ({
-			...(await fetchMyMails(pageParam, PAGE_SIZE, filters)),
-			offset: pageParam,
-		}),
-		initialPageParam: startOffset,
-		getNextPageParam: (last) => (last.offset + last.items.length < last.total ? last.offset + PAGE_SIZE : undefined),
-		getPreviousPageParam: (first) => (first.offset > 0 ? Math.max(0, first.offset - PAGE_SIZE) : undefined),
-		enabled: !!user,
-		placeholderData: (previous) => previous,
-	});
-	// 앞 묶음이 겹치지 않게 (건너뛴 자리가 PAGE_SIZE의 배수가 아니면 앞 묶음 끝이 겹칠 수 있다)
-	const seen = new Set<string>();
-	const allItems = (pages?.pages ?? [])
-		.flatMap((p) => p.items)
-		.filter((m) => !seen.has(m.sentAt) && seen.add(m.sentAt));
+	} = useMailPages(filters, startOffset);
+	const allItems = uniqueItems(pages?.pages, (m) => m.sentAt);
 	const latest = pages?.pages[pages.pages.length - 1];
 	const data = latest && { ...latest, items: allItems };
 
 	// 아래 끝 표시: 화면에 들어오면 다음 묶음
-	const endRef = useRef<HTMLDivElement>(null);
-	useEffect(() => {
-		const el = endRef.current;
-		if (!el || !hasNextPage) return;
-		const observer = new IntersectionObserver(
-			(entries) => {
-				if (entries[0].isIntersecting && !isFetchingNextPage) fetchNextPage();
-			},
-			{ rootMargin: '400px 0px' },
-		);
-		observer.observe(el);
-		return () => observer.disconnect();
-	}, [hasNextPage, isFetchingNextPage, fetchNextPage, allItems.length]);
+	const endRef = useInfiniteSentinel({ hasNextPage, isFetchingNextPage, fetchNextPage, itemCount: allItems.length });
 
 	// 거르기를 바꾸면 맨 위부터
 	const refilter =
@@ -378,7 +332,7 @@ export default function MySubscribe() {
 			{/* 무한 스크롤: 이 표시가 보이면 다음 묶음 */}
 			<div ref={endRef} className="list-end" aria-hidden />
 			{isFetchingNextPage && <p className="list-status">메일을 더 불러오는 중…</p>}
-			{!hasNextPage && data.total > PAGE_SIZE && <p className="list-status">{MAILS.end}</p>}
+			{!hasNextPage && data.total > MAIL_PAGE_SIZE && <p className="list-status">{MAILS.end}</p>}
 		</div>
 	);
 }

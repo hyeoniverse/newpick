@@ -12,7 +12,8 @@ import {
 	fetchTaste,
 	updateHighlight,
 } from '@/api/highlights';
-import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useBidirectionalPages } from '@/hooks/useBidirectionalPages';
 import { errorMessage } from '@/api/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
@@ -42,18 +43,12 @@ export const HIGHLIGHT_PAGE_SIZE = 30;
  */
 export function useHighlightPages(filters: string, startOffset = 0) {
 	const { user } = useAuth();
-	return useInfiniteQuery({
+	return useBidirectionalPages({
 		queryKey: queryKeys.highlights.page(user?.id, filters, startOffset),
-		queryFn: async ({ pageParam }) => ({
-			...(await fetchHighlightPage(pageParam, HIGHLIGHT_PAGE_SIZE, filters)),
-			offset: pageParam,
-		}),
-		initialPageParam: startOffset,
-		getNextPageParam: (last) =>
-			last.offset + last.items.length < last.total ? last.offset + HIGHLIGHT_PAGE_SIZE : undefined,
-		getPreviousPageParam: (first) => (first.offset > 0 ? Math.max(0, first.offset - HIGHLIGHT_PAGE_SIZE) : undefined),
+		fetchPage: (offset, limit) => fetchHighlightPage(offset, limit, filters),
+		pageSize: HIGHLIGHT_PAGE_SIZE,
+		startOffset,
 		enabled: !!user,
-		placeholderData: (previous) => previous,
 	});
 }
 
