@@ -7,7 +7,7 @@ import { useModal } from '@/hooks/useModal';
 import { useTab } from '@/hooks/useTab';
 
 import { LuBell, LuBellOff } from 'react-icons/lu';
-import { ToggleIcon } from '@/components/common/icons/ToggleSVG';
+import { SwitchTrack } from '@/components/common/Switch';
 import ModalContents from '@/components/common/modal/ModalContent';
 
 function SubscribeToggle() {
@@ -61,7 +61,7 @@ function SubscribeToggle() {
 					className={isSubscribed === true ? 'subscribe-on' : 'subscribe-off'}
 					onClick={onToggle}
 				>
-					<ToggleIcon className="svg" $toggle={isSubscribed === true} aria-hidden />
+					<SwitchTrack checked={isSubscribed === true} />
 					<span aria-hidden>{isSubscribed === true ? '구독 진행중' : '구독 일시정지 중'}</span>
 				</button>
 			)}
