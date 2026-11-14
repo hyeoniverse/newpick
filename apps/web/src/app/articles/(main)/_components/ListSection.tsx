@@ -19,7 +19,7 @@ import { mapIdToTitle } from '@/utils/mapInterests';
 import { parseArticles } from '@/utils/parseArticles';
 import { fetchSearchNewsletters } from '@/api/article';
 import { SearchSort, filtersKey, isSearching, readFilters, toApiQuery, toPageHref } from '@/utils/newsletterSearch';
-import TagFollowButton from '@/components/common/tag/TagFollowButton';
+import TagFollowButton from './TagFollowButton';
 import InputSelect from '@/components/common/InputSelect';
 import { useToast } from '@/hooks/useToast';
 

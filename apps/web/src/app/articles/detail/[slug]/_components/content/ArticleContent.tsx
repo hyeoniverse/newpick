@@ -3,7 +3,7 @@
 import { useRef } from 'react';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
-import OpenGraphCard from '@/components/common/article/OpenGraphCard';
+import OpenGraphCard from './OpenGraphCard';
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { linkDebateSources } from '@/utils/debateSources';
 import HighlightLayer from './HighlightLayer';

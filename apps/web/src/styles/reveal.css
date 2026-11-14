@@ -1,5 +1,5 @@
 /*
- * 스크롤해서 나타나기 (components/common/ScrollReveal.tsx). @layer components.
+ * 스크롤해서 나타나기 (app/about/_components/ScrollReveal.tsx). @layer components.
  * 대상(섹션 · 카드)의 화면 CSS에 숨김 · 떠오름이 지지 않게 우선순위(.np-reveal .reveal)를 전과 같게 둔다
  */
 .np-reveal .reveal {
