@@ -179,7 +179,7 @@ export class AdminService {
     if (actorId === id) {
       throw new AppException(
         'BAD_REQUEST',
-        '내 계정은 여기서 지울 수 없어요. 마이페이지에서 탈퇴해 주세요.',
+        '내 계정은 여기서 삭제할 수 없습니다. 마이페이지에서 탈퇴해 주십시오.',
       );
     }
     return deleteAccount(this.prisma, id);
@@ -199,7 +199,10 @@ export class AdminService {
   async updateUser(id: number, updateDto: UpdateUserDto, actorId?: number) {
     // 자기 권한을 내리면 관리자 화면에서 바로 쫓겨나므로 막는다
     if (actorId === id && updateDto.role !== 'admin') {
-      throw new AppException('BAD_REQUEST', '내 권한은 여기서 바꿀 수 없어요.');
+      throw new AppException(
+        'BAD_REQUEST',
+        '내 권한은 여기서 변경할 수 없습니다.',
+      );
     }
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) {

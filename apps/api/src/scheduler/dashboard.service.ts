@@ -48,12 +48,12 @@ function sortBy(
 export function kstRange(from: string, to: string) {
   const { start, end } = kstDayRange(from, to);
   if (start > end) {
-    throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦어요.');
+    throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦습니다.');
   }
   if ((end.getTime() - start.getTime()) / DAY_MS > MAX_RANGE_DAYS) {
     throw new AppException(
       'BAD_REQUEST',
-      `기간은 ${MAX_RANGE_DAYS}일까지 고를 수 있어요.`,
+      `기간은 ${MAX_RANGE_DAYS}일까지 선택할 수 있습니다.`,
     );
   }
   return { start, end, inRange: { gte: start, lte: end } };

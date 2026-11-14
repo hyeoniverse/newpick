@@ -259,7 +259,7 @@ export class MyPageService {
       select: { id: true },
     });
     if (!received)
-      throw new AppException('NOT_FOUND', '받은 메일을 찾을 수 없어요.');
+      throw new AppException('NOT_FOUND', '받은 메일을 찾을 수 없습니다.');
     if (changes.folderId)
       await assertOwnFolder(this.prisma, userId, changes.folderId);
     const data = {
@@ -448,7 +448,7 @@ export class MyPageService {
         (saved?.plan ?? null) as MailPlan | null,
       ));
     if (!mail)
-      throw new AppException('NOT_FOUND', '받은 메일을 찾지 못했어요.');
+      throw new AppException('NOT_FOUND', '받은 메일을 찾을 수 없습니다.');
     return { sentAt, subject: mail.subject, html: mail.html };
   }
 

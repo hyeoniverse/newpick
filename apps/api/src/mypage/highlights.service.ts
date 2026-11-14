@@ -276,7 +276,7 @@ export class HighlightsService {
   async create(userId: number, dto: CreateHighlightDto) {
     const text = normalizeText(dto.text);
     if (text.length < 2) {
-      throw new AppException('BAD_REQUEST', '두 글자 이상 골라 주세요.');
+      throw new AppException('BAD_REQUEST', '두 글자 이상 선택해 주십시오.');
     }
     const newsletter = await this.prisma.newsletter.findUnique({
       where: { id: dto.newsletterId },

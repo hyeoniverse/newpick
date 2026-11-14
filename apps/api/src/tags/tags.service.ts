@@ -125,7 +125,7 @@ export class TagsService {
   async remove(tag: string) {
     const keyword = tag.trim();
     if (!keyword)
-      throw new AppException('BAD_REQUEST', '지울 태그가 필요합니다.');
+      throw new AppException('BAD_REQUEST', '삭제할 태그가 필요합니다.');
     const changed = await this.rewrite((tags) => removeTag(tags, keyword));
     await this.prisma.tagRule.upsert({
       where: { keyword },

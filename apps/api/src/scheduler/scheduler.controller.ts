@@ -53,7 +53,7 @@ export class SchedulerController {
   @Put('schedule')
   async setSchedule(@Body() body: ScheduleDto) {
     return {
-      message: '예약 시간을 바꿨습니다.',
+      message: '예약 시간을 변경했습니다.',
       data: await this.schedulerService.setSchedule(body),
     };
   }
@@ -232,7 +232,7 @@ export class SchedulerController {
     this.schedulerService.manualStartCrawling();
     return {
       success: true,
-      message: '크롤링 시작되었습니다.',
+      message: '기사 수집을 시작했습니다.',
     };
   }
   @Post(`manual/${JOB_ENDPOINT.summary}`)
@@ -243,7 +243,7 @@ export class SchedulerController {
     if (this.schedulerService.isSummaryRunning()) {
       throw new AppException(
         'BAD_REQUEST',
-        'AI 요약이 이미 진행 중입니다. 완료된 후 다시 시도해 주세요.',
+        'AI 요약이 이미 진행 중입니다. 완료된 후 다시 시도해 주십시오.',
       );
     }
     // 다시 쓰기: 그 뉴스레터의 날 · 분야로 (없거나 너무 오래되면 404 · 400)
@@ -274,7 +274,7 @@ export class SchedulerController {
     this.schedulerService.manualStartMailSend();
     return {
       success: true,
-      message: '메일 발송 시작되었습니다.',
+      message: '메일 발송을 시작했습니다.',
     };
   }
 
