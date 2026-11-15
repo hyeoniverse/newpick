@@ -3,14 +3,13 @@
 import { HOME } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import Link from 'next/link';
-import { Autoplay } from 'swiper/modules';
-import { Swiper, SwiperSlide } from 'swiper/react';
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { ArticleDetail as IArticleDetail } from '@/types/article';
 import { getFirstImage } from '@/utils/getFirstImage';
 
 import { PCLogo } from '@/components/common/icons/LogoSVG';
 import Image from '@/components/common/Image';
+import Marquee from '@/components/common/slider/Marquee';
 import Title from '@/components/common/Title';
 import { cx } from '@/styles/tw';
 
@@ -42,64 +41,30 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 				<br />
 				{HOME.heroSub}
 			</p>
-			<Swiper
-				dir={'rtl'}
-				modules={[Autoplay]}
-				loop={true} // 슬라이드 루프
-				spaceBetween={20} // 슬라이스 사이 간격
-				slidesPerView={'auto'} // 보여질 슬라이스 수
-				autoplay={{
-					delay: 0,
-					stopOnLastSlide: false,
-					disableOnInteraction: false,
-				}}
-				observer={true}
-				observeParents={true}
-				loopAdditionalSlides={1}
-				speed={4000}
-			>
+			<Marquee dir="rtl">
 				{fillForLoop(firstArticles).map((article, index) => (
-					<SwiperSlide key={`${article.id}-${index}`} className="swiper-slide">
-						<Link href={ROUTES.article(article.id)} className="image-link">
-							<Image
-								src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
-								alt={article.title}
-								ratio="square"
-								className="image"
-							/>
-						</Link>
-					</SwiperSlide>
+					<Link key={`${article.id}-${index}`} href={ROUTES.article(article.id)} className="image-link">
+						<Image
+							src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
+							alt={article.title}
+							ratio="square"
+							className="image"
+						/>
+					</Link>
 				))}
-			</Swiper>
-			<Swiper
-				dir={'ltr'}
-				modules={[Autoplay]}
-				loop={true} // 슬라이드 루프
-				spaceBetween={20} // 슬라이스 사이 간격
-				slidesPerView={'auto'} // 보여질 슬라이스 수
-				autoplay={{
-					delay: 0,
-					stopOnLastSlide: false,
-					disableOnInteraction: false,
-				}}
-				observer={true}
-				observeParents={true}
-				loopAdditionalSlides={1}
-				speed={4000}
-			>
+			</Marquee>
+			<Marquee dir="ltr">
 				{fillForLoop(secondArticles).map((article, index) => (
-					<SwiperSlide key={`${article.id}-${index}`} className="swiper-slide">
-						<Link href={ROUTES.article(article.id)} className="image-link">
-							<Image
-								src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
-								alt={article.title}
-								ratio="square"
-								className="image"
-							/>
-						</Link>
-					</SwiperSlide>
+					<Link key={`${article.id}-${index}`} href={ROUTES.article(article.id)} className="image-link">
+						<Image
+							src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
+							alt={article.title}
+							ratio="square"
+							className="image"
+						/>
+					</Link>
 				))}
-			</Swiper>
+			</Marquee>
 		</div>
 	);
 }
