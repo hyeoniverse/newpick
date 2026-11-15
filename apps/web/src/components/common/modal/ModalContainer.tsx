@@ -135,16 +135,13 @@ function Modal({ onClose }: Props) {
 		}
 
 		// 뒤 화면 스크롤 막기. body만 잠근다: html까지 잠그면 페이지가 맨 위로 튄다.
-		// 스크롤바가 사라지며 화면이 옆으로 밀리지 않게 그 폭만큼 여백을 준다
-		const saved = { overflow: document.body.style.overflow, pad: document.body.style.paddingRight };
-		const scrollbar = window.innerWidth - document.documentElement.clientWidth;
+		// 스크롤바가 사라져도 화면이 옆으로 밀리지 않는 것은 global.css의 html scrollbar-gutter: stable이 맡는다
+		const saved = { overflow: document.body.style.overflow };
 		document.body.style.overflow = 'hidden';
-		if (scrollbar > 0) document.body.style.paddingRight = `${scrollbar}px`;
 
 		return () => {
 			window.removeEventListener('keydown', handleKeydown);
 			document.body.style.overflow = saved.overflow;
-			document.body.style.paddingRight = saved.pad;
 			previousFocusedElement.current?.focus({ preventScroll: true });
 		};
 	}, [isOpen, handleKeydown]);

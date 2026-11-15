@@ -190,7 +190,7 @@ function StepRow({ step, index }: { step: Step; index: number }) {
 
 /**
  * HOW TO USE: 화면 폭을 꽉 채우는 지그재그. 단계마다 그림이 왼쪽 끝 → 오른쪽 끝을 번갈아 차지한다.
- * 줄을 화면 폭(100vw)으로 넓히고, 스크롤바 폭만큼 넘치는 부분은 시작하기 페이지의 body overflow-x: clip이 자른다
+ * 줄을 화면 폭(100vw)으로 넓히고, 스크롤바 폭만큼 넘치는 부분은 전체 틀(MainLayout)의 overflow-x: clip이 자른다
  * (예전에는 그림을 페이지 밖까지 밀어 두어 가로 스크롤이 생겼다)
  */
 export default function HowToUseSection() {

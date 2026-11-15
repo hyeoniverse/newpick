@@ -2,7 +2,7 @@
 
 /* app/about/_components/CoreFeature.tsx */
 .np-about-core-feature-core {
-	/* 화면 폭 전체 회색 띠 (100vw가 스크롤바만큼 넘치는 부분은 시작하기 페이지의 body overflow-x: clip이 자른다) */
+	/* 화면 폭 전체 회색 띠 (100vw가 스크롤바만큼 넘치는 부분은 전체 틀(MainLayout)의 overflow-x: clip이 자른다) */
 	--gutter: max(1rem, calc((100vw - 1024px) / 2));
 	width: 100vw;
 	margin-left: calc(50% - 50vw);

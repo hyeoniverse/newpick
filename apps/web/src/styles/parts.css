@@ -262,7 +262,7 @@
 	}
 }
 
-/* 비율 상자 사진 (Image.tsx). 모서리 · 바탕 · 나타나기는 유틸리티 */
+/* 비율 상자 사진 (Image.tsx). 모서리 · 바탕 · 보이기(opacity)는 유틸리티 */
 .np-image {
 	display: flex;
 	height: fit-content;
@@ -270,6 +270,14 @@
 	align-items: center;
 	justify-content: center;
 	overflow: hidden;
+
+	/* 나타나는 전환은 여기(components 층)에: 유틸리티로 두면 카드 등 화면 CSS가 transform 전환을 더하지 못해
+	   마우스를 올렸을 때 사진이 부드럽게 커지지 않고 한 번에 커진다 */
+	img {
+		width: 100%;
+		height: 100%;
+		transition: opacity 0.3s ease-in-out;
+	}
 }
 .np-ratio-square {
 	aspect-ratio: 1 / 1;
