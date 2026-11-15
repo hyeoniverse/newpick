@@ -209,8 +209,13 @@
 			nav {
 				display: flex;
 				flex-direction: column;
-				padding: 0 1rem;
+				/* 좌우 여백은 머리글과 같게: 태블릿 2.5rem, 휴대폰 1rem (MainLayout) */
+				padding: 0 2.5rem;
 				background: var(--np-color-background);
+
+				@variant mobile {
+					padding: 0 1rem;
+				}
 
 				/* 위아래 여백은 안쪽 끝 요소의 margin으로 (접히면 overflow hidden 안에서 여백까지 0이 되게. padding은 남는다) */
 				> :first-child .row-body > :first-child {
