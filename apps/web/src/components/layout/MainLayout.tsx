@@ -20,8 +20,8 @@ export default function Layout({ children, contactEmail }: Props) {
 		<div
 			className={[
 				'mx-auto flex h-screen w-full flex-col overflow-x-clip pt-[var(--header-height)] [transition:padding-top_0.3s_ease]',
-				// 좌우 여백: 내용 폭(1024px)보다 좁은 화면(태블릿)에서는 2.5rem, 휴대폰 1rem
-				'tablet:[&_footer_.footer]:px-10 tablet:[&_footer_.footer]:py-0 tablet:[&_header]:px-10 tablet:[&_header]:py-0 tablet:[&_main]:px-10 tablet:[&_main]:py-0',
+				// 좌우 여백: 늘 2.5rem(휴대폰 1rem). 내용 폭(1024px)은 여백 안쪽이라, 1024px 근처 화면에서도 가장자리에 붙거나 잘리지 않는다
+				'[&_footer_.footer]:px-10 [&_footer_.footer]:py-0 [&_header]:px-10 [&_header]:py-0 [&_main]:px-10 [&_main]:py-0',
 				'mobile:[&_footer_.footer]:px-4 mobile:[&_header]:px-4 mobile:[&_main]:px-4',
 			].join(' ')}
 			style={{ '--header-height': headerHeight } as React.CSSProperties}
@@ -30,7 +30,8 @@ export default function Layout({ children, contactEmail }: Props) {
 				본문 바로가기
 			</a>
 			<Header />
-			<main id="main" className="content mx-auto w-full max-w-[1024px]" tabIndex={-1}>
+			{/* 최대 폭 = 내용 1024px + 좌우 여백 */}
+			<main id="main" className="content mx-auto w-full max-w-[calc(1024px+5rem)] mobile:max-w-none" tabIndex={-1}>
 				{children}
 			</main>
 			<ScrollButtons />

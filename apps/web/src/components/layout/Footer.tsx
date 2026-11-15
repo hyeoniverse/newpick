@@ -23,7 +23,7 @@ const Footer = ({ contactEmail }: Props) => {
 			id="footer-el"
 			className="mt-auto flex h-fit w-full flex-col items-center justify-end border-0 border-t border-solid border-border bg-surface py-12"
 		>
-			<div className="footer flex w-full max-w-[1024px] flex-col items-start justify-end gap-4 text-sub-text">
+			<div className="footer flex w-full max-w-[calc(1024px+5rem)] flex-col items-start justify-end gap-4 text-sub-text">
 				<Logo logoType="footer-logo" />
 				<div className="footer-menu flex flex-row flex-wrap items-center justify-start gap-4 text-extra-small">
 					{contactEmail && (

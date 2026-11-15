@@ -1230,7 +1230,9 @@
 		display: block;
 
 		img {
-			transition: transform 0.4s ease;
+			transition:
+				transform 0.4s ease,
+				opacity 0.3s ease-in-out;
 		}
 	}
 
