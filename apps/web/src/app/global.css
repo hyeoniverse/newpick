@@ -13,6 +13,10 @@
 @import 'tailwindcss/preflight.css' layer(base);
 /* preflight가 지운 기본값 중 화면이 기대던 것 (styles/base-compat.css 머리말) */
 @import '../styles/base-compat.css' layer(base);
+/* Swiper 기본 CSS: 화면 CSS(components)보다 아래 층에 한 번만. 예전에는 기사 상세(LatestArticle)가 층 밖으로 불러와,
+   상세를 본 뒤 새로 고침 없이 홈에 가면 '.swiper-slide { width: 100% }'가 홈 띠의 칸 폭을 이겨 한 줄에 한 장만 보였다 */
+@import 'swiper/css' layer(base);
+@import 'swiper/css/navigation' layer(base);
 @import '../styles/tokens/tokens.css';
 /* 공통 부품이 스스로 붙이는 기본 모양: components 층 맨 앞 (styles/parts.css 머리말) */
 @import '../styles/parts.css' layer(components);

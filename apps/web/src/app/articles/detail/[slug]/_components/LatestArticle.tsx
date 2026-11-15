@@ -7,8 +7,6 @@ import { DEFAULT_IMAGES } from '@/constants/images';
 import Image from '@/components/common/Image';
 
 import { Swiper, SwiperSlide } from 'swiper/react';
-import 'swiper/css';
-import 'swiper/css/navigation';
 import { Navigation } from 'swiper/modules';
 import { useArticleListQuery } from '@/hooks/useArticle';
 import { SkeletonBlock } from '@/components/common/loader/Skeleton';
