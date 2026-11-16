@@ -25,7 +25,10 @@ import FolderBar, { FolderFilter } from './folders/FolderBar';
 import { setFolderDragGhost } from '../_lib/dragGhost';
 import FolderMenu from './folders/FolderMenu';
 import ListHead, { SortSelect } from './list/ListHead';
-import MonthBar, { LoadNewer, byMonth, monthLabel, useMonthJump } from './list/MonthBar';
+import MonthBar from './list/MonthBar';
+import LoadNewer from './list/LoadNewer';
+import { useMonthJump } from './list/useMonthJump';
+import { byMonth, monthLabel } from '../_lib/months';
 
 /** 작은 화면에서 '오늘을 한눈에' 소식을 몇 개까지 보일지 (나머지는 '외 N개') */
 const GLANCE_SMALL = 3;
