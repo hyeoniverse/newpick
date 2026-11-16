@@ -1,15 +1,11 @@
 import { clusterArticles, prepare, SAME_EVENT_EMBEDDING } from './article-prep';
 import { CLAUDE_FAST_MODEL } from './claude.service';
 import { renderNewsletterHtml } from './newsletter-html';
-import {
-  diverseArticles,
-  LIMITS,
-  NewsletterWriterService,
-  debateOf,
-  pickArticles,
-  Story,
-  writerPrompt,
-} from './newsletter-writer.service';
+import { NewsletterWriterService } from './newsletter-writer.service';
+import { debateOf } from './writer/normalize';
+import { diverseArticles, pickArticles } from './writer/select';
+import { LIMITS, Story } from './writer/types';
+import { writerPrompt } from './writer/write-prompt';
 import { parseNewsletterHtml } from '../edition/parse';
 import { renderEditionMail } from '../edition/mail';
 import { composeEdition } from '../edition/compose';

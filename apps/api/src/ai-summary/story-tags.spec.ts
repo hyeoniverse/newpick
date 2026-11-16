@@ -1,11 +1,9 @@
 import { renderNewsletterHtml } from './newsletter-html';
 import { mergeTags } from './ai-summary.service';
-import {
-  LIMITS,
-  normalize,
-  WRITER_SCHEMA,
-  writerPrompt,
-} from './newsletter-writer.service';
+import { normalize } from './writer/normalize';
+import { WRITER_SCHEMA } from './writer/schema';
+import { LIMITS } from './writer/types';
+import { writerPrompt } from './writer/write-prompt';
 import { prepare } from './article-prep';
 import { parseNewsletterHtml } from '../edition/parse';
 import { tagStories } from '../edition/personalize';

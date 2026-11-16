@@ -1,8 +1,4 @@
-import type {
-  Story,
-  StoryImage,
-  WrittenNewsletter,
-} from './newsletter-writer.service';
+import type { Story, StoryImage, WrittenNewsletter } from './writer/types';
 
 const escapeHtml = (text: string) =>
   text

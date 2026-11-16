@@ -1,5 +1,7 @@
 import { renderNewsletterHtml } from './newsletter-html';
-import { LIMITS, normalize, writerPrompt } from './newsletter-writer.service';
+import { normalize } from './writer/normalize';
+import { LIMITS } from './writer/types';
+import { writerPrompt } from './writer/write-prompt';
 import { prepare } from './article-prep';
 import { parseNewsletterHtml } from '../edition/parse';
 

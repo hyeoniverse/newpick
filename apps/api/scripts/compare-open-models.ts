@@ -17,13 +17,13 @@ import { join } from 'node:path';
 import mongoose from 'mongoose';
 import { PrismaClient } from '@prisma/client';
 import { prepare } from '../src/ai-summary/article-prep';
+import { normalize } from '../src/ai-summary/writer/normalize';
+import { WRITER_SCHEMA } from '../src/ai-summary/writer/schema';
+import { type WrittenNewsletter } from '../src/ai-summary/writer/types';
 import {
-  normalize,
-  WRITER_SCHEMA,
   WRITER_SYSTEM,
   writerPrompt,
-  type WrittenNewsletter,
-} from '../src/ai-summary/newsletter-writer.service';
+} from '../src/ai-summary/writer/write-prompt';
 import { renderNewsletterHtml } from '../src/ai-summary/newsletter-html';
 
 const OLLAMA = process.env.OLLAMA_URL || 'http://localhost:11434';
