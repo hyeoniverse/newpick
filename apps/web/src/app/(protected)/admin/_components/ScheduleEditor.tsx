@@ -4,25 +4,19 @@ import { ACTIONS, ADMIN, COMMON } from '@/copy';
 import type { ClockTime, Schedule } from '@newpick/shared';
 import { useState } from 'react';
 import { saveSchedule } from '@/api/admin';
+import { DAYS, clock } from '../_lib/jobs';
 import { errorMessage } from '@/api/client';
 import Button from '@/components/common/Button';
 import TimePicker from '@/components/common/TimePicker';
-import { pad2 } from '@/utils/formatter';
 
 /** 예약 시각 (@newpick/shared, api와 같다) */
 export type { ClockTime, Schedule };
 
-const DAYS = ['일', '월', '화', '수', '목', '금', '토'];
-export const clock = ({ hour, minute }: ClockTime) => `${pad2(hour)}:${pad2(minute)}`;
 const parse = (value: string): ClockTime => {
 	const [hour, minute] = value.split(':').map(Number);
 	return { hour, minute };
 };
 const minutesOf = ({ hour, minute }: ClockTime) => hour * 60 + minute;
-
-/** '매일 08:40' · '매주 월요일 08:40' */
-export const describe = (time: ClockTime, day = 7) =>
-	day === 7 ? `매일 ${clock(time)}` : `매주 ${DAYS[day]}요일 ${clock(time)}`;
 
 interface Props {
 	initial: Schedule;

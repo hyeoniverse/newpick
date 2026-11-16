@@ -4,7 +4,6 @@ import { ADMIN } from '@/copy';
 import { fetchJobRuns } from '@/api/admin';
 import { queryKeys } from '@/api/queryKeys';
 
-import type { JobRunRecord } from '@newpick/shared';
 import FilterChips from '@/components/common/FilterChips';
 import { AdminListPagination, AdminListState, useAdminList } from './AdminList';
 import AdminSubPage from './AdminSubPage';
@@ -14,25 +13,17 @@ import { PeriodHeaderFilter, SortHeader } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { when } from '../_lib/format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
+import { JOB_LABEL, RUN_STATUS_LABEL } from '../_lib/jobs';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = ['10rem', '6.5rem', '5rem', '6rem', '6.5rem', undefined];
-
-const JOB_LABEL: Record<JobRunRecord['job'], string> = { crawling: '기사 수집', summary: 'AI 요약', mail: '구독 메일' };
-const STATUS_LABEL: Record<JobRunRecord['status'], string> = {
-	running: '진행 중',
-	success: '성공',
-	partial: '일부 실패',
-	failed: '실패',
-	skipped: '건너뜀',
-};
 
 const JOBS = [{ value: '', label: '전체' }, ...Object.entries(JOB_LABEL).map(([value, label]) => ({ value, label }))];
 const STATUSES = [
 	{ value: '', label: '전체' },
 	...(['success', 'partial', 'failed', 'skipped', 'running'] as const).map((value) => ({
 		value,
-		label: STATUS_LABEL[value],
+		label: RUN_STATUS_LABEL[value],
 	})),
 ];
 
@@ -103,7 +94,7 @@ export default function JobRunsList() {
 										<td className="nowrap">{JOB_LABEL[run.job] ?? run.job}</td>
 										<td className="nowrap">{run.trigger === 'manual' ? '지금 실행' : '예약'}</td>
 										<td className="nowrap">
-											<StatusBadge tone={toneOf(run.status)}>{STATUS_LABEL[run.status] ?? run.status}</StatusBadge>
+											<StatusBadge tone={toneOf(run.status)}>{RUN_STATUS_LABEL[run.status] ?? run.status}</StatusBadge>
 										</td>
 										<td className="nowrap num">{duration(run.durationMs)}</td>
 										<td className="content">{run.message ?? '-'}</td>
