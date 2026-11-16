@@ -5,19 +5,18 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './google.strategy';
-import { ConfigModule, ConfigService } from '@nestjs/config';
 import { MailModule } from '../mail/mail.module';
 import { GoogleOAuthGuard } from './google-oauth.guard';
+import { env } from '../config/env';
 
 @Module({
   imports: [
     PassportModule.register({ defaultStrategy: 'jwt' }), // 기본 인증 전략 설정
     MailModule, // 다른 Google 계정으로 바꾸면 예전 주소에 알림
     JwtModule.registerAsync({
-      imports: [ConfigModule],
-      inject: [ConfigService],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.getOrThrow<string>('JWT_SECRET'),
+      // 함수로 두어 .env를 읽은 뒤에 값을 가져온다
+      useFactory: () => ({
+        secret: env.jwtSecret,
         signOptions: { expiresIn: '1h' },
       }),
     }),

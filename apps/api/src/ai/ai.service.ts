@@ -3,11 +3,10 @@ import { CLAUDE_FAST_MODEL, ClaudeService } from '../ai-summary/claude.service';
 import { ClaudeUsage, costUsd } from '../ai-summary/pricing';
 import { toKstDate } from '../common/kst';
 import { OpenModelService, OpenModelUnavailable } from './open-model.service';
+import { env } from '../config/env';
 
 /** 오픈 모델이 안 될 때 Claude로 넘기는 비용의 하루 상한 (USD). 넘으면 넘기지 않고 실패 → 부른 쪽이 미루거나 건너뛴다 */
-export const FALLBACK_DAILY_USD = Number(
-  process.env.AI_FALLBACK_DAILY_USD ?? 0.1,
-);
+export const FALLBACK_DAILY_USD = env.aiFallbackDailyUsd;
 
 /** 오픈 모델도 Claude도 지금은 쓸 수 없음 (할당 초과 + 하루 상한 도달 등). 부른 쪽은 다음 기회로 미룬다 */
 export class AiUnavailable extends Error {}

@@ -1,15 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 import { UsageError } from './pricing';
+import { env } from '../config/env';
 
 /**
  * 기본 모델 (뉴스레터 쓰기, 무료 체험). 같은 기사로 비교했을 때 Opus 5.5와 품질이 거의 같고 가격은 절반 (#48).
  * 더 아끼려면 CLAUDE_MODEL=claude-haiku-5-5 (한 편 약 $0.005, 지표 정리가 다소 어색함)
  */
-export const CLAUDE_MODEL = process.env.CLAUDE_MODEL || 'claude-sonnet-5-5';
+export const CLAUDE_MODEL = env.claudeModel;
 /** 고르기·분류처럼 판단이 가벼운 작업용 (#47). Sonnet 5.5의 1/20 가격 */
-export const CLAUDE_FAST_MODEL =
-  process.env.CLAUDE_FAST_MODEL || 'claude-haiku-5-5';
+export const CLAUDE_FAST_MODEL = env.claudeFastModel;
 
 /** Haiku 5.5는 서버 측 대체 모델(fallbacks)을 받지 않고 400을 돌려줍니다 */
 const supportsFallback = (model: string) => !model.includes('haiku');

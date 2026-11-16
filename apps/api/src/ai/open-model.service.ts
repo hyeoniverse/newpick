@@ -1,14 +1,14 @@
 import { Injectable } from '@nestjs/common';
+import { env } from '../config/env';
 
 /**
  * 오픈 모델 (#119): Cloudflare Workers AI. 하루 무료 할당(10,000 neurons) 안에서는 0원이고,
  * 무료 요금제라 넘으면 요금이 붙지 않고 호출이 거절된다 (그때는 AiService가 Claude로 넘기거나 미룬다).
  * 같은 기사 6편 비교에서 Gemma 4 26B가 수치 오류 0 · 한 편 59~85 neurons (#119 1단계, scripts/compare-open-models.ts)
  */
-export const OPEN_MODEL =
-  process.env.AI_OPEN_MODEL || '@cf/google/gemma-4-26b-a4b-it';
+export const OPEN_MODEL = env.aiOpenModel;
 /** 문장 임베딩 (한국어 포함 다국어, 1024차원) */
-export const EMBED_MODEL = process.env.AI_EMBED_MODEL || '@cf/baai/bge-m3';
+export const EMBED_MODEL = env.aiEmbedModel;
 
 /** 오픈 모델을 지금 쓸 수 없음 (설정 없음 · 하루 할당을 다 씀 · 서비스 장애). 이때만 다른 길로 넘긴다 */
 export class OpenModelUnavailable extends Error {}
@@ -26,7 +26,7 @@ type GenerateOptions = {
 export class OpenModelService {
   /** CF_ACCOUNT_ID · CF_AI_TOKEN이 있어야 쓴다. 없으면 오픈 모델 없이 Claude만 */
   get configured() {
-    return !!(process.env.CF_ACCOUNT_ID && process.env.CF_AI_TOKEN);
+    return !!(env.cloudflare.accountId && env.cloudflare.aiToken);
   }
 
   async generate({
@@ -101,12 +101,12 @@ export class OpenModelService {
     let res: Response;
     try {
       res = await fetch(
-        `https://api.cloudflare.com/client/v4/accounts/${process.env.CF_ACCOUNT_ID}/ai/v1/${path}`,
+        `https://api.cloudflare.com/client/v4/accounts/${env.cloudflare.accountId}/ai/v1/${path}`,
         {
           method: 'POST',
           headers: {
             'content-type': 'application/json',
-            authorization: `Bearer ${process.env.CF_AI_TOKEN}`,
+            authorization: `Bearer ${env.cloudflare.aiToken}`,
           },
           body: JSON.stringify(body),
           signal: AbortSignal.timeout(120_000),

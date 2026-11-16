@@ -1,4 +1,5 @@
 import { CookieOptions } from 'express';
+import { env } from '../config/env';
 
 /**
  * 인증 쿠키 공통 옵션.
@@ -7,14 +8,13 @@ import { CookieOptions } from 'express';
  *   프론트와 api를 다른 사이트에서 직접 호출하는 구성이면 none
  */
 export function authCookieOptions(maxAge?: number): CookieOptions {
-  const sameSite = (process.env.COOKIE_SAMESITE ??
-    'lax') as CookieOptions['sameSite'];
+  const sameSite: CookieOptions['sameSite'] = env.cookieSameSite;
   return {
     httpOnly: true,
     secure: true,
     sameSite,
     path: '/',
-    ...(process.env.COOKIE_DOMAIN && { domain: process.env.COOKIE_DOMAIN }),
+    ...(env.cookieDomain && { domain: env.cookieDomain }),
     ...(maxAge !== undefined && { maxAge }),
   };
 }

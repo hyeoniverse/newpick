@@ -4,6 +4,7 @@ import nodemailer from 'nodemailer';
 import PQueue from '@esm2cjs/p-queue';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { NODEMAILER } from './constants';
+import { env } from '../config/env';
 
 /** Gmail SMTP 한도를 넘지 않도록 동시에 2통, 초당 최대 5통까지 보냅니다. */
 const SEND_CONCURRENCY = 2;
@@ -49,7 +50,7 @@ export type BulkMailResult = {
 @Injectable()
 export class MailService {
   private readonly transporter: nodemailer.Transporter;
-  private readonly from = process.env.MAIL_USER;
+  private readonly from = env.mailUser;
   /** 재시도 간격 기준값. 테스트에서 0으로 바꿉니다. */
   protected retryBaseDelay = RETRY_BASE_DELAY;
 

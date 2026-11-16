@@ -26,6 +26,7 @@ import {
 import { AiService } from '../ai/ai.service';
 import { createUnsubscribeToken } from 'src/subscriber/unsubscribe-token';
 import { renderEditionMail } from './mail';
+import { env } from '../config/env';
 
 export type Edition = {
   /** KST 'YYYY-MM-DD' */
@@ -299,7 +300,7 @@ export class EditionService {
     );
     if (!composed) return null;
 
-    const base = (process.env.FRONTEND_URL ?? '').replace(/\/$/, '');
+    const base = env.frontendUrl.replace(/\/$/, '');
     const token =
       userId !== undefined ? createUnsubscribeToken(userId) : undefined;
     return {
@@ -307,7 +308,7 @@ export class EditionService {
       html: renderEditionMail(
         composed,
         base,
-        process.env.MAIL_USER,
+        env.mailUser,
         token && `${base}/unsubscribe?token=${token}`,
       ),
       newsletterIds: composed.newsletterIds,

@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Story, StoryImage } from './newsletter-writer.service';
+import { env } from '../config/env';
 
 /**
  * 소식마다 사진 한 장 (#49)
@@ -52,7 +53,7 @@ export class StoryImageService {
 
   /** Pexels 검색. PEXELS_API_KEY가 없거나 결과가 없으면 undefined */
   async pexels(query: string): Promise<StoryImage | undefined> {
-    const key = process.env.PEXELS_API_KEY;
+    const key = env.pexelsApiKey;
     if (!key || !query) return undefined;
     const res = await this.fetcher(
       `https://api.pexels.com/v1/search?${new URLSearchParams({ query, per_page: '1', orientation: 'landscape' })}`,
@@ -73,7 +74,7 @@ export class StoryImageService {
 
   /** Unsplash 검색. UNSPLASH_ACCESS_KEY가 없거나 결과가 없으면 undefined */
   async unsplash(query: string): Promise<StoryImage | undefined> {
-    const key = process.env.UNSPLASH_ACCESS_KEY;
+    const key = env.unsplashAccessKey;
     if (!key || !query) return undefined;
     const headers = { Authorization: `Client-ID ${key}` };
     const res = await this.fetcher(

@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { createHash, randomUUID } from 'node:crypto';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE } from './cookie-options';
+import { env } from '../config/env';
 
 /** 바로 전 refresh token을 받아 주는 시간: 여러 탭이 거의 동시에 갱신하면 늦은 쪽은 이미 바뀐 토큰을 들고 온다 */
 export const ROTATION_GRACE_MS = 60 * 1000;
@@ -117,7 +118,7 @@ export class AuthService {
       { sub: userId, jti: randomUUID() },
       {
         expiresIn: Math.floor(REFRESH_TOKEN_MAX_AGE / 1000),
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret: env.jwtRefreshSecret,
       },
     );
   }
@@ -266,7 +267,7 @@ export class AuthService {
   private verifyRefreshToken(refreshToken: string): number | null {
     try {
       const decoded = this.jwtService.verify<{ sub: number }>(refreshToken, {
-        secret: process.env.JWT_REFRESH_SECRET,
+        secret: env.jwtRefreshSecret,
       });
       return decoded?.sub || null;
     } catch {

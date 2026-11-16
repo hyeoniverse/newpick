@@ -1,4 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
+import { env } from '../config/env';
 
 /**
  * 원클릭 구독 해지 토큰 (#18). 메일마다 넣어 로그인 없이 해지할 수 있게 한다.
@@ -6,10 +7,10 @@ import { createHmac, timingSafeEqual } from 'node:crypto';
  * 만료는 두지 않는다 (몇 달 전 메일의 수신 거부도 동작해야 한다). 비밀 값을 바꾸면 이전 메일의 링크는 모두 무효
  */
 function secret() {
-  const own = process.env.UNSUBSCRIBE_SECRET;
+  const own = env.unsubscribeSecret;
   if (own) return own;
   // 따로 정하지 않았으면 JWT_SECRET에서 용도를 붙여 뽑는다 (같은 값을 그대로 쓰지 않게)
-  return createHmac('sha256', process.env.JWT_SECRET ?? '')
+  return createHmac('sha256', env.jwtSecret)
     .update('newpick:unsubscribe')
     .digest('hex');
 }
