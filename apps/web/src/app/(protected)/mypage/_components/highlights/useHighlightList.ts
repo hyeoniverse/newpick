@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useHighlightPages } from '@/hooks/useHighlights';
 import { uniqueItems, useInfiniteSentinel } from '@/hooks/useBidirectionalPages';
 import type { FolderFilter } from '../folders/FolderBar';
-import { useMonthJump } from '../list/MonthBar';
+import { useMonthJump } from '../list/useMonthJump';
 
 /**
  * 스크랩 목록 데이터 (#198): 폴더 · 보기(중요 · 메모) · 정렬로 서버에서 걸러 한 쪽씩 받고, 아래 끝에 닿으면 이어 붙인다.
