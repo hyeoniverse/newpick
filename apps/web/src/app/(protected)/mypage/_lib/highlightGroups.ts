@@ -29,15 +29,15 @@ export function dayLabel(day: string) {
 	if (day === today) return '오늘';
 	if (day === yesterday) return '어제';
 	const date = new Date(`${day}T12:00:00+09:00`);
-	return new Intl.DateTimeFormat('ko-KR', {
+	// 날짜와 요일을 따로 만든다: Intl은 연도를 넣으면 요일 괄호를 빼고 '2025년 10월 27일 월'로 써서
+	const ymd = new Intl.DateTimeFormat('ko-KR', {
 		timeZone: 'Asia/Seoul',
 		...(day.slice(0, 4) !== today.slice(0, 4) && { year: 'numeric' }),
 		month: 'long',
 		day: 'numeric',
-		weekday: 'short',
-	})
-		.format(date)
-		.replace(/\s*\((.)\)$/, ' ($1)');
+	}).format(date);
+	const weekday = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul', weekday: 'short' }).format(date);
+	return `${ymd} (${weekday})`;
 }
 
 /** 받은 순서(최근순 · 오래된순) 그대로 스크랩한 날짜별로 묶는다 */
