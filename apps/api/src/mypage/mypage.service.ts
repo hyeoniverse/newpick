@@ -12,6 +12,7 @@ import { deleteAccount } from 'src/common/delete-account';
 import { AppException } from '../common/errors/app.exception';
 import { EditionService } from '../edition/edition.service';
 import { assertOwnFolder } from './folders.service';
+import { KST } from '../common/kst';
 
 /** 북마크 목록에 쓰는 뉴스레터 칸 */
 const BOOKMARK_NEWSLETTER = {
@@ -57,9 +58,7 @@ const toBookmarkItem = ({
 
 /** 받은 달 (한국 시각 'YYYY-MM') */
 const kstMonth = (date: Date) =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul' })
-    .format(date)
-    .slice(0, 7);
+  new Intl.DateTimeFormat('en-CA', { timeZone: KST }).format(date).slice(0, 7);
 
 /**
  * 보낸 시각들을 정렬 순서대로 달로 묶어 달마다 통수와 그 달 첫 메일의 순번(0부터)을 준다.

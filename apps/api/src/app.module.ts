@@ -29,6 +29,7 @@ import { EditionModule } from './edition/edition.module';
 import { SiteCacheModule } from './site-cache/site-cache.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { env } from './config/env';
+import { THROTTLE } from './common/throttle';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,8 +37,8 @@ import { env } from './config/env';
       envFilePath: '.env',
       validate: validateEnv,
     }),
-    // 기본 요청 제한: IP당 1분에 120회
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 120 }]),
+    // 기본 요청 제한 (common/throttle)
+    ThrottlerModule.forRoot([THROTTLE.default]),
     SentryModule.forRoot(),
     MongooseModule.forRoot(env.mongoUrl), // MongoDB 연결
     CrawlingModule, // 크롤링 모듈

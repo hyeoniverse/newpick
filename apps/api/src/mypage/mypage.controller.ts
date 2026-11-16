@@ -31,6 +31,7 @@ import { HighlightsService } from './highlights.service';
 import { FoldersService } from './folders.service';
 import { TasteService } from '../taste/taste.service';
 import { Throttle } from '@nestjs/throttler';
+import { THROTTLE } from '../common/throttle';
 import { EmailChangeService } from './email-change.service';
 import { SendEmailCodeDto, VerifyEmailCodeDto } from './dto/email-change.dto';
 import {
@@ -187,14 +188,14 @@ export class MyPageController {
   }
 
   /** 이메일 바꾸기 1단계: 새 주소로 6자리 인증 코드 (1분에 한 번) */
-  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  @Throttle({ default: THROTTLE.emailCode })
   @Post('email/code')
   async sendEmailCode(@Req() req, @Body() body: SendEmailCodeDto) {
     return this.emailChangeService.sendCode(this.userIdOf(req), body.email);
   }
 
   /** 이메일 바꾸기 2단계: 코드가 맞으면 바꾼다 (5번 틀리면 코드를 다시 받아야 함) */
-  @Throttle({ default: { limit: 10, ttl: 60_000 } })
+  @Throttle({ default: THROTTLE.emailVerify })
   @Post('email/verify')
   async verifyEmailCode(@Req() req, @Body() body: VerifyEmailCodeDto) {
     return this.emailChangeService.verify(this.userIdOf(req), body.code);

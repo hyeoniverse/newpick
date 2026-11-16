@@ -2,6 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { Prisma } from '@prisma/client';
 import { MysqlPrismaService } from 'prisma/mysql.service';
+import { dailyCron } from '../common/cron';
+import { KST } from '../common/kst';
 import { CollectDto } from './dto/collect.dto';
 import {
   RETENTION_DAYS,
@@ -14,6 +16,9 @@ import {
   isIgnoredPath,
   routeOf,
 } from './analytics';
+
+/** 지난 기록 지우기: 매일 04:30 (KST) */
+const PURGE_CRON = dailyCron({ hour: 4, minute: 30 });
 
 const json = (value: unknown) =>
   value === null ? Prisma.DbNull : (value as Prisma.InputJsonValue);
@@ -80,7 +85,7 @@ export class AnalyticsService {
   }
 
   /** 180일 지난 기록은 매일 새벽에 지운다 (처리방침 보관 기간) */
-  @Cron('0 30 4 * * *', { timeZone: 'Asia/Seoul' })
+  @Cron(PURGE_CRON, { timeZone: KST })
   async purge() {
     const before = new Date(Date.now() - RETENTION_DAYS * 24 * 60 * 60 * 1000);
     const { count } = await this.prisma.pageView.deleteMany({
