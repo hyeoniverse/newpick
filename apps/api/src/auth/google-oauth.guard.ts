@@ -8,6 +8,7 @@ import {
   GOOGLE_LINK_MAX_AGE,
   authCookieOptions,
 } from './cookie-options';
+import { env, rawEnv } from '../config/env';
 
 const GOOGLE_ENV = [
   'GOOGLE_CLIENT_ID',
@@ -16,8 +17,9 @@ const GOOGLE_ENV = [
 ] as const;
 
 /** Google 로그인에 필요한 환경 변수 중 빠진 것 */
-export const missingGoogleEnv = (env: NodeJS.ProcessEnv = process.env) =>
-  GOOGLE_ENV.filter((key) => !env[key]);
+export const missingGoogleEnv = (
+  source: Record<string, string | undefined> = rawEnv(),
+) => GOOGLE_ENV.filter((key) => !source[key]);
 
 /**
  * Google 로그인 경로의 가드. 키가 없으면 passport까지 가지 않고 503으로 알립니다.
@@ -87,5 +89,4 @@ export class GoogleOAuthGuard extends AuthGuard('google') {
 }
 
 /** 로그인 실패를 웹에 알리는 주소. 웹은 ?login=failed를 보고 안내한다 */
-export const loginFailedUrl = () =>
-  `${process.env.FRONTEND_URL ?? ''}/?login=failed`;
+export const loginFailedUrl = () => `${env.frontendUrl}/?login=failed`;

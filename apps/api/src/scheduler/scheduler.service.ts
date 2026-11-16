@@ -31,6 +31,7 @@ import { setTimeofCycle } from 'src/common/helpers';
 import { EditionService } from 'src/edition/edition.service';
 import { SiteCacheService } from 'src/site-cache/site-cache.service';
 import { AppException } from 'src/common/errors/app.exception';
+import { env } from '../config/env';
 /** schedule_configs에서 메일 발송 주기를 저장하는 행 */
 const MAIL_CYCLE_CONFIG_ID = 1;
 const MAIL_JOB_NAME = 'sendNewsletter';
@@ -152,7 +153,7 @@ export class SchedulerService implements OnApplicationBootstrap {
    * 예약 시각에 저절로 돌릴지. SCHEDULER_ENABLED=false면 등록만 하고 시작하지 않는다 ('지금 실행'은 된다).
    * 로컬 개발 서버가 운영과 따로 Claude를 부르고(비용) 로컬 구독자에게 실제 메일을 보내지 않게
    */
-  private readonly autoRun = process.env.SCHEDULER_ENABLED !== 'false';
+  private readonly autoRun = env.schedulerEnabled;
   /** 요약 다시 시도 간격. 테스트에서 0으로 바꾼다 */
   protected summaryRetryDelayMs = SUMMARY_RETRY_DELAY_MS;
   constructor(
@@ -477,7 +478,7 @@ export class SchedulerService implements OnApplicationBootstrap {
       }
 
       // 운영자 알림 메일은 ADMIN_NOTIFY_EMAIL이 설정된 경우에만 보냅니다.
-      const adminEmail = process.env.ADMIN_NOTIFY_EMAIL;
+      const adminEmail = env.adminNotifyEmail;
       if (adminEmail && generatedNewsletter.length > 0) {
         await this.mailService.sendHtmlMail(
           adminEmail,

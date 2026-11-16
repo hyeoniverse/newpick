@@ -1,5 +1,6 @@
 import { Controller, Get } from '@nestjs/common';
 import { Public } from './auth/decorators/auth.decorators';
+import { env } from './config/env';
 
 @Controller()
 export class AppController {
@@ -16,13 +17,13 @@ export class AppController {
   @Public()
   @Get('health')
   getHealth() {
-    return { status: 'ok', version: process.env.APP_VERSION || 'dev' };
+    return { status: 'ok', version: env.appVersion };
   }
 
   /** 서비스 문의처. 구독 메일을 보내는 주소와 같다 (답장도 여기로 온다) */
   @Public()
   @Get('contact')
   getContact() {
-    return { email: process.env.MAIL_USER || null };
+    return { email: env.mailUser ?? null };
   }
 }

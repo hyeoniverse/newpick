@@ -28,4 +28,21 @@ module.exports = {
       },
     ],
   },
+  overrides: [
+    {
+      // 환경 변수는 config/env.ts 한 곳에서 읽는다 (#199). 테스트는 값을 바꿔 보려고 process.env를 쓴다
+      files: ['src/**/*.ts'],
+      excludedFiles: ['src/config/**', 'src/**/*.spec.ts', 'src/**/__tests__/**'],
+      rules: {
+        'no-restricted-properties': [
+          'error',
+          {
+            object: 'process',
+            property: 'env',
+            message: "환경 변수는 src/config/env.ts의 env로 읽습니다 (import { env } from '../config/env').",
+          },
+        ],
+      },
+    },
+  ],
 };

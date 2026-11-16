@@ -25,10 +25,11 @@ import {
 import { Public } from 'src/auth/decorators/auth.decorators';
 import { MailService } from '../mail/mail.service';
 import { notifyEmailChanged } from '../mail/account-mail';
+import { env } from '../config/env';
 
 /** 다른 Google 계정으로 바꾼 뒤 돌아갈 곳. 웹은 ?google=…를 보고 안내한다 */
 const linkResultUrl = (result: string) =>
-  `${process.env.FRONTEND_URL ?? ''}/mypage?tab=settings&google=${result}`;
+  `${env.frontendUrl}/mypage?tab=settings&google=${result}`;
 
 @Controller('auth')
 export class AuthController {
@@ -122,7 +123,7 @@ export class AuthController {
       sessionHintCookieOptions(REFRESH_TOKEN_MAX_AGE),
     );
 
-    const frontendUrl = process.env.FRONTEND_URL;
+    const frontendUrl = env.frontendUrl;
     return res.redirect(`${frontendUrl}?oauthSuccess=true`);
   }
 

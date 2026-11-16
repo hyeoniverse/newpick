@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { missingGoogleEnv } from './google-oauth.guard';
+import { env } from '../config/env';
 
 // 키가 없을 때 passport가 생성자에서 예외를 던지지 않게 넣는 값. 실제 요청은 GoogleOAuthGuard가 503으로 막습니다.
 const NOT_CONFIGURED = 'google-oauth-not-configured';
@@ -10,9 +11,9 @@ const NOT_CONFIGURED = 'google-oauth-not-configured';
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor() {
     super({
-      clientID: process.env.GOOGLE_CLIENT_ID || NOT_CONFIGURED,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || NOT_CONFIGURED,
-      callbackURL: process.env.GOOGLE_REDIRECT_URI || NOT_CONFIGURED,
+      clientID: env.google.clientId ?? NOT_CONFIGURED,
+      clientSecret: env.google.clientSecret ?? NOT_CONFIGURED,
+      callbackURL: env.google.redirectUri ?? NOT_CONFIGURED,
       scope: ['email', 'profile'],
     });
     const missing = missingGoogleEnv();

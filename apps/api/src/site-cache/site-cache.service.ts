@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { env } from '../config/env';
 
 /** 웹이 캐시를 비울 때 받는 비밀 값 헤더 (웹 app/api/revalidate/route.ts와 같은 이름) */
 export const REVALIDATE_HEADER = 'x-revalidate-secret';
@@ -19,8 +20,8 @@ export class SiteCacheService {
   private readonly logger = new Logger('SiteCache');
 
   async refresh(reason: string): Promise<SiteCacheResult> {
-    const base = process.env.FRONTEND_URL;
-    const secret = process.env.REVALIDATE_SECRET;
+    const base = env.frontendUrl;
+    const secret = env.revalidateSecret;
     if (!base || !secret) {
       this.logger.warn(
         `사이트 캐시를 비우지 않음 (${reason}): REVALIDATE_SECRET이 없다`,
