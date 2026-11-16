@@ -9,6 +9,7 @@ import { NewsletterWriterService } from './newsletter-writer.service';
 import { renderNewsletterHtml } from './newsletter-html';
 import { StoryImageService } from './story-images';
 import { TagsService } from '../tags/tags.service';
+import { KST } from '../common/kst';
 
 /**
  * 뉴스레터에 쓴 기사만 남깁니다. 썸네일·관련 기사가 실제로 다룬 소식에서 나오게 (#43).
@@ -53,7 +54,7 @@ export class AiSummaryService {
     return rows.map((row) => ({
       ...row,
       date: row.createdAt.toLocaleDateString('ko-KR', {
-        timeZone: 'Asia/Seoul',
+        timeZone: KST,
         month: 'numeric',
         day: 'numeric',
       }),

@@ -27,7 +27,7 @@ import { MysqlPrismaService } from 'prisma/mysql.service';
 import { CategoryRepository } from 'src/category/category.repository';
 import { NewsletterRepo } from 'src/repository/newsletter.repository';
 import { CronJob, CronTime } from 'cron';
-import { setTimeofCycle } from 'src/common/helpers';
+import { EVERY_DAY, crawlCron, dailyCron, mailCron } from 'src/common/cron';
 import { EditionService } from 'src/edition/edition.service';
 import { SiteCacheService } from 'src/site-cache/site-cache.service';
 import { AppException } from 'src/common/errors/app.exception';
@@ -46,21 +46,7 @@ export type { ClockTime, Schedule };
 export const DEFAULT_SCHEDULE: Schedule = {
   crawl: { hour: 8, minute: 0 },
   summary: { hour: 8, minute: 30 },
-  mail: { hour: 8, minute: 40, day: 7 },
-};
-
-const dailyCron = ({ hour, minute }: ClockTime) => `0 ${minute} ${hour} * * *`;
-
-/** 기사 수집 간격 (시간). 섹션 헤드라인은 그 순간 것만 보여 주므로, 매시간 모아 '그날의 뉴스'를 빠짐없이 채운다 (요약 전 마지막 수집은 08:00) */
-export const CRAWL_EVERY_HOURS = 1;
-
-/** 수집 시각부터 CRAWL_EVERY_HOURS마다 (1시간이면 매시 정각, 수집 분은 그대로) */
-export const crawlCron = ({ hour, minute }: ClockTime) => {
-  const hours = Array.from(
-    { length: 24 / CRAWL_EVERY_HOURS },
-    (_, i) => (hour + i * CRAWL_EVERY_HOURS) % 24,
-  ).sort((a, b) => a - b);
-  return `0 ${minute} ${hours.join(',')} * * *`;
+  mail: { hour: 8, minute: 40, day: EVERY_DAY },
 };
 
 /** 요약에 실패한 관심사를 다시 시도하는 횟수 · 간격 (스트리밍으로 시간 초과는 줄었지만, 과부하 · 일시 오류 대비) */
@@ -220,7 +206,7 @@ export class SchedulerService implements OnApplicationBootstrap {
       this.makeAiSummary(),
     );
     const { hour, minute, day } = this.schedule.mail;
-    add(MAIL_JOB_NAME, setTimeofCycle(hour, day, minute), () =>
+    add(MAIL_JOB_NAME, mailCron(hour, day, minute), () =>
       this.sendEmailSummary(),
     );
     this.logger.log(`예약 시간: ${JSON.stringify(this.schedule)} (${KST})`);
@@ -263,7 +249,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     this.reschedule(SUMMARY_JOB_NAME, dailyCron(next.summary));
     this.reschedule(
       MAIL_JOB_NAME,
-      setTimeofCycle(next.mail.hour, next.mail.day, next.mail.minute),
+      mailCron(next.mail.hour, next.mail.day, next.mail.minute),
     );
     this.logger.log(`예약 시간 변경: ${JSON.stringify(next)} (${KST})`);
     return this.getSchedule();

@@ -4,11 +4,9 @@ import {
   backfillAt,
   SchedulerService,
   SUMMARY_WINDOW_HOURS,
-  crawlCron,
   summaryWindow,
   MORNING_START_HOUR,
 } from './scheduler.service';
-import { setTimeofCycle } from 'src/common/helpers';
 
 function setup(failingCategoryId: number, edition: unknown = null) {
   const categories = [
@@ -170,12 +168,6 @@ describe('SchedulerService.makeAiSummary', () => {
     expect(kstStamp(window.morningSince)).toBe(
       `2026-11-06 ${String(MORNING_START_HOUR).padStart(2, '0')}:00:00`,
     );
-  });
-
-  it('수집은 매시간 하루 24번 (수집 분은 그대로)', () => {
-    const hours = Array.from({ length: 24 }, (_, i) => i).join(',');
-    expect(crawlCron({ hour: 8, minute: 0 })).toBe(`0 0 ${hours} * * *`);
-    expect(crawlCron({ hour: 0, minute: 30 })).toBe(`0 30 ${hours} * * *`);
   });
 });
 
@@ -576,11 +568,6 @@ describe('구독 메일 (#55)', () => {
     finish!();
     await Promise.all([summary, mail]);
     expect(mailService.sendBulkMail).toHaveBeenCalledTimes(1);
-  });
-
-  it('발송 주기: 그 시각 40분, 7이면 매일', () => {
-    expect(setTimeofCycle(8, 7)).toBe('0 40 8 * * *');
-    expect(setTimeofCycle(9, 1)).toBe('0 40 9 * * 1');
   });
 });
 

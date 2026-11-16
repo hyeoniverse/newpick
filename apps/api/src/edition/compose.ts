@@ -3,6 +3,7 @@ import { storyRef } from './editor';
 import type { ParsedStory } from './parse';
 import type { MailFollow, MailPlan, TagNews } from './personalize';
 import type { ArticlePick } from '../recommend/pick';
+import { KST } from '../common/kst';
 
 /**
  * 구독자가 고른 분야로 그날의 메일 한 통을 엮는다 (#55). 호출 없음.
@@ -106,7 +107,7 @@ const dateLabel = (date: Date) =>
   new Intl.DateTimeFormat('ko-KR', {
     month: 'long',
     day: 'numeric',
-    timeZone: 'Asia/Seoul',
+    timeZone: KST,
   }).format(date);
 
 /** 리드는 80자 이내라 그대로 들어간다 (newsletterWriter LIMITS.lead) */
