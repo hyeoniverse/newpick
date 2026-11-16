@@ -1,16 +1,11 @@
 import { renderNewsletterHtml } from './newsletter-html';
 import { isMorning, prepare } from './article-prep';
-import {
-  describeClusters,
-  LIMITS,
-  markMorning,
-  MIN_TOTAL,
-  normalize,
-  selectPrompt,
-  splitPicks,
-  WRITER_SCHEMA,
-  writerPrompt,
-} from './newsletter-writer.service';
+import { markMorning, normalize } from './writer/normalize';
+import { WRITER_SCHEMA } from './writer/schema';
+import { MIN_TOTAL, splitPicks } from './writer/select';
+import { describeClusters, selectPrompt } from './writer/select-prompt';
+import { LIMITS } from './writer/types';
+import { writerPrompt } from './writer/write-prompt';
 import { parseNewsletterHtml } from '../edition/parse';
 import { composeEdition } from '../edition/compose';
 import { renderEditionMail } from '../edition/mail';

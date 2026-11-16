@@ -1,5 +1,6 @@
 import { prepare } from './article-prep';
-import { selectPrompt, writerPrompt } from './newsletter-writer.service';
+import { selectPrompt } from './writer/select-prompt';
+import { writerPrompt } from './writer/write-prompt';
 import { GENDER_RULES } from './writing-rules';
 import { editorPrompt } from '../edition/editor';
 

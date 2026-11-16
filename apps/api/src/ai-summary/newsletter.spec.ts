@@ -1,24 +1,23 @@
 import { UsageError } from './pricing';
+import { NewsletterWriterService } from './newsletter-writer.service';
 import {
   clean,
   keywords,
   limitMarks,
   plain,
-  LIMITS,
   normalize,
-  NewsletterWriterService,
-  numberArticles,
+} from './writer/normalize';
+import {
   pickArticles,
-  selectPrompt,
   rankClusters,
   describeScores,
   totalScore,
   MIN_TOTAL,
   ClusterScore,
-  writerPrompt,
-  Story,
-  WrittenNewsletter,
-} from './newsletter-writer.service';
+} from './writer/select';
+import { selectPrompt } from './writer/select-prompt';
+import { LIMITS, Story, WrittenNewsletter } from './writer/types';
+import { numberArticles, writerPrompt } from './writer/write-prompt';
 import {
   cleanText,
   clusterArticles,

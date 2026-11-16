@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { Story, StoryImage } from './newsletter-writer.service';
+import type { Story, StoryImage } from './writer/types';
 import { env } from '../config/env';
 
 /**

@@ -1,4 +1,4 @@
-import type { Story } from './newsletter-writer.service';
+import type { Story } from './writer/types';
 import { articleImage, StoryImageService } from './story-images';
 import { renderNewsletterHtml } from './newsletter-html';
 
