@@ -21,7 +21,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { validateEnv } from './config/env.validation';
 import { ScheduleModule } from '@nestjs/schedule';
-import { BasicRepositoryModule } from './repository/repository.module';
+import { NewsletterModule } from './newsletter/newsletter.module';
 import { ConfigLoggerMiddleware } from './middleware/config-logger.middleware';
 import { CoopMiddleware } from './middleware/coop.middleware';
 // import { CommonResponseInterceptor } from './common/response.interceptor';
@@ -56,7 +56,7 @@ import { THROTTLE } from './common/throttle';
     MailModule, // 메일 모듈
     CategoryModule, // 카테고리 모듈
     ScheduleModule.forRoot(),
-    BasicRepositoryModule,
+    NewsletterModule,
     EditionModule, // 구독 메일 편집 (#55)
     SiteCacheModule, // 웹 사이트 캐시 비우기 (#73)
   ],

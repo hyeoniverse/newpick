@@ -13,7 +13,6 @@ import { CrawlingModule } from 'src/crawling/crawling.module';
 import { AiSummaryModule } from 'src/ai-summary/ai-summary.module';
 import { SubscriberModule } from 'src/subscriber/subscriber.module';
 import { CategoryModule } from 'src/category/category.module';
-import { BasicRepositoryModule } from 'src/repository/repository.module';
 import { EditionModule } from 'src/edition/edition.module';
 import { TasteModule } from 'src/taste/taste.module';
 import { RecommendModule } from 'src/recommend/recommend.module';
@@ -25,7 +24,6 @@ import { RecommendModule } from 'src/recommend/recommend.module';
     AiSummaryModule,
     SubscriberModule,
     CategoryModule,
-    BasicRepositoryModule,
     EditionModule,
     TasteModule,
     FollowsModule,

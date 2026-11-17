@@ -2,7 +2,7 @@ import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { toBooleanQuery } from './search-terms';
-import { NewsletterSearchDto } from '../controllers/newsletter.dto';
+import { NewsletterSearchDto } from './newsletter.dto';
 
 const validate = (query: Record<string, unknown>) =>
   validateSync(

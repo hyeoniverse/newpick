@@ -12,7 +12,7 @@ import {
   Post,
 } from '@nestjs/common';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
-import { NewsletterRepo } from '../newsletter.repository';
+import { NewsletterRepo } from './newsletter.repository';
 import {
   NewsletterQueryDto,
   NewsletterTrendDto,
@@ -24,16 +24,16 @@ import {
   UpdateNewsletterDto,
 } from './newsletter.dto';
 import { sanitizeNewsletterHtml } from 'src/common/sanitize-newsletter-html';
-import { toBooleanQuery } from '../search/search-terms';
-import { kstDayRange, kstDaysAgo } from '../../common/kst';
+import { toBooleanQuery } from './search-terms';
+import { kstDayRange, kstDaysAgo } from '../common/kst';
 import dayjs from 'dayjs';
 import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
-import { AppException } from '../../common/errors/app.exception';
-import { SiteCacheService } from '../../site-cache/site-cache.service';
+import { AppException } from '../common/errors/app.exception';
+import { SiteCacheService } from '../site-cache/site-cache.service';
 
 @Controller('newsletters')
 @UseInterceptors(CommonResponseInterceptor)
-export class BasicRepositoryController {
+export class NewsletterController {
   constructor(
     private readonly newsletterRepo: NewsletterRepo,
     private readonly siteCache: SiteCacheService,

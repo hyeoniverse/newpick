@@ -8,9 +8,7 @@ import { CrawlingController } from 'src/crawling/crawling.controller';
 import { FeedbackController } from 'src/feedback/feedback.controller';
 import { MyPageController } from 'src/mypage/mypage.controller';
 import { FollowsController } from 'src/follows/follows.controller';
-import { BasicRepositoryController } from 'src/repository/controllers/newsletter.controller';
-import { AiProcessingLogController } from 'src/repository/controllers/ai-processing-log.controller';
-import { EmailArchivesController } from 'src/repository/controllers/email-archives.controller';
+import { NewsletterController } from 'src/newsletter/newsletter.controller';
 import { SchedulerController } from 'src/scheduler/scheduler.controller';
 import { DashboardController } from 'src/scheduler/dashboard.controller';
 import { StatsController } from 'src/admin-stats/stats.controller';
@@ -129,14 +127,8 @@ const EXPECTED: Record<string, Policy> = {
   'PATCH admin/users/:id': 'admin',
   'POST admin/site-cache/refresh': 'admin',
 
-  'GET ai-processing-logs': 'admin',
-  'GET ai-processing-logs/:id': 'admin',
-  'DELETE ai-processing-logs/:id': 'admin',
-  'GET email-archives': 'admin',
-  'GET email-archives/:id': 'admin',
   'GET health': 'public',
   'GET contact': 'public',
-  'DELETE email-archives/:id': 'admin',
 
   'POST scheduler/toggle/crawling': 'admin',
   'POST scheduler/toggle/ai-summary': 'admin',
@@ -170,7 +162,7 @@ describe('라우트 접근 정책', () => {
   const actual = readRoutePolicies([
     AppController,
     AuthController,
-    BasicRepositoryController,
+    NewsletterController,
     CategoryController,
     CrawlingController,
     AiSummaryController,
@@ -180,8 +172,6 @@ describe('라우트 접근 정책', () => {
     SubscriberController,
     UnsubscribeController,
     AdminController,
-    AiProcessingLogController,
-    EmailArchivesController,
     SchedulerController,
     DashboardController,
     StatsController,
