@@ -1,6 +1,6 @@
 /**
  * 뉴스레터 한 편: api 응답 JSON 그대로 (DB newsletters 한 줄, 날짜는 ISO 문자열).
- * api 쪽 Prisma 모델과 칸 이름이 하나라도 다르면 api의 타입 검사가 실패한다 (common/contracts.ts)
+ * api 쪽 Prisma 모델과 칸 이름이 하나라도 다르면 api의 타입 검사가 실패한다 (src/contracts.ts)
  */
 export interface Newsletter {
   id: number;

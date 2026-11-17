@@ -12,19 +12,21 @@ NewPick의 백엔드입니다. 뉴스를 크롤링하고, AI로 요약해 뉴스
 | 핵심 데이터 | MySQL + Prisma | 유저, 구독, 카테고리, 뉴스레터, 북마크 |
 | 크롤링 원문 | MongoDB + Mongoose | 기사 원문. TTL 인덱스로 30일 뒤 자동 삭제 |
 | 크롤링 | fetch + jsdom | 네이버 뉴스 섹션·기사 페이지 |
-| AI 요약 | Claude API (`@anthropic-ai/sdk`) | 카테고리별 뉴스레터 생성 |
+| AI 요약 | Claude API (`@anthropic-ai/sdk`) · Workers AI 오픈 모델 | 분야별 뉴스레터 생성 · 맞춤 글 · 임베딩 |
 | 메일 | nodemailer (Gmail) | 뉴스레터 발송 |
 | 인증 | Google OAuth + JWT(HttpOnly 쿠키) | 로그인 |
 
 ## 스케줄
 
+기본 시각입니다. 관리자 화면에서 바꿀 수 있고(DB에 저장), 순서는 수집 → 요약 → 메일이어야 합니다.
+
 | 시각(KST) | 작업 |
 |---|---|
-| 매일 08:00 | 네이버 뉴스 6개 섹션 헤드라인 크롤링 → MongoDB 저장 |
-| 매일 08:30 | 카테고리별 AI 요약 → 뉴스레터 저장 |
-| 매주 월요일 08:40 | 구독자의 관심 카테고리에 맞는 뉴스레터 메일 발송 |
+| 매시 정각 (08:00부터) | 네이버 뉴스 섹션 헤드라인 · 최신 기사 수집, 분야 고르기 → MongoDB 저장 |
+| 매일 08:30 | 분야별 AI 요약 → 뉴스레터 저장, 하루 편집 · 후속 판정 · 사이트 캐시 비우기 |
+| 매일 08:40 | 구독자마다 맞춤 메일 발송 (요일 지정 가능) |
 
-관리자는 `POST /scheduler/manual/*`로 각 작업을 바로 실행할 수 있습니다.
+관리자는 `POST /scheduler/manual/*`로 각 작업을 바로 실행할 수 있습니다. 로컬은 `SCHEDULER_ENABLED=false`로 두고 '지금 실행'만 씁니다.
 
 ## 접근 정책
 
@@ -52,13 +54,17 @@ npx prisma migrate deploy   # MYSQL_URL의 DB에 스키마 적용
 npm run start:dev
 ```
 
+모듈 구성과 규칙(환경 변수 · 모듈 경계 · import 방식 · 오류 · 로그)은 [docs/structure.md](../../docs/structure.md#api-appsapi)에 있습니다. 환경 변수는 `src/config/env.ts`에서만 읽고, 필수 값 · 형식은 서버가 시작할 때 검사합니다.
+
 ## 검사
 
 ```bash
 npm run typecheck
 npm run lint
+npm run cycles     # 순환 import · 모듈끼리 서로 import · import 방식
 npm test
 npm run build
+npm run snap:take -- before && npm run snap:take -- after && npm run snap:diff -- before after   # api 응답 비교
 ```
 
 CI(`.github/workflows/ci.yml`)가 PR마다 같은 검사를 실행합니다.
