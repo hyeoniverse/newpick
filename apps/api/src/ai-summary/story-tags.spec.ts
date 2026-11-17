@@ -5,7 +5,7 @@ import { WRITER_SCHEMA } from './writer/schema';
 import { LIMITS } from './writer/types';
 import { writerPrompt } from './writer/write-prompt';
 import { prepare } from './article-prep';
-import { parseNewsletterHtml } from '../edition/parse';
+import { parseNewsletterHtml } from './newsletter-parse';
 import { tagStories } from '../edition/personalize';
 import { sectionTags } from '../mypage/highlights.service';
 

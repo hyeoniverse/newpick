@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
 import { ClaudeService } from '../llm/claude.service';
 import { KST, kstDayRange, kstDaysAgo } from '../common/kst';
-import { parseNewsletterHtml } from './parse';
+import { parseNewsletterHtml } from '../ai-summary/newsletter-parse';
 import {
   EDITOR_SCHEMA,
   EDITOR_SYSTEM,
@@ -14,14 +14,14 @@ import {
   storyRef,
 } from './editor';
 import { composeEdition, EditionNewsletter } from './compose';
-import { MailPlan, storyEmbeddingText, TasteProfile } from './personalize';
-import type { SignalText } from '../taste/taste.service';
+import { storyEmbeddingText } from './personalize';
+import type { MailPlan, PersonalNote } from './mail-plan';
+import type { SignalText, TasteProfile } from '../taste/types';
 import {
   NOTE_SCHEMA,
   NOTE_SYSTEM,
   normalizeNote,
   notePrompt,
-  PersonalNote,
 } from './personal-note';
 import { AiService } from '../ai/ai.service';
 import { createUnsubscribeToken } from 'src/subscriber/unsubscribe-token';

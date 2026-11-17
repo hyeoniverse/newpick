@@ -1,10 +1,10 @@
 import { cosine } from 'src/ai-summary/article-prep';
-import { tagKey } from 'src/tags/tags';
+import { TAG_LIMITS, tagKey } from 'src/tags/tags';
 import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
-import { storyText } from './parse';
-import type { PersonalNote } from './personal-note';
-import type { ArticlePick } from '../recommend/pick';
+import { storyText } from '../ai-summary/newsletter-parse';
+import type { MailPlan, TagNews } from './mail-plan';
+import type { TasteProfile } from '../taste/types';
 
 /**
  * 맞춤 메일 (#123 3단계, "같이 쓰고 사람마다 고르기"). 글은 쓰지 않고 계산만.
@@ -16,68 +16,6 @@ import type { ArticlePick } from '../recommend/pick';
  * 구독하지 않은 분야는 관심이 닿는 소식만 들어온다.
  * 취향 신호가 없거나 어떤 소식에도 닿지 않으면 계획이 없고, 메일은 지금처럼 분야별이다
  */
-
-/** 취향 신호 하나: 북마크한 소식(제목 · 리드) 또는 스크랩한 문장(+메모)의 임베딩 */
-export type TasteSignal = {
-  kind: 'bookmark' | 'scrap';
-  /** 소식 제목 · 스크랩 문장 앞부분 (이미 본 소식을 알아보는 데 쓴다) */
-  label: string;
-  vector: number[];
-};
-
-/** 한 사람의 취향: 점수 큰 태그 (이름 · 비교 열쇠 · 점수)와 신호 임베딩 */
-export type TasteProfile = {
-  topics: { name: string; key: string; score: number }[];
-  signals?: TasteSignal[];
-};
-
-/** 한 사람의 메일 계획. 발송 기록에 함께 남겨 마이페이지에서 받은 그대로 다시 만든다 */
-export type MailPlan = {
-  /** 메일에 싣는 소식, 점수 높은 순 */
-  picks: { ref: string; newsletterId: number }[];
-  /** 사람마다 쓴 제목 · 맞춤 브리핑 (personal-note.ts). 못 쓰면 없음 */
-  note?: PersonalNote | null;
-  /** 뉴스레터에 쓰지 않은 오늘 기사 중 관심과 가까운 원문 (recommend) */
-  articles?: ArticlePick[];
-  /** 팔로우한 태그 칸 (#123 5단계): 태그마다 그날 소식 · 뉴스레터에 안 실린 기사 */
-  tags?: TagNews[];
-  /** 지켜보던 소식의 후속 (지난 메일 이후 새로 이어진 것, FollowsService.forMail) */
-  follows?: MailFollow[];
-};
-
-/** 메일에 싣는 후속 하나 */
-export type MailFollow = {
-  /** 지켜보던 소식 제목 */
-  followed: string;
-  /** 지켜보던 소식이 실린 뉴스레터 (원문 링크) */
-  followedNewsletterId: number;
-  /** 이어진 새 소식 제목 */
-  heading: string;
-  /** 어떻게 이어지는지 한 줄 (없으면 빈 문자열) */
-  reason: string;
-  newsletterId: number;
-  category: string;
-};
-
-/** 팔로우한 태그 하나의 그날 소식 */
-export type TagNews = {
-  tag: string;
-  stories: {
-    ref: string;
-    newsletterId: number;
-    category: string;
-    heading: string;
-  }[];
-  articles: ArticlePick[];
-};
-
-export const TAG_LIMITS = {
-  /** 메일에 싣는 태그 수 (소식이 있는 것만, 팔로우한 순) */
-  tags: 5,
-  /** 태그 하나에 싣는 뉴스레터 소식 · 기사 수 */
-  stories: 3,
-  articles: 2,
-};
 
 /**
  * 팔로우한 태그마다 그날 소식 (모든 분야): 소식 글(제목 · 리드 · 본문 앞부분)에 태그가 나오는 것.

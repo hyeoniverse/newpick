@@ -1,6 +1,9 @@
 import { renderNewsletterHtml } from '../ai-summary/newsletter-html';
 import type { Story } from '../ai-summary/writer/types';
-import { parseNewsletterHtml, ParsedStory } from './parse';
+import {
+  parseNewsletterHtml,
+  ParsedStory,
+} from '../ai-summary/newsletter-parse';
 import { editorPrompt, normalizeEditorial, Editorial } from './editor';
 import { composeEdition, EditionNewsletter } from './compose';
 import { renderEditionMail } from './mail';

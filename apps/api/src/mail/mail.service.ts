@@ -1,4 +1,4 @@
-import type { MailPlan } from '../edition/personalize';
+import type { MailPlan } from '../edition/mail-plan';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import PQueue from '@esm2cjs/p-queue';

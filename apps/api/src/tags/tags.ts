@@ -78,3 +78,12 @@ export function removeTag(tags: string[], tag: string): string[] | null {
     ? tags.filter((t) => tagKey(t) !== key)
     : null;
 }
+
+/** 메일의 팔로우한 태그 칸 (#123 5단계): 편집(tagStories) · 추천 기사(forTags) · 메일 작업이 같이 쓴다 */
+export const TAG_LIMITS = {
+  /** 메일에 싣는 태그 수 (소식이 있는 것만, 팔로우한 순) */
+  tags: 5,
+  /** 태그 하나에 싣는 뉴스레터 소식 · 기사 수 */
+  stories: 3,
+  articles: 2,
+};

@@ -6,7 +6,7 @@ import { MIN_TOTAL, splitPicks } from './writer/select';
 import { describeClusters, selectPrompt } from './writer/select-prompt';
 import { LIMITS } from './writer/types';
 import { writerPrompt } from './writer/write-prompt';
-import { parseNewsletterHtml } from '../edition/parse';
+import { parseNewsletterHtml } from './newsletter-parse';
 import { composeEdition } from '../edition/compose';
 import { renderEditionMail } from '../edition/mail';
 

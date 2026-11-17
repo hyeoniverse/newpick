@@ -3,13 +3,13 @@ import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AiService, AiUnavailable } from '../ai/ai.service';
 import { AppException } from '../common/errors/app.exception';
 import { kstDayRange, kstDaysAgo } from '../common/kst';
-import type { MailFollow } from '../edition/personalize';
+import type { MailFollow } from '../edition/mail-plan';
 import {
   ParsedNewsletter,
   parseNewsletterHtml,
   ParsedStory,
   storyText,
-} from '../edition/parse';
+} from '../ai-summary/newsletter-parse';
 import {
   acceptedFrom,
   candidatesFor,

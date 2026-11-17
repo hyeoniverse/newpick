@@ -2,8 +2,8 @@ import type { TasteStats } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { tagKey, toRules } from 'src/tags/tags';
-import { parseNewsletterHtml } from 'src/edition/parse';
-import type { TasteProfile, TasteSignal } from 'src/edition/personalize';
+import { parseNewsletterHtml } from 'src/ai-summary/newsletter-parse';
+import type { TasteProfile } from './types';
 import {
   byCategoryScore,
   byTopicScore,
@@ -13,6 +13,7 @@ import {
   STAR_BONUS,
   WEIGHTS,
 } from './taste';
+import type { SignalText } from './types';
 
 const asKeywords = (value: unknown) =>
   Array.isArray(value)
@@ -23,9 +24,6 @@ const NEWSLETTER = { select: { categoryId: true, keywords: true } } as const;
 
 /** 맞춤 메일에서 뜻을 비교할 신호 (최근 것부터 이만큼, 이 기간 안) */
 export const SIGNAL_TEXT_LIMITS = { count: 24, maxAgeDays: 30, label: 30 };
-
-/** 임베딩할 신호 글 */
-export type SignalText = Omit<TasteSignal, 'vector'> & { text: string };
 
 /** 스크랩 문장은 앞부분만 이름으로 */
 export const signalLabel = (text: string, max = SIGNAL_TEXT_LIMITS.label) => {

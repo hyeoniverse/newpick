@@ -1,7 +1,7 @@
 import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
-import type { ParsedStory } from './parse';
-import type { MailFollow, MailPlan, TagNews } from './personalize';
+import type { ParsedStory } from '../ai-summary/newsletter-parse';
+import type { MailFollow, MailPlan, TagNews } from './mail-plan';
 import type { ArticlePick } from '../recommend/pick';
 import { KST } from '../common/kst';
 

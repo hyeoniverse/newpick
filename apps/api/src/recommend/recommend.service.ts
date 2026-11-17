@@ -3,10 +3,10 @@ import { MysqlPrismaService } from 'prisma/mysql.service';
 import { AiService } from '../ai/ai.service';
 import { embeddingText } from '../ai-summary/article-prep';
 import { CrawlingRepository } from '../crawling/crawling.repository';
-import type { TasteSignal } from '../edition/personalize';
+import type { TasteSignal } from '../taste/types';
 import { SIGNAL_TEXT_LIMITS } from '../taste/taste.service';
 import { ArticlePick, Candidate, pickArticles, tagArticles } from './pick';
-import { TAG_LIMITS } from '../edition/personalize';
+import { TAG_LIMITS } from '../tags/tags';
 
 /** 임베딩은 한 번에 이만큼씩 */
 const BATCH = 50;

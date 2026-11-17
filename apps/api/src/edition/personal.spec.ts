@@ -1,14 +1,14 @@
 import { composeEdition, EditionNewsletter } from './compose';
 import { renderEditionMail } from './mail';
-import type { ParsedStory } from './parse';
+import type { ParsedStory } from '../ai-summary/newsletter-parse';
 import {
   interestScore,
   PERSONAL_LIMITS,
   planMail,
   relevance,
   tagStories,
-  TasteProfile,
 } from './personalize';
+import type { TasteProfile } from '../taste/types';
 import { normalizeNote, notePrompt } from './personal-note';
 
 const story = (heading: string, lead = `${heading} 리드`): ParsedStory => ({
