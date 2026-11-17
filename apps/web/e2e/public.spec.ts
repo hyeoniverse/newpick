@@ -44,8 +44,11 @@ test.describe('비로그인 탐색', () => {
 		// 검색 칸이 붙기(하이드레이션) 전에 입력하면 글자가 지워지거나 Enter가 사라진다 (WebKit · CI에서 드러남)
 		await page.goto(`/articles?categoryId=${third.categoryId}`);
 		await waitForSearch(page);
-		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('카테고리');
-		await page.keyboard.press('Enter');
+		// Enter는 검색 칸에 직접 누른다: page.keyboard는 그 순간 포커스가 있는 곳으로 보내, 화면이 다시 그려지며 포커스가 잠깐 벗어나면
+		// Enter가 사라졌다 (CI에서 가끔 '주소에 q= 없음' · '결과 없음 안내가 안 보임'으로 실패, 실패 화면에는 글자만 들어가 있었다)
+		const searchbox = page.getByRole('searchbox', { name: '뉴스레터 검색어' });
+		await searchbox.fill('카테고리');
+		await searchbox.press('Enter');
 
 		await expect(page).toHaveURL(/q=/);
 		await expect(page.getByRole('heading', { name: '‘카테고리’ 검색 결과' })).toBeVisible();
@@ -57,8 +60,8 @@ test.describe('비로그인 탐색', () => {
 		await expect(page.getByText(third.title).first()).toBeVisible();
 		await waitForSearch(page);
 
-		await page.getByRole('searchbox', { name: '뉴스레터 검색어' }).fill('없는검색어입니다');
-		await page.keyboard.press('Enter');
+		await searchbox.fill('없는검색어입니다');
+		await searchbox.press('Enter');
 		await expect(page.getByText('검색 결과가 없습니다')).toBeVisible();
 	});
 
