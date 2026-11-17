@@ -199,7 +199,7 @@ export class SubscriberService {
     {
       email: string;
       interests: number[];
-      name: string;
+      name: string | null;
       userId: number;
     }[]
   > {

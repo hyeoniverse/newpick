@@ -18,10 +18,17 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
     }),
   };
   const aiSummaryService = {
-    summarizeText: jest.fn(async (_news, categoryId: number) => ({
-      // 실제처럼 만든 뉴스레터 한 편 (예전 목은 배열이라 '늘 0편' 버그를 못 잡았다)
-      newsletter: { categoryId, content: `요약${categoryId}` },
-    })),
+    summarizeText: jest.fn(
+      async (
+        _news,
+        categoryId: number,
+      ): Promise<{
+        newsletter: { categoryId: number; content: string } | null;
+      }> => ({
+        // 실제처럼 만든 뉴스레터 한 편 (예전 목은 배열이라 '늘 0편' 버그를 못 잡았다)
+        newsletter: { categoryId, content: `요약${categoryId}` },
+      }),
+    ),
   };
   const editionService = {
     ensureEdition: jest.fn().mockResolvedValue(edition),

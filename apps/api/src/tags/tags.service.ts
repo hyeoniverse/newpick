@@ -71,7 +71,7 @@ export class TagsService {
           ? change(row.keywords as string[])
           : null,
       }))
-      .filter((u) => u.next !== null);
+      .filter((u): u is typeof u & { next: string[] } => u.next !== null);
     await this.prisma.$transaction(
       updates.map((u) =>
         this.prisma.newsletter.update({

@@ -91,7 +91,7 @@ export class SummaryJobService {
       const categoryList = (await this.categoryRepository.findAll()).filter(
         (category) => !categoryId || category.id === categoryId,
       );
-      const generatedNewsletter = [];
+      const generatedNewsletter: { content: string }[] = [];
       // 그날의 뉴스만: 어제 수집 시각부터 지금까지 처음 모은 기사 (예전엔 지난 7일 전부라 지난 소식이 다시 실렸다)
       const {
         start: startDate,

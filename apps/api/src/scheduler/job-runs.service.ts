@@ -1,4 +1,4 @@
-import type { JobName, JobRun, JobTrigger } from '@newpick/shared';
+import type { JobName, JobResult, JobRun, JobTrigger } from '@newpick/shared';
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 
@@ -96,11 +96,12 @@ export class JobRunsService {
       });
   }
 
-  finishRun(name: JobName, status: JobRun['status'], message: string) {
+  finishRun(name: JobName, status: JobResult, message: string) {
     const run = this.runs[name];
     const finishedAt = new Date();
     // 꺼져 있어 바로 건너뛴 경우는 시작 시각도 지금
-    const startedAt = run.running ? new Date(run.startedAt) : finishedAt;
+    const startedAt =
+      run.running && run.startedAt ? new Date(run.startedAt) : finishedAt;
     const trigger = run.running ? run.trigger : this.takeTrigger(name);
     this.runs[name] = {
       running: false,

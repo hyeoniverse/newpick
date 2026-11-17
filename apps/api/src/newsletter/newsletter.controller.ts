@@ -48,8 +48,8 @@ export class NewsletterController {
     const categoryId = query.categoryId || null;
     console.log('trend', trend);
 
-    let startDate = null;
-    let endDate = null;
+    let startDate: Date | null = null;
+    let endDate: Date | null = null;
 
     if (query.startDate && dayjs(query.startDate).isValid()) {
       startDate = dayjs(query.startDate).toDate();

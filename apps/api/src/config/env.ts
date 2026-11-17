@@ -56,8 +56,9 @@ export const env = {
     return (read('COOKIE_SAMESITE') ?? 'lax') as SameSite;
   },
 
+  /** 수집한 기사 저장소 (MongoDB). 필수 */
   get mongoUrl() {
-    return read('MONGO_URL');
+    return read('MONGO_URL') ?? '';
   },
 
   /** Google 로그인 (셋이 함께 있어야 동작, 없으면 로그인 경로만 503) */

@@ -45,9 +45,11 @@ export interface HighlightPage {
 export interface BookmarkItem {
   id: number;
   newsTitle: string;
-  newsImg: string;
+  /** 이미지가 없으면 null */
+  newsImg: string | null;
   newsCreatedAt: string;
-  newsSummary: string;
+  /** 본문이 없으면 null */
+  newsSummary: string | null;
   category: { id: number; name: string };
   /** 북마크한 시각 · 폴더 · 조회수 (#123 폴더 · 정렬) */
   bookmarkedAt: string;

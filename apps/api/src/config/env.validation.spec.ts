@@ -7,6 +7,16 @@ describe('validateEnv', () => {
     ).toThrow('JWT_REFRESH_SECRET');
   });
 
+  it('MONGO_URL이 없으면 시작하지 않는다 (수집한 기사 저장소)', () => {
+    expect(() =>
+      validateEnv({
+        JWT_SECRET: 'a',
+        JWT_REFRESH_SECRET: 'b',
+        FRONTEND_URL: 'http://localhost:3000',
+      }),
+    ).toThrow('MONGO_URL');
+  });
+
   it('FRONTEND_URL이 없으면 시작하지 않는다 (CORS·로그인 리디렉션에 필요)', () => {
     expect(() =>
       validateEnv({ JWT_SECRET: 'a', JWT_REFRESH_SECRET: 'b' }),
@@ -19,6 +29,7 @@ describe('validateEnv', () => {
         JWT_SECRET: 'same',
         JWT_REFRESH_SECRET: 'same',
         FRONTEND_URL: 'http://localhost:3000',
+        MONGO_URL: 'mongodb://localhost/test',
       }),
     ).toThrow('서로 달라야');
   });
@@ -28,6 +39,7 @@ describe('validateEnv', () => {
       JWT_SECRET: 'a',
       JWT_REFRESH_SECRET: 'b',
       FRONTEND_URL: 'http://localhost:3000',
+      MONGO_URL: 'mongodb://localhost/test',
     };
     expect(validateEnv(env)).toBe(env);
   });
@@ -38,6 +50,7 @@ describe('envProblems', () => {
     JWT_SECRET: 'a',
     JWT_REFRESH_SECRET: 'b',
     FRONTEND_URL: 'http://localhost:3000',
+    MONGO_URL: 'mongodb://localhost/test',
   };
 
   it('빈 문자열은 없는 것으로 본다', () => {

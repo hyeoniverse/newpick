@@ -55,6 +55,7 @@ export class CrawlingRepository {
    */
   async getCrawledNewsBetween(start: Date, end: Date, categoryId: number) {
     const category = await this.categoryRepository.findById(categoryId);
+    if (!category) throw new AppException('CATEGORY_NOT_FOUND');
     return this.crawledNews
       .find({
         createdAt: { $gte: start, $lte: end },
@@ -111,7 +112,7 @@ export class CrawlingRepository {
   }
 
   // 가장 최근 크롤링 데이터 조회
-  async getLatestCrawledNews(): Promise<CrawledNews> {
+  async getLatestCrawledNews(): Promise<CrawledNews | null> {
     return await this.crawledNews.findOne().sort({ createdAt: -1 });
   }
   /**
@@ -191,7 +192,7 @@ export class CrawlingRepository {
     });
   }
   // 가장 오래된 데이터 조회
-  async getOldestCrawledNews(): Promise<CrawledNews> {
+  async getOldestCrawledNews(): Promise<CrawledNews | null> {
     return await this.crawledNews.findOne().sort({ createdAt: 1 });
   }
   // 크롤링 데이터 조회
@@ -203,6 +204,7 @@ export class CrawlingRepository {
     // KST 기준 하루 단위. (이전 .utc(true)는 범위를 9시간 늦게 밀어 당일 08:00 크롤링 결과가 빠졌음)
     const { start: startDate, end: endDate } = kstDayRange(dateStart, dateEnd);
     const categoryName = await this.categoryRepository.findById(categoryId);
+    if (!categoryName) throw new AppException('CATEGORY_NOT_FOUND');
     // 디버깅을 위한 로그 추가
     this.logger.debug('DB 검색 범위:', {
       startDate,

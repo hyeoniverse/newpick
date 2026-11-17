@@ -24,7 +24,8 @@ export type MailResult = {
 export type Subscriber = {
   email: string;
   interests: number[];
-  name: string;
+  /** 회원 이름 (없을 수 있다) */
+  name: string | null;
   /** 원클릭 해지 토큰을 만들 회원 id (#18) */
   userId?: number;
 };
@@ -140,6 +141,8 @@ export class MailService {
         await sleep(this.retryBaseDelay * attempt);
       }
     }
+    // 위 반복은 마지막 시도에서 늘 돌려준다 (MAX_ATTEMPTS ≥ 1). 타입 검사용
+    throw new Error('메일 발송 반복이 결과 없이 끝났습니다.');
   }
 
   /**

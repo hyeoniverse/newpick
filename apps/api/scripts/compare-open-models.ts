@@ -214,7 +214,7 @@ async function main() {
       continue;
     }
     const source = articles.map((a) => `${a.title} ${a.content}`).join(' ');
-    const claudeText = plainText(claude.contentAsHTML);
+    const claudeText = plainText(claude.contentAsHTML ?? '');
     const columns = [
       {
         name: 'Claude (저장된 것)',
