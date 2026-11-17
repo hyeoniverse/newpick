@@ -8,7 +8,7 @@ import { useToast } from '@/hooks/useToast';
 import { DatePicker, DateRangePicker } from '@/components/common/DatePicker';
 
 /** 고를 수 있는 가장 긴 기간 (API와 같음) */
-export const MAX_RANGE_DAYS = 92;
+const MAX_RANGE_DAYS = 92;
 
 /** 기간 고르기: 미리 정한 기간(constants/periods)에 날짜 계산을 붙인 것 */
 export const PRESETS = DATE_PRESETS.map((preset) => ({ ...preset, range: () => presetRange(preset) }));

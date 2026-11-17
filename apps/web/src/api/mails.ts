@@ -1,6 +1,6 @@
 import type { MailsPage } from '@newpick/shared';
 import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { API_ENDPOINTS } from '@/constants/api';
 
 /** 마이페이지 받은 메일 */
 

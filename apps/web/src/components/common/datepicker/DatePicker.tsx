@@ -73,5 +73,3 @@ export function DatePicker({
 		</div>
 	);
 }
-
-export default DatePicker;

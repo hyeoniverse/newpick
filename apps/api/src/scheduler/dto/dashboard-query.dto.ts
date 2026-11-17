@@ -16,7 +16,7 @@ export class MailRecipientsQueryDto {
 }
 
 /** 상세 목록 공통: 기간 + 페이지 (#21) */
-export class DashboardListQueryDto extends DashboardQueryDto {
+class DashboardListQueryDto extends DashboardQueryDto {
 	@IsOptional()
 	@Type(() => Number)
 	@IsInt({ message: 'limit는 정수여야 합니다.' })

@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { env } from 'src/config/env';
 
 /** 웹이 캐시를 비울 때 받는 비밀 값 헤더 (웹 app/api/revalidate/route.ts와 같은 이름) */
-export const REVALIDATE_HEADER = 'x-revalidate-secret';
+const REVALIDATE_HEADER = 'x-revalidate-secret';
 const TIMEOUT_MS = 10_000;
 
 export type SiteCacheResult = { ok: true } | { ok: false; reason: 'not-configured' | 'failed'; detail?: string };

@@ -82,7 +82,7 @@ export function titleSimilarity(a: string, b: string): number {
  * 제목이 이만큼 겹치면 같은 사건으로 본다.
  * 2026-10-26 기사 51건: 같은 사건(룰라 4선 두 건) 0.28, 다른 사건 중 가장 비슷한 쌍(게임대상·SNS대상) 0.19
  */
-export const SAME_EVENT = 0.25;
+const SAME_EVENT = 0.25;
 
 /**
  * 임베딩(bge-m3)이 이만큼 비슷하면 같은 사건으로 본다. 언론사마다 제목을 달리 달아 제목으로는 못 묶는 경우를 잡는다.
@@ -160,9 +160,9 @@ export function prepare(
 export const isMorning = (cluster: Cluster) => cluster.articles.some((a) => a.morning);
 
 /** 고르기에 보내는 묶음 수 한도. 묶음마다 점수 한 줄을 받으므로 이보다 많으면 응답이 한도에서 잘린다 */
-export const SELECT_MAX_CLUSTERS = 50;
+const SELECT_MAX_CLUSTERS = 50;
 /** 그중 오늘 아침 속보 묶음은 작아도 이만큼은 넣는다 (아침 속보는 보도가 1~2건인 때가 많다) */
-export const SELECT_MAX_MORNING = 10;
+const SELECT_MAX_MORNING = 10;
 
 /**
  * 고르기 후보: 보도가 많은 묶음부터 SELECT_MAX_CLUSTERS개 + 거기 못 든 아침 속보 묶음 SELECT_MAX_MORNING개까지.

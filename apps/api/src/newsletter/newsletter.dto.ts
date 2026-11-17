@@ -17,7 +17,7 @@ import {
 import { Type, Transform } from 'class-transformer';
 
 /** 목록에서 한 번에 고를 수 있는 태그 수 */
-export const SEARCH_KEYWORD_LIMIT = 5;
+const SEARCH_KEYWORD_LIMIT = 5;
 
 export class NewsletterQueryDto {
 	@IsDefined({ message: 'offset는 필수 값입니다.' })
@@ -50,15 +50,6 @@ export class NewsletterQueryDto {
 	@IsOptional()
 	@IsNumber({}, { message: 'categoryId는 숫자여야 합니다.' })
 	categoryId?: number;
-}
-export class NewsletterBodyDto {
-	@IsOptional()
-	@IsString({ message: 'startDate는 문자열이어야 합니다.' })
-	startDate?: string;
-
-	@IsOptional()
-	@IsString({ message: 'endDate는 문자열이어야 합니다.' })
-	endDate?: string;
 }
 
 /** 관리자 뉴스레터 고치기 (#31). 보낸 항목만 바꾼다 */

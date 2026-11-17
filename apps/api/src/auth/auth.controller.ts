@@ -1,5 +1,5 @@
 import { Controller, Delete, Get, Param, ParseIntPipe, Req, Post, Res, UseGuards } from '@nestjs/common';
-import { Response, Request } from 'express';
+import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GoogleOAuthGuard, loginFailedUrl } from './google-oauth.guard';

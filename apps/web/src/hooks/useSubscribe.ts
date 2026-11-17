@@ -11,7 +11,7 @@ import { ToastType } from '@/types/toast';
 const handleError = (message: string, showToast: (msg: string, type: ToastType) => void) => showToast(message, 'error');
 
 // 구독 상태 조회 훅
-export const useSubscribeStatus = () => {
+const useSubscribeStatus = () => {
 	const {
 		data: subscriptionStatus,
 		isLoading: isStatusLoading,
@@ -31,7 +31,7 @@ export const useSubscribeStatus = () => {
 };
 
 // 구독 관련 mutation 훅
-export const useSubscribeMutation = (refreshSubscription: () => void) => {
+const useSubscribeMutation = (refreshSubscription: () => void) => {
 	const { refetchUser } = useAuth();
 	const { showToast } = useToast();
 
@@ -67,7 +67,7 @@ export const useSubscribeMutation = (refreshSubscription: () => void) => {
 };
 
 // 구독 관심사 훅
-export const useSubscribeInterests = () => {
+const useSubscribeInterests = () => {
 	const { user } = useAuth();
 	const { showToast } = useToast();
 
@@ -154,5 +154,3 @@ export const useSubscribe = () => {
 		validateSubscribe,
 	};
 };
-
-export default useSubscribe;

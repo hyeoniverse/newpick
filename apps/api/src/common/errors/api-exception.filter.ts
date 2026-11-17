@@ -5,7 +5,7 @@ import { AppException } from './app.exception';
 import { ERROR_CODES, ErrorCode, codeForStatus } from './error-codes';
 
 /** 모든 오류 응답의 모양 */
-export interface ApiErrorBody {
+interface ApiErrorBody {
 	statusCode: number;
 	code: ErrorCode;
 	message: string;

@@ -23,7 +23,7 @@ export function usedArticles(news: CrawledNews[], sources: number[]) {
 }
 
 /** 최근 소재로 보는 기간 (이 안에 다룬 소식은 새 진전이 있을 때만 다시 쓴다) */
-export const RECENT_DAYS = 5;
+const RECENT_DAYS = 5;
 
 /** 테스트 요약 (저장하지 않음): 관리자 화면에서 결과만 미리 본다 */
 type TestNewsletter = {

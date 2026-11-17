@@ -14,9 +14,9 @@ import type { CategoryName } from '@newpick/shared';
 export const TEMPLATES = ['numbers', 'timeline', 'qa', 'quote', 'analysis', 'brief'] as const;
 export type Template = (typeof TEMPLATES)[number];
 
-export type Stat = { label: string; value: string; note: string };
-export type Moment = { when: string; what: string };
-export type QA = { q: string; a: string };
+type Stat = { label: string; value: string; note: string };
+type Moment = { when: string; what: string };
+type QA = { q: string; a: string };
 /** 엇갈린 주장 하나: 누가(side) 무엇을 주장하는지(claim), 그 주장이 실린 기사의 언론사(source) */
 export type Claim = { side: string; claim: string; source: string };
 
@@ -122,7 +122,7 @@ export const LIMITS = {
 } as const;
 
 /** 같은 사안을 두고 주장이 엇갈리기 쉬운 분야: 기사를 더 보내고 반대 주장을 더 챙긴다 */
-export const DEBATE_CATEGORIES: readonly CategoryName[] = ['정치', '사회'];
+const DEBATE_CATEGORIES: readonly CategoryName[] = ['정치', '사회'];
 /** 같은 사안을 두고 주장이 맞서기 쉬운 분야인가 (debate를 적극 채운다) */
 export const isDebateCategory = (category?: string) =>
 	!!category && (DEBATE_CATEGORIES as readonly string[]).includes(category);

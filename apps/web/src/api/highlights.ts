@@ -1,6 +1,6 @@
 import type { Highlight, HighlightPage, MyTaste } from '@newpick/shared';
 import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { API_ENDPOINTS } from '@/constants/api';
 
 /** 스크랩 · 메모 (#123) · 내 취향 */
 

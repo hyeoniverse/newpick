@@ -6,9 +6,9 @@ import { env } from 'src/config/env';
  * 무료 요금제라 넘으면 요금이 붙지 않고 호출이 거절된다 (그때는 AiService가 Claude로 넘기거나 미룬다).
  * 같은 기사 6편 비교에서 Gemma 4 26B가 수치 오류 0 · 한 편 59~85 neurons (#119 1단계, scripts/compare-open-models.ts)
  */
-export const OPEN_MODEL = env.aiOpenModel;
+const OPEN_MODEL = env.aiOpenModel;
 /** 문장 임베딩 (한국어 포함 다국어, 1024차원) */
-export const EMBED_MODEL = env.aiEmbedModel;
+const EMBED_MODEL = env.aiEmbedModel;
 
 /** 오픈 모델을 지금 쓸 수 없음 (설정 없음 · 하루 할당을 다 씀 · 서비스 장애). 이때만 다른 길로 넘긴다 */
 export class OpenModelUnavailable extends Error {}

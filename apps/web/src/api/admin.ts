@@ -24,7 +24,7 @@ import {
 	type UserRole,
 } from '@newpick/shared';
 import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { API_ENDPOINTS } from '@/constants/api';
 
 /**
  * 관리자 화면이 쓰는 api 요청 (#21 · #31 · #122). 화면은 apiFetch를 직접 부르지 않고 여기 함수만 쓴다.

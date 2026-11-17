@@ -6,7 +6,7 @@ export const BACK_URL = process.env.API_URL || 'http://localhost:3001';
  * 브라우저는 /api(Next rewrites 프록시)를 거쳐 백엔드에 요청합니다.
  * 같은 도메인으로 요청하므로 인증 쿠키가 프론트 도메인에 저장되고, 별도 CORS·쿠키 도메인 설정이 필요 없습니다.
  */
-export const API_URL = typeof window === 'undefined' ? BACK_URL : '/api';
+const API_URL = typeof window === 'undefined' ? BACK_URL : '/api';
 
 export const API_ENDPOINTS = {
 	AUTH: {
@@ -145,5 +145,3 @@ export const API_ENDPOINTS = {
 		RELATED: (link: string) => `${API_URL}/crawling/link?link=${link}`,
 	},
 };
-
-export default API_ENDPOINTS;

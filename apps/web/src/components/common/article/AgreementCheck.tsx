@@ -3,7 +3,7 @@ import { ROUTES } from '@/constants/routes';
 import { useId } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/hooks/useAuth';
-import useSubscribe from '@/hooks/useSubscribe';
+import { useSubscribe } from '@/hooks/useSubscribe';
 import { cx } from '@/styles/tw';
 import InputCheck from '@/components/common/InputCheck';
 import Text from '@/components/common/Text';

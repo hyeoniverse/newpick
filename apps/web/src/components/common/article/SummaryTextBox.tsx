@@ -3,7 +3,7 @@ import { summaryItems } from '@/utils/summaryItems';
 import { cx } from '@/styles/tw';
 
 /** 본문 소식 (상세: 본문 HTML에서 꺼낸 것). 제목과 리드(그 소식의 핵심 한 문장)를 그대로 보여 준다 */
-export interface SummaryStory {
+interface SummaryStory {
 	kicker: string;
 	heading: string;
 	lead: string;

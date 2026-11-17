@@ -173,7 +173,7 @@ export const ERROR_CODES = {
 export type { ErrorCode };
 
 /** code가 없는 오류(Nest 기본 예외 등)는 상태 코드로 대표 code를 정한다 */
-export const DEFAULT_CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {
+const DEFAULT_CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {
 	400: 'BAD_REQUEST',
 	401: 'UNAUTHORIZED',
 	403: 'FORBIDDEN',

@@ -10,15 +10,13 @@ import {
 	keepFollow,
 	markFollowsSeen,
 	unfollowStory,
-	type FollowUpdate,
-	type FollowUpdateIn,
 	type StoryFollow,
 } from '@/api/follows';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 
 /** 지켜보기 응답 모양 (api/follows.ts) */
-export type { FollowUpdate, FollowUpdateIn, StoryFollow };
+export type { StoryFollow };
 
 /** 마이페이지: 지켜보는 소식마다 이어진 소식 */
 export function useFollows() {

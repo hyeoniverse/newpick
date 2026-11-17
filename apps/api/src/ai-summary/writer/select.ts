@@ -8,7 +8,7 @@ import { isDebateCategory, LIMITS } from './types';
  * 한 곳만 먼저 보도한 큰 소식(예: 앤트로픽 나스닥 상장 신청)이 국내 지수 기사에 밀렸다.
  * 묶음마다 네 가지를 1~5점으로 매기고 합계로 고른다. 보도 수는 합계가 같을 때만 본다
  */
-export const SCORE_AXES = {
+const SCORE_AXES = {
 	impact: '파급',
 	novelty: '새로움',
 	relevance: '관심사',

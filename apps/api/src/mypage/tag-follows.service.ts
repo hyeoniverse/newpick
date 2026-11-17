@@ -7,7 +7,7 @@ import { AppException } from 'src/common/errors/app.exception';
 /** 한 사람이 팔로우할 수 있는 태그 수 */
 export const TAG_FOLLOW_LIMIT = 20;
 /** 마이페이지에서 태그마다 보여 주는 최근 뉴스레터 수 */
-export const TAG_NEWS_LIMIT = 5;
+const TAG_NEWS_LIMIT = 5;
 
 /**
  * 태그 팔로우 (#123 5단계, "키워드 등록"): 뉴스레터 태그를 직접 골라 관심을 밝힌다.

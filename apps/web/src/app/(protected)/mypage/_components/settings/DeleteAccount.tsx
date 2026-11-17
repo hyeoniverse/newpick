@@ -48,7 +48,7 @@ export default function DeleteAccount() {
 	);
 }
 
-export function DeleteAccountSheet() {
+function DeleteAccountSheet() {
 	const { closeModal } = useModal();
 	const { showToast } = useToast();
 	const { resetSession } = useAuth();

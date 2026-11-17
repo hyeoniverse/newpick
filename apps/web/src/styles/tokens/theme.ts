@@ -31,13 +31,13 @@ export type BorderRadius = 'flat' | 'soft' | 'medium' | 'rounded' | 'capsule' | 
  * floating: 화면 위에 뜨는 것 (시트·토스트) — 바탕과 구분되게 더 둥글게
  * 원래 둥근 것(프로필 사진·라디오·점)은 borderRadius.circle
  */
-export type RadiusRole = 'control' | 'chip' | 'surface' | 'floating';
-export type Shadow = 'light' | 'medium' | 'heavy';
+type RadiusRole = 'control' | 'chip' | 'surface' | 'floating';
+type Shadow = 'light' | 'medium' | 'heavy';
 
 export type ButtonSize = 'extraSmall' | 'small' | 'medium' | 'large' | 'extraLarge';
 export type ButtonScheme = 'primary' | 'secondary' | 'outline' | 'mono' | 'monoOutline' | 'danger' | 'default';
-export type LayoutWidth = 'small' | 'medium' | 'large';
-export type MediaQuery = 'mobile' | 'tablet' | 'notebook' | 'desktop';
+type LayoutWidth = 'small' | 'medium' | 'large';
+type MediaQuery = 'mobile' | 'tablet' | 'notebook' | 'desktop';
 
 export interface Theme {
 	name: ThemeName;
@@ -407,7 +407,7 @@ const toVarDeclarations = (value: unknown, path: string[]): string[] =>
 
 const themedPart = ({ color, buttonScheme, shadow }: Theme): ThemedPart => ({ color, buttonScheme, shadow });
 
-export const themeVars = (theme: Theme) => toVarDeclarations(themedPart(theme), []).join('\n');
+const themeVars = (theme: Theme) => toVarDeclarations(themedPart(theme), []).join('\n');
 
 /**
  * 글자 크기: 화면이 좁아지면 한 단계씩 줄인다. 색과 같은 방식으로 컴포넌트에는 var(--np-…)를 주고,
@@ -446,7 +446,7 @@ const fontSteps: Record<'tablet' | 'mobile', FontPart> = {
 	},
 };
 
-export const fontVars = (step?: keyof typeof fontSteps) =>
+const fontVars = (step?: keyof typeof fontSteps) =>
 	toVarDeclarations(step ? fontSteps[step] : fontPart(lightTheme), []).join('\n');
 
 /**

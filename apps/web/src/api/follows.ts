@@ -1,9 +1,9 @@
 import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { API_ENDPOINTS } from '@/constants/api';
 
 /** 지켜보기 (#118): 소식 하나를 지켜보고, 이어진 새 소식을 받는다 */
 /** 지켜보는 소식에 이어진 새 소식 (하루 한 번 판정) */
-export interface FollowUpdate {
+interface FollowUpdate {
 	id: number;
 	heading: string;
 	/** 무엇이 새로 나왔는지 한 줄 (판정을 못 한 날은 빈 문자열) */

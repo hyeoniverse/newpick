@@ -2,7 +2,7 @@
 
 import { cx } from '@/styles/tw';
 
-export interface ChipOption {
+interface ChipOption {
 	label: string;
 	value: string;
 }

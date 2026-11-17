@@ -20,7 +20,7 @@ const REMOVED: Record<FolderContents, string> = {
 };
 
 /** 폴더 안의 것들이 바뀌면 다시 불러올 목록들 */
-export const FOLDER_CONTENT_KEYS = [
+const FOLDER_CONTENT_KEYS = [
 	queryKeys.folders.all,
 	queryKeys.highlights.all,
 	queryKeys.bookmarks.all,

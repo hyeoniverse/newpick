@@ -31,20 +31,6 @@ export function LinkGlyph({ className }: { className?: string }) {
 	);
 }
 
-// ---------- 바깥 링크: 상자는 그대로, 화살표만 나가는 쪽으로 ----------
-
-export function ExternalGlyph({ className }: { className?: string }) {
-	return (
-		<svg {...base} className={cx('np-glyph np-glyph-external', className)}>
-			<g className="arrow">
-				<path d="M15 3h6v6" />
-				<path d="M10 14 21 3" />
-			</g>
-			<path className="box" d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-		</svg>
-	);
-}
-
 // ---------- 북마크: 켜면 위에서부터 색이 차고, 끄면 아래에서부터 빠진다. 가리키면 누를 때 일을 같은 방향으로 미리 (빈 것은 위가 조금 차고, 찬 것은 아래가 조금 빠진다) ----------
 
 const BOOKMARK = 'm19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z';

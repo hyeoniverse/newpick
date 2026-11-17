@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { cx as cls } from '@/styles/tw';
 
-export interface TrendSeries {
+interface TrendSeries {
 	key: string;
 	label: string;
 	values: number[];

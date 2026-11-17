@@ -7,7 +7,7 @@ import { MailService } from 'src/mail/mail.service';
 import { accountMailHtml, notifyEmailChanged } from 'src/mail/account-mail';
 
 /** 인증 코드가 유효한 시간 */
-export const CODE_TTL_MS = 10 * 60 * 1000;
+const CODE_TTL_MS = 10 * 60 * 1000;
 /** 같은 사람이 코드를 다시 받을 수 있는 간격 */
 export const RESEND_MS = 60 * 1000;
 /** 틀릴 수 있는 횟수. 넘으면 코드를 버리고 다시 받게 한다 */
@@ -18,7 +18,7 @@ const hashCode = (userId: number, code: string) => createHash('sha256').update(`
 
 const sameHash = (a: string, b: string) => timingSafeEqual(Buffer.from(a, 'hex'), Buffer.from(b, 'hex'));
 
-export const normalizeEmail = (email: string) => email.trim().toLowerCase();
+const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
 /**
  * 마이페이지에서 이메일(로그인 · 메일 받는 주소) 바꾸기.

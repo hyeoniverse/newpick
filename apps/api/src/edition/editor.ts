@@ -20,7 +20,7 @@ export type EditionSource = {
 /** 소식 번호: "뉴스레터 id-소식 순서(1부터)" */
 export const storyRef = (newsletterId: number, index: number) => `${newsletterId}-${index + 1}`;
 
-export type Thread = { refs: string[]; title: string; text: string };
+type Thread = { refs: string[]; title: string; text: string };
 
 export type Editorial = {
 	/** 소식별 중요도(1~5)와 한눈에 보기용 한 줄 */
@@ -31,7 +31,7 @@ export type Editorial = {
 	threads: Thread[];
 };
 
-export const EDITION_LIMITS = {
+const EDITION_LIMITS = {
 	line: 60,
 	threads: 3,
 	threadTitle: 30,
