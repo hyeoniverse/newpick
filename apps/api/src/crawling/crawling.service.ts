@@ -55,23 +55,35 @@ export class CrawlingService {
   async crawling() {
     const crawledData = await this.crawlingNews();
     if (crawledData.length) {
-      // 카테고리 분류
-      const checkNewsCategory: CrawledNews[] =
+      // 카테고리 분류. 고르기에 실패한 기사만 빼고 저장한다
+      // (예전엔 한 건만 실패해도 Promise.all이 통째로 실패해 그 회차에 아무것도 저장되지 않았다. 뺀 기사는 다음 회차에 다시 모은다)
+      const classified: (CrawledNews | null)[] =
         await this.crawlerService.setQueue(
           crawledData.map((data: CrawledNews) => async () => {
-            if (!data.category.length) {
+            if (data.category.length) return data;
+            try {
               const setCategory = await this.findCategoryService.findCategory(
                 data.content,
               );
               this.logger.log(setCategory);
+              if (!setCategory?.categoryName) return null;
               return {
                 ...data,
                 category: [...data.category, setCategory.categoryName],
               } as CrawledNews;
-            } else {
-              return data;
+            } catch (error) {
+              this.logger.warn(`분야 고르기 실패: ${(error as Error).message}`);
+              return null;
             }
           }),
+        );
+      const checkNewsCategory = classified.filter(
+        (news): news is CrawledNews => news !== null,
+      );
+      const skipped = classified.length - checkNewsCategory.length;
+      if (skipped)
+        this.logger.warn(
+          `분야를 고르지 못한 기사 ${skipped}건은 저장하지 않음 (다음 수집 때 다시)`,
         );
       const createdData =
         await this.crawlingRepository.createCrawledNews(checkNewsCategory);

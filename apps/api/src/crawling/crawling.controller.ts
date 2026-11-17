@@ -1,3 +1,4 @@
+import { AppException } from 'src/common/errors/app.exception';
 import { Controller, Get, Param, UseInterceptors, Query } from '@nestjs/common';
 import { CrawlingService } from './crawling.service';
 import { CrawlingRepository } from './crawling.repository';
@@ -23,8 +24,9 @@ export class CrawlingController {
     return {
       message: '크롤링 데이터 조회 성공',
       data: {
-        news: news.createdAt,
-        oldNews: oldNews.createdAt,
+        // 수집한 기사가 하나도 없으면 null (예전엔 null.createdAt로 500)
+        news: news?.createdAt ?? null,
+        oldNews: oldNews?.createdAt ?? null,
         newsCountperCategory,
       },
     };
@@ -44,6 +46,8 @@ export class CrawlingController {
   @Get('category/:categoryId')
   async getCrawledNewsByCategory(@Param('categoryId') categoryId: number) {
     const categoryName = await this.categoryRepository.findById(categoryId);
+    // 없는 분야면 404 (예전엔 null.name으로 500)
+    if (!categoryName) throw new AppException('CATEGORY_NOT_FOUND');
     return {
       message: '카테고리별 크롤링 데이터 조회 성공',
       data: await this.crawlingRepository.getCrawledNewsByCategory(
