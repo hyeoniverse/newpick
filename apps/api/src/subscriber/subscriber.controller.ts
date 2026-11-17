@@ -12,6 +12,7 @@ import { StartSubscriptionDto } from './dto/start-subscription.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
 import { AppException } from 'src/common/errors/app.exception';
+import type { AuthedRequest } from 'src/auth/authed-request';
 @Controller('subscribers')
 @UseGuards(AuthGuard('jwt'))
 export class SubscriberController {
@@ -21,7 +22,10 @@ export class SubscriberController {
    * 구독 시작
    */
   @Post('start')
-  async startSubscription(@Req() req, @Body() data: StartSubscriptionDto) {
+  async startSubscription(
+    @Req() req: AuthedRequest,
+    @Body() data: StartSubscriptionDto,
+  ) {
     const userId = this.validateAndParseUserId(req.user?.id);
     return this.subscriberService.startSubscription(userId, data.interests);
   }
@@ -30,7 +34,7 @@ export class SubscriberController {
    * 구독 일시정지
    */
   @Post('pause')
-  async pauseSubscription(@Req() req) {
+  async pauseSubscription(@Req() req: AuthedRequest) {
     const userId = this.validateAndParseUserId(req.user?.id);
     return this.subscriberService.pauseSubscription(userId);
   }
@@ -39,7 +43,7 @@ export class SubscriberController {
    * 구독 해지
    */
   @Delete('cancel')
-  async cancelSubscription(@Req() req) {
+  async cancelSubscription(@Req() req: AuthedRequest) {
     const userId = this.validateAndParseUserId(req.user?.id);
     return this.subscriberService.cancelSubscription(userId);
   }
@@ -48,7 +52,7 @@ export class SubscriberController {
    * 구독 상태 조회
    */
   @Get('status')
-  async getSubscriptionStatus(@Req() req) {
+  async getSubscriptionStatus(@Req() req: AuthedRequest) {
     const userId = this.validateAndParseUserId(req.user?.id);
     return this.subscriberService.getSubscriptionStatus(userId);
   }
@@ -57,7 +61,7 @@ export class SubscriberController {
    * 구독 기록 조회
    */
   @Get('history')
-  async getSubscriptionHistory(@Req() req) {
+  async getSubscriptionHistory(@Req() req: AuthedRequest) {
     const userId = this.validateAndParseUserId(req.user?.id);
     return this.subscriberService.getSubscriptionHistory(userId);
   }

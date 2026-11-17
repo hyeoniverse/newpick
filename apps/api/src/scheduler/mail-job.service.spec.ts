@@ -19,7 +19,9 @@ describe('구독 메일 (#55)', () => {
     await mailJob.sendEmailSummary();
 
     const [subscribers] = mailService.sendBulkMail.mock.calls[0];
-    expect(subscribers.map((s) => s.email)).toEqual(['a@example.com']);
+    expect(subscribers.map((s: { email: string }) => s.email)).toEqual([
+      'a@example.com',
+    ]);
     // 사람마다 원클릭 해지(#18)를 붙이도록 회원 id도 넘긴다
     expect(editionService.composeMail).toHaveBeenCalledWith(
       edition,

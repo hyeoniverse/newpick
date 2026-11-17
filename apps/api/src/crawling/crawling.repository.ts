@@ -262,7 +262,7 @@ export class CrawlingRepository {
     const categories = await this.categoryRepository.findAll();
     console.log(news.length, categories.length);
 
-    const newsCountPerCategory = {};
+    const newsCountPerCategory: Record<number, number> = {};
     categories.map(async (category) => {
       newsCountPerCategory[category.id] = news.filter((item) =>
         item.category.includes(category.name),

@@ -88,7 +88,7 @@ describe('회원 탈퇴 (#65)', () => {
       {} as never,
       {} as never,
       {} as never,
-    ).deleteAccount({ user: { id: 7 } }, res as never);
+    ).deleteAccount({ user: { id: 7 } } as never, res as never);
 
     expect(service.deleteAccount).toHaveBeenCalledWith(7);
     expect(res.clearCookie.mock.calls.map(([name]) => name)).toEqual([

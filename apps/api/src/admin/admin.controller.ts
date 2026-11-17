@@ -22,6 +22,7 @@ import {
   AdminSubscribersQueryDto,
   AdminUsersQueryDto,
 } from './dto/admin-list.dto';
+import type { AuthedRequest } from 'src/auth/authed-request';
 
 @AdminOnly()
 @Controller('admin')
@@ -95,7 +96,10 @@ export class AdminController {
 
   /** 회원 탈퇴와 같은 경로로 지운다. 내 계정은 막는다 */
   @Delete('users/:id')
-  async deleteUser(@Param('id', ParseIntPipe) id: number, @Req() req) {
+  async deleteUser(
+    @Param('id', ParseIntPipe) id: number,
+    @Req() req: AuthedRequest,
+  ) {
     return {
       message: '사용자를 삭제했습니다.',
       data: await this.adminService.deleteUser(id, Number(req.user?.id)),
@@ -132,7 +136,7 @@ export class AdminController {
   async updateUser(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateDto: UpdateUserDto,
-    @Req() req,
+    @Req() req: AuthedRequest,
   ) {
     return {
       message: '권한을 변경했습니다.',
