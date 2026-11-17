@@ -1,5 +1,5 @@
 import type { ComposedEdition, ComposedStory } from './compose';
-import type { Block, Link, Run } from './parse';
+import type { Block, Link, Run } from '../ai-summary/newsletter-parse';
 
 /**
  * 구독 메일 HTML (#55). 메일 앱은 사이트 CSS·<style>을 제대로 쓰지 못해 모든 모양을 인라인 스타일로 준다.

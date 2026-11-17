@@ -3,7 +3,7 @@ import { normalize } from './writer/normalize';
 import { LIMITS } from './writer/types';
 import { writerPrompt } from './writer/write-prompt';
 import { prepare } from './article-prep';
-import { parseNewsletterHtml } from '../edition/parse';
+import { parseNewsletterHtml } from './newsletter-parse';
 
 const story = (next?: string) => ({
   template: 'brief' as const,

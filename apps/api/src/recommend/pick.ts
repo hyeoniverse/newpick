@@ -1,5 +1,5 @@
 import { cosine, SAME_EVENT_EMBEDDING } from '../ai-summary/article-prep';
-import type { TasteSignal } from '../edition/personalize';
+import type { TasteSignal } from '../taste/types';
 import { tagKey } from '../tags/tags';
 
 /**

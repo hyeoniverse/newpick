@@ -1,8 +1,4 @@
 {
-	"api": [
-		["edition/personalize.ts", "edition/personal-note.ts", "edition/compose.ts"],
-		["edition/personalize.ts", "edition/personal-note.ts", "edition/compose.ts", "recommend/pick.ts"],
-		["edition/personalize.ts", "edition/personal-note.ts"]
-	],
+	"api": [],
 	"web": []
 }

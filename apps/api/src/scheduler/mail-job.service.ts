@@ -2,12 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { storyRef } from 'src/edition/editor';
 import { EditionService } from 'src/edition/edition.service';
-import {
-  MailPlan,
-  planMail,
-  TAG_LIMITS,
-  tagStories,
-} from 'src/edition/personalize';
+import { planMail, tagStories } from 'src/edition/personalize';
+import type { MailPlan } from 'src/edition/mail-plan';
+import { TAG_LIMITS } from 'src/tags/tags';
 import { FollowsService } from 'src/follows/follows.service';
 import { MailService } from 'src/mail/mail.service';
 import { RecommendService } from 'src/recommend/recommend.service';

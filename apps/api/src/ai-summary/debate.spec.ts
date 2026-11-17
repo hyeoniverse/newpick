@@ -6,7 +6,7 @@ import { debateOf } from './writer/normalize';
 import { diverseArticles, pickArticles } from './writer/select';
 import { LIMITS, Story } from './writer/types';
 import { writerPrompt } from './writer/write-prompt';
-import { parseNewsletterHtml } from '../edition/parse';
+import { parseNewsletterHtml } from './newsletter-parse';
 import { renderEditionMail } from '../edition/mail';
 import { composeEdition } from '../edition/compose';
 

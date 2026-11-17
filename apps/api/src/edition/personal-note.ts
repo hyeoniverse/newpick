@@ -1,6 +1,7 @@
 import { GENDER_RULES } from 'src/ai-summary/writing-rules';
 import type { ComposedEdition } from './compose';
-import type { TasteProfile } from './personalize';
+import type { TasteProfile } from '../taste/types';
+import type { PersonalNote } from './mail-plan';
 
 /**
  * 사람마다 쓰는 글 (#123 3단계): 메일 제목 · 맞춤 브리핑.
@@ -8,10 +9,6 @@ import type { TasteProfile } from './personalize';
  * 소식마다 '왜 나에게'는 쓰지 않는다: 써 보니 관심 주제 + 제목을 되읊을 뿐이라, 계산한 이유(personalize.ts)를 그대로 보여 준다.
  * 오픈 모델(Workers AI 무료 할당)로 쓰고, 안 되면 맞춤 순서만 있는 메일로 보낸다
  */
-export type PersonalNote = {
-  subject: string;
-  briefing: string;
-};
 
 export const NOTE_LIMITS = { subject: 40, briefing: 220, topics: 8 };
 
