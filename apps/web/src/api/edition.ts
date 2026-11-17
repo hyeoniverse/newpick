@@ -1,4 +1,4 @@
-import API_ENDPOINTS from '@/constants/api';
+import { API_ENDPOINTS } from '@/constants/api';
 import { ApiError, apiFetch } from '@/api/client';
 
 export type EditionPreview = { date: string; subject: string; html: string };

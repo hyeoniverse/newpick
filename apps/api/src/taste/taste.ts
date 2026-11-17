@@ -10,11 +10,11 @@ export const WEIGHTS = { bookmark: 1, scrap: 2, memo: 3 } as const;
 /** 별표(중요)한 스크랩 · 메모에 더 얹는 점수 */
 export const STAR_BONUS = 2;
 /** 스크랩한 문장 · 메모에 태그가 직접 나오면 더 얹는 점수 */
-export const MENTION_BONUS = 1;
+const MENTION_BONUS = 1;
 /** 이만큼 지나면 신호가 절반으로 */
 export const HALF_LIFE_DAYS = 14;
 
-export type SignalKind = keyof typeof WEIGHTS;
+type SignalKind = keyof typeof WEIGHTS;
 
 export interface Signal {
 	kind: SignalKind;

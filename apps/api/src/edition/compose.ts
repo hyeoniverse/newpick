@@ -27,7 +27,7 @@ export type EditionNewsletter = EditionSource & {
 };
 
 /** 메일 맨 위 '오늘 아침 속보' 한 건: 제목 · 리드와 분야 · 그 뉴스레터 */
-export type ComposedMorning = {
+type ComposedMorning = {
 	heading: string;
 	line: string;
 	category: string;
@@ -89,7 +89,7 @@ export type ComposedEdition = {
 	follows: MailFollow[];
 };
 
-export const COMPOSE_LIMITS = { top: 5, watch: 5 };
+const COMPOSE_LIMITS = { top: 5, watch: 5 };
 
 type Item = {
 	ref: string;

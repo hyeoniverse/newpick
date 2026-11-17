@@ -5,7 +5,7 @@ import { E2E } from './env.mjs';
 const base64url = (value: string | Buffer) => Buffer.from(value).toString('base64url');
 
 /** api의 JwtStrategy가 받는 것과 같은 HS256 access token ({ sub: userId }) */
-export function accessToken(userId: number): string {
+function accessToken(userId: number): string {
 	const now = Math.floor(Date.now() / 1000);
 	const header = base64url(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
 	const payload = base64url(JSON.stringify({ sub: userId, iat: now, exp: now + 60 * 60 }));

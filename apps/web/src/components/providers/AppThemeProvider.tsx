@@ -11,5 +11,3 @@ export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 	useSyncTheme(); // 클라이언트에서 테마 동기화
 	return <>{children}</>;
 };
-
-export default AppThemeProvider;

@@ -1,6 +1,6 @@
 import type { Folder } from '@newpick/shared';
 import { apiFetch } from '@/api/client';
-import API_ENDPOINTS from '@/constants/api';
+import { API_ENDPOINTS } from '@/constants/api';
 
 /** 폴더 (#123): 스크랩 · 북마크 · 받은 메일이 같이 쓰는 주제 폴더 */
 

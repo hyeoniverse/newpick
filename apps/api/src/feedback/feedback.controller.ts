@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { FeedbackService } from './feedback.service';
 import { BookmarkDto } from './dto/bookmark.dto';
 import { AppException } from 'src/common/errors/app.exception';

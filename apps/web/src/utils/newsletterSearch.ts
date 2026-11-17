@@ -60,7 +60,7 @@ export const toggleKeyword = (keywords: string[], keyword: string): string[] =>
 	keywords.includes(keyword) ? keywords.filter((k) => k !== keyword) : [...keywords, keyword].slice(-KEYWORD_LIMIT);
 
 /** 기간 → API에 보낼 KST 날짜 범위 */
-export function periodRange(filters: NewsletterFilters, now = new Date()): { from?: string; to?: string } {
+function periodRange(filters: NewsletterFilters, now = new Date()): { from?: string; to?: string } {
 	switch (filters.period) {
 		case 'today':
 			return { from: kstDate(0, now), to: kstDate(0, now) };

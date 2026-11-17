@@ -4,7 +4,7 @@ import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AppException } from 'src/common/errors/app.exception';
 
 /** 한 사람이 만들 수 있는 폴더 수 */
-export const MAX_FOLDERS = 20;
+const MAX_FOLDERS = 20;
 
 /** 내 폴더인지 (남의 폴더는 없는 것처럼 404). 스크랩 · 북마크 · 받은 메일을 옮길 때 같이 쓴다 */
 export async function assertOwnFolder(prisma: MysqlPrismaService, userId: number, id: number) {

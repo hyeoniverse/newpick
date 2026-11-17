@@ -10,7 +10,7 @@ import type { PersonalNote } from './mail-plan';
  * 오픈 모델(Workers AI 무료 할당)로 쓰고, 안 되면 맞춤 순서만 있는 메일로 보낸다
  */
 
-export const NOTE_LIMITS = { subject: 40, briefing: 220, topics: 8 };
+const NOTE_LIMITS = { subject: 40, briefing: 220, topics: 8 };
 
 export const NOTE_SYSTEM =
 	'You are the personal editor of a Korean news briefing. You write one short, precise note for one reader in Korean.';

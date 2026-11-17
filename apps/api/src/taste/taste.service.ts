@@ -16,7 +16,7 @@ const NEWSLETTER = { select: { categoryId: true, keywords: true } } as const;
 export const SIGNAL_TEXT_LIMITS = { count: 24, maxAgeDays: 30, label: 30 };
 
 /** 스크랩 문장은 앞부분만 이름으로 */
-export const signalLabel = (text: string, max = SIGNAL_TEXT_LIMITS.label) => {
+const signalLabel = (text: string, max = SIGNAL_TEXT_LIMITS.label) => {
 	const flat = text.replace(/\s+/g, ' ').trim();
 	return flat.length > max ? `${flat.slice(0, max)}…` : flat;
 };

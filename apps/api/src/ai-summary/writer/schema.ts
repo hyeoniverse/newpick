@@ -38,7 +38,7 @@ const pairs = (keys: string[]) => ({
 });
 
 /** 소식 하나 (본문 소식 · 아침 속보 공통) */
-export const STORY_SCHEMA = {
+const STORY_SCHEMA = {
 	type: 'object',
 	properties: {
 		template: { type: 'string', enum: [...TEMPLATES] },

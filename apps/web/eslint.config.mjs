@@ -10,7 +10,7 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  { ignores: [".next/**", "node_modules/**", "public/**", "next-env.d.ts"] },
+  { ignores: [".next/**", "node_modules/**", "public/**", "next-env.d.ts", "coverage/**"] },
   ...compat.extends("next/core-web-vitals", "next/typescript"),
   // 디버그 로그는 남기지 않습니다. console.error는 서버 로그와 에러 경계처럼 사용자에게 알릴 수 없는 곳에서만 씁니다.
   { rules: { "no-console": ["error", { allow: ["error"] }] } },

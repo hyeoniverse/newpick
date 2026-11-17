@@ -1,6 +1,5 @@
 import { BOOKMARKS, COMMON } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
-import type { BookmarkPage } from '@newpick/shared';
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { IBookmarkItem } from '@/types/bookmark';
 import {
@@ -34,10 +33,9 @@ export const useBookmarksList = () => {
 
 /** 마이페이지 북마크 한 쪽 (서버에서 거르고 정렬) */
 /** 북마크 한 쪽 (@newpick/shared) */
-export type { BookmarkPage };
 
 /** 한 번에 받는 북마크 수 (카드 세 줄 × 여덟) */
-export const BOOKMARK_PAGE_SIZE = 24;
+const BOOKMARK_PAGE_SIZE = 24;
 
 /**
  * 마이페이지 북마크 (#123): 쪽 단위로 받아 '더 보기'로 이어 붙인다. 북마크가 많아도 처음엔 한 쪽만.

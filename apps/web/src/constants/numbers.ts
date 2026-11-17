@@ -17,10 +17,5 @@ export const AUTH = {
 	STALE_TIME: 1000 * 60 * 5, // 5 minutes
 };
 
-export const STYLE = {
-	HEADER_HEIGHT: '3rem',
-	ROOT_FONT_SIZE: '16px',
-};
-
 export const AUTO_SCROLL_INTERVAL = 5000;
 export const ITEMS_PER_PAGE = 10;

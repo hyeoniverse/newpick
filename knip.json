@@ -1,0 +1,14 @@
+{
+	"$schema": "https://unpkg.com/knip@6/schema.json",
+	"workspaces": {
+		"apps/api": {
+			"entry": ["src/main.ts", "src/contracts.ts", "scripts/**/*.ts"],
+			"ignore": []
+		},
+		"apps/web": {
+			"ignore": ["src/styles/tw.ts"],
+			"ignoreDependencies": ["eslint-config-next"]
+		}
+	},
+	"ignoreDependencies": ["jsdom"]
+}

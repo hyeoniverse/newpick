@@ -1,21 +1,14 @@
 import { queryKeys } from '@/api/queryKeys';
 import { ApiError } from '@/api/client';
 import { NewsInfo as INewsInfo } from '@/types/article';
-import {
-	fetchArticle,
-	fetchArticleByCategory,
-	fetchArticleList,
-	fetchPopularArticle,
-	fetchRelatedNews,
-	fetchTrendList,
-} from '@/api/article';
+import { fetchArticle, fetchArticleList, fetchPopularArticle, fetchRelatedNews } from '@/api/article';
 import { ArticleInfo as IArticleInfo, ArticleDetail as IArticleDetail } from '@/types/article';
 import { useQuery } from '@tanstack/react-query';
 
 /**
  * 특정 기사(slug) 내용을 가져오는 함수
  */
-export const getArticleContent = async (slug: string): Promise<IArticleInfo> => {
+const getArticleContent = async (slug: string): Promise<IArticleInfo> => {
 	return await fetchArticle(slug);
 };
 export function useArticleContentQuery(slug: string, initialData?: IArticleInfo) {
@@ -29,7 +22,7 @@ export function useArticleContentQuery(slug: string, initialData?: IArticleInfo)
 /**
  * 인기 기사 목록을 가져오는 함수 (조회수 기준 정렬)
  */
-export const getPopularArticles = async (
+const getPopularArticles = async (
 	limit: number = 5,
 	offset: number = 0,
 	trend: boolean = true,
@@ -47,7 +40,7 @@ export function usePopularArticlesQuery(limit: number = 5, offset: number = 0, t
 /**
  * 최신 기사 목록을 가져오는 함수
  */
-export const getArticleList = async (limit: number = 5, offset: number = 0): Promise<IArticleDetail[]> => {
+const getArticleList = async (limit: number = 5, offset: number = 0): Promise<IArticleDetail[]> => {
 	const { data }: { data: IArticleDetail[] } = await fetchArticleList(limit, offset);
 	return data;
 };
@@ -57,23 +50,6 @@ export function useArticleListQuery(limit: number = 5, offset: number = 0) {
 		queryFn: () => getArticleList(limit, offset),
 	});
 }
-
-/**
- * 트렌드 목록을 가져오는 함수
- */
-export const getTrendList = async (categoryId?: number): Promise<IArticleDetail[]> => fetchTrendList(categoryId);
-
-/**
- * 특정 카테고리의 기사 목록을 가져오는 함수
- */
-export const getCategoryList = async (
-	category: number,
-	limit: number = 10,
-	offset: number = 0,
-): Promise<IArticleDetail[]> => {
-	const { data }: { data: IArticleDetail[] } = await fetchArticleByCategory(category, limit, offset);
-	return data;
-};
 
 /**
  * 뉴스레터에 쓴 원문 기사들. 크롤링 원문은 30일 뒤 지워지므로(TTL) 일부가 없을 수 있어, 찾은 것만 돌려줍니다.

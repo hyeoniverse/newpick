@@ -7,7 +7,7 @@ import { useSortQuery } from './HeaderFilter';
 import { useAdminQuery } from './period';
 
 /** 관리자 목록 한 쪽에 보이는 줄 수 */
-export const ADMIN_PAGE_SIZE = 20;
+const ADMIN_PAGE_SIZE = 20;
 
 type Params = Record<string, string | number | null | undefined>;
 

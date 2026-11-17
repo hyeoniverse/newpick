@@ -9,7 +9,7 @@ import { MAIL_PAGE_SIZE, useMailPages, useMarkMail } from '@/hooks/useMails';
 import { uniqueItems, useInfiniteSentinel } from '@/hooks/useBidirectionalPages';
 import { useTab } from '@/hooks/useTab';
 import { useAuth } from '@/hooks/useAuth';
-import useSubscribe from '@/hooks/useSubscribe';
+import { useSubscribe } from '@/hooks/useSubscribe';
 import { useModal } from '@/hooks/useModal';
 import { useHeader } from '@/hooks/useHeader';
 import MyMailSheet from '@/app/(protected)/mypage/_components/subscribe/MyMailSheet';

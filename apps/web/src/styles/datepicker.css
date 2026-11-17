@@ -360,37 +360,3 @@
 		}
 	}
 }
-
-/* 글자 그대로 누르는 날짜 (DateTrigger) */
-.np-date-trigger {
-	display: inline-block;
-
-	.react-datepicker-wrapper,
-	.react-datepicker__input-container {
-		display: inline;
-	}
-
-	/* 글자 그대로, 점선 밑줄로 누를 수 있다는 표시. 마우스를 올리면 강조색 */
-	.date-trigger {
-		padding: 0;
-		font: inherit;
-		font-variant-numeric: tabular-nums;
-		color: inherit;
-		text-decoration: underline;
-		text-decoration-color: var(--np-color-light-grey);
-		text-underline-offset: 0.25em;
-		text-decoration-thickness: 1px;
-		cursor: pointer;
-
-		&:hover {
-			color: var(--np-color-primary);
-			text-decoration-color: var(--np-color-primary);
-		}
-	}
-
-	/* 달력은 글자 크기와 무관하게 */
-	.react-datepicker-popper {
-		font-size: 1rem;
-		font-weight: normal;
-	}
-}

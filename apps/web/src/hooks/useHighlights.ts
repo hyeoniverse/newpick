@@ -1,7 +1,7 @@
 import { COMMON, HIGHLIGHTS } from '@/copy';
 import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
-import type { Highlight, HighlightPage } from '@newpick/shared';
+import type { Highlight } from '@newpick/shared';
 import {
 	bulkHighlights,
 	createHighlight,
@@ -20,7 +20,7 @@ import { useToast } from '@/hooks/useToast';
 
 /** 스크랩 · 메모 (#123) */
 /** 스크랩 · 스크랩 한 쪽 · 내 취향 (@newpick/shared, api 응답과 같다) */
-export type { Highlight, HighlightPage };
+export type { Highlight };
 
 /** 내 스크랩. newsletterId를 주면 그 뉴스레터 것만 (상세 화면 형광펜), 아니면 전체 (마이페이지) */
 export function useHighlights(newsletterId?: number) {
@@ -35,7 +35,7 @@ export function useHighlights(newsletterId?: number) {
 /** 마이페이지 스크랩 한 쪽 (서버에서 거름) */
 
 /** 한 번에 받는 스크랩 수 */
-export const HIGHLIGHT_PAGE_SIZE = 30;
+const HIGHLIGHT_PAGE_SIZE = 30;
 
 /**
  * 마이페이지 스크랩 (#123): 쪽 단위로 받아 아래로 이어 붙인다 (무한 스크롤).

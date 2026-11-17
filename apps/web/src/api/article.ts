@@ -1,4 +1,4 @@
-import API_ENDPOINTS from '@/constants/api';
+import { API_ENDPOINTS } from '@/constants/api';
 import { apiFetch } from '@/api/client';
 import { NEWSLETTER_CACHE_TAG } from '@/constants/cache';
 import { ArticleDetail, ArticleInfo, NewsInfo } from '@/types/article';
@@ -35,13 +35,6 @@ export const fetchRelatedNews = async (link: string) => {
 	const news = await apiFetch<{ data: NewsInfo }>(API_ENDPOINTS.NEWS.RELATED(link));
 	return news.data;
 };
-
-export const fetchDateNewsletter = async (
-	limit: number = 5,
-	offset: number = 0,
-	startDate?: string,
-	endDate?: string,
-) => apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.DATE(limit, offset, startDate, endDate));
 
 /** 지난 뉴스레터 검색 · 필터 (#20). 쿼리스트링은 utils/newsletterSearch의 toApiQuery */
 export const fetchSearchNewsletters = async (query: string) => {

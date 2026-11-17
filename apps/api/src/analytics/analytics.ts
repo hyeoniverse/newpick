@@ -1,9 +1,9 @@
 /** 방문 통계 (#131)의 순수 계산: 경로 묶기 · 유입 경로 · 기기 · 봇 · 묶음 값 거르기 */
 
 /** 문서를 몇 칸으로 나눠 머문 시간을 세는지 (브라우저 수집기와 같음) */
-export const ATTENTION_BANDS = 20;
+const ATTENTION_BANDS = 20;
 /** 한 페이지 보기에서 받는 클릭 수 */
-export const MAX_CLICKS = 100;
+const MAX_CLICKS = 100;
 /** 기록 보관 (일) */
 export const RETENTION_DAYS = 180;
 

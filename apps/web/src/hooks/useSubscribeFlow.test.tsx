@@ -10,7 +10,7 @@ const handleCancel = vi.fn();
 
 vi.mock('@/hooks/useModal', () => ({ useModal: () => ({ openModal, closeModal }) }));
 vi.mock('@/hooks/useSubscribe', () => ({
-	default: () => ({ status: true, isChanging: false, handleSubscribe, handleCancel }),
+	useSubscribe: () => ({ status: true, isChanging: false, handleSubscribe, handleCancel }),
 }));
 
 const done = { title: '완료 제목', body: '완료 본문' };

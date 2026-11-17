@@ -1,5 +1,5 @@
 import type { BookmarkPage } from '@newpick/shared';
-import API_ENDPOINTS from '@/constants/api';
+import { API_ENDPOINTS } from '@/constants/api';
 import { IBookmarkItem } from '@/types/bookmark';
 import { ApiError, apiFetch } from '@/api/client';
 

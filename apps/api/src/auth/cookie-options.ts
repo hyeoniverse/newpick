@@ -1,4 +1,4 @@
-import { CookieOptions } from 'express';
+import type { CookieOptions } from 'express';
 import { env } from 'src/config/env';
 
 /**

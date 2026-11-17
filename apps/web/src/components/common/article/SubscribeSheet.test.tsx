@@ -15,7 +15,7 @@ const closeModal = vi.fn();
 vi.mock('@/hooks/useAuth', () => ({ useAuth: () => ({ user }) }));
 vi.mock('@/hooks/useModal', () => ({ useModal: () => ({ openModal, closeModal }) }));
 vi.mock('@/hooks/useSubscribe', () => ({
-	default: () => ({ status: user?.isSubscribed, isChanging: false, handleSubscribe }),
+	useSubscribe: () => ({ status: user?.isSubscribed, isChanging: false, handleSubscribe }),
 }));
 vi.mock('next/link', () => ({ default: ({ children }: { children: ReactNode }) => children }));
 

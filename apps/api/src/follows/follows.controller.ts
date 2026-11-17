@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Post, Req } from '@nestjs/common';
-import { Request } from 'express';
+import type { Request } from 'express';
 import { FollowStoryDto, SeenDto } from './follows.dto';
 import { FollowsService } from './follows.service';
 

@@ -4,7 +4,7 @@ import { ACTIONS } from '@/copy';
 import { LuMailCheck } from 'react-icons/lu';
 import ModalContent from '@/components/common/modal/ModalContent';
 import { useModal } from '@/hooks/useModal';
-import useSubscribe from '@/hooks/useSubscribe';
+import { useSubscribe } from '@/hooks/useSubscribe';
 
 /**
  * 구독하기 → 끝나면 완료 창 (#230). 홈 · 시작하기 · 기사 시트 · 마이페이지가 같은 흐름이고 창 문구만 다르다.

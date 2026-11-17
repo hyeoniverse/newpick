@@ -67,7 +67,7 @@ export function kstMonth(now: Date = new Date()) {
 }
 
 /** 관리자 화면에서 고를 수 있는 가장 긴 기간 (일) */
-export const MAX_RANGE_DAYS = 92;
+const MAX_RANGE_DAYS = 92;
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 

@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, Req, Res } from '@nestjs/common';
-import { Response } from 'express';
+import type { Response } from 'express';
 import { SESSION_HINT_COOKIE, authCookieOptions, sessionHintCookieOptions } from 'src/auth/cookie-options';
 import { MyPageService } from './mypage.service';
 import { BookmarksService } from './bookmarks.service';

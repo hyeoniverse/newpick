@@ -16,7 +16,7 @@ import { ScheduleConfigService } from './schedule-config.service';
 import { errorMessage } from 'src/common/error-message';
 
 /** 요약에 실패한 관심사를 다시 시도하는 횟수 · 간격 (스트리밍으로 시간 초과는 줄었지만, 과부하 · 일시 오류 대비) */
-export const SUMMARY_RETRIES = 2;
+const SUMMARY_RETRIES = 2;
 const SUMMARY_RETRY_DELAY_MS = 60 * 1000;
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

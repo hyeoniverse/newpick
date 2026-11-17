@@ -16,7 +16,7 @@ export const loginUser = async (): Promise<LoginPopupResult | void> => {
 };
 
 // 추가 사용자 데이터 불러오기 (구독 상태, 관심사)
-export const fetchAdditionalUserData = async (user: User): Promise<User> => {
+const fetchAdditionalUserData = async (user: User): Promise<User> => {
 	try {
 		const [subscription, interests] = await Promise.all([fetchSubscription(), fetchInterests()]);
 		return {

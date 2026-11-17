@@ -10,7 +10,7 @@ import Button from '@/components/common/Button';
 import TimePicker from '@/components/common/TimePicker';
 
 /** 예약 시각 (@newpick/shared, api와 같다) */
-export type { ClockTime, Schedule };
+export type { ClockTime };
 
 const parse = (value: string): ClockTime => {
 	const [hour, minute] = value.split(':').map(Number);

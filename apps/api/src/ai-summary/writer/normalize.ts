@@ -81,7 +81,7 @@ const rows = <T extends Record<string, string>>(items: T[], max: number) =>
  * 템플릿의 고유 요소가 모자라면 해설형으로 바꾼다 (빈 지표 카드나 한 줄짜리 타임라인을 그리지 않게).
  * 해당하지 않는 템플릿의 요소는 비운다
  */
-export function settleTemplate(story: Story): Story {
+function settleTemplate(story: Story): Story {
 	const enough: Record<Template, boolean> = {
 		numbers: story.stats.length >= LIMITS.stats.min,
 		timeline: story.timeline.length >= LIMITS.timeline.min,
