@@ -20,9 +20,9 @@ interface Response<T> {
  */
 @Injectable()
 export class CommonResponseInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     return next.handle().pipe(
-      map((response: Response<any>) => {
+      map((response: Response<unknown> | null | undefined) => {
         const statusCode: HttpStatus = context
           .switchToHttp()
           .getResponse().statusCode;

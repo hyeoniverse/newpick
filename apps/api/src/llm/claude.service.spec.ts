@@ -17,7 +17,16 @@ function reply(overrides: Record<string, unknown> = {}) {
 }
 
 /** 정해 둔 응답을 스트리밍(SSE) 이벤트로 펼친다: 시작 → 글자 조각 → 끝 (generate는 스트리밍으로 받는다) */
-function toSse(message: any) {
+/** 정해 둔 Claude 응답 (Messages API 모양에서 이 테스트가 쓰는 칸) */
+type FakeMessage = {
+  content: { type: string; text: string }[];
+  usage: { input_tokens: number; output_tokens: number };
+  stop_reason: string | null;
+  stop_details?: unknown;
+  [key: string]: unknown;
+};
+
+function toSse(message: FakeMessage) {
   const events: [string, unknown][] = [
     [
       'message_start',
@@ -77,8 +86,11 @@ function toSse(message: any) {
 }
 
 /** 실제 HTTP 대신 요청을 기록하고 정해 둔 응답을 돌려주는 클라이언트 */
-function setup(body: Record<string, unknown>) {
-  const requests: { headers: Headers; body: any }[] = [];
+function setup(body: FakeMessage) {
+  const requests: {
+    headers: Headers;
+    body: { output_config?: { format?: unknown }; [key: string]: unknown };
+  }[] = [];
   const fetch = jest.fn(async (_url: string, init: RequestInit) => {
     requests.push({
       headers: new Headers(init.headers),
@@ -147,7 +159,7 @@ describe('ClaudeService.generate', () => {
 
     await service.generate({ system: 's', prompt: 'p', schema });
 
-    expect(requests[0].body.output_config.format).toEqual({
+    expect(requests[0].body.output_config?.format).toEqual({
       type: 'json_schema',
       schema,
     });

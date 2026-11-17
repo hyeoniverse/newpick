@@ -137,7 +137,8 @@ export class SummaryJobService {
           replaceId,
         );
         // 만든 뉴스레터 한 편 (예전엔 배열로 보고 길이를 봐서 늘 0편이었다: 캐시 새로 고침 · 후속 판정 · 알림도 건너뜀)
-        if (newsletter.newsletter)
+        // 예약 작업은 test 없이 부르므로 늘 저장한 뉴스레터다 (content가 있다)
+        if (newsletter.newsletter && 'content' in newsletter.newsletter)
           generatedNewsletter.push(newsletter.newsletter);
         this.logger.log(
           `카테고리 ${category.name}: 뉴스 ${news.length}건 요약`,
