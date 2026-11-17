@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import timezone from 'dayjs/plugin/timezone';
+import { AppException } from './errors/app.exception';
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -79,4 +80,24 @@ export function kstMonth(now: Date = new Date()) {
     elapsedDays: today.date(),
     daysInMonth: today.daysInMonth(),
   };
+}
+
+/** 관리자 화면에서 고를 수 있는 가장 긴 기간 (일) */
+export const MAX_RANGE_DAYS = 92;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** KST 날짜 [from, to] → 시각 범위. 거꾸로거나 너무 길면(92일 넘게) 거절. 대시보드(#21) · 통계(#122)가 같이 쓴다 */
+export function kstRange(from: string, to: string) {
+  const { start, end } = kstDayRange(from, to);
+  if (start > end) {
+    throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦습니다.');
+  }
+  if ((end.getTime() - start.getTime()) / DAY_MS > MAX_RANGE_DAYS) {
+    throw new AppException(
+      'BAD_REQUEST',
+      `기간은 ${MAX_RANGE_DAYS}일까지 선택할 수 있습니다.`,
+    );
+  }
+  return { start, end, inRange: { gte: start, lte: end } };
 }

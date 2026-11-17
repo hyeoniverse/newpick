@@ -6,8 +6,13 @@ import type {
 } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'prisma/mysql.service';
-import { kstDays, kstDaysAgo, kstMonth, toKstDate } from 'src/common/kst';
-import { kstRange } from './dashboard.service';
+import {
+  kstDays,
+  kstDaysAgo,
+  kstMonth,
+  kstRange,
+  toKstDate,
+} from 'src/common/kst';
 
 /** 기간을 안 주면 최근 30일 (추이를 보는 화면이라 하루로는 모자라서) */
 const DEFAULT_DAYS = 30;

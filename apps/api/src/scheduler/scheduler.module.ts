@@ -6,8 +6,8 @@ import { JobRunsService } from './job-runs.service';
 import { SummaryJobService } from './summary-job.service';
 import { MailJobService } from './mail-job.service';
 import { SchedulerController } from './scheduler.controller';
+import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
-import { StatsService } from './stats.service';
 import { MailModule } from 'src/mail/mail.module';
 import { CrawlingModule } from 'src/crawling/crawling.module';
 import { AiSummaryModule } from 'src/ai-summary/ai-summary.module';
@@ -38,8 +38,7 @@ import { RecommendModule } from 'src/recommend/recommend.module';
     SummaryJobService,
     MailJobService,
     DashboardService,
-    StatsService,
   ],
-  controllers: [SchedulerController],
+  controllers: [SchedulerController, DashboardController],
 })
 export class SchedulerModule {}

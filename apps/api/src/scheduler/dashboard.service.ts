@@ -3,21 +3,15 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { MysqlPrismaService } from 'prisma/mysql.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
-import { kstDayRange, kstDaysAgo } from 'src/common/kst';
-import { AppException } from 'src/common/errors/app.exception';
+import { kstDayRange, kstDaysAgo, kstRange } from 'src/common/kst';
 import { SchedulerService } from './scheduler.service';
 import { ScheduleConfigService } from './schedule-config.service';
 
 /** 대시보드는 요약만: 최근 몇 개. 전체는 상세 목록(페이지)에서 */
 const PREVIEW = 5;
-/** 고를 수 있는 가장 긴 기간 (일) */
-export const MAX_RANGE_DAYS = 92;
-
 /** 긴 글은 앞부분만 (요약 결과 · 오류 메시지) */
 const clip = (text: string | null, max: number) =>
   text && text.length > max ? `${text.slice(0, max)}…` : text;
-
-const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
  * 관리자 대시보드 (#21). 고른 기간(KST 날짜, 기본 오늘)의 수집 · 발행 · AI 기록 · 비용 · 발송,
@@ -43,21 +37,6 @@ function sortBy(
     },
     { id: 'desc' as const },
   ];
-}
-
-/** KST 날짜 [from, to] → 시각 범위. 거꾸로거나 너무 길면(92일 넘게) 거절. 통계(#122)와 같이 쓴다 */
-export function kstRange(from: string, to: string) {
-  const { start, end } = kstDayRange(from, to);
-  if (start > end) {
-    throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦습니다.');
-  }
-  if ((end.getTime() - start.getTime()) / DAY_MS > MAX_RANGE_DAYS) {
-    throw new AppException(
-      'BAD_REQUEST',
-      `기간은 ${MAX_RANGE_DAYS}일까지 선택할 수 있습니다.`,
-    );
-  }
-  return { start, end, inRange: { gte: start, lte: end } };
 }
 
 /** 같은 분야 요약 시도를 한 묶음(다시 시도)으로 잇는 범위: 12시간 안 */
