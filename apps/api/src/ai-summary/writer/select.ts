@@ -89,7 +89,7 @@ const titleKey = (text: string) =>
 	text
 		.toLowerCase()
 		.replace(/&[a-z]+;|&#\d+;/g, '')
-		.replace(/[\s"'“”‘’「」『』\[\]()<>…·,.:;!?~\-–—|/]/g, '');
+		.replace(/[\s"'“”‘’「」『』[\]()<>…·,.:;!?~\-–—|/]/g, '');
 
 /** 이 묶음의 제목 가운데 하나가 모델이 적은 제목 앞부분과 맞는가 */
 const matchesCluster = (cluster: Cluster, title: string) => {

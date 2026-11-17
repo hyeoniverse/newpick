@@ -46,7 +46,6 @@ export class NewsletterController {
 		const limit = Number(query.limit);
 		const trend = query.trend;
 		const categoryId = query.categoryId || null;
-		console.log('trend', trend);
 
 		let startDate: Date | null = null;
 		let endDate: Date | null = null;
