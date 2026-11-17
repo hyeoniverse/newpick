@@ -5,7 +5,6 @@ import { CrawledNewsModule } from 'src/crawling/crawled-news.module';
 import { CreateNewsletterService } from './create-newsletter.service';
 import { NewsletterWriterService } from './newsletter-writer.service';
 import { StoryImageService } from './story-images';
-import { Logger } from '@nestjs/common';
 import { TagsModule } from 'src/tags/tags.module';
 import { LlmModule } from 'src/llm/llm.module';
 import { CategoryModule } from 'src/category/category.module';
@@ -13,17 +12,11 @@ import { CategoryModule } from 'src/category/category.module';
   imports: [CrawledNewsModule, TagsModule, LlmModule, CategoryModule],
   controllers: [AiSummaryController],
   providers: [
-    Logger,
     AiSummaryService,
     CreateNewsletterService,
     NewsletterWriterService,
     StoryImageService,
   ],
-  exports: [
-    AiSummaryService,
-    CreateNewsletterService,
-    NewsletterWriterService,
-    Logger,
-  ],
+  exports: [AiSummaryService, CreateNewsletterService, NewsletterWriterService],
 })
 export class AiSummaryModule {}

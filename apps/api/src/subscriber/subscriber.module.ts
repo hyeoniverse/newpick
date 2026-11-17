@@ -1,4 +1,4 @@
-import { Logger, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { PrismaModule } from 'src/prisma/prisma.module';
 import { SubscriberService } from './subscriber.service';
 import { SubscriberController } from './subscriber.controller';
@@ -8,6 +8,6 @@ import { UnsubscribeController } from './unsubscribe.controller';
   imports: [PrismaModule],
   exports: [SubscriberService],
   controllers: [SubscriberController, UnsubscribeController],
-  providers: [SubscriberService, Logger],
+  providers: [SubscriberService],
 })
 export class SubscriberModule {}

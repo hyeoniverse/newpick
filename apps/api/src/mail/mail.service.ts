@@ -54,8 +54,9 @@ export class MailService {
   /** 재시도 간격 기준값. 테스트에서 0으로 바꿉니다. */
   protected retryBaseDelay = RETRY_BASE_DELAY;
 
+  private readonly logger = new Logger(MailService.name);
+
   constructor(
-    private readonly logger: Logger,
     private readonly prisma: MysqlPrismaService,
     @Inject(NODEMAILER) config: nodemailer.TransportOptions,
   ) {

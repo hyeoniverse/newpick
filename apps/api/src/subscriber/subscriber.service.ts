@@ -8,10 +8,9 @@ import { AppException } from 'src/common/errors/app.exception';
 import { subscriptionEvent } from 'src/common/subscription-event';
 @Injectable()
 export class SubscriberService {
-  constructor(
-    private readonly logger: Logger,
-    private readonly prisma: MysqlPrismaService,
-  ) {}
+  private readonly logger = new Logger(SubscriberService.name);
+
+  constructor(private readonly prisma: MysqlPrismaService) {}
 
   /**
    * 구독 시작 (관심사 저장 포함)

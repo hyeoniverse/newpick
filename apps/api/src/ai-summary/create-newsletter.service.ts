@@ -4,10 +4,9 @@ import { Newsletter, Prisma } from '@prisma/client';
 
 @Injectable()
 export class CreateNewsletterService {
-  constructor(
-    private readonly prisma: MysqlPrismaService,
-    private readonly logger: Logger,
-  ) {}
+  private readonly logger = new Logger(CreateNewsletterService.name);
+
+  constructor(private readonly prisma: MysqlPrismaService) {}
 
   async createNewsletter(
     title: string,

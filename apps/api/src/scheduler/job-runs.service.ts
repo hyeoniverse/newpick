@@ -31,10 +31,9 @@ export class JobRunsService {
   private readonly runRecord: Partial<Record<JobName, Promise<number | null>>> =
     {};
 
-  constructor(
-    private readonly logger: Logger,
-    private readonly prisma: MysqlPrismaService,
-  ) {}
+  private readonly logger = new Logger(JobRunsService.name);
+
+  constructor(private readonly prisma: MysqlPrismaService) {}
 
   /**
    * 서버가 다시 시작되면 진행 중이던 작업은 이미 멈췄다. DB에 '진행 중'으로 남은 기록을 실패로 닫는다

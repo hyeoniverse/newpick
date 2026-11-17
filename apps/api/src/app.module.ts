@@ -24,7 +24,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { NewsletterModule } from 'src/newsletter/newsletter.module';
 import { ConfigLoggerMiddleware } from 'src/middleware/config-logger.middleware';
 import { CoopMiddleware } from 'src/middleware/coop.middleware';
-// import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 
 import { EditionModule } from 'src/edition/edition.module';
 import { SiteCacheModule } from 'src/site-cache/site-cache.module';
@@ -69,11 +68,6 @@ import { THROTTLE } from 'src/common/throttle';
     // 순서대로 실행: 요청 제한 → 로그인 확인(@Public 제외)
     { provide: APP_GUARD, useClass: ThrottlerGuard },
     { provide: APP_GUARD, useClass: JwtAuthGuard },
-    // 인터셉터 등록 (이부분은 나중에 추가해야함 response 형식 전부 변경됨)
-    // {
-    //   provide: APP_INTERCEPTOR,
-    //   useClass: CommonResponseInterceptor,
-    // },
   ], // 서비스 등록
 })
 export class AppModule implements NestModule {

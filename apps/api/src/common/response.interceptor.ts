@@ -13,6 +13,11 @@ interface Response<T> {
   message?: string;
 }
 
+/**
+ * 응답을 { statusCode, message, timestamp, dataCount, data } 모양으로 감싼다.
+ * 전역이 아니라 컨트롤러에 직접 붙인다 (뉴스레터 · 분야 · 수집 · 편집): 웹이 이 경로들은 감싼 모양으로,
+ * 나머지는 컨트롤러가 돌려준 모양({ message, data } 등) 그대로 읽는다. 전역으로 바꾸면 웹도 같이 고쳐야 한다
+ */
 @Injectable()
 export class CommonResponseInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {

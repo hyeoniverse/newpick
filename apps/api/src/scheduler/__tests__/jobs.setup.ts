@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { JobRunsService } from '../job-runs.service';
 import { MailJobService } from '../mail-job.service';
 import { ScheduleConfigService } from '../schedule-config.service';
@@ -85,11 +84,9 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
       update: jest.fn().mockResolvedValue({}),
     },
   };
-  const logger = new Logger();
   const scheduleConfig = new ScheduleConfigService(prisma as never);
-  const jobRuns = new JobRunsService(logger, prisma as never);
+  const jobRuns = new JobRunsService(prisma as never);
   const summaryJob = new SummaryJobService(
-    logger,
     mailService as never,
     aiSummaryService as never,
     crawlingRepository as never,
@@ -102,7 +99,6 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
     jobRuns,
   );
   const mailJob = new MailJobService(
-    logger,
     mailService as never,
     subscriberService as never,
     prisma as never,
@@ -114,7 +110,6 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
     jobRuns,
   );
   const scheduler = new SchedulerService(
-    logger,
     {} as never,
     registry as never,
     scheduleConfig,

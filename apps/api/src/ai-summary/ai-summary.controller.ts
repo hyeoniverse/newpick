@@ -19,10 +19,11 @@ export class AiSummaryController {
     }
   >();
 
+  private readonly logger = new Logger(AiSummaryController.name);
+
   constructor(
     private readonly aiSummaryService: AiSummaryService,
     private readonly crawlingRepository: CrawlingRepository,
-    private readonly logger: Logger,
   ) {}
 
   /**

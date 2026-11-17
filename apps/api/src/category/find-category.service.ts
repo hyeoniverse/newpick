@@ -5,10 +5,11 @@ import { MysqlPrismaService } from 'src/prisma/mysql.service';
 
 @Injectable()
 export class FindCategoryService {
+  private readonly logger = new Logger(FindCategoryService.name);
+
   constructor(
     private readonly prisma: MysqlPrismaService,
     private readonly claude: ClaudeService,
-    private readonly logger: Logger,
   ) {}
 
   async findCategory(summary: string) {

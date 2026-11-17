@@ -28,8 +28,9 @@ export class SchedulerService implements OnApplicationBootstrap {
    */
   private readonly autoRun = env.schedulerEnabled;
 
+  private readonly logger = new Logger(SchedulerService.name);
+
   constructor(
-    private readonly logger: Logger,
     private readonly crawlingService: CrawlingService,
     private schedulerRegistry: SchedulerRegistry,
     private readonly scheduleConfig: ScheduleConfigService,
