@@ -1,6 +1,6 @@
 import type { Folder } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AppException } from '../common/errors/app.exception';
 
 /** 한 사람이 만들 수 있는 폴더 수 */

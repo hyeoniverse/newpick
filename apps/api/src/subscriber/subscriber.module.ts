@@ -1,5 +1,5 @@
 import { Logger, Module } from '@nestjs/common';
-import { PrismaModule } from 'prisma/prisma.module';
+import { PrismaModule } from 'src/prisma/prisma.module';
 import { SubscriberService } from './subscriber.service';
 import { SubscriberController } from './subscriber.controller';
 import { UnsubscribeController } from './unsubscribe.controller';

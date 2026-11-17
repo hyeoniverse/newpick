@@ -1,4 +1,4 @@
-import { MysqlPrismaService } from '../prisma/mysql.service';
+import { MysqlPrismaService } from '../src/prisma/mysql.service';
 import { faker } from '@faker-js/faker';
 
 const prisma = new MysqlPrismaService();

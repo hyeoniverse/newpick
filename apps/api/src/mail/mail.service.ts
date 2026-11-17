@@ -2,7 +2,7 @@ import type { MailPlan } from '../edition/mail-plan';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import PQueue from '@esm2cjs/p-queue';
-import { MysqlPrismaService } from '../../prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { NODEMAILER } from './constants';
 import { env } from '../config/env';
 

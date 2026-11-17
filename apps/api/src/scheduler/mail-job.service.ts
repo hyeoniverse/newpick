@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { storyRef } from 'src/edition/editor';
 import { EditionService } from 'src/edition/edition.service';
 import { planMail, tagStories } from 'src/edition/personalize';

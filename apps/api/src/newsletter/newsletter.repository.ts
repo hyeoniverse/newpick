@@ -1,4 +1,4 @@
-import { MysqlPrismaService } from '../../prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma, Newsletter } from '@prisma/client';
 import dayjs from 'dayjs';

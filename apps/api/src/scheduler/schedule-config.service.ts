@@ -1,6 +1,6 @@
 import type { Schedule } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AppException } from 'src/common/errors/app.exception';
 import { DEFAULT_SCHEDULE, minutesOf } from './schedule';
 

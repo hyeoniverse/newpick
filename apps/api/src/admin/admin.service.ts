@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { deleteAccount } from 'src/common/delete-account';

@@ -1,6 +1,6 @@
 import type { JobName, JobRun, JobTrigger } from '@newpick/shared';
 import { Injectable, Logger } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 
 // 작업 이름 · 실행 상태는 @newpick/shared (웹 대시보드와 같은 타입)
 export type { JobName, JobRun, JobTrigger };

@@ -1,7 +1,7 @@
 import { usageLog } from 'src/llm/pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
-import { MysqlPrismaService } from '../../prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { ClaudeService } from '../llm/claude.service';
 import { KST, kstDayRange, kstDaysAgo } from '../common/kst';
 import { parseNewsletterHtml } from '../ai-summary/newsletter-parse';

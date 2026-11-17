@@ -1,5 +1,5 @@
 import {} from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AppException } from './errors/app.exception';
 import { subscriptionEvent } from './subscription-event';
 

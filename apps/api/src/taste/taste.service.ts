@@ -1,6 +1,6 @@
 import type { TasteStats } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { tagKey, toRules } from 'src/tags/tags';
 import { parseNewsletterHtml } from 'src/ai-summary/newsletter-parse';
 import type { TasteProfile } from './types';

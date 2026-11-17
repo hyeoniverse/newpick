@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AiService, AiUnavailable } from '../ai/ai.service';
 import { AppException } from '../common/errors/app.exception';
 import { kstDayRange, kstDaysAgo } from '../common/kst';

@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { MysqlPrismaService } from '../../prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { Prisma } from '@prisma/client';
 import { AppException } from '../common/errors/app.exception';
 

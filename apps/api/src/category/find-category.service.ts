@@ -1,7 +1,7 @@
 import { usageLog } from '../llm/pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import { ClaudeService, CLAUDE_FAST_MODEL } from '../llm/claude.service';
-import { MysqlPrismaService } from '../../prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 
 @Injectable()
 export class FindCategoryService {
