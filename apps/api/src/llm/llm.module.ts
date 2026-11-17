@@ -8,15 +8,15 @@ import { OpenModelService } from './open-model.service';
  * 어느 모듈이 어느 모델을 쓸지는 쓰는 쪽이 정한다 (AiService는 공급자 고르기, 뉴스레터 쓰기는 Claude 직접)
  */
 @Module({
-  providers: [
-    {
-      // ANTHROPIC_API_KEY를 읽습니다.
-      provide: Anthropic,
-      useFactory: () => new Anthropic(),
-    },
-    ClaudeService,
-    OpenModelService,
-  ],
-  exports: [ClaudeService, OpenModelService],
+	providers: [
+		{
+			// ANTHROPIC_API_KEY를 읽습니다.
+			provide: Anthropic,
+			useFactory: () => new Anthropic(),
+		},
+		ClaudeService,
+		OpenModelService,
+	],
+	exports: [ClaudeService, OpenModelService],
 })
 export class LlmModule {}

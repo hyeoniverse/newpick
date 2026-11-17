@@ -10,13 +10,13 @@ const dsn = env.sentryDsn;
 
 // DSN이 없으면 Sentry 없이 실행합니다 (로컬 개발, 비용 절감 배포).
 if (dsn) {
-  Sentry.init({
-    dsn,
-    integrations: [nodeProfilingIntegration()],
-    tracesSampleRate: 0.1,
-    profilesSampleRate: 0.1,
-    environment: env.nodeEnv,
-  });
+	Sentry.init({
+		dsn,
+		integrations: [nodeProfilingIntegration()],
+		tracesSampleRate: 0.1,
+		profilesSampleRate: 0.1,
+		environment: env.nodeEnv,
+	});
 } else {
-  console.warn('SENTRY_DSN이 없어 Sentry 없이 실행합니다.');
+	console.warn('SENTRY_DSN이 없어 Sentry 없이 실행합니다.');
 }

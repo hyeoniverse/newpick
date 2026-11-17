@@ -15,163 +15,150 @@ const MAX_ATTEMPTS = 3;
 const RETRY_BASE_DELAY = 1000;
 
 export type MailResult = {
-  email: string;
-  success: boolean;
-  skipped?: boolean;
-  attempts?: number;
-  error?: string;
+	email: string;
+	success: boolean;
+	skipped?: boolean;
+	attempts?: number;
+	error?: string;
 };
 
 export type Subscriber = {
-  email: string;
-  interests: number[];
-  /** 회원 이름 (없을 수 있다) */
-  name: string | null;
-  /** 원클릭 해지 토큰을 만들 회원 id (#18) */
-  userId?: number;
+	email: string;
+	interests: number[];
+	/** 회원 이름 (없을 수 있다) */
+	name: string | null;
+	/** 원클릭 해지 토큰을 만들 회원 id (#18) */
+	userId?: number;
 };
 
 /** 구독자 한 명에게 보낼 메일. newsletterIds: 이 메일에 엮은 뉴스레터 (발송 기록) */
 export type BuiltMail = {
-  subject: string;
-  html: string;
-  newsletterIds: number[];
-  /** 맞춤 계획 (#123 3단계). 있으면 발송 기록에 함께 남겨 마이페이지에서 받은 그대로 다시 만든다 */
-  plan?: MailPlan | null;
-  /** 덧붙일 메일 헤더 (List-Unsubscribe 등, #18) */
-  headers?: Record<string, string>;
+	subject: string;
+	html: string;
+	newsletterIds: number[];
+	/** 맞춤 계획 (#123 3단계). 있으면 발송 기록에 함께 남겨 마이페이지에서 받은 그대로 다시 만든다 */
+	plan?: MailPlan | null;
+	/** 덧붙일 메일 헤더 (List-Unsubscribe 등, #18) */
+	headers?: Record<string, string>;
 };
 
 export type BulkMailResult = {
-  success: number;
-  failed: number;
-  skipped: number;
-  details: MailResult[];
+	success: number;
+	failed: number;
+	skipped: number;
+	details: MailResult[];
 };
 
 @Injectable()
 export class MailService {
-  private readonly transporter: nodemailer.Transporter;
-  private readonly from = env.mailUser;
-  /** 재시도 간격 기준값. 테스트에서 0으로 바꿉니다. */
-  protected retryBaseDelay = RETRY_BASE_DELAY;
+	private readonly transporter: nodemailer.Transporter;
+	private readonly from = env.mailUser;
+	/** 재시도 간격 기준값. 테스트에서 0으로 바꿉니다. */
+	protected retryBaseDelay = RETRY_BASE_DELAY;
 
-  private readonly logger = new Logger(MailService.name);
+	private readonly logger = new Logger(MailService.name);
 
-  constructor(
-    private readonly prisma: MysqlPrismaService,
-    @Inject(NODEMAILER) config: nodemailer.TransportOptions,
-  ) {
-    this.transporter = nodemailer.createTransport(config);
-  }
+	constructor(
+		private readonly prisma: MysqlPrismaService,
+		@Inject(NODEMAILER) config: nodemailer.TransportOptions,
+	) {
+		this.transporter = nodemailer.createTransport(config);
+	}
 
-  async sendHtmlMail(to: string, cc: string, html: string, subject: string) {
-    return this.transporter.sendMail({
-      from: this.from,
-      to,
-      cc,
-      subject,
-      html,
-    });
-  }
+	async sendHtmlMail(to: string, cc: string, html: string, subject: string) {
+		return this.transporter.sendMail({
+			from: this.from,
+			to,
+			cc,
+			subject,
+			html,
+		});
+	}
 
-  /**
-   * 구독자마다 build로 만든 메일 한 통을 보냅니다 (#55: 고른 분야로 엮은 한 통).
-   * build가 null이면(고른 분야 소식이 없음) 보내지 않습니다.
-   * 한 명이 실패해도 나머지는 계속 보내고, 결과는 항상 같은 형태로 돌려줍니다.
-   */
-  async sendBulkMail(
-    subscribers: Subscriber[],
-    build: (subscriber: Subscriber) => BuiltMail | null,
-  ): Promise<BulkMailResult> {
-    const queue = new PQueue({
-      concurrency: SEND_CONCURRENCY,
-      intervalCap: SEND_PER_SECOND,
-      interval: 1000,
-    });
+	/**
+	 * 구독자마다 build로 만든 메일 한 통을 보냅니다 (#55: 고른 분야로 엮은 한 통).
+	 * build가 null이면(고른 분야 소식이 없음) 보내지 않습니다.
+	 * 한 명이 실패해도 나머지는 계속 보내고, 결과는 항상 같은 형태로 돌려줍니다.
+	 */
+	async sendBulkMail(
+		subscribers: Subscriber[],
+		build: (subscriber: Subscriber) => BuiltMail | null,
+	): Promise<BulkMailResult> {
+		const queue = new PQueue({
+			concurrency: SEND_CONCURRENCY,
+			intervalCap: SEND_PER_SECOND,
+			interval: 1000,
+		});
 
-    const details = await Promise.all(
-      subscribers.map((subscriber) =>
-        queue.add(() => this.sendMailTo(subscriber, build(subscriber))),
-      ),
-    );
+		const details = await Promise.all(
+			subscribers.map((subscriber) => queue.add(() => this.sendMailTo(subscriber, build(subscriber)))),
+		);
 
-    const result: BulkMailResult = {
-      success: details.filter((r) => r.success && !r.skipped).length,
-      failed: details.filter((r) => !r.success).length,
-      skipped: details.filter((r) => r.skipped).length,
-      details,
-    };
-    this.logger.log(
-      `뉴스레터 발송: 성공 ${result.success}, 실패 ${result.failed}, 해당 없음 ${result.skipped}`,
-    );
-    return result;
-  }
+		const result: BulkMailResult = {
+			success: details.filter((r) => r.success && !r.skipped).length,
+			failed: details.filter((r) => !r.success).length,
+			skipped: details.filter((r) => r.skipped).length,
+			details,
+		};
+		this.logger.log(`뉴스레터 발송: 성공 ${result.success}, 실패 ${result.failed}, 해당 없음 ${result.skipped}`);
+		return result;
+	}
 
-  private async sendMailTo(
-    subscriber: Subscriber,
-    mail: BuiltMail | null,
-  ): Promise<MailResult> {
-    if (!mail) {
-      return { email: subscriber.email, success: true, skipped: true };
-    }
+	private async sendMailTo(subscriber: Subscriber, mail: BuiltMail | null): Promise<MailResult> {
+		if (!mail) {
+			return { email: subscriber.email, success: true, skipped: true };
+		}
 
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
-      try {
-        await this.transporter.sendMail({
-          from: this.from,
-          to: subscriber.email,
-          subject: mail.subject,
-          html: mail.html,
-          ...(mail.headers && { headers: mail.headers }),
-        });
-        await this.archive(subscriber.email, mail.newsletterIds, mail.plan);
-        return { email: subscriber.email, success: true, attempts: attempt };
-      } catch (error) {
-        this.logger.warn(
-          `메일 발송 실패 (${attempt}/${MAX_ATTEMPTS}) ${subscriber.email}: ${errorMessage(error)}`,
-        );
-        if (attempt === MAX_ATTEMPTS) {
-          return {
-            email: subscriber.email,
-            success: false,
-            attempts: attempt,
-            error: errorMessage(error),
-          };
-        }
-        await sleep(this.retryBaseDelay * attempt);
-      }
-    }
-    // 위 반복은 마지막 시도에서 늘 돌려준다 (MAX_ATTEMPTS ≥ 1). 타입 검사용
-    throw new Error('메일 발송 반복이 결과 없이 끝났습니다.');
-  }
+		for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+			try {
+				await this.transporter.sendMail({
+					from: this.from,
+					to: subscriber.email,
+					subject: mail.subject,
+					html: mail.html,
+					...(mail.headers && { headers: mail.headers }),
+				});
+				await this.archive(subscriber.email, mail.newsletterIds, mail.plan);
+				return { email: subscriber.email, success: true, attempts: attempt };
+			} catch (error) {
+				this.logger.warn(`메일 발송 실패 (${attempt}/${MAX_ATTEMPTS}) ${subscriber.email}: ${errorMessage(error)}`);
+				if (attempt === MAX_ATTEMPTS) {
+					return {
+						email: subscriber.email,
+						success: false,
+						attempts: attempt,
+						error: errorMessage(error),
+					};
+				}
+				await sleep(this.retryBaseDelay * attempt);
+			}
+		}
+		// 위 반복은 마지막 시도에서 늘 돌려준다 (MAX_ATTEMPTS ≥ 1). 타입 검사용
+		throw new Error('메일 발송 반복이 결과 없이 끝났습니다.');
+	}
 
-  /**
-   * 발송 기록. 한 통에 엮은 분야별 뉴스레터마다 남긴다.
-   * 기록이 실패해도 메일은 이미 나갔으므로 다시 보내지 않는다 (같은 메일 두 번 방지)
-   */
-  private async archive(
-    email: string,
-    newsletterIds: number[],
-    plan?: MailPlan | null,
-  ) {
-    const sentAt = new Date();
-    try {
-      await this.prisma.emailArchive.createMany({
-        data: newsletterIds.map((newsletterId) => ({
-          newsletterId,
-          sentAt,
-          email,
-        })),
-      });
-      if (plan)
-        await this.prisma.mailPlan.create({
-          data: { email, sentAt, plan: plan as object },
-        });
-    } catch (error) {
-      this.logger.warn(`발송 기록 실패 ${email}: ${errorMessage(error)}`);
-    }
-  }
+	/**
+	 * 발송 기록. 한 통에 엮은 분야별 뉴스레터마다 남긴다.
+	 * 기록이 실패해도 메일은 이미 나갔으므로 다시 보내지 않는다 (같은 메일 두 번 방지)
+	 */
+	private async archive(email: string, newsletterIds: number[], plan?: MailPlan | null) {
+		const sentAt = new Date();
+		try {
+			await this.prisma.emailArchive.createMany({
+				data: newsletterIds.map((newsletterId) => ({
+					newsletterId,
+					sentAt,
+					email,
+				})),
+			});
+			if (plan)
+				await this.prisma.mailPlan.create({
+					data: { email, sentAt, plan: plan as object },
+				});
+		} catch (error) {
+			this.logger.warn(`발송 기록 실패 ${email}: ${errorMessage(error)}`);
+		}
+	}
 }
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

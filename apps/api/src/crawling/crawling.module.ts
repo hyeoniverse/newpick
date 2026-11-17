@@ -6,9 +6,9 @@ import { CrawledNewsModule } from './crawled-news.module';
 import { CategoryModule } from 'src/category/category.module';
 
 @Module({
-  imports: [CrawledNewsModule, CategoryModule],
-  providers: [CrawlerService, CrawlingService],
-  exports: [CrawlingService, CrawledNewsModule],
-  controllers: [CrawlingController],
+	imports: [CrawledNewsModule, CategoryModule],
+	providers: [CrawlerService, CrawlingService],
+	exports: [CrawlingService, CrawledNewsModule],
+	controllers: [CrawlingController],
 })
 export class CrawlingModule {}

@@ -5,8 +5,8 @@ import { TagsModule } from 'src/tags/tags.module';
 import { CrawledNewsModule } from 'src/crawling/crawled-news.module';
 
 @Module({
-  imports: [TagsModule, CrawledNewsModule],
-  controllers: [AdminController],
-  providers: [AdminService],
+	imports: [TagsModule, CrawledNewsModule],
+	controllers: [AdminController],
+	providers: [AdminService],
 })
 export class AdminModule {}

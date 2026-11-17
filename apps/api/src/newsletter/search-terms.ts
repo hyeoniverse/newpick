@@ -7,11 +7,11 @@ const BOOLEAN_OPERATORS = /[+\-<>()~*"@]/g;
  * 예: '더존 침해사고' → '+"더존" +"침해사고"'. ngram이 2글자 단위라 1글자 낱말은 뺀다
  */
 export function toBooleanQuery(q: string): string | null {
-  const words = q
-    .replace(BOOLEAN_OPERATORS, ' ')
-    .split(/\s+/)
-    .filter((word) => [...word].length >= 2)
-    .slice(0, 8);
-  if (words.length === 0) return null;
-  return words.map((word) => `+"${word}"`).join(' ');
+	const words = q
+		.replace(BOOLEAN_OPERATORS, ' ')
+		.split(/\s+/)
+		.filter((word) => [...word].length >= 2)
+		.slice(0, 8);
+	if (words.length === 0) return null;
+	return words.map((word) => `+"${word}"`).join(' ');
 }

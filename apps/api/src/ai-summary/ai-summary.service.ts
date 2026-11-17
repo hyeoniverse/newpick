@@ -18,8 +18,8 @@ import { errorMessage } from 'src/common/error-message';
  * 예전에는 받은 기사 전부를 넣어, IT 뉴스레터 썸네일이 증시 기사 사진이 되기도 했습니다.
  */
 export function usedArticles(news: CrawledNews[], sources: number[]) {
-  const used = sources.map((n) => news[n - 1]).filter(Boolean);
-  return used.length ? used : news;
+	const used = sources.map((n) => news[n - 1]).filter(Boolean);
+	return used.length ? used : news;
 }
 
 /** 최근 소재로 보는 기간 (이 안에 다룬 소식은 새 진전이 있을 때만 다시 쓴다) */
@@ -27,236 +27,220 @@ export const RECENT_DAYS = 5;
 
 /** 테스트 요약 (저장하지 않음): 관리자 화면에서 결과만 미리 본다 */
 type TestNewsletter = {
-  message: string;
-  title: string;
-  subtitle: string;
-  summary: string;
-  newslinks: string;
-  categoryId: number;
-  html: string;
-  imageUrl: string;
-  keywords: string[];
+	message: string;
+	title: string;
+	subtitle: string;
+	summary: string;
+	newslinks: string;
+	categoryId: number;
+	html: string;
+	imageUrl: string;
+	keywords: string[];
 };
 
 @Injectable()
 export class AiSummaryService {
-  private readonly logger = new Logger(AiSummaryService.name);
-  constructor(
-    private readonly prisma: MysqlPrismaService,
-    private readonly findCategoryService: FindCategoryService,
-    private readonly createNewsletterService: CreateNewsletterService,
-    private readonly newsletterWriterService: NewsletterWriterService,
-    private readonly storyImageService: StoryImageService,
-    private readonly tagsService: TagsService,
-    private readonly crawlingRepository: CrawlingRepository,
-  ) {}
+	private readonly logger = new Logger(AiSummaryService.name);
+	constructor(
+		private readonly prisma: MysqlPrismaService,
+		private readonly findCategoryService: FindCategoryService,
+		private readonly createNewsletterService: CreateNewsletterService,
+		private readonly newsletterWriterService: NewsletterWriterService,
+		private readonly storyImageService: StoryImageService,
+		private readonly tagsService: TagsService,
+		private readonly crawlingRepository: CrawlingRepository,
+	) {}
 
-  /**
-   * 최근 RECENT_DAYS일 이 분야 뉴스레터: 제목 · 부제 · 쓴 기사 링크.
-   * 지난 날짜를 다시 만들 때(at)는 그날 이전 것만 (뒷날 뉴스레터가 쓴 기사로 그날 기사를 거르지 않게)
-   */
-  private async recentNewsletters(categoryId: number, at?: Date) {
-    const until = at ?? new Date();
-    const since = new Date(until.getTime() - RECENT_DAYS * 24 * 60 * 60 * 1000);
-    const rows = await this.prisma.newsletter.findMany({
-      where: {
-        categoryId,
-        createdAt: at ? { gte: since, lt: at } : { gte: since },
-      },
-      orderBy: { createdAt: 'desc' },
-      select: { title: true, subtitle: true, usedNews: true, createdAt: true },
-    });
-    return rows.map((row) => ({
-      ...row,
-      date: row.createdAt.toLocaleDateString('ko-KR', {
-        timeZone: KST,
-        month: 'numeric',
-        day: 'numeric',
-      }),
-    }));
-  }
+	/**
+	 * 최근 RECENT_DAYS일 이 분야 뉴스레터: 제목 · 부제 · 쓴 기사 링크.
+	 * 지난 날짜를 다시 만들 때(at)는 그날 이전 것만 (뒷날 뉴스레터가 쓴 기사로 그날 기사를 거르지 않게)
+	 */
+	private async recentNewsletters(categoryId: number, at?: Date) {
+		const until = at ?? new Date();
+		const since = new Date(until.getTime() - RECENT_DAYS * 24 * 60 * 60 * 1000);
+		const rows = await this.prisma.newsletter.findMany({
+			where: {
+				categoryId,
+				createdAt: at ? { gte: since, lt: at } : { gte: since },
+			},
+			orderBy: { createdAt: 'desc' },
+			select: { title: true, subtitle: true, usedNews: true, createdAt: true },
+		});
+		return rows.map((row) => ({
+			...row,
+			date: row.createdAt.toLocaleDateString('ko-KR', {
+				timeZone: KST,
+				month: 'numeric',
+				day: 'numeric',
+			}),
+		}));
+	}
 
-  async summarizeText(
-    news: CrawledNews[],
-    categoryId: number,
-    test: boolean,
-    /** 이 시각 이후 보도는 '오늘 아침 속보'로 따로 (스케줄러가 오늘 05:00 KST를 준다) */
-    morningSince?: Date,
-    /** 지난 날짜를 다시 만들 때 그날 발행 시각. 프롬프트의 '오늘' · 최근 소재 · 발행일이 모두 그날 기준 */
-    at?: Date,
-    /** 새로 만들지 않고 이 뉴스레터를 새로 쓴 내용으로 바꾼다 (관리자 '다시 쓰기') */
-    replaceId?: number,
-  ): Promise<{
-    summary: string;
-    categoryId: number;
-    /** 저장한 뉴스레터. test면 저장하지 않고 미리보기만 (TestNewsletter) */
-    newsletter: Newsletter | TestNewsletter;
-  }> {
-    // 최근 이 분야 뉴스레터 (최근 소재와 겹치지 않게): 이미 쓴 기사는 빼고, 다룬 소식은 고르기 · 쓰기에 알려 준다
-    const recent = await this.recentNewsletters(categoryId, at);
-    const usedLinks = new Set(recent.flatMap((n) => n.usedNews.split(',')));
-    news = news.filter((item) => !usedLinks.has(item.link));
-    if (news.length === 0) {
-      this.logger.error('No news found');
-      throw new Error('No news found');
-    }
-    const recentTopics = recent.map(
-      (n) => `${n.date} ${n.title}${n.subtitle ? ` — ${n.subtitle}` : ''}`,
-    );
-    const startTime = Date.now();
-    try {
-      // 분야를 알려 줘야 IT 뉴스레터가 증시 기사로 채워지지 않습니다 (#42)
-      const category = (
-        await this.prisma.newsCategory.findUnique({
-          where: { id: categoryId },
-          select: { name: true },
-        })
-      )?.name;
-      const {
-        newsletter: written,
-        tokens,
-        usage,
-        selection,
-        embeddings = [],
-      } = await this.newsletterWriterService.write(news, category, {
-        // 같은 주제면 이미 쓰는 태그를 다시 쓰게 (#20 태그 정돈)
-        existingTags: await this.tagsService.recentTags(),
-        recentTopics,
-        morningSince,
-        today: at,
-      });
-      const { title, subtitle, summary, stories, morning = [] } = written;
-      // 같은 사건 묶기로 계산한 임베딩을 남긴다 (추천 기사에서 다시 계산하지 않게). 실패해도 뉴스레터는 계속
-      if (!test && embeddings.length)
-        await this.crawlingRepository
-          .saveEmbeddings(
-            embeddings.map(({ index, vector }) => ({
-              link: news[index].link,
-              embedding: vector,
-            })),
-          )
-          .catch((error) =>
-            this.logger.warn(`기사 임베딩 저장 실패: ${error.message}`),
-          );
-      // 저장 전에 합치기 · 지우기 규칙과 기존 표기로 맞춘다 (띄어쓰기 · 대소문자만 다른 태그가 갈라지지 않게).
-      // 소식마다의 태그도 같이 맞추고, 뉴스레터 태그에 빠짐없이 넣는다 (태그 화면 · 팔로우가 뉴스레터 태그로 찾으므로)
-      const [newsletterTags, ...storyTagLists] =
-        await this.tagsService.canonicalizeMany([
-          written.keywords,
-          ...[...morning, ...stories].map((s) => s.tags ?? []),
-        ]);
-      const tagged = [...morning, ...stories].map((s, i) => ({
-        ...s,
-        tags: storyTagLists[i],
-      }));
-      const taggedMorning = tagged.slice(0, morning.length);
-      const taggedStories = tagged.slice(morning.length);
-      const keywords = mergeTags(newsletterTags, storyTagLists.flat());
+	async summarizeText(
+		news: CrawledNews[],
+		categoryId: number,
+		test: boolean,
+		/** 이 시각 이후 보도는 '오늘 아침 속보'로 따로 (스케줄러가 오늘 05:00 KST를 준다) */
+		morningSince?: Date,
+		/** 지난 날짜를 다시 만들 때 그날 발행 시각. 프롬프트의 '오늘' · 최근 소재 · 발행일이 모두 그날 기준 */
+		at?: Date,
+		/** 새로 만들지 않고 이 뉴스레터를 새로 쓴 내용으로 바꾼다 (관리자 '다시 쓰기') */
+		replaceId?: number,
+	): Promise<{
+		summary: string;
+		categoryId: number;
+		/** 저장한 뉴스레터. test면 저장하지 않고 미리보기만 (TestNewsletter) */
+		newsletter: Newsletter | TestNewsletter;
+	}> {
+		// 최근 이 분야 뉴스레터 (최근 소재와 겹치지 않게): 이미 쓴 기사는 빼고, 다룬 소식은 고르기 · 쓰기에 알려 준다
+		const recent = await this.recentNewsletters(categoryId, at);
+		const usedLinks = new Set(recent.flatMap((n) => n.usedNews.split(',')));
+		news = news.filter((item) => !usedLinks.has(item.link));
+		if (news.length === 0) {
+			this.logger.error('No news found');
+			throw new Error('No news found');
+		}
+		const recentTopics = recent.map((n) => `${n.date} ${n.title}${n.subtitle ? ` — ${n.subtitle}` : ''}`);
+		const startTime = Date.now();
+		try {
+			// 분야를 알려 줘야 IT 뉴스레터가 증시 기사로 채워지지 않습니다 (#42)
+			const category = (
+				await this.prisma.newsCategory.findUnique({
+					where: { id: categoryId },
+					select: { name: true },
+				})
+			)?.name;
+			const {
+				newsletter: written,
+				tokens,
+				usage,
+				selection,
+				embeddings = [],
+			} = await this.newsletterWriterService.write(news, category, {
+				// 같은 주제면 이미 쓰는 태그를 다시 쓰게 (#20 태그 정돈)
+				existingTags: await this.tagsService.recentTags(),
+				recentTopics,
+				morningSince,
+				today: at,
+			});
+			const { title, subtitle, summary, stories, morning = [] } = written;
+			// 같은 사건 묶기로 계산한 임베딩을 남긴다 (추천 기사에서 다시 계산하지 않게). 실패해도 뉴스레터는 계속
+			if (!test && embeddings.length)
+				await this.crawlingRepository
+					.saveEmbeddings(
+						embeddings.map(({ index, vector }) => ({
+							link: news[index].link,
+							embedding: vector,
+						})),
+					)
+					.catch((error) => this.logger.warn(`기사 임베딩 저장 실패: ${error.message}`));
+			// 저장 전에 합치기 · 지우기 규칙과 기존 표기로 맞춘다 (띄어쓰기 · 대소문자만 다른 태그가 갈라지지 않게).
+			// 소식마다의 태그도 같이 맞추고, 뉴스레터 태그에 빠짐없이 넣는다 (태그 화면 · 팔로우가 뉴스레터 태그로 찾으므로)
+			const [newsletterTags, ...storyTagLists] = await this.tagsService.canonicalizeMany([
+				written.keywords,
+				...[...morning, ...stories].map((s) => s.tags ?? []),
+			]);
+			const tagged = [...morning, ...stories].map((s, i) => ({
+				...s,
+				tags: storyTagLists[i],
+			}));
+			const taggedMorning = tagged.slice(0, morning.length);
+			const taggedStories = tagged.slice(morning.length);
+			const keywords = mergeTags(newsletterTags, storyTagLists.flat());
 
-      // 아침 속보에 쓴 기사도 '쓴 기사'로 남겨 다음 뉴스레터에 다시 실리지 않게
-      const used = usedArticles(news, [
-        ...stories.flatMap((s) => s.sources),
-        ...morning.flatMap((m) => m.sources),
-      ]);
-      const newslinks = used.map((item) => item.link).toString();
-      const imageUrl = used.map((item) => item.images).toString();
-      // 상세 화면 맨 위 대표 이미지와 같은 사진은 소식에 다시 쓰지 않는다 (#49)
-      const hero = used.flatMap((item) => item.images ?? []).find(Boolean);
-      const withImages = await this.storyImageService.attach(
-        taggedStories,
-        news,
-        hero,
-      );
-      const html = renderNewsletterHtml(
-        { ...written, morning: taggedMorning, stories: withImages },
-        news,
-      );
-      this.logger.debug(
-        `뉴스레터 작성 완료: 소식 ${stories.length}개, 아침 속보 ${morning.length}개, 기사 ${news.length}건 중 ${used.length}건 사용`,
-      );
+			// 아침 속보에 쓴 기사도 '쓴 기사'로 남겨 다음 뉴스레터에 다시 실리지 않게
+			const used = usedArticles(news, [...stories.flatMap((s) => s.sources), ...morning.flatMap((m) => m.sources)]);
+			const newslinks = used.map((item) => item.link).toString();
+			const imageUrl = used.map((item) => item.images).toString();
+			// 상세 화면 맨 위 대표 이미지와 같은 사진은 소식에 다시 쓰지 않는다 (#49)
+			const hero = used.flatMap((item) => item.images ?? []).find(Boolean);
+			const withImages = await this.storyImageService.attach(taggedStories, news, hero);
+			const html = renderNewsletterHtml({ ...written, morning: taggedMorning, stories: withImages }, news);
+			this.logger.debug(
+				`뉴스레터 작성 완료: 소식 ${stories.length}개, 아침 속보 ${morning.length}개, 기사 ${news.length}건 중 ${used.length}건 사용`,
+			);
 
-      await this.prisma.aiProcessLog.create({
-        data: {
-          newsId: test ? 'test' : newslinks,
-          processType: 'summarization',
-          categoryId,
-          // 고르기 점수도 함께 남겨, 어떤 소식이 왜 빠졌는지 관리자 AI 기록에서 본다
-          result: `${title} | ${subtitle}\n${summary}${selection ? `\n\n[고르기]\n${selection}` : ''}`,
-          duration: (Date.now() - startTime) / 1000,
-          status: 'success',
-          token: tokens,
-          error: null,
-          ...usageLog(usage),
-        },
-      });
+			await this.prisma.aiProcessLog.create({
+				data: {
+					newsId: test ? 'test' : newslinks,
+					processType: 'summarization',
+					categoryId,
+					// 고르기 점수도 함께 남겨, 어떤 소식이 왜 빠졌는지 관리자 AI 기록에서 본다
+					result: `${title} | ${subtitle}\n${summary}${selection ? `\n\n[고르기]\n${selection}` : ''}`,
+					duration: (Date.now() - startTime) / 1000,
+					status: 'success',
+					token: tokens,
+					error: null,
+					...usageLog(usage),
+				},
+			});
 
-      if (test) {
-        return {
-          summary,
-          categoryId,
-          newsletter: {
-            message:
-              '요약 완료 이 요청은 테스트 요약입니다. DB에 저장되지 않습니다.',
-            title,
-            subtitle,
-            summary,
-            newslinks,
-            categoryId,
-            html,
-            imageUrl,
-            keywords,
-          },
-        };
-      }
-      const newsletter = await this.createNewsletterService.createNewsletter(
-        title,
-        subtitle,
-        summary,
-        newslinks,
-        categoryId,
-        html,
-        imageUrl,
-        keywords,
-        at,
-        replaceId,
-      );
+			if (test) {
+				return {
+					summary,
+					categoryId,
+					newsletter: {
+						message: '요약 완료 이 요청은 테스트 요약입니다. DB에 저장되지 않습니다.',
+						title,
+						subtitle,
+						summary,
+						newslinks,
+						categoryId,
+						html,
+						imageUrl,
+						keywords,
+					},
+				};
+			}
+			const newsletter = await this.createNewsletterService.createNewsletter(
+				title,
+				subtitle,
+				summary,
+				newslinks,
+				categoryId,
+				html,
+				imageUrl,
+				keywords,
+				at,
+				replaceId,
+			);
 
-      return { summary, categoryId, newsletter };
-    } catch (error) {
-      const duration = (Date.now() - startTime) / 1000;
-      const newsIds = news.map((item) => item._id).toString();
-      // 실패해도 그때까지 쓴 사용량은 청구된다: 끝난 고르기 + 실패한 호출에서 받은 데까지 (없으면 0)
-      const usage = usageOf(error);
-      await this.prisma.aiProcessLog.create({
-        data: {
-          newsId: test ? 'test' : newsIds,
-          processType: 'summarization',
-          categoryId,
-          result: errorMessage(error),
-          duration: duration,
-          status: 'error',
-          error: errorMessage(error),
-          token: usage.reduce((sum, u) => sum + u.input + u.output, 0),
-          ...usageLog(usage),
-        },
-      });
+			return { summary, categoryId, newsletter };
+		} catch (error) {
+			const duration = (Date.now() - startTime) / 1000;
+			const newsIds = news.map((item) => item._id).toString();
+			// 실패해도 그때까지 쓴 사용량은 청구된다: 끝난 고르기 + 실패한 호출에서 받은 데까지 (없으면 0)
+			const usage = usageOf(error);
+			await this.prisma.aiProcessLog.create({
+				data: {
+					newsId: test ? 'test' : newsIds,
+					processType: 'summarization',
+					categoryId,
+					result: errorMessage(error),
+					duration: duration,
+					status: 'error',
+					error: errorMessage(error),
+					token: usage.reduce((sum, u) => sum + u.input + u.output, 0),
+					...usageLog(usage),
+				},
+			});
 
-      this.logger.error(`요약 실패: ${errorMessage(error)}`);
-      throw new Error('Summarization failed.');
-    }
-  }
+			this.logger.error(`요약 실패: ${errorMessage(error)}`);
+			throw new Error('Summarization failed.');
+		}
+	}
 }
 
 /** 뉴스레터 태그 + 소식 태그 (중복 · 대소문자 무시, 뉴스레터 태그 먼저, 최대 NEWSLETTER_TAG_MAX개) */
 const NEWSLETTER_TAG_MAX = 10;
 export function mergeTags(newsletterTags: string[], storyTags: string[]) {
-  const seen = new Set<string>();
-  return [...newsletterTags, ...storyTags]
-    .filter((t) => {
-      const key = t.replace(/\s+/g, '').toLowerCase();
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .slice(0, NEWSLETTER_TAG_MAX);
+	const seen = new Set<string>();
+	return [...newsletterTags, ...storyTags]
+		.filter((t) => {
+			const key = t.replace(/\s+/g, '').toLowerCase();
+			if (!key || seen.has(key)) return false;
+			seen.add(key);
+			return true;
+		})
+		.slice(0, NEWSLETTER_TAG_MAX);
 }

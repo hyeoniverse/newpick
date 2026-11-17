@@ -8,15 +8,15 @@ import { env } from 'src/config/env';
  *   프론트와 api를 다른 사이트에서 직접 호출하는 구성이면 none
  */
 export function authCookieOptions(maxAge?: number): CookieOptions {
-  const sameSite: CookieOptions['sameSite'] = env.cookieSameSite;
-  return {
-    httpOnly: true,
-    secure: true,
-    sameSite,
-    path: '/',
-    ...(env.cookieDomain && { domain: env.cookieDomain }),
-    ...(maxAge !== undefined && { maxAge }),
-  };
+	const sameSite: CookieOptions['sameSite'] = env.cookieSameSite;
+	return {
+		httpOnly: true,
+		secure: true,
+		sameSite,
+		path: '/',
+		...(env.cookieDomain && { domain: env.cookieDomain }),
+		...(maxAge !== undefined && { maxAge }),
+	};
 }
 
 /**
@@ -27,7 +27,7 @@ export function authCookieOptions(maxAge?: number): CookieOptions {
 export const SESSION_HINT_COOKIE = 'logged_in';
 
 export function sessionHintCookieOptions(maxAge?: number): CookieOptions {
-  return { ...authCookieOptions(maxAge), httpOnly: false };
+	return { ...authCookieOptions(maxAge), httpOnly: false };
 }
 
 /** 짧게: 다른 기기를 로그아웃시키면 그 기기는 늦어도 이만큼 뒤에 풀린다 (갱신은 쓰는 동안 조용히) */

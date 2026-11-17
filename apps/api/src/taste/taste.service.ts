@@ -4,21 +4,11 @@ import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { tagKey, toRules } from 'src/tags/tags';
 import { parseNewsletterHtml } from 'src/ai-summary/newsletter-parse';
 import type { TasteProfile } from './types';
-import {
-  byCategoryScore,
-  byTopicScore,
-  HALF_LIFE_DAYS,
-  scoreTaste,
-  Signal,
-  STAR_BONUS,
-  WEIGHTS,
-} from './taste';
+import { byCategoryScore, byTopicScore, HALF_LIFE_DAYS, scoreTaste, Signal, STAR_BONUS, WEIGHTS } from './taste';
 import type { SignalText } from './types';
 
 const asKeywords = (value: unknown) =>
-  Array.isArray(value)
-    ? value.filter((v): v is string => typeof v === 'string')
-    : [];
+	Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string') : [];
 
 const NEWSLETTER = { select: { categoryId: true, keywords: true } } as const;
 
@@ -27,8 +17,8 @@ export const SIGNAL_TEXT_LIMITS = { count: 24, maxAgeDays: 30, label: 30 };
 
 /** 스크랩 문장은 앞부분만 이름으로 */
 export const signalLabel = (text: string, max = SIGNAL_TEXT_LIMITS.label) => {
-  const flat = text.replace(/\s+/g, ' ').trim();
-  return flat.length > max ? `${flat.slice(0, max)}…` : flat;
+	const flat = text.replace(/\s+/g, ' ').trim();
+	return flat.length > max ? `${flat.slice(0, max)}…` : flat;
 };
 
 /**
@@ -37,263 +27,248 @@ export const signalLabel = (text: string, max = SIGNAL_TEXT_LIMITS.label) => {
  */
 @Injectable()
 export class TasteService {
-  constructor(private readonly prisma: MysqlPrismaService) {}
+	constructor(private readonly prisma: MysqlPrismaService) {}
 
-  /** 사용자들의 신호 (userId → 신호 목록) */
-  private async signals(userIds?: number[]) {
-    const where = userIds ? { userId: { in: userIds } } : {};
-    const [bookmarks, highlights, rules, categories] = await Promise.all([
-      this.prisma.bookmark.findMany({
-        where,
-        select: { userId: true, createdAt: true, newsletter: NEWSLETTER },
-      }),
-      this.prisma.highlight.findMany({
-        where,
-        select: {
-          userId: true,
-          createdAt: true,
-          text: true,
-          note: true,
-          starred: true,
-          newsletter: NEWSLETTER,
-        },
-      }),
-      this.prisma.tagRule.findMany(),
-      this.prisma.newsCategory.findMany({ select: { id: true, name: true } }),
-    ]);
-    const byUser = new Map<number, Signal[]>();
-    const push = (userId: number, signal: Signal) =>
-      byUser.set(userId, [...(byUser.get(userId) ?? []), signal]);
-    for (const b of bookmarks) {
-      push(b.userId, {
-        kind: 'bookmark',
-        at: b.createdAt,
-        categoryId: b.newsletter.categoryId,
-        keywords: asKeywords(b.newsletter.keywords),
-      });
-    }
-    for (const h of highlights) {
-      push(h.userId, {
-        kind: h.note ? 'memo' : 'scrap',
-        at: h.createdAt,
-        categoryId: h.newsletter.categoryId,
-        keywords: asKeywords(h.newsletter.keywords),
-        text: [h.text, h.note].filter(Boolean).join(' '),
-        starred: h.starred,
-      });
-    }
-    return {
-      byUser,
-      rules: toRules(rules),
-      names: new Map(categories.map((c) => [c.id, c.name])),
-    };
-  }
+	/** 사용자들의 신호 (userId → 신호 목록) */
+	private async signals(userIds?: number[]) {
+		const where = userIds ? { userId: { in: userIds } } : {};
+		const [bookmarks, highlights, rules, categories] = await Promise.all([
+			this.prisma.bookmark.findMany({
+				where,
+				select: { userId: true, createdAt: true, newsletter: NEWSLETTER },
+			}),
+			this.prisma.highlight.findMany({
+				where,
+				select: {
+					userId: true,
+					createdAt: true,
+					text: true,
+					note: true,
+					starred: true,
+					newsletter: NEWSLETTER,
+				},
+			}),
+			this.prisma.tagRule.findMany(),
+			this.prisma.newsCategory.findMany({ select: { id: true, name: true } }),
+		]);
+		const byUser = new Map<number, Signal[]>();
+		const push = (userId: number, signal: Signal) => byUser.set(userId, [...(byUser.get(userId) ?? []), signal]);
+		for (const b of bookmarks) {
+			push(b.userId, {
+				kind: 'bookmark',
+				at: b.createdAt,
+				categoryId: b.newsletter.categoryId,
+				keywords: asKeywords(b.newsletter.keywords),
+			});
+		}
+		for (const h of highlights) {
+			push(h.userId, {
+				kind: h.note ? 'memo' : 'scrap',
+				at: h.createdAt,
+				categoryId: h.newsletter.categoryId,
+				keywords: asKeywords(h.newsletter.keywords),
+				text: [h.text, h.note].filter(Boolean).join(' '),
+				starred: h.starred,
+			});
+		}
+		return {
+			byUser,
+			rules: toRules(rules),
+			names: new Map(categories.map((c) => [c.id, c.name])),
+		};
+	}
 
-  /**
-   * 맞춤 메일용 취향 (#123 3단계): 사람마다 점수 큰 태그. 발송 때 구독자 모두를 한 번에 계산한다 (AI 호출 없음).
-   * 신호가 없는 사람은 빠진다 (맞춤 없이 지금 그대로)
-   */
-  async profiles(userIds: number[]): Promise<Map<number, TasteProfile>> {
-    if (!userIds.length) return new Map();
-    const { byUser, rules } = await this.signals(userIds);
-    const result = new Map<number, TasteProfile>();
-    for (const [userId, signals] of byUser) {
-      const { topics } = scoreTaste(signals, rules);
-      if (topics.length)
-        result.set(userId, {
-          topics: topics.map((t) => ({
-            name: t.topic,
-            key: tagKey(t.topic),
-            score: t.score,
-          })),
-        });
-    }
-    return result;
-  }
+	/**
+	 * 맞춤 메일용 취향 (#123 3단계): 사람마다 점수 큰 태그. 발송 때 구독자 모두를 한 번에 계산한다 (AI 호출 없음).
+	 * 신호가 없는 사람은 빠진다 (맞춤 없이 지금 그대로)
+	 */
+	async profiles(userIds: number[]): Promise<Map<number, TasteProfile>> {
+		if (!userIds.length) return new Map();
+		const { byUser, rules } = await this.signals(userIds);
+		const result = new Map<number, TasteProfile>();
+		for (const [userId, signals] of byUser) {
+			const { topics } = scoreTaste(signals, rules);
+			if (topics.length)
+				result.set(userId, {
+					topics: topics.map((t) => ({
+						name: t.topic,
+						key: tagKey(t.topic),
+						score: t.score,
+					})),
+				});
+		}
+		return result;
+	}
 
-  /**
-   * 맞춤 메일에서 뜻을 비교할 신호 글 (사람마다 최근 것부터): 북마크한 뉴스레터의 소식(제목 · 리드),
-   * 스크랩한 문장(+메모). 임베딩은 EditionService가 한 번에 한다
-   */
-  async signalTexts(userIds: number[]): Promise<Map<number, SignalText[]>> {
-    if (!userIds.length) return new Map();
-    const since = new Date(
-      Date.now() - SIGNAL_TEXT_LIMITS.maxAgeDays * 24 * 60 * 60 * 1000,
-    );
-    const where = { userId: { in: userIds }, createdAt: { gte: since } };
-    const [bookmarks, highlights] = await Promise.all([
-      this.prisma.bookmark.findMany({
-        where,
-        select: {
-          userId: true,
-          createdAt: true,
-          newsletter: { select: { contentAsHTML: true } },
-        },
-      }),
-      this.prisma.highlight.findMany({
-        where,
-        select: { userId: true, createdAt: true, text: true, note: true },
-      }),
-    ]);
-    const rows = [
-      ...bookmarks.map((b) => ({
-        userId: b.userId,
-        at: b.createdAt,
-        texts: parseNewsletterHtml(b.newsletter.contentAsHTML).stories.map(
-          (story): SignalText => ({
-            kind: 'bookmark',
-            label: story.heading,
-            text: [story.heading, story.lead].filter(Boolean).join('\n'),
-          }),
-        ),
-      })),
-      ...highlights.map((h) => ({
-        userId: h.userId,
-        at: h.createdAt,
-        texts: [
-          {
-            kind: 'scrap' as const,
-            label: signalLabel(h.text),
-            text: [h.text, h.note].filter(Boolean).join('\n'),
-          },
-        ],
-      })),
-    ].sort((a, b) => b.at.getTime() - a.at.getTime());
+	/**
+	 * 맞춤 메일에서 뜻을 비교할 신호 글 (사람마다 최근 것부터): 북마크한 뉴스레터의 소식(제목 · 리드),
+	 * 스크랩한 문장(+메모). 임베딩은 EditionService가 한 번에 한다
+	 */
+	async signalTexts(userIds: number[]): Promise<Map<number, SignalText[]>> {
+		if (!userIds.length) return new Map();
+		const since = new Date(Date.now() - SIGNAL_TEXT_LIMITS.maxAgeDays * 24 * 60 * 60 * 1000);
+		const where = { userId: { in: userIds }, createdAt: { gte: since } };
+		const [bookmarks, highlights] = await Promise.all([
+			this.prisma.bookmark.findMany({
+				where,
+				select: {
+					userId: true,
+					createdAt: true,
+					newsletter: { select: { contentAsHTML: true } },
+				},
+			}),
+			this.prisma.highlight.findMany({
+				where,
+				select: { userId: true, createdAt: true, text: true, note: true },
+			}),
+		]);
+		const rows = [
+			...bookmarks.map((b) => ({
+				userId: b.userId,
+				at: b.createdAt,
+				texts: parseNewsletterHtml(b.newsletter.contentAsHTML).stories.map((story): SignalText => ({
+					kind: 'bookmark',
+					label: story.heading,
+					text: [story.heading, story.lead].filter(Boolean).join('\n'),
+				})),
+			})),
+			...highlights.map((h) => ({
+				userId: h.userId,
+				at: h.createdAt,
+				texts: [
+					{
+						kind: 'scrap' as const,
+						label: signalLabel(h.text),
+						text: [h.text, h.note].filter(Boolean).join('\n'),
+					},
+				],
+			})),
+		].sort((a, b) => b.at.getTime() - a.at.getTime());
 
-    const result = new Map<number, SignalText[]>();
-    for (const row of rows) {
-      const mine = result.get(row.userId) ?? [];
-      result.set(
-        row.userId,
-        [...mine, ...row.texts].slice(0, SIGNAL_TEXT_LIMITS.count),
-      );
-    }
-    return result;
-  }
+		const result = new Map<number, SignalText[]>();
+		for (const row of rows) {
+			const mine = result.get(row.userId) ?? [];
+			result.set(row.userId, [...mine, ...row.texts].slice(0, SIGNAL_TEXT_LIMITS.count));
+		}
+		return result;
+	}
 
-  /** 팔로우한 태그 (#123 5단계): 사람마다 팔로우한 순 (이름 · 비교 열쇠) */
-  async tagFollows(
-    userIds: number[],
-  ): Promise<Map<number, { name: string; key: string }[]>> {
-    const result = new Map<number, { name: string; key: string }[]>();
-    if (!userIds.length) return result;
-    const rows = await this.prisma.tagFollow.findMany({
-      where: { userId: { in: userIds } },
-      orderBy: { createdAt: 'asc' },
-      select: { userId: true, tag: true },
-    });
-    for (const { userId, tag } of rows)
-      result.set(userId, [
-        ...(result.get(userId) ?? []),
-        { name: tag, key: tagKey(tag) },
-      ]);
-    return result;
-  }
+	/** 팔로우한 태그 (#123 5단계): 사람마다 팔로우한 순 (이름 · 비교 열쇠) */
+	async tagFollows(userIds: number[]): Promise<Map<number, { name: string; key: string }[]>> {
+		const result = new Map<number, { name: string; key: string }[]>();
+		if (!userIds.length) return result;
+		const rows = await this.prisma.tagFollow.findMany({
+			where: { userId: { in: userIds } },
+			orderBy: { createdAt: 'asc' },
+			select: { userId: true, tag: true },
+		});
+		for (const { userId, tag } of rows)
+			result.set(userId, [...(result.get(userId) ?? []), { name: tag, key: tagKey(tag) }]);
+		return result;
+	}
 
-  /** 마이페이지: 내 취향 (태그 20개까지, 관심사, 신호 수) */
-  async forUser(userId: number) {
-    const { byUser, rules, names } = await this.signals([userId]);
-    const signals = byUser.get(userId) ?? [];
-    const { topics, categories } = scoreTaste(signals, rules);
-    return {
-      weights: WEIGHTS,
-      halfLifeDays: HALF_LIFE_DAYS,
-      signals: {
-        bookmark: signals.filter((s) => s.kind === 'bookmark').length,
-        scrap: signals.filter((s) => s.kind === 'scrap').length,
-        memo: signals.filter((s) => s.kind === 'memo').length,
-      },
-      // lastAt은 순서를 정하는 데만 쓰고 응답에는 넣지 않는다
-      topics: topics
-        .slice(0, 20)
-        .map(({ topic, score, bookmark, scrap, memo }) => ({
-          topic,
-          score,
-          bookmark,
-          scrap,
-          memo,
-        })),
-      categories: categories.map(({ categoryId, score }) => ({
-        categoryId,
-        score,
-        name: names.get(categoryId) ?? null,
-      })),
-    };
-  }
+	/** 마이페이지: 내 취향 (태그 20개까지, 관심사, 신호 수) */
+	async forUser(userId: number) {
+		const { byUser, rules, names } = await this.signals([userId]);
+		const signals = byUser.get(userId) ?? [];
+		const { topics, categories } = scoreTaste(signals, rules);
+		return {
+			weights: WEIGHTS,
+			halfLifeDays: HALF_LIFE_DAYS,
+			signals: {
+				bookmark: signals.filter((s) => s.kind === 'bookmark').length,
+				scrap: signals.filter((s) => s.kind === 'scrap').length,
+				memo: signals.filter((s) => s.kind === 'memo').length,
+			},
+			// lastAt은 순서를 정하는 데만 쓰고 응답에는 넣지 않는다
+			topics: topics.slice(0, 20).map(({ topic, score, bookmark, scrap, memo }) => ({
+				topic,
+				score,
+				bookmark,
+				scrap,
+				memo,
+			})),
+			categories: categories.map(({ categoryId, score }) => ({
+				categoryId,
+				score,
+				name: names.get(categoryId) ?? null,
+			})),
+		};
+	}
 
-  /**
-   * 관리자 통계: 신호를 남긴 사람 수, 모두의 점수를 더한 태그 순위(그 태그를 가진 사람 수 함께), 관심사별 합.
-   * 사람마다 따로 계산해 더하므로 한 사람이 많이 남겨도 그 사람 몫만큼만
-   */
-  async overview(): Promise<TasteStats> {
-    const { byUser, rules, names } = await this.signals();
-    const topics = new Map<
-      string,
-      {
-        score: number;
-        users: number;
-        memo: number;
-        scrap: number;
-        bookmark: number;
-        lastAt: number;
-      }
-    >();
-    const categories = new Map<number, { score: number; lastAt: number }>();
-    const totals = { bookmark: 0, scrap: 0, memo: 0 };
-    for (const signals of byUser.values()) {
-      for (const s of signals) totals[s.kind] += 1;
-      const scored = scoreTaste(signals, rules);
-      for (const t of scored.topics) {
-        const sum = topics.get(t.topic) ?? {
-          score: 0,
-          users: 0,
-          memo: 0,
-          scrap: 0,
-          bookmark: 0,
-          lastAt: 0,
-        };
-        topics.set(t.topic, {
-          score: sum.score + t.score,
-          users: sum.users + 1,
-          memo: sum.memo + t.memo,
-          scrap: sum.scrap + t.scrap,
-          bookmark: sum.bookmark + t.bookmark,
-          lastAt: Math.max(sum.lastAt, t.lastAt),
-        });
-      }
-      for (const c of scored.categories) {
-        const sum = categories.get(c.categoryId) ?? { score: 0, lastAt: 0 };
-        categories.set(c.categoryId, {
-          score: sum.score + c.score,
-          lastAt: Math.max(sum.lastAt, c.lastAt),
-        });
-      }
-    }
-    const round = (n: number) => Math.round(n * 100) / 100;
-    return {
-      weights: WEIGHTS,
-      starBonus: STAR_BONUS,
-      halfLifeDays: HALF_LIFE_DAYS,
-      users: byUser.size,
-      signals: totals,
-      // 순서는 점수 → 중요한 신호 → 최신 (byTopicScore), 응답에는 태그 · 점수 · 사람 수만
-      topics: [...topics.entries()]
-        .map(([topic, v]) => ({ ...v, topic, score: round(v.score) }))
-        .sort(byTopicScore)
-        .slice(0, 20)
-        .map(({ topic, score, users }) => ({ topic, score, users })),
-      categories: [...categories.entries()]
-        .map(([categoryId, v]) => ({
-          categoryId,
-          score: round(v.score),
-          lastAt: v.lastAt,
-        }))
-        .sort(byCategoryScore)
-        .map(({ categoryId, score }) => ({
-          categoryId,
-          name: names.get(categoryId) ?? null,
-          score,
-        })),
-    };
-  }
+	/**
+	 * 관리자 통계: 신호를 남긴 사람 수, 모두의 점수를 더한 태그 순위(그 태그를 가진 사람 수 함께), 관심사별 합.
+	 * 사람마다 따로 계산해 더하므로 한 사람이 많이 남겨도 그 사람 몫만큼만
+	 */
+	async overview(): Promise<TasteStats> {
+		const { byUser, rules, names } = await this.signals();
+		const topics = new Map<
+			string,
+			{
+				score: number;
+				users: number;
+				memo: number;
+				scrap: number;
+				bookmark: number;
+				lastAt: number;
+			}
+		>();
+		const categories = new Map<number, { score: number; lastAt: number }>();
+		const totals = { bookmark: 0, scrap: 0, memo: 0 };
+		for (const signals of byUser.values()) {
+			for (const s of signals) totals[s.kind] += 1;
+			const scored = scoreTaste(signals, rules);
+			for (const t of scored.topics) {
+				const sum = topics.get(t.topic) ?? {
+					score: 0,
+					users: 0,
+					memo: 0,
+					scrap: 0,
+					bookmark: 0,
+					lastAt: 0,
+				};
+				topics.set(t.topic, {
+					score: sum.score + t.score,
+					users: sum.users + 1,
+					memo: sum.memo + t.memo,
+					scrap: sum.scrap + t.scrap,
+					bookmark: sum.bookmark + t.bookmark,
+					lastAt: Math.max(sum.lastAt, t.lastAt),
+				});
+			}
+			for (const c of scored.categories) {
+				const sum = categories.get(c.categoryId) ?? { score: 0, lastAt: 0 };
+				categories.set(c.categoryId, {
+					score: sum.score + c.score,
+					lastAt: Math.max(sum.lastAt, c.lastAt),
+				});
+			}
+		}
+		const round = (n: number) => Math.round(n * 100) / 100;
+		return {
+			weights: WEIGHTS,
+			starBonus: STAR_BONUS,
+			halfLifeDays: HALF_LIFE_DAYS,
+			users: byUser.size,
+			signals: totals,
+			// 순서는 점수 → 중요한 신호 → 최신 (byTopicScore), 응답에는 태그 · 점수 · 사람 수만
+			topics: [...topics.entries()]
+				.map(([topic, v]) => ({ ...v, topic, score: round(v.score) }))
+				.sort(byTopicScore)
+				.slice(0, 20)
+				.map(({ topic, score, users }) => ({ topic, score, users })),
+			categories: [...categories.entries()]
+				.map(([categoryId, v]) => ({
+					categoryId,
+					score: round(v.score),
+					lastAt: v.lastAt,
+				}))
+				.sort(byCategoryScore)
+				.map(({ categoryId, score }) => ({
+					categoryId,
+					name: names.get(categoryId) ?? null,
+					score,
+				})),
+		};
+	}
 }

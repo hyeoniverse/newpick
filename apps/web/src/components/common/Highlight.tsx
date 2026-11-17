@@ -19,9 +19,11 @@ export default function Highlight({ text, query }: Props) {
 	const pattern = new RegExp(`(${words.join('|')})`, 'gi');
 	return (
 		<>
-			{text.split(pattern).map((part, index) =>
-				index % 2 === 1 ? <mark key={index}>{part}</mark> : <Fragment key={index}>{part}</Fragment>,
-			)}
+			{text
+				.split(pattern)
+				.map((part, index) =>
+					index % 2 === 1 ? <mark key={index}>{part}</mark> : <Fragment key={index}>{part}</Fragment>,
+				)}
 		</>
 	);
 }

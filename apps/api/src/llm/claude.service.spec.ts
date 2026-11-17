@@ -3,261 +3,233 @@ import { ClaudeService } from './claude.service';
 import { UsageError } from './pricing';
 
 function reply(overrides: Record<string, unknown> = {}) {
-  return {
-    id: 'msg_test',
-    type: 'message',
-    role: 'assistant',
-    model: 'claude-sonnet-5-5',
-    content: [{ type: 'text', text: '  요약 결과  ' }],
-    stop_reason: 'end_turn',
-    stop_details: null,
-    usage: { input_tokens: 100, output_tokens: 20 },
-    ...overrides,
-  };
+	return {
+		id: 'msg_test',
+		type: 'message',
+		role: 'assistant',
+		model: 'claude-sonnet-5-5',
+		content: [{ type: 'text', text: '  요약 결과  ' }],
+		stop_reason: 'end_turn',
+		stop_details: null,
+		usage: { input_tokens: 100, output_tokens: 20 },
+		...overrides,
+	};
 }
 
 /** 정해 둔 응답을 스트리밍(SSE) 이벤트로 펼친다: 시작 → 글자 조각 → 끝 (generate는 스트리밍으로 받는다) */
 /** 정해 둔 Claude 응답 (Messages API 모양에서 이 테스트가 쓰는 칸) */
 type FakeMessage = {
-  content: { type: string; text: string }[];
-  usage: { input_tokens: number; output_tokens: number };
-  stop_reason: string | null;
-  stop_details?: unknown;
-  [key: string]: unknown;
+	content: { type: string; text: string }[];
+	usage: { input_tokens: number; output_tokens: number };
+	stop_reason: string | null;
+	stop_details?: unknown;
+	[key: string]: unknown;
 };
 
 function toSse(message: FakeMessage) {
-  const events: [string, unknown][] = [
-    [
-      'message_start',
-      {
-        type: 'message_start',
-        message: {
-          ...message,
-          content: [],
-          stop_reason: null,
-          stop_details: null,
-          usage: { input_tokens: message.usage.input_tokens, output_tokens: 0 },
-        },
-      },
-    ],
-  ];
-  message.content.forEach((block: { text: string }, index: number) => {
-    events.push(
-      [
-        'content_block_start',
-        {
-          type: 'content_block_start',
-          index,
-          content_block: { type: 'text', text: '' },
-        },
-      ],
-      [
-        'content_block_delta',
-        {
-          type: 'content_block_delta',
-          index,
-          delta: { type: 'text_delta', text: block.text },
-        },
-      ],
-      ['content_block_stop', { type: 'content_block_stop', index }],
-    );
-  });
-  events.push(
-    [
-      'message_delta',
-      {
-        type: 'message_delta',
-        delta: {
-          stop_reason: message.stop_reason,
-          stop_sequence: null,
-          stop_details: message.stop_details,
-        },
-        usage: { output_tokens: message.usage.output_tokens },
-      },
-    ],
-    ['message_stop', { type: 'message_stop' }],
-  );
-  return events
-    .map(
-      ([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`,
-    )
-    .join('');
+	const events: [string, unknown][] = [
+		[
+			'message_start',
+			{
+				type: 'message_start',
+				message: {
+					...message,
+					content: [],
+					stop_reason: null,
+					stop_details: null,
+					usage: { input_tokens: message.usage.input_tokens, output_tokens: 0 },
+				},
+			},
+		],
+	];
+	message.content.forEach((block: { text: string }, index: number) => {
+		events.push(
+			[
+				'content_block_start',
+				{
+					type: 'content_block_start',
+					index,
+					content_block: { type: 'text', text: '' },
+				},
+			],
+			[
+				'content_block_delta',
+				{
+					type: 'content_block_delta',
+					index,
+					delta: { type: 'text_delta', text: block.text },
+				},
+			],
+			['content_block_stop', { type: 'content_block_stop', index }],
+		);
+	});
+	events.push(
+		[
+			'message_delta',
+			{
+				type: 'message_delta',
+				delta: {
+					stop_reason: message.stop_reason,
+					stop_sequence: null,
+					stop_details: message.stop_details,
+				},
+				usage: { output_tokens: message.usage.output_tokens },
+			},
+		],
+		['message_stop', { type: 'message_stop' }],
+	);
+	return events.map(([event, data]) => `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`).join('');
 }
 
 /** 실제 HTTP 대신 요청을 기록하고 정해 둔 응답을 돌려주는 클라이언트 */
 function setup(body: FakeMessage) {
-  const requests: {
-    headers: Headers;
-    body: { output_config?: { format?: unknown }; [key: string]: unknown };
-  }[] = [];
-  const fetch = jest.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
-    requests.push({
-      headers: new Headers(init?.headers),
-      body: JSON.parse(init?.body as string),
-    });
-    return new Response(toSse(body), {
-      status: 200,
-      headers: { 'content-type': 'text/event-stream' },
-    });
-  });
-  const client = new Anthropic({ apiKey: 'test', fetch, maxRetries: 0 });
-  return { service: new ClaudeService(client), requests };
+	const requests: {
+		headers: Headers;
+		body: { output_config?: { format?: unknown }; [key: string]: unknown };
+	}[] = [];
+	const fetch = jest.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
+		requests.push({
+			headers: new Headers(init?.headers),
+			body: JSON.parse(init?.body as string),
+		});
+		return new Response(toSse(body), {
+			status: 200,
+			headers: { 'content-type': 'text/event-stream' },
+		});
+	});
+	const client = new Anthropic({ apiKey: 'test', fetch, maxRetries: 0 });
+	return { service: new ClaudeService(client), requests };
 }
 
 describe('ClaudeService.generate', () => {
-  it('텍스트와 사용 토큰을 돌려주고, 거절 시 대체 모델을 쓰도록 요청한다', async () => {
-    const { service, requests } = setup(reply());
+	it('텍스트와 사용 토큰을 돌려주고, 거절 시 대체 모델을 쓰도록 요청한다', async () => {
+		const { service, requests } = setup(reply());
 
-    const result = await service.generate({ system: 'sys', prompt: '본문' });
+		const result = await service.generate({ system: 'sys', prompt: '본문' });
 
-    expect(result).toEqual({
-      text: '요약 결과',
-      tokens: 120,
-      usage: { model: 'claude-sonnet-5-5', input: 100, output: 20 },
-    });
-    const [{ headers, body }] = requests;
-    expect(headers.get('anthropic-beta')).toContain(
-      'server-side-fallback-2026-07-01',
-    );
-    expect(body).toMatchObject({
-      model: 'claude-sonnet-5-5',
-      fallbacks: 'default',
-      system: 'sys',
-      messages: [{ role: 'user', content: '본문' }],
-      output_config: { effort: 'low' },
-      // 긴 응답이 시간 초과로 끊기지 않게 스트리밍으로 받는다
-      stream: true,
-    });
-    expect(body).not.toHaveProperty('temperature');
-  });
+		expect(result).toEqual({
+			text: '요약 결과',
+			tokens: 120,
+			usage: { model: 'claude-sonnet-5-5', input: 100, output: 20 },
+		});
+		const [{ headers, body }] = requests;
+		expect(headers.get('anthropic-beta')).toContain('server-side-fallback-2026-07-01');
+		expect(body).toMatchObject({
+			model: 'claude-sonnet-5-5',
+			fallbacks: 'default',
+			system: 'sys',
+			messages: [{ role: 'user', content: '본문' }],
+			output_config: { effort: 'low' },
+			// 긴 응답이 시간 초과로 끊기지 않게 스트리밍으로 받는다
+			stream: true,
+		});
+		expect(body).not.toHaveProperty('temperature');
+	});
 
-  // Haiku 5.5는 fallbacks를 보내면 400 (서버 측 대체 모델 없음)
-  it('Haiku에는 대체 모델 옵션과 그 beta 헤더를 보내지 않는다', async () => {
-    const { service, requests } = setup(reply({ model: 'claude-haiku-5-5' }));
+	// Haiku 5.5는 fallbacks를 보내면 400 (서버 측 대체 모델 없음)
+	it('Haiku에는 대체 모델 옵션과 그 beta 헤더를 보내지 않는다', async () => {
+		const { service, requests } = setup(reply({ model: 'claude-haiku-5-5' }));
 
-    const result = await service.generate({
-      model: 'claude-haiku-5-5',
-      system: 'sys',
-      prompt: '본문',
-    });
+		const result = await service.generate({
+			model: 'claude-haiku-5-5',
+			system: 'sys',
+			prompt: '본문',
+		});
 
-    const [{ headers, body }] = requests;
-    expect(body.model).toBe('claude-haiku-5-5');
-    expect(body).not.toHaveProperty('fallbacks');
-    expect(headers.get('anthropic-beta') ?? '').not.toContain(
-      'server-side-fallback',
-    );
-    expect(result.usage.model).toBe('claude-haiku-5-5');
-  });
+		const [{ headers, body }] = requests;
+		expect(body.model).toBe('claude-haiku-5-5');
+		expect(body).not.toHaveProperty('fallbacks');
+		expect(headers.get('anthropic-beta') ?? '').not.toContain('server-side-fallback');
+		expect(result.usage.model).toBe('claude-haiku-5-5');
+	});
 
-  it('schema를 넘기면 JSON 스키마 출력 형식을 요청한다', async () => {
-    const { service, requests } = setup(
-      reply({ content: [{ type: 'text', text: '{"category":"IT"}' }] }),
-    );
-    const schema = { type: 'object', properties: {} };
+	it('schema를 넘기면 JSON 스키마 출력 형식을 요청한다', async () => {
+		const { service, requests } = setup(reply({ content: [{ type: 'text', text: '{"category":"IT"}' }] }));
+		const schema = { type: 'object', properties: {} };
 
-    await service.generate({ system: 's', prompt: 'p', schema });
+		await service.generate({ system: 's', prompt: 'p', schema });
 
-    expect(requests[0].body.output_config?.format).toEqual({
-      type: 'json_schema',
-      schema,
-    });
-  });
+		expect(requests[0].body.output_config?.format).toEqual({
+			type: 'json_schema',
+			schema,
+		});
+	});
 
-  it('거절되면 오류를 던진다', async () => {
-    const { service } = setup(
-      reply({
-        content: [],
-        stop_reason: 'refusal',
-        stop_details: { type: 'refusal', category: 'cyber', explanation: '' },
-      }),
-    );
+	it('거절되면 오류를 던진다', async () => {
+		const { service } = setup(
+			reply({
+				content: [],
+				stop_reason: 'refusal',
+				stop_details: { type: 'refusal', category: 'cyber', explanation: '' },
+			}),
+		);
 
-    await expect(
-      service.generate({ system: 's', prompt: 'p' }),
-    ).rejects.toThrow('cyber');
-  });
+		await expect(service.generate({ system: 's', prompt: 'p' })).rejects.toThrow('cyber');
+	});
 
-  it('max_tokens에서 잘리면 오류를 던진다 (잘린 요약 저장 방지)', async () => {
-    const { service } = setup(reply({ stop_reason: 'max_tokens' }));
+	it('max_tokens에서 잘리면 오류를 던진다 (잘린 요약 저장 방지)', async () => {
+		const { service } = setup(reply({ stop_reason: 'max_tokens' }));
 
-    await expect(
-      service.generate({ system: 's', prompt: 'p' }),
-    ).rejects.toThrow('max_tokens');
-  });
+		await expect(service.generate({ system: 's', prompt: 'p' })).rejects.toThrow('max_tokens');
+	});
 
-  // 실패해도 청구되는 만큼은 오류에 실어 AI 기록에 남긴다
-  it('스트리밍이 도중에 끊기면 받은 데까지의 사용량(partial)을 실어 던진다', async () => {
-    const start = `event: message_start\ndata: ${JSON.stringify({
-      type: 'message_start',
-      message: {
-        ...reply(),
-        content: [],
-        stop_reason: null,
-        usage: { input_tokens: 900, output_tokens: 0 },
-      },
-    })}\n\n`;
-    const delta = `event: message_delta\ndata: ${JSON.stringify({
-      type: 'message_delta',
-      delta: { stop_reason: null, stop_sequence: null },
-      usage: { output_tokens: 40 },
-    })}\n\n`;
-    const failure = `event: error\ndata: ${JSON.stringify({ type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } })}\n\n`;
-    const fetch = jest.fn(
-      async () =>
-        new Response(start + delta + failure, {
-          status: 200,
-          headers: { 'content-type': 'text/event-stream' },
-        }),
-    );
-    const service = new ClaudeService(
-      new Anthropic({ apiKey: 'test', fetch, maxRetries: 0 }),
-    );
-    const error = await service
-      .generate({ system: 's', prompt: 'p' })
-      .catch((e) => e);
-    expect(error).toBeInstanceOf(UsageError);
-    expect(error.usage).toEqual([
-      { model: 'claude-sonnet-5-5', input: 900, output: 40, partial: true },
-    ]);
-  });
+	// 실패해도 청구되는 만큼은 오류에 실어 AI 기록에 남긴다
+	it('스트리밍이 도중에 끊기면 받은 데까지의 사용량(partial)을 실어 던진다', async () => {
+		const start = `event: message_start\ndata: ${JSON.stringify({
+			type: 'message_start',
+			message: {
+				...reply(),
+				content: [],
+				stop_reason: null,
+				usage: { input_tokens: 900, output_tokens: 0 },
+			},
+		})}\n\n`;
+		const delta = `event: message_delta\ndata: ${JSON.stringify({
+			type: 'message_delta',
+			delta: { stop_reason: null, stop_sequence: null },
+			usage: { output_tokens: 40 },
+		})}\n\n`;
+		const failure = `event: error\ndata: ${JSON.stringify({ type: 'error', error: { type: 'overloaded_error', message: 'Overloaded' } })}\n\n`;
+		const fetch = jest.fn(
+			async () =>
+				new Response(start + delta + failure, {
+					status: 200,
+					headers: { 'content-type': 'text/event-stream' },
+				}),
+		);
+		const service = new ClaudeService(new Anthropic({ apiKey: 'test', fetch, maxRetries: 0 }));
+		const error = await service.generate({ system: 's', prompt: 'p' }).catch((e) => e);
+		expect(error).toBeInstanceOf(UsageError);
+		expect(error.usage).toEqual([{ model: 'claude-sonnet-5-5', input: 900, output: 40, partial: true }]);
+	});
 
-  it('요청 단계에서 거절(400)되면 사용량 없이 던진다 (청구되지 않음)', async () => {
-    const fetch = jest.fn(
-      async () =>
-        new Response(
-          JSON.stringify({
-            type: 'error',
-            error: {
-              type: 'invalid_request_error',
-              message: 'grammar too large',
-            },
-          }),
-          {
-            status: 400,
-            headers: { 'content-type': 'application/json' },
-          },
-        ),
-    );
-    const service = new ClaudeService(
-      new Anthropic({ apiKey: 'test', fetch, maxRetries: 0 }),
-    );
-    const error = await service
-      .generate({ system: 's', prompt: 'p' })
-      .catch((e) => e);
-    expect(error).toBeInstanceOf(UsageError);
-    expect(error.usage).toEqual([]);
-  });
+	it('요청 단계에서 거절(400)되면 사용량 없이 던진다 (청구되지 않음)', async () => {
+		const fetch = jest.fn(
+			async () =>
+				new Response(
+					JSON.stringify({
+						type: 'error',
+						error: {
+							type: 'invalid_request_error',
+							message: 'grammar too large',
+						},
+					}),
+					{
+						status: 400,
+						headers: { 'content-type': 'application/json' },
+					},
+				),
+		);
+		const service = new ClaudeService(new Anthropic({ apiKey: 'test', fetch, maxRetries: 0 }));
+		const error = await service.generate({ system: 's', prompt: 'p' }).catch((e) => e);
+		expect(error).toBeInstanceOf(UsageError);
+		expect(error.usage).toEqual([]);
+	});
 
-  it('max_tokens에서 잘려 실패해도 다 받은 사용량을 싣는다', async () => {
-    const { service } = setup(reply({ stop_reason: 'max_tokens' }));
-    const error = await service
-      .generate({ system: 's', prompt: 'p' })
-      .catch((e) => e);
-    expect(error).toBeInstanceOf(UsageError);
-    expect(error.usage).toEqual([
-      { model: 'claude-sonnet-5-5', input: 100, output: 20 },
-    ]);
-  });
+	it('max_tokens에서 잘려 실패해도 다 받은 사용량을 싣는다', async () => {
+		const { service } = setup(reply({ stop_reason: 'max_tokens' }));
+		const error = await service.generate({ system: 's', prompt: 'p' }).catch((e) => e);
+		expect(error).toBeInstanceOf(UsageError);
+		expect(error.usage).toEqual([{ model: 'claude-sonnet-5-5', input: 100, output: 20 }]);
+	});
 });

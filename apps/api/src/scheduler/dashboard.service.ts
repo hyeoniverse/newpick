@@ -10,8 +10,7 @@ import { ScheduleConfigService } from './schedule-config.service';
 /** 대시보드는 요약만: 최근 몇 개. 전체는 상세 목록(페이지)에서 */
 const PREVIEW = 5;
 /** 긴 글은 앞부분만 (요약 결과 · 오류 메시지) */
-const clip = (text: string | null, max: number) =>
-  text && text.length > max ? `${text.slice(0, max)}…` : text;
+const clip = (text: string | null, max: number) => (text && text.length > max ? `${text.slice(0, max)}…` : text);
 
 /**
  * 관리자 대시보드 (#21). 고른 기간(KST 날짜, 기본 오늘)의 수집 · 발행 · AI 기록 · 비용 · 발송,
@@ -23,20 +22,18 @@ const clip = (text: string | null, max: number) =>
  * 비어 있을 수 있는 열(비용 · 걸린 시간)은 빈 값을 늘 뒤로. 같은 값끼리는 최신부터
  */
 function sortBy(
-  q: { sort?: string; order?: 'asc' | 'desc' },
-  allowed: readonly string[],
-  nullable: readonly string[] = [],
+	q: { sort?: string; order?: 'asc' | 'desc' },
+	allowed: readonly string[],
+	nullable: readonly string[] = [],
 ) {
-  if (!q.sort || !allowed.includes(q.sort)) return [{ id: 'desc' as const }];
-  const order = q.order ?? 'desc';
-  return [
-    {
-      [q.sort]: nullable.includes(q.sort)
-        ? { sort: order, nulls: 'last' as const }
-        : order,
-    },
-    { id: 'desc' as const },
-  ];
+	if (!q.sort || !allowed.includes(q.sort)) return [{ id: 'desc' as const }];
+	const order = q.order ?? 'desc';
+	return [
+		{
+			[q.sort]: nullable.includes(q.sort) ? { sort: order, nulls: 'last' as const } : order,
+		},
+		{ id: 'desc' as const },
+	];
 }
 
 /** 같은 분야 요약 시도를 한 묶음(다시 시도)으로 잇는 범위: 12시간 안 */
@@ -44,193 +41,190 @@ const RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
 
 @Injectable()
 export class DashboardService {
-  constructor(
-    private readonly scheduler: SchedulerService,
-    private readonly scheduleConfig: ScheduleConfigService,
-    private readonly prisma: MysqlPrismaService,
-    private readonly crawlingRepository: CrawlingRepository,
-  ) {}
+	constructor(
+		private readonly scheduler: SchedulerService,
+		private readonly scheduleConfig: ScheduleConfigService,
+		private readonly prisma: MysqlPrismaService,
+		private readonly crawlingRepository: CrawlingRepository,
+	) {}
 
-  /**
-   * 그날(KST) 메일을 받은 사람 (#21). 한 사람에게 관심사 여러 개를 한 통으로 보내므로 email로 묶고,
-   * 그 메일에 엮은 뉴스레터의 관심사를 함께. 많아도 500명까지
-   */
-  /** KST 날짜 [from, to] → 시각 범위. 거꾸로거나 너무 길면 거절 */
-  private range(from = kstDaysAgo(0), to = from) {
-    return kstRange(from, to);
-  }
+	/**
+	 * 그날(KST) 메일을 받은 사람 (#21). 한 사람에게 관심사 여러 개를 한 통으로 보내므로 email로 묶고,
+	 * 그 메일에 엮은 뉴스레터의 관심사를 함께. 많아도 500명까지
+	 */
+	/** KST 날짜 [from, to] → 시각 범위. 거꾸로거나 너무 길면 거절 */
+	private range(from = kstDaysAgo(0), to = from) {
+		return kstRange(from, to);
+	}
 
-  /**
-   * 상세: 수집 기사 (#31). 기간 · 관심사 · 언론사 · 제목, 쪽 단위.
-   * 이 쪽의 기사가 어느 뉴스레터에 쓰였는지 원문 링크(newsletters.usedNews, 쉼표로 이은 링크)로 찾아 붙인다
-   */
-  async listArticles(q: {
-    from?: string;
-    to?: string;
-    categoryId?: number;
-    source?: string;
-    title?: string;
-    limit?: number;
-    offset?: number;
-    sort?: string;
-    order?: 'asc' | 'desc';
-  }) {
-    const { start, end } = this.range(q.from, q.to);
-    const category = q.categoryId
-      ? (
-          await this.prisma.newsCategory.findUnique({
-            where: { id: q.categoryId },
-            select: { name: true },
-          })
-        )?.name
-      : undefined;
-    const { items, total, sources } =
-      await this.crawlingRepository.listForAdmin({
-        start,
-        end,
-        category,
-        source: q.source,
-        title: q.title,
-        limit: q.limit ?? 20,
-        offset: q.offset ?? 0,
-        sortByTitle: q.sort === 'title' ? (q.order ?? 'asc') : undefined,
-      });
+	/**
+	 * 상세: 수집 기사 (#31). 기간 · 관심사 · 언론사 · 제목, 쪽 단위.
+	 * 이 쪽의 기사가 어느 뉴스레터에 쓰였는지 원문 링크(newsletters.usedNews, 쉼표로 이은 링크)로 찾아 붙인다
+	 */
+	async listArticles(q: {
+		from?: string;
+		to?: string;
+		categoryId?: number;
+		source?: string;
+		title?: string;
+		limit?: number;
+		offset?: number;
+		sort?: string;
+		order?: 'asc' | 'desc';
+	}) {
+		const { start, end } = this.range(q.from, q.to);
+		const category = q.categoryId
+			? (
+					await this.prisma.newsCategory.findUnique({
+						where: { id: q.categoryId },
+						select: { name: true },
+					})
+				)?.name
+			: undefined;
+		const { items, total, sources } = await this.crawlingRepository.listForAdmin({
+			start,
+			end,
+			category,
+			source: q.source,
+			title: q.title,
+			limit: q.limit ?? 20,
+			offset: q.offset ?? 0,
+			sortByTitle: q.sort === 'title' ? (q.order ?? 'asc') : undefined,
+		});
 
-    const links = items.map((item) => item.link);
-    const used = links.length
-      ? await this.prisma.$queryRaw<
-          Array<{ id: number; title: string; usedNews: string }>
-        >`SELECT id, title, usedNews FROM newsletters
+		const links = items.map((item) => item.link);
+		const used = links.length
+			? await this.prisma.$queryRaw<
+					Array<{ id: number; title: string; usedNews: string }>
+				>`SELECT id, title, usedNews FROM newsletters
           WHERE ${Prisma.join(
-            links.map((link) => Prisma.sql`FIND_IN_SET(${link}, usedNews) > 0`),
-            ' OR ',
-          )}`
-      : [];
-    return {
-      items: items.map((item) => ({
-        id: String(item._id),
-        title: item.title,
-        link: item.link,
-        source: item.source,
-        category: item.category,
-        publishedAt: item.publishedAt,
-        createdAt: item.createdAt,
-        image: item.images?.[0] ?? null,
-        usedIn: used
-          .filter((n) => n.usedNews.split(',').includes(item.link))
-          .map((n) => ({ id: n.id, title: n.title })),
-      })),
-      total,
-      sources,
-    };
-  }
+						links.map((link) => Prisma.sql`FIND_IN_SET(${link}, usedNews) > 0`),
+						' OR ',
+					)}`
+			: [];
+		return {
+			items: items.map((item) => ({
+				id: String(item._id),
+				title: item.title,
+				link: item.link,
+				source: item.source,
+				category: item.category,
+				publishedAt: item.publishedAt,
+				createdAt: item.createdAt,
+				image: item.images?.[0] ?? null,
+				usedIn: used
+					.filter((n) => n.usedNews.split(',').includes(item.link))
+					.map((n) => ({ id: n.id, title: n.title })),
+			})),
+			total,
+			sources,
+		};
+	}
 
-  /** 상세: 예약 작업 실행 기록 (최신순, 작업 · 결과로 거르기, 페이지) */
-  async listJobRuns(q: {
-    from?: string;
-    to?: string;
-    job?: string;
-    status?: string;
-    limit?: number;
-    offset?: number;
-    sort?: string;
-    order?: 'asc' | 'desc';
-  }) {
-    const { inRange } = this.range(q.from, q.to);
-    const where = {
-      startedAt: inRange,
-      ...(q.job && { job: q.job }),
-      ...(q.status && { status: q.status }),
-    };
-    const [items, total] = await Promise.all([
-      this.prisma.jobRun.findMany({
-        where,
-        orderBy: sortBy(q, ['durationMs'], ['durationMs']),
-        skip: q.offset ?? 0,
-        take: q.limit ?? 20,
-      }),
-      this.prisma.jobRun.count({ where }),
-    ]);
-    return { items, total };
-  }
+	/** 상세: 예약 작업 실행 기록 (최신순, 작업 · 결과로 거르기, 페이지) */
+	async listJobRuns(q: {
+		from?: string;
+		to?: string;
+		job?: string;
+		status?: string;
+		limit?: number;
+		offset?: number;
+		sort?: string;
+		order?: 'asc' | 'desc';
+	}) {
+		const { inRange } = this.range(q.from, q.to);
+		const where = {
+			startedAt: inRange,
+			...(q.job && { job: q.job }),
+			...(q.status && { status: q.status }),
+		};
+		const [items, total] = await Promise.all([
+			this.prisma.jobRun.findMany({
+				where,
+				orderBy: sortBy(q, ['durationMs'], ['durationMs']),
+				skip: q.offset ?? 0,
+				take: q.limit ?? 20,
+			}),
+			this.prisma.jobRun.count({ where }),
+		]);
+		return { items, total };
+	}
 
-  /** 작업마다 마지막 실행 (DB, 서버를 다시 시작해도 남음) */
-  private async lastRuns() {
-    const jobs = ['crawling', 'summary', 'mail'] as const;
-    const rows = await Promise.all(
-      jobs.map((job) =>
-        this.prisma.jobRun.findFirst({
-          where: { job },
-          orderBy: { id: 'desc' },
-        }),
-      ),
-    );
-    return Object.fromEntries(jobs.map((job, i) => [job, rows[i]]));
-  }
+	/** 작업마다 마지막 실행 (DB, 서버를 다시 시작해도 남음) */
+	private async lastRuns() {
+		const jobs = ['crawling', 'summary', 'mail'] as const;
+		const rows = await Promise.all(
+			jobs.map((job) =>
+				this.prisma.jobRun.findFirst({
+					where: { job },
+					orderBy: { id: 'desc' },
+				}),
+			),
+		);
+		return Object.fromEntries(jobs.map((job, i) => [job, rows[i]]));
+	}
 
-  /** 상세: 기간 안에 발행한 뉴스레터 (최신순, 페이지) */
-  async listNewsletters(q: {
-    from?: string;
-    to?: string;
-    categoryId?: number;
-    limit?: number;
-    offset?: number;
-    sort?: string;
-    order?: 'asc' | 'desc';
-  }) {
-    const { inRange } = this.range(q.from, q.to);
-    const where = {
-      createdAt: inRange,
-      ...(q.categoryId && { categoryId: q.categoryId }),
-    };
-    const [items, total] = await Promise.all([
-      this.prisma.newsletter.findMany({
-        where,
-        select: {
-          id: true,
-          title: true,
-          categoryId: true,
-          viewcount: true,
-          createdAt: true,
-        },
-        orderBy: sortBy(q, ['title', 'viewcount', 'id']),
-        skip: q.offset ?? 0,
-        take: q.limit ?? 20,
-      }),
-      this.prisma.newsletter.count({ where }),
-    ]);
-    return { items, total };
-  }
+	/** 상세: 기간 안에 발행한 뉴스레터 (최신순, 페이지) */
+	async listNewsletters(q: {
+		from?: string;
+		to?: string;
+		categoryId?: number;
+		limit?: number;
+		offset?: number;
+		sort?: string;
+		order?: 'asc' | 'desc';
+	}) {
+		const { inRange } = this.range(q.from, q.to);
+		const where = {
+			createdAt: inRange,
+			...(q.categoryId && { categoryId: q.categoryId }),
+		};
+		const [items, total] = await Promise.all([
+			this.prisma.newsletter.findMany({
+				where,
+				select: {
+					id: true,
+					title: true,
+					categoryId: true,
+					viewcount: true,
+					createdAt: true,
+				},
+				orderBy: sortBy(q, ['title', 'viewcount', 'id']),
+				skip: q.offset ?? 0,
+				take: q.limit ?? 20,
+			}),
+			this.prisma.newsletter.count({ where }),
+		]);
+		return { items, total };
+	}
 
-  /** 상세: 기간 안 발송 기록. 하루에 한 사람 한 줄(받은 관심사 함께), 최신순 · 페이지 */
-  async listMails(q: {
-    from?: string;
-    to?: string;
-    email?: string;
-    categoryId?: number;
-    limit?: number;
-    offset?: number;
-  }) {
-    const { start, end } = this.range(q.from, q.to);
-    const email = q.email
-      ? Prisma.sql`AND a.email LIKE ${`%${q.email.replace(/[%_\\]/g, '\\$&')}%`}`
-      : Prisma.empty;
-    // 그 관심사가 담긴 메일만 (한 통은 같은 sentAt). 줄에는 그 메일의 관심사를 모두 보인다
-    const category = q.categoryId
-      ? Prisma.sql`AND (a.email, a.sentAt) IN (
+	/** 상세: 기간 안 발송 기록. 하루에 한 사람 한 줄(받은 관심사 함께), 최신순 · 페이지 */
+	async listMails(q: {
+		from?: string;
+		to?: string;
+		email?: string;
+		categoryId?: number;
+		limit?: number;
+		offset?: number;
+	}) {
+		const { start, end } = this.range(q.from, q.to);
+		const email = q.email ? Prisma.sql`AND a.email LIKE ${`%${q.email.replace(/[%_\\]/g, '\\$&')}%`}` : Prisma.empty;
+		// 그 관심사가 담긴 메일만 (한 통은 같은 sentAt). 줄에는 그 메일의 관심사를 모두 보인다
+		const category = q.categoryId
+			? Prisma.sql`AND (a.email, a.sentAt) IN (
           SELECT b.email, b.sentAt FROM email_archives b
           JOIN newsletters nb ON nb.id = b.newsletterId
           WHERE nb.categoryId = ${q.categoryId})`
-      : Prisma.empty;
-    const [rows, counts] = await Promise.all([
-      this.prisma.$queryRaw<
-        Array<{
-          day: Date | string;
-          email: string;
-          sentAt: Date;
-          categoryIds: string | null;
-        }>
-      >`SELECT DATE(CONVERT_TZ(a.sentAt, '+00:00', '+09:00')) AS day, a.email AS email,
+			: Prisma.empty;
+		const [rows, counts] = await Promise.all([
+			this.prisma.$queryRaw<
+				Array<{
+					day: Date | string;
+					email: string;
+					sentAt: Date;
+					categoryIds: string | null;
+				}>
+			>`SELECT DATE(CONVERT_TZ(a.sentAt, '+00:00', '+09:00')) AS day, a.email AS email,
                MIN(a.sentAt) AS sentAt,
                GROUP_CONCAT(DISTINCT n.categoryId ORDER BY n.categoryId) AS categoryIds
         FROM email_archives a
@@ -239,174 +233,161 @@ export class DashboardService {
         GROUP BY day, a.email
         ORDER BY day DESC, sentAt ASC, a.email ASC
         LIMIT ${q.limit ?? 20} OFFSET ${q.offset ?? 0}`,
-      this.prisma.$queryRaw<Array<{ total: bigint }>>`
+			this.prisma.$queryRaw<Array<{ total: bigint }>>`
         SELECT COUNT(*) AS total FROM (
           SELECT 1 FROM email_archives a
           WHERE a.sentAt >= ${start} AND a.sentAt <= ${end} ${email} ${category}
           GROUP BY DATE(CONVERT_TZ(a.sentAt, '+00:00', '+09:00')), a.email
         ) t`,
-    ]);
-    return {
-      items: rows.map((row) => ({
-        day:
-          row.day instanceof Date
-            ? row.day.toISOString().slice(0, 10)
-            : String(row.day).slice(0, 10),
-        email: row.email,
-        sentAt: row.sentAt,
-        categoryIds: row.categoryIds
-          ? String(row.categoryIds).split(',').map(Number)
-          : [],
-      })),
-      total: Number(counts[0]?.total ?? 0),
-    };
-  }
+		]);
+		return {
+			items: rows.map((row) => ({
+				day: row.day instanceof Date ? row.day.toISOString().slice(0, 10) : String(row.day).slice(0, 10),
+				email: row.email,
+				sentAt: row.sentAt,
+				categoryIds: row.categoryIds ? String(row.categoryIds).split(',').map(Number) : [],
+			})),
+			total: Number(counts[0]?.total ?? 0),
+		};
+	}
 
-  /** 상세: 기간 안 AI 기록 (최신순, 종류 · 결과로 거르기, 페이지) + 그 조건의 비용 합계 */
-  async listAiLogs(q: {
-    from?: string;
-    to?: string;
-    type?: string;
-    status?: string;
-    limit?: number;
-    offset?: number;
-    sort?: string;
-    order?: 'asc' | 'desc';
-  }) {
-    const { inRange } = this.range(q.from, q.to);
-    const where = {
-      createdAt: inRange,
-      ...(q.type && { processType: q.type }),
-      ...(q.status && { status: q.status }),
-    };
-    const [items, total, cost] = await Promise.all([
-      this.prisma.aiProcessLog.findMany({
-        where,
-        orderBy: sortBy(q, ['duration', 'token', 'costUsd'], ['costUsd']),
-        skip: q.offset ?? 0,
-        take: q.limit ?? 20,
-        select: {
-          id: true,
-          processType: true,
-          status: true,
-          duration: true,
-          token: true,
-          createdAt: true,
-          result: true,
-          error: true,
-          model: true,
-          inputTokens: true,
-          outputTokens: true,
-          costUsd: true,
-          categoryId: true,
-        },
-      }),
-      this.prisma.aiProcessLog.count({ where }),
-      this.prisma.aiProcessLog.aggregate({
-        where,
-        _sum: { costUsd: true },
-        _count: { costUsd: true },
-      }),
-    ]);
-    const [attempts, categories] = await Promise.all([
-      this.attempts(items),
-      this.categoryNames(items.map((log) => log.categoryId)),
-    ]);
-    return {
-      items: items.map((log) => ({
-        ...log,
-        result: clip(log.result, 400),
-        error: clip(log.error, 600),
-        category:
-          log.categoryId == null
-            ? null
-            : (categories.get(log.categoryId) ?? null),
-        attempt: attempts.get(log.id) ?? null,
-      })),
-      total,
-      cost: {
-        total: cost._sum.costUsd ?? 0,
-        unknown: total - cost._count.costUsd,
-      },
-    };
-  }
+	/** 상세: 기간 안 AI 기록 (최신순, 종류 · 결과로 거르기, 페이지) + 그 조건의 비용 합계 */
+	async listAiLogs(q: {
+		from?: string;
+		to?: string;
+		type?: string;
+		status?: string;
+		limit?: number;
+		offset?: number;
+		sort?: string;
+		order?: 'asc' | 'desc';
+	}) {
+		const { inRange } = this.range(q.from, q.to);
+		const where = {
+			createdAt: inRange,
+			...(q.type && { processType: q.type }),
+			...(q.status && { status: q.status }),
+		};
+		const [items, total, cost] = await Promise.all([
+			this.prisma.aiProcessLog.findMany({
+				where,
+				orderBy: sortBy(q, ['duration', 'token', 'costUsd'], ['costUsd']),
+				skip: q.offset ?? 0,
+				take: q.limit ?? 20,
+				select: {
+					id: true,
+					processType: true,
+					status: true,
+					duration: true,
+					token: true,
+					createdAt: true,
+					result: true,
+					error: true,
+					model: true,
+					inputTokens: true,
+					outputTokens: true,
+					costUsd: true,
+					categoryId: true,
+				},
+			}),
+			this.prisma.aiProcessLog.count({ where }),
+			this.prisma.aiProcessLog.aggregate({
+				where,
+				_sum: { costUsd: true },
+				_count: { costUsd: true },
+			}),
+		]);
+		const [attempts, categories] = await Promise.all([
+			this.attempts(items),
+			this.categoryNames(items.map((log) => log.categoryId)),
+		]);
+		return {
+			items: items.map((log) => ({
+				...log,
+				result: clip(log.result, 400),
+				error: clip(log.error, 600),
+				category: log.categoryId == null ? null : (categories.get(log.categoryId) ?? null),
+				attempt: attempts.get(log.id) ?? null,
+			})),
+			total,
+			cost: {
+				total: cost._sum.costUsd ?? 0,
+				unknown: total - cost._count.costUsd,
+			},
+		};
+	}
 
-  /**
-   * 같은 분야 요약 시도를 묶음으로 잇는다: 12시간 안에 이어진 시도는 한 묶음, 성공하면 그 묶음은 끝.
-   * 기록마다 몇 번째 시도인지(n), 묶음의 시도 수(total), 묶음이 어떻게 끝났는지(outcome), 묶음 열쇠(chain = 첫 시도 id).
-   * 분야를 남기지 않은 이전 기록은 묶지 않는다
-   */
-  private async attempts(
-    items: {
-      id: number;
-      processType: string;
-      categoryId: number | null;
-      createdAt: Date;
-    }[],
-  ) {
-    const result = new Map<
-      number,
-      { n: number; total: number; outcome: string; chain: number }
-    >();
-    const logs = items.filter(
-      (log) => log.processType === 'summarization' && log.categoryId != null,
-    );
-    if (!logs.length) return result;
-    const times = logs.map((log) => log.createdAt.getTime());
-    const around = await this.prisma.aiProcessLog.findMany({
-      where: {
-        processType: 'summarization',
-        categoryId: { in: [...new Set(logs.map((log) => log.categoryId!))] },
-        createdAt: {
-          gte: new Date(Math.min(...times) - RETRY_WINDOW_MS),
-          lte: new Date(Math.max(...times) + RETRY_WINDOW_MS),
-        },
-      },
-      orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
-      select: { id: true, status: true, categoryId: true, createdAt: true },
-    });
-    const chains: (typeof around)[] = [];
-    const open = new Map<number, typeof around>();
-    for (const log of around) {
-      const current = open.get(log.categoryId!);
-      const last = current?.at(-1);
-      if (
-        !current ||
-        last!.status === 'success' ||
-        log.createdAt.getTime() - last!.createdAt.getTime() > RETRY_WINDOW_MS
-      ) {
-        const chain = [log];
-        chains.push(chain);
-        open.set(log.categoryId!, chain);
-      } else current.push(log);
-    }
-    for (const chain of chains)
-      chain.forEach((log, i) =>
-        result.set(log.id, {
-          n: i + 1,
-          total: chain.length,
-          outcome: chain.at(-1)!.status,
-          chain: chain[0].id,
-        }),
-      );
-    return result;
-  }
+	/**
+	 * 같은 분야 요약 시도를 묶음으로 잇는다: 12시간 안에 이어진 시도는 한 묶음, 성공하면 그 묶음은 끝.
+	 * 기록마다 몇 번째 시도인지(n), 묶음의 시도 수(total), 묶음이 어떻게 끝났는지(outcome), 묶음 열쇠(chain = 첫 시도 id).
+	 * 분야를 남기지 않은 이전 기록은 묶지 않는다
+	 */
+	private async attempts(
+		items: {
+			id: number;
+			processType: string;
+			categoryId: number | null;
+			createdAt: Date;
+		}[],
+	) {
+		const result = new Map<number, { n: number; total: number; outcome: string; chain: number }>();
+		const logs = items.filter((log) => log.processType === 'summarization' && log.categoryId != null);
+		if (!logs.length) return result;
+		const times = logs.map((log) => log.createdAt.getTime());
+		const around = await this.prisma.aiProcessLog.findMany({
+			where: {
+				processType: 'summarization',
+				categoryId: { in: [...new Set(logs.map((log) => log.categoryId!))] },
+				createdAt: {
+					gte: new Date(Math.min(...times) - RETRY_WINDOW_MS),
+					lte: new Date(Math.max(...times) + RETRY_WINDOW_MS),
+				},
+			},
+			orderBy: [{ createdAt: 'asc' }, { id: 'asc' }],
+			select: { id: true, status: true, categoryId: true, createdAt: true },
+		});
+		const chains: (typeof around)[] = [];
+		const open = new Map<number, typeof around>();
+		for (const log of around) {
+			const current = open.get(log.categoryId!);
+			const last = current?.at(-1);
+			if (
+				!current ||
+				last!.status === 'success' ||
+				log.createdAt.getTime() - last!.createdAt.getTime() > RETRY_WINDOW_MS
+			) {
+				const chain = [log];
+				chains.push(chain);
+				open.set(log.categoryId!, chain);
+			} else current.push(log);
+		}
+		for (const chain of chains)
+			chain.forEach((log, i) =>
+				result.set(log.id, {
+					n: i + 1,
+					total: chain.length,
+					outcome: chain.at(-1)!.status,
+					chain: chain[0].id,
+				}),
+			);
+		return result;
+	}
 
-  private async categoryNames(ids: (number | null)[]) {
-    const wanted = [...new Set(ids.filter((id): id is number => id != null))];
-    if (!wanted.length) return new Map<number, string>();
-    const rows = await this.prisma.newsCategory.findMany({
-      where: { id: { in: wanted } },
-      select: { id: true, name: true },
-    });
-    return new Map(rows.map((row) => [row.id, row.name]));
-  }
+	private async categoryNames(ids: (number | null)[]) {
+		const wanted = [...new Set(ids.filter((id): id is number => id != null))];
+		if (!wanted.length) return new Map<number, string>();
+		const rows = await this.prisma.newsCategory.findMany({
+			where: { id: { in: wanted } },
+			select: { id: true, name: true },
+		});
+		return new Map(rows.map((row) => [row.id, row.name]));
+	}
 
-  async getMailRecipients(date: string) {
-    const { start, end } = kstDayRange(date, date);
-    const rows = await this.prisma.$queryRaw<
-      Array<{ email: string; sentAt: Date; categoryIds: string | null }>
-    >`SELECT a.email AS email, MIN(a.sentAt) AS sentAt,
+	async getMailRecipients(date: string) {
+		const { start, end } = kstDayRange(date, date);
+		const rows = await this.prisma.$queryRaw<
+			Array<{ email: string; sentAt: Date; categoryIds: string | null }>
+		>`SELECT a.email AS email, MIN(a.sentAt) AS sentAt,
              GROUP_CONCAT(DISTINCT n.categoryId ORDER BY n.categoryId) AS categoryIds
       FROM email_archives a
       LEFT JOIN newsletters n ON n.id = a.newsletterId
@@ -414,137 +395,132 @@ export class DashboardService {
       GROUP BY a.email
       ORDER BY sentAt ASC, email ASC
       LIMIT 500`;
-    return rows.map((row) => ({
-      email: row.email,
-      sentAt: row.sentAt,
-      categoryIds: row.categoryIds
-        ? String(row.categoryIds).split(',').map(Number)
-        : [],
-    }));
-  }
+		return rows.map((row) => ({
+			email: row.email,
+			sentAt: row.sentAt,
+			categoryIds: row.categoryIds ? String(row.categoryIds).split(',').map(Number) : [],
+		}));
+	}
 
-  async getDashboard(from = kstDaysAgo(0), to = from) {
-    const { start, end, inRange } = this.range(from, to);
+	async getDashboard(from = kstDaysAgo(0), to = from) {
+		const { start, end, inRange } = this.range(from, to);
 
-    const [
-      crawled,
-      latestCrawled,
-      newsletters,
-      newsletterCount,
-      logs,
-      logCount,
-      mailByDay,
-      activeSubscribers,
-      cost,
-      lastRuns,
-    ] = await Promise.all([
-      this.crawlingRepository.countBetween(start, end),
-      this.crawlingRepository.getLatestCrawledNews(),
-      this.prisma.newsletter.findMany({
-        where: { createdAt: inRange },
-        select: { id: true, title: true, categoryId: true, createdAt: true },
-        orderBy: [{ createdAt: 'desc' }, { categoryId: 'asc' }],
-        take: PREVIEW,
-      }),
-      this.prisma.newsletter.count({ where: { createdAt: inRange } }),
-      this.prisma.aiProcessLog.findMany({
-        where: { createdAt: inRange },
-        orderBy: { id: 'desc' },
-        take: PREVIEW,
-        select: {
-          id: true,
-          processType: true,
-          status: true,
-          duration: true,
-          token: true,
-          createdAt: true,
-          result: true,
-          error: true,
-          model: true,
-          inputTokens: true,
-          outputTokens: true,
-          costUsd: true,
-        },
-      }),
-      this.prisma.aiProcessLog.count({ where: { createdAt: inRange } }),
-      // KST 날짜별 받은 사람 수 (한 사람에게 관심사 여러 개를 한 통으로 보내므로 email로 센다)
-      this.prisma.$queryRaw<Array<{ day: Date | string; recipients: bigint }>>`
+		const [
+			crawled,
+			latestCrawled,
+			newsletters,
+			newsletterCount,
+			logs,
+			logCount,
+			mailByDay,
+			activeSubscribers,
+			cost,
+			lastRuns,
+		] = await Promise.all([
+			this.crawlingRepository.countBetween(start, end),
+			this.crawlingRepository.getLatestCrawledNews(),
+			this.prisma.newsletter.findMany({
+				where: { createdAt: inRange },
+				select: { id: true, title: true, categoryId: true, createdAt: true },
+				orderBy: [{ createdAt: 'desc' }, { categoryId: 'asc' }],
+				take: PREVIEW,
+			}),
+			this.prisma.newsletter.count({ where: { createdAt: inRange } }),
+			this.prisma.aiProcessLog.findMany({
+				where: { createdAt: inRange },
+				orderBy: { id: 'desc' },
+				take: PREVIEW,
+				select: {
+					id: true,
+					processType: true,
+					status: true,
+					duration: true,
+					token: true,
+					createdAt: true,
+					result: true,
+					error: true,
+					model: true,
+					inputTokens: true,
+					outputTokens: true,
+					costUsd: true,
+				},
+			}),
+			this.prisma.aiProcessLog.count({ where: { createdAt: inRange } }),
+			// KST 날짜별 받은 사람 수 (한 사람에게 관심사 여러 개를 한 통으로 보내므로 email로 센다)
+			this.prisma.$queryRaw<Array<{ day: Date | string; recipients: bigint }>>`
         SELECT DATE(CONVERT_TZ(sentAt, '+00:00', '+09:00')) AS day, COUNT(DISTINCT email) AS recipients
         FROM email_archives
         WHERE sentAt >= ${start} AND sentAt <= ${end}
         GROUP BY day
         ORDER BY day DESC`,
-      this.prisma.subscriber.count({ where: { status: 'active' } }),
-      // Claude 비용 합계 (비용을 모르는 이전 기록은 빠지고, 몇 건인지 따로 센다)
-      this.prisma.aiProcessLog.aggregate({
-        where: { createdAt: inRange },
-        _sum: { costUsd: true },
-        _count: { costUsd: true },
-      }),
-      this.lastRuns(),
-    ]);
+			this.prisma.subscriber.count({ where: { status: 'active' } }),
+			// Claude 비용 합계 (비용을 모르는 이전 기록은 빠지고, 몇 건인지 따로 센다)
+			this.prisma.aiProcessLog.aggregate({
+				where: { createdAt: inRange },
+				_sum: { costUsd: true },
+				_count: { costUsd: true },
+			}),
+			this.lastRuns(),
+		]);
 
-    const status = this.scheduler.getSchedulerStatus();
-    // 지금 진행 중이면 서버 메모리, 아니면 DB의 마지막 실행 (재시작해도 남음).
-    // DB의 trigger · status는 문자열 칸이지만 작업 기록이 쓰는 값만 들어간다 (job-runs.service startRun · finishRun)
-    const runOf = (job: JobName): JobRun => {
-      const live = status.runs[job];
-      const last = lastRuns[job];
-      if (live.running || !last) return live;
-      return {
-        running: last.status === 'running',
-        trigger: last.trigger as JobTrigger,
-        startedAt: last.startedAt.toISOString(),
-        finishedAt: last.finishedAt?.toISOString() ?? null,
-        status: last.status === 'running' ? null : (last.status as JobResult),
-        message: last.message,
-      };
-    };
-    return {
-      range: { from, to },
-      scheduler: {
-        // false면 이 서버는 예약 시각에 저절로 돌지 않는다 (SCHEDULER_ENABLED=false, 보통 로컬)
-        autoRun: status.autoRun,
-        enabled: {
-          crawling: status.crawling,
-          summary: status.aiSummary,
-          mail: status.mailing,
-        },
-        schedule: this.scheduleConfig.getSchedule(),
-        runs: {
-          crawling: runOf('crawling'),
-          summary: runOf('summary'),
-          mail: runOf('mail'),
-        },
-      },
-      crawling: {
-        count: crawled,
-        latestAt: latestCrawled?.createdAt ?? null,
-      },
-      newsletters: { total: newsletterCount, items: newsletters },
-      aiCost: {
-        total: cost._sum.costUsd ?? 0,
-        // 비용을 알 수 없는(이전) 기록 수
-        unknown: logCount - cost._count.costUsd,
-      },
-      summaryLogs: {
-        total: logCount,
-        items: logs.map((log) => ({
-          ...log,
-          result: clip(log.result, 160),
-          error: clip(log.error, 300),
-        })),
-      },
-      mail: {
-        activeSubscribers,
-        byDay: mailByDay.map((row) => ({
-          day:
-            row.day instanceof Date
-              ? row.day.toISOString().slice(0, 10)
-              : String(row.day).slice(0, 10),
-          recipients: Number(row.recipients),
-        })),
-      },
-    };
-  }
+		const status = this.scheduler.getSchedulerStatus();
+		// 지금 진행 중이면 서버 메모리, 아니면 DB의 마지막 실행 (재시작해도 남음).
+		// DB의 trigger · status는 문자열 칸이지만 작업 기록이 쓰는 값만 들어간다 (job-runs.service startRun · finishRun)
+		const runOf = (job: JobName): JobRun => {
+			const live = status.runs[job];
+			const last = lastRuns[job];
+			if (live.running || !last) return live;
+			return {
+				running: last.status === 'running',
+				trigger: last.trigger as JobTrigger,
+				startedAt: last.startedAt.toISOString(),
+				finishedAt: last.finishedAt?.toISOString() ?? null,
+				status: last.status === 'running' ? null : (last.status as JobResult),
+				message: last.message,
+			};
+		};
+		return {
+			range: { from, to },
+			scheduler: {
+				// false면 이 서버는 예약 시각에 저절로 돌지 않는다 (SCHEDULER_ENABLED=false, 보통 로컬)
+				autoRun: status.autoRun,
+				enabled: {
+					crawling: status.crawling,
+					summary: status.aiSummary,
+					mail: status.mailing,
+				},
+				schedule: this.scheduleConfig.getSchedule(),
+				runs: {
+					crawling: runOf('crawling'),
+					summary: runOf('summary'),
+					mail: runOf('mail'),
+				},
+			},
+			crawling: {
+				count: crawled,
+				latestAt: latestCrawled?.createdAt ?? null,
+			},
+			newsletters: { total: newsletterCount, items: newsletters },
+			aiCost: {
+				total: cost._sum.costUsd ?? 0,
+				// 비용을 알 수 없는(이전) 기록 수
+				unknown: logCount - cost._count.costUsd,
+			},
+			summaryLogs: {
+				total: logCount,
+				items: logs.map((log) => ({
+					...log,
+					result: clip(log.result, 160),
+					error: clip(log.error, 300),
+				})),
+			},
+			mail: {
+				activeSubscribers,
+				byDay: mailByDay.map((row) => ({
+					day: row.day instanceof Date ? row.day.toISOString().slice(0, 10) : String(row.day).slice(0, 10),
+					recipients: Number(row.recipients),
+				})),
+			},
+		};
+	}
 }

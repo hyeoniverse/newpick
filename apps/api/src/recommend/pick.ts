@@ -7,27 +7,27 @@ import { tagKey } from 'src/tags/tags';
  * 글을 쓰지 않고 임베딩(bge-m3)을 비교만 하므로 무료 할당 안에서 끝난다
  */
 export const RECOMMEND_LIMITS = {
-  /** 이만큼 가까워야 권한다 (코사인. 실제 데이터에서 0.6 위는 같은 주제, 아래는 느슨한 연결) */
-  min: 0.6,
-  /** 한 사람에게 권하는 기사 수 */
-  picks: 3,
+	/** 이만큼 가까워야 권한다 (코사인. 실제 데이터에서 0.6 위는 같은 주제, 아래는 느슨한 연결) */
+	min: 0.6,
+	/** 한 사람에게 권하는 기사 수 */
+	picks: 3,
 };
 
 export type Candidate = {
-  title: string;
-  link: string;
-  source: string;
-  category: string;
-  vector: number[];
+	title: string;
+	link: string;
+	source: string;
+	category: string;
+	vector: number[];
 };
 
 /** 메일 계획에 남기는 추천 기사 (받은 그대로 다시 보이게, 벡터는 빼고) */
 export type ArticlePick = {
-  title: string;
-  link: string;
-  source: string;
-  category: string;
-  score: number;
+	title: string;
+	link: string;
+	source: string;
+	category: string;
+	score: number;
 };
 
 /**
@@ -35,34 +35,29 @@ export type ArticlePick = {
  * 같은 기사는 먼저 나온 태그에만
  */
 export function tagArticles(
-  candidates: Omit<Candidate, 'vector'>[],
-  tags: { name: string; key: string }[],
-  exclude: Set<string>,
-  limit: number,
+	candidates: Omit<Candidate, 'vector'>[],
+	tags: { name: string; key: string }[],
+	exclude: Set<string>,
+	limit: number,
 ): Map<string, ArticlePick[]> {
-  const result = new Map<string, ArticlePick[]>();
-  const taken = new Set<string>();
-  for (const tag of tags) {
-    if (tag.key.length < 2) continue;
-    const picks = candidates
-      .filter(
-        (c) =>
-          !exclude.has(c.link) &&
-          !taken.has(c.link) &&
-          tagKey(c.title).includes(tag.key),
-      )
-      .slice(0, limit)
-      .map((c) => ({
-        title: c.title,
-        link: c.link,
-        source: c.source,
-        category: c.category,
-        score: 1,
-      }));
-    picks.forEach((p) => taken.add(p.link));
-    if (picks.length) result.set(tag.name, picks);
-  }
-  return result;
+	const result = new Map<string, ArticlePick[]>();
+	const taken = new Set<string>();
+	for (const tag of tags) {
+		if (tag.key.length < 2) continue;
+		const picks = candidates
+			.filter((c) => !exclude.has(c.link) && !taken.has(c.link) && tagKey(c.title).includes(tag.key))
+			.slice(0, limit)
+			.map((c) => ({
+				title: c.title,
+				link: c.link,
+				source: c.source,
+				category: c.category,
+				score: 1,
+			}));
+		picks.forEach((p) => taken.add(p.link));
+		if (picks.length) result.set(tag.name, picks);
+	}
+	return result;
 }
 
 /**
@@ -71,41 +66,34 @@ export function tagArticles(
  * 그 사람 메일에 실린 소식(shown)과 같은 사건인 기사는 뺀다 (다른 언론사가 쓴 같은 소식)
  */
 export function pickArticles(
-  signals: Pick<TasteSignal, 'vector'>[],
-  candidates: Candidate[],
-  exclude: Set<string>,
-  shown: number[][] = [],
-  limits = RECOMMEND_LIMITS,
+	signals: Pick<TasteSignal, 'vector'>[],
+	candidates: Candidate[],
+	exclude: Set<string>,
+	shown: number[][] = [],
+	limits = RECOMMEND_LIMITS,
 ): ArticlePick[] {
-  if (!signals.length) return [];
-  const scored = candidates
-    .filter((c) => !exclude.has(c.link))
-    .filter(
-      (c) => !shown.some((v) => cosine(v, c.vector) >= SAME_EVENT_EMBEDDING),
-    )
-    .map((candidate) => ({
-      candidate,
-      score: Math.max(
-        ...signals.map((s) => cosine(s.vector, candidate.vector)),
-      ),
-    }))
-    .filter((s) => s.score >= limits.min)
-    .sort((a, b) => b.score - a.score);
+	if (!signals.length) return [];
+	const scored = candidates
+		.filter((c) => !exclude.has(c.link))
+		.filter((c) => !shown.some((v) => cosine(v, c.vector) >= SAME_EVENT_EMBEDDING))
+		.map((candidate) => ({
+			candidate,
+			score: Math.max(...signals.map((s) => cosine(s.vector, candidate.vector))),
+		}))
+		.filter((s) => s.score >= limits.min)
+		.sort((a, b) => b.score - a.score);
 
-  const picked: typeof scored = [];
-  for (const s of scored) {
-    if (picked.length >= limits.picks) break;
-    const sameEvent = picked.some(
-      (p) =>
-        cosine(p.candidate.vector, s.candidate.vector) >= SAME_EVENT_EMBEDDING,
-    );
-    if (!sameEvent) picked.push(s);
-  }
-  return picked.map(({ candidate, score }) => ({
-    title: candidate.title,
-    link: candidate.link,
-    source: candidate.source,
-    category: candidate.category,
-    score: Math.round(score * 1000) / 1000,
-  }));
+	const picked: typeof scored = [];
+	for (const s of scored) {
+		if (picked.length >= limits.picks) break;
+		const sameEvent = picked.some((p) => cosine(p.candidate.vector, s.candidate.vector) >= SAME_EVENT_EMBEDDING);
+		if (!sameEvent) picked.push(s);
+	}
+	return picked.map(({ candidate, score }) => ({
+		title: candidate.title,
+		link: candidate.link,
+		source: candidate.source,
+		category: candidate.category,
+		score: Math.round(score * 1000) / 1000,
+	}));
 }
