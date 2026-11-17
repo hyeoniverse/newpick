@@ -1,6 +1,10 @@
 import { FollowsModule } from 'src/follows/follows.module';
 import { Module } from '@nestjs/common';
 import { SchedulerService } from './scheduler.service';
+import { ScheduleConfigService } from './schedule-config.service';
+import { JobRunsService } from './job-runs.service';
+import { SummaryJobService } from './summary-job.service';
+import { MailJobService } from './mail-job.service';
 import { SchedulerController } from './scheduler.controller';
 import { DashboardService } from './dashboard.service';
 import { StatsService } from './stats.service';
@@ -27,7 +31,15 @@ import { RecommendModule } from 'src/recommend/recommend.module';
     FollowsModule,
     RecommendModule,
   ],
-  providers: [SchedulerService, DashboardService, StatsService],
+  providers: [
+    SchedulerService,
+    ScheduleConfigService,
+    JobRunsService,
+    SummaryJobService,
+    MailJobService,
+    DashboardService,
+    StatsService,
+  ],
   controllers: [SchedulerController],
 })
 export class SchedulerModule {}

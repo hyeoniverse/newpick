@@ -6,6 +6,7 @@ import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { kstDayRange, kstDaysAgo } from 'src/common/kst';
 import { AppException } from 'src/common/errors/app.exception';
 import { SchedulerService } from './scheduler.service';
+import { ScheduleConfigService } from './schedule-config.service';
 
 /** 대시보드는 요약만: 최근 몇 개. 전체는 상세 목록(페이지)에서 */
 const PREVIEW = 5;
@@ -66,6 +67,7 @@ const RETRY_WINDOW_MS = 12 * 60 * 60 * 1000;
 export class DashboardService {
   constructor(
     private readonly scheduler: SchedulerService,
+    private readonly scheduleConfig: ScheduleConfigService,
     private readonly prisma: MysqlPrismaService,
     private readonly crawlingRepository: CrawlingRepository,
   ) {}
@@ -505,7 +507,7 @@ export class DashboardService {
 
     const status = this.scheduler.getSchedulerStatus();
     // 지금 진행 중이면 서버 메모리, 아니면 DB의 마지막 실행 (재시작해도 남음).
-    // DB의 trigger · status는 문자열 칸이지만 작업 기록이 쓰는 값만 들어간다 (scheduler.service startRun · finishRun)
+    // DB의 trigger · status는 문자열 칸이지만 작업 기록이 쓰는 값만 들어간다 (job-runs.service startRun · finishRun)
     const runOf = (job: JobName): JobRun => {
       const live = status.runs[job];
       const last = lastRuns[job];
@@ -529,7 +531,7 @@ export class DashboardService {
           summary: status.aiSummary,
           mail: status.mailing,
         },
-        schedule: this.scheduler.getSchedule(),
+        schedule: this.scheduleConfig.getSchedule(),
         runs: {
           crawling: runOf('crawling'),
           summary: runOf('summary'),
