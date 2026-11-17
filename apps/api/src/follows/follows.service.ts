@@ -1,15 +1,15 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
-import { AiService, AiUnavailable } from '../ai/ai.service';
-import { AppException } from '../common/errors/app.exception';
-import { kstDayRange, kstDaysAgo } from '../common/kst';
-import type { MailFollow } from '../edition/mail-plan';
+import { AiService, AiUnavailable } from 'src/ai/ai.service';
+import { AppException } from 'src/common/errors/app.exception';
+import { kstDayRange, kstDaysAgo } from 'src/common/kst';
+import type { MailFollow } from 'src/edition/mail-plan';
 import {
   ParsedNewsletter,
   parseNewsletterHtml,
   ParsedStory,
   storyText,
-} from '../ai-summary/newsletter-parse';
+} from 'src/ai-summary/newsletter-parse';
 import {
   acceptedFrom,
   candidatesFor,

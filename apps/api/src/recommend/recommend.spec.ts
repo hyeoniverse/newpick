@@ -1,5 +1,5 @@
-import { renderEditionMail } from '../edition/mail';
-import { composeEdition } from '../edition/compose';
+import { renderEditionMail } from 'src/edition/mail';
+import { composeEdition } from 'src/edition/compose';
 import { pickArticles, RECOMMEND_LIMITS, tagArticles } from './pick';
 import { RecommendService } from './recommend.service';
 

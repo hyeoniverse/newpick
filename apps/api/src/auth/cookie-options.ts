@@ -1,5 +1,5 @@
 import { CookieOptions } from 'express';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 /**
  * 인증 쿠키 공통 옵션.

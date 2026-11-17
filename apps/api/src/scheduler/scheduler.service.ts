@@ -5,7 +5,7 @@ import { CronJob, CronTime } from 'cron';
 import { crawlCron, dailyCron, mailCron } from 'src/common/cron';
 import { KST } from 'src/common/kst';
 import { CrawlingService } from 'src/crawling/crawling.service';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 import { JobRunsService } from './job-runs.service';
 import { MailJobService } from './mail-job.service';
 import { ScheduleConfigService } from './schedule-config.service';

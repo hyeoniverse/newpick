@@ -2,13 +2,13 @@ import { ExecutionContext, Injectable } from '@nestjs/common';
 import type { Request, Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { JwtService } from '@nestjs/jwt';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 import {
   GOOGLE_LINK_COOKIE,
   GOOGLE_LINK_MAX_AGE,
   authCookieOptions,
 } from './cookie-options';
-import { env, rawEnv } from '../config/env';
+import { env, rawEnv } from 'src/config/env';
 
 const GOOGLE_ENV = [
   'GOOGLE_CLIENT_ID',

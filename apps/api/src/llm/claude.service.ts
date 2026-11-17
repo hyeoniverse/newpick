@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import Anthropic from '@anthropic-ai/sdk';
 import { UsageError } from './pricing';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 /**
  * 기본 모델 (뉴스레터 쓰기, 무료 체험). 같은 기사로 비교했을 때 Opus 5.5와 품질이 거의 같고 가격은 절반 (#48).

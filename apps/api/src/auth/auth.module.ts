@@ -5,9 +5,9 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { GoogleStrategy } from './google.strategy';
-import { MailModule } from '../mail/mail.module';
+import { MailModule } from 'src/mail/mail.module';
 import { GoogleOAuthGuard } from './google-oauth.guard';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 @Module({
   imports: [

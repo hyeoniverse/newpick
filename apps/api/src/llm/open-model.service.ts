@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 /**
  * 오픈 모델 (#119): Cloudflare Workers AI. 하루 무료 할당(10,000 neurons) 안에서는 0원이고,

@@ -2,7 +2,7 @@ import { prepare } from './article-prep';
 import { selectPrompt } from './writer/select-prompt';
 import { writerPrompt } from './writer/write-prompt';
 import { GENDER_RULES } from './writing-rules';
-import { editorPrompt } from '../edition/editor';
+import { editorPrompt } from 'src/edition/editor';
 
 const articles = prepare([{ title: '제목', content: '본문', source: 'KBS' }]);
 

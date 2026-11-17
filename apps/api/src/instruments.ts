@@ -1,7 +1,7 @@
 import * as Sentry from '@sentry/nestjs';
 import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import * as dotenv from 'dotenv';
-import { env } from './config/env';
+import { env } from 'src/config/env';
 
 // Sentry는 다른 모듈보다 먼저 초기화되어야 하므로 .env를 직접 읽습니다.
 dotenv.config({ path: '.env' });

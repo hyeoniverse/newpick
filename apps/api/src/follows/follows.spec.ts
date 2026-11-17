@@ -1,5 +1,5 @@
-import { renderNewsletterHtml } from '../ai-summary/newsletter-html';
-import { AiUnavailable } from '../ai/ai.service';
+import { renderNewsletterHtml } from 'src/ai-summary/newsletter-html';
+import { AiUnavailable } from 'src/ai/ai.service';
 import {
   acceptedFrom,
   candidatesFor,

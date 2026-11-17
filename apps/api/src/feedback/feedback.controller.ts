@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Post, Req } from '@nestjs/common';
 import { Request } from 'express';
 import { FeedbackService } from './feedback.service';
 import { BookmarkDto } from './dto/bookmark.dto';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 
 /** 로그인 필요 (전역 JwtAuthGuard) */
 @Controller('feedback')

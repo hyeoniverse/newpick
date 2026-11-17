@@ -1,9 +1,9 @@
 import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
-import type { ParsedStory } from '../ai-summary/newsletter-parse';
+import type { ParsedStory } from 'src/ai-summary/newsletter-parse';
 import type { MailFollow, MailPlan, TagNews } from './mail-plan';
-import type { ArticlePick } from '../recommend/pick';
-import { KST } from '../common/kst';
+import type { ArticlePick } from 'src/recommend/pick';
+import { KST } from 'src/common/kst';
 
 /**
  * 구독자가 고른 분야로 그날의 메일 한 통을 엮는다 (#55). 호출 없음.

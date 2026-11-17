@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { LlmModule } from '../llm/llm.module';
-import { AiModule } from '../ai/ai.module';
+import { LlmModule } from 'src/llm/llm.module';
+import { AiModule } from 'src/ai/ai.module';
 import { EditionController } from './edition.controller';
 import { EditionService } from './edition.service';
 

@@ -20,7 +20,7 @@ import {
 } from 'src/auth/cookie-options';
 import { MyPageService } from './mypage.service';
 import { InterestsDto } from 'src/common/dto/interests.dto';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 import {
   MarkMailDto,
   MoveBookmarksDto,
@@ -29,9 +29,9 @@ import {
 } from './dto/my-mails-query.dto';
 import { HighlightsService } from './highlights.service';
 import { FoldersService } from './folders.service';
-import { TasteService } from '../taste/taste.service';
+import { TasteService } from 'src/taste/taste.service';
 import { Throttle } from '@nestjs/throttler';
-import { THROTTLE } from '../common/throttle';
+import { THROTTLE } from 'src/common/throttle';
 import { EmailChangeService } from './email-change.service';
 import { SendEmailCodeDto, VerifyEmailCodeDto } from './dto/email-change.dto';
 import {

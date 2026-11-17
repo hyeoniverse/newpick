@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { Prisma } from '@prisma/client';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 
 @Injectable()
 export class CategoryRepository {

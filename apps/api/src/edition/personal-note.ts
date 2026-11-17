@@ -1,6 +1,6 @@
 import { GENDER_RULES } from 'src/ai-summary/writing-rules';
 import type { ComposedEdition } from './compose';
-import type { TasteProfile } from '../taste/types';
+import type { TasteProfile } from 'src/taste/types';
 import type { PersonalNote } from './mail-plan';
 
 /**

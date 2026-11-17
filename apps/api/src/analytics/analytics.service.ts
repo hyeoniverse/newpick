@@ -2,8 +2,8 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { Prisma } from '@prisma/client';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
-import { dailyCron } from '../common/cron';
-import { KST } from '../common/kst';
+import { dailyCron } from 'src/common/cron';
+import { KST } from 'src/common/kst';
 import { CollectDto } from './dto/collect.dto';
 import {
   RETENTION_DAYS,

@@ -1,36 +1,36 @@
-import { FollowsModule } from './follows/follows.module';
+import { FollowsModule } from 'src/follows/follows.module';
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
-import { CrawlingModule } from './crawling/crawling.module';
-import { SchedulerModule } from './scheduler/scheduler.module'; // 스케줄러 모듈
-import { AdminStatsModule } from './admin-stats/admin-stats.module';
-import { AuthModule } from './auth/auth.module'; // 인증 모듈
+import { CrawlingModule } from 'src/crawling/crawling.module';
+import { SchedulerModule } from 'src/scheduler/scheduler.module'; // 스케줄러 모듈
+import { AdminStatsModule } from 'src/admin-stats/admin-stats.module';
+import { AuthModule } from 'src/auth/auth.module'; // 인증 모듈
 import { PrismaModule } from 'src/prisma/prisma.module'; // Prisma 모듈
-import { AiSummaryModule } from './ai-summary/ai-summary.module'; // AI 요약 모듈
-import { FeedbackModule } from './feedback/feedback.module'; // 피드백 모듈
-import { MyPageModule } from './mypage/mypage.module'; // 마이페이지 모듈
-import { AdminModule } from './admin/admin.module'; // 관리자 페이지 모듈
-import { MailModule } from './mail/mail.module'; // 메일 모듈
-import { CategoryModule } from './category/category.module'; // 카테고리 모듈
+import { AiSummaryModule } from 'src/ai-summary/ai-summary.module'; // AI 요약 모듈
+import { FeedbackModule } from 'src/feedback/feedback.module'; // 피드백 모듈
+import { MyPageModule } from 'src/mypage/mypage.module'; // 마이페이지 모듈
+import { AdminModule } from 'src/admin/admin.module'; // 관리자 페이지 모듈
+import { MailModule } from 'src/mail/mail.module'; // 메일 모듈
+import { CategoryModule } from 'src/category/category.module'; // 카테고리 모듈
 import { SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
-import { ApiExceptionFilter } from './common/errors/api-exception.filter';
+import { ApiExceptionFilter } from 'src/common/errors/api-exception.filter';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
-import { validateEnv } from './config/env.validation';
+import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
+import { validateEnv } from 'src/config/env.validation';
 import { ScheduleModule } from '@nestjs/schedule';
-import { NewsletterModule } from './newsletter/newsletter.module';
-import { ConfigLoggerMiddleware } from './middleware/config-logger.middleware';
-import { CoopMiddleware } from './middleware/coop.middleware';
-// import { CommonResponseInterceptor } from './common/response.interceptor';
+import { NewsletterModule } from 'src/newsletter/newsletter.module';
+import { ConfigLoggerMiddleware } from 'src/middleware/config-logger.middleware';
+import { CoopMiddleware } from 'src/middleware/coop.middleware';
+// import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 
-import { EditionModule } from './edition/edition.module';
-import { SiteCacheModule } from './site-cache/site-cache.module';
-import { AnalyticsModule } from './analytics/analytics.module';
-import { env } from './config/env';
-import { THROTTLE } from './common/throttle';
+import { EditionModule } from 'src/edition/edition.module';
+import { SiteCacheModule } from 'src/site-cache/site-cache.module';
+import { AnalyticsModule } from 'src/analytics/analytics.module';
+import { env } from 'src/config/env';
+import { THROTTLE } from 'src/common/throttle';
 @Module({
   imports: [
     ConfigModule.forRoot({

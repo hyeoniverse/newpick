@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AiModule } from '../ai/ai.module';
+import { AiModule } from 'src/ai/ai.module';
 import { FollowsController } from './follows.controller';
 import { FollowsService } from './follows.service';
 

@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomInt, timingSafeEqual } from 'node:crypto';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
-import { AppException } from '../common/errors/app.exception';
-import { MailService } from '../mail/mail.service';
-import { accountMailHtml, notifyEmailChanged } from '../mail/account-mail';
+import { AppException } from 'src/common/errors/app.exception';
+import { MailService } from 'src/mail/mail.service';
+import { accountMailHtml, notifyEmailChanged } from 'src/mail/account-mail';
 
 /** 인증 코드가 유효한 시간 */
 export const CODE_TTL_MS = 10 * 60 * 1000;

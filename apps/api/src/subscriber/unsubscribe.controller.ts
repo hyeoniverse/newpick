@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
 import { Public } from 'src/auth/decorators/auth.decorators';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 import { SubscriberService } from './subscriber.service';
 import { verifyUnsubscribeToken } from './unsubscribe-token';
 

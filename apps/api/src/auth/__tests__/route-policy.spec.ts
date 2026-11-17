@@ -2,7 +2,7 @@ import { readRoutePolicies, Policy } from './route-policy';
 import { AppController } from 'src/app.controller';
 import { AdminController } from 'src/admin/admin.controller';
 import { AiSummaryController } from 'src/ai-summary/ai-summary.controller';
-import { AuthController } from 'src/auth/auth.controller';
+import { AuthController } from '../auth.controller';
 import { CategoryController } from 'src/category/category.controller';
 import { CrawlingController } from 'src/crawling/crawling.controller';
 import { FeedbackController } from 'src/feedback/feedback.controller';

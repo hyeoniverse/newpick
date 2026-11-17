@@ -1,5 +1,5 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 /**
  * 원클릭 구독 해지 토큰 (#18). 메일마다 넣어 로그인 없이 해지할 수 있게 한다.

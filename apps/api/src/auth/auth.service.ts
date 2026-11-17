@@ -3,7 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { createHash, randomUUID } from 'node:crypto';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { ACCESS_TOKEN_MAX_AGE, REFRESH_TOKEN_MAX_AGE } from './cookie-options';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 /** 바로 전 refresh token을 받아 주는 시간: 여러 탭이 거의 동시에 갱신하면 늦은 쪽은 이미 바뀐 토큰을 들고 온다 */
 export const ROTATION_GRACE_MS = 60 * 1000;

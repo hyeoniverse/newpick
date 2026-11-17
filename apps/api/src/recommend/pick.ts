@@ -1,6 +1,6 @@
-import { cosine, SAME_EVENT_EMBEDDING } from '../ai-summary/article-prep';
-import type { TasteSignal } from '../taste/types';
-import { tagKey } from '../tags/tags';
+import { cosine, SAME_EVENT_EMBEDDING } from 'src/ai-summary/article-prep';
+import type { TasteSignal } from 'src/taste/types';
+import { tagKey } from 'src/tags/tags';
 
 /**
  * 추천 기사: 북마크 · 스크랩한 소식과 뜻이 가까운 오늘 기사를 원문 그대로 권한다.

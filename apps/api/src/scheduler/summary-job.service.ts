@@ -9,7 +9,7 @@ import { EditionService } from 'src/edition/edition.service';
 import { FollowsService } from 'src/follows/follows.service';
 import { MailService } from 'src/mail/mail.service';
 import { SiteCacheService } from 'src/site-cache/site-cache.service';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 import { JobRunsService } from './job-runs.service';
 import { backfillAt, BACKFILL_MAX_DAYS, summaryWindow } from './schedule';
 import { ScheduleConfigService } from './schedule-config.service';

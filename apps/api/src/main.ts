@@ -3,7 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import cookieParser from 'cookie-parser'; // 쿠키파서 추가(리프레시토큰용)
 import { ValidationPipe } from '@nestjs/common';
-import { env } from './config/env';
+import { env } from 'src/config/env';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
