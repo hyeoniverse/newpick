@@ -4,8 +4,8 @@ import {
   replaceInterestsOps,
   validateCategoryIds,
 } from 'src/common/user-interests';
-import { AppException } from '../common/errors/app.exception';
-import { subscriptionEvent } from '../common/subscription-event';
+import { AppException } from 'src/common/errors/app.exception';
+import { subscriptionEvent } from 'src/common/subscription-event';
 @Injectable()
 export class SubscriberService {
   constructor(

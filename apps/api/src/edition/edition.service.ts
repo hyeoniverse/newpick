@@ -2,9 +2,9 @@ import { usageLog } from 'src/llm/pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import dayjs from 'dayjs';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
-import { ClaudeService } from '../llm/claude.service';
-import { KST, kstDayRange, kstDaysAgo } from '../common/kst';
-import { parseNewsletterHtml } from '../ai-summary/newsletter-parse';
+import { ClaudeService } from 'src/llm/claude.service';
+import { KST, kstDayRange, kstDaysAgo } from 'src/common/kst';
+import { parseNewsletterHtml } from 'src/ai-summary/newsletter-parse';
 import {
   EDITOR_SCHEMA,
   EDITOR_SYSTEM,
@@ -16,17 +16,17 @@ import {
 import { composeEdition, EditionNewsletter } from './compose';
 import { storyEmbeddingText } from './personalize';
 import type { MailPlan, PersonalNote } from './mail-plan';
-import type { SignalText, TasteProfile } from '../taste/types';
+import type { SignalText, TasteProfile } from 'src/taste/types';
 import {
   NOTE_SCHEMA,
   NOTE_SYSTEM,
   normalizeNote,
   notePrompt,
 } from './personal-note';
-import { AiService } from '../ai/ai.service';
+import { AiService } from 'src/ai/ai.service';
 import { createUnsubscribeToken } from 'src/subscriber/unsubscribe-token';
 import { renderEditionMail } from './mail';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 export type Edition = {
   /** KST 'YYYY-MM-DD' */

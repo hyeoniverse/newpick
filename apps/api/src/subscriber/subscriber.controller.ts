@@ -11,7 +11,7 @@ import { SubscriberService } from './subscriber.service';
 import { StartSubscriptionDto } from './dto/start-subscription.dto';
 import { AuthGuard } from '@nestjs/passport';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 @Controller('subscribers')
 @UseGuards(AuthGuard('jwt'))
 export class SubscriberController {

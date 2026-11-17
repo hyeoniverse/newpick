@@ -12,10 +12,10 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { CategoryRepository } from './category.repository';
-import { CommonResponseInterceptor } from '../common/response.interceptor';
+import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 
 @Controller('category')
 @UseInterceptors(CommonResponseInterceptor)

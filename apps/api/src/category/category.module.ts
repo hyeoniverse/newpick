@@ -1,5 +1,5 @@
 import { Logger, Module } from '@nestjs/common';
-import { LlmModule } from '../llm/llm.module';
+import { LlmModule } from 'src/llm/llm.module';
 import { FindCategoryService } from './find-category.service';
 import { CategoryController } from './category.controller';
 import { CategoryRepository } from './category.repository';

@@ -4,7 +4,7 @@ import { AiSummaryService } from './ai-summary.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { Logger } from '@nestjs/common';
 import { AdminOnly } from 'src/auth/decorators/auth.decorators';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 
 const TRIAL_CACHE_TTL = 6 * 60 * 60 * 1000;
 const TRIAL_CACHE_MAX = 200;

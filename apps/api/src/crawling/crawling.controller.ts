@@ -1,8 +1,8 @@
 import { Controller, Get, Param, UseInterceptors, Query } from '@nestjs/common';
 import { CrawlingService } from './crawling.service';
 import { CrawlingRepository } from './crawling.repository';
-import { CommonResponseInterceptor } from '../common/response.interceptor';
-import { CategoryRepository } from '../category/category.repository';
+import { CommonResponseInterceptor } from 'src/common/response.interceptor';
+import { CategoryRepository } from 'src/category/category.repository';
 import { AdminOnly, Public } from 'src/auth/decorators/auth.decorators';
 @Controller('crawling')
 @UseInterceptors(CommonResponseInterceptor)

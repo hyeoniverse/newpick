@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { missingGoogleEnv } from './google-oauth.guard';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 // 키가 없을 때 passport가 생성자에서 예외를 던지지 않게 넣는 값. 실제 요청은 GoogleOAuthGuard가 503으로 막습니다.
 const NOT_CONFIGURED = 'google-oauth-not-configured';

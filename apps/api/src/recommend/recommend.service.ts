@@ -1,12 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
-import { AiService } from '../ai/ai.service';
-import { embeddingText } from '../ai-summary/article-prep';
-import { CrawlingRepository } from '../crawling/crawling.repository';
-import type { TasteSignal } from '../taste/types';
-import { SIGNAL_TEXT_LIMITS } from '../taste/taste.service';
+import { AiService } from 'src/ai/ai.service';
+import { embeddingText } from 'src/ai-summary/article-prep';
+import { CrawlingRepository } from 'src/crawling/crawling.repository';
+import type { TasteSignal } from 'src/taste/types';
+import { SIGNAL_TEXT_LIMITS } from 'src/taste/taste.service';
 import { ArticlePick, Candidate, pickArticles, tagArticles } from './pick';
-import { TAG_LIMITS } from '../tags/tags';
+import { TAG_LIMITS } from 'src/tags/tags';
 
 /** 임베딩은 한 번에 이만큼씩 */
 const BATCH = 50;

@@ -13,7 +13,7 @@ import { Response, Request } from 'express';
 import { AuthService } from './auth.service';
 import { AuthGuard } from '@nestjs/passport';
 import { GoogleOAuthGuard, loginFailedUrl } from './google-oauth.guard';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 import {
   ACCESS_TOKEN_MAX_AGE,
   GOOGLE_LINK_COOKIE,
@@ -22,10 +22,10 @@ import {
   authCookieOptions,
   sessionHintCookieOptions,
 } from './cookie-options';
-import { Public } from 'src/auth/decorators/auth.decorators';
-import { MailService } from '../mail/mail.service';
-import { notifyEmailChanged } from '../mail/account-mail';
-import { env } from '../config/env';
+import { Public } from './decorators/auth.decorators';
+import { MailService } from 'src/mail/mail.service';
+import { notifyEmailChanged } from 'src/mail/account-mail';
+import { env } from 'src/config/env';
 
 /** 다른 Google 계정으로 바꾼 뒤 돌아갈 곳. 웹은 ?google=…를 보고 안내한다 */
 const linkResultUrl = (result: string) =>

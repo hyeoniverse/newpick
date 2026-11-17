@@ -1,15 +1,15 @@
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
-import { usageLog, usageOf } from '../llm/pricing';
+import { usageLog, usageOf } from 'src/llm/pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
-import { FindCategoryService } from '../category/find-category.service';
+import { FindCategoryService } from 'src/category/find-category.service';
 import { CreateNewsletterService } from './create-newsletter.service';
 import { CrawledNews } from 'src/crawling/schema/crawling.schema';
 import { NewsletterWriterService } from './newsletter-writer.service';
 import { renderNewsletterHtml } from './newsletter-html';
 import { StoryImageService } from './story-images';
-import { TagsService } from '../tags/tags.service';
-import { KST } from '../common/kst';
+import { TagsService } from 'src/tags/tags.service';
+import { KST } from 'src/common/kst';
 
 /**
  * 뉴스레터에 쓴 기사만 남깁니다. 썸네일·관련 기사가 실제로 다룬 소식에서 나오게 (#43).

@@ -1,4 +1,4 @@
-import { AppController } from '../app.controller';
+import { AppController } from 'src/app.controller';
 
 describe('GET /health', () => {
   const saved = process.env.APP_VERSION;

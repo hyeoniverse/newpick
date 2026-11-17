@@ -1,6 +1,6 @@
 import type { Profile } from '@newpick/shared';
-import type { ComposedSection } from '../edition/compose';
-import type { MailPlan } from '../edition/mail-plan';
+import type { ComposedSection } from 'src/edition/compose';
+import type { MailPlan } from 'src/edition/mail-plan';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import {
@@ -9,10 +9,10 @@ import {
   validateCategoryIds,
 } from 'src/common/user-interests';
 import { deleteAccount } from 'src/common/delete-account';
-import { AppException } from '../common/errors/app.exception';
-import { EditionService } from '../edition/edition.service';
+import { AppException } from 'src/common/errors/app.exception';
+import { EditionService } from 'src/edition/edition.service';
 import { assertOwnFolder } from './folders.service';
-import { KST } from '../common/kst';
+import { KST } from 'src/common/kst';
 
 /** 북마크 목록에 쓰는 뉴스레터 칸 */
 const BOOKMARK_NEWSLETTER = {

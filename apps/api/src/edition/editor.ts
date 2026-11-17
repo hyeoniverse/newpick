@@ -1,6 +1,6 @@
-import { GENDER_RULES } from '../ai-summary/writing-rules';
-import type { ParsedStory } from '../ai-summary/newsletter-parse';
-import { storyText } from '../ai-summary/newsletter-parse';
+import { GENDER_RULES } from 'src/ai-summary/writing-rules';
+import type { ParsedStory } from 'src/ai-summary/newsletter-parse';
+import { storyText } from 'src/ai-summary/newsletter-parse';
 
 /**
  * 하루 한 번, 그날 나온 전 분야 소식을 한꺼번에 보고 편집한다 (#55).

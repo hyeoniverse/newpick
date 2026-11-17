@@ -1,10 +1,10 @@
-import type { MailPlan } from '../edition/mail-plan';
+import type { MailPlan } from 'src/edition/mail-plan';
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import PQueue from '@esm2cjs/p-queue';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { NODEMAILER } from './constants';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 /** Gmail SMTP 한도를 넘지 않도록 동시에 2통, 초당 최대 5통까지 보냅니다. */
 const SEND_CONCURRENCY = 2;

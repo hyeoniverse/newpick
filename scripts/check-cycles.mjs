@@ -4,11 +4,11 @@
  * madge는 버전을 고정해 npx로 받는다 (앱 의존성에 넣으면 설치 배치가 바뀌어 웹 테스트의 jsdom을 못 찾게 된다).
  * 지금 있는 순환은 scripts/cycles-allow.json에 적어 두고(#199에서 없앤다), 그 밖의 순환이 새로 생기면 실패한다.
  * 허용 목록의 순환이 없어졌으면 목록에서 지우라고 알려 준다 (목록이 실제보다 느슨해지지 않게).
- * api는 모듈(src/ 바로 아래 폴더)끼리 서로 import하는지도 본다 (#199)
+ * api는 모듈(src/ 바로 아래 폴더)끼리 서로 import하는지, import 방식(같은 모듈은 상대 경로 · 다른 모듈은 src/…)도 본다 (#199)
  */
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
-import { basename, dirname, join } from 'node:path';
+import { readdirSync, readFileSync } from 'node:fs';
+import { basename, dirname, join, normalize, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const app = basename(process.cwd());
@@ -74,4 +74,31 @@ if (app === 'api') {
 		process.exit(1);
 	}
 	console.log('api: 서로 import하는 모듈 없음');
+
+	/**
+	 * import 방식 하나로: 같은 모듈 안은 상대 경로('./x' · '../dto/x'), 다른 모듈은 'src/모듈/…'.
+	 * src/ 맨 위 파일끼리는 상대 경로. 섞여 있으면 어느 것이 모듈 밖인지 한눈에 안 보인다
+	 */
+	const files = (dir) =>
+		readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+			e.isDirectory() ? files(join(dir, e.name)) : e.name.endsWith('.ts') ? [join(dir, e.name)] : [],
+		);
+	const wrong = [];
+	for (const path of files('src')) {
+		const me = relative('src', path).replace(/\.ts$/, '');
+		const own = moduleOf(me) ?? '(root)';
+		for (const [, spec] of readFileSync(path, 'utf8').matchAll(/(?:from|import|jest\.mock\()\s*'([^']+)'/g)) {
+			const target = spec.startsWith('src/') ? spec.slice(4) : spec.startsWith('.') ? normalize(join(dirname(me), spec)) : null;
+			if (!target || target.startsWith('..')) continue;
+			const same = (moduleOf(target) ?? '(root)') === own;
+			if (same && spec.startsWith('src/')) wrong.push(`${path}: '${spec}' → 같은 모듈이라 상대 경로로`);
+			if (!same && spec.startsWith('.')) wrong.push(`${path}: '${spec}' → 다른 모듈이라 'src/${target}'로`);
+		}
+	}
+	if (wrong.length) {
+		for (const w of wrong) console.error(w);
+		console.error(`\napi: import 방식이 어긋난 곳 ${wrong.length}개 (같은 모듈은 상대 경로, 다른 모듈은 src/…)`);
+		process.exit(1);
+	}
+	console.log('api: import 방식 맞음 (같은 모듈은 상대 경로, 다른 모듈은 src/…)');
 }

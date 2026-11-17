@@ -1,6 +1,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
-import { AppException } from '../../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 
 /**
  * 관리자 확인. JWT에는 role이 없으므로 매 요청마다 DB에서 확인합니다.

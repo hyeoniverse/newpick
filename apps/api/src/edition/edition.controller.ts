@@ -2,7 +2,7 @@ import { Controller, Get, Query, UseInterceptors } from '@nestjs/common';
 import { Public } from 'src/auth/decorators/auth.decorators';
 import { CommonResponseInterceptor } from 'src/common/response.interceptor';
 import { EditionService } from './edition.service';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 
 @Controller('edition')
 @UseInterceptors(CommonResponseInterceptor)

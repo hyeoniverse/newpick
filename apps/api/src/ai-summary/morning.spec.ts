@@ -7,8 +7,8 @@ import { describeClusters, selectPrompt } from './writer/select-prompt';
 import { LIMITS } from './writer/types';
 import { writerPrompt } from './writer/write-prompt';
 import { parseNewsletterHtml } from './newsletter-parse';
-import { composeEdition } from '../edition/compose';
-import { renderEditionMail } from '../edition/mail';
+import { composeEdition } from 'src/edition/compose';
+import { renderEditionMail } from 'src/edition/mail';
 
 const MORNING_SINCE = '2026-11-06 05:00:00';
 

@@ -1,4 +1,4 @@
-import type { ArticlePick } from '../recommend/pick';
+import type { ArticlePick } from 'src/recommend/pick';
 
 /** 메일 계획 타입 (#199에서 personalize · personal-note에서 떼어 냄): 맞춤 순서 · 맞춤 글 · 추천 기사 · 태그 · 후속 칸 */
 

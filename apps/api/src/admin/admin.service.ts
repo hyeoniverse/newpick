@@ -4,7 +4,7 @@ import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { deleteAccount } from 'src/common/delete-account';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 
 @Injectable()
 export class AdminService {

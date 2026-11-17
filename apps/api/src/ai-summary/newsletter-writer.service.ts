@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { OpenModelService } from '../llm/open-model.service';
-import { ClaudeService, CLAUDE_FAST_MODEL } from '../llm/claude.service';
+import { OpenModelService } from 'src/llm/open-model.service';
+import { ClaudeService, CLAUDE_FAST_MODEL } from 'src/llm/claude.service';
 import {
   clusterArticles,
   embeddingText,
@@ -8,8 +8,8 @@ import {
   PrepArticle,
   selectCandidates,
 } from './article-prep';
-import { kstStamp } from '../common/kst';
-import { UsageError, usageOf } from '../llm/pricing';
+import { kstStamp } from 'src/common/kst';
+import { UsageError, usageOf } from 'src/llm/pricing';
 import { SELECT_SCHEMA, WRITER_SCHEMA } from './writer/schema';
 import {
   alignScores,

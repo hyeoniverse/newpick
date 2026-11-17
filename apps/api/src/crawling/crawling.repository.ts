@@ -4,7 +4,7 @@ import { Model } from 'mongoose';
 import { CrawledNews } from './schema/crawling.schema';
 import { CategoryRepository } from 'src/category/category.repository';
 import { kstDayRange, kstStamp } from 'src/common/kst';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 
 @Injectable()
 export class CrawlingRepository {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 import { canonicalTags, mergeInto, removeTag, tagKey, toRules } from './tags';
 
 /**

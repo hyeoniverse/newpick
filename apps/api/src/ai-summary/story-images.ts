@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Story, StoryImage } from './writer/types';
-import { env } from '../config/env';
+import { env } from 'src/config/env';
 
 /**
  * 소식마다 사진 한 장 (#49)

@@ -2,9 +2,9 @@ import { cosine } from 'src/ai-summary/article-prep';
 import { TAG_LIMITS, tagKey } from 'src/tags/tags';
 import type { Editorial, EditionSource } from './editor';
 import { storyRef } from './editor';
-import { storyText } from '../ai-summary/newsletter-parse';
+import { storyText } from 'src/ai-summary/newsletter-parse';
 import type { MailPlan, TagNews } from './mail-plan';
-import type { TasteProfile } from '../taste/types';
+import type { TasteProfile } from 'src/taste/types';
 
 /**
  * 맞춤 메일 (#123 3단계, "같이 쓰고 사람마다 고르기"). 글은 쓰지 않고 계산만.

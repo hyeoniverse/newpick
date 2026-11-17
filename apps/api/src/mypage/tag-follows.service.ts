@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { TagsService } from 'src/tags/tags.service';
-import { AppException } from '../common/errors/app.exception';
+import { AppException } from 'src/common/errors/app.exception';
 
 /** 한 사람이 팔로우할 수 있는 태그 수 */
 export const TAG_FOLLOW_LIMIT = 20;

@@ -1,5 +1,5 @@
 import { clusterArticles, prepare, SAME_EVENT_EMBEDDING } from './article-prep';
-import { CLAUDE_FAST_MODEL } from '../llm/claude.service';
+import { CLAUDE_FAST_MODEL } from 'src/llm/claude.service';
 import { renderNewsletterHtml } from './newsletter-html';
 import { NewsletterWriterService } from './newsletter-writer.service';
 import { debateOf } from './writer/normalize';
@@ -7,8 +7,8 @@ import { diverseArticles, pickArticles } from './writer/select';
 import { LIMITS, Story } from './writer/types';
 import { writerPrompt } from './writer/write-prompt';
 import { parseNewsletterHtml } from './newsletter-parse';
-import { renderEditionMail } from '../edition/mail';
-import { composeEdition } from '../edition/compose';
+import { renderEditionMail } from 'src/edition/mail';
+import { composeEdition } from 'src/edition/compose';
 
 /** 같은 사건, 언론사가 겹치는 묶음 (긴 기사 순서) */
 const cluster = prepare([

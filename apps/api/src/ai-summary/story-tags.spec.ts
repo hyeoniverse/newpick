@@ -6,8 +6,8 @@ import { LIMITS } from './writer/types';
 import { writerPrompt } from './writer/write-prompt';
 import { prepare } from './article-prep';
 import { parseNewsletterHtml } from './newsletter-parse';
-import { tagStories } from '../edition/personalize';
-import { sectionTags } from '../mypage/highlights.service';
+import { tagStories } from 'src/edition/personalize';
+import { sectionTags } from 'src/mypage/highlights.service';
 
 const story = (heading: string, tags: string[]) => ({
   template: 'brief' as const,

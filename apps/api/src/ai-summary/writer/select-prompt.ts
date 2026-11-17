@@ -1,4 +1,4 @@
-import { kstDayLabel } from '../../common/kst';
+import { kstDayLabel } from 'src/common/kst';
 import {
   Cluster,
   isMorning,

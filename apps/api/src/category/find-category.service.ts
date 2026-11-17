@@ -1,6 +1,6 @@
-import { usageLog } from '../llm/pricing';
+import { usageLog } from 'src/llm/pricing';
 import { Injectable, Logger } from '@nestjs/common';
-import { ClaudeService, CLAUDE_FAST_MODEL } from '../llm/claude.service';
+import { ClaudeService, CLAUDE_FAST_MODEL } from 'src/llm/claude.service';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 
 @Injectable()

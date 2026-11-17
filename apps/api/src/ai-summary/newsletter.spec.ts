@@ -1,4 +1,4 @@
-import { UsageError } from '../llm/pricing';
+import { UsageError } from 'src/llm/pricing';
 import { NewsletterWriterService } from './newsletter-writer.service';
 import {
   clean,
@@ -28,7 +28,7 @@ import {
 } from './article-prep';
 import { renderNewsletterHtml } from './newsletter-html';
 import { AiSummaryService, usedArticles } from './ai-summary.service';
-import { CLAUDE_FAST_MODEL } from '../llm/claude.service';
+import { CLAUDE_FAST_MODEL } from 'src/llm/claude.service';
 
 const written = (
   overrides: Partial<WrittenNewsletter> = {},
