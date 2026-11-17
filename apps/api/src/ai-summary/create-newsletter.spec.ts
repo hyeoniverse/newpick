@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { CreateNewsletterService } from './create-newsletter.service';
 
 describe('CreateNewsletterService', () => {
@@ -10,7 +9,7 @@ describe('CreateNewsletterService', () => {
       },
       highlight: { updateMany: jest.fn().mockResolvedValue({ count: 2 }) },
     };
-    const service = new CreateNewsletterService(prisma as never, new Logger());
+    const service = new CreateNewsletterService(prisma as never);
     return { service, prisma };
   };
   const args: [

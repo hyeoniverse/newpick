@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import { maskEmail, SubscriberService } from './subscriber.service';
 
 /** Prisma 호출을 기록만 하는 가짜 클라이언트. $transaction에 넘어온 작업 목록을 확인합니다. */
@@ -32,7 +31,7 @@ function fakePrisma(user: unknown, categoryIds: number[] = [1, 2, 3]) {
 }
 
 const serviceWith = (prisma: ReturnType<typeof fakePrisma>) =>
-  new SubscriberService(new Logger(), prisma as never);
+  new SubscriberService(prisma as never);
 
 describe('SubscriberService.startSubscription', () => {
   it('이미 구독 중이면 409를 던지고 관심사를 바꾸지 않는다', async () => {

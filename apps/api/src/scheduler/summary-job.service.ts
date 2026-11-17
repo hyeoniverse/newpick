@@ -31,8 +31,9 @@ export class SummaryJobService {
   /** 요약 다시 시도 간격. 테스트에서 0으로 바꾼다 */
   protected summaryRetryDelayMs = SUMMARY_RETRY_DELAY_MS;
 
+  private readonly logger = new Logger(SummaryJobService.name);
+
   constructor(
-    private readonly logger: Logger,
     private readonly mailService: MailService,
     private readonly aiSummaryService: AiSummaryService,
     private readonly crawlingRepository: CrawlingRepository,

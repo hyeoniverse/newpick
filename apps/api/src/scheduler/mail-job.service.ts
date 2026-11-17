@@ -27,8 +27,9 @@ type Subscriber = Awaited<
 export class MailJobService {
   private isMailSendEnabled = true;
 
+  private readonly logger = new Logger(MailJobService.name);
+
   constructor(
-    private readonly logger: Logger,
     private readonly mailService: MailService,
     private readonly subscriberService: SubscriberService,
     private readonly prisma: MysqlPrismaService,

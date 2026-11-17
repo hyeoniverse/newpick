@@ -1,4 +1,3 @@
-import { Logger } from '@nestjs/common';
 import nodemailer from 'nodemailer';
 import { BuiltMail, MailService, Subscriber } from './mail.service';
 
@@ -14,7 +13,6 @@ function setup(sendMail: jest.Mock, createMany = jest.fn()) {
     mailPlan: { create: jest.fn().mockResolvedValue({}) },
   };
   const service = new MailService(
-    new Logger(),
     prisma as never,
     {} as never,
   ) as MailService & { retryBaseDelay: number };
