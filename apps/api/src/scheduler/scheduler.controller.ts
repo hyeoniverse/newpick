@@ -2,6 +2,9 @@ import { JOB_ENDPOINT } from '@newpick/shared';
 import { Controller, Post, Get, Put, Body, Query } from '@nestjs/common';
 import { ScheduleDto } from './dto/schedule.dto';
 import { SchedulerService } from './scheduler.service';
+import { ScheduleConfigService } from './schedule-config.service';
+import { SummaryJobService } from './summary-job.service';
+import { MailJobService } from './mail-job.service';
 import { MailSendCycleDto } from './dto/mail-send-cycle.dto';
 import { ToggleDto } from './dto/toggle.dto';
 import { ManualSummaryDto } from './dto/manual-summary.dto';
@@ -30,6 +33,9 @@ import {
 export class SchedulerController {
   constructor(
     private readonly schedulerService: SchedulerService,
+    private readonly scheduleConfig: ScheduleConfigService,
+    private readonly summaryJob: SummaryJobService,
+    private readonly mailJob: MailJobService,
     private readonly subscriberService: SubscriberService,
     private readonly logger: Logger,
     private readonly mailService: MailService,
@@ -45,7 +51,7 @@ export class SchedulerController {
   getSchedule() {
     return {
       message: '예약 시간 조회 성공',
-      data: this.schedulerService.getSchedule(),
+      data: this.scheduleConfig.getSchedule(),
     };
   }
 
@@ -188,7 +194,7 @@ export class SchedulerController {
   @Post(`toggle/${JOB_ENDPOINT.summary}`)
   toggleAiSummary(@Body() data: ToggleDto) {
     const enable = Boolean(data.enable);
-    this.schedulerService.toggleAiSummaryScheduler(enable);
+    this.summaryJob.toggleAiSummaryScheduler(enable);
     return {
       success: true,
       enabled: enable,
@@ -199,7 +205,7 @@ export class SchedulerController {
   @Post(`toggle/${JOB_ENDPOINT.mail}`)
   toggleMailSend(@Body() data: ToggleDto) {
     const enable = Boolean(data.enable);
-    this.schedulerService.toggleMailSendScheduler(enable);
+    this.mailJob.toggleMailSendScheduler(enable);
     return {
       success: true,
       enabled: enable,
@@ -240,7 +246,7 @@ export class SchedulerController {
     @Body() { date, categoryId, newsletterId }: ManualSummaryDto = {},
   ) {
     // 요약은 한 번에 하나: 도는 중에 누르면 새로 시작하지 않고 그 실행에 합쳐져 버려서, 알려 주고 거절한다
-    if (this.schedulerService.isSummaryRunning()) {
+    if (this.summaryJob.isSummaryRunning()) {
       throw new AppException(
         'BAD_REQUEST',
         'AI 요약이 이미 진행 중입니다. 완료된 후 다시 시도해 주십시오.',
@@ -248,7 +254,7 @@ export class SchedulerController {
     }
     // 다시 쓰기: 그 뉴스레터의 날 · 분야로 (없거나 너무 오래되면 404 · 400)
     if (newsletterId) {
-      const target = await this.schedulerService.regenerateTarget(newsletterId);
+      const target = await this.summaryJob.regenerateTarget(newsletterId);
       this.schedulerService.manualStartAiSummary(
         target.at,
         target.categoryId,
@@ -260,7 +266,7 @@ export class SchedulerController {
       };
     }
     // 날짜가 맞지 않으면 시작하기 전에 400 (앞날 · 기사가 지워진 날)
-    const at = date ? this.schedulerService.backfillMoment(date) : undefined;
+    const at = date ? this.summaryJob.backfillMoment(date) : undefined;
     this.schedulerService.manualStartAiSummary(at, categoryId);
     return {
       success: true,

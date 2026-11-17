@@ -36,10 +36,11 @@ function setup() {
         mail: { running: false },
       },
     }),
-    getSchedule: jest.fn().mockReturnValue({}),
   };
+  const scheduleConfig = { getSchedule: jest.fn().mockReturnValue({}) };
   const service = new DashboardService(
     scheduler as never,
+    scheduleConfig as never,
     prisma as never,
     crawling as never,
   );

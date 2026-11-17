@@ -1,250 +1,75 @@
-import type {
-  ClockTime,
-  JobName,
-  JobRun,
-  JobTrigger,
-  Schedule,
-} from '@newpick/shared';
-import { FollowsService } from 'src/follows/follows.service';
-import {
-  MailPlan,
-  planMail,
-  TAG_LIMITS,
-  tagStories,
-} from 'src/edition/personalize';
-import { TasteService } from 'src/taste/taste.service';
-import { RecommendService } from 'src/recommend/recommend.service';
-import { storyRef } from 'src/edition/editor';
+import type { Schedule } from '@newpick/shared';
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { MailService } from 'src/mail/mail.service';
-import { AiSummaryService } from 'src/ai-summary/ai-summary.service';
-import { CrawlingService } from 'src/crawling/crawling.service';
-import { CrawlingRepository } from 'src/crawling/crawling.repository';
-import { SubscriberService } from 'src/subscriber/subscriber.service';
-import { KST, kstDayRange, kstTimeOf, toKstDate } from 'src/common/kst';
-import { MysqlPrismaService } from 'prisma/mysql.service';
-import { CategoryRepository } from 'src/category/category.repository';
-import { NewsletterRepo } from 'src/repository/newsletter.repository';
 import { CronJob, CronTime } from 'cron';
-import { EVERY_DAY, crawlCron, dailyCron, mailCron } from 'src/common/cron';
-import { EditionService } from 'src/edition/edition.service';
-import { SiteCacheService } from 'src/site-cache/site-cache.service';
-import { AppException } from 'src/common/errors/app.exception';
+import { crawlCron, dailyCron, mailCron } from 'src/common/cron';
+import { KST } from 'src/common/kst';
+import { CrawlingService } from 'src/crawling/crawling.service';
 import { env } from '../config/env';
-/** schedule_configs에서 메일 발송 주기를 저장하는 행 */
-const MAIL_CYCLE_CONFIG_ID = 1;
+import { JobRunsService } from './job-runs.service';
+import { MailJobService } from './mail-job.service';
+import { ScheduleConfigService } from './schedule-config.service';
+import { SummaryJobService } from './summary-job.service';
+
 const MAIL_JOB_NAME = 'sendNewsletter';
 const CRAWL_JOB_NAME = 'startCrawling';
 const SUMMARY_JOB_NAME = 'makeAiSummary';
 
-/** 예약 작업 시간 (#21). 메일은 요일도: 0(일)~6(토), 7 매일 */
-// 예약 시각 타입은 @newpick/shared (웹 시간 설정과 같다)
-export type { ClockTime, Schedule };
-
-/** 저장한 적이 없을 때: 수집 08:00 → AI 요약 08:30 → 메일 매일 08:40 */
-export const DEFAULT_SCHEDULE: Schedule = {
-  crawl: { hour: 8, minute: 0 },
-  summary: { hour: 8, minute: 30 },
-  mail: { hour: 8, minute: 40, day: EVERY_DAY },
-};
-
-/** 요약에 실패한 관심사를 다시 시도하는 횟수 · 간격 (스트리밍으로 시간 초과는 줄었지만, 과부하 · 일시 오류 대비) */
-export const SUMMARY_RETRIES = 2;
-const SUMMARY_RETRY_DELAY_MS = 60 * 1000;
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/** 추천 기사 등에서 '오늘 기사'로 보는 범위 (시간) */
-export const SUMMARY_WINDOW_HOURS = 24;
-/** 오늘 아침 속보의 시작 시각 (KST). 이 시각부터 마지막 수집(08:00)까지 보도된 기사는 뉴스레터 맨 위에 따로 싣는다 */
-export const MORNING_START_HOUR = 5;
-
 /**
- * AI 요약에 쓰는 기사 범위: 어제 수집 시각(08:00)부터 지금까지 처음 모은 것.
- * 그 가운데 오늘 MORNING_START_HOUR 이후 보도는 '오늘 아침 속보', 나머지(어제 낮~밤)는 본문 소식
+ * 예약 작업 조립 (#21): 수집 · AI 요약 · 메일을 cron에 걸고, 시각을 바꾸면 다시 건다. 상태 모으기 · '지금 실행'.
+ * 작업 내용은 summary-job · mail-job, 실행 기록은 job-runs, 예약 시각 저장은 schedule-config
  */
-export const summaryWindow = (crawl: ClockTime, now = new Date()) => ({
-  start: kstTimeOf(crawl.hour, crawl.minute, now, 1),
-  end: now,
-  morningSince: kstTimeOf(MORNING_START_HOUR, 0, now),
-});
-const minutesOf = ({ hour, minute }: ClockTime) => hour * 60 + minute;
-
-/** 모은 기사가 남아 있는 날수 (MongoDB TTL 30일). 그보다 오래된 날은 다시 만들 재료가 없다 */
-export const BACKFILL_MAX_DAYS = 29;
-
-/**
- * 지난 날짜(YYYY-MM-DD, KST)를 다시 만들 때 그날의 발행 시각: 그날 예약된 요약 시각.
- * 오늘 · 앞날, 기사가 남아 있지 않은 날이면 거절한다
- */
-export const backfillAt = (
-  date: string,
-  summary: ClockTime,
-  now = new Date(),
-): Date => {
-  const today = toKstDate(now);
-  if (date >= today) {
-    throw new AppException(
-      'BAD_REQUEST',
-      '지난 날짜만 다시 생성할 수 있습니다.',
-    );
-  }
-  const oldest = toKstDate(
-    new Date(now.getTime() - BACKFILL_MAX_DAYS * 24 * 60 * 60 * 1000),
-  );
-  if (date < oldest) {
-    throw new AppException(
-      'BAD_REQUEST',
-      `수집한 기사는 ${BACKFILL_MAX_DAYS}일 동안만 보관하므로 ${oldest}부터 다시 생성할 수 있습니다.`,
-    );
-  }
-  return kstTimeOf(
-    summary.hour,
-    summary.minute,
-    new Date(`${date}T12:00:00+09:00`),
-  );
-};
-
-// 작업 이름 · 실행 상태는 @newpick/shared (웹 대시보드와 같은 타입)
-export type { JobName, JobRun, JobTrigger };
-
-const emptyRun = (): JobRun => ({
-  running: false,
-  trigger: null,
-  startedAt: null,
-  finishedAt: null,
-  status: null,
-  message: null,
-});
-
 @Injectable()
 export class SchedulerService implements OnApplicationBootstrap {
   private isCrawlingEnabled = true;
-  private isAiSummaryEnabled = true;
-  private isMailSendEnabled = true;
-  /** 진행 중인 뉴스레터 생성. 메일 발송은 이것이 끝나기를 기다린다 (#55) */
-  private summaryRun: Promise<void> | null = null;
-  private readonly runs: Record<JobName, JobRun> = {
-    crawling: emptyRun(),
-    summary: emptyRun(),
-    mail: emptyRun(),
-  };
-  /** 다음 실행이 관리자의 '지금 실행'인지 (예약 실행이 기본) */
-  private readonly nextTrigger: Partial<Record<JobName, JobTrigger>> = {};
-  /** 진행 중인 실행의 DB 기록 id (끝날 때 같은 줄을 고친다) */
-  private readonly runRecord: Partial<Record<JobName, Promise<number | null>>> =
-    {};
-  private schedule: Schedule = DEFAULT_SCHEDULE;
   /**
    * 예약 시각에 저절로 돌릴지. SCHEDULER_ENABLED=false면 등록만 하고 시작하지 않는다 ('지금 실행'은 된다).
    * 로컬 개발 서버가 운영과 따로 Claude를 부르고(비용) 로컬 구독자에게 실제 메일을 보내지 않게
    */
   private readonly autoRun = env.schedulerEnabled;
-  /** 요약 다시 시도 간격. 테스트에서 0으로 바꾼다 */
-  protected summaryRetryDelayMs = SUMMARY_RETRY_DELAY_MS;
+
   constructor(
     private readonly logger: Logger,
-    private readonly mailService: MailService,
-    private readonly aiSummaryService: AiSummaryService,
     private readonly crawlingService: CrawlingService,
-    private readonly subscriberService: SubscriberService,
-    private readonly crawlingRepository: CrawlingRepository,
-    private readonly categoryRepository: CategoryRepository,
-    private readonly newsletterRepository: NewsletterRepo,
     private schedulerRegistry: SchedulerRegistry,
-    private readonly prisma: MysqlPrismaService,
-    private readonly editionService: EditionService,
-    private readonly followsService: FollowsService,
-    private readonly tasteService: TasteService,
-    private readonly recommendService: RecommendService,
-    private readonly siteCache: SiteCacheService,
+    private readonly scheduleConfig: ScheduleConfigService,
+    private readonly jobRuns: JobRunsService,
+    private readonly summaryJob: SummaryJobService,
+    private readonly mailJob: MailJobService,
   ) {}
 
   /**
    * 예약 작업(수집 · AI 요약 · 메일)을 등록합니다. 관리자가 바꿔 둔 시간이 DB에 있으면 그 값을 씁니다 (#21).
    * 데코레이터(@Cron)는 시간이 코드에 박혀 바꿀 수 없어, 세 작업 모두 직접 등록합니다
    */
-  /**
-   * 서버가 다시 시작되면 진행 중이던 작업은 이미 멈췄다. DB에 '진행 중'으로 남은 기록을 실패로 닫는다
-   * (그대로 두면 대시보드가 계속 진행 중으로 보고 '지금 실행'을 막았다. 배포 중에 요약이 돌면 생긴다)
-   */
-  async closeInterruptedRuns() {
-    const { count } = await this.prisma.jobRun.updateMany({
-      where: { status: 'running' },
-      data: {
-        status: 'failed',
-        finishedAt: new Date(),
-        message: '서버가 다시 시작되어 중단되었습니다.',
-      },
-    });
-    if (count) this.logger.warn(`중단된 작업 기록 ${count}건을 실패로 닫음`);
-  }
-
   async onApplicationBootstrap() {
-    await this.closeInterruptedRuns().catch((error) =>
-      this.logger.warn(`중단된 작업 기록 정리 실패: ${error.message}`),
-    );
-    const config = await this.prisma.scheduleConfig.findUnique({
-      where: { id: MAIL_CYCLE_CONFIG_ID },
-    });
-    if (config) {
-      this.schedule = {
-        crawl: { hour: config.crawlHour, minute: config.crawlMinute },
-        summary: { hour: config.summaryHour, minute: config.summaryMinute },
-        mail: { hour: config.hour, minute: config.mailMinute, day: config.day },
-      };
-    }
+    await this.jobRuns
+      .closeInterruptedRuns()
+      .catch((error) =>
+        this.logger.warn(`중단된 작업 기록 정리 실패: ${error.message}`),
+      );
+    const schedule = await this.scheduleConfig.load();
     const add = (name: string, cronTime: string, onTick: () => Promise<void>) =>
       this.schedulerRegistry.addCronJob(
         name,
         CronJob.from({ cronTime, timeZone: KST, onTick, start: this.autoRun }),
       );
-    add(CRAWL_JOB_NAME, crawlCron(this.schedule.crawl), () =>
-      this.startCrawling(),
+    add(CRAWL_JOB_NAME, crawlCron(schedule.crawl), () => this.startCrawling());
+    add(SUMMARY_JOB_NAME, dailyCron(schedule.summary), () =>
+      this.summaryJob.makeAiSummary(),
     );
-    add(SUMMARY_JOB_NAME, dailyCron(this.schedule.summary), () =>
-      this.makeAiSummary(),
-    );
-    const { hour, minute, day } = this.schedule.mail;
+    const { hour, minute, day } = schedule.mail;
     add(MAIL_JOB_NAME, mailCron(hour, day, minute), () =>
-      this.sendEmailSummary(),
+      this.mailJob.sendEmailSummary(),
     );
-    this.logger.log(`예약 시간: ${JSON.stringify(this.schedule)} (${KST})`);
-  }
-
-  getSchedule(): Schedule {
-    return structuredClone(this.schedule);
+    this.logger.log(`예약 시간: ${JSON.stringify(schedule)} (${KST})`);
   }
 
   /**
-   * 예약 시간 바꾸기 (#21). 수집 → AI 요약 → 메일 순서여야 한다:
-   * 요약은 그날 수집한 기사로, 메일은 그날 요약으로 만든다. DB에 저장하고 바로 다시 건다
+   * 예약 시간 바꾸기 (#21). 순서 검사 · 저장은 ScheduleConfigService, 여기서는 세 작업을 바로 다시 건다
    */
   async setSchedule(next: Schedule) {
-    const [crawl, summary, mail] = [next.crawl, next.summary, next.mail].map(
-      minutesOf,
-    );
-    if (!(crawl < summary && summary < mail)) {
-      throw new AppException(
-        'BAD_REQUEST',
-        '기사 수집 → AI 요약 → 구독 메일 순서로, 앞 작업보다 늦은 시각을 선택해 주십시오.',
-      );
-    }
-    const data = {
-      crawlHour: next.crawl.hour,
-      crawlMinute: next.crawl.minute,
-      summaryHour: next.summary.hour,
-      summaryMinute: next.summary.minute,
-      hour: next.mail.hour,
-      mailMinute: next.mail.minute,
-      day: next.mail.day,
-    };
-    await this.prisma.scheduleConfig.upsert({
-      where: { id: MAIL_CYCLE_CONFIG_ID },
-      create: { id: MAIL_CYCLE_CONFIG_ID, ...data },
-      update: data,
-    });
-    this.schedule = structuredClone(next);
+    await this.scheduleConfig.save(next);
     this.reschedule(CRAWL_JOB_NAME, crawlCron(next.crawl));
     this.reschedule(SUMMARY_JOB_NAME, dailyCron(next.summary));
     this.reschedule(
@@ -252,7 +77,7 @@ export class SchedulerService implements OnApplicationBootstrap {
       mailCron(next.mail.hour, next.mail.day, next.mail.minute),
     );
     this.logger.log(`예약 시간 변경: ${JSON.stringify(next)} (${KST})`);
-    return this.getSchedule();
+    return this.scheduleConfig.getSchedule();
   }
 
   private reschedule(name: string, cronTime: string) {
@@ -264,446 +89,27 @@ export class SchedulerService implements OnApplicationBootstrap {
   async startCrawling() {
     if (!this.isCrawlingEnabled) {
       this.logger.log('크롤링 스케줄러가 비활성화되었습니다.');
-      this.finishRun('crawling', 'skipped', '스케줄러가 꺼져 있어 건너뜀');
+      this.jobRuns.finishRun(
+        'crawling',
+        'skipped',
+        '스케줄러가 꺼져 있어 건너뜀',
+      );
       return;
     }
 
     this.logger.debug(`크롤링 스케줄러가 활성화되었습니다.`);
-    this.startRun('crawling');
+    this.jobRuns.startRun('crawling');
     try {
       const created = await this.crawlingService.crawling();
-      this.finishRun(
+      this.jobRuns.finishRun(
         'crawling',
         'success',
         `기사 ${created?.length ?? 0}건 수집`,
       );
     } catch (error) {
-      this.finishRun('crawling', 'failed', error.message);
+      this.jobRuns.finishRun('crawling', 'failed', error.message);
       throw error;
     }
-  }
-  /**
-   * AI 요약 (예약 시간은 setSchedule로). at을 주면 그날을 다시 만들고(지난 날짜),
-   * categoryId를 주면 그 분야만 (AI 기록에서 실패한 줄 다시 실행),
-   * replaceId를 주면 새로 만들지 않고 그 뉴스레터를 다시 쓴다 (관리자 '다시 쓰기', 그날 · 그 분야로)
-   */
-  async makeAiSummary(at?: Date, categoryId?: number, replaceId?: number) {
-    if (this.summaryRun) return this.summaryRun;
-    this.summaryRun = this.runAiSummary(at, categoryId, replaceId).finally(
-      () => {
-        this.summaryRun = null;
-      },
-    );
-    return this.summaryRun;
-  }
-
-  private async runAiSummary(
-    at?: Date,
-    categoryId?: number,
-    replaceId?: number,
-  ) {
-    // 지난 날짜 다시 만들기: 그날 기사로 그날 발행. 이미 있는 분야는 건너뛰고, 메일 편집 · 후속 판정 · 알림 메일은 하지 않는다
-    const backfill = at ? toKstDate(at) : null;
-    this.logger.debug(
-      backfill ? `AI 요약 시작 (${backfill} 다시 만들기)` : 'AI 요약 시작',
-    );
-
-    if (!this.isAiSummaryEnabled) {
-      this.logger.log('ai 요약 스케줄러가 비활성화되었습니다.');
-      this.finishRun('summary', 'skipped', '스케줄러가 꺼져 있어 건너뜀');
-      return;
-    }
-    this.startRun('summary');
-
-    try {
-      const categoryList = (await this.categoryRepository.findAll()).filter(
-        (category) => !categoryId || category.id === categoryId,
-      );
-      const generatedNewsletter = [];
-      // 그날의 뉴스만: 어제 수집 시각부터 지금까지 처음 모은 기사 (예전엔 지난 7일 전부라 지난 소식이 다시 실렸다)
-      const {
-        start: startDate,
-        end: endDate,
-        morningSince,
-      } = summaryWindow(this.schedule.crawl, at);
-      // 그날 이미 뉴스레터가 있는 분야는 건너뛴다: 일부만 실패해 다시 실행하면 된 분야까지 또 만들어 같은 날 두 편이 됐다
-      const day = backfill ?? toKstDate(new Date());
-      const { start: dayStart, end: dayEnd } = kstDayRange(day, day);
-      const done = new Set(
-        (
-          await this.prisma.newsletter.findMany({
-            where: { createdAt: { gte: dayStart, lte: dayEnd } },
-            select: { categoryId: true },
-          })
-        ).map((row) => row.categoryId),
-      );
-
-      // 관심사 하나 요약: 만들었으면 true, 요약할 뉴스가 없으면 null, 실패하면 오류를 던진다
-      const summarize = async (category: { id: number; name: string }) => {
-        // 다시 쓰기는 이미 있는 그 뉴스레터를 바꾸는 것이라 건너뛰지 않는다
-        if (!replaceId && done.has(category.id)) {
-          this.logger.log(
-            `카테고리 ${category.name}: ${day}에 이미 있어 건너뜀`,
-          );
-          return null;
-        }
-        const news = await this.crawlingRepository.getCrawledNewsBetween(
-          startDate,
-          endDate,
-          category.id,
-        );
-        if (news.length === 0) {
-          this.logger.warn(`카테고리 ${category.name}: 요약할 뉴스 없음`);
-          return null;
-        }
-        const newsletter = await this.aiSummaryService.summarizeText(
-          news,
-          category.id,
-          false,
-          morningSince,
-          at,
-          replaceId,
-        );
-        // 만든 뉴스레터 한 편 (예전엔 배열로 보고 길이를 봐서 늘 0편이었다: 캐시 새로 고침 · 후속 판정 · 알림도 건너뜀)
-        if (newsletter.newsletter)
-          generatedNewsletter.push(newsletter.newsletter);
-        this.logger.log(
-          `카테고리 ${category.name}: 뉴스 ${news.length}건 요약`,
-        );
-        return true;
-      };
-
-      // 카테고리 하나가 실패해도 나머지 카테고리는 계속 요약합니다.
-      let failed: { id: number; name: string }[] = [];
-      for (const category of categoryList) {
-        try {
-          await summarize(category);
-        } catch (error) {
-          failed.push(category);
-          this.logger.error(
-            `카테고리 ${category.name} 요약 실패: ${error.message}`,
-          );
-        }
-      }
-
-      // 실패한 관심사는 나머지를 다 만든 뒤 잠시 쉬었다가 다시 시도한다 (일시적인 시간 초과 · 과부하 대비)
-      let retried = 0;
-      for (let round = 1; round <= SUMMARY_RETRIES && failed.length; round++) {
-        await sleep(this.summaryRetryDelayMs);
-        this.logger.warn(
-          `요약 다시 시도 ${round}/${SUMMARY_RETRIES}: ${failed.map((c) => c.name).join(', ')}`,
-        );
-        const still: typeof failed = [];
-        for (const category of failed) {
-          try {
-            if (await summarize(category)) retried++;
-          } catch (error) {
-            still.push(category);
-            this.logger.error(
-              `카테고리 ${category.name} 다시 시도 실패: ${error.message}`,
-            );
-          }
-        }
-        failed = still;
-      }
-      const failedCategories = failed.map((c) => c.name);
-      if (failedCategories.length) {
-        this.logger.error(`요약 실패 카테고리: ${failedCategories.join(', ')}`);
-      }
-      const scope = [
-        replaceId && `#${replaceId}`,
-        backfill,
-        categoryId && categoryList[0]?.name,
-      ]
-        .filter(Boolean)
-        .join(' ');
-      const skipped = replaceId
-        ? 0
-        : categoryList.filter((c) => done.has(c.id)).length;
-      const made = replaceId
-        ? `${scope} 다시 쓰기: ${generatedNewsletter.length ? '바꿈' : '바꾸지 못함'}`
-        : `${scope ? `${scope} 다시 만들기: ` : ''}뉴스레터 ${generatedNewsletter.length}편 생성` +
-          (skipped ? ` · 이미 있어 건너뜀 ${skipped}` : '');
-      const again = retried ? ` · 다시 시도로 ${retried}편` : '';
-      const failedText = failedCategories.length
-        ? ` · 실패: ${failedCategories.join(', ')}`
-        : '';
-      this.finishRun(
-        'summary',
-        failedCategories.length === 0
-          ? 'success'
-          : generatedNewsletter.length > 0
-            ? 'partial'
-            : 'failed',
-        made + again + failedText,
-      );
-
-      // 새 글이 생겼으면 사이트 첫 화면·목록이 10분 기다리지 않고 바로 보여 주게 (#73)
-      if (backfill) {
-        if (generatedNewsletter.length > 0) {
-          await this.siteCache.refresh('지난 날짜 뉴스레터 생성');
-        }
-        return;
-      }
-
-      // 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
-      await this.editionService.ensureEdition();
-
-      // 후속 지켜보기: 오늘 소식이 누군가 지켜보는 소식의 후속인지 판정 (실패해도 요약은 끝난 것)
-      if (generatedNewsletter.length > 0) {
-        await this.followsService
-          .detect()
-          .catch((error) =>
-            this.logger.warn(`후속 지켜보기 판정 실패: ${error.message}`),
-          );
-      }
-
-      // 새 글이 생겼으면 사이트 첫 화면·목록이 10분 기다리지 않고 바로 보여 주게 (#73)
-      if (generatedNewsletter.length > 0) {
-        await this.siteCache.refresh('뉴스레터 생성');
-      }
-
-      // 운영자 알림 메일은 ADMIN_NOTIFY_EMAIL이 설정된 경우에만 보냅니다.
-      const adminEmail = env.adminNotifyEmail;
-      if (adminEmail && generatedNewsletter.length > 0) {
-        await this.mailService.sendHtmlMail(
-          adminEmail,
-          '',
-          generatedNewsletter.map((n) => n.content).join('\n\n'),
-          `${generatedNewsletter.length}개의 뉴스레터가 생성되었습니다`,
-        );
-        this.logger.log(`생성 뉴스 수 : ${generatedNewsletter.length}`);
-        this.logger.log('메일 발송 완료');
-      }
-    } catch (error) {
-      this.logger.error(`AI 요약 실패: ${error.message}`);
-      // 뉴스레터는 이미 만들어졌고 뒤의 편집 · 캐시 · 알림에서 실패했을 수도 있어 실패로 덮어쓴다
-      this.finishRun('summary', 'failed', error.message);
-    }
-  }
-
-  /**
-   * 구독 메일 발송 (기본: 매일 08:40 KST). cron 등록은 onApplicationBootstrap에서 합니다.
-   * 구독자마다 고른 분야로 오늘 소식을 엮은 한 통을 보냅니다 (#55)
-   */
-  async sendEmailSummary() {
-    if (!this.isMailSendEnabled) {
-      this.logger.log('메일 발송 스케줄러가 비활성화되었습니다.');
-      this.finishRun('mail', 'skipped', '스케줄러가 꺼져 있어 건너뜀');
-      return;
-    }
-    this.startRun('mail');
-    try {
-      await this.sendEditionToSubscribers();
-    } catch (error) {
-      this.finishRun('mail', 'failed', error.message);
-      throw error;
-    }
-  }
-
-  private async sendEditionToSubscribers() {
-    // 생성이 늦어지면 끝난 뒤에 보낸다 (빠진 분야 없이)
-    if (this.summaryRun) {
-      this.logger.log('뉴스레터 생성이 끝나기를 기다립니다.');
-      await this.summaryRun;
-    }
-
-    const subscribers = await this.subscriberService.getSubscribers();
-    this.logger.debug(`구독자 수: ${subscribers.length}`);
-
-    // cron 안에서 예외를 던지면 받는 곳이 없으므로 로그만 남깁니다.
-    if (subscribers.length === 0) {
-      this.logger.warn('구독자가 없습니다.');
-      this.finishRun('mail', 'skipped', '구독자 없음');
-      return;
-    }
-
-    // 관심사가 설정된 구독자만 필터링
-    const validSubscribers = subscribers.filter(
-      (subscriber) => subscriber.interests && subscriber.interests.length > 0,
-    );
-
-    if (validSubscribers.length === 0) {
-      this.logger.warn('관심사가 설정된 구독자가 없습니다.');
-      this.finishRun('mail', 'skipped', '관심사를 고른 구독자 없음');
-      return;
-    }
-
-    // 오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)
-    const edition = await this.editionService.ensureEdition();
-    if (!edition) {
-      this.logger.warn('오늘 나온 뉴스레터가 없어 메일을 보내지 않습니다.');
-      this.finishRun('mail', 'skipped', '오늘 나온 뉴스레터 없음');
-      return;
-    }
-
-    // 맞춤 메일 (#123 3단계): 구독자 모두의 취향을 한 번에 계산 (AI 호출 없음). 실패하면 맞춤 없이 그대로 보낸다.
-    // 맞춤을 끈 사람(#123 16)은 빼서 분야별 메일을 받게 한다
-    const personalIds = await this.personalMailUsers(
-      validSubscribers
-        .map((s) => s.userId)
-        .filter((id): id is number => typeof id === 'number'),
-    );
-    const profiles = await this.tasteService
-      .profiles(personalIds)
-      .catch((error) => {
-        this.logger.warn(
-          `맞춤 취향 계산 실패, 맞춤 없이 보냄: ${error.message}`,
-        );
-        return new Map();
-      });
-
-    // 관심 점수는 뜻으로 (북마크 · 스크랩과 오늘 소식의 임베딩). 실패하면 관심 태그로만
-    const texts = await this.tasteService
-      .signalTexts([...profiles.keys()])
-      .catch(() => new Map());
-    const vectors = await this.editionService.embedForPlans(
-      edition,
-      profiles,
-      texts,
-    );
-
-    // 사람마다: 분야를 나누지 않고 점수 높은 소식을 고르고(계산), 오픈 모델로 제목 · 맞춤 브리핑을 쓴다.
-    // 글쓰기는 3명씩 동시에. 못 쓰면 그 사람은 맞춤 순서만 있는 메일
-    const plans = new Map<number, MailPlan | null>();
-    const planned = validSubscribers.filter(
-      (s) => typeof s.userId === 'number' && profiles.has(s.userId),
-    );
-    for (let i = 0; i < planned.length; i += 3) {
-      await Promise.all(
-        planned.slice(i, i + 3).map(async (subscriber) => {
-          const profile = profiles.get(subscriber.userId!)!;
-          const plan = planMail(
-            edition.sources,
-            subscriber.interests,
-            profile,
-            vectors,
-            edition.editorial,
-          );
-          if (plan)
-            plan.note = await this.editionService.writeNote(
-              edition,
-              subscriber.interests,
-              plan,
-              profile,
-            );
-          plans.set(subscriber.userId!, plan);
-        }),
-      );
-    }
-    if (planned.length) {
-      const notes = [...plans.values()].filter((p) => p?.note).length;
-      this.logger.log(`맞춤 메일 ${plans.size}명 (사람마다 쓴 글 ${notes}명)`);
-    }
-
-    // 추천 기사: 맞춤 계획에 쓴 신호 임베딩 그대로, 그날 뉴스레터 재료와 같은 창에서 뉴스레터에 안 쓴 기사.
-    // 맞춤으로 고른 소식이 없는 사람도 추천 기사만 붙는다 (분야별 메일 + 추천 기사)
-    const now = new Date();
-    const recommended = await this.recommendService.forUsers(
-      planned.map((s) => {
-        // 그 사람 메일에 실린 소식: 맞춤이면 고른 소식, 아니면 구독 분야 소식 전부
-        const refs =
-          plans.get(s.userId!)?.picks.map((p) => p.ref) ??
-          edition.sources
-            .filter((source) => s.interests.includes(source.categoryId))
-            .flatMap((source) =>
-              source.stories.map((_, i) => storyRef(source.newsletterId, i)),
-            );
-        return {
-          userId: s.userId!,
-          signals: profiles.get(s.userId!)?.signals ?? [],
-          shown: refs
-            .map((ref) => vectors.get(ref))
-            .filter((v): v is number[] => !!v),
-        };
-      }),
-      {
-        start: new Date(now.getTime() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000),
-        end: now,
-      },
-      edition.sources.map((s) => s.newsletterId),
-    );
-    for (const [userId, articles] of recommended)
-      plans.set(userId, { ...(plans.get(userId) ?? { picks: [] }), articles });
-
-    // 지켜보던 소식의 후속 (메일 맨 위): 직접 고른 지켜보기라 맞춤을 꺼도 싣는다. 지난 메일 이후(24시간)에 생긴 것.
-    // 읽기에 실패하면 후속 칸 없이 보낸다
-    const followUps = await this.followsService
-      .forMail(
-        validSubscribers
-          .map((s) => s.userId)
-          .filter((id): id is number => typeof id === 'number'),
-        new Date(Date.now() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000),
-      )
-      .catch((error) => {
-        this.logger.warn(`후속 읽기 실패, 후속 칸 없이 보냄: ${error.message}`);
-        return new Map();
-      });
-    for (const [userId, follows] of followUps)
-      plans.set(userId, { ...(plans.get(userId) ?? { picks: [] }), follows });
-    // 팔로우한 태그 칸 (#123 5단계): 직접 고른 것이라 맞춤을 꺼도 싣는다. 태그마다 그날 소식 · 뉴스레터에 안 실린 기사.
-    // 맞춤 순서(오늘을 한눈에)에는 섞지 않는다. 읽기에 실패하면 이 칸 없이
-    const accountIds = validSubscribers
-      .map((s) => s.userId)
-      .filter((id): id is number => typeof id === 'number');
-    const followedTags = await this.tasteService
-      .tagFollows(accountIds)
-      .catch(() => new Map<number, { name: string; key: string }[]>());
-    const tagArticleMap = await this.recommendService.forTags(
-      [...followedTags].map(([userId, tags]) => ({ userId, tags })),
-      {
-        start: new Date(now.getTime() - SUMMARY_WINDOW_HOURS * 60 * 60 * 1000),
-        end: now,
-      },
-      edition.sources.map((s) => s.newsletterId),
-    );
-    for (const [userId, tags] of followedTags) {
-      const stories = tagStories(edition.sources, tags);
-      const articles = tagArticleMap.get(userId);
-      const news = tags
-        .map((t) => ({
-          tag: t.name,
-          stories: stories.get(t.name) ?? [],
-          articles: articles?.get(t.name) ?? [],
-        }))
-        .filter((t) => t.stories.length || t.articles.length)
-        .slice(0, TAG_LIMITS.tags);
-      if (news.length)
-        plans.set(userId, {
-          ...(plans.get(userId) ?? { picks: [] }),
-          tags: news,
-        });
-    }
-
-    const result = await this.mailService.sendBulkMail(
-      validSubscribers.map((subscriber) => ({
-        email: subscriber.email,
-        interests: subscriber.interests,
-        name: subscriber.name,
-        userId: subscriber.userId,
-      })),
-      // 사람마다 원클릭 해지(#18)를 붙여 만든다
-      (subscriber) =>
-        this.editionService.composeMail(
-          edition,
-          subscriber.interests,
-          subscriber.userId,
-          subscriber.userId !== undefined ? plans.get(subscriber.userId) : null,
-        ),
-    );
-
-    this.logger.log(
-      `발송 결과 ${result.success}건 성공, ${result.failed}건 실패, ${result.skipped}건 해당 없음`,
-    );
-    this.finishRun(
-      'mail',
-      result.failed === 0
-        ? 'success'
-        : result.success > 0
-          ? 'partial'
-          : 'failed',
-      `성공 ${result.success} · 실패 ${result.failed} · 해당 없음 ${result.skipped}`,
-    );
   }
 
   toggleCrawlingScheduler(enable: boolean) {
@@ -711,150 +117,25 @@ export class SchedulerService implements OnApplicationBootstrap {
     this.logger.debug(this.isCrawlingEnabled ? '활성화' : '비활성화');
   }
 
-  toggleAiSummaryScheduler(enable: boolean) {
-    this.isAiSummaryEnabled = enable;
-    this.logger.debug(this.isAiSummaryEnabled ? '활성화' : '비활성화');
-  }
-
-  toggleMailSendScheduler(enable: boolean) {
-    this.isMailSendEnabled = enable;
-    this.logger.debug(this.isMailSendEnabled ? '활성화' : '비활성화');
-  }
-
   getSchedulerStatus() {
     return {
       autoRun: this.autoRun,
       crawling: this.isCrawlingEnabled,
-      aiSummary: this.isAiSummaryEnabled,
-      mailing: this.isMailSendEnabled,
+      aiSummary: this.summaryJob.enabled,
+      mailing: this.mailJob.enabled,
       mailSendCycle: this.getMailSendCycle(),
-      runs: this.getRuns(),
+      runs: this.jobRuns.getRuns(),
     };
-  }
-
-  /** 작업별 마지막 실행 (복사본) */
-  getRuns(): Record<JobName, JobRun> {
-    return {
-      crawling: { ...this.runs.crawling },
-      summary: { ...this.runs.summary },
-      mail: { ...this.runs.mail },
-    };
-  }
-
-  /** 이번 실행이 예약인지 '지금 실행'인지 (한 번 쓰면 비운다) */
-  private takeTrigger(name: JobName): JobTrigger {
-    const trigger = this.nextTrigger[name] ?? 'schedule';
-    delete this.nextTrigger[name];
-    return trigger;
-  }
-
-  private startRun(name: JobName) {
-    const startedAt = new Date();
-    const trigger = this.takeTrigger(name);
-    this.runs[name] = {
-      ...emptyRun(),
-      running: true,
-      trigger,
-      startedAt: startedAt.toISOString(),
-    };
-    // DB에도 '진행 중'으로 남기고, 끝나면 같은 줄을 고친다. 기록이 실패해도 작업은 계속한다
-    this.runRecord[name] = Promise.resolve()
-      .then(() =>
-        this.prisma.jobRun.create({
-          data: { job: name, trigger, status: 'running', startedAt },
-          select: { id: true },
-        }),
-      )
-      .then((row) => row.id)
-      .catch((error) => {
-        this.logger.warn(`실행 기록 실패 (${name}): ${error.message}`);
-        return null;
-      });
-  }
-
-  private finishRun(name: JobName, status: JobRun['status'], message: string) {
-    const run = this.runs[name];
-    const finishedAt = new Date();
-    // 꺼져 있어 바로 건너뛴 경우는 시작 시각도 지금
-    const startedAt = run.running ? new Date(run.startedAt) : finishedAt;
-    const trigger = run.running ? run.trigger : this.takeTrigger(name);
-    this.runs[name] = {
-      running: false,
-      trigger,
-      startedAt: startedAt.toISOString(),
-      finishedAt: finishedAt.toISOString(),
-      status,
-      message,
-    };
-
-    const data = {
-      status,
-      message,
-      finishedAt,
-      durationMs: finishedAt.getTime() - startedAt.getTime(),
-    };
-    const recordId = run.running ? this.runRecord[name] : undefined;
-    delete this.runRecord[name];
-    void (async () => {
-      try {
-        const id = recordId ? await recordId : null;
-        if (id) await this.prisma.jobRun.update({ where: { id }, data });
-        else
-          await this.prisma.jobRun.create({
-            data: {
-              job: name,
-              trigger: trigger ?? 'schedule',
-              startedAt,
-              ...data,
-            },
-          });
-      } catch (error) {
-        this.logger.warn(`실행 기록 실패 (${name}): ${error.message}`);
-      }
-    })();
   }
 
   /** 메일 발송 주기 변경. DB에 저장해 재시작 후에도 유지합니다. hour: 0~23(그 시각 40분), day: 0(일)~6(토), 7: 매일 */
   async setMailSendCycle(hour: number, day: number) {
+    const schedule = this.scheduleConfig.getSchedule();
     await this.setSchedule({
-      ...this.schedule,
-      mail: { ...this.schedule.mail, hour, day },
+      ...schedule,
+      mail: { ...schedule.mail, hour, day },
     });
     return this.getMailSendCycle();
-  }
-
-  /**
-   * 다시 만들 날(YYYY-MM-DD)의 발행 시각. 오늘이면 undefined(평소처럼 지금 실행),
-   * 지난 날짜면 그날 요약 시각. 앞날 · 기사가 지워진 날은 여기서 바로 거절 (요청에 400)
-   */
-  backfillMoment(date: string) {
-    if (date === toKstDate(new Date())) return undefined;
-    return backfillAt(date, this.schedule.summary);
-  }
-
-  /** AI 요약이 도는 중인가 (예약 · 지금 실행 · 다시 만들기 모두) */
-  isSummaryRunning() {
-    return this.summaryRun !== null;
-  }
-
-  /**
-   * 다시 쓸 뉴스레터의 그날 · 분야. 모은 기사가 지워진(BACKFILL_MAX_DAYS일 넘은) 뉴스레터는 다시 쓸 재료가 없어 거절
-   */
-  async regenerateTarget(newsletterId: number) {
-    const newsletter = await this.prisma.newsletter.findUnique({
-      where: { id: newsletterId },
-      select: { createdAt: true, categoryId: true },
-    });
-    if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
-    const oldest = Date.now() - BACKFILL_MAX_DAYS * 24 * 60 * 60 * 1000;
-    if (newsletter.createdAt.getTime() < oldest) {
-      throw new AppException(
-        'BAD_REQUEST',
-        `수집한 기사는 ${BACKFILL_MAX_DAYS}일 동안만 보관하므로 그보다 오래된 뉴스레터는 다시 작성할 수 없습니다.`,
-      );
-    }
-    // 그 뉴스레터를 만든 시각까지 모은 기사로 (그때와 같은 재료)
-    return { at: newsletter.createdAt, categoryId: newsletter.categoryId };
   }
 
   async manualStartAiSummary(
@@ -865,18 +146,18 @@ export class SchedulerService implements OnApplicationBootstrap {
     this.logger.debug(
       at ? 'AI 요약 수동 시작 (지난 날짜)' : 'AI 요약 수동 시작',
     );
-    this.nextTrigger.summary = 'manual';
+    this.jobRuns.markManual('summary');
     try {
-      await this.makeAiSummary(at, categoryId, replaceId); // 직접 메서드 호출
+      await this.summaryJob.makeAiSummary(at, categoryId, replaceId); // 직접 메서드 호출
     } catch (error) {
       this.logger.error(`수동 AI 요약 실패: ${error.message}`);
     }
   }
   async manualStartMailSend() {
     this.logger.debug('메일 발송 수동 시작');
-    this.nextTrigger.mail = 'manual';
+    this.jobRuns.markManual('mail');
     try {
-      await this.sendEmailSummary(); // 직접 메서드 호출
+      await this.mailJob.sendEmailSummary(); // 직접 메서드 호출
     } catch (error) {
       this.logger.error(`수동 메일 발송 실패: ${error.message}`);
     }
@@ -884,7 +165,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 
   async manualStartCrawling() {
     this.logger.debug('크롤링 수동 시작');
-    this.nextTrigger.crawling = 'manual';
+    this.jobRuns.markManual('crawling');
     try {
       await this.startCrawling(); // 직접 메서드 호출
     } catch (error) {
@@ -895,22 +176,5 @@ export class SchedulerService implements OnApplicationBootstrap {
   getMailSendCycle(): string {
     const job = this.schedulerRegistry.getCronJob(MAIL_JOB_NAME);
     return String(job.cronTime.source);
-  }
-
-  /** 맞춤 메일을 켜 둔 사용자만 (기본은 켜짐). 읽기에 실패하면 아무도 맞춤으로 보내지 않는다 */
-  private async personalMailUsers(userIds: number[]) {
-    if (!userIds.length) return [];
-    const rows = await this.prisma.user
-      .findMany({
-        where: { id: { in: userIds }, personalMail: true },
-        select: { id: true },
-      })
-      .catch((error) => {
-        this.logger.warn(
-          `맞춤 설정 읽기 실패, 맞춤 없이 보냄: ${error.message}`,
-        );
-        return [];
-      });
-    return rows.map((r) => r.id);
   }
 }
