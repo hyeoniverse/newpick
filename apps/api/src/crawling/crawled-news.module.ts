@@ -9,13 +9,8 @@ import { CrawledNews, CrawledNewsSchema } from './schema/crawling.schema';
  * 따로 분리해 두 모듈이 서로를 import하던 순환 의존성을 없앴습니다.
  */
 @Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: CrawledNews.name, schema: CrawledNewsSchema },
-    ]),
-    CategoryModule,
-  ],
-  providers: [CrawlingRepository],
-  exports: [CrawlingRepository],
+	imports: [MongooseModule.forFeature([{ name: CrawledNews.name, schema: CrawledNewsSchema }]), CategoryModule],
+	providers: [CrawlingRepository],
+	exports: [CrawlingRepository],
 })
 export class CrawledNewsModule {}

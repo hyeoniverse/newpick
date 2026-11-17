@@ -9,26 +9,23 @@ import { subscriptionEvent } from './subscription-event';
  * - 메일 발송 기록(email_archives): 회원과 연결 없이 이메일 문자열로 저장돼 따로 지운다
  * 둘 중 하나만 지워지지 않게 한 트랜잭션으로 묶는다
  */
-export async function deleteAccount(
-  prisma: MysqlPrismaService,
-  userId: number,
-) {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      email: true,
-      subscribers: { select: { status: true } },
-    },
-  });
-  if (!user) throw new AppException('USER_NOT_FOUND');
+export async function deleteAccount(prisma: MysqlPrismaService, userId: number) {
+	const user = await prisma.user.findUnique({
+		where: { id: userId },
+		select: {
+			id: true,
+			email: true,
+			subscribers: { select: { status: true } },
+		},
+	});
+	if (!user) throw new AppException('USER_NOT_FOUND');
 
-  // 구독 중(일시정지 포함)에 탈퇴하면 통계에는 해지로 남긴다 (#122). 구독 기록은 회원과 묶지 않아 남는다
-  const subscribed = user.subscribers.some((s) => s.status !== 'cancelled');
-  const [archives] = await prisma.$transaction([
-    prisma.emailArchive.deleteMany({ where: { email: user.email } }),
-    prisma.user.delete({ where: { id: user.id } }),
-    ...(subscribed ? [subscriptionEvent(prisma, user.id, 'cancel')] : []),
-  ]);
-  return { id: user.id, deletedEmailArchives: archives.count };
+	// 구독 중(일시정지 포함)에 탈퇴하면 통계에는 해지로 남긴다 (#122). 구독 기록은 회원과 묶지 않아 남는다
+	const subscribed = user.subscribers.some((s) => s.status !== 'cancelled');
+	const [archives] = await prisma.$transaction([
+		prisma.emailArchive.deleteMany({ where: { email: user.email } }),
+		prisma.user.delete({ where: { id: user.id } }),
+		...(subscribed ? [subscriptionEvent(prisma, user.id, 'cancel')] : []),
+	]);
+	return { id: user.id, deletedEmailArchives: archives.count };
 }

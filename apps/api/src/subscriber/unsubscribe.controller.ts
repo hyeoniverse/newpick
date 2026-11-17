@@ -14,29 +14,25 @@ import { verifyUnsubscribeToken } from './unsubscribe-token';
 @Public()
 @Controller('subscribers/unsubscribe')
 export class UnsubscribeController {
-  constructor(private readonly subscriberService: SubscriberService) {}
+	constructor(private readonly subscriberService: SubscriberService) {}
 
-  @Get()
-  async check(@Query('token') token: string) {
-    const target = await this.subscriberService.unsubscribeTarget(
-      this.userIdFrom(token),
-    );
-    if (!target) throw new AppException('UNSUBSCRIBE_LINK_INVALID');
-    return { message: '수신 거부 대상', data: target };
-  }
+	@Get()
+	async check(@Query('token') token: string) {
+		const target = await this.subscriberService.unsubscribeTarget(this.userIdFrom(token));
+		if (!target) throw new AppException('UNSUBSCRIBE_LINK_INVALID');
+		return { message: '수신 거부 대상', data: target };
+	}
 
-  @Post()
-  @HttpCode(200)
-  async unsubscribe(@Query('token') token: string) {
-    const result = await this.subscriberService.unsubscribeOneClick(
-      this.userIdFrom(token),
-    );
-    return { message: '수신 거부를 처리했습니다.', data: result };
-  }
+	@Post()
+	@HttpCode(200)
+	async unsubscribe(@Query('token') token: string) {
+		const result = await this.subscriberService.unsubscribeOneClick(this.userIdFrom(token));
+		return { message: '수신 거부를 처리했습니다.', data: result };
+	}
 
-  private userIdFrom(token: string) {
-    const userId = verifyUnsubscribeToken(token);
-    if (userId === null) throw new AppException('UNSUBSCRIBE_LINK_INVALID');
-    return userId;
-  }
+	private userIdFrom(token: string) {
+		const userId = verifyUnsubscribeToken(token);
+		if (userId === null) throw new AppException('UNSUBSCRIBE_LINK_INVALID');
+		return userId;
+	}
 }

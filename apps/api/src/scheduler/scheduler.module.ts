@@ -18,25 +18,25 @@ import { TasteModule } from 'src/taste/taste.module';
 import { RecommendModule } from 'src/recommend/recommend.module';
 
 @Module({
-  imports: [
-    MailModule,
-    CrawlingModule,
-    AiSummaryModule,
-    SubscriberModule,
-    CategoryModule,
-    EditionModule,
-    TasteModule,
-    FollowsModule,
-    RecommendModule,
-  ],
-  providers: [
-    SchedulerService,
-    ScheduleConfigService,
-    JobRunsService,
-    SummaryJobService,
-    MailJobService,
-    DashboardService,
-  ],
-  controllers: [SchedulerController, DashboardController],
+	imports: [
+		MailModule,
+		CrawlingModule,
+		AiSummaryModule,
+		SubscriberModule,
+		CategoryModule,
+		EditionModule,
+		TasteModule,
+		FollowsModule,
+		RecommendModule,
+	],
+	providers: [
+		SchedulerService,
+		ScheduleConfigService,
+		JobRunsService,
+		SummaryJobService,
+		MailJobService,
+		DashboardService,
+	],
+	controllers: [SchedulerController, DashboardController],
 })
 export class SchedulerModule {}

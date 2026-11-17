@@ -5,47 +5,47 @@ import { AppException } from 'src/common/errors/app.exception';
 
 @Injectable()
 export class CategoryRepository {
-  constructor(private readonly mysqlService: MysqlPrismaService) {}
+	constructor(private readonly mysqlService: MysqlPrismaService) {}
 
-  async findAll() {
-    return this.mysqlService.newsCategory.findMany();
-  }
+	async findAll() {
+		return this.mysqlService.newsCategory.findMany();
+	}
 
-  async findById(id: number) {
-    id = Number(id);
-    return this.mysqlService.newsCategory.findUnique({
-      where: { id },
-    });
-  }
+	async findById(id: number) {
+		id = Number(id);
+		return this.mysqlService.newsCategory.findUnique({
+			where: { id },
+		});
+	}
 
-  async findByName(name: string) {
-    return this.mysqlService.newsCategory.findFirst({
-      where: { name: { equals: name } },
-    });
-  }
+	async findByName(name: string) {
+		return this.mysqlService.newsCategory.findFirst({
+			where: { name: { equals: name } },
+		});
+	}
 
-  async create(data: Prisma.NewsCategoryCreateInput) {
-    return this.mysqlService.newsCategory.create({
-      data,
-    });
-  }
+	async create(data: Prisma.NewsCategoryCreateInput) {
+		return this.mysqlService.newsCategory.create({
+			data,
+		});
+	}
 
-  async update(id: number, data: Prisma.NewsCategoryUpdateInput) {
-    id = Number(id);
-    return this.mysqlService.newsCategory.update({
-      where: { id },
-      data,
-    });
-  }
+	async update(id: number, data: Prisma.NewsCategoryUpdateInput) {
+		id = Number(id);
+		return this.mysqlService.newsCategory.update({
+			where: { id },
+			data,
+		});
+	}
 
-  async delete(id: number) {
-    id = Number(id);
-    const deletedCategory = await this.mysqlService.newsCategory.delete({
-      where: { id },
-    });
-    if (!deletedCategory) {
-      throw new AppException('CATEGORY_NOT_FOUND');
-    }
-    return deletedCategory;
-  }
+	async delete(id: number) {
+		id = Number(id);
+		const deletedCategory = await this.mysqlService.newsCategory.delete({
+			where: { id },
+		});
+		if (!deletedCategory) {
+			throw new AppException('CATEGORY_NOT_FOUND');
+		}
+		return deletedCategory;
+	}
 }

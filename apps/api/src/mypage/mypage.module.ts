@@ -13,16 +13,16 @@ import { TagFollowsService } from './tag-follows.service';
 import { TagsModule } from 'src/tags/tags.module';
 
 @Module({
-  imports: [EditionModule, TasteModule, MailModule, TagsModule],
-  controllers: [MyPageController],
-  providers: [
-    MyPageService,
-    BookmarksService,
-    MyMailsService,
-    HighlightsService,
-    FoldersService,
-    EmailChangeService,
-    TagFollowsService,
-  ],
+	imports: [EditionModule, TasteModule, MailModule, TagsModule],
+	controllers: [MyPageController],
+	providers: [
+		MyPageService,
+		BookmarksService,
+		MyMailsService,
+		HighlightsService,
+		FoldersService,
+		EmailChangeService,
+		TagFollowsService,
+	],
 })
 export class MyPageModule {}

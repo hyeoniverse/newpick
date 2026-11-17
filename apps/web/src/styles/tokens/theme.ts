@@ -388,12 +388,15 @@ export const getTheme = (themeName: ThemeName): Theme => {
  */
 type ThemedPart = Pick<Theme, 'color' | 'buttonScheme' | 'shadow'>;
 
-const toVarName = (path: string[]) => `--np-${path.map((p) => p.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)).join('-')}`;
+const toVarName = (path: string[]) =>
+	`--np-${path.map((p) => p.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)).join('-')}`;
 
 /** 같은 모양의 객체에서 글자 값만 var(--np-…)로 바꾼다 */
 const toVarRefs = <T>(value: T, path: string[]): T => {
 	if (typeof value === 'string') return `var(${toVarName(path)})` as T;
-	return Object.fromEntries(Object.entries(value as object).map(([key, v]) => [key, toVarRefs(v, [...path, key])])) as T;
+	return Object.fromEntries(
+		Object.entries(value as object).map(([key, v]) => [key, toVarRefs(v, [...path, key])]),
+	) as T;
 };
 
 /** --np-color-primary: #3610e1; 같은 선언 목록 */
@@ -426,7 +429,13 @@ const fontSteps: Record<'tablet' | 'mobile', FontPart> = {
 		},
 	},
 	mobile: {
-		fontSize: { extraSmall: '0.8125rem', small: '0.9375rem', medium: '1rem', large: '1.125rem', extraLarge: '1.375rem' },
+		fontSize: {
+			extraSmall: '0.8125rem',
+			small: '0.9375rem',
+			medium: '1rem',
+			large: '1.125rem',
+			extraLarge: '1.375rem',
+		},
 		heading: {
 			extraSmall: { fontSize: '1.25rem' },
 			small: { fontSize: '1.375rem' },
@@ -437,7 +446,8 @@ const fontSteps: Record<'tablet' | 'mobile', FontPart> = {
 	},
 };
 
-export const fontVars = (step?: keyof typeof fontSteps) => toVarDeclarations(step ? fontSteps[step] : fontPart(lightTheme), []).join('\n');
+export const fontVars = (step?: keyof typeof fontSteps) =>
+	toVarDeclarations(step ? fontSteps[step] : fontPart(lightTheme), []).join('\n');
 
 /**
  * styles/tokens/tokens.css 내용: 라이트 · 다크 색, 화면 폭별 글자 크기. 예전에는 styled-components 전역 스타일이

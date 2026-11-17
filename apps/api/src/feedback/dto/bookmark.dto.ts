@@ -5,18 +5,18 @@ import { IsInt, IsOptional, Min, ValidateIf } from 'class-validator';
  * newsletterId를 쓰고, 없으면 newsId를 씁니다.
  */
 export class BookmarkDto {
-  @ValidateIf((dto) => dto.newsId === undefined)
-  @IsInt()
-  @Min(1)
-  newsletterId?: number;
+	@ValidateIf((dto) => dto.newsId === undefined)
+	@IsInt()
+	@Min(1)
+	newsletterId?: number;
 
-  @IsOptional()
-  @IsInt()
-  @Min(1)
-  newsId?: number;
+	@IsOptional()
+	@IsInt()
+	@Min(1)
+	newsId?: number;
 
-  get targetId(): number {
-    // 둘 중 하나는 있다: newsId가 없으면 newsletterId를 검사한다 (ValidateIf)
-    return (this.newsletterId ?? this.newsId)!;
-  }
+	get targetId(): number {
+		// 둘 중 하나는 있다: newsId가 없으면 newsletterId를 검사한다 (ValidateIf)
+		return (this.newsletterId ?? this.newsId)!;
+	}
 }

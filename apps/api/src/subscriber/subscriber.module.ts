@@ -5,9 +5,9 @@ import { SubscriberController } from './subscriber.controller';
 import { UnsubscribeController } from './unsubscribe.controller';
 
 @Module({
-  imports: [PrismaModule],
-  exports: [SubscriberService],
-  controllers: [SubscriberController, UnsubscribeController],
-  providers: [SubscriberService],
+	imports: [PrismaModule],
+	exports: [SubscriberService],
+	controllers: [SubscriberController, UnsubscribeController],
+	providers: [SubscriberService],
 })
 export class SubscriberModule {}

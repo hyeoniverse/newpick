@@ -4,20 +4,15 @@ import { AiService, AiUnavailable } from 'src/ai/ai.service';
 import { AppException } from 'src/common/errors/app.exception';
 import { kstDayRange, kstDaysAgo } from 'src/common/kst';
 import type { MailFollow } from 'src/edition/mail-plan';
+import { ParsedNewsletter, parseNewsletterHtml, ParsedStory, storyText } from 'src/ai-summary/newsletter-parse';
 import {
-  ParsedNewsletter,
-  parseNewsletterHtml,
-  ParsedStory,
-  storyText,
-} from 'src/ai-summary/newsletter-parse';
-import {
-  acceptedFrom,
-  candidatesFor,
-  FOLLOW_LIMITS,
-  JUDGE_SCHEMA,
-  JUDGE_SYSTEM,
-  judgePrompt,
-  NewStory,
+	acceptedFrom,
+	candidatesFor,
+	FOLLOW_LIMITS,
+	JUDGE_SCHEMA,
+	JUDGE_SYSTEM,
+	judgePrompt,
+	NewStory,
 } from './detect';
 
 /**
@@ -25,39 +20,21 @@ import {
  * '관전 포인트'가 있으면 앞에 둔다: 후속 판정이 독자가 기다리는 그 일을 기준으로 찾게
  */
 const textOf = (story: ParsedStory) =>
-  [
-    story.next && `관전 포인트: ${story.next}`,
-    story.heading,
-    story.lead,
-    storyText(story, 600),
-  ]
-    .filter(Boolean)
-    .join('\n');
+	[story.next && `관전 포인트: ${story.next}`, story.heading, story.lead, storyText(story, 600)]
+		.filter(Boolean)
+		.join('\n');
 
 /** 화면의 소식 순서: 아침 속보 다음 본문 소식 (후속 지켜보기 소식 번호의 기준) */
-const allStories = (parsed: ParsedNewsletter) => [
-  ...parsed.morning,
-  ...parsed.stories,
-];
+const allStories = (parsed: ParsedNewsletter) => [...parsed.morning, ...parsed.stories];
 
 const DAY = 24 * 60 * 60 * 1000;
 
 /** 마지막으로 무슨 일이 있었던 때: 지켜보기 시작 · '계속 지켜보기' · 가장 최근 후속 중 늦은 것 */
-const lastActive = (f: {
-  createdAt: Date;
-  keptAt: Date | null;
-  updates: { createdAt: Date }[];
-}) =>
-  Math.max(
-    f.createdAt.getTime(),
-    f.keptAt?.getTime() ?? 0,
-    ...f.updates.map((u) => u.createdAt.getTime()),
-  );
+const lastActive = (f: { createdAt: Date; keptAt: Date | null; updates: { createdAt: Date }[] }) =>
+	Math.max(f.createdAt.getTime(), f.keptAt?.getTime() ?? 0, ...f.updates.map((u) => u.createdAt.getTime()));
 
 const asVector = (value: unknown) =>
-  Array.isArray(value) && value.every((v) => typeof v === 'number')
-    ? (value as number[])
-    : null;
+	Array.isArray(value) && value.every((v) => typeof v === 'number') ? (value as number[]) : null;
 
 /**
  * 후속 지켜보기: 뉴스레터 속 소식을 지켜보다가, 이어지는 새 소식이 나오면 쌓아 두고 알린다.
@@ -65,323 +42,306 @@ const asVector = (value: unknown) =>
  */
 @Injectable()
 export class FollowsService {
-  private readonly logger = new Logger(FollowsService.name);
+	private readonly logger = new Logger(FollowsService.name);
 
-  constructor(
-    private readonly prisma: MysqlPrismaService,
-    private readonly ai: AiService,
-  ) {}
+	constructor(
+		private readonly prisma: MysqlPrismaService,
+		private readonly ai: AiService,
+	) {}
 
-  /**
-   * 메일에 실을 후속 (사람마다): since 이후 새로 이어진 소식, 최근 것부터 FOLLOW_LIMITS.mail개.
-   * 하루 한 번 판정이 메일 전에 끝나므로, 지난 메일 이후(24시간)에 생긴 것이 오늘 메일에 한 번씩 실린다
-   */
-  async forMail(
-    userIds: number[],
-    since: Date,
-  ): Promise<Map<number, MailFollow[]>> {
-    const result = new Map<number, MailFollow[]>();
-    if (!userIds.length) return result;
-    const rows = await this.prisma.followUpdate.findMany({
-      where: { createdAt: { gte: since }, follow: { userId: { in: userIds } } },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        heading: true,
-        reason: true,
-        newsletterId: true,
-        follow: { select: { userId: true, heading: true, newsletterId: true } },
-        newsletter: { select: { category: { select: { name: true } } } },
-      },
-    });
-    for (const row of rows) {
-      const list = result.get(row.follow.userId) ?? [];
-      if (list.length >= FOLLOW_LIMITS.mail) continue;
-      list.push({
-        followed: row.follow.heading,
-        followedNewsletterId: row.follow.newsletterId,
-        heading: row.heading,
-        reason: row.reason,
-        newsletterId: row.newsletterId,
-        category: row.newsletter.category.name,
-      });
-      result.set(row.follow.userId, list);
-    }
-    return result;
-  }
+	/**
+	 * 메일에 실을 후속 (사람마다): since 이후 새로 이어진 소식, 최근 것부터 FOLLOW_LIMITS.mail개.
+	 * 하루 한 번 판정이 메일 전에 끝나므로, 지난 메일 이후(24시간)에 생긴 것이 오늘 메일에 한 번씩 실린다
+	 */
+	async forMail(userIds: number[], since: Date): Promise<Map<number, MailFollow[]>> {
+		const result = new Map<number, MailFollow[]>();
+		if (!userIds.length) return result;
+		const rows = await this.prisma.followUpdate.findMany({
+			where: { createdAt: { gte: since }, follow: { userId: { in: userIds } } },
+			orderBy: { createdAt: 'desc' },
+			select: {
+				heading: true,
+				reason: true,
+				newsletterId: true,
+				follow: { select: { userId: true, heading: true, newsletterId: true } },
+				newsletter: { select: { category: { select: { name: true } } } },
+			},
+		});
+		for (const row of rows) {
+			const list = result.get(row.follow.userId) ?? [];
+			if (list.length >= FOLLOW_LIMITS.mail) continue;
+			list.push({
+				followed: row.follow.heading,
+				followedNewsletterId: row.follow.newsletterId,
+				heading: row.heading,
+				reason: row.reason,
+				newsletterId: row.newsletterId,
+				category: row.newsletter.category.name,
+			});
+			result.set(row.follow.userId, list);
+		}
+		return result;
+	}
 
-  /** 지켜보기 시작: 그 소식의 제목 · 글을 그때 그대로 남긴다 */
-  async follow(userId: number, newsletterId: number, storyIndex: number) {
-    const newsletter = await this.prisma.newsletter.findUnique({
-      where: { id: newsletterId },
-      select: { contentAsHTML: true },
-    });
-    if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
-    // 화면의 소식 순서 = 아침 속보 다음 본문 소식
-    const story = allStories(parseNewsletterHtml(newsletter.contentAsHTML))[
-      storyIndex - 1
-    ];
-    if (!story)
-      throw new AppException('NOT_FOUND', '해당 소식을 찾을 수 없습니다.');
-    const follow = await this.prisma.storyFollow.upsert({
-      where: {
-        userId_newsletterId_storyIndex: { userId, newsletterId, storyIndex },
-      },
-      update: {},
-      create: {
-        userId,
-        newsletterId,
-        storyIndex,
-        heading: story.heading.slice(0, 200),
-        text: textOf(story),
-      },
-      select: { id: true, storyIndex: true },
-    });
-    return follow;
-  }
+	/** 지켜보기 시작: 그 소식의 제목 · 글을 그때 그대로 남긴다 */
+	async follow(userId: number, newsletterId: number, storyIndex: number) {
+		const newsletter = await this.prisma.newsletter.findUnique({
+			where: { id: newsletterId },
+			select: { contentAsHTML: true },
+		});
+		if (!newsletter) throw new AppException('NEWSLETTER_NOT_FOUND');
+		// 화면의 소식 순서 = 아침 속보 다음 본문 소식
+		const story = allStories(parseNewsletterHtml(newsletter.contentAsHTML))[storyIndex - 1];
+		if (!story) throw new AppException('NOT_FOUND', '해당 소식을 찾을 수 없습니다.');
+		const follow = await this.prisma.storyFollow.upsert({
+			where: {
+				userId_newsletterId_storyIndex: { userId, newsletterId, storyIndex },
+			},
+			update: {},
+			create: {
+				userId,
+				newsletterId,
+				storyIndex,
+				heading: story.heading.slice(0, 200),
+				text: textOf(story),
+			},
+			select: { id: true, storyIndex: true },
+		});
+		return follow;
+	}
 
-  async unfollow(userId: number, followId: number) {
-    const { count } = await this.prisma.storyFollow.deleteMany({
-      where: { id: followId, userId },
-    });
-    if (!count) throw new AppException('NOT_FOUND');
-    return { removed: count };
-  }
+	async unfollow(userId: number, followId: number) {
+		const { count } = await this.prisma.storyFollow.deleteMany({
+			where: { id: followId, userId },
+		});
+		if (!count) throw new AppException('NOT_FOUND');
+		return { removed: count };
+	}
 
-  /** 뉴스레터 상세: 이 뉴스레터에서 내가 지켜보는 소식들 (단추 상태) */
-  forNewsletter(userId: number, newsletterId: number) {
-    return this.prisma.storyFollow.findMany({
-      where: { userId, newsletterId },
-      select: {
-        id: true,
-        storyIndex: true,
-        _count: { select: { updates: true } },
-      },
-    });
-  }
+	/** 뉴스레터 상세: 이 뉴스레터에서 내가 지켜보는 소식들 (단추 상태) */
+	forNewsletter(userId: number, newsletterId: number) {
+		return this.prisma.storyFollow.findMany({
+			where: { userId, newsletterId },
+			select: {
+				id: true,
+				storyIndex: true,
+				_count: { select: { updates: true } },
+			},
+		});
+	}
 
-  /**
-   * 뉴스레터 상세: 이 뉴스레터의 소식 가운데 내가 지켜보던 소식의 후속인 것.
-   * 소식 위에 '지켜보던 소식의 후속'과 원래 소식을 보여 준다
-   */
-  updatesIn(userId: number, newsletterId: number) {
-    return this.prisma.followUpdate.findMany({
-      where: { newsletterId, follow: { userId } },
-      orderBy: { createdAt: 'asc' },
-      select: {
-        id: true,
-        storyIndex: true,
-        seenAt: true,
-        follow: {
-          select: {
-            heading: true,
-            newsletter: { select: { id: true, createdAt: true } },
-          },
-        },
-      },
-    });
-  }
+	/**
+	 * 뉴스레터 상세: 이 뉴스레터의 소식 가운데 내가 지켜보던 소식의 후속인 것.
+	 * 소식 위에 '지켜보던 소식의 후속'과 원래 소식을 보여 준다
+	 */
+	updatesIn(userId: number, newsletterId: number) {
+		return this.prisma.followUpdate.findMany({
+			where: { newsletterId, follow: { userId } },
+			orderBy: { createdAt: 'asc' },
+			select: {
+				id: true,
+				storyIndex: true,
+				seenAt: true,
+				follow: {
+					select: {
+						heading: true,
+						newsletter: { select: { id: true, createdAt: true } },
+					},
+				},
+			},
+		});
+	}
 
-  /** 오래 조용한 소식을 그래도 지켜본다: 조용한 날 수를 오늘부터 다시 센다 */
-  async keep(userId: number, followId: number) {
-    const { count } = await this.prisma.storyFollow.updateMany({
-      where: { id: followId, userId },
-      data: { keptAt: new Date() },
-    });
-    if (!count) throw new AppException('NOT_FOUND');
-    return { kept: count };
-  }
+	/** 오래 조용한 소식을 그래도 지켜본다: 조용한 날 수를 오늘부터 다시 센다 */
+	async keep(userId: number, followId: number) {
+		const { count } = await this.prisma.storyFollow.updateMany({
+			where: { id: followId, userId },
+			data: { keptAt: new Date() },
+		});
+		if (!count) throw new AppException('NOT_FOUND');
+		return { kept: count };
+	}
 
-  /**
-   * 마이페이지: 지켜보는 소식마다 이어진 소식 (새 소식이 있는 것 먼저, 그다음 최근에 지켜본 순).
-   * quiet: FOLLOW_LIMITS.quietDays 동안 후속이 없어 정리할지 묻는 것
-   */
-  async list(userId: number) {
-    const follows = await this.prisma.storyFollow.findMany({
-      where: { userId },
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        heading: true,
-        storyIndex: true,
-        createdAt: true,
-        keptAt: true,
-        newsletter: {
-          select: {
-            id: true,
-            createdAt: true,
-            category: { select: { name: true } },
-          },
-        },
-        updates: {
-          orderBy: { createdAt: 'asc' },
-          select: {
-            id: true,
-            heading: true,
-            reason: true,
-            storyIndex: true,
-            createdAt: true,
-            seenAt: true,
-            newsletter: {
-              select: {
-                id: true,
-                createdAt: true,
-                category: { select: { name: true } },
-              },
-            },
-          },
-        },
-      },
-    });
-    const unseen = (f: (typeof follows)[number]) =>
-      f.updates.some((u) => !u.seenAt);
-    const quietBefore = Date.now() - FOLLOW_LIMITS.quietDays * DAY;
-    return follows
-      .sort((a, b) => Number(unseen(b)) - Number(unseen(a)))
-      .map(({ keptAt, ...f }) => ({
-        ...f,
-        quiet: lastActive({ ...f, keptAt }) < quietBefore,
-      }));
-  }
+	/**
+	 * 마이페이지: 지켜보는 소식마다 이어진 소식 (새 소식이 있는 것 먼저, 그다음 최근에 지켜본 순).
+	 * quiet: FOLLOW_LIMITS.quietDays 동안 후속이 없어 정리할지 묻는 것
+	 */
+	async list(userId: number) {
+		const follows = await this.prisma.storyFollow.findMany({
+			where: { userId },
+			orderBy: { createdAt: 'desc' },
+			select: {
+				id: true,
+				heading: true,
+				storyIndex: true,
+				createdAt: true,
+				keptAt: true,
+				newsletter: {
+					select: {
+						id: true,
+						createdAt: true,
+						category: { select: { name: true } },
+					},
+				},
+				updates: {
+					orderBy: { createdAt: 'asc' },
+					select: {
+						id: true,
+						heading: true,
+						reason: true,
+						storyIndex: true,
+						createdAt: true,
+						seenAt: true,
+						newsletter: {
+							select: {
+								id: true,
+								createdAt: true,
+								category: { select: { name: true } },
+							},
+						},
+					},
+				},
+			},
+		});
+		const unseen = (f: (typeof follows)[number]) => f.updates.some((u) => !u.seenAt);
+		const quietBefore = Date.now() - FOLLOW_LIMITS.quietDays * DAY;
+		return follows
+			.sort((a, b) => Number(unseen(b)) - Number(unseen(a)))
+			.map(({ keptAt, ...f }) => ({
+				...f,
+				quiet: lastActive({ ...f, keptAt }) < quietBefore,
+			}));
+	}
 
-  /** 아직 안 본 후속 소식 수 (머리글 표시) */
-  unseenCount(userId: number) {
-    return this.prisma.followUpdate.count({
-      where: { seenAt: null, follow: { userId } },
-    });
-  }
+	/** 아직 안 본 후속 소식 수 (머리글 표시) */
+	unseenCount(userId: number) {
+		return this.prisma.followUpdate.count({
+			where: { seenAt: null, follow: { userId } },
+		});
+	}
 
-  /** 마이페이지에서 봤으면 모두 본 것으로. newsletterId가 있으면 그 뉴스레터 상세에서 본 후속만 */
-  async markSeen(userId: number, newsletterId?: number) {
-    const { count } = await this.prisma.followUpdate.updateMany({
-      where: { seenAt: null, newsletterId, follow: { userId } },
-      data: { seenAt: new Date() },
-    });
-    return { seen: count };
-  }
+	/** 마이페이지에서 봤으면 모두 본 것으로. newsletterId가 있으면 그 뉴스레터 상세에서 본 후속만 */
+	async markSeen(userId: number, newsletterId?: number) {
+		const { count } = await this.prisma.followUpdate.updateMany({
+			where: { seenAt: null, newsletterId, follow: { userId } },
+			data: { seenAt: new Date() },
+		});
+		return { seen: count };
+	}
 
-  /**
-   * 하루 한 번: 오늘 나온 뉴스레터의 소식이 누군가 지켜보는 소식의 후속인지 판정해 쌓는다.
-   * 지켜보는 사람이 없으면 아무것도 부르지 않는다
-   */
-  async detect(date = kstDaysAgo(0)) {
-    const { start, end } = kstDayRange(date, date);
-    const since = new Date(Date.now() - FOLLOW_LIMITS.maxAgeDays * DAY);
-    const follows = await this.prisma.storyFollow.findMany({
-      where: {
-        // 최근에 무슨 일이 있었던 것만 (lastActive와 같은 기준)
-        OR: [
-          { createdAt: { gte: since } },
-          { keptAt: { gte: since } },
-          { updates: { some: { createdAt: { gte: since } } } },
-        ],
-        newsletter: { createdAt: { lt: start } },
-      },
-      select: {
-        id: true,
-        newsletterId: true,
-        heading: true,
-        text: true,
-        embedding: true,
-      },
-    });
-    if (!follows.length) return { follows: 0, checked: 0, updates: 0 };
+	/**
+	 * 하루 한 번: 오늘 나온 뉴스레터의 소식이 누군가 지켜보는 소식의 후속인지 판정해 쌓는다.
+	 * 지켜보는 사람이 없으면 아무것도 부르지 않는다
+	 */
+	async detect(date = kstDaysAgo(0)) {
+		const { start, end } = kstDayRange(date, date);
+		const since = new Date(Date.now() - FOLLOW_LIMITS.maxAgeDays * DAY);
+		const follows = await this.prisma.storyFollow.findMany({
+			where: {
+				// 최근에 무슨 일이 있었던 것만 (lastActive와 같은 기준)
+				OR: [
+					{ createdAt: { gte: since } },
+					{ keptAt: { gte: since } },
+					{ updates: { some: { createdAt: { gte: since } } } },
+				],
+				newsletter: { createdAt: { lt: start } },
+			},
+			select: {
+				id: true,
+				newsletterId: true,
+				heading: true,
+				text: true,
+				embedding: true,
+			},
+		});
+		if (!follows.length) return { follows: 0, checked: 0, updates: 0 };
 
-    const newsletters = await this.prisma.newsletter.findMany({
-      where: { createdAt: { gte: start, lte: end } },
-      select: {
-        id: true,
-        contentAsHTML: true,
-        category: { select: { name: true } },
-      },
-    });
-    const fresh = newsletters.flatMap((n) =>
-      allStories(parseNewsletterHtml(n.contentAsHTML)).map((story, i) => ({
-        newsletterId: n.id,
-        storyIndex: i + 1,
-        category: n.category.name,
-        heading: story.heading,
-        text: textOf(story),
-      })),
-    );
-    if (!fresh.length)
-      return { follows: follows.length, checked: 0, updates: 0 };
+		const newsletters = await this.prisma.newsletter.findMany({
+			where: { createdAt: { gte: start, lte: end } },
+			select: {
+				id: true,
+				contentAsHTML: true,
+				category: { select: { name: true } },
+			},
+		});
+		const fresh = newsletters.flatMap((n) =>
+			allStories(parseNewsletterHtml(n.contentAsHTML)).map((story, i) => ({
+				newsletterId: n.id,
+				storyIndex: i + 1,
+				category: n.category.name,
+				heading: story.heading,
+				text: textOf(story),
+			})),
+		);
+		if (!fresh.length) return { follows: follows.length, checked: 0, updates: 0 };
 
-    let stories: NewStory[];
-    try {
-      const vectors = await this.ai.embed(fresh.map((s) => s.text));
-      stories = fresh.map((s, i) => ({ ...s, vector: vectors[i] }));
-      // 지켜보는 소식의 임베딩은 처음 한 번만 계산해 둔다
-      const missing = follows.filter((f) => !asVector(f.embedding));
-      if (missing.length) {
-        const made = await this.ai.embed(missing.map((f) => f.text));
-        await Promise.all(
-          missing.map((f, i) => {
-            f.embedding = made[i];
-            return this.prisma.storyFollow.update({
-              where: { id: f.id },
-              data: { embedding: made[i] },
-            });
-          }),
-        );
-      }
-    } catch (error) {
-      this.logger.warn(
-        `후속 지켜보기: 임베딩 실패, 오늘은 건너뜀 (${(error as Error).message})`,
-      );
-      return { follows: follows.length, checked: 0, updates: 0 };
-    }
+		let stories: NewStory[];
+		try {
+			const vectors = await this.ai.embed(fresh.map((s) => s.text));
+			stories = fresh.map((s, i) => ({ ...s, vector: vectors[i] }));
+			// 지켜보는 소식의 임베딩은 처음 한 번만 계산해 둔다
+			const missing = follows.filter((f) => !asVector(f.embedding));
+			if (missing.length) {
+				const made = await this.ai.embed(missing.map((f) => f.text));
+				await Promise.all(
+					missing.map((f, i) => {
+						f.embedding = made[i];
+						return this.prisma.storyFollow.update({
+							where: { id: f.id },
+							data: { embedding: made[i] },
+						});
+					}),
+				);
+			}
+		} catch (error) {
+			this.logger.warn(`후속 지켜보기: 임베딩 실패, 오늘은 건너뜀 (${(error as Error).message})`);
+			return { follows: follows.length, checked: 0, updates: 0 };
+		}
 
-    let checked = 0;
-    let updates = 0;
-    for (const f of follows) {
-      const target = { ...f, vector: asVector(f.embedding)! };
-      const candidates = candidatesFor(target, stories);
-      if (!candidates.length) continue;
-      checked++;
-      let accepted: { index: number; reason: string }[];
-      try {
-        const { text } = await this.ai.generate({
-          stage: 'follow-judge',
-          prefer: 'open',
-          fallback: false,
-          system: JUDGE_SYSTEM,
-          prompt: judgePrompt(f, candidates),
-          schema: JUDGE_SCHEMA,
-          maxTokens: 600,
-        });
-        accepted = acceptedFrom(JSON.parse(text), candidates.length);
-      } catch (error) {
-        if (
-          !(error instanceof AiUnavailable) &&
-          !(error instanceof SyntaxError)
-        )
-          this.logger.warn(
-            `후속 판정 실패 #${f.id}: ${(error as Error).message}`,
-          );
-        // 판정을 못 하면 아주 비슷한 것만
-        accepted = candidates
-          .map((c, index) => ({ index, reason: '', score: c.score }))
-          .filter((c) => c.score >= FOLLOW_LIMITS.autoAccept);
-      }
-      if (!accepted.length) continue;
-      const { count } = await this.prisma.followUpdate.createMany({
-        skipDuplicates: true,
-        data: accepted.map(({ index, reason }) => {
-          const { story } = candidates[index];
-          return {
-            followId: f.id,
-            newsletterId: story.newsletterId,
-            storyIndex: story.storyIndex,
-            heading: story.heading.slice(0, 200),
-            reason,
-          };
-        }),
-      });
-      updates += count;
-    }
-    this.logger.log(
-      `후속 지켜보기: 지켜보는 소식 ${follows.length}개 중 후보 ${checked}개 판정, 새 후속 ${updates}건`,
-    );
-    return { follows: follows.length, checked, updates };
-  }
+		let checked = 0;
+		let updates = 0;
+		for (const f of follows) {
+			const target = { ...f, vector: asVector(f.embedding)! };
+			const candidates = candidatesFor(target, stories);
+			if (!candidates.length) continue;
+			checked++;
+			let accepted: { index: number; reason: string }[];
+			try {
+				const { text } = await this.ai.generate({
+					stage: 'follow-judge',
+					prefer: 'open',
+					fallback: false,
+					system: JUDGE_SYSTEM,
+					prompt: judgePrompt(f, candidates),
+					schema: JUDGE_SCHEMA,
+					maxTokens: 600,
+				});
+				accepted = acceptedFrom(JSON.parse(text), candidates.length);
+			} catch (error) {
+				if (!(error instanceof AiUnavailable) && !(error instanceof SyntaxError))
+					this.logger.warn(`후속 판정 실패 #${f.id}: ${(error as Error).message}`);
+				// 판정을 못 하면 아주 비슷한 것만
+				accepted = candidates
+					.map((c, index) => ({ index, reason: '', score: c.score }))
+					.filter((c) => c.score >= FOLLOW_LIMITS.autoAccept);
+			}
+			if (!accepted.length) continue;
+			const { count } = await this.prisma.followUpdate.createMany({
+				skipDuplicates: true,
+				data: accepted.map(({ index, reason }) => {
+					const { story } = candidates[index];
+					return {
+						followId: f.id,
+						newsletterId: story.newsletterId,
+						storyIndex: story.storyIndex,
+						heading: story.heading.slice(0, 200),
+						reason,
+					};
+				}),
+			});
+			updates += count;
+		}
+		this.logger.log(`후속 지켜보기: 지켜보는 소식 ${follows.length}개 중 후보 ${checked}개 판정, 새 후속 ${updates}건`);
+		return { follows: follows.length, checked, updates };
+	}
 }

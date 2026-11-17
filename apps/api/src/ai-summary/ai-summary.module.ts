@@ -9,14 +9,9 @@ import { TagsModule } from 'src/tags/tags.module';
 import { LlmModule } from 'src/llm/llm.module';
 import { CategoryModule } from 'src/category/category.module';
 @Module({
-  imports: [CrawledNewsModule, TagsModule, LlmModule, CategoryModule],
-  controllers: [AiSummaryController],
-  providers: [
-    AiSummaryService,
-    CreateNewsletterService,
-    NewsletterWriterService,
-    StoryImageService,
-  ],
-  exports: [AiSummaryService, CreateNewsletterService, NewsletterWriterService],
+	imports: [CrawledNewsModule, TagsModule, LlmModule, CategoryModule],
+	controllers: [AiSummaryController],
+	providers: [AiSummaryService, CreateNewsletterService, NewsletterWriterService, StoryImageService],
+	exports: [AiSummaryService, CreateNewsletterService, NewsletterWriterService],
 })
 export class AiSummaryModule {}

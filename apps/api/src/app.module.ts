@@ -31,47 +31,47 @@ import { AnalyticsModule } from 'src/analytics/analytics.module';
 import { env } from 'src/config/env';
 import { THROTTLE } from 'src/common/throttle';
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-      envFilePath: '.env',
-      validate: validateEnv,
-    }),
-    // 기본 요청 제한 (common/throttle)
-    ThrottlerModule.forRoot([THROTTLE.default]),
-    SentryModule.forRoot(),
-    MongooseModule.forRoot(env.mongoUrl), // MongoDB 연결
-    CrawlingModule, // 크롤링 모듈
-    SchedulerModule, // 스케줄러 모듈
-    AdminStatsModule, // 관리자 통계
-    AuthModule, // 인증 모듈
-    AiSummaryModule, // AI 요약 모듈
-    FeedbackModule, // 피드백 모듈
-    AnalyticsModule, // 방문 통계 (#131)
-    PrismaModule, // Prisma 모듈
-    MyPageModule, // 마이페이지 모듈
-    FollowsModule, // 후속 지켜보기
-    AdminModule, // 관리자 페이지 모듈
-    MailModule, // 메일 모듈
-    CategoryModule, // 카테고리 모듈
-    ScheduleModule.forRoot(),
-    NewsletterModule,
-    EditionModule, // 구독 메일 편집 (#55)
-    SiteCacheModule, // 웹 사이트 캐시 비우기 (#73)
-  ],
-  controllers: [AppController], // 컨트롤러 등록
-  providers: [
-    {
-      provide: APP_FILTER,
-      useClass: ApiExceptionFilter, // 모든 오류를 { statusCode, code, message } 한 모양으로
-    },
-    // 순서대로 실행: 요청 제한 → 로그인 확인(@Public 제외)
-    { provide: APP_GUARD, useClass: ThrottlerGuard },
-    { provide: APP_GUARD, useClass: JwtAuthGuard },
-  ], // 서비스 등록
+	imports: [
+		ConfigModule.forRoot({
+			isGlobal: true,
+			envFilePath: '.env',
+			validate: validateEnv,
+		}),
+		// 기본 요청 제한 (common/throttle)
+		ThrottlerModule.forRoot([THROTTLE.default]),
+		SentryModule.forRoot(),
+		MongooseModule.forRoot(env.mongoUrl), // MongoDB 연결
+		CrawlingModule, // 크롤링 모듈
+		SchedulerModule, // 스케줄러 모듈
+		AdminStatsModule, // 관리자 통계
+		AuthModule, // 인증 모듈
+		AiSummaryModule, // AI 요약 모듈
+		FeedbackModule, // 피드백 모듈
+		AnalyticsModule, // 방문 통계 (#131)
+		PrismaModule, // Prisma 모듈
+		MyPageModule, // 마이페이지 모듈
+		FollowsModule, // 후속 지켜보기
+		AdminModule, // 관리자 페이지 모듈
+		MailModule, // 메일 모듈
+		CategoryModule, // 카테고리 모듈
+		ScheduleModule.forRoot(),
+		NewsletterModule,
+		EditionModule, // 구독 메일 편집 (#55)
+		SiteCacheModule, // 웹 사이트 캐시 비우기 (#73)
+	],
+	controllers: [AppController], // 컨트롤러 등록
+	providers: [
+		{
+			provide: APP_FILTER,
+			useClass: ApiExceptionFilter, // 모든 오류를 { statusCode, code, message } 한 모양으로
+		},
+		// 순서대로 실행: 요청 제한 → 로그인 확인(@Public 제외)
+		{ provide: APP_GUARD, useClass: ThrottlerGuard },
+		{ provide: APP_GUARD, useClass: JwtAuthGuard },
+	], // 서비스 등록
 })
 export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(ConfigLoggerMiddleware, CoopMiddleware).forRoutes('*');
-  }
+	configure(consumer: MiddlewareConsumer) {
+		consumer.apply(ConfigLoggerMiddleware, CoopMiddleware).forRoutes('*');
+	}
 }

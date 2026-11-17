@@ -4,8 +4,8 @@ import { MysqlPrismaService } from './mysql.service';
 
 @Global()
 @Module({
-  imports: [],
-  providers: [MysqlPrismaService],
-  exports: [MysqlPrismaService],
+	imports: [],
+	providers: [MysqlPrismaService],
+	exports: [MysqlPrismaService],
 })
 export class PrismaModule {}

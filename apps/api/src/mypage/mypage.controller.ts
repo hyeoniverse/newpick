@@ -1,34 +1,12 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  ParseIntPipe,
-  Patch,
-  Post,
-  Put,
-  Query,
-  Req,
-  Res,
-} from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Put, Query, Req, Res } from '@nestjs/common';
 import { Response } from 'express';
-import {
-  SESSION_HINT_COOKIE,
-  authCookieOptions,
-  sessionHintCookieOptions,
-} from 'src/auth/cookie-options';
+import { SESSION_HINT_COOKIE, authCookieOptions, sessionHintCookieOptions } from 'src/auth/cookie-options';
 import { MyPageService } from './mypage.service';
 import { BookmarksService } from './bookmarks.service';
 import { MyMailsService } from './my-mails.service';
 import { InterestsDto } from 'src/common/dto/interests.dto';
 import { AppException } from 'src/common/errors/app.exception';
-import {
-  MarkMailDto,
-  MoveBookmarksDto,
-  MyMailQueryDto,
-  MyMailsQueryDto,
-} from './dto/my-mails-query.dto';
+import { MarkMailDto, MoveBookmarksDto, MyMailQueryDto, MyMailsQueryDto } from './dto/my-mails-query.dto';
 import { HighlightsService } from './highlights.service';
 import { FoldersService } from './folders.service';
 import { TasteService } from 'src/taste/taste.service';
@@ -37,16 +15,16 @@ import { THROTTLE } from 'src/common/throttle';
 import { EmailChangeService } from './email-change.service';
 import { SendEmailCodeDto, VerifyEmailCodeDto } from './dto/email-change.dto';
 import {
-  BookmarksPageQueryDto,
-  BulkHighlightsDto,
-  CreateHighlightDto,
-  DeleteFolderQueryDto,
-  DeleteHighlightsDto,
-  FolderDto,
-  HighlightsPageQueryDto,
-  HighlightsQueryDto,
-  folderOf,
-  UpdateHighlightDto,
+	BookmarksPageQueryDto,
+	BulkHighlightsDto,
+	CreateHighlightDto,
+	DeleteFolderQueryDto,
+	DeleteHighlightsDto,
+	FolderDto,
+	HighlightsPageQueryDto,
+	HighlightsQueryDto,
+	folderOf,
+	UpdateHighlightDto,
 } from './dto/highlight.dto';
 import { PersonalMailDto } from './dto/personal-mail.dto';
 import { TagFollowDto } from './dto/tag-follow.dto';
@@ -56,297 +34,241 @@ import type { AuthedRequest } from 'src/auth/authed-request';
 /** 로그인 필요 (전역 JwtAuthGuard). 구독 상태·기록은 /subscribers에서 조회합니다. */
 @Controller('mypage')
 export class MyPageController {
-  constructor(
-    private readonly myPageService: MyPageService,
-    private readonly bookmarksService: BookmarksService,
-    private readonly myMailsService: MyMailsService,
-    private readonly highlightsService: HighlightsService,
-    private readonly tasteService: TasteService,
-    private readonly foldersService: FoldersService,
-    private readonly emailChangeService: EmailChangeService,
-    private readonly tagFollowsService: TagFollowsService,
-  ) {}
+	constructor(
+		private readonly myPageService: MyPageService,
+		private readonly bookmarksService: BookmarksService,
+		private readonly myMailsService: MyMailsService,
+		private readonly highlightsService: HighlightsService,
+		private readonly tasteService: TasteService,
+		private readonly foldersService: FoldersService,
+		private readonly emailChangeService: EmailChangeService,
+		private readonly tagFollowsService: TagFollowsService,
+	) {}
 
-  /** 내 취향 점수 (#123 2단계): 북마크 · 스크랩 · 메모로 모은 태그 · 관심사 */
-  @Get('taste')
-  async getTaste(@Req() req: AuthedRequest) {
-    return this.tasteService.forUser(this.userIdOf(req));
-  }
+	/** 내 취향 점수 (#123 2단계): 북마크 · 스크랩 · 메모로 모은 태그 · 관심사 */
+	@Get('taste')
+	async getTaste(@Req() req: AuthedRequest) {
+		return this.tasteService.forUser(this.userIdOf(req));
+	}
 
-  /** 마이페이지 스크랩 한 쪽 (#123): 폴더 · 보기(중요 · 메모)로 거르고 개수도 같이 */
-  @Get('highlights/page')
-  async getHighlightPage(
-    @Req() req: AuthedRequest,
-    @Query() q: HighlightsPageQueryDto,
-  ) {
-    return this.highlightsService.page(this.userIdOf(req), {
-      offset: q.offset,
-      limit: q.limit,
-      folder: folderOf(q.folder),
-      filter: q.filter,
-      order: q.order,
-    });
-  }
+	/** 마이페이지 스크랩 한 쪽 (#123): 폴더 · 보기(중요 · 메모)로 거르고 개수도 같이 */
+	@Get('highlights/page')
+	async getHighlightPage(@Req() req: AuthedRequest, @Query() q: HighlightsPageQueryDto) {
+		return this.highlightsService.page(this.userIdOf(req), {
+			offset: q.offset,
+			limit: q.limit,
+			folder: folderOf(q.folder),
+			filter: q.filter,
+			order: q.order,
+		});
+	}
 
-  /** 내 스크랩 · 메모 (#123). newsletterId를 주면 그 뉴스레터 것만 */
-  @Get('highlights')
-  async getHighlights(
-    @Req() req: AuthedRequest,
-    @Query() q: HighlightsQueryDto,
-  ) {
-    return this.highlightsService.list(this.userIdOf(req), q.newsletterId);
-  }
+	/** 내 스크랩 · 메모 (#123). newsletterId를 주면 그 뉴스레터 것만 */
+	@Get('highlights')
+	async getHighlights(@Req() req: AuthedRequest, @Query() q: HighlightsQueryDto) {
+		return this.highlightsService.list(this.userIdOf(req), q.newsletterId);
+	}
 
-  /** 문장 스크랩 (메모는 선택). 같은 문장이면 새로 만들지 않는다 */
-  @Post('highlights')
-  async createHighlight(
-    @Req() req: AuthedRequest,
-    @Body() body: CreateHighlightDto,
-  ) {
-    return this.highlightsService.create(this.userIdOf(req), body);
-  }
+	/** 문장 스크랩 (메모는 선택). 같은 문장이면 새로 만들지 않는다 */
+	@Post('highlights')
+	async createHighlight(@Req() req: AuthedRequest, @Body() body: CreateHighlightDto) {
+		return this.highlightsService.create(this.userIdOf(req), body);
+	}
 
-  /** 선택한 스크랩 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 빼기 (내 것만, 바꾼 수) */
-  @Post('highlights/bulk')
-  async bulkHighlights(
-    @Req() req: AuthedRequest,
-    @Body() body: BulkHighlightsDto,
-  ) {
-    return this.highlightsService.bulk(this.userIdOf(req), body);
-  }
+	/** 선택한 스크랩 한꺼번에: 폴더로 옮기기 · 중요 표시 · 중요 빼기 (내 것만, 바꾼 수) */
+	@Post('highlights/bulk')
+	async bulkHighlights(@Req() req: AuthedRequest, @Body() body: BulkHighlightsDto) {
+		return this.highlightsService.bulk(this.userIdOf(req), body);
+	}
 
-  /** 폴더 (#123, 스크랩 · 북마크 · 받은 메일 공통): 만든 순서, 폴더마다 개수 */
-  @Get('folders')
-  async getFolders(@Req() req: AuthedRequest) {
-    return this.foldersService.list(this.userIdOf(req));
-  }
+	/** 폴더 (#123, 스크랩 · 북마크 · 받은 메일 공통): 만든 순서, 폴더마다 개수 */
+	@Get('folders')
+	async getFolders(@Req() req: AuthedRequest) {
+		return this.foldersService.list(this.userIdOf(req));
+	}
 
-  @Post('folders')
-  async createFolder(@Req() req: AuthedRequest, @Body() body: FolderDto) {
-    return this.foldersService.create(this.userIdOf(req), body.name);
-  }
+	@Post('folders')
+	async createFolder(@Req() req: AuthedRequest, @Body() body: FolderDto) {
+		return this.foldersService.create(this.userIdOf(req), body.name);
+	}
 
-  @Patch('folders/:id')
-  async renameFolder(
-    @Req() req: AuthedRequest,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: FolderDto,
-  ) {
-    return this.foldersService.rename(this.userIdOf(req), id, body.name);
-  }
+	@Patch('folders/:id')
+	async renameFolder(@Req() req: AuthedRequest, @Param('id', ParseIntPipe) id: number, @Body() body: FolderDto) {
+		return this.foldersService.rename(this.userIdOf(req), id, body.name);
+	}
 
-  /** 폴더 지우기: 안의 스크랩 · 북마크 · 메일은 '폴더 없음'으로 */
-  @Delete('folders/:id')
-  async deleteFolder(
-    @Req() req: AuthedRequest,
-    @Param('id', ParseIntPipe) id: number,
-    @Query() q: DeleteFolderQueryDto,
-  ) {
-    return this.foldersService.remove(this.userIdOf(req), id, q);
-  }
+	/** 폴더 지우기: 안의 스크랩 · 북마크 · 메일은 '폴더 없음'으로 */
+	@Delete('folders/:id')
+	async deleteFolder(
+		@Req() req: AuthedRequest,
+		@Param('id', ParseIntPipe) id: number,
+		@Query() q: DeleteFolderQueryDto,
+	) {
+		return this.foldersService.remove(this.userIdOf(req), id, q);
+	}
 
-  /** 여러 개 지우기 (내 것만, 지운 수) */
-  @Post('highlights/delete')
-  async deleteHighlights(
-    @Req() req: AuthedRequest,
-    @Body() body: DeleteHighlightsDto,
-  ) {
-    return this.highlightsService.removeMany(this.userIdOf(req), body.ids);
-  }
+	/** 여러 개 지우기 (내 것만, 지운 수) */
+	@Post('highlights/delete')
+	async deleteHighlights(@Req() req: AuthedRequest, @Body() body: DeleteHighlightsDto) {
+		return this.highlightsService.removeMany(this.userIdOf(req), body.ids);
+	}
 
-  /** 메모 고치기 (빈 글이면 메모 지우기) · 별표 켜고 끄기 */
-  @Patch('highlights/:id')
-  async updateHighlight(
-    @Req() req: AuthedRequest,
-    @Param('id', ParseIntPipe) id: number,
-    @Body() body: UpdateHighlightDto,
-  ) {
-    return this.highlightsService.update(this.userIdOf(req), id, body);
-  }
+	/** 메모 고치기 (빈 글이면 메모 지우기) · 별표 켜고 끄기 */
+	@Patch('highlights/:id')
+	async updateHighlight(
+		@Req() req: AuthedRequest,
+		@Param('id', ParseIntPipe) id: number,
+		@Body() body: UpdateHighlightDto,
+	) {
+		return this.highlightsService.update(this.userIdOf(req), id, body);
+	}
 
-  @Delete('highlights/:id')
-  async deleteHighlight(
-    @Req() req: AuthedRequest,
-    @Param('id', ParseIntPipe) id: number,
-  ) {
-    return this.highlightsService.remove(this.userIdOf(req), id);
-  }
+	@Delete('highlights/:id')
+	async deleteHighlight(@Req() req: AuthedRequest, @Param('id', ParseIntPipe) id: number) {
+		return this.highlightsService.remove(this.userIdOf(req), id);
+	}
 
-  /**
-   * 사용자 프로필 조회
-   */
-  @Get('profile')
-  async getProfile(@Req() req: AuthedRequest) {
-    return this.myPageService.getProfile(this.userIdOf(req));
-  }
+	/**
+	 * 사용자 프로필 조회
+	 */
+	@Get('profile')
+	async getProfile(@Req() req: AuthedRequest) {
+		return this.myPageService.getProfile(this.userIdOf(req));
+	}
 
-  /** 팔로우한 태그 (#123 5단계) */
-  @Get('tag-follows')
-  async getTagFollows(@Req() req: AuthedRequest) {
-    return this.tagFollowsService.listWithNews(this.userIdOf(req));
-  }
+	/** 팔로우한 태그 (#123 5단계) */
+	@Get('tag-follows')
+	async getTagFollows(@Req() req: AuthedRequest) {
+		return this.tagFollowsService.listWithNews(this.userIdOf(req));
+	}
 
-  /** 태그 팔로우: 뉴스레터 태그 표기에 맞춰 저장 (20개까지) */
-  @Post('tag-follows')
-  async followTag(@Req() req: AuthedRequest, @Body() body: TagFollowDto) {
-    return this.tagFollowsService.follow(this.userIdOf(req), body.tag);
-  }
+	/** 태그 팔로우: 뉴스레터 태그 표기에 맞춰 저장 (20개까지) */
+	@Post('tag-follows')
+	async followTag(@Req() req: AuthedRequest, @Body() body: TagFollowDto) {
+		return this.tagFollowsService.follow(this.userIdOf(req), body.tag);
+	}
 
-  /** 태그 팔로우 끊기 */
-  @Delete('tag-follows/:tag')
-  async unfollowTag(@Req() req: AuthedRequest, @Param('tag') tag: string) {
-    return this.tagFollowsService.unfollow(this.userIdOf(req), tag);
-  }
+	/** 태그 팔로우 끊기 */
+	@Delete('tag-follows/:tag')
+	async unfollowTag(@Req() req: AuthedRequest, @Param('tag') tag: string) {
+		return this.tagFollowsService.unfollow(this.userIdOf(req), tag);
+	}
 
-  /** 맞춤 메일 켜짐 여부 (#123 16) */
-  @Get('personal-mail')
-  async getPersonalMail(@Req() req: AuthedRequest) {
-    return this.myPageService.getPersonalMail(this.userIdOf(req));
-  }
+	/** 맞춤 메일 켜짐 여부 (#123 16) */
+	@Get('personal-mail')
+	async getPersonalMail(@Req() req: AuthedRequest) {
+		return this.myPageService.getPersonalMail(this.userIdOf(req));
+	}
 
-  /** 맞춤 메일 켜기 · 끄기: 다음 메일부터 적용 */
-  @Put('personal-mail')
-  async setPersonalMail(
-    @Req() req: AuthedRequest,
-    @Body() body: PersonalMailDto,
-  ) {
-    return this.myPageService.setPersonalMail(this.userIdOf(req), body.enabled);
-  }
+	/** 맞춤 메일 켜기 · 끄기: 다음 메일부터 적용 */
+	@Put('personal-mail')
+	async setPersonalMail(@Req() req: AuthedRequest, @Body() body: PersonalMailDto) {
+		return this.myPageService.setPersonalMail(this.userIdOf(req), body.enabled);
+	}
 
-  /** 이메일 바꾸기 1단계: 새 주소로 6자리 인증 코드 (1분에 한 번) */
-  @Throttle({ default: THROTTLE.emailCode })
-  @Post('email/code')
-  async sendEmailCode(
-    @Req() req: AuthedRequest,
-    @Body() body: SendEmailCodeDto,
-  ) {
-    return this.emailChangeService.sendCode(this.userIdOf(req), body.email);
-  }
+	/** 이메일 바꾸기 1단계: 새 주소로 6자리 인증 코드 (1분에 한 번) */
+	@Throttle({ default: THROTTLE.emailCode })
+	@Post('email/code')
+	async sendEmailCode(@Req() req: AuthedRequest, @Body() body: SendEmailCodeDto) {
+		return this.emailChangeService.sendCode(this.userIdOf(req), body.email);
+	}
 
-  /** 이메일 바꾸기 2단계: 코드가 맞으면 바꾼다 (5번 틀리면 코드를 다시 받아야 함) */
-  @Throttle({ default: THROTTLE.emailVerify })
-  @Post('email/verify')
-  async verifyEmailCode(
-    @Req() req: AuthedRequest,
-    @Body() body: VerifyEmailCodeDto,
-  ) {
-    return this.emailChangeService.verify(this.userIdOf(req), body.code);
-  }
+	/** 이메일 바꾸기 2단계: 코드가 맞으면 바꾼다 (5번 틀리면 코드를 다시 받아야 함) */
+	@Throttle({ default: THROTTLE.emailVerify })
+	@Post('email/verify')
+	async verifyEmailCode(@Req() req: AuthedRequest, @Body() body: VerifyEmailCodeDto) {
+		return this.emailChangeService.verify(this.userIdOf(req), body.code);
+	}
 
-  /**
-   * 북마크 조회
-   */
-  @Get('bookmarks')
-  async getBookmarks(@Req() req: AuthedRequest) {
-    return this.bookmarksService.getBookmarks(this.userIdOf(req));
-  }
+	/**
+	 * 북마크 조회
+	 */
+	@Get('bookmarks')
+	async getBookmarks(@Req() req: AuthedRequest) {
+		return this.bookmarksService.getBookmarks(this.userIdOf(req));
+	}
 
-  /** 마이페이지 북마크 한 쪽 (#123): 폴더 · 관심사 · 정렬, 개수 · 관심사 칩도 같이 */
-  @Get('bookmarks/page')
-  async getBookmarkPage(
-    @Req() req: AuthedRequest,
-    @Query() q: BookmarksPageQueryDto,
-  ) {
-    return this.bookmarksService.getBookmarkPage(this.userIdOf(req), {
-      offset: q.offset,
-      limit: q.limit,
-      folder: folderOf(q.folder),
-      categoryId: q.categoryId,
-      sort: q.sort,
-    });
-  }
+	/** 마이페이지 북마크 한 쪽 (#123): 폴더 · 관심사 · 정렬, 개수 · 관심사 칩도 같이 */
+	@Get('bookmarks/page')
+	async getBookmarkPage(@Req() req: AuthedRequest, @Query() q: BookmarksPageQueryDto) {
+		return this.bookmarksService.getBookmarkPage(this.userIdOf(req), {
+			offset: q.offset,
+			limit: q.limit,
+			folder: folderOf(q.folder),
+			categoryId: q.categoryId,
+			sort: q.sort,
+		});
+	}
 
-  /**
-   * 내가 받은 메일 (보낸 시각별로 한 통씩, 쪽 단위)
-   */
-  @Get('mails')
-  async getMails(@Req() req: AuthedRequest, @Query() q: MyMailsQueryDto) {
-    return this.myMailsService.getMails(this.userIdOf(req), q.offset, q.limit, {
-      starred: q.starred,
-      folder:
-        q.folder === undefined
-          ? undefined
-          : q.folder === 'none'
-            ? 'none'
-            : Number(q.folder),
-      categoryId: q.categoryId,
-      order: q.order,
-    });
-  }
+	/**
+	 * 내가 받은 메일 (보낸 시각별로 한 통씩, 쪽 단위)
+	 */
+	@Get('mails')
+	async getMails(@Req() req: AuthedRequest, @Query() q: MyMailsQueryDto) {
+		return this.myMailsService.getMails(this.userIdOf(req), q.offset, q.limit, {
+			starred: q.starred,
+			folder: q.folder === undefined ? undefined : q.folder === 'none' ? 'none' : Number(q.folder),
+			categoryId: q.categoryId,
+			order: q.order,
+		});
+	}
 
-  /** 받은 메일 한 통 표시: 중요 · 폴더 (#123) */
-  @Patch('mails/mark')
-  async markMail(@Req() req: AuthedRequest, @Body() body: MarkMailDto) {
-    return this.myMailsService.markMail(
-      this.userIdOf(req),
-      new Date(body.sentAt),
-      {
-        starred: body.starred,
-        folderId: body.folderId,
-      },
-    );
-  }
+	/** 받은 메일 한 통 표시: 중요 · 폴더 (#123) */
+	@Patch('mails/mark')
+	async markMail(@Req() req: AuthedRequest, @Body() body: MarkMailDto) {
+		return this.myMailsService.markMail(this.userIdOf(req), new Date(body.sentAt), {
+			starred: body.starred,
+			folderId: body.folderId,
+		});
+	}
 
-  /** 북마크 폴더 옮기기 (#123) */
-  @Post('bookmarks/move')
-  async moveBookmarks(
-    @Req() req: AuthedRequest,
-    @Body() body: MoveBookmarksDto,
-  ) {
-    return this.bookmarksService.moveBookmarks(
-      this.userIdOf(req),
-      body.newsletterIds,
-      body.folderId,
-    );
-  }
+	/** 북마크 폴더 옮기기 (#123) */
+	@Post('bookmarks/move')
+	async moveBookmarks(@Req() req: AuthedRequest, @Body() body: MoveBookmarksDto) {
+		return this.bookmarksService.moveBookmarks(this.userIdOf(req), body.newsletterIds, body.folderId);
+	}
 
-  /**
-   * 받은 메일 한 통을 받은 그대로 (HTML)
-   */
-  @Get('mails/view')
-  async getMail(@Req() req: AuthedRequest, @Query() q: MyMailQueryDto) {
-    return this.myMailsService.getMail(this.userIdOf(req), new Date(q.sentAt));
-  }
+	/**
+	 * 받은 메일 한 통을 받은 그대로 (HTML)
+	 */
+	@Get('mails/view')
+	async getMail(@Req() req: AuthedRequest, @Query() q: MyMailQueryDto) {
+		return this.myMailsService.getMail(this.userIdOf(req), new Date(q.sentAt));
+	}
 
-  /**
-   * 관심사 조회
-   */
-  @Get('interests')
-  async getInterests(@Req() req: AuthedRequest) {
-    return this.myPageService.getInterests(this.userIdOf(req));
-  }
+	/**
+	 * 관심사 조회
+	 */
+	@Get('interests')
+	async getInterests(@Req() req: AuthedRequest) {
+		return this.myPageService.getInterests(this.userIdOf(req));
+	}
 
-  /**
-   * 관심사 수정 (덮어쓰기)
-   */
-  @Put('interests')
-  async updateInterests(@Req() req: AuthedRequest, @Body() data: InterestsDto) {
-    return this.myPageService.updateInterests(
-      this.userIdOf(req),
-      data.interests,
-    );
-  }
+	/**
+	 * 관심사 수정 (덮어쓰기)
+	 */
+	@Put('interests')
+	async updateInterests(@Req() req: AuthedRequest, @Body() data: InterestsDto) {
+		return this.myPageService.updateInterests(this.userIdOf(req), data.interests);
+	}
 
-  /**
-   * 회원 탈퇴 (#65). 지운 뒤 로그인 쿠키도 지운다 (로그아웃과 같게)
-   */
-  @Delete('account')
-  async deleteAccount(
-    @Req() req: AuthedRequest,
-    @Res({ passthrough: true }) res: Response,
-  ) {
-    await this.myPageService.deleteAccount(this.userIdOf(req));
-    res.clearCookie('access_token', authCookieOptions());
-    res.clearCookie('refresh_token', authCookieOptions());
-    res.clearCookie(SESSION_HINT_COOKIE, sessionHintCookieOptions());
-    return { message: '탈퇴했습니다.' };
-  }
+	/**
+	 * 회원 탈퇴 (#65). 지운 뒤 로그인 쿠키도 지운다 (로그아웃과 같게)
+	 */
+	@Delete('account')
+	async deleteAccount(@Req() req: AuthedRequest, @Res({ passthrough: true }) res: Response) {
+		await this.myPageService.deleteAccount(this.userIdOf(req));
+		res.clearCookie('access_token', authCookieOptions());
+		res.clearCookie('refresh_token', authCookieOptions());
+		res.clearCookie(SESSION_HINT_COOKIE, sessionHintCookieOptions());
+		return { message: '탈퇴했습니다.' };
+	}
 
-  private userIdOf(req: AuthedRequest): number {
-    const userId = Number(req.user?.id);
-    if (!Number.isInteger(userId) || userId <= 0) {
-      throw new AppException('UNAUTHORIZED');
-    }
-    return userId;
-  }
+	private userIdOf(req: AuthedRequest): number {
+		const userId = Number(req.user?.id);
+		if (!Number.isInteger(userId) || userId <= 0) {
+			throw new AppException('UNAUTHORIZED');
+		}
+		return userId;
+	}
 }

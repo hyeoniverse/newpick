@@ -1,0 +1,4 @@
+# 모양만 바꾼 커밋 (blame에서 건너뜀). 로컬: git config blame.ignoreRevsFile .git-blame-ignore-revs
+
+# Prettier 통일: 탭 · 120자로 api 다시 포맷 (#201)
+2a7a40f560b803739479a4023f8c7c320eb5a0eb

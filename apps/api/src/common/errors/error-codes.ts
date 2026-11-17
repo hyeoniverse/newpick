@@ -8,189 +8,186 @@ import type { ErrorCode } from '@newpick/shared';
  * 새 오류가 필요하면 여기에 먼저 더하고 `new AppException('CODE')`로 던진다
  */
 export const ERROR_CODES = {
-  // 공통
-  BAD_REQUEST: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '요청이 올바르지 않습니다.',
-  },
-  VALIDATION_FAILED: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '입력값을 확인해 주십시오.',
-  },
-  UNAUTHORIZED: {
-    status: HttpStatus.UNAUTHORIZED,
-    message: '로그인이 필요합니다.',
-  },
-  SESSION_EXPIRED: {
-    status: HttpStatus.UNAUTHORIZED,
-    message: '로그인이 만료되었습니다. 다시 로그인해 주십시오.',
-  },
-  FORBIDDEN: { status: HttpStatus.FORBIDDEN, message: '권한이 없습니다.' },
-  ADMIN_ONLY: {
-    status: HttpStatus.FORBIDDEN,
-    message: '관리자만 이용할 수 있습니다.',
-  },
-  NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '요청한 정보를 찾을 수 없습니다.',
-  },
-  ROUTE_NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '없는 API 주소입니다.',
-  },
-  METHOD_NOT_ALLOWED: {
-    status: HttpStatus.METHOD_NOT_ALLOWED,
-    message: '지원하지 않는 요청 방식입니다.',
-  },
-  CONFLICT: { status: HttpStatus.CONFLICT, message: '이미 처리된 요청입니다.' },
-  PAYLOAD_TOO_LARGE: {
-    status: HttpStatus.PAYLOAD_TOO_LARGE,
-    message: '보낸 내용이 너무 큽니다.',
-  },
-  UNPROCESSABLE: {
-    status: HttpStatus.UNPROCESSABLE_ENTITY,
-    message: '처리할 수 없는 값이 있습니다.',
-  },
-  TOO_MANY_REQUESTS: {
-    status: HttpStatus.TOO_MANY_REQUESTS,
-    message: '요청이 너무 많습니다. 잠시 후 다시 시도해 주십시오.',
-  },
-  INTERNAL_ERROR: {
-    status: HttpStatus.INTERNAL_SERVER_ERROR,
-    message: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주십시오.',
-  },
-  BAD_GATEWAY: {
-    status: HttpStatus.BAD_GATEWAY,
-    message: '외부 서비스와 연결하지 못했습니다. 잠시 후 다시 시도해 주십시오.',
-  },
-  SERVICE_UNAVAILABLE: {
-    status: HttpStatus.SERVICE_UNAVAILABLE,
-    message: '지금은 이용할 수 없습니다. 잠시 후 다시 시도해 주십시오.',
-  },
-  GATEWAY_TIMEOUT: {
-    status: HttpStatus.GATEWAY_TIMEOUT,
-    message: '외부 서비스 응답이 늦습니다. 잠시 후 다시 시도해 주십시오.',
-  },
+	// 공통
+	BAD_REQUEST: {
+		status: HttpStatus.BAD_REQUEST,
+		message: '요청이 올바르지 않습니다.',
+	},
+	VALIDATION_FAILED: {
+		status: HttpStatus.BAD_REQUEST,
+		message: '입력값을 확인해 주십시오.',
+	},
+	UNAUTHORIZED: {
+		status: HttpStatus.UNAUTHORIZED,
+		message: '로그인이 필요합니다.',
+	},
+	SESSION_EXPIRED: {
+		status: HttpStatus.UNAUTHORIZED,
+		message: '로그인이 만료되었습니다. 다시 로그인해 주십시오.',
+	},
+	FORBIDDEN: { status: HttpStatus.FORBIDDEN, message: '권한이 없습니다.' },
+	ADMIN_ONLY: {
+		status: HttpStatus.FORBIDDEN,
+		message: '관리자만 이용할 수 있습니다.',
+	},
+	NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '요청한 정보를 찾을 수 없습니다.',
+	},
+	ROUTE_NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '없는 API 주소입니다.',
+	},
+	METHOD_NOT_ALLOWED: {
+		status: HttpStatus.METHOD_NOT_ALLOWED,
+		message: '지원하지 않는 요청 방식입니다.',
+	},
+	CONFLICT: { status: HttpStatus.CONFLICT, message: '이미 처리된 요청입니다.' },
+	PAYLOAD_TOO_LARGE: {
+		status: HttpStatus.PAYLOAD_TOO_LARGE,
+		message: '보낸 내용이 너무 큽니다.',
+	},
+	UNPROCESSABLE: {
+		status: HttpStatus.UNPROCESSABLE_ENTITY,
+		message: '처리할 수 없는 값이 있습니다.',
+	},
+	TOO_MANY_REQUESTS: {
+		status: HttpStatus.TOO_MANY_REQUESTS,
+		message: '요청이 너무 많습니다. 잠시 후 다시 시도해 주십시오.',
+	},
+	INTERNAL_ERROR: {
+		status: HttpStatus.INTERNAL_SERVER_ERROR,
+		message: '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해 주십시오.',
+	},
+	BAD_GATEWAY: {
+		status: HttpStatus.BAD_GATEWAY,
+		message: '외부 서비스와 연결하지 못했습니다. 잠시 후 다시 시도해 주십시오.',
+	},
+	SERVICE_UNAVAILABLE: {
+		status: HttpStatus.SERVICE_UNAVAILABLE,
+		message: '지금은 이용할 수 없습니다. 잠시 후 다시 시도해 주십시오.',
+	},
+	GATEWAY_TIMEOUT: {
+		status: HttpStatus.GATEWAY_TIMEOUT,
+		message: '외부 서비스 응답이 늦습니다. 잠시 후 다시 시도해 주십시오.',
+	},
 
-  // 로그인
-  GOOGLE_LOGIN_UNAVAILABLE: {
-    status: HttpStatus.SERVICE_UNAVAILABLE,
-    message: '지금은 구글 로그인을 이용할 수 없습니다.',
-  },
+	// 로그인
+	GOOGLE_LOGIN_UNAVAILABLE: {
+		status: HttpStatus.SERVICE_UNAVAILABLE,
+		message: '지금은 구글 로그인을 이용할 수 없습니다.',
+	},
 
-  // 사이트 캐시 (#73)
-  SITE_CACHE_UNAVAILABLE: {
-    status: HttpStatus.SERVICE_UNAVAILABLE,
-    message: '사이트 캐시 비우기가 설정되지 않았습니다.',
-  },
-  SITE_CACHE_FAILED: {
-    status: HttpStatus.BAD_GATEWAY,
-    message: '사이트 캐시를 비우지 못했습니다. 잠시 후 다시 시도해 주십시오.',
-  },
+	// 사이트 캐시 (#73)
+	SITE_CACHE_UNAVAILABLE: {
+		status: HttpStatus.SERVICE_UNAVAILABLE,
+		message: '사이트 캐시 비우기가 설정되지 않았습니다.',
+	},
+	SITE_CACHE_FAILED: {
+		status: HttpStatus.BAD_GATEWAY,
+		message: '사이트 캐시를 비우지 못했습니다. 잠시 후 다시 시도해 주십시오.',
+	},
 
-  // 뉴스레터·분야·발행본
-  NEWSLETTER_NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '뉴스레터를 찾을 수 없습니다.',
-  },
-  CATEGORY_NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '분야를 찾을 수 없습니다.',
-  },
-  CATEGORY_ALREADY_EXISTS: {
-    status: HttpStatus.CONFLICT,
-    message: '이미 있는 분야입니다.',
-  },
-  EDITION_NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '선택한 분야의 뉴스레터가 없습니다.',
-  },
-  NEWS_NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '요약할 뉴스를 찾지 못했습니다.',
-  },
+	// 뉴스레터·분야·발행본
+	NEWSLETTER_NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '뉴스레터를 찾을 수 없습니다.',
+	},
+	CATEGORY_NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '분야를 찾을 수 없습니다.',
+	},
+	CATEGORY_ALREADY_EXISTS: {
+		status: HttpStatus.CONFLICT,
+		message: '이미 있는 분야입니다.',
+	},
+	EDITION_NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '선택한 분야의 뉴스레터가 없습니다.',
+	},
+	NEWS_NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '요약할 뉴스를 찾지 못했습니다.',
+	},
 
-  // 회원·북마크·구독
-  USER_NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '회원 정보를 찾을 수 없습니다.',
-  },
-  BOOKMARK_NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '북마크를 찾을 수 없습니다.',
-  },
-  TAG_FOLLOW_LIMIT: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '태그는 20개까지 팔로우할 수 있습니다.',
-  },
-  HIGHLIGHT_NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '스크랩을 찾을 수 없습니다.',
-  },
-  BOOKMARK_ALREADY_EXISTS: {
-    status: HttpStatus.CONFLICT,
-    message: '이미 북마크한 뉴스레터입니다.',
-  },
-  SUBSCRIPTION_NOT_FOUND: {
-    status: HttpStatus.NOT_FOUND,
-    message: '구독 정보가 없습니다.',
-  },
-  UNSUBSCRIBE_LINK_INVALID: {
-    status: HttpStatus.BAD_REQUEST,
-    message:
-      '수신 거부 링크가 올바르지 않습니다. 메일의 링크를 다시 눌러 주십시오.',
-  },
-  ALREADY_SUBSCRIBED: {
-    status: HttpStatus.CONFLICT,
-    message: '이미 구독 중입니다.',
-  },
-  INVALID_INTERESTS: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '관심 분야를 다시 선택해 주십시오.',
-  },
-  EMAIL_UNCHANGED: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '현재 이메일과 같습니다.',
-  },
-  EMAIL_TAKEN: {
-    status: HttpStatus.CONFLICT,
-    message: '다른 계정에서 사용 중인 이메일입니다.',
-  },
-  EMAIL_CODE_TOO_SOON: {
-    status: HttpStatus.TOO_MANY_REQUESTS,
-    message:
-      '인증 코드는 1분에 한 번 요청할 수 있습니다. 잠시 후 다시 시도해 주십시오.',
-  },
-  EMAIL_CODE_INVALID: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '인증 코드가 맞지 않습니다.',
-  },
-  EMAIL_CODE_EXPIRED: {
-    status: HttpStatus.BAD_REQUEST,
-    message: '인증 코드가 만료되었습니다. 코드를 다시 받아 주십시오.',
-  },
-  // 이름 목록은 @newpick/shared (웹과 같은 이름). 하나라도 빠지거나 남으면 타입 오류
+	// 회원·북마크·구독
+	USER_NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '회원 정보를 찾을 수 없습니다.',
+	},
+	BOOKMARK_NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '북마크를 찾을 수 없습니다.',
+	},
+	TAG_FOLLOW_LIMIT: {
+		status: HttpStatus.BAD_REQUEST,
+		message: '태그는 20개까지 팔로우할 수 있습니다.',
+	},
+	HIGHLIGHT_NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '스크랩을 찾을 수 없습니다.',
+	},
+	BOOKMARK_ALREADY_EXISTS: {
+		status: HttpStatus.CONFLICT,
+		message: '이미 북마크한 뉴스레터입니다.',
+	},
+	SUBSCRIPTION_NOT_FOUND: {
+		status: HttpStatus.NOT_FOUND,
+		message: '구독 정보가 없습니다.',
+	},
+	UNSUBSCRIBE_LINK_INVALID: {
+		status: HttpStatus.BAD_REQUEST,
+		message: '수신 거부 링크가 올바르지 않습니다. 메일의 링크를 다시 눌러 주십시오.',
+	},
+	ALREADY_SUBSCRIBED: {
+		status: HttpStatus.CONFLICT,
+		message: '이미 구독 중입니다.',
+	},
+	INVALID_INTERESTS: {
+		status: HttpStatus.BAD_REQUEST,
+		message: '관심 분야를 다시 선택해 주십시오.',
+	},
+	EMAIL_UNCHANGED: {
+		status: HttpStatus.BAD_REQUEST,
+		message: '현재 이메일과 같습니다.',
+	},
+	EMAIL_TAKEN: {
+		status: HttpStatus.CONFLICT,
+		message: '다른 계정에서 사용 중인 이메일입니다.',
+	},
+	EMAIL_CODE_TOO_SOON: {
+		status: HttpStatus.TOO_MANY_REQUESTS,
+		message: '인증 코드는 1분에 한 번 요청할 수 있습니다. 잠시 후 다시 시도해 주십시오.',
+	},
+	EMAIL_CODE_INVALID: {
+		status: HttpStatus.BAD_REQUEST,
+		message: '인증 코드가 맞지 않습니다.',
+	},
+	EMAIL_CODE_EXPIRED: {
+		status: HttpStatus.BAD_REQUEST,
+		message: '인증 코드가 만료되었습니다. 코드를 다시 받아 주십시오.',
+	},
+	// 이름 목록은 @newpick/shared (웹과 같은 이름). 하나라도 빠지거나 남으면 타입 오류
 } as const satisfies Record<ErrorCode, { status: HttpStatus; message: string }>;
 
 export type { ErrorCode };
 
 /** code가 없는 오류(Nest 기본 예외 등)는 상태 코드로 대표 code를 정한다 */
 export const DEFAULT_CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {
-  400: 'BAD_REQUEST',
-  401: 'UNAUTHORIZED',
-  403: 'FORBIDDEN',
-  404: 'NOT_FOUND',
-  405: 'METHOD_NOT_ALLOWED',
-  409: 'CONFLICT',
-  413: 'PAYLOAD_TOO_LARGE',
-  422: 'UNPROCESSABLE',
-  429: 'TOO_MANY_REQUESTS',
-  500: 'INTERNAL_ERROR',
-  502: 'BAD_GATEWAY',
-  503: 'SERVICE_UNAVAILABLE',
-  504: 'GATEWAY_TIMEOUT',
+	400: 'BAD_REQUEST',
+	401: 'UNAUTHORIZED',
+	403: 'FORBIDDEN',
+	404: 'NOT_FOUND',
+	405: 'METHOD_NOT_ALLOWED',
+	409: 'CONFLICT',
+	413: 'PAYLOAD_TOO_LARGE',
+	422: 'UNPROCESSABLE',
+	429: 'TOO_MANY_REQUESTS',
+	500: 'INTERNAL_ERROR',
+	502: 'BAD_GATEWAY',
+	503: 'SERVICE_UNAVAILABLE',
+	504: 'GATEWAY_TIMEOUT',
 };
 
 export const codeForStatus = (status: number): ErrorCode =>
-  DEFAULT_CODE_BY_STATUS[status] ??
-  (status >= 500 ? 'INTERNAL_ERROR' : 'BAD_REQUEST');
+	DEFAULT_CODE_BY_STATUS[status] ?? (status >= 500 ? 'INTERNAL_ERROR' : 'BAD_REQUEST');

@@ -7,7 +7,7 @@ export const useDropdown = (dropdownType: string | string[]) => {
 	// 현재 상태 가져오기
 	const isDropdownOpen =
 		typeof dropdownType === 'string'
-			? dropdowns[dropdownType] ?? false // 문자열이면 직접 접근
+			? (dropdowns[dropdownType] ?? false) // 문자열이면 직접 접근
 			: dropdownType.some((type) => dropdowns[type] ?? false); // 배열이면 하나라도 열려 있는지 확인
 
 	// 드롭다운 열기
@@ -32,7 +32,7 @@ export const useDropdown = (dropdownType: string | string[]) => {
 	const toggleDropdown = useCallback(() => {
 		const currentState =
 			typeof dropdownType === 'string'
-				? getState()[dropdownType] ?? false // 현재 상태 가져오기
+				? (getState()[dropdownType] ?? false) // 현재 상태 가져오기
 				: dropdownType.some((type) => getState()[type] ?? false);
 
 		if (typeof dropdownType === 'string') {

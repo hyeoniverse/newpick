@@ -7,12 +7,12 @@ export type SubscriptionEventType = 'subscribe' | 'pause' | 'resume' | 'cancel';
  * 상태만 바뀌고 기록이 빠지는 일이 없게 한다
  */
 export function subscriptionEvent(
-  prisma: MysqlPrismaService,
-  userId: number,
-  type: SubscriptionEventType,
-  interests?: number[],
+	prisma: MysqlPrismaService,
+	userId: number,
+	type: SubscriptionEventType,
+	interests?: number[],
 ) {
-  return prisma.subscriptionEvent.create({
-    data: { userId, type, ...(interests && { interests }) },
-  });
+	return prisma.subscriptionEvent.create({
+		data: { userId, type, ...(interests && { interests }) },
+	});
 }

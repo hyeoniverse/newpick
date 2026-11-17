@@ -8,17 +8,17 @@ import { AppException } from 'src/common/errors/app.exception';
  */
 @Injectable()
 export class AdminGuard implements CanActivate {
-  constructor(private readonly prisma: MysqlPrismaService) {}
+	constructor(private readonly prisma: MysqlPrismaService) {}
 
-  async canActivate(context: ExecutionContext): Promise<boolean> {
-    const userId = context.switchToHttp().getRequest().user?.id;
-    if (!userId) throw new AppException('UNAUTHORIZED');
+	async canActivate(context: ExecutionContext): Promise<boolean> {
+		const userId = context.switchToHttp().getRequest().user?.id;
+		if (!userId) throw new AppException('UNAUTHORIZED');
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    });
-    if (user?.role !== 'admin') throw new AppException('ADMIN_ONLY');
-    return true;
-  }
+		const user = await this.prisma.user.findUnique({
+			where: { id: userId },
+			select: { role: true },
+		});
+		if (user?.role !== 'admin') throw new AppException('ADMIN_ONLY');
+		return true;
+	}
 }

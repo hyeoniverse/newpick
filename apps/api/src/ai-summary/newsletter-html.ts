@@ -1,89 +1,84 @@
 import type { Story, StoryImage, WrittenNewsletter } from './writer/types';
 
 const escapeHtml = (text: string) =>
-  text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+	text
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;')
+		.replace(/'/g, '&#39;');
 
 /** 이스케이프한 뒤 ==구절==만 <mark>로 (#51). 정리 단계에서 강조는 본문·시사점·문답 답에만 남는다 */
-const rich = (text: string) =>
-  escapeHtml(text).replace(/==([^=\n]+?)==/g, '<mark>$1</mark>');
+const rich = (text: string) => escapeHtml(text).replace(/==([^=\n]+?)==/g, '<mark>$1</mark>');
 
 const paragraphs = (text: string) =>
-  text
-    .split(/\n\s*\n/)
-    .map((p) => p.trim())
-    .filter(Boolean)
-    .map((p) => `<p>${rich(p)}</p>`)
-    .join('');
+	text
+		.split(/\n\s*\n/)
+		.map((p) => p.trim())
+		.filter(Boolean)
+		.map((p) => `<p>${rich(p)}</p>`)
+		.join('');
 
-const items = (list: string[]) =>
-  list.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
+const items = (list: string[]) => list.map((item) => `<li>${escapeHtml(item)}</li>`).join('');
 
 const isWebUrl = (url?: string) => !!url && /^https?:\/\//i.test(url);
 
 /** 근거 기사마다 언론사 이름으로 원문 링크 (새 탭). 같은 기사는 한 번만 */
 const credit = (story: Story, articles: SourceRef[]) => {
-  const seen = new Set<string>();
-  const links = story.sources
-    .map((n) => articles[n - 1])
-    .filter((a): a is SourceRef => Boolean(a?.source || a?.link))
-    .filter((a) => {
-      const key = a.link || a.source || '';
-      if (seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    })
-    .map((a) => link(a.source || '원문', a.link));
-  return links.length ? `<p class="credit">출처 ${links.join(' · ')}</p>` : '';
+	const seen = new Set<string>();
+	const links = story.sources
+		.map((n) => articles[n - 1])
+		.filter((a): a is SourceRef => Boolean(a?.source || a?.link))
+		.filter((a) => {
+			const key = a.link || a.source || '';
+			if (seen.has(key)) return false;
+			seen.add(key);
+			return true;
+		})
+		.map((a) => link(a.source || '원문', a.link));
+	return links.length ? `<p class="credit">출처 ${links.join(' · ')}</p>` : '';
 };
 
 export type SourceRef = { source?: string; link?: string };
 
 const link = (text: string, url?: string) =>
-  isWebUrl(url)
-    ? `<a href="${escapeHtml(url!)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`
-    : escapeHtml(text);
+	isWebUrl(url)
+		? `<a href="${escapeHtml(url!)}" target="_blank" rel="noopener noreferrer">${escapeHtml(text)}</a>`
+		: escapeHtml(text);
 
 /** 사진 출처 표기. Unsplash는 "Photo by 작가 on Unsplash" 형식이 이용 규칙이다 (#49) */
 const imageCaption = (image: StoryImage) => {
-  switch (image.provider) {
-    // 검색으로 찾은 사진은 기사 속 인물·장소가 아님을 밝힌다
-    case 'pexels':
-      return `자료 사진 · Photo: ${link(image.credit, image.creditUrl)} / ${link('Pexels', image.providerUrl)}`;
-    case 'unsplash':
-      return `자료 사진 · Photo by ${link(image.credit, image.creditUrl)} on ${link('Unsplash', image.providerUrl)}`;
-    default:
-      return `사진 ${link(image.credit, image.creditUrl)}`;
-  }
+	switch (image.provider) {
+		// 검색으로 찾은 사진은 기사 속 인물·장소가 아님을 밝힌다
+		case 'pexels':
+			return `자료 사진 · Photo: ${link(image.credit, image.creditUrl)} / ${link('Pexels', image.providerUrl)}`;
+		case 'unsplash':
+			return `자료 사진 · Photo by ${link(image.credit, image.creditUrl)} on ${link('Unsplash', image.providerUrl)}`;
+		default:
+			return `사진 ${link(image.credit, image.creditUrl)}`;
+	}
 };
 
 const figure = (story: Story) =>
-  story.image && isWebUrl(story.image.url)
-    ? `<figure class="story-image"><img src="${escapeHtml(story.image.url)}" alt="${escapeHtml(story.image.alt)}" loading="lazy"><figcaption>${imageCaption(story.image)}</figcaption></figure>`
-    : '';
+	story.image && isWebUrl(story.image.url)
+		? `<figure class="story-image"><img src="${escapeHtml(story.image.url)}" alt="${escapeHtml(story.image.alt)}" loading="lazy"><figcaption>${imageCaption(story.image)}</figcaption></figure>`
+		: '';
 
-const body = (story: Story) =>
-  story.body ? `<div class="body">${paragraphs(story.body)}</div>` : '';
+const body = (story: Story) => (story.body ? `<div class="body">${paragraphs(story.body)}</div>` : '');
 
 const analysis = (story: Story, label = '시사점') =>
-  story.analysis
-    ? `<div class="analysis"><h3>${label}</h3>${paragraphs(story.analysis)}</div>`
-    : '';
+	story.analysis ? `<div class="analysis"><h3>${label}</h3>${paragraphs(story.analysis)}</div>` : '';
 
 /** 엇갈린 주장: 같은 사안을 두고 맞서는 주장 (본문 뒤, 시사점 앞). 누가 · 무엇을 · 어느 기사에서 */
 const debate = (story: Story) =>
-  story.debate?.length
-    ? `<div class="debate"><h3>엇갈린 주장</h3><ul>${story.debate
-        .map(
-          (c) =>
-            `<li><strong class="side">${escapeHtml(c.side)}</strong><span class="claim">${escapeHtml(c.claim)}</span>${c.source ? `<span class="source">${escapeHtml(c.source)}</span>` : ''}</li>`,
-        )
-        .join('')}</ul></div>`
-    : '';
+	story.debate?.length
+		? `<div class="debate"><h3>엇갈린 주장</h3><ul>${story.debate
+				.map(
+					(c) =>
+						`<li><strong class="side">${escapeHtml(c.side)}</strong><span class="claim">${escapeHtml(c.claim)}</span>${c.source ? `<span class="source">${escapeHtml(c.source)}</span>` : ''}</li>`,
+				)
+				.join('')}</ul></div>`
+		: '';
 
 /**
  * 템플릿마다 고유 요소와 순서가 다르다 (#48).
@@ -91,48 +86,43 @@ const debate = (story: Story) =>
  * 꼬리표·헤드라인·리드·출처는 공통이고, 그 사이를 템플릿이 채운다
  */
 const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
-  // 지표 카드 → 본문 → 시사점
-  numbers: (s) => [
-    `<div class="stats">${s.stats
-      .map(
-        (stat) =>
-          `<div class="stat"><span class="label">${escapeHtml(stat.label)}</span><strong class="value">${escapeHtml(stat.value)}</strong><span class="note">${escapeHtml(stat.note)}</span></div>`,
-      )
-      .join('')}</div>`,
-    body(s),
-    debate(s),
-    analysis(s),
-  ],
-  // 날짜별 경과 → 본문 → 전망
-  timeline: (s) => [
-    `<ol class="timeline">${s.timeline
-      .map(
-        (m) =>
-          `<li><time>${escapeHtml(m.when)}</time><span>${escapeHtml(m.what)}</span></li>`,
-      )
-      .join('')}</ol>`,
-    body(s),
-    debate(s),
-    analysis(s, '전망'),
-  ],
-  // 본문 → 문답 → 시사점
-  qa: (s) => [
-    body(s),
-    `<dl class="qa">${s.qa
-      .map((x) => `<dt>${escapeHtml(x.q)}</dt><dd>${rich(x.a)}</dd>`)
-      .join('')}</dl>`,
-    debate(s),
-    analysis(s),
-  ],
-  // 인용문 → 맥락 → 시사점
-  quote: (s) => [
-    `<blockquote class="quote"><p>${escapeHtml(s.quote.text)}</p><cite>${escapeHtml(s.quote.by)}</cite></blockquote>`,
-    body(s),
-    debate(s),
-    analysis(s),
-  ],
-  analysis: (s) => [body(s), debate(s), analysis(s)],
-  brief: (s) => [body(s), debate(s)],
+	// 지표 카드 → 본문 → 시사점
+	numbers: (s) => [
+		`<div class="stats">${s.stats
+			.map(
+				(stat) =>
+					`<div class="stat"><span class="label">${escapeHtml(stat.label)}</span><strong class="value">${escapeHtml(stat.value)}</strong><span class="note">${escapeHtml(stat.note)}</span></div>`,
+			)
+			.join('')}</div>`,
+		body(s),
+		debate(s),
+		analysis(s),
+	],
+	// 날짜별 경과 → 본문 → 전망
+	timeline: (s) => [
+		`<ol class="timeline">${s.timeline
+			.map((m) => `<li><time>${escapeHtml(m.when)}</time><span>${escapeHtml(m.what)}</span></li>`)
+			.join('')}</ol>`,
+		body(s),
+		debate(s),
+		analysis(s, '전망'),
+	],
+	// 본문 → 문답 → 시사점
+	qa: (s) => [
+		body(s),
+		`<dl class="qa">${s.qa.map((x) => `<dt>${escapeHtml(x.q)}</dt><dd>${rich(x.a)}</dd>`).join('')}</dl>`,
+		debate(s),
+		analysis(s),
+	],
+	// 인용문 → 맥락 → 시사점
+	quote: (s) => [
+		`<blockquote class="quote"><p>${escapeHtml(s.quote.text)}</p><cite>${escapeHtml(s.quote.by)}</cite></blockquote>`,
+		body(s),
+		debate(s),
+		analysis(s),
+	],
+	analysis: (s) => [body(s), debate(s), analysis(s)],
+	brief: (s) => [body(s), debate(s)],
 };
 
 /**
@@ -144,50 +134,40 @@ const TEMPLATE_PARTS: Record<Story['template'], (story: Story) => string[]> = {
  * articles: 원래 기사 목록. 소식의 sources(1부터)로 출처 언론사와 원문 링크를 찾는다
  */
 export function renderNewsletterHtml(
-  newsletter: Pick<
-    WrittenNewsletter,
-    'briefing' | 'stories' | 'watch' | 'morning'
-  >,
-  articles: SourceRef[] = [],
+	newsletter: Pick<WrittenNewsletter, 'briefing' | 'stories' | 'watch' | 'morning'>,
+	articles: SourceRef[] = [],
 ): string {
-  const morning = newsletter.morning ?? [];
-  // 아침 속보가 먼저(01부터), 본문 소식은 그 다음 번호
-  const render = (story: Story, i: number) => {
-    const index = String(i + 1).padStart(2, '0');
-    return [
-      // 소식 태그는 화면에 그리지 않고 속성으로 남긴다 (마이페이지 스크랩 · 메일 '팔로우한 태그'가 소식 단위로 읽는다)
-      `<article class="story story-${story.template}"${story.tags?.length ? ` data-tags="${escapeHtml(story.tags.join('|'))}"` : ''}>`,
-      `<p class="kicker"><span class="index">${index}</span>${escapeHtml(story.kicker)}</p>`,
-      `<h2>${escapeHtml(story.heading)}</h2>`,
-      story.lead ? `<p class="lead">${escapeHtml(story.lead)}</p>` : '',
-      figure(story),
-      ...TEMPLATE_PARTS[story.template](story),
-      // 관전 포인트: 소식 끝, 출처 위. 화면은 이 옆에 '후속 지켜보기' 단추를 둔다
-      story.next
-        ? `<p class="next"><strong>관전 포인트</strong><span>${escapeHtml(story.next)}</span></p>`
-        : '',
-      credit(story, articles),
-      '</article>',
-    ].join('');
-  };
-  const stories = newsletter.stories.map((story, i) =>
-    render(story, morning.length + i),
-  );
-  return [
-    '<div class="newsletter">',
-    // 오늘 아침 속보: 별도 소식으로 맨 위 (화면 · 메일은 이 묶음을 따로 보여 준다)
-    morning.length
-      ? `<section class="morning"><h3>오늘 아침 속보</h3>${morning.map(render).join('')}</section>`
-      : '',
-    newsletter.briefing
-      ? `<section class="briefing"><h3>에디터 브리핑</h3>${paragraphs(newsletter.briefing)}</section>`
-      : '',
-    stories.join(''),
-    // 맨 끝 관전 포인트 모음: 소식마다 관전 포인트가 있으면 같은 내용이라 두지 않는다 (예전 구조만)
-    newsletter.watch.length &&
-    ![...morning, ...newsletter.stories].some((s) => s.next)
-      ? `<section class="watch"><h3>관전 포인트</h3><ul>${items(newsletter.watch)}</ul></section>`
-      : '',
-    '</div>',
-  ].join('');
+	const morning = newsletter.morning ?? [];
+	// 아침 속보가 먼저(01부터), 본문 소식은 그 다음 번호
+	const render = (story: Story, i: number) => {
+		const index = String(i + 1).padStart(2, '0');
+		return [
+			// 소식 태그는 화면에 그리지 않고 속성으로 남긴다 (마이페이지 스크랩 · 메일 '팔로우한 태그'가 소식 단위로 읽는다)
+			`<article class="story story-${story.template}"${story.tags?.length ? ` data-tags="${escapeHtml(story.tags.join('|'))}"` : ''}>`,
+			`<p class="kicker"><span class="index">${index}</span>${escapeHtml(story.kicker)}</p>`,
+			`<h2>${escapeHtml(story.heading)}</h2>`,
+			story.lead ? `<p class="lead">${escapeHtml(story.lead)}</p>` : '',
+			figure(story),
+			...TEMPLATE_PARTS[story.template](story),
+			// 관전 포인트: 소식 끝, 출처 위. 화면은 이 옆에 '후속 지켜보기' 단추를 둔다
+			story.next ? `<p class="next"><strong>관전 포인트</strong><span>${escapeHtml(story.next)}</span></p>` : '',
+			credit(story, articles),
+			'</article>',
+		].join('');
+	};
+	const stories = newsletter.stories.map((story, i) => render(story, morning.length + i));
+	return [
+		'<div class="newsletter">',
+		// 오늘 아침 속보: 별도 소식으로 맨 위 (화면 · 메일은 이 묶음을 따로 보여 준다)
+		morning.length ? `<section class="morning"><h3>오늘 아침 속보</h3>${morning.map(render).join('')}</section>` : '',
+		newsletter.briefing
+			? `<section class="briefing"><h3>에디터 브리핑</h3>${paragraphs(newsletter.briefing)}</section>`
+			: '',
+		stories.join(''),
+		// 맨 끝 관전 포인트 모음: 소식마다 관전 포인트가 있으면 같은 내용이라 두지 않는다 (예전 구조만)
+		newsletter.watch.length && ![...morning, ...newsletter.stories].some((s) => s.next)
+			? `<section class="watch"><h3>관전 포인트</h3><ul>${items(newsletter.watch)}</ul></section>`
+			: '',
+		'</div>',
+	].join('');
 }

@@ -13,73 +13,57 @@ const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
 /** 'YYYY-MM-DD'는 그대로, 시각이 있는 값은 KST 기준 날짜로 바꿉니다. */
 export function toKstDate(input: string | Date): string {
-  if (typeof input === 'string' && DATE_ONLY.test(input)) return input;
-  return dayjs(input).tz(KST).format('YYYY-MM-DD');
+	if (typeof input === 'string' && DATE_ONLY.test(input)) return input;
+	return dayjs(input).tz(KST).format('YYYY-MM-DD');
 }
 
 /** KST 기준 하루 단위 범위 [dateStart 00:00, dateEnd 23:59:59.999] */
 export function kstDayRange(dateStart: string | Date, dateEnd: string | Date) {
-  return {
-    start: dayjs.tz(toKstDate(dateStart), KST).startOf('day').toDate(),
-    end: dayjs.tz(toKstDate(dateEnd), KST).endOf('day').toDate(),
-  };
+	return {
+		start: dayjs.tz(toKstDate(dateStart), KST).startOf('day').toDate(),
+		end: dayjs.tz(toKstDate(dateEnd), KST).endOf('day').toDate(),
+	};
 }
 
 /** 네이버 기사 시각과 같은 꼴의 KST 시각 'YYYY-MM-DD HH:mm:ss' (문자열로 크기를 비교할 수 있다) */
 export function kstStamp(input: Date): string {
-  return dayjs(input).tz(KST).format('YYYY-MM-DD HH:mm:ss');
+	return dayjs(input).tz(KST).format('YYYY-MM-DD HH:mm:ss');
 }
 
 /** KST로 오늘(daysAgo일 전) hour:minute 시각 */
-export function kstTimeOf(
-  hour: number,
-  minute: number,
-  now: Date = new Date(),
-  daysAgo = 0,
-): Date {
-  return dayjs(now)
-    .tz(KST)
-    .subtract(daysAgo, 'day')
-    .hour(hour)
-    .minute(minute)
-    .second(0)
-    .millisecond(0)
-    .toDate();
+export function kstTimeOf(hour: number, minute: number, now: Date = new Date(), daysAgo = 0): Date {
+	return dayjs(now).tz(KST).subtract(daysAgo, 'day').hour(hour).minute(minute).second(0).millisecond(0).toDate();
 }
 
 /** KST 날짜를 '10월 31일'로 */
 export function kstDayLabel(input: Date = new Date()): string {
-  const day = dayjs(input).tz(KST);
-  return `${day.month() + 1}월 ${day.date()}일`;
+	const day = dayjs(input).tz(KST);
+	return `${day.month() + 1}월 ${day.date()}일`;
 }
 
 /** 오늘(KST)로부터 days일 전 날짜 'YYYY-MM-DD' */
 export function kstDaysAgo(days: number, now: Date = new Date()): string {
-  return dayjs(now).tz(KST).subtract(days, 'day').format('YYYY-MM-DD');
+	return dayjs(now).tz(KST).subtract(days, 'day').format('YYYY-MM-DD');
 }
 
 /** KST 날짜 from부터 to까지 하루씩 'YYYY-MM-DD' (둘 다 포함) */
 export function kstDays(from: string, to: string): string[] {
-  const days: string[] = [];
-  for (
-    let day = dayjs.tz(from, KST);
-    !day.isAfter(dayjs.tz(to, KST), 'day');
-    day = day.add(1, 'day')
-  ) {
-    days.push(day.format('YYYY-MM-DD'));
-  }
-  return days;
+	const days: string[] = [];
+	for (let day = dayjs.tz(from, KST); !day.isAfter(dayjs.tz(to, KST), 'day'); day = day.add(1, 'day')) {
+		days.push(day.format('YYYY-MM-DD'));
+	}
+	return days;
 }
 
 /** 이번 달(KST) 1일 00:00 · 오늘이 며칠째인지 · 이 달이 며칠인지 */
 export function kstMonth(now: Date = new Date()) {
-  const today = dayjs(now).tz(KST);
-  return {
-    month: today.format('YYYY-MM'),
-    start: today.startOf('month').toDate(),
-    elapsedDays: today.date(),
-    daysInMonth: today.daysInMonth(),
-  };
+	const today = dayjs(now).tz(KST);
+	return {
+		month: today.format('YYYY-MM'),
+		start: today.startOf('month').toDate(),
+		elapsedDays: today.date(),
+		daysInMonth: today.daysInMonth(),
+	};
 }
 
 /** 관리자 화면에서 고를 수 있는 가장 긴 기간 (일) */
@@ -89,15 +73,12 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 /** KST 날짜 [from, to] → 시각 범위. 거꾸로거나 너무 길면(92일 넘게) 거절. 대시보드(#21) · 통계(#122)가 같이 쓴다 */
 export function kstRange(from: string, to: string) {
-  const { start, end } = kstDayRange(from, to);
-  if (start > end) {
-    throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦습니다.');
-  }
-  if ((end.getTime() - start.getTime()) / DAY_MS > MAX_RANGE_DAYS) {
-    throw new AppException(
-      'BAD_REQUEST',
-      `기간은 ${MAX_RANGE_DAYS}일까지 선택할 수 있습니다.`,
-    );
-  }
-  return { start, end, inRange: { gte: start, lte: end } };
+	const { start, end } = kstDayRange(from, to);
+	if (start > end) {
+		throw new AppException('BAD_REQUEST', '시작 날짜가 끝 날짜보다 늦습니다.');
+	}
+	if ((end.getTime() - start.getTime()) / DAY_MS > MAX_RANGE_DAYS) {
+		throw new AppException('BAD_REQUEST', `기간은 ${MAX_RANGE_DAYS}일까지 선택할 수 있습니다.`);
+	}
+	return { start, end, inRange: { gte: start, lte: end } };
 }
