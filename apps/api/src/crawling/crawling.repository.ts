@@ -238,7 +238,7 @@ export class CrawlingRepository {
 	async getNewsCountPerCategory() {
 		const news = await this.getAllNews();
 		const categories = await this.categoryRepository.findAll();
-		console.log(news.length, categories.length);
+		this.logger.debug(`분야별 기사 수 세기: 기사 ${news.length}건 · 분야 ${categories.length}개`);
 
 		const newsCountPerCategory: Record<number, number> = {};
 		categories.map(async (category) => {

@@ -18,5 +18,7 @@ if (dsn) {
 		environment: env.nodeEnv,
 	});
 } else {
+	// Sentry는 다른 모듈보다 먼저 초기화해야 해서, 여기서 @nestjs/common(Logger)을 먼저 불러오지 않는다
+	// eslint-disable-next-line no-console
 	console.warn('SENTRY_DSN이 없어 Sentry 없이 실행합니다.');
 }

@@ -46,6 +46,8 @@ export function limitMarks(
 			})
 			// 짝이 맞지 않아 남은 ==는 지운 뒤 되돌린다
 			.replace(/==/g, '')
+			// \u0001 · \u0002는 짝이 맞는 ==를 잠시 숨겨 둔 자리표시 (본문에 나오지 않는 문자라 일부러 씀)
+			// eslint-disable-next-line no-control-regex
 			.replace(/[\u0001\u0002]/g, '=='),
 	);
 }
