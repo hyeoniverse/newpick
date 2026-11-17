@@ -2,7 +2,7 @@ import type { Profile } from '@newpick/shared';
 import type { ComposedSection } from '../edition/compose';
 import type { MailPlan } from '../edition/mail-plan';
 import { Injectable } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import {
   getInterestIds,
   replaceInterestsOps,

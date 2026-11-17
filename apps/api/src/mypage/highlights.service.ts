@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { JSDOM } from 'jsdom';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AppException } from '../common/errors/app.exception';
 import { tagKey } from '../tags/tags';
 import { assertOwnFolder } from './folders.service';

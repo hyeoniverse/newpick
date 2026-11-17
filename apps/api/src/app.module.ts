@@ -7,7 +7,7 @@ import { CrawlingModule } from './crawling/crawling.module';
 import { SchedulerModule } from './scheduler/scheduler.module'; // 스케줄러 모듈
 import { AdminStatsModule } from './admin-stats/admin-stats.module';
 import { AuthModule } from './auth/auth.module'; // 인증 모듈
-import { PrismaModule } from '../prisma/prisma.module'; // Prisma 모듈
+import { PrismaModule } from 'src/prisma/prisma.module'; // Prisma 모듈
 import { AiSummaryModule } from './ai-summary/ai-summary.module'; // AI 요약 모듈
 import { FeedbackModule } from './feedback/feedback.module'; // 피드백 모듈
 import { MyPageModule } from './mypage/mypage.module'; // 마이페이지 모듈

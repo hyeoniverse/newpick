@@ -1,7 +1,7 @@
 import type { JobName, JobResult, JobRun, JobTrigger } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { kstDayRange, kstDaysAgo, kstRange } from 'src/common/kst';
 import { SchedulerService } from './scheduler.service';

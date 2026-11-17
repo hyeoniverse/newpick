@@ -1,4 +1,4 @@
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 
 export type SubscriptionEventType = 'subscribe' | 'pause' | 'resume' | 'cancel';
 

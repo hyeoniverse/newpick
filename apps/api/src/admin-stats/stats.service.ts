@@ -5,7 +5,7 @@ import type {
   TrafficStats,
 } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import {
   kstDays,
   kstDaysAgo,

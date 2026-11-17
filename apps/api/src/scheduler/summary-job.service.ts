@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AiSummaryService } from 'src/ai-summary/ai-summary.service';
 import { CategoryRepository } from 'src/category/category.repository';
 import { AppException } from 'src/common/errors/app.exception';

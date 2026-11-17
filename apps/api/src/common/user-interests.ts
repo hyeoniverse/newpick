@@ -1,5 +1,5 @@
 import {} from '@nestjs/common';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AppException } from './errors/app.exception';
 
 /** 중복을 없애고, 존재하지 않는 카테고리 id가 있으면 400을 던집니다. */

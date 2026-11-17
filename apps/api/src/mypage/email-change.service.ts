@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { createHash, randomInt, timingSafeEqual } from 'node:crypto';
-import { MysqlPrismaService } from 'prisma/mysql.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AppException } from '../common/errors/app.exception';
 import { MailService } from '../mail/mail.service';
 import { accountMailHtml, notifyEmailChanged } from '../mail/account-mail';
