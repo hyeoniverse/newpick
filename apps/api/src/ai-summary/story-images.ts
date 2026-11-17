@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import type { Story, StoryImage } from './writer/types';
 import { env } from 'src/config/env';
+import { errorMessage } from 'src/common/error-message';
 
 /**
  * 소식마다 사진 한 장 (#49)
@@ -103,7 +104,7 @@ export class StoryImageService {
         const image = await search.call(this, query);
         if (image) return image;
       } catch (error) {
-        this.logger.warn(`사진 검색 실패 (${query}): ${error.message}`);
+        this.logger.warn(`사진 검색 실패 (${query}): ${errorMessage(error)}`);
       }
     }
     return undefined;

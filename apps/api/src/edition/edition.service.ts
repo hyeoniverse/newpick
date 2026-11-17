@@ -27,6 +27,7 @@ import { AiService } from 'src/ai/ai.service';
 import { createUnsubscribeToken } from 'src/subscriber/unsubscribe-token';
 import { renderEditionMail } from './mail';
 import { env } from 'src/config/env';
+import { errorMessage } from 'src/common/error-message';
 
 export type Edition = {
   /** KST 'YYYY-MM-DD' */
@@ -161,7 +162,7 @@ export class EditionService {
     } catch (error) {
       // 저장하지 않아 다음 발송(수동 포함) 때 다시 편집한다
       this.logger.error(
-        `편집 실패, 편집 없이 보냅니다 (${date}): ${error.message}`,
+        `편집 실패, 편집 없이 보냅니다 (${date}): ${errorMessage(error)}`,
       );
       return { date, sources, editorial: null };
     }

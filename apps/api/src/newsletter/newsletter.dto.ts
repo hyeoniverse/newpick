@@ -22,11 +22,11 @@ export const SEARCH_KEYWORD_LIMIT = 5;
 export class NewsletterQueryDto {
   @IsDefined({ message: 'offset는 필수 값입니다.' })
   @IsNumber({}, { message: 'offset는 숫자여야 합니다.' })
-  offset: number;
+  offset!: number;
 
   @IsDefined({ message: 'limit는 필수 값입니다.' })
   @IsNumber({}, { message: 'limit는 숫자여야 합니다.' })
-  limit: number;
+  limit!: number;
 
   @IsOptional()
   @IsBoolean({ message: 'trend는 불리언이어야 합니다.' })
@@ -109,12 +109,12 @@ export class NewsletterCategoryDto {
   @Type(() => Number)
   @IsNumber({}, { message: 'offset는 숫자여야 합니다.' })
   @IsDefined({ message: 'offset는 필수 값입니다.' })
-  offset: number;
+  offset!: number;
 
   @Type(() => Number)
   @IsNumber({}, { message: 'limit는 숫자여야 합니다.' })
   @IsDefined({ message: 'limit는 필수 값입니다.' })
-  limit: number;
+  limit!: number;
 }
 
 export class NewsletterRandomDto {

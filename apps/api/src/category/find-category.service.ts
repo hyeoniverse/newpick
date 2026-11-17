@@ -2,6 +2,7 @@ import { usageLog } from 'src/llm/pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import { ClaudeService, CLAUDE_FAST_MODEL } from 'src/llm/claude.service';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
+import { errorMessage } from 'src/common/error-message';
 
 @Injectable()
 export class FindCategoryService {
@@ -62,15 +63,15 @@ export class FindCategoryService {
         categoryName: categoryName,
       };
     } catch (error) {
-      this.logger.error(`카테고리 찾기 실패: ${error.message}`);
+      this.logger.error(`카테고리 찾기 실패: ${errorMessage(error)}`);
       await this.prisma.aiProcessLog.create({
         data: {
           newsId: '',
           processType: 'category',
-          result: error.message,
+          result: errorMessage(error),
           duration: 0,
           status: 'error',
-          error: error.message,
+          error: errorMessage(error),
           token: 0,
         },
       });

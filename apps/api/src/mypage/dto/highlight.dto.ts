@@ -21,7 +21,7 @@ export class CreateHighlightDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  newsletterId: number;
+  newsletterId!: number;
 
   /** 본문의 구역 (briefing · story-1 …) */
   @IsOptional()
@@ -31,7 +31,7 @@ export class CreateHighlightDto {
   @IsString()
   @MinLength(2, { message: '두 글자 이상 선택해 주십시오.' })
   @MaxLength(500, { message: '한 번에 500자까지 스크랩할 수 있습니다.' })
-  text: string;
+  text!: string;
 
   @IsOptional()
   @IsString()
@@ -58,7 +58,7 @@ export class DeleteHighlightsDto {
   @ArrayMaxSize(500)
   @IsInt({ each: true })
   @Min(1, { each: true })
-  ids: number[];
+  ids!: number[];
 }
 
 export class HighlightsQueryDto {
@@ -129,10 +129,10 @@ export class BulkHighlightsDto {
   @ArrayMaxSize(500)
   @IsInt({ each: true })
   @Min(1, { each: true })
-  ids: number[];
+  ids!: number[];
 
   @IsIn(['move', 'star', 'unstar'])
-  action: 'move' | 'star' | 'unstar';
+  action!: 'move' | 'star' | 'unstar';
 
   /** move일 때 옮길 폴더. null이면 '폴더 없음' */
   @ValidateIf((o) => o.action === 'move' && o.folderId !== null)
@@ -147,7 +147,7 @@ export class FolderDto {
   @Transform(({ value }) => (typeof value === 'string' ? value.trim() : value))
   @MinLength(1, { message: '폴더 이름을 입력해 주십시오.' })
   @MaxLength(30, { message: '폴더 이름은 30자까지 입력할 수 있습니다.' })
-  name: string;
+  name!: string;
 }
 
 /** 폴더 지우기: 안의 것들을 어떻게 할지 (keep: 폴더 없음으로 · delete: 같이 지우기 · move: 다른 폴더로) */

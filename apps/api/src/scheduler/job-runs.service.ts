@@ -1,6 +1,7 @@
 import type { JobName, JobResult, JobRun, JobTrigger } from '@newpick/shared';
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
+import { errorMessage } from 'src/common/error-message';
 
 // 작업 이름 · 실행 상태는 @newpick/shared (웹 대시보드와 같은 타입)
 export type { JobName, JobRun, JobTrigger };
@@ -134,7 +135,7 @@ export class JobRunsService {
             },
           });
       } catch (error) {
-        this.logger.warn(`실행 기록 실패 (${name}): ${error.message}`);
+        this.logger.warn(`실행 기록 실패 (${name}): ${errorMessage(error)}`);
       }
     })();
   }

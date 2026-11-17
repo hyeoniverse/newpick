@@ -6,14 +6,14 @@ export class FollowStoryDto {
   @Type(() => Number)
   @IsInt()
   @Min(1)
-  newsletterId: number;
+  newsletterId!: number;
 
   /** 뉴스레터 안 소식 순서 (1부터) */
   @Type(() => Number)
   @IsInt()
   @Min(1)
   @Max(20)
-  storyIndex: number;
+  storyIndex!: number;
 }
 
 /** 본 것으로: newsletterId가 있으면 그 뉴스레터 상세에서 본 후속만 (null은 거부: Prisma에 그대로 가면 500) */

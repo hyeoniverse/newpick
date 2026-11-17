@@ -5,5 +5,5 @@ export class InterestsDto {
   @ArrayMaxSize(50)
   @IsInt({ each: true })
   @Min(1, { each: true })
-  interests: number[];
+  interests!: number[];
 }
