@@ -1,4 +1,4 @@
-import { MyPageService } from './mypage.service';
+import { BookmarksService } from './bookmarks.service';
 
 const newsletter = {
   id: 66,
@@ -29,7 +29,7 @@ function fakePrisma() {
 describe('마이페이지 북마크 쪽 (#123)', () => {
   it('폴더 · 관심사로 거르고 정렬해 한 쪽만, 개수 · 관심사 칩도 같이', async () => {
     const prisma = fakePrisma();
-    const service = new MyPageService(prisma as never, {} as never);
+    const service = new BookmarksService(prisma as never);
     const page = await service.getBookmarkPage(7, {
       offset: 24,
       limit: 24,
@@ -64,7 +64,7 @@ describe('마이페이지 북마크 쪽 (#123)', () => {
 
   it("'폴더 없음'은 folderId null, 정렬을 안 주면 북마크한 순", async () => {
     const prisma = fakePrisma();
-    await new MyPageService(prisma as never, {} as never).getBookmarkPage(7, {
+    await new BookmarksService(prisma as never).getBookmarkPage(7, {
       folder: 'none',
     });
     expect(prisma.bookmark.findMany).toHaveBeenCalledWith(

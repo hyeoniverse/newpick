@@ -1,3 +1,5 @@
+import { BookmarksService } from './bookmarks.service';
+import { MyMailsService } from './my-mails.service';
 import { MyPageService } from './mypage.service';
 
 /**
@@ -43,10 +45,30 @@ function fakePrisma(overrides: Record<string, unknown> = {}) {
     ...overrides,
   };
 }
+/**
+ * 나누기 전과 같은 테스트 본문을 쓰려고, 나눈 세 서비스(계정 · 북마크 · 받은 메일)를 한 객체로 모은다.
+ * 메서드 이름이 겹치지 않아 그대로 펼친다
+ */
 const serviceWith = (
   prisma: ReturnType<typeof fakePrisma>,
   edition: unknown = {},
-) => new MyPageService(prisma as never, edition as never);
+) => {
+  const account = new MyPageService(prisma as never);
+  const bookmarks = new BookmarksService(prisma as never);
+  const mails = new MyMailsService(prisma as never, edition as never);
+  return {
+    getPersonalMail: account.getPersonalMail.bind(account),
+    setPersonalMail: account.setPersonalMail.bind(account),
+    getProfile: account.getProfile.bind(account),
+    getInterests: account.getInterests.bind(account),
+    updateInterests: account.updateInterests.bind(account),
+    getBookmarks: bookmarks.getBookmarks.bind(bookmarks),
+    moveBookmarks: bookmarks.moveBookmarks.bind(bookmarks),
+    markMail: mails.markMail.bind(mails),
+    getMails: mails.getMails.bind(mails),
+    getMail: mails.getMail.bind(mails),
+  };
+};
 
 describe('마이페이지: 맞춤 메일 · 프로필 · 북마크', () => {
   it('맞춤 메일은 기록이 없으면 켜짐, 바꾸면 그 값을 돌려준다', async () => {

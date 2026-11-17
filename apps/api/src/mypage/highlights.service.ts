@@ -5,7 +5,7 @@ import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AppException } from 'src/common/errors/app.exception';
 import { tagKey } from 'src/tags/tags';
 import { assertOwnFolder } from './folders.service';
-import { monthIndex } from './mypage.service';
+import { monthIndex } from './month-index';
 import { BulkHighlightsDto, CreateHighlightDto } from './dto/highlight.dto';
 
 /** 문장의 공백을 하나로 (화면에서 고른 글은 줄바꿈 · 여러 칸이 섞여 온다) */

@@ -19,7 +19,8 @@ import type {
 import type { AdminService } from 'src/admin/admin.service';
 import type { DashboardService } from 'src/scheduler/dashboard.service';
 import type { HighlightsService } from 'src/mypage/highlights.service';
-import type { MyPageService } from 'src/mypage/mypage.service';
+import type { BookmarksService } from 'src/mypage/bookmarks.service';
+import type { MyMailsService } from 'src/mypage/my-mails.service';
 import type { TasteService } from 'src/taste/taste.service';
 import type { TagFollowsService } from 'src/mypage/tag-follows.service';
 
@@ -73,11 +74,11 @@ export const HIGHLIGHT_PAGE_FIT: Fits<
 > = true;
 /** 북마크: 전체 목록 · 한 쪽 */
 export const BOOKMARKS_FIT: Fits<
-  Response<MyPageService, 'getBookmarks'>,
+  Response<BookmarksService, 'getBookmarks'>,
   BookmarkItem[]
 > = true;
 export const BOOKMARK_PAGE_FIT: Fits<
-  Response<MyPageService, 'getBookmarkPage'>,
+  Response<BookmarksService, 'getBookmarkPage'>,
   BookmarkPage
 > = true;
 /** 내 취향 */
@@ -114,6 +115,6 @@ export const DASHBOARD_FIT: Fits<
   Dashboard
 > = true;
 export const MAILS_PAGE_FIT: Fits<
-  Response<MyPageService, 'getMails'>,
+  Response<MyMailsService, 'getMails'>,
   MailsPage
 > = true;

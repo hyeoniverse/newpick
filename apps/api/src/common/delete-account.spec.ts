@@ -86,6 +86,8 @@ describe('회원 탈퇴 (#65)', () => {
       {} as never,
       {} as never,
       {} as never,
+      {} as never,
+      {} as never,
     ).deleteAccount({ user: { id: 7 } }, res as never);
 
     expect(service.deleteAccount).toHaveBeenCalledWith(7);
