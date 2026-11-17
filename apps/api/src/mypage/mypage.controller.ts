@@ -19,6 +19,8 @@ import {
   sessionHintCookieOptions,
 } from 'src/auth/cookie-options';
 import { MyPageService } from './mypage.service';
+import { BookmarksService } from './bookmarks.service';
+import { MyMailsService } from './my-mails.service';
 import { InterestsDto } from 'src/common/dto/interests.dto';
 import { AppException } from 'src/common/errors/app.exception';
 import {
@@ -55,6 +57,8 @@ import { TagFollowsService } from './tag-follows.service';
 export class MyPageController {
   constructor(
     private readonly myPageService: MyPageService,
+    private readonly bookmarksService: BookmarksService,
+    private readonly myMailsService: MyMailsService,
     private readonly highlightsService: HighlightsService,
     private readonly tasteService: TasteService,
     private readonly foldersService: FoldersService,
@@ -206,13 +210,13 @@ export class MyPageController {
    */
   @Get('bookmarks')
   async getBookmarks(@Req() req) {
-    return this.myPageService.getBookmarks(this.userIdOf(req));
+    return this.bookmarksService.getBookmarks(this.userIdOf(req));
   }
 
   /** 마이페이지 북마크 한 쪽 (#123): 폴더 · 관심사 · 정렬, 개수 · 관심사 칩도 같이 */
   @Get('bookmarks/page')
   async getBookmarkPage(@Req() req, @Query() q: BookmarksPageQueryDto) {
-    return this.myPageService.getBookmarkPage(this.userIdOf(req), {
+    return this.bookmarksService.getBookmarkPage(this.userIdOf(req), {
       offset: q.offset,
       limit: q.limit,
       folder: folderOf(q.folder),
@@ -226,7 +230,7 @@ export class MyPageController {
    */
   @Get('mails')
   async getMails(@Req() req, @Query() q: MyMailsQueryDto) {
-    return this.myPageService.getMails(this.userIdOf(req), q.offset, q.limit, {
+    return this.myMailsService.getMails(this.userIdOf(req), q.offset, q.limit, {
       starred: q.starred,
       folder:
         q.folder === undefined
@@ -242,7 +246,7 @@ export class MyPageController {
   /** 받은 메일 한 통 표시: 중요 · 폴더 (#123) */
   @Patch('mails/mark')
   async markMail(@Req() req, @Body() body: MarkMailDto) {
-    return this.myPageService.markMail(
+    return this.myMailsService.markMail(
       this.userIdOf(req),
       new Date(body.sentAt),
       {
@@ -255,7 +259,7 @@ export class MyPageController {
   /** 북마크 폴더 옮기기 (#123) */
   @Post('bookmarks/move')
   async moveBookmarks(@Req() req, @Body() body: MoveBookmarksDto) {
-    return this.myPageService.moveBookmarks(
+    return this.bookmarksService.moveBookmarks(
       this.userIdOf(req),
       body.newsletterIds,
       body.folderId,
@@ -267,7 +271,7 @@ export class MyPageController {
    */
   @Get('mails/view')
   async getMail(@Req() req, @Query() q: MyMailQueryDto) {
-    return this.myPageService.getMail(this.userIdOf(req), new Date(q.sentAt));
+    return this.myMailsService.getMail(this.userIdOf(req), new Date(q.sentAt));
   }
 
   /**

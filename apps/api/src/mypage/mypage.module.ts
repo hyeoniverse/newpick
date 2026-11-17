@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { EditionModule } from 'src/edition/edition.module';
 import { MyPageController } from './mypage.controller';
 import { MyPageService } from './mypage.service';
+import { BookmarksService } from './bookmarks.service';
+import { MyMailsService } from './my-mails.service';
 import { HighlightsService } from './highlights.service';
 import { FoldersService } from './folders.service';
 import { TasteModule } from 'src/taste/taste.module';
@@ -15,6 +17,8 @@ import { TagsModule } from 'src/tags/tags.module';
   controllers: [MyPageController],
   providers: [
     MyPageService,
+    BookmarksService,
+    MyMailsService,
     HighlightsService,
     FoldersService,
     EmailChangeService,

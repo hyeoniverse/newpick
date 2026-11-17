@@ -1,4 +1,4 @@
-import { monthIndex } from './mypage.service';
+import { monthIndex } from './month-index';
 
 describe('받은 메일 달 이동 (#123)', () => {
   // 한국 시각 오전 8:40 = UTC 전날 23:40
