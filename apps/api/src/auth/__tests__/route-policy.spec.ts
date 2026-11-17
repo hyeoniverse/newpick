@@ -12,6 +12,8 @@ import { BasicRepositoryController } from 'src/repository/controllers/newsletter
 import { AiProcessingLogController } from 'src/repository/controllers/ai-processing-log.controller';
 import { EmailArchivesController } from 'src/repository/controllers/email-archives.controller';
 import { SchedulerController } from 'src/scheduler/scheduler.controller';
+import { DashboardController } from 'src/scheduler/dashboard.controller';
+import { StatsController } from 'src/admin-stats/stats.controller';
 import { SubscriberController } from 'src/subscriber/subscriber.controller';
 import { UnsubscribeController } from 'src/subscriber/unsubscribe.controller';
 import { EditionController } from 'src/edition/edition.controller';
@@ -181,6 +183,8 @@ describe('라우트 접근 정책', () => {
     AiProcessingLogController,
     EmailArchivesController,
     SchedulerController,
+    DashboardController,
+    StatsController,
     EditionController,
     AnalyticsController,
   ]);

@@ -5,6 +5,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { CrawlingModule } from './crawling/crawling.module';
 import { SchedulerModule } from './scheduler/scheduler.module'; // 스케줄러 모듈
+import { AdminStatsModule } from './admin-stats/admin-stats.module';
 import { AuthModule } from './auth/auth.module'; // 인증 모듈
 import { PrismaModule } from '../prisma/prisma.module'; // Prisma 모듈
 import { AiSummaryModule } from './ai-summary/ai-summary.module'; // AI 요약 모듈
@@ -43,6 +44,7 @@ import { THROTTLE } from './common/throttle';
     MongooseModule.forRoot(env.mongoUrl), // MongoDB 연결
     CrawlingModule, // 크롤링 모듈
     SchedulerModule, // 스케줄러 모듈
+    AdminStatsModule, // 관리자 통계
     AuthModule, // 인증 모듈
     AiSummaryModule, // AI 요약 모듈
     FeedbackModule, // 피드백 모듈

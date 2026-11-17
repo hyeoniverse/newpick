@@ -16,21 +16,10 @@ import {
   Max,
   Min,
 } from 'class-validator';
+import { DateRangeQueryDto } from 'src/common/dto/date-range-query.dto';
 
 /** 관리자 대시보드 기간 (KST 'YYYY-MM-DD'). 없으면 오늘, to가 없으면 from 하루 */
-export class DashboardQueryDto {
-  @IsOptional()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-    message: 'from은 YYYY-MM-DD 형식이어야 합니다.',
-  })
-  from?: string;
-
-  @IsOptional()
-  @Matches(/^\d{4}-\d{2}-\d{2}$/, {
-    message: 'to는 YYYY-MM-DD 형식이어야 합니다.',
-  })
-  to?: string;
-}
+export class DashboardQueryDto extends DateRangeQueryDto {}
 
 /** 그날 받은 사람 (KST 'YYYY-MM-DD') */
 export class MailRecipientsQueryDto {
@@ -136,16 +125,4 @@ export class DashboardArticlesQueryDto extends DashboardListQueryDto {
   @IsString({ message: 'title은 문자열이어야 합니다.' })
   @Length(1, 100, { message: 'title은 1~100자여야 합니다.' })
   title?: string;
-}
-
-/** 통계: 한 페이지의 머문 곳 (#131) */
-export class PageStatsQueryDto extends DashboardQueryDto {
-  @IsString()
-  @Length(1, 120)
-  @Matches(/^\//, { message: 'route는 /로 시작해야 합니다.' })
-  route: string;
-
-  @IsOptional()
-  @IsIn(['mobile', 'tablet', 'desktop'])
-  device?: 'mobile' | 'tablet' | 'desktop';
 }
