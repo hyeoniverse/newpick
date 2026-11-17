@@ -2,10 +2,8 @@ import { Module } from '@nestjs/common';
 import { MailService } from './mail.service';
 import { Logger } from '@nestjs/common';
 import { NODEMAILER, NODEMAILER_CONFIG } from './constants';
-import { AiSummaryModule } from '../ai-summary/ai-summary.module';
 
 @Module({
-  imports: [AiSummaryModule],
   providers: [
     MailService,
     {
