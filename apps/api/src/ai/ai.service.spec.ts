@@ -1,5 +1,8 @@
 import { AiService, AiUnavailable, FALLBACK_DAILY_USD } from './ai.service';
-import { OpenModelService, OpenModelUnavailable } from './open-model.service';
+import {
+  OpenModelService,
+  OpenModelUnavailable,
+} from '../llm/open-model.service';
 
 const openOk = (text: string) => ({
   text,

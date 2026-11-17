@@ -1,8 +1,8 @@
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
-import { usageLog, usageOf } from './pricing';
+import { usageLog, usageOf } from '../llm/pricing';
 import { Injectable, Logger } from '@nestjs/common';
 import { MysqlPrismaService } from '../../prisma/mysql.service';
-import { FindCategoryService } from './find-category.service';
+import { FindCategoryService } from '../category/find-category.service';
 import { CreateNewsletterService } from './create-newsletter.service';
 import { CrawledNews } from 'src/crawling/schema/crawling.schema';
 import { NewsletterWriterService } from './newsletter-writer.service';

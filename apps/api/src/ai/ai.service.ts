@@ -1,8 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { CLAUDE_FAST_MODEL, ClaudeService } from '../ai-summary/claude.service';
-import { ClaudeUsage, costUsd } from '../ai-summary/pricing';
+import { CLAUDE_FAST_MODEL, ClaudeService } from '../llm/claude.service';
+import { ClaudeUsage, costUsd } from '../llm/pricing';
 import { toKstDate } from '../common/kst';
-import { OpenModelService, OpenModelUnavailable } from './open-model.service';
+import {
+  OpenModelService,
+  OpenModelUnavailable,
+} from '../llm/open-model.service';
 import { env } from '../config/env';
 
 /** 오픈 모델이 안 될 때 Claude로 넘기는 비용의 하루 상한 (USD). 넘으면 넘기지 않고 실패 → 부른 쪽이 미루거나 건너뛴다 */

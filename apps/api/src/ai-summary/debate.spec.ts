@@ -1,5 +1,5 @@
 import { clusterArticles, prepare, SAME_EVENT_EMBEDDING } from './article-prep';
-import { CLAUDE_FAST_MODEL } from './claude.service';
+import { CLAUDE_FAST_MODEL } from '../llm/claude.service';
 import { renderNewsletterHtml } from './newsletter-html';
 import { NewsletterWriterService } from './newsletter-writer.service';
 import { debateOf } from './writer/normalize';
