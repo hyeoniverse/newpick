@@ -93,7 +93,7 @@ export class CrawlingService {
   }
 
   async crawlingNews(): Promise<CrawledNews[]> {
-    const crawlingResultData = [];
+    const crawlingResultData: CrawledNews[] = [];
     try {
       for (const link of this.links) {
         // 섹션 페이지의 헤드라인 + 최신 기사 목록

@@ -16,6 +16,7 @@ export class BookmarkDto {
   newsId?: number;
 
   get targetId(): number {
-    return this.newsletterId ?? this.newsId;
+    // 둘 중 하나는 있다: newsId가 없으면 newsletterId를 검사한다 (ValidateIf)
+    return (this.newsletterId ?? this.newsId)!;
   }
 }

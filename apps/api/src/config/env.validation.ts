@@ -1,7 +1,12 @@
 import { Logger } from '@nestjs/common';
 
 /** 없으면 서버가 시작하지 않는 변수 (기본값으로 조용히 동작하지 않게) */
-const REQUIRED = ['JWT_SECRET', 'JWT_REFRESH_SECRET', 'FRONTEND_URL'] as const;
+const REQUIRED = [
+  'JWT_SECRET',
+  'JWT_REFRESH_SECRET',
+  'FRONTEND_URL',
+  'MONGO_URL',
+] as const;
 
 /** 기능마다 함께 있어야 하는 변수: 하나만 있으면 그 기능이 반쯤 켜진 채 조용히 안 되므로 알린다 */
 const GROUPS: { feature: string; keys: string[] }[] = [
