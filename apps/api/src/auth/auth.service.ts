@@ -31,7 +31,8 @@ export class AuthService {
     googleSub: string,
     email: string,
     username: string,
-    profileImg: string,
+    /** Google 프로필 사진 (없으면 null) */
+    profileImg: string | null,
   ) {
     if (!googleSub || !email || !username) return null; // 유효한 사용자만 저장
 

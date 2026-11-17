@@ -26,6 +26,7 @@ import { Public } from './decorators/auth.decorators';
 import { MailService } from 'src/mail/mail.service';
 import { notifyEmailChanged } from 'src/mail/account-mail';
 import { env } from 'src/config/env';
+import type { GoogleUser } from './google.strategy';
 
 /** 다른 Google 계정으로 바꾼 뒤 돌아갈 곳. 웹은 ?google=…를 보고 안내한다 */
 const linkResultUrl = (result: string) =>
@@ -60,7 +61,7 @@ export class AuthController {
     if (!req.user) return res.redirect(loginFailedUrl());
 
     const { googleSub, email, username, profileImg, emailVerified } =
-      req.user as any;
+      req.user as GoogleUser;
 
     // 다른 Google 계정으로 바꾸는 중이면 새 로그인이 아니라 지금 계정의 연결을 바꾼다
     const linkUserId = this.authService.linkUserId(

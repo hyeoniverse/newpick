@@ -1,3 +1,4 @@
+import type { Newsletter } from '@prisma/client';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { usageLog, usageOf } from 'src/llm/pricing';
 import { Injectable, Logger } from '@nestjs/common';
@@ -22,6 +23,19 @@ export function usedArticles(news: CrawledNews[], sources: number[]) {
 
 /** 최근 소재로 보는 기간 (이 안에 다룬 소식은 새 진전이 있을 때만 다시 쓴다) */
 export const RECENT_DAYS = 5;
+
+/** 테스트 요약 (저장하지 않음): 관리자 화면에서 결과만 미리 본다 */
+type TestNewsletter = {
+  message: string;
+  title: string;
+  subtitle: string;
+  summary: string;
+  newslinks: string;
+  categoryId: number;
+  html: string;
+  imageUrl: string;
+  keywords: string[];
+};
 
 @Injectable()
 export class AiSummaryService {
@@ -74,7 +88,8 @@ export class AiSummaryService {
   ): Promise<{
     summary: string;
     categoryId: number;
-    newsletter: any;
+    /** 저장한 뉴스레터. test면 저장하지 않고 미리보기만 (TestNewsletter) */
+    newsletter: Newsletter | TestNewsletter;
   }> {
     // 최근 이 분야 뉴스레터 (최근 소재와 겹치지 않게): 이미 쓴 기사는 빼고, 다룬 소식은 고르기 · 쓰기에 알려 준다
     const recent = await this.recentNewsletters(categoryId, at);

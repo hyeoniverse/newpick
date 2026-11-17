@@ -16,7 +16,7 @@ export class NewsletterRepo {
     trend?: boolean | null,
     categoryId?: number | null,
   ) {
-    const whereClause: any = {};
+    const whereClause: Prisma.NewsletterWhereInput = {};
 
     if (startDate && endDate) {
       whereClause.createdAt = {

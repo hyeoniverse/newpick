@@ -23,7 +23,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: any): Promise<AuthUser> {
+  /** 토큰 안의 값 (auth.service가 서명할 때 넣는다) */
+  async validate(payload: {
+    sub: number;
+    email?: string;
+    username?: string;
+    profileImg?: string;
+  }): Promise<AuthUser> {
     return {
       id: payload.sub, // 수정됨
       email: payload.email,
