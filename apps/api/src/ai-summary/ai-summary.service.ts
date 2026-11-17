@@ -11,6 +11,7 @@ import { renderNewsletterHtml } from './newsletter-html';
 import { StoryImageService } from './story-images';
 import { TagsService } from 'src/tags/tags.service';
 import { KST } from 'src/common/kst';
+import { errorMessage } from 'src/common/error-message';
 
 /**
  * 뉴스레터에 쓴 기사만 남깁니다. 썸네일·관련 기사가 실제로 다룬 소식에서 나오게 (#43).
@@ -231,16 +232,16 @@ export class AiSummaryService {
           newsId: test ? 'test' : newsIds,
           processType: 'summarization',
           categoryId,
-          result: error.message,
+          result: errorMessage(error),
           duration: duration,
           status: 'error',
-          error: error.message,
+          error: errorMessage(error),
           token: usage.reduce((sum, u) => sum + u.input + u.output, 0),
           ...usageLog(usage),
         },
       });
 
-      this.logger.error(`요약 실패: ${error.message}`);
+      this.logger.error(`요약 실패: ${errorMessage(error)}`);
       throw new Error('Summarization failed.');
     }
   }

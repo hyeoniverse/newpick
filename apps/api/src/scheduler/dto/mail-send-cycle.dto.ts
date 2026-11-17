@@ -5,11 +5,11 @@ export class MailSendCycleDto {
   @IsInt()
   @Min(0)
   @Max(23)
-  hour: number;
+  hour!: number;
 
   /** 0: 일요일 ~ 6: 토요일, 7: 매일 (#55) */
   @IsInt()
   @Min(0)
   @Max(7)
-  day: number;
+  day!: number;
 }

@@ -3,6 +3,7 @@ import { CrawlerService } from './crawler.service';
 import { CrawlingRepository } from './crawling.repository';
 import { CrawledNews } from './schema/crawling.schema';
 import { FindCategoryService } from 'src/category/find-category.service';
+import { errorMessage } from 'src/common/error-message';
 
 /**
  * 분야 첫 화면에서 한 번에 가져오는 '최신 기사' 목록 수 (시간순, 헤드라인 아래).
@@ -123,7 +124,7 @@ export class CrawlingService {
       );
       return crawlingResultData;
     } catch (error) {
-      this.logger.error(`Error during crawling: ${error.message}`);
+      this.logger.error(`Error during crawling: ${errorMessage(error)}`);
       // 실패 전까지 모은 결과는 그대로 저장합니다. (undefined를 반환하면 호출부에서 .length 오류)
       return crawlingResultData;
     }
@@ -171,7 +172,10 @@ export class CrawlingService {
         content,
       } as CrawledNews;
     } catch (error) {
-      this.logger.error(`Error crawling news: ${news.link}`, error.message);
+      this.logger.error(
+        `Error crawling news: ${news.link}`,
+        errorMessage(error),
+      );
       return null;
     }
   }

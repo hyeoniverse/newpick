@@ -14,18 +14,18 @@ import {
 /** 브라우저 수집기가 보내는 페이지 한 번 보기의 누적 값 (#131). 묶음 값(sections · attention · clicks)은 서비스에서 다시 거른다 */
 export class CollectDto {
   @Matches(/^[A-Za-z0-9_-]{8,32}$/)
-  id: string;
+  id!: string;
 
   @Matches(/^[A-Za-z0-9_-]{8,32}$/)
-  sessionId: string;
+  sessionId!: string;
 
   @IsString()
   @MaxLength(255)
   @Matches(/^\//)
-  path: string;
+  path!: string;
 
   @IsBoolean()
-  entry: boolean;
+  entry!: boolean;
 
   @IsOptional()
   @IsString()
@@ -50,17 +50,17 @@ export class CollectDto {
   @IsInt()
   @Min(1)
   @Max(10000)
-  viewportW: number;
+  viewportW!: number;
 
   @IsInt()
   @Min(0)
   @Max(24 * 60 * 60 * 1000)
-  durationMs: number;
+  durationMs!: number;
 
   @IsInt()
   @Min(0)
   @Max(100)
-  scrollDepth: number;
+  scrollDepth!: number;
 
   @IsOptional()
   @IsObject()

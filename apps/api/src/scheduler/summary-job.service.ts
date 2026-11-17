@@ -13,6 +13,7 @@ import { env } from 'src/config/env';
 import { JobRunsService } from './job-runs.service';
 import { backfillAt, BACKFILL_MAX_DAYS, summaryWindow } from './schedule';
 import { ScheduleConfigService } from './schedule-config.service';
+import { errorMessage } from 'src/common/error-message';
 
 /** 요약에 실패한 관심사를 다시 시도하는 횟수 · 간격 (스트리밍으로 시간 초과는 줄었지만, 과부하 · 일시 오류 대비) */
 export const SUMMARY_RETRIES = 2;
@@ -154,7 +155,7 @@ export class SummaryJobService {
         } catch (error) {
           failed.push(category);
           this.logger.error(
-            `카테고리 ${category.name} 요약 실패: ${error.message}`,
+            `카테고리 ${category.name} 요약 실패: ${errorMessage(error)}`,
           );
         }
       }
@@ -173,7 +174,7 @@ export class SummaryJobService {
           } catch (error) {
             still.push(category);
             this.logger.error(
-              `카테고리 ${category.name} 다시 시도 실패: ${error.message}`,
+              `카테고리 ${category.name} 다시 시도 실패: ${errorMessage(error)}`,
             );
           }
         }
@@ -249,9 +250,9 @@ export class SummaryJobService {
         this.logger.log('메일 발송 완료');
       }
     } catch (error) {
-      this.logger.error(`AI 요약 실패: ${error.message}`);
+      this.logger.error(`AI 요약 실패: ${errorMessage(error)}`);
       // 뉴스레터는 이미 만들어졌고 뒤의 편집 · 캐시 · 알림에서 실패했을 수도 있어 실패로 덮어쓴다
-      this.jobRuns.finishRun('summary', 'failed', error.message);
+      this.jobRuns.finishRun('summary', 'failed', errorMessage(error));
     }
   }
 

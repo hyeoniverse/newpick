@@ -58,7 +58,7 @@ export class MyMailsQueryDto {
 export class MarkMailDto {
   @IsDefined({ message: 'sentAt이 필요합니다.' })
   @IsISO8601({}, { message: 'sentAt은 ISO 시각이어야 합니다.' })
-  sentAt: string;
+  sentAt!: string;
 
   @IsOptional()
   @IsBoolean()
@@ -79,17 +79,17 @@ export class MoveBookmarksDto {
   @ArrayMaxSize(500)
   @IsInt({ each: true })
   @Min(1, { each: true })
-  newsletterIds: number[];
+  newsletterIds!: number[];
 
   @ValidateIf((o) => o.folderId !== null)
   @IsInt()
   @Min(1)
-  folderId: number | null;
+  folderId!: number | null;
 }
 
 /** 받은 메일 한 통: 보낸 시각 (목록에서 받은 sentAt 그대로) */
 export class MyMailQueryDto {
   @IsDefined({ message: 'sentAt이 필요합니다.' })
   @IsISO8601({}, { message: 'sentAt은 ISO 시각이어야 합니다.' })
-  sentAt: string;
+  sentAt!: string;
 }

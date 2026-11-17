@@ -91,10 +91,10 @@ function setup(body: FakeMessage) {
     headers: Headers;
     body: { output_config?: { format?: unknown }; [key: string]: unknown };
   }[] = [];
-  const fetch = jest.fn(async (_url: string, init: RequestInit) => {
+  const fetch = jest.fn(async (_url: RequestInfo | URL, init?: RequestInit) => {
     requests.push({
-      headers: new Headers(init.headers),
-      body: JSON.parse(init.body as string),
+      headers: new Headers(init?.headers),
+      body: JSON.parse(init?.body as string),
     });
     return new Response(toSse(body), {
       status: 200,

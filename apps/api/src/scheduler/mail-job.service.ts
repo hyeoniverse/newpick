@@ -13,6 +13,7 @@ import { TasteService } from 'src/taste/taste.service';
 import { JobRunsService } from './job-runs.service';
 import { SUMMARY_WINDOW_HOURS } from './schedule';
 import { SummaryJobService } from './summary-job.service';
+import { errorMessage } from 'src/common/error-message';
 
 /** 오늘 편집한 소식 (없는 날은 메일을 보내지 않으므로 여기서는 늘 있다) */
 type Edition = NonNullable<
@@ -59,7 +60,7 @@ export class MailJobService {
     try {
       await this.sendEditionToSubscribers();
     } catch (error) {
-      this.jobRuns.finishRun('mail', 'failed', error.message);
+      this.jobRuns.finishRun('mail', 'failed', errorMessage(error));
       throw error;
     }
   }

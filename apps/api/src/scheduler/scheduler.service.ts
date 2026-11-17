@@ -10,6 +10,7 @@ import { JobRunsService } from './job-runs.service';
 import { MailJobService } from './mail-job.service';
 import { ScheduleConfigService } from './schedule-config.service';
 import { SummaryJobService } from './summary-job.service';
+import { errorMessage } from 'src/common/error-message';
 
 const MAIL_JOB_NAME = 'sendNewsletter';
 const CRAWL_JOB_NAME = 'startCrawling';
@@ -108,7 +109,7 @@ export class SchedulerService implements OnApplicationBootstrap {
         `기사 ${created?.length ?? 0}건 수집`,
       );
     } catch (error) {
-      this.jobRuns.finishRun('crawling', 'failed', error.message);
+      this.jobRuns.finishRun('crawling', 'failed', errorMessage(error));
       throw error;
     }
   }
@@ -151,7 +152,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     try {
       await this.summaryJob.makeAiSummary(at, categoryId, replaceId); // 직접 메서드 호출
     } catch (error) {
-      this.logger.error(`수동 AI 요약 실패: ${error.message}`);
+      this.logger.error(`수동 AI 요약 실패: ${errorMessage(error)}`);
     }
   }
   async manualStartMailSend() {
@@ -160,7 +161,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     try {
       await this.mailJob.sendEmailSummary(); // 직접 메서드 호출
     } catch (error) {
-      this.logger.error(`수동 메일 발송 실패: ${error.message}`);
+      this.logger.error(`수동 메일 발송 실패: ${errorMessage(error)}`);
     }
   }
 
@@ -170,7 +171,7 @@ export class SchedulerService implements OnApplicationBootstrap {
     try {
       await this.startCrawling(); // 직접 메서드 호출
     } catch (error) {
-      this.logger.error(`수동 크롤링 실패: ${error.message}`);
+      this.logger.error(`수동 크롤링 실패: ${errorMessage(error)}`);
     }
   }
 

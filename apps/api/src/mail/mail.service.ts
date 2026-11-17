@@ -5,6 +5,7 @@ import PQueue from '@esm2cjs/p-queue';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { NODEMAILER } from './constants';
 import { env } from 'src/config/env';
+import { errorMessage } from 'src/common/error-message';
 
 /** Gmail SMTP 한도를 넘지 않도록 동시에 2통, 초당 최대 5통까지 보냅니다. */
 const SEND_CONCURRENCY = 2;
@@ -128,14 +129,14 @@ export class MailService {
         return { email: subscriber.email, success: true, attempts: attempt };
       } catch (error) {
         this.logger.warn(
-          `메일 발송 실패 (${attempt}/${MAX_ATTEMPTS}) ${subscriber.email}: ${error.message}`,
+          `메일 발송 실패 (${attempt}/${MAX_ATTEMPTS}) ${subscriber.email}: ${errorMessage(error)}`,
         );
         if (attempt === MAX_ATTEMPTS) {
           return {
             email: subscriber.email,
             success: false,
             attempts: attempt,
-            error: error.message,
+            error: errorMessage(error),
           };
         }
         await sleep(this.retryBaseDelay * attempt);
@@ -168,7 +169,7 @@ export class MailService {
           data: { email, sentAt, plan: plan as object },
         });
     } catch (error) {
-      this.logger.warn(`발송 기록 실패 ${email}: ${error.message}`);
+      this.logger.warn(`발송 기록 실패 ${email}: ${errorMessage(error)}`);
     }
   }
 }

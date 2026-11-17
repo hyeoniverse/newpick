@@ -13,16 +13,16 @@ export class MergeTagsDto {
   @ArrayMaxSize(50, { message: '한 번에 50개까지 합칠 수 있습니다.' })
   @IsString({ each: true, message: '태그는 문자열이어야 합니다.' })
   @Length(1, 100, { each: true, message: '태그는 1~100자여야 합니다.' })
-  from: string[];
+  from!: string[];
 
   @IsString({ message: 'to는 문자열이어야 합니다.' })
   @Length(1, 30, { message: '새 이름은 1~30자여야 합니다.' })
-  to: string;
+  to!: string;
 }
 
 /** 태그 지우기 */
 export class RemoveTagDto {
   @IsString({ message: 'tag는 문자열이어야 합니다.' })
   @Length(1, 100, { message: '태그는 1~100자여야 합니다.' })
-  tag: string;
+  tag!: string;
 }

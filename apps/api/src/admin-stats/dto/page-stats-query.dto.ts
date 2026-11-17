@@ -6,7 +6,7 @@ export class PageStatsQueryDto extends DateRangeQueryDto {
   @IsString()
   @Length(1, 120)
   @Matches(/^\//, { message: 'route는 /로 시작해야 합니다.' })
-  route: string;
+  route!: string;
 
   @IsOptional()
   @IsIn(['mobile', 'tablet', 'desktop'])

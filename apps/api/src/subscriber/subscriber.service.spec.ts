@@ -26,7 +26,7 @@ function fakePrisma(user: unknown, categoryIds: number[] = [1, 2, 3]) {
     },
     bookmark: { deleteMany: op('bookmark.deleteMany') },
     subscriptionEvent: { create: op('subscriptionEvent.create') },
-    $transaction: jest.fn((ops: unknown[]) => Promise.resolve(ops)),
+    $transaction: jest.fn((ops: { op: string }[]) => Promise.resolve(ops)),
   };
 }
 

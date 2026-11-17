@@ -5,6 +5,7 @@ import { CrawledNews } from './schema/crawling.schema';
 import { CategoryRepository } from 'src/category/category.repository';
 import { kstDayRange, kstStamp } from 'src/common/kst';
 import { AppException } from 'src/common/errors/app.exception';
+import { errorMessage } from 'src/common/error-message';
 
 @Injectable()
 export class CrawlingRepository {
@@ -33,7 +34,7 @@ export class CrawlingRepository {
       }
       return news;
     } catch (error) {
-      this.logger.error(`Failed to create data: ${error.message}`);
+      this.logger.error(`Failed to create data: ${errorMessage(error)}`);
       throw error;
     }
   }
@@ -229,7 +230,7 @@ export class CrawlingRepository {
         dateEnd,
       };
     } catch (error) {
-      this.logger.error(`Failed to fetch data: ${error.message}`);
+      this.logger.error(`Failed to fetch data: ${errorMessage(error)}`);
       throw error;
     }
   }
@@ -248,7 +249,7 @@ export class CrawlingRepository {
 
       return news;
     } catch (error) {
-      this.logger.error(`Failed to fetch data: ${error.message}`);
+      this.logger.error(`Failed to fetch data: ${errorMessage(error)}`);
       throw error;
     }
   }
