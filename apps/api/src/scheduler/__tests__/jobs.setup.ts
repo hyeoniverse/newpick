@@ -77,10 +77,13 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
     // 맞춤 메일 설정: 기본은 모두 켜짐 (끈 사람은 optedOut에)
     optedOut: new Set<number>(),
     user: {
-      findMany: jest.fn(async (args: { where: { id: { in: number[] } } }) =>
-        args.where.id.in
-          .filter((id) => !prisma.optedOut.has(id))
-          .map((id) => ({ id })),
+      findMany: jest.fn(
+        async (args: {
+          where: { id: { in: number[] } };
+        }): Promise<{ id: number }[]> =>
+          args.where.id.in
+            .filter((id) => !prisma.optedOut.has(id))
+            .map((id) => ({ id })),
       ),
     },
     // 그날 이미 있는 뉴스레터 (기본 없음)
