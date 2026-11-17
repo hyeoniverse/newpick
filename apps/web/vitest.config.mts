@@ -14,5 +14,12 @@ export default defineConfig({
 		restoreMocks: true,
 		// 날짜 표시는 실행 환경의 시간대를 따르므로(dayjs), 서비스 기준인 KST로 고정해 CI(UTC)와 결과를 맞춥니다.
 		env: { TZ: 'Asia/Seoul' },
+		// npm run test:cov: 어느 코드를 테스트가 지나는지 (#201). 보고만 하고 기준치로 막지는 않는다
+		coverage: {
+			provider: 'v8',
+			include: ['src/**/*.{ts,tsx}'],
+			exclude: ['src/**/*.test.{ts,tsx}', 'src/**/*.d.ts'],
+			reporter: ['text-summary', 'html'],
+		},
 	},
 });
