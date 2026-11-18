@@ -24,6 +24,10 @@ interface Props {
  * 뉴스레터는 하루 6개씩 쌓이므로, 배포 직후처럼 개수가 적으면 같은 목록을 반복해 채웁니다.
  */
 const MIN_LOOP_SLIDES = 20;
+/** 사진 칸 크기 (styles/pages/home.css .image-link 186px): 이 크기로 받아 휴대폰에서 큰 사진을 받지 않게 (#292) */
+const MARQUEE_IMAGE = 186;
+/** 첫 화면에 보이는 앞쪽 칸 수 (휴대폰 2~3칸 · PC 7~8칸): 이 칸들만 먼저 받고 바로 보인다 */
+const PRIORITY_SLIDES = 4;
 const fillForLoop = (articles: IArticleDetail[]) =>
 	articles.length === 0 || articles.length >= MIN_LOOP_SLIDES
 		? articles
@@ -48,6 +52,9 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 							src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
 							alt={article.title}
 							ratio="square"
+							width={MARQUEE_IMAGE}
+							height={MARQUEE_IMAGE}
+							priority={index < PRIORITY_SLIDES}
 							className="image"
 						/>
 					</Link>
@@ -60,6 +67,9 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 							src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
 							alt={article.title}
 							ratio="square"
+							width={MARQUEE_IMAGE}
+							height={MARQUEE_IMAGE}
+							priority={index < PRIORITY_SLIDES}
 							className="image"
 						/>
 					</Link>

@@ -13,9 +13,17 @@ interface Props {
 	type?: 'main' | 'sub';
 	data: ICard[];
 	autoScrollInterval?: number;
+	/** 첫 화면에 보이는 띠면 첫 카드 사진을 먼저 받는다 (#292) */
+	priorityFirst?: boolean;
 }
 
-const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_SCROLL_INTERVAL }: Props) => {
+const CardSlider = ({
+	className,
+	type = 'sub',
+	data,
+	autoScrollInterval = AUTO_SCROLL_INTERVAL,
+	priorityFirst = false,
+}: Props) => {
 	const { isMobile } = useMediaQuery();
 	const cardRef = useRef<HTMLDivElement>(null);
 	const cardContainerRef = useRef<HTMLDivElement>(null);
@@ -154,7 +162,14 @@ const CardSlider = ({ className, type = 'sub', data, autoScrollInterval = AUTO_S
 		<div className={`np-card-slider ${className ?? ''}`} data-type={type}>
 			<div className="cards" ref={cardContainerRef}>
 				{data.map((item, index) => (
-					<Card key={index} className="card" type={type} ref={index === 0 ? cardRef : null} data={item} />
+					<Card
+						key={index}
+						className="card"
+						type={type}
+						ref={index === 0 ? cardRef : null}
+						data={item}
+						priority={priorityFirst && index === 0}
+					/>
 				))}
 				{/* 이어 넘기기용 첫 카드 복제본: 화면 읽기 · 키보드에서는 빠진다 */}
 				{loop && <Card key="loop" className="card" type={type} ref={hideFromAssistiveTech} data={data[0]} />}
