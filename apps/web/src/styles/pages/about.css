@@ -668,7 +668,7 @@
 		font-size: clamp(1rem, 1.6vw, 1.25rem);
 		line-height: 1.7;
 		color: var(--np-color-sub-text);
-		animation: np-about-hero-section-fade-up 0.7s ease 0.55s both;
+		/* 애니메이션 없이 처음부터: 첫 화면에서 가장 큰 글자(LCP)라, 움직이면 휴대폰 Chrome이 LCP를 약 3초 늦게 잡았다 (#292) */
 
 		@variant tablet {
 			.desktop-only {
