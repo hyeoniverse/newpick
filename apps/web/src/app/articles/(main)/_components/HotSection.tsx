@@ -159,6 +159,7 @@ export default function HotSection({ trends: initiallData = [], stats, latest }:
 							<CardSlider
 								className="card-slider"
 								type="main"
+								priorityFirst
 								data={filteredTrends.map((trend) => ({
 									id: trend.id,
 									image: trend.image,
