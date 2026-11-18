@@ -72,6 +72,34 @@ async function settle(page) {
 	await page.waitForTimeout(300);
 }
 
+/**
+ * 첫 화면 아래 사진은 화면 가까이 와야 받아진다(lazy, #292). 전체 페이지를 찍기 전에 끝까지 한 번 내렸다가
+ * 맨 위로 돌아와, 아래쪽 사진까지 다 받아진 뒤에 찍는다
+ */
+async function scrollThrough(page) {
+	await page.evaluate(async () => {
+		const step = window.innerHeight;
+		for (let y = 0; y < document.documentElement.scrollHeight; y += step) {
+			window.scrollTo({ top: y, behavior: 'instant' });
+			await new Promise((r) => setTimeout(r, 150));
+		}
+		window.scrollTo({ top: 0, behavior: 'instant' });
+	});
+	await page.waitForLoadState('networkidle').catch(() => {});
+	// 아직 받는 중인 사진은 끝날 때까지 (못 받는 사진이 있어도 5초 뒤에는 찍는다)
+	await page.evaluate(() => {
+		const pending = [...document.images].filter((img) => !img.complete);
+		const loaded = pending.map(
+			(img) =>
+				new Promise((done) => {
+					img.addEventListener('load', done, { once: true });
+					img.addEventListener('error', done, { once: true });
+				}),
+		);
+		return Promise.race([Promise.all(loaded), new Promise((done) => setTimeout(done, 5000))]);
+	});
+}
+
 const browser = await chromium.launch();
 let count = 0;
 const failed = [];
@@ -103,6 +131,12 @@ for (const mode of modes) {
 			} catch {}
 			document.documentElement.dataset.theme = t;
 		}, theme);
+		// 큰 배너 띠(CardSlider)는 5초마다 저절로 넘어간다 (AUTO_SCROLL_INTERVAL). 스크롤하느라 찍는 때가 늦어지면
+		// 넘어가는 도중에 찍혀 차이로 잡히므로, 그 타이머만 걸지 않는다
+		await ctx.addInitScript(() => {
+			const setIntervalOriginal = window.setInterval;
+			window.setInterval = (fn, ms, ...rest) => (ms === 5000 ? 0 : setIntervalOriginal(fn, ms, ...rest));
+		});
 		const page = await ctx.newPage();
 		for (const job of jobs) {
 			const name = fileName(mode, job.path, job.name);
@@ -112,6 +146,7 @@ for (const mode of modes) {
 					await page.waitForTimeout(600);
 					await job.run(page);
 				}
+				if (!job.run) await scrollThrough(page);
 				await settle(page);
 				await page.screenshot({ path: join(out, name), fullPage: !job.run });
 				count++;
