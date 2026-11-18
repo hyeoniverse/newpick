@@ -7,6 +7,7 @@ import { getFirstImage } from '@/utils/getFirstImage';
 import { usePopularArticlesQuery } from '@/hooks/useArticle';
 import { SkeletonBlock } from '@/components/common/loader/Skeleton';
 import { cx } from '@/styles/tw';
+import { useHeader } from '@/hooks/useHeader';
 
 interface Props {
 	flex?: number;
@@ -15,11 +16,14 @@ interface Props {
 
 function PopularArticle({ className }: Props) {
 	const { data: popularArticles, isPending, isError, refetch } = usePopularArticlesQuery();
+	// 뒤로 가기 막대(BackBar)와 같은 높이에 붙는다: 머리글이 접히면 함께 위로
+	const { isHeaderOpen } = useHeader();
 
 	return (
 		<div
 			className={cx('np-articles-popular-article-popular-newsletter', className)}
 			data-track-section="detail-popular"
+			data-folded={!isHeaderOpen || undefined}
 		>
 			<h3 className="section-title">지금 인기 뉴스레터 TOP 5</h3>
 			{/* 불러오는 중 · 실패 · 비어 있음 (#17). 옆 칸이라 작게 */}

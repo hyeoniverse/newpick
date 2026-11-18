@@ -1372,10 +1372,19 @@
 		}
 	}
 
+	/* 뒤로 가기 막대(back-bar.css)보다 늘 3.25rem 아래에 붙고, 머리글이 접히면 함께 올라간다.
+	   막대와 위 끝을 맞추면 제목이 화면 맨 위에 붙어 보여, 막대 한 단 아래에 둔다 */
 	position: sticky;
 	overflow: auto;
 	height: 100%;
-	top: 4rem;
+	top: calc(3rem + 0.75rem + 3.25rem);
+	transition: top 0.3s ease;
+	&:where([data-folded]) {
+		top: calc(0.75rem + 3.25rem);
+	}
+	/* 끝까지 내리면 본문 칸 끝에서 멈추는데, 본문은 맨 아래 '관련 뉴스'의 아래 여백(mb-16)까지 포함한다.
+	   같은 만큼 띄워 관련 뉴스의 마지막 줄과 아래 줄을 맞춘다 */
+	margin-bottom: 4rem;
 
 	.index {
 		font-weight: 700;
@@ -1447,6 +1456,8 @@
 	@variant tablet {
 		display: flex;
 		flex-direction: column;
+		/* 한 줄로 쌓일 때는 따라붙지 않으니 아래 여백도 없이 */
+		margin-bottom: 0;
 
 		.section-title {
 			border-top: none;
