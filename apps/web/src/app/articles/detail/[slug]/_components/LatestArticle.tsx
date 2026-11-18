@@ -1,16 +1,19 @@
-import { ROUTES } from '@/constants/routes';
-import Link from 'next/link';
-import { dateFormatter } from '@/utils/formatter';
-import { getFirstImage } from '@/utils/getFirstImage';
-import { mapIdToTitle } from '@/utils/mapInterests';
-import { DEFAULT_IMAGES } from '@/constants/images';
-import Image from '@/components/common/Image';
-
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation } from 'swiper/modules';
+import dynamic from 'next/dynamic';
 import { useArticleListQuery } from '@/hooks/useArticle';
 import { SkeletonBlock } from '@/components/common/loader/Skeleton';
 import { cx } from '@/styles/tw';
+
+/** 사진 카드 띠 (#17)의 높이 자리 */
+const Skeleton = () => (
+	<div className="skeleton-row" aria-hidden>
+		{Array.from({ length: 3 }).map((_, index) => (
+			<SkeletonBlock key={index} $height="12rem" $radius="8px" />
+		))}
+	</div>
+);
+
+// Swiper(약 23 KB)는 본문 아래 이 띠만 쓴다. 첫 JS에서 빼고 그릴 때 받는다 (#292)
+const LatestSlider = dynamic(() => import('./LatestSlider'), { ssr: false, loading: Skeleton });
 
 interface Props {
 	className?: string;
@@ -38,47 +41,7 @@ function LatestArticle({ className }: Props) {
 					<button type="button" className="latest-next" aria-label="다음 뉴스레터들" />
 				</div>
 			</div>
-			{isPending ? (
-				<div className="skeleton-row" aria-hidden>
-					{Array.from({ length: 3 }).map((_, index) => (
-						<SkeletonBlock key={index} $height="12rem" $radius="8px" />
-					))}
-				</div>
-			) : (
-				<Swiper
-					modules={[Navigation]}
-					spaceBetween={20}
-					slidesPerView={1.3}
-					navigation={{ nextEl: '.latest-next', prevEl: '.latest-prev' }}
-					breakpoints={{
-						426: { slidesPerView: 2, spaceBetween: 20 },
-						1024: { slidesPerView: 3, spaceBetween: 24 },
-					}}
-				>
-					{articleList?.map((article) => (
-						<SwiperSlide key={article.id}>
-							<Link href={ROUTES.article(article.id)} className="item">
-								<span className="photo">
-									<Image
-										src={(article.imageUrl && getFirstImage(article.imageUrl)) || DEFAULT_IMAGES.MONO}
-										alt=""
-										ratio="wide"
-										priority={false}
-									/>
-								</span>
-								<span className="overlay">
-									<span className="meta">
-										<span className="category">{mapIdToTitle([article.categoryId])[0]}</span>
-										<span aria-hidden>·</span>
-										<span className="date">{dateFormatter(article.createdAt)}</span>
-									</span>
-									<span className="title">{article.title}</span>
-								</span>
-							</Link>
-						</SwiperSlide>
-					))}
-				</Swiper>
-			)}
+			{isPending ? <Skeleton /> : <LatestSlider articles={articleList ?? []} />}
 		</section>
 	);
 }
