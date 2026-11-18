@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { kstDate, kstDateOf, monthDay, pad2 } from '@/utils/formatter';
+import { dateFormatter, kstDate, kstDateOf, monthDay, pad2 } from '@/utils/formatter';
 
 const ORIGINAL_TZ = process.env.TZ;
 
@@ -46,5 +46,19 @@ describe('kstDateOf · monthDay · pad2', () => {
 
 	it('두 자리로', () => {
 		expect([pad2(0), pad2(7), pad2(12)]).toEqual(['00', '07', '12']);
+	});
+});
+
+describe('dateFormatter', () => {
+	// #292: 서버(UTC)와 브라우저(KST)가 다른 날짜를 그려 하이드레이션이 어긋났다
+	it.each(['UTC', 'Asia/Seoul', 'America/Los_Angeles'])('실행하는 곳의 시간대가 %s여도 한국 날짜', (tz) => {
+		process.env.TZ = tz;
+		expect(dateFormatter('2026-11-07T21:40:00Z')).toBe('2026-11-08'); // KST 11/8 06:40
+		expect(dateFormatter('2026-11-07T14:00:00Z')).toBe('2026-11-07'); // KST 11/7 23:00
+	});
+
+	it('값이 없으면 오늘, 잘못된 값은 예전처럼 Invalid Date', () => {
+		expect(dateFormatter(undefined)).toBe(kstDate());
+		expect(dateFormatter('not-a-date')).toBe('Invalid Date');
 	});
 });

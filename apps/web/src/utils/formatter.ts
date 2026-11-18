@@ -1,5 +1,3 @@
-import dayjs from 'dayjs';
-
 const KST_DATE = new Intl.DateTimeFormat('en-CA', {
 	timeZone: 'Asia/Seoul',
 	year: 'numeric',
@@ -27,7 +25,12 @@ export const monthDay = (moment: string | Date): string => MONTH_DAY.format(new 
 /** 두 자리로: 7 → '07' (시각 · 순번) */
 export const pad2 = (n: number): string => String(n).padStart(2, '0');
 
+/**
+ * 화면에 쓰는 날짜 'YYYY-MM-DD' (한국 날짜). 값이 없으면 오늘.
+ * 예전에는 실행하는 곳의 시간대로 써서, Vercel 서버(UTC)와 한국 브라우저가 한국 0~9시에 만든 글의 날짜를 다르게 그렸다.
+ * 그러면 하이드레이션이 어긋나(React #418) 상세 화면 전체를 브라우저에서 다시 그렸고, 제목이 다시 그려져 LCP가 늦었다 (#292)
+ */
 export function dateFormatter(date: string | undefined) {
-	const dateFormat = dayjs(date).format('YYYY-MM-DD');
-	return dateFormat;
+	const moment = date === undefined ? new Date() : new Date(date);
+	return Number.isNaN(moment.getTime()) ? 'Invalid Date' : kstDateOf(moment);
 }
