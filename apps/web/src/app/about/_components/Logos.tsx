@@ -17,7 +17,7 @@ function Logos({ className }: Props) {
 
 	return (
 		<div className={cx('np-about-logos-logos', className)}>
-			<Marquee dir="rtl" loopAdditionalSlides={12}>
+			<Marquee dir="rtl">
 				{extendedLogoPaths1.map((src, i) => (
 					<Image key={i} src={src} alt="logo" ratio="square" className="logo" />
 				))}

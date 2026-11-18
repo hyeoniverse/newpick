@@ -362,3 +362,51 @@
 		flex-shrink: 0;
 	}
 }
+
+/* 계속 흐르는 띠 (slider/Marquee.tsx). 같은 줄 두 개(.row)를 이어 붙이고 track을 한 줄 길이(-50%)만큼 옮긴다.
+   칸 사이는 gap 대신 칸 오른쪽 여백: 그래야 두 줄 길이가 똑같아 -50%가 정확히 한 줄이다 */
+.np-marquee {
+	overflow: hidden;
+
+	.track {
+		display: flex;
+		width: max-content;
+		animation: np-marquee var(--marquee-duration, 60s) linear infinite;
+		will-change: transform;
+	}
+	/* 왼쪽에서 오른쪽으로 흐르는 띠는 예전 Swiper(dir=rtl)처럼 첫 칸이 오른쪽 끝, 다음 칸이 그 왼쪽에 놓인다 */
+	&[data-dir='rtl'] {
+		direction: rtl;
+		.track {
+			animation-name: np-marquee-rtl;
+		}
+		.slide {
+			direction: ltr;
+			margin-right: 0;
+			margin-left: 20px;
+		}
+	}
+	/* 움직임 줄이기를 켠 사용자에게는 멈춘 띠 (앞줄이 제자리에) */
+	@media (prefers-reduced-motion: reduce) {
+		.track {
+			animation: none;
+		}
+	}
+	.row {
+		display: flex;
+	}
+	.slide {
+		flex-shrink: 0;
+		margin-right: 20px;
+	}
+}
+@keyframes np-marquee {
+	to {
+		transform: translateX(-50%);
+	}
+}
+@keyframes np-marquee-rtl {
+	to {
+		transform: translateX(50%);
+	}
+}
