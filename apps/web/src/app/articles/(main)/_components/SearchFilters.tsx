@@ -4,13 +4,18 @@ import { ROUTES } from '@/constants/routes';
 import { queryKeys } from '@/api/queryKeys';
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { fetchPopularKeywords } from '@/api/article';
 import { LuX } from 'react-icons/lu';
 import { PERIOD_OPTIONS, SearchPeriod, readFilters, toPageHref, toggleKeyword } from '@/utils/newsletterSearch';
 import { kstDate } from '@/utils/formatter';
-import { DateRangePicker } from '@/components/common/DatePicker';
+
+// 달력(react-datepicker · date-fns, gzip 약 75 KB)은 '직접 지정'을 고를 때만 쓴다. 목록을 처음 열 때는 받지 않고,
+// 고르려고 버튼에 다가가면(마우스 · 포커스 · 터치) 미리 받기 시작한다 (#292)
+const loadPicker = () => import('@/components/common/DatePicker');
+const DateRangePicker = dynamic(() => loadPicker().then((m) => m.DateRangePicker));
 
 /**
  * 뉴스레터 목록 위 필터 줄 (#20): 기간 · 자주 나온 태그(여러 개 고르기).
@@ -62,6 +67,11 @@ export default function SearchFilters() {
 								tabIndex={folded ? -1 : undefined}
 								aria-pressed={filters.period === option.value}
 								onClick={() => setPeriod(option.value)}
+								{...(option.value === 'custom' && {
+									onPointerEnter: loadPicker,
+									onFocus: loadPicker,
+									onTouchStart: loadPicker,
+								})}
 							>
 								{option.label}
 							</button>
