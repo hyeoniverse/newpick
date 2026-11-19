@@ -10,6 +10,21 @@ import Tags from '@/components/common/Tags';
 import ExternalLink from '@/components/common/ExternalLink';
 import Highlight from '@/components/common/Highlight';
 
+/**
+ * 카드 사진이 화면에서 보이는 폭 (img sizes, styles/card.css). 휴대폰 767px · 태블릿 1023px 기준.
+ * 예전에는 주지 않아 고정 크기(400×300)의 2배 사진을 받았다: 휴대폰 목록 64px 썸네일도 828px짜리 (#292)
+ */
+const SIZES = {
+	/** 큰 배너: 태블릿 이하 화면 폭, 그 위 약 527px */
+	main: '(max-width: 1023px) 100vw, 540px',
+	/** 트렌드 카드: 휴대폰 화면 폭, 그 위 칸 폭 약 320px */
+	sub: '(max-width: 767px) 100vw, 320px',
+	/** 목록 카드(넓은 화면): 휴대폰 7.5rem, 그 위 최대 15rem */
+	listWide: '(max-width: 767px) 120px, 240px',
+	/** 목록 카드(휴대폰 썸네일): 4rem */
+	listNarrow: '64px',
+} as const;
+
 interface Props {
 	className?: string;
 	type?: 'main' | 'sub' | 'list';
@@ -61,6 +76,7 @@ const Card = forwardRef<HTMLDivElement, Props>(
 										fallback={fallbackImage}
 										alt={main.title || 'card'}
 										priority={priority}
+										sizes={SIZES.main}
 									/>
 								</div>
 								<div className="card-main">
@@ -106,7 +122,13 @@ const Card = forwardRef<HTMLDivElement, Props>(
 							<Link href={url || '/not-found'}>
 								{image && (
 									<div className="image-placeholder">
-										<Image src={image} fallback={fallbackImage} alt={main.title || 'card'} priority={priority} />
+										<Image
+											src={image}
+											fallback={fallbackImage}
+											alt={main.title || 'card'}
+											priority={priority}
+											sizes={SIZES.sub}
+										/>
 									</div>
 								)}
 								<div className="card-header">
@@ -171,6 +193,7 @@ const Card = forwardRef<HTMLDivElement, Props>(
 												fallback={fallbackImage}
 												alt={main.title || 'card'}
 												priority={priority}
+												sizes={SIZES.listWide}
 											/>
 										</div>
 									</div>
@@ -203,6 +226,7 @@ const Card = forwardRef<HTMLDivElement, Props>(
 											fallback={fallbackImage}
 											alt={main.title || 'card'}
 											priority={priority}
+											sizes={SIZES.listNarrow}
 										/>
 									</div>
 								</div>

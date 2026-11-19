@@ -28,7 +28,6 @@ function HeightAutoImg({ src, fallback, height, className, aspectratio = 'auto' 
 			<Image
 				src={shown}
 				alt="news-img"
-				quality={75}
 				sizes="(max-width: 1023px) 100vw, (max-width: 1200px) 50vw, 33vw"
 				fill
 				className="relative! block h-[unset]! w-full object-cover object-center [aspect-ratio:var(--img-ratio)] [content-visibility:auto]"
