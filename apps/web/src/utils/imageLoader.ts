@@ -7,5 +7,6 @@ import { IMAGE_URL } from '@/constants/api';
  * 줄인 사진을 디스크에 캐시한다. 우리 사이트 사진(/img/…)은 api가 웹 주소에서 받는다
  */
 export default function imageLoader({ src, width, quality }: ImageLoaderProps) {
-	return `${IMAGE_URL}/images?${new URLSearchParams({ url: src, w: String(width), q: String(quality ?? 75) })}`;
+	// 주소 끝이 .webp여야 Cloudflare가 가장자리에서 캐시한다 (확장자 없는 /images?…는 매번 api 서버까지 가서 0.3 ~ 3.8초 흔들렸다)
+	return `${IMAGE_URL}/images/i.webp?${new URLSearchParams({ url: src, w: String(width), q: String(quality ?? 75) })}`;
 }
