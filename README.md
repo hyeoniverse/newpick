@@ -1,10 +1,36 @@
-# NewPick
+<div align="center">
 
-**내 관심사만 골라, 매일 아침 한 통으로.** AI가 그날의 기사를 읽고 분야별로 중요한 소식만 골라 정리한 뉴스레터를 사이트와 메일로 보내는 서비스입니다.
+<img src="apps/web/public/icons/newpick_logo.svg" alt="NewPick" height="56" />
 
-🔗 <https://newpick.hyeoniverse.com>
+### 내 관심사만 골라, 매일 아침 한 통으로
 
-![시작하기 화면](docs/readme/about.jpg)
+AI가 그날의 기사를 읽고 분야별로 중요한 소식만 골라 정리한 뉴스레터를<br/>사이트와 메일로 보내는 서비스입니다.
+
+**[🔗 newpick.hyeoniverse.com](https://newpick.hyeoniverse.com)**
+
+![Next.js](https://img.shields.io/badge/Next.js_15-000000?logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React_19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-06B6D4?logo=tailwindcss&logoColor=white)
+![NestJS](https://img.shields.io/badge/NestJS_10-E0234E?logo=nestjs&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?logo=mysql&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?logo=mongodb&logoColor=white)
+<br/>
+![Claude](https://img.shields.io/badge/Claude-D97757?logo=anthropic&logoColor=white)
+![Cloudflare Workers AI](https://img.shields.io/badge/Workers_AI-F38020?logo=cloudflare&logoColor=white)
+![Vercel](https://img.shields.io/badge/Vercel-000000?logo=vercel&logoColor=white)
+![Oracle Cloud](https://img.shields.io/badge/Oracle_Cloud-F80000?logo=oracle&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?logo=githubactions&logoColor=white)
+
+<table>
+  <tr>
+    <td width="68%"><img src="docs/readme/home-desktop.jpg" alt="첫 화면 (PC)" /></td>
+    <td width="32%"><img src="docs/readme/home-mobile.gif" alt="첫 화면 (휴대폰): 오늘의 뉴스레터 사진 띠가 흐른다" /></td>
+  </tr>
+</table>
+
+</div>
 
 | | |
 | --- | --- |
@@ -12,27 +38,87 @@
 | **v1** (2024.12 – 2025.02) | 프로그래머스 데브코스 5인 팀 프로젝트 (FE 2 · BE 3). 프론트엔드 · 기획 · 로그인 담당 |
 | **v2** (2026.10 – ) | 혼자 이어받아 **풀스택**으로 다시 설계 · 운영. 웹 · api · AI 파이프라인 · 배포 · 리팩토링 |
 
+## 목차
+
+[한눈에](#한눈에) · [화면 둘러보기](#화면-둘러보기) · [주요 기능](#주요-기능) · [동작 흐름](#동작-흐름) · [운영 숫자](#운영-숫자) · [AI 설계](#ai-설계) · [아키텍처](#아키텍처) · [데이터 모델](#데이터-모델) · [v1 → v2](#v1--v2-팀-프로젝트를-운영-서비스로) · [모바일 성능](#모바일-성능-292) · [운영하며 해결한 문제](#운영하며-해결한-문제) · [개발](#개발)
+
 ## 한눈에
 
-- **혼자 만들고 매일 운영하는 서비스**: 매시 기사를 모으고(최근 30일 **35,238건**), 매일 아침 6개 분야 뉴스레터를 AI가 써서 발행합니다(30일 **144편**). 수집 · 요약 · 메일은 예약 작업으로 돌고, 실패는 대시보드와 Sentry로 봅니다 ([운영 숫자](#운영-숫자))
-- **AI 비용을 설계로 줄임**: 모든 기사를 비싼 모델에 넣지 않고 가벼운 모델로 먼저 고른 뒤 쓰기, 맞춤 글은 무료 할당의 오픈 모델 우선 + 하루 비용 상한. 30일 AI 비용 **$11.15**(하루 약 $0.37) ([AI 설계](#ai-설계))
-- **두 번의 리팩토링**: 팀 코드를 측정 → 안전망 → 정리 순으로. 순환 import · 서로 import하는 모듈 0, api `strict: true` · `any` 0, 테스트 0 → api 423 · 웹 192 · E2E ([v1 → v2](#v1--v2-팀-프로젝트를-운영-서비스로))
-- **모바일 성능을 재서 원인부터**: 공개 화면 모두 휴대폰 LCP 2.1초 이하(실제로 느리게 잰 값), Lighthouse 권장사항 100. 상세는 서버(UTC)와 브라우저(KST)의 날짜 차이로 화면 전체를 다시 그리던 것을 찾아 LCP 4.6 → 1.0초 ([모바일 성능](#모바일-성능-292))
+- 🗞️ **혼자 만들고 매일 운영하는 서비스**: 매시 기사를 모으고(최근 30일 **35,361건**), 매일 아침 6개 분야 뉴스레터를 AI가 써서 발행합니다(30일 **144편**). 수집 · 요약 · 메일은 예약 작업으로 돌고, 실패는 대시보드와 Sentry로 봅니다.
+- 💸 **AI 비용을 설계로 줄임**: 모든 기사를 비싼 모델에 넣지 않고 가벼운 모델로 먼저 고른 뒤 쓰기, 맞춤 글은 무료 할당의 오픈 모델 우선 + 하루 비용 상한. 30일 AI 비용 **$11.15**(하루 약 $0.37).
+- 🧹 **두 번의 리팩토링**: 팀 코드를 측정 → 안전망 → 정리 순으로. 순환 import · 서로 import하는 모듈 0, api `strict: true` · `any` 0, 테스트 0 → api **423** · 웹 **192** · E2E.
+- ⚡ **모바일 성능을 재서 원인부터**: 공개 화면 모두 휴대폰 LCP **2.1초 이하**(실제로 느리게 잰 값), Lighthouse 권장사항 **100**. 상세는 서버(UTC)와 브라우저(KST)의 날짜 차이로 화면 전체를 다시 그리던 것을 찾아 LCP 4.6 → 1.0초.
 
-## 화면
+## 화면 둘러보기
 
-| 뉴스레터 상세 | 휴대폰 · 다크 모드 | 소식 본문 · 형광펜 |
-| --- | --- | --- |
-| ![상세 화면](docs/readme/detail-desktop.jpg) | ![휴대폰 상세](docs/readme/detail-mobile-dark.jpg) | ![휴대폰 본문](docs/readme/detail-mobile-story-dark.jpg) |
+### 📰 뉴스레터 목록 · 검색 · 태그
+
+오늘 발행한 분야별 뉴스레터가 맨 위 큰 배너로 넘어가고, 그 아래로 지난 뉴스레터가 이어집니다. 관심사 · 기간 · 자주 나온 태그로 거르고, 머리글의 검색칸으로 제목 · 본문을 찾습니다(MySQL 전문 검색, 한국어 2글자씩 나누는 ngram). 태그 화면에서는 그동안 쓰인 태그를 많이 쓴 순 · 최근 순으로 봅니다.
+
+<table>
+  <tr>
+    <td width="68%"><img src="docs/readme/articles-desktop.jpg" alt="뉴스레터 목록 (PC)" /></td>
+    <td width="32%"><img src="docs/readme/articles-mobile-dark.jpg" alt="뉴스레터 목록 (휴대폰 · 다크 모드)" /></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/readme/search-desktop.jpg" alt="검색 결과: 검색어 강조" /><p align="center"><sub>검색 결과 · 검색어 강조</sub></p></td>
+    <td width="50%"><img src="docs/readme/tags-desktop.jpg" alt="태그 전체" /><p align="center"><sub>태그 전체 · 분야별 · 많이 쓴 순</sub></p></td>
+  </tr>
+</table>
+
+### 📖 뉴스레터 상세 · 형광펜
+
+한 편에 분야의 주요 소식 최대 3개와 오늘 아침 속보가 담깁니다. 소식마다 내용에 맞는 모양(지표 카드 · 날짜별 경과 · 문답 · 인용 · 해설 · 단신)으로 그리고, 핵심 문장에는 AI가 형광펜을 긋습니다. 읽는 사람은 문장을 골라 **스크랩 · 메모**하고, 궁금한 소식은 **후속 지켜보기**로 이어지는 소식을 메일로 받습니다.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/readme/detail-desktop.jpg" alt="뉴스레터 상세 (PC)" /><p align="center"><sub>상세 · 오른쪽에 지금 인기 뉴스레터 TOP 5</sub></p></td>
+    <td width="50%"><img src="docs/readme/highlight-desktop.jpg" alt="문장을 고르면 스크랩 · 메모 도구가 뜬다" /><p align="center"><sub>문장을 고르면 스크랩 · 메모, 아래는 AI가 그은 핵심 문장</sub></p></td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/readme/detail-mobile-dark.jpg" alt="휴대폰 상세 (다크 모드)" /></td>
+    <td width="50%"><img src="docs/readme/detail-mobile-story-dark.jpg" alt="휴대폰 소식 본문 (다크 모드)" /></td>
+  </tr>
+</table>
+
+### ✉️ 맞춤 메일 · 마이페이지
+
+구독자마다 메일이 한 통씩 다릅니다. 고른 분야를 모으되 북마크 · 스크랩으로 계산한 **취향 점수**로 소식 순서를 바꾸고, 사람마다 제목 · 브리핑을 따로 쓰고, 뉴스레터에 안 실린 추천 기사 · 팔로우한 태그 소식 · 지켜보던 소식의 후속을 덧붙입니다. 받은 메일은 마이페이지에서 받은 그대로 다시 볼 수 있고, 폴더로 정리합니다.
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/readme/mail-sheet.jpg" alt="받은 메일 다시 보기" /><p align="center"><sub>받은 메일 다시 보기 · 오늘의 소식 한눈에</sub></p></td>
+    <td width="50%"><img src="docs/readme/mypage-desktop.jpg" alt="마이페이지: 받은 메일 · 폴더" /><p align="center"><sub>마이페이지 · 받은 메일 · 폴더 · 달별 바로 가기</sub></p></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/readme/mypage-scrap-desktop.jpg" alt="스크랩: 요즘 관심 있게 본 주제" /><p align="center"><sub>스크랩한 문장 · 요즘 관심 있게 본 주제(맞춤 메일에 반영)</sub></p></td>
+    <td width="50%"><img src="docs/readme/about.jpg" alt="시작하기 (서비스 소개)" /><p align="center"><sub>시작하기 · 서비스 소개</sub></p></td>
+  </tr>
+</table>
+
+### 🛠️ 관리자
+
+첫 화면은 고른 기간의 숫자(수집한 기사 · 발행한 뉴스레터 · AI 비용 · 메일 받은 사람)와 예약 작업입니다. 메일 받은 사람은 기간 동안 받은 서로 다른 사람 수이고, 보낸 메일 수는 따로 셉니다. 예약 작업(수집 · AI 요약 · 메일)의 실행 기록을 보고, 지금 실행하거나 시각을 바꿉니다. AI 호출 기록 · 비용, 구독 · 발송 · 방문 통계, 페이지 히트맵, 뉴스레터 고치기 · 다시 쓰기, 태그 합치기도 여기서 합니다.
+
+![관리자 대시보드: 최근 30일 숫자와 예약 작업](docs/readme/admin-dashboard.jpg)
+
+> 화면의 이름 · 메일은 예시 값으로 바꿨습니다.
 
 ## 주요 기능
 
 | 기능 | 내용 |
 | --- | --- |
-| **분야별 AI 뉴스레터** | 매일 08:30, 분야마다 주요 소식 최대 3개 + **오늘 아침 속보**. 소식마다 내용에 맞는 템플릿(지표 카드 · 날짜별 경과 · 문답 · 인용 · 해설 · 단신), 핵심 문장 형광펜, 엇갈린 주장, 관전 포인트 |
+| **분야별 AI 뉴스레터** | 매일 08:30, 분야마다 주요 소식 최대 3개 + **오늘 아침 속보**. 소식마다 내용에 맞는 템플릿(지표 카드 · 날짜별 경과 · 문답 · 인용 · 해설 · 단신), 핵심 문장 형광펜, 엇갈린 주장, 관전 포인트. 소식 사진은 원출처 기사의 사진, 없으면 Pexels · Unsplash에서 찾은 사진(출처 표시) |
 | **맞춤 메일** | 구독자마다 한 통: 고른 분야 + 북마크 · 스크랩으로 계산한 **취향 점수**로 소식 순서를 바꾸고, 사람마다 쓴 제목 · 브리핑, 뉴스레터에 안 실린 **추천 기사**, **팔로우한 태그** 소식, **지켜보던 소식의 후속**을 붙임. 원클릭 수신 거부 |
-| **읽기 도구** | 문장 형광펜 · 메모 · 폴더(스크랩), 북마크, 소식 **후속 지켜보기**, 태그 · 검색, 받은 메일 다시 보기 |
-| **관리자** | 예약 작업 대시보드(수집 · 요약 · 메일 실행 기록, 지금 실행, 시각 바꾸기), AI 기록 · 비용, 구독 · 발송 · 방문 통계, 페이지 히트맵 |
+| **읽기 도구** | 문장 형광펜 · 메모 · 폴더(스크랩), 북마크, 소식 **후속 지켜보기**, 태그 팔로우 · 검색, 받은 메일 다시 보기, 다크 모드 |
+| **관리자** | 예약 작업 대시보드(수집 · 요약 · 메일 실행 기록, 지금 실행, 시각 바꾸기, 빠진 날 다시 만들기), AI 기록 · 비용, 구독 · 발송 · 방문 통계, 페이지 히트맵 |
+| **사진이 깨져도** | 원래 사진 → 뉴스레터 키워드로 찾은 Pexels 사진 → 기본 그림 순으로 대신 보입니다. 사진은 api 서버가 줄여(sharp · WebP) Cloudflare 가장자리에서 캐시합니다 |
 
 ## 동작 흐름
 
@@ -46,6 +132,11 @@ flowchart LR
   E -->|08:40| M["사람마다 메일<br/>취향 · 추천 · 태그 · 후속"]
 ```
 
+1. **매시 수집**: 네이버 뉴스 섹션의 헤드라인 · 최신 기사를 모아 MongoDB에 둡니다(30일 뒤 저절로 지움). 기사마다 가벼운 모델이 분야를 고릅니다.
+2. **08:30 요약**: 분야마다 그날 기사를 고르고(가벼운 모델) 씁니다(Claude). 쓴 뉴스레터는 MySQL에 저장하고 사이트 캐시를 비워 바로 보이게 합니다.
+3. **하루 편집**: 여러 분야를 가로지르는 흐름 · 같은 사건을 묶어, 맞춤 메일의 첫머리로 씁니다.
+4. **08:40 메일**: 구독자마다 관심사 · 취향 · 팔로우 · 지켜보기를 반영해 한 통씩 만들어 보냅니다.
+
 예약 시각은 관리자 화면에서 바꿀 수 있고(순서 검사), 작업마다 실행 기록(성공 · 일부 실패 · 실패와 이유)이 남아 대시보드에서 봅니다.
 
 ## 운영 숫자
@@ -54,14 +145,22 @@ flowchart LR
 
 | 항목 | 값 |
 | --- | --- |
-| 수집한 기사 | **35,238건** (매시, 네이버 뉴스 섹션 헤드라인 · 최신) |
+| 수집한 기사 | **35,361건** (매시, 네이버 뉴스 섹션 헤드라인 · 최신) |
 | 발행한 뉴스레터 | **144편** (하루 평균 4.8편, 6개 분야) |
 | AI 비용 | **$11.15** (하루 약 $0.37, 비용을 기록하기 전의 AI 기록 36건 제외) |
 | 예약 작업 | 수집 매시 00분 · AI 요약 매일 08:30 · 구독 메일 매일 08:40 |
 
-![관리자 대시보드: 최근 30일 숫자와 예약 작업](docs/readme/admin-dashboard.jpg)
-
 ## AI 설계
+
+```mermaid
+flowchart LR
+  A["그날 기사<br/>(분야별)"] --> B["같은 사건 묶기<br/>임베딩 bge-m3"]
+  B --> C["고르기<br/>가벼운 모델 · 제목 · 첫 부분만"]
+  C --> D["쓰기<br/>Claude · JSON 스키마"]
+  D --> E["정리<br/>글자 수 · 형광펜 · 템플릿 맞추기"]
+  E --> F["사진<br/>원출처 → Pexels · Unsplash"]
+  F --> G["발행"]
+```
 
 | 결정 | 이유 |
 | --- | --- |
@@ -88,14 +187,12 @@ flowchart LR
   A --> SE["Sentry"]
 ```
 
-## 기술 스택
-
 | 영역 | 기술 |
 | --- | --- |
 | web | Next.js 15 (App Router · ISR), React 19, TypeScript, Tailwind CSS v4, React Query, zustand |
-| api | NestJS 10, Prisma (MySQL), Mongoose (MongoDB), jsdom (수집 · HTML 정리), nodemailer |
+| api | NestJS 10, Prisma (MySQL), Mongoose (MongoDB), jsdom (수집 · HTML 정리), sharp (사진 줄이기), nodemailer |
 | AI | Claude (요약 · 편집), Cloudflare Workers AI (오픈 모델 · 임베딩) |
-| 인프라 | Vercel, Oracle Cloud VM + Docker, GitHub Actions (CI · 자동 배포), Sentry |
+| 인프라 | Vercel, Oracle Cloud VM + Docker, Cloudflare Tunnel, GitHub Actions (CI · 자동 배포), Sentry |
 | 품질 | Vitest · Jest · Playwright, ESLint 9 · Prettier, madge (순환 import), 화면 · 응답 비교 도구 |
 | 저장소 | npm workspaces 모노레포 (`apps/web` · `apps/api` · `packages/shared`) |
 
@@ -137,9 +234,10 @@ erDiagram
 
 ## v1 → v2: 팀 프로젝트를 운영 서비스로
 
-팀 프로젝트가 끝난 코드를 이어받아, 기능을 더하기 전에 **재고(측정) → 안전망 → 정리** 순으로 두 번 리팩토링했습니다. 모든 단계는 이슈로 계획하고 PR마다 바꾸기 전 · 후를 비교했습니다.
+팀 프로젝트가 끝난 코드를 이어받아, 기능을 더하기 전에 **재고(측정) → 안전망 → 정리** 순으로 두 번 리팩토링했습니다. 모든 단계는 이슈로 계획하고 PR마다 바꾸기 전 · 후를 비교했습니다(화면 23개 × 라이트 · 다크 · 휴대폰, api 응답 44개, AI 출력 바이트).
 
-**1차 (#4)**: 기준선 측정 · 보안 · 배포 · 테스트
+<details>
+<summary><b>1차 (#4)</b>: 기준선 측정 · 보안 · 배포 · 테스트</summary>
 
 | | 전 | 후 |
 | --- | --- | --- |
@@ -149,7 +247,10 @@ erDiagram
 | 배포 | 없음 | Vercel + Oracle 무료 VM, main에 들어가면 자동 배포 |
 | 스타일 | styled-components | Tailwind v4 (화면 비교로 모양 그대로 옮김) |
 
-**2차 (#202)**: 구조 · 타입 · 상수 · 도구
+</details>
+
+<details open>
+<summary><b>2차 (#202)</b>: 구조 · 타입 · 상수 · 도구</summary>
 
 | | 전 | 후 |
 | --- | --- | --- |
@@ -159,9 +260,12 @@ erDiagram
 | 모듈 경계 | 서로 import하는 모듈 7쌍, 순환 import 3개 | **0 · 0** (CI가 막음) |
 | api 타입 | `strictNullChecks` · `noImplicitAny` 꺼짐 | `strict: true`, `any` 0곳 |
 | 도구 | 두 앱의 포맷 · ESLint 판이 다름 | 같은 Prettier · ESLint 9 |
-| 테스트 | api 362 · 웹 109 | api **410** · 웹 **176** · E2E 5개 묶음 |
+| 겹치는 층 (z-index) | 9999 · 1000 · 1001 · 999 … 숫자 경쟁 | 이름 붙인 층(sticky < header < modal < popover < toast) |
+| 테스트 | api 362 · 웹 109 | api **423** · 웹 **192** · E2E 5개 묶음 |
 
 정한 규칙은 lint · 검사 스크립트로 잠가 다시 흐트러지지 않게 했습니다 ([docs/structure.md](docs/structure.md)).
+
+</details>
 
 ### 모바일 성능 (#292)
 
@@ -175,7 +279,8 @@ erDiagram
 | 소개 | 84 · 4.1초 | **99 · 1.2초** | **1.8초** | 가장 큰 글자에 걸린 등장 애니메이션 때문에 Chrome이 LCP를 늦게 기록 |
 
 - '점수 · LCP'는 Lighthouse 기본값(느린 휴대폰을 **계산으로 흉내**), '실제로 느리게'는 회선 · CPU를 실제로 느리게 해 브라우저가 기록한 값입니다(실제 휴대폰에 가까움).
-- 홈은 한때 94 · 3.0초였습니다. Vercel 무료 사진 최적화 한도를 넘어 사진이 402로 깨진 뒤, 사진 줄이기를 api 서버(sharp + Cloudflare 캐시)로 옮기면서 사진 한 장을 받는 시간이 늘어 계산 값이 내려갔습니다(실제 LCP는 2.1초). 사진이 깨지면 뉴스레터 키워드로 찾은 사진 → 기본 그림 순으로 대신 보입니다.
+- 홈은 한때 94 · 3.0초였습니다. Vercel 무료 사진 최적화 한도를 넘어 사진이 402로 깨진 뒤, 사진 줄이기를 api 서버(sharp + Cloudflare 캐시)로 옮기면서 사진 한 장을 받는 시간이 늘어 계산 값이 내려갔습니다(실제 LCP는 2.1초).
+- Lighthouse **권장사항(Best Practices)은 다섯 화면 모두 100**입니다(제3자 쿠키 · 콘솔 오류를 없앰).
 - 로그인한 마이페이지는 LCP 3.4초로, 서버에서 프로필을 그리는 일이 남아 있습니다(#307).
 - 의심했지만 원인이 아니었던 것(글꼴 440 KB 등)과 원인을 찾은 방법은 [docs/performance.md](docs/performance.md)에 있습니다.
 
@@ -188,6 +293,7 @@ erDiagram
 | 운영 상세 화면만 500 (화면은 정상처럼 보임) | 서버에서 본문을 정리하는 jsdom 30이 ESM 패키지를 `require()` → Vercel 런타임이 막음. 브라우저가 다시 그려 드러나지 않음 | 로컬에서 Node 버전 · 배포 방식별로 재현해 원인 확정, 서버 정리용 jsdom만 CommonJS 판으로 고정 (#293) |
 | 상세 화면이 휴대폰에서 늦게 보임 (로컬에서는 빠름) | 날짜를 실행하는 곳의 시간대로 써서, Vercel 서버(UTC)와 한국 브라우저가 한국 0~9시 글의 날짜를 다르게 그림 → React가 서버 HTML을 버리고 화면 전체를 다시 만듦(#418). 로컬은 서버도 한국 시간이라 드러나지 않음 | 느린 회선에서 요소가 다시 만들어지는 때를 기록해 찾고, 서버를 UTC로 띄워 재현한 뒤 날짜를 늘 한국 날짜로 (#302) |
 | 운영 사진이 한꺼번에 깨지고 대체 그림까지 깨짐 | Vercel 무료 사진 최적화 한도를 넘어 `/_next/image`가 **402**. 대체 그림도 같은 길로 받아 같이 실패 | 사진 줄이기를 api 서버로(sharp + 디스크 캐시, 허용한 출처 · 폭만, 주소 끝 `.webp`로 Cloudflare 가장자리 캐시). 깨지면 뉴스레터 키워드로 찾은 Pexels 사진 → 기본 그림 순으로 (#308 ~ #318) |
+| 대시보드 '메일 받은 사람'이 부풀려짐 | 날짜별 받은 사람 수를 기간 동안 더해, 한 사람이 21일 받으면 21명 | 기간 전체의 서로 다른 사람 수를 따로 세고, 보낸 메일 수와 나눠 보여 줌 (#320) |
 | 리팩토링으로 동작이 바뀌는 위험 | 큰 구조 변경 | 화면 23개 × 라이트 · 다크 · 휴대폰 비교, api 응답 44개 비교, AI 출력 바이트 비교를 PR마다 |
 
 ## 개발
@@ -200,7 +306,8 @@ erDiagram
 
 폴더 · 타입 · 상수 · 요청 · 스타일 · 모듈 규칙과 그 규칙을 막는 검사는 [docs/structure.md](docs/structure.md)에 있습니다.
 
-### 설치 · 실행
+<details>
+<summary><b>설치 · 실행 · 검사</b></summary>
 
 npm workspaces로 묶여 있어 **저장소 루트에서 한 번** 설치합니다 (잠금 파일은 루트 `package-lock.json` 하나).
 
@@ -215,8 +322,6 @@ npm test               # 두 앱의 테스트
 - 설치하면 `postinstall`이 `packages/shared`를 빌드합니다 (두 앱은 빌드된 `dist`를 씁니다). 공유 패키지를 고쳤으면 `npm run build -w @newpick/shared`
 - api Docker 이미지는 루트를 컨텍스트로 만듭니다: `docker build -f apps/api/Dockerfile .`
 
-### 검사
-
 앱 폴더에서 CI와 같은 순서로 돌립니다 (`.github/workflows/ci.yml`).
 
 ```bash
@@ -226,6 +331,8 @@ npm run cycles      # 순환 import (+ api: 모듈끼리 서로 import · import
 npm test            # web: vitest (npm run test:cov로 coverage) · api: jest
 npm run build
 ```
+
+</details>
 
 ### 문서
 
