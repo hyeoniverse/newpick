@@ -225,6 +225,7 @@ export default function ListSection() {
 								id: article.id,
 								url: ROUTES.article(article.id),
 								image: article.image,
+								fallbackImage: article.fallbackImage,
 								header: article.categoryName,
 								main: {
 									title: article.title,

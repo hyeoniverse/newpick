@@ -11,6 +11,7 @@ import { MailJobService } from './mail-job.service';
 import { ScheduleConfigService } from './schedule-config.service';
 import { SummaryJobService } from './summary-job.service';
 import { errorMessage } from 'src/common/error-message';
+import { FallbackImagesService } from 'src/ai-summary/fallback-images.service';
 
 const MAIL_JOB_NAME = 'sendNewsletter';
 const CRAWL_JOB_NAME = 'startCrawling';
@@ -38,6 +39,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 		private readonly jobRuns: JobRunsService,
 		private readonly summaryJob: SummaryJobService,
 		private readonly mailJob: MailJobService,
+		private readonly fallbackImages: FallbackImagesService,
 	) {}
 
 	/**
@@ -88,6 +90,10 @@ export class SchedulerService implements OnApplicationBootstrap {
 		try {
 			const created = await this.crawlingService.crawling();
 			this.jobRuns.finishRun('crawling', 'success', `기사 ${created?.length ?? 0}건 수집`);
+			// 수집 뒤 대체 사진이 비어 있는 뉴스레터를 조금씩 채운다. 실패해도 수집 결과에는 영향이 없다
+			await this.fallbackImages
+				.fillMissing()
+				.catch((error) => this.logger.warn(`대체 사진 채우기 실패: ${errorMessage(error)}`));
 		} catch (error) {
 			this.jobRuns.finishRun('crawling', 'failed', errorMessage(error));
 			throw error;

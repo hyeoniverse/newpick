@@ -44,7 +44,7 @@ function PrevNextArticle({ className, prev, next }: Props) {
 							{icon}
 						</span>
 						<div className="img">
-							<HeightAutoImg src={src} aspectratio={16 / 9} />
+							<HeightAutoImg src={src} fallback={article?.fallbackImageUrl} aspectratio={16 / 9} />
 						</div>
 						<div className="text-section">
 							<p className="title">{title}</p>

@@ -5,13 +5,20 @@ import { CrawledNewsModule } from 'src/crawling/crawled-news.module';
 import { CreateNewsletterService } from './create-newsletter.service';
 import { NewsletterWriterService } from './newsletter-writer.service';
 import { StoryImageService } from './story-images';
+import { FallbackImagesService } from './fallback-images.service';
 import { TagsModule } from 'src/tags/tags.module';
 import { LlmModule } from 'src/llm/llm.module';
 import { CategoryModule } from 'src/category/category.module';
 @Module({
 	imports: [CrawledNewsModule, TagsModule, LlmModule, CategoryModule],
 	controllers: [AiSummaryController],
-	providers: [AiSummaryService, CreateNewsletterService, NewsletterWriterService, StoryImageService],
-	exports: [AiSummaryService, CreateNewsletterService, NewsletterWriterService],
+	providers: [
+		AiSummaryService,
+		CreateNewsletterService,
+		NewsletterWriterService,
+		StoryImageService,
+		FallbackImagesService,
+	],
+	exports: [AiSummaryService, CreateNewsletterService, NewsletterWriterService, FallbackImagesService],
 })
 export class AiSummaryModule {}

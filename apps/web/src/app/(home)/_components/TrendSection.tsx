@@ -33,6 +33,7 @@ const TrendSection = () => {
 									id: trend.id,
 									url: ROUTES.article(trend.id),
 									image: trend.image,
+									fallbackImage: trend.fallbackImage,
 									header: trend.categoryName,
 									main: {
 										title: trend.title,

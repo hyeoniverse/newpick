@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Img from 'next/image';
 import type { BorderRadius, ColorKey } from '@/styles/tokens/theme';
 import { BG_COLOR, cx } from '@/styles/tw';
-import { DEFAULT_IMAGES } from '@/constants/images';
+import { useImageFallback } from '@/components/common/useImageFallback';
 
 interface Props {
 	src: string;
@@ -20,8 +20,8 @@ interface Props {
 	 */
 	priority?: boolean;
 	placeholder?: ColorKey;
-	/** 못 불러올 때(지워진 기사 사진 등) 대신 보일 그림 */
-	fallback?: string;
+	/** 못 불러올 때(지워진 기사 사진 · 사진 최적화 실패) 대신 보일 사진. 이것도 깨지면 기본 그림 */
+	fallback?: string | null;
 	className?: string;
 }
 
@@ -36,7 +36,7 @@ const RADIUS: Record<BorderRadius, string> = {
 	circle: 'rounded-[50%]',
 };
 
-/** 비율 상자 안의 사진. 불러오는 동안은 단색 바탕, 다 불러오면 서서히 나타난다. 못 불러오면 기본 그림으로 */
+/** 비율 상자 안의 사진. 불러오는 동안은 단색 바탕, 다 불러오면 서서히 나타난다. 못 불러오면 대신할 사진 → 기본 그림으로 */
 export default function Image({
 	src,
 	alt,
@@ -47,13 +47,11 @@ export default function Image({
 	objectFit = 'cover',
 	priority = false,
 	placeholder = 'surface',
-	fallback = DEFAULT_IMAGES.MONO,
+	fallback,
 	className,
 }: Props) {
 	const [isLoaded, setIsLoaded] = useState(false);
-	// 못 불러온 주소. src가 바뀌면 저절로 다시 원래 주소부터 시도한다
-	const [failedSrc, setFailedSrc] = useState<string | null>(null);
-	const shown = failedSrc === src ? fallback : src;
+	const { shown, unoptimized, onError } = useImageFallback(src, fallback);
 
 	return (
 		<div
@@ -73,14 +71,10 @@ export default function Image({
 				width={width}
 				height={height}
 				priority={priority}
-				// 기본 그림은 우리 정적 파일이라 최적화를 거치지 않는다: 사진 최적화(/_next/image)가 실패할 때(한도 초과 402 등)
-				// 대신 보이는 그림까지 같은 길로 받으면 같이 깨진다
-				unoptimized={shown === fallback}
+				unoptimized={unoptimized}
 				style={{ objectFit }}
 				onLoad={() => setIsLoaded(true)}
-				onError={() => {
-					if (shown !== fallback) setFailedSrc(src);
-				}}
+				onError={onError}
 			/>
 		</div>
 	);

@@ -61,9 +61,13 @@ function PopularArticle({ className }: Props) {
 									<p className="date">{dateFormatter(article.createdAt)}</p>
 								</div>
 							</Link>
-							{article.imageUrl ? (
+							{article.imageUrl || article.fallbackImageUrl ? (
 								<Link href={ROUTES.article(article.id)} className="thum-link">
-									<HeightAutoImg src={getFirstImage(article.imageUrl)} aspectratio={1} />
+									<HeightAutoImg
+										src={article.imageUrl && getFirstImage(article.imageUrl)}
+										fallback={article.fallbackImageUrl}
+										aspectratio={1}
+									/>
 								</Link>
 							) : (
 								<div className="thum-empty" />

@@ -90,19 +90,21 @@ model EmailChange {
 
 // Newsletter 모델
 model Newsletter {
-  id            Int      @id @default(autoincrement())
-  title         String
+  id               Int      @id @default(autoincrement())
+  title            String
   /// 제목에 담지 않은 나머지 주요 소식 한 줄 (#42). 이전 뉴스레터는 null
-  subtitle      String?
+  subtitle         String?
   /// 키워드 3~6개, 문자열 배열 (#50). 이전 뉴스레터는 null
-  keywords      Json?
-  content       String   @db.LongText
-  contentAsHTML String?  @db.LongText
-  imageUrl      String?  @db.LongText
-  categoryId    Int
-  viewcount     Int      @default(0)
-  usedNews      String   @db.LongText
-  createdAt     DateTime @default(now())
+  keywords         Json?
+  content          String   @db.LongText
+  contentAsHTML    String?  @db.LongText
+  imageUrl         String?  @db.LongText
+  /// 사진이 깨질 때(원문 사진이 지워짐 등) 대신 보일 사진. 키워드로 Pexels에서 찾는다. 못 찾았거나 아직 안 채웠으면 null
+  fallbackImageUrl String?  @db.Text
+  categoryId       Int
+  viewcount        Int      @default(0)
+  usedNews         String   @db.LongText
+  createdAt        DateTime @default(now())
 
   category   NewsCategory   @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   bookmarks  Bookmark[]

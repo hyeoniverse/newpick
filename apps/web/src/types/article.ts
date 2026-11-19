@@ -11,6 +11,8 @@ export interface ArticleSummary {
 	categoryName: string;
 	userId?: number;
 	image: string;
+	/** 사진이 깨질 때 대신 보일 사진 (뉴스레터 키워드로 찾은 Pexels 사진) */
+	fallbackImage?: string | null;
 	title: string;
 	subtitle?: string;
 	keywords?: string[];

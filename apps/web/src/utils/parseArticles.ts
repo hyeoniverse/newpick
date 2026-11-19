@@ -42,6 +42,7 @@ export function parseArticles(trends: IArticleDetail[] = []): IArticleSummary[] 
 		id: trend.id,
 		categoryName: mapIdToTitle([trend.categoryId])[0],
 		image: getFirstImage(trend.imageUrl!) || '',
+		fallbackImage: trend.fallbackImageUrl,
 		title: stripCodeFence(trend.title),
 		...(trend.subtitle && { subtitle: trend.subtitle }),
 		...(trend.keywords?.length && { keywords: trend.keywords }),

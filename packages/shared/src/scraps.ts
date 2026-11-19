@@ -47,6 +47,8 @@ export interface BookmarkItem {
   newsTitle: string;
   /** 이미지가 없으면 null */
   newsImg: string | null;
+  /** 사진이 깨질 때 대신 보일 사진. 아직 못 찾았으면 null */
+  newsFallbackImg: string | null;
   newsCreatedAt: string;
   /** 본문이 없으면 null */
   newsSummary: string | null;

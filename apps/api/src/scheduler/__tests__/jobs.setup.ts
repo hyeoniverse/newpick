@@ -114,7 +114,17 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
 		summaryJob,
 		jobRuns,
 	);
-	const scheduler = new SchedulerService({} as never, registry as never, scheduleConfig, jobRuns, summaryJob, mailJob);
+	// 대체 사진 채우기 (수집 뒤): 테스트에서는 아무것도 하지 않는다
+	const fallbackImages = { fillMissing: jest.fn().mockResolvedValue(0) };
+	const scheduler = new SchedulerService(
+		{} as never,
+		registry as never,
+		scheduleConfig,
+		jobRuns,
+		summaryJob,
+		mailJob,
+		fallbackImages as never,
+	);
 	// 요약 다시 시도 사이 쉬는 시간은 테스트에서 없앤다
 	(summaryJob as unknown as { summaryRetryDelayMs: number }).summaryRetryDelayMs = 0;
 	return {

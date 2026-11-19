@@ -50,6 +50,7 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 					<Link key={`${article.id}-${index}`} href={ROUTES.article(article.id)} className="image-link">
 						<Image
 							src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
+							fallback={article.fallbackImageUrl}
 							alt={article.title}
 							ratio="square"
 							width={MARQUEE_IMAGE}
@@ -65,6 +66,7 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 					<Link key={`${article.id}-${index}`} href={ROUTES.article(article.id)} className="image-link">
 						<Image
 							src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
+							fallback={article.fallbackImageUrl}
 							alt={article.title}
 							ratio="square"
 							width={MARQUEE_IMAGE}
