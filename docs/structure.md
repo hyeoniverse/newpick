@@ -6,7 +6,7 @@
 - 배포 · 서버: [deployment.md](deployment.md)
 - api 오류 응답: [api-errors.md](api-errors.md)
 - 바꾸기 전 · 후 비교 도구: [visual-diff.md](visual-diff.md) (화면) · [api-snapshot.md](api-snapshot.md) (api 응답)
-- 측정값: [baseline.md](baseline.md)
+- 측정값: [baseline.md](baseline.md) · 모바일 성능 [performance.md](performance.md)
 
 ## 저장소
 
