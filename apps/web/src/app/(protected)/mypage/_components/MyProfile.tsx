@@ -61,24 +61,39 @@ function Profile() {
 
 	return (
 		<div className="np-mypage-my-profile-profile">
-			{/* 불러오는 동안에도 자리를 잡아 둔다 (예전엔 비어 있다가 갑자기 나타났다) */}
+			{/* 불러오는 동안에도 다 받은 모습과 같은 자리를 잡아 둔다: 사진 · 이름 · 구독 스위치 · 요약 세 칸.
+			    예전에는 사진 · 이름 자리만 있어, 다 받으면 스위치 · 요약이 붙으며 아래 탭이 180px 밀렸다(CLS, #292) */}
 			{!user && (
-				<div className="profile">
-					<span className="avatar">
-						<AvatarPlaceholder loading />
-					</span>
-					<div className="profile-text loading" aria-hidden>
-						<span className="line name" />
-						<span className="line email" />
+				<>
+					<div className="profile">
+						<span className="avatar">
+							<AvatarPlaceholder loading />
+						</span>
+						<div className="profile-text loading" aria-hidden>
+							<span className="line name" />
+							<span className="line email" />
+						</div>
 					</div>
-				</div>
+					<div className="subscribe" aria-hidden>
+						<span className="toggle-loading" />
+					</div>
+					<Summary />
+				</>
 			)}
 			{user && (
 				<>
 					<div className="profile">
 						<span className="avatar">
 							{user.profileImg ? (
-								<Imgae src={user.profileImg} alt={`${user.username ?? ''} 프로필 사진`} ratio="square" />
+								// 첫 화면에서 가장 큰 그림(LCP)이라 바로 받고 바로 보인다 (#292)
+								<Imgae
+									src={user.profileImg}
+									alt={`${user.username ?? ''} 프로필 사진`}
+									ratio="square"
+									width={100}
+									height={100}
+									priority
+								/>
 							) : (
 								<AvatarPlaceholder />
 							)}

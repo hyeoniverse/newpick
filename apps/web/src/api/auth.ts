@@ -15,24 +15,19 @@ export const loginUser = async (): Promise<LoginPopupResult | void> => {
 	window.location.href = API_ENDPOINTS.AUTH.LOGIN();
 };
 
-// 추가 사용자 데이터 불러오기 (구독 상태, 관심사)
-const fetchAdditionalUserData = async (user: User): Promise<User> => {
-	try {
-		const [subscription, interests] = await Promise.all([fetchSubscription(), fetchInterests()]);
-		return {
-			...user,
-			isSubscribed: subscription,
-			interests: mapTitleToId(interests),
-		};
-	} catch {
-		return user;
-	}
-};
-
-// 사용자 정보 조회 API (브라우저). 401이면 apiFetch가 토큰 갱신 후 한 번 다시 시도합니다.
+/**
+ * 사용자 정보 조회 API (브라우저). 401이면 apiFetch가 토큰 갱신 후 한 번 다시 시도합니다(갱신은 한 번으로 묶임).
+ * 프로필 · 구독 상태 · 관심 분야를 한꺼번에 요청한다. 예전에는 프로필을 받은 뒤에 나머지 둘을 받아,
+ * 한 번 더 오가는 만큼 로그인 정보(마이페이지 프로필 · 머리글)가 늦게 그려졌다 (#292).
+ * 구독 상태 · 관심 분야를 못 받으면 프로필만 돌려준다
+ */
 export const fetchUser = async (): Promise<User> => {
-	const userData = await apiFetch<User>(API_ENDPOINTS.MY.PROFILE());
-	return fetchAdditionalUserData(userData);
+	const extra = Promise.all([fetchSubscription(), fetchInterests()]).catch(() => null);
+	const user = await apiFetch<User>(API_ENDPOINTS.MY.PROFILE());
+	const additional = await extra;
+	if (!additional) return user;
+	const [subscription, interests] = additional;
+	return { ...user, isSubscribed: subscription, interests: mapTitleToId(interests) };
 };
 
 // 회원 탈퇴: 회원 정보와 관심 분야·구독·북마크·발송 기록을 지우고 로그인 쿠키도 지운다 (#65)

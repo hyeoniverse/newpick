@@ -1244,6 +1244,19 @@
 		}
 	}
 
+	/* 불러오는 중: 구독 스위치 자리 (subscribe-toggle과 같은 크기) */
+	.subscribe .toggle-loading {
+		display: block;
+		width: 14rem;
+		height: 3.875rem;
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--np-color-text) 7%, var(--np-color-background));
+
+		@variant mobile {
+			width: 100%;
+		}
+	}
+
 	/* 받은 메일 · 북마크 · 스크랩 수: 프로필 아래 폭 가득 세 칸 (연한 바탕 · 위아래 줄, 내 뉴스레터의 달 막대와 같은 결).
 	   칸마다 이름 › 위, 큰 숫자 아래. 누르면 그 탭으로 */
 	.summary {
