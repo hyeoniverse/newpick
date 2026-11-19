@@ -73,6 +73,9 @@ export default function Image({
 				width={width}
 				height={height}
 				priority={priority}
+				// 기본 그림은 우리 정적 파일이라 최적화를 거치지 않는다: 사진 최적화(/_next/image)가 실패할 때(한도 초과 402 등)
+				// 대신 보이는 그림까지 같은 길로 받으면 같이 깨진다
+				unoptimized={shown === fallback}
 				style={{ objectFit }}
 				onLoad={() => setIsLoaded(true)}
 				onError={() => {
