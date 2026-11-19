@@ -147,27 +147,17 @@
 		}
 	}
 
-	/* 프로필 사진 자리를 지나가는 옅은 빛 (AvatarPlaceholder) */
-	--animate-avatar-shimmer: avatar-shimmer 1.2s ease-in-out infinite;
+	/* 불러오는 동안 자리(SkeletonBlock · AvatarPlaceholder)가 제자리에서 은은하게 깜빡인다.
+	   예전에는 빛이 왼쪽에서 오른쪽으로 지나갔는데(shimmer) 어수선해 보여 바꿨다 */
+	--animate-skeleton-pulse: skeleton-pulse 1.6s ease-in-out infinite;
 
-	@keyframes avatar-shimmer {
-		from {
-			transform: translateX(-100%);
-		}
-		to {
-			transform: translateX(100%);
-		}
-	}
-
-	/* 불러오는 동안 자리 막대가 반짝이는 움직임 (SkeletonBlock) */
-	--animate-shimmer: shimmer 1.5s infinite linear;
-
-	@keyframes shimmer {
-		0% {
-			background-position: 100% 0;
-		}
+	@keyframes skeleton-pulse {
+		0%,
 		100% {
-			background-position: -100% 0;
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.55;
 		}
 	}
 }

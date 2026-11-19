@@ -1,7 +1,7 @@
 import { cx } from '@/styles/tw';
 
 interface Props {
-	/** 불러오는 중이면 위로 옅은 빛이 지나간다. 사진이 없는 사람이면 끈다 */
+	/** 불러오는 중이면 제자리에서 은은하게 깜빡인다. 사진이 없는 사람이면 끈다 */
 	loading?: boolean;
 	className?: string;
 }
@@ -25,9 +25,8 @@ export default function AvatarPlaceholder({ loading = false, className }: Props)
 		<span
 			className={cx(
 				'relative block aspect-square size-full overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--color-text)_7%,var(--color-background))]',
-				// 흰 빛은 다크 모드에서 원 전체를 밝혀 모양을 지운다. 바탕색 쪽으로 옅게
-				loading &&
-					"after:absolute after:inset-0 after:block after:animate-avatar-shimmer after:bg-[linear-gradient(90deg,transparent,color-mix(in_srgb,var(--color-background)_55%,transparent),transparent)] after:content-[''] motion-reduce:after:hidden",
+				// 불러오는 중: 제자리에서 은은하게 깜빡인다 (SkeletonBlock과 같은 움직임)
+				loading && 'animate-skeleton-pulse motion-reduce:animate-none',
 				className,
 			)}
 			{...(loading

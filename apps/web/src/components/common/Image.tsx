@@ -5,6 +5,7 @@ import Img from 'next/image';
 import type { BorderRadius, ColorKey } from '@/styles/tokens/theme';
 import { BG_COLOR, cx } from '@/styles/tw';
 import { useImageFallback } from '@/components/common/useImageFallback';
+import { DEFAULT_IMAGE_BG, DEFAULT_IMAGES } from '@/constants/images';
 
 interface Props {
 	src: string;
@@ -22,6 +23,11 @@ interface Props {
 	placeholder?: ColorKey;
 	/** 못 불러올 때(지워진 기사 사진 · 사진 최적화 실패) 대신 보일 사진. 이것도 깨지면 기본 그림 */
 	fallback?: string | null;
+	/**
+	 * 원래 사진을 못 불러올 때 사진 대신 그릴 것 (프로필 사진 → 사람 모양 AvatarPlaceholder).
+	 * 주면 fallback · 기본 그림 대신 이것을 그린다
+	 */
+	fallbackNode?: React.ReactNode;
 	className?: string;
 }
 
@@ -48,10 +54,16 @@ export default function Image({
 	priority = false,
 	placeholder = 'surface',
 	fallback,
+	fallbackNode,
 	className,
 }: Props) {
 	const [isLoaded, setIsLoaded] = useState(false);
 	const { shown, unoptimized, onError } = useImageFallback(src, fallback);
+	// 기본 그림(가로 3:2)을 세로로 긴 칸(tall)에 채우면 양옆이 잘려 NewPick 글자가 잘린다. 그때만 전체를 넣고 남는 곳은
+	// 같은 바탕색. 넓은 · 정사각 칸은 양옆만 조금 잘리고 글자는 온전해 그대로 채운다
+	const isDefault = shown === DEFAULT_IMAGES.MONO && ratio === 'tall';
+
+	if (fallbackNode && src && src !== DEFAULT_IMAGES.MONO && shown !== src) return <>{fallbackNode}</>;
 
 	return (
 		<div
@@ -64,6 +76,7 @@ export default function Image({
 				!priority && (isLoaded ? '[&_img]:opacity-100' : '[&_img]:opacity-0'),
 				className,
 			)}
+			style={isDefault ? { backgroundColor: DEFAULT_IMAGE_BG } : undefined}
 		>
 			<Img
 				src={shown}
@@ -72,7 +85,7 @@ export default function Image({
 				height={height}
 				priority={priority}
 				unoptimized={unoptimized}
-				style={{ objectFit }}
+				style={{ objectFit: isDefault ? 'contain' : objectFit }}
 				onLoad={() => setIsLoaded(true)}
 				onError={onError}
 			/>

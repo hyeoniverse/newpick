@@ -51,4 +51,23 @@ describe('Image', () => {
 		rerender(<Image src="https://example.com/new.jpg" alt="썸네일" />);
 		expect(srcOf()).toContain('https://example.com/new.jpg');
 	});
+
+	it('fallbackNode를 주면 원래 사진이 깨질 때 그것을 그린다 (프로필 → 사람 모양)', () => {
+		render(<Image src={BROKEN} alt="프로필" fallbackNode={<span data-testid="avatar" />} />);
+		expect(screen.queryByTestId('avatar')).toBeNull();
+		fail();
+		expect(screen.getByTestId('avatar')).toBeTruthy();
+		expect(screen.queryByRole('img')).toBeNull();
+	});
+
+	it('기본 그림은 세로로 긴 칸(tall)에서만 잘리지 않게 전체를 넣는다 (contain), 넓은 칸은 그대로 채움', () => {
+		render(<Image src={BROKEN} alt="썸네일" ratio="tall" />);
+		expect(screen.getByRole('img').style.objectFit).toBe('cover');
+		fail();
+		expect(screen.getByRole('img').style.objectFit).toBe('contain');
+		cleanup();
+		render(<Image src={BROKEN} alt="썸네일" ratio="wide" />);
+		fail();
+		expect(screen.getByRole('img').style.objectFit).toBe('cover');
+	});
 });

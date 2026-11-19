@@ -451,13 +451,18 @@ function DesignSystemBody() {
 				</div>
 			</Section>
 
-			<Section id="nav" title="탐색" note="TabNavigation · MoveButton">
+			<Section id="nav" title="탐색" note="TabNavigation · MoveButton · BackBar">
 				<TabNavigation tabs={SAMPLE_TABS} />
 				<div className="wrap">
 					<MoveButton text="목록으로" frontIcon={<LuArrowLeft />} />
 					<MoveButton text="다음 글" backIcon={<LuArrowRight />} />
 					<MoveButton text="비활성" disabled />
 				</div>
+				<BackBar text="목록으로" onClick={() => showToast('뒤로 막대를 눌렀습니다.', 'info')} />
+				<Text size="extraSmall" color="subText">
+					BackBar — 상세 · 관리자 하위 화면 맨 위의 뒤로 가기 막대. MoveButton(그 자리의 단추)과 달리 스크롤해도 위에
+					따라붙고, 내려가면 옆에 지금 글의 제목이 나옵니다
+				</Text>
 				<Text size="extraSmall" color="subText">
 					Dropdown은 헤더(프로필 메뉴·모바일 메뉴) 위치에 맞춘 컴포넌트이므로 헤더의 프로필 사진을 눌러 확인합니다.
 				</Text>
@@ -469,7 +474,8 @@ function DesignSystemBody() {
 				note="ExternalLink(바깥 링크) · LinkCopyIcon · IconButton · BookmarkToggle · StarToggle · BellGlyph"
 			>
 				<Text size="small">
-					<ExternalLink href="https://kopico.go.kr">kopico.go.kr</ExternalLink> — 마우스를 올리면 화살표가 움직입니다
+					<ExternalLink href="https://github.com/hyeoniverse/newpick">github.com/hyeoniverse/newpick</ExternalLink> —
+					마우스를 올리면 화살표가 움직입니다
 				</Text>
 				<div className="wrap">
 					<LinkCopyIcon id="ds" />
@@ -504,13 +510,12 @@ function DesignSystemBody() {
 			<Section
 				id="admin"
 				title="날짜 · 시각 · 표 · 쪽"
-				note="DatePicker · TimePicker · BackBar · FilterChips · TableHeader(HeaderSelect · SortButton) · StatusBadge · MoreLink · BrandAvatar · Pagination"
+				note="DatePicker · TimePicker · FilterChips · TableHeader(HeaderSelect · SortButton) · StatusBadge · MoreLink · BrandAvatar · Pagination"
 			>
 				<div className="wrap">
 					<DatePicker label="날짜" value={pickedDate} onChange={setPickedDate} />
 					<TimePicker label="시각" value={time} onChange={setTime} />
 				</div>
-				<BackBar text="목록으로" onClick={() => showToast('뒤로 막대를 눌렀습니다.', 'info')} />
 				<FilterChips label="관심사" options={CATEGORY_OPTIONS} value={chip} onChange={setChip} />
 				<table className="ds-table">
 					<thead>

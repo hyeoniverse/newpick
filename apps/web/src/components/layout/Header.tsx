@@ -106,7 +106,17 @@ export default function Header() {
 								toggleButton={
 									<span className="relative inline-flex">
 										<span className={USER_CIRCLE}>
-											{user.profileImg ? <Imgae src={user.profileImg} alt="" ratio="square" /> : <AvatarPlaceholder />}
+											{user.profileImg ? (
+												<Imgae
+													src={user.profileImg}
+													alt=""
+													ratio="square"
+													// 사진을 못 받아도 뉴스 기본 그림이 아니라 사람 모양
+													fallbackNode={<AvatarPlaceholder />}
+												/>
+											) : (
+												<AvatarPlaceholder />
+											)}
 										</span>
 										{unseenFollows > 0 && (
 											<span

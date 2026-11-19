@@ -93,6 +93,8 @@ function Profile() {
 									width={100}
 									height={100}
 									priority
+									// 사진을 못 받아도 뉴스 기본 그림이 아니라 사람 모양
+									fallbackNode={<AvatarPlaceholder />}
 								/>
 							) : (
 								<AvatarPlaceholder />
