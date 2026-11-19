@@ -131,7 +131,8 @@ const EXPECTED: Record<string, Policy> = {
 	'GET health': 'public',
 	'GET contact': 'public',
 
-	// 사진 줄이기: 화면의 <img>가 로그인 없이 부른다
+	// 사진 줄이기: 화면의 <img>가 로그인 없이 부른다 (i.webp: Cloudflare가 캐시하는 주소, 빈 주소는 예전 것)
+	'GET images/i.webp': 'public',
 	'GET images': 'public',
 
 	'POST scheduler/toggle/crawling': 'admin',

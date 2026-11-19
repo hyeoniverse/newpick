@@ -6,6 +6,7 @@ import { fetchContactEmail } from '@/api/contact';
 import { parseArticles } from '@/utils/parseArticles';
 import { COOKIES, STORAGE_KEYS } from '@/constants/storage';
 import { DEFAULT_OG_IMAGE, SITE_DESCRIPTION, SITE_NAME, SITE_URL } from '@/constants/site';
+import { IMAGE_URL } from '@/constants/api';
 
 import '@/styles/pretendard.css';
 import './global.css';
@@ -73,6 +74,8 @@ export default async function RootLayout({
 				<script dangerouslySetInnerHTML={{ __html: sessionHintScript }} />
 				<script dangerouslySetInnerHTML={{ __html: themeScript }} />
 				<link rel="icon" href="/icons/favicon.svg" />
+				{/* 사진은 api 서버에서 받는다(utils/imageLoader.ts): 첫 사진(LCP) 전에 연결(DNS · TLS)을 미리 */}
+				<link rel="preconnect" href={IMAGE_URL} />
 			</head>
 			<body>
 				<Providers initialTrends={parsedTrends}>
