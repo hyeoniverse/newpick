@@ -81,7 +81,7 @@ function ScrollButtons() {
 		<div
 			className={cx(
 				// 바닥에 붙는 막대가 있으면 그 높이만큼 위로 (useLiftScrollButtons)
-				'fixed right-6 bottom-[calc(1.5rem+var(--np-float-lift,0px))] z-[999] flex flex-col [transition:bottom_0.2s_ease,transform_0.25s_ease,visibility_0.25s] motion-reduce:transition-none',
+				'fixed right-6 bottom-[calc(1.5rem+var(--np-float-lift,0px))] z-(--np-z-float) flex flex-col [transition:bottom_0.2s_ease,transform_0.25s_ease,visibility_0.25s] motion-reduce:transition-none',
 				// 잠깐 숨김 (useHideScrollButtons): 오른쪽 화면 밖으로 밀려 나갔다가 끝나면 다시 들어온다
 				'[html[data-np-hide-float]_&]:invisible [html[data-np-hide-float]_&]:[transform:translateX(calc(100%+1.5rem))]',
 			)}

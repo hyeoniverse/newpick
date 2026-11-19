@@ -79,11 +79,11 @@ export default function Header() {
 	return (
 		<header
 			className={cx(
-				'fixed left-0 z-[1000] m-0 w-full border-0 border-b border-solid border-border bg-background p-0 [transition:top_0.3s_ease,transform_0.3s_ease]',
+				'fixed left-0 z-(--np-z-header) m-0 w-full border-0 border-b border-solid border-border bg-background p-0 [transition:top_0.3s_ease,transform_0.3s_ease]',
 				isHeaderOpen ? 'top-0' : 'top-[-2.98rem]',
 			)}
 		>
-			<div className="header relative z-[1000] mx-auto flex w-full max-w-[1024px] flex-1 flex-row items-center justify-between gap-4 bg-background">
+			<div className="header relative z-(--np-z-header) mx-auto flex w-full max-w-[1024px] flex-1 flex-row items-center justify-between gap-4 bg-background">
 				<div className="left-section relative left-0 flex h-full w-fit flex-row items-center justify-start">
 					<Drawer />
 					<Logo />

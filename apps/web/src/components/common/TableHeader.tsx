@@ -60,7 +60,7 @@ export function HeaderSelect({ label, options, value, onChange, highlight = true
 			</button>
 			{pos && (
 				<div
-					className="menu fixed z-[950] flex max-h-64 min-w-36 flex-col overflow-y-auto overscroll-contain rounded-surface border border-solid border-border bg-background p-1.5 [scrollbar-width:thin]"
+					className="menu fixed z-(--np-z-popover) flex max-h-64 min-w-36 flex-col overflow-y-auto overscroll-contain rounded-surface border border-solid border-border bg-background p-1.5 [scrollbar-width:thin]"
 					role="group"
 					aria-label={`${label}로 거르기`}
 					style={{ top: pos.top, left: pos.left }}

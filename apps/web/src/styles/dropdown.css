@@ -5,7 +5,7 @@
 .np-dropdown {
 	position: relative;
 	cursor: pointer;
-	z-index: 1000;
+	z-index: var(--np-z-popover);
 
 	/* 메뉴 칸은 넘친 부분을 잘라 내므로 포커스 테두리를 안쪽에 그린다 */
 	.panel :focus-visible {
@@ -46,7 +46,7 @@
 			box-shadow: var(--np-shadow-medium);
 			border: 1px solid var(--np-color-border);
 			border-radius: 8px;
-			z-index: 1000;
+			z-index: var(--np-z-popover);
 			white-space: nowrap;
 
 			visibility: hidden;
