@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { forwardRef } from 'react';
+import { forwardRef, useRef } from 'react';
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { Card as ICard } from '@/types/card';
 
@@ -9,6 +9,7 @@ import Image from '@/components/common/Image';
 import Tags from '@/components/common/Tags';
 import ExternalLink from '@/components/common/ExternalLink';
 import Highlight from '@/components/common/Highlight';
+import { useNearViewport } from '@/hooks/useNearViewport';
 
 /**
  * 카드 사진이 화면에서 보이는 폭 (img sizes, styles/card.css). 휴대폰 767px · 태블릿 1023px 기준.
@@ -25,6 +26,20 @@ const SIZES = {
 	listNarrow: '64px',
 } as const;
 
+/**
+ * 사진 자리 (.image-placeholder, 비율이 정해져 있어 사진을 늦게 넣어도 화면이 밀리지 않는다).
+ * defer면 화면에서 300px 안에 들어왔을 때 사진을 넣고, 그전에는 옅은 바탕만 (useNearViewport)
+ */
+function DeferredImage({ defer = false, children }: { defer?: boolean; children: React.ReactNode }) {
+	const ref = useRef<HTMLDivElement>(null);
+	const near = useNearViewport(ref, { enabled: defer });
+	return (
+		<div ref={ref} className="image-placeholder">
+			{near ? children : <span className="np-image np-ratio-wide rounded-[8px] bg-surface" aria-hidden />}
+		</div>
+	);
+}
+
 interface Props {
 	className?: string;
 	type?: 'main' | 'sub' | 'list';
@@ -34,6 +49,8 @@ interface Props {
 	highlight?: string;
 	/** 첫 화면에 보이는 카드면 사진을 먼저 받는다 (#292) */
 	priority?: boolean;
+	/** 첫 화면 아래 카드: 화면 가까이(300px) 올 때 사진을 넣는다 (sub 카드). 첫 화면을 그리는 동안 큰 사진을 받지 않게 (#292) */
+	deferImage?: boolean;
 }
 
 /** 새 탭이면 사이트 밖 링크(관련 뉴스의 언론사 기사)라 ExternalLink, 아니면 사이트 안 이동 */
@@ -60,7 +77,7 @@ function CardLink({
 }
 
 const Card = forwardRef<HTMLDivElement, Props>(
-	({ type = 'sub', className, data, newTab = false, highlight, priority }, ref) => {
+	({ type = 'sub', className, data, newTab = false, highlight, priority, deferImage }, ref) => {
 		const { image, fallbackImage, header, main, footer, url, date, action } = data;
 
 		return (
@@ -121,7 +138,7 @@ const Card = forwardRef<HTMLDivElement, Props>(
 						<>
 							<Link href={url || '/not-found'}>
 								{image && (
-									<div className="image-placeholder">
+									<DeferredImage defer={deferImage}>
 										<Image
 											src={image}
 											fallback={fallbackImage}
@@ -129,7 +146,7 @@ const Card = forwardRef<HTMLDivElement, Props>(
 											priority={priority}
 											sizes={SIZES.sub}
 										/>
-									</div>
+									</DeferredImage>
 								)}
 								<div className="card-header">
 									{header && (

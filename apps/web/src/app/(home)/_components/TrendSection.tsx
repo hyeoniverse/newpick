@@ -29,6 +29,8 @@ const TrendSection = () => {
 						{trends.map((trend: IArticleSummary) => (
 							<LazyCard
 								key={trend.id}
+								// 첫 화면 아래라 화면 가까이 올 때 사진을 받는다 (첫 화면을 그리는 동안 큰 카드 사진을 같이 받지 않게)
+								deferImage
 								data={{
 									id: trend.id,
 									url: ROUTES.article(trend.id),
