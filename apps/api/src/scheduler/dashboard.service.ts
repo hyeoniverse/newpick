@@ -413,6 +413,7 @@ export class DashboardService {
 			logs,
 			logCount,
 			mailByDay,
+			mailRecipients,
 			activeSubscribers,
 			cost,
 			lastRuns,
@@ -453,6 +454,11 @@ export class DashboardService {
         WHERE sentAt >= ${start} AND sentAt <= ${end}
         GROUP BY day
         ORDER BY day DESC`,
+			// 기간 전체에서 받은 서로 다른 사람 수. 날짜별 수를 더하면 같은 사람이 매일 받은 만큼 늘어난다(한 사람 21일 → 21명)
+			this.prisma.$queryRaw<Array<{ recipients: bigint }>>`
+        SELECT COUNT(DISTINCT email) AS recipients
+        FROM email_archives
+        WHERE sentAt >= ${start} AND sentAt <= ${end}`,
 			this.prisma.subscriber.count({ where: { status: 'active' } }),
 			// Claude 비용 합계 (비용을 모르는 이전 기록은 빠지고, 몇 건인지 따로 센다)
 			this.prisma.aiProcessLog.aggregate({
@@ -516,6 +522,7 @@ export class DashboardService {
 			},
 			mail: {
 				activeSubscribers,
+				recipients: Number(mailRecipients[0]?.recipients ?? 0),
 				byDay: mailByDay.map((row) => ({
 					day: row.day instanceof Date ? row.day.toISOString().slice(0, 10) : String(row.day).slice(0, 10),
 					recipients: Number(row.recipients),
