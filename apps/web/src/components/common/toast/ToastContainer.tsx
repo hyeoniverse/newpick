@@ -53,7 +53,7 @@ const ToastContainer = React.memo(() => {
 			ref={containerRef}
 			// left: 50%로 두면 남은 폭(화면 절반)에 맞춰 줄어들어 짧은 문구도 꺾인다. 내용 폭에 맞춘다
 			className={cx(
-				'pointer-events-none fixed z-[9999] flex w-max max-w-[calc(100vw-2rem)] flex-col gap-2 [&>div]:pointer-events-auto',
+				'pointer-events-none fixed z-(--np-z-toast) flex w-max max-w-[calc(100vw-2rem)] flex-col gap-2 [&>div]:pointer-events-auto',
 				POSITION[position] ?? POSITION['center-top'],
 			)}
 		>

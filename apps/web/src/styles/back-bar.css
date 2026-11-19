@@ -6,7 +6,7 @@
 .np-back-bar {
 	position: sticky;
 	top: calc(3rem + 0.75rem);
-	z-index: 900;
+	z-index: var(--np-z-sticky);
 	display: flex;
 	align-items: stretch;
 	gap: 0.5rem;

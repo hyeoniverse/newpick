@@ -1301,7 +1301,7 @@
 	position: fixed;
 	bottom: 7.25rem;
 	right: 1.5rem;
-	z-index: 999;
+	z-index: var(--np-z-float);
 	gap: 0.75rem;
 
 	.mobile-icon {
@@ -2270,7 +2270,7 @@
 .np-articles-highlight-layer-dim {
 	position: fixed;
 	inset: 0;
-	z-index: 999;
+	z-index: var(--np-z-scrim);
 	background: rgba(0, 0, 0, 0.35);
 }
 
@@ -2278,7 +2278,7 @@
 .np-articles-highlight-layer-popover {
 	/* 문서 기준으로 띄워 글과 함께 스크롤된다 (body에 붙여 둔다) */
 	position: absolute;
-	z-index: 1000;
+	z-index: var(--np-z-modal);
 	display: flex;
 	flex-direction: column;
 	max-width: min(22rem, calc(100vw - 2rem));

@@ -179,3 +179,15 @@
 		--np-heading-extra-large-font-size: 2rem;
 	}
 }
+
+/* 겹치는 층: 아래일수록 위에 그린다 (theme.ts Z_LAYERS) */
+:root {
+	--np-z-sticky: 100;
+	--np-z-float: 200;
+	--np-z-header: 300;
+	--np-z-scrim: 400;
+	--np-z-modal: 500;
+	--np-z-popover: 600;
+	--np-z-toast: 700;
+	--np-z-skip-link: 800;
+}

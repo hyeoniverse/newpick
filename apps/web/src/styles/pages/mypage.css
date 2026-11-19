@@ -1974,7 +1974,7 @@
 		position: fixed;
 		bottom: 1.5rem;
 		left: 50%;
-		z-index: 900;
+		z-index: var(--np-z-float);
 		display: flex;
 		flex-direction: column;
 		gap: 0.625rem;
@@ -2156,7 +2156,7 @@
 /* body에 띄우는 메뉴 (자리는 style로) */
 .np-mypage-folder-menu-menu {
 	position: fixed;
-	z-index: 1000;
+	z-index: var(--np-z-popover);
 	display: flex;
 	flex-direction: column;
 	min-width: 13rem;

@@ -14,7 +14,7 @@
 	/* 바깥: 뒤 화면을 아주 약간만 어둡게 + 살짝 흐리게. 누르면 닫힌다 */
 	position: fixed;
 	inset: 0;
-	z-index: 1000;
+	z-index: var(--np-z-modal);
 	background: rgba(0, 0, 0, 0.08);
 	/* 접두어(-webkit-)는 빌드가 붙인다. 둘 다 적으면 빌드가 합치며 접두어 쪽만 남겨 크롬에서 흐림이 사라진다 */
 	backdrop-filter: blur(4px);

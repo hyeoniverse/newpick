@@ -255,7 +255,7 @@
 		position: absolute;
 		top: 0.5rem;
 		left: 0.5rem;
-		z-index: 10000;
+		z-index: var(--np-z-skip-link);
 		padding: 0.625rem 1rem;
 		border-radius: 8px;
 		background: var(--np-color-primary);

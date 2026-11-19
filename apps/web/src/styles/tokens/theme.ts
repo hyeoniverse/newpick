@@ -450,7 +450,36 @@ const fontVars = (step?: keyof typeof fontSteps) =>
 	toVarDeclarations(step ? fontSteps[step] : fontPart(lightTheme), []).join('\n');
 
 /**
- * styles/tokens/tokens.css 내용: 라이트 · 다크 색, 화면 폭별 글자 크기. 예전에는 styled-components 전역 스타일이
+ * 페이지 전체에서 겹치는 층 (아래에 적은 것일수록 위에 그린다). 화면 CSS는 숫자 대신 var(--np-z-…)를 쓴다.
+ * 예전에는 999 · 1000 · 1001 · 9999처럼 "더 큰 숫자"로 겨뤄, 숫자를 작게(30) 둔 시간 고르기가 뒤로 가기 막대(900)에 가려졌다.
+ * 부품 안에서만 겹치는 것(형광펜 띠를 글자 뒤에 · 표의 고정 열 등 -1 ~ 10)은 그 부품 안의 숫자로 둔다 (docs/structure.md)
+ */
+export const Z_LAYERS = {
+	/** 스크롤해도 따라붙는 막대 (뒤로 가기 막대) */
+	sticky: 100,
+	/** 화면 구석에 떠 있는 단추 · 칸 (맨 위로 · 상세 휴대폰 단추 · 끌어 놓을 폴더 칸) */
+	float: 200,
+	/** 머리글 */
+	header: 300,
+	/** 시트 뒤를 어둡게 덮는 막 */
+	scrim: 400,
+	/** 아래에서 올라오는 시트 · 형광펜 팝오버 */
+	modal: 500,
+	/** 고르기 · 메뉴 팝오버 (시간 · 날짜 · select · 표 머리 · 폴더 · 머리글 펼침 메뉴). 시트 안에서 열어도 보이게 시트 위 */
+	popover: 600,
+	/** 알림 (토스트) */
+	toast: 700,
+	/** 본문 바로가기 (키보드로 처음 Tab) */
+	skipLink: 800,
+} as const;
+
+const zVars = () =>
+	Object.entries(Z_LAYERS)
+		.map(([name, value]) => `--np-z-${name.replace(/[A-Z]/g, (c) => `-${c.toLowerCase()}`)}: ${value};`)
+		.join('\n');
+
+/**
+ * styles/tokens/tokens.css 내용: 라이트 · 다크 색, 화면 폭별 글자 크기, 겹치는 층. 예전에는 styled-components 전역 스타일이
  * 브라우저에서 실행하며 넣었는데, Tailwind(#10)와 함께 쓰려고 정적 CSS 파일로 둔다.
  * 이 함수가 원본이고, 파일은 `npm run tokens`로 다시 만든다 (tokens.test.ts가 둘이 어긋나면 실패)
  */
@@ -474,6 +503,9 @@ export const tokensCss = () => {
 		`@media ${lightTheme.mediaQuery.tablet} {\n${block(':root', fontVars('tablet'), '\t')}\n}`,
 		'',
 		`@media ${lightTheme.mediaQuery.mobile} {\n${block(':root', fontVars('mobile'), '\t')}\n}`,
+		'',
+		'/* 겹치는 층: 아래일수록 위에 그린다 (theme.ts Z_LAYERS) */',
+		block(':root', zVars()),
 		'',
 	].join('\n');
 };
