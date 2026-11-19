@@ -15,17 +15,26 @@ interface NewsletterContentProps {
 	flex?: number;
 	className?: string;
 	articleImage?: string;
+	/** 대표 사진이 깨질 때 대신 보일 사진 */
+	fallbackImage?: string | null;
 	newsId?: number;
 	related?: string[];
 }
 
-function ArticleContent({ content, className, articleImage, newsId, related = [] }: NewsletterContentProps) {
+function ArticleContent({
+	content,
+	className,
+	articleImage,
+	fallbackImage,
+	newsId,
+	related = [],
+}: NewsletterContentProps) {
 	const bodyRef = useRef<HTMLDivElement>(null);
 	return (
 		<div className={cx('np-articles-article-content-container', className)}>
 			{articleImage && (
 				<div className="image-wrapper" data-track-section="detail-image">
-					<HeightAutoImg src={articleImage} height={'auto'} />
+					<HeightAutoImg src={articleImage} fallback={fallbackImage} height={'auto'} />
 				</div>
 			)}
 			<article className="np-articles-article-content-newsletter-content">

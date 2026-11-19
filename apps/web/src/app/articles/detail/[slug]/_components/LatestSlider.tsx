@@ -33,6 +33,7 @@ export default function LatestSlider({ articles }: Props) {
 						<span className="photo">
 							<Image
 								src={(article.imageUrl && getFirstImage(article.imageUrl)) || DEFAULT_IMAGES.MONO}
+								fallback={article.fallbackImageUrl}
 								alt=""
 								ratio="wide"
 								priority={false}

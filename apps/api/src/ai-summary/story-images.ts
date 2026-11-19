@@ -24,6 +24,13 @@ const withUtm = (url: string) => `${url}${url.includes('?') ? '&' : '?'}${UTM}`;
 
 const isWebUrl = (url?: string) => !!url && /^https?:\/\//i.test(url);
 
+/**
+ * Pexels 사진을 Pexels가 직접 줄인 크기(가로 800 · 16:9)로. 사이트는 이 사진을 사진 최적화를 거치지 않고 그대로 쓴다
+ * (최적화가 실패할 때 대신 보이는 사진이라, 같은 길로 받으면 같이 깨진다)
+ */
+export const pexelsSized = (url: string) =>
+	`${url.split('?')[0]}?${new URLSearchParams({ auto: 'compress', cs: 'tinysrgb', fit: 'crop', w: '800', h: '450' })}`;
+
 /** 소식의 근거 기사에서 아직 쓰지 않은 첫 사진 */
 export function articleImage(story: Story, articles: ArticleImages[], used: Set<string>): StoryImage | undefined {
 	for (const n of story.sources) {
@@ -67,6 +74,23 @@ export class StoryImageService {
 			provider: 'pexels',
 			providerUrl: photo.url,
 		};
+	}
+
+	/**
+	 * 뉴스레터 대체 사진: 사진이 깨질 때(원문 사진이 지워짐 · 사진 최적화 실패) 카드 · 띠 · 상세에서 대신 보인다.
+	 * Pexels만 쓴다: Unsplash는 사진 옆에 작가를 밝혀야 하는데, 카드 · 띠처럼 작은 자리에서는 지키기 어렵다.
+	 * page로 같은 검색어에서도 다른 사진을 고른다. 키가 없거나 결과가 없으면 undefined
+	 */
+	async fallbackImage(query: string, page = 1): Promise<string | undefined> {
+		const key = env.pexelsApiKey;
+		if (!key || !query) return undefined;
+		const res = await this.fetcher(
+			`https://api.pexels.com/v1/search?${new URLSearchParams({ query, per_page: '1', page: String(page), orientation: 'landscape' })}`,
+			{ headers: { Authorization: key }, signal: AbortSignal.timeout(5000) },
+		);
+		if (!res.ok) throw new Error(`Pexels ${res.status}`);
+		const [photo] = (await res.json()).photos ?? [];
+		return photo ? pexelsSized(photo.src.original) : undefined;
 	}
 
 	/** Unsplash 검색. UNSPLASH_ACCESS_KEY가 없거나 결과가 없으면 undefined */

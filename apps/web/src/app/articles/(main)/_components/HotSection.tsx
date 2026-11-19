@@ -163,6 +163,7 @@ export default function HotSection({ trends: initiallData = [], stats, latest }:
 								data={filteredTrends.map((trend) => ({
 									id: trend.id,
 									image: trend.image,
+									fallbackImage: trend.fallbackImage,
 									// 분야 페이지는 제목에 이미 분야가 있어, 같은 자리에 소식 수를 둔다 (높이 유지)
 									header: isAll ? trend.categoryName : `소식 ${trend.stories?.length || 1}개`,
 									main: {

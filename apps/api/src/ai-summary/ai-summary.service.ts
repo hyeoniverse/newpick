@@ -9,6 +9,7 @@ import { CrawledNews } from 'src/crawling/schema/crawling.schema';
 import { NewsletterWriterService } from './newsletter-writer.service';
 import { renderNewsletterHtml } from './newsletter-html';
 import { StoryImageService } from './story-images';
+import { FallbackImagesService } from './fallback-images.service';
 import { TagsService } from 'src/tags/tags.service';
 import { KST } from 'src/common/kst';
 import { errorMessage } from 'src/common/error-message';
@@ -49,6 +50,7 @@ export class AiSummaryService {
 		private readonly storyImageService: StoryImageService,
 		private readonly tagsService: TagsService,
 		private readonly crawlingRepository: CrawlingRepository,
+		private readonly fallbackImages: FallbackImagesService,
 	) {}
 
 	/**
@@ -192,6 +194,10 @@ export class AiSummaryService {
 					},
 				};
 			}
+			// 사진이 깨질 때 대신 보일 사진: 첫 소식(단신 빼고)의 사진 검색어로 Pexels에서 한 장. 못 찾으면 매시 채우기가 다시
+			const fallbackImageUrl = await this.fallbackImages.forNewsletter(
+				stories.find((s) => s.template !== 'brief')?.imageQuery,
+			);
 			const newsletter = await this.createNewsletterService.createNewsletter(
 				title,
 				subtitle,
@@ -203,6 +209,7 @@ export class AiSummaryService {
 				keywords,
 				at,
 				replaceId,
+				fallbackImageUrl,
 			);
 
 			return { summary, categoryId, newsletter };

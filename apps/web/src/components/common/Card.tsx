@@ -46,7 +46,7 @@ function CardLink({
 
 const Card = forwardRef<HTMLDivElement, Props>(
 	({ type = 'sub', className, data, newTab = false, highlight, priority }, ref) => {
-		const { image, header, main, footer, url, date, action } = data;
+		const { image, fallbackImage, header, main, footer, url, date, action } = data;
 
 		return (
 			<div ref={ref} className={`np-card ${className ?? ''}`} data-type={type}>
@@ -56,7 +56,12 @@ const Card = forwardRef<HTMLDivElement, Props>(
 							{/* 톱 기사 형식: 위는 사진 | 분야 · 제목 · 부제, 아래는 카드 전체 폭으로 이 뉴스레터의 소식 · 태그 · 날짜 (모바일은 모두 한 줄씩) */}
 							<CardLink href={url || ''} newTab={newTab}>
 								<div className="image-placeholder">
-									<Image src={image || '/img/newpick_default_img.jpg'} alt={main.title || 'card'} priority={priority} />
+									<Image
+										src={image || DEFAULT_IMAGES.MONO}
+										fallback={fallbackImage}
+										alt={main.title || 'card'}
+										priority={priority}
+									/>
 								</div>
 								<div className="card-main">
 									<Text className="category" size="small" color="primary" weight="semiBold">
@@ -101,7 +106,7 @@ const Card = forwardRef<HTMLDivElement, Props>(
 							<Link href={url || '/not-found'}>
 								{image && (
 									<div className="image-placeholder">
-										<Image src={image} alt={main.title || 'card'} priority={priority} />
+										<Image src={image} fallback={fallbackImage} alt={main.title || 'card'} priority={priority} />
 									</div>
 								)}
 								<div className="card-header">
@@ -161,7 +166,12 @@ const Card = forwardRef<HTMLDivElement, Props>(
 										</div>
 
 										<div className="image-placeholder">
-											<Image src={image || `${DEFAULT_IMAGES.MONO}`} alt={main.title || 'card'} priority={priority} />
+											<Image
+												src={image || DEFAULT_IMAGES.MONO}
+												fallback={fallbackImage}
+												alt={main.title || 'card'}
+												priority={priority}
+											/>
 										</div>
 									</div>
 								</div>
@@ -188,7 +198,12 @@ const Card = forwardRef<HTMLDivElement, Props>(
 										)}
 									</div>
 									<div className="image-placeholder">
-										<Image src={image || `${DEFAULT_IMAGES.MONO}`} alt={main.title || 'card'} priority={priority} />
+										<Image
+											src={image || DEFAULT_IMAGES.MONO}
+											fallback={fallbackImage}
+											alt={main.title || 'card'}
+											priority={priority}
+										/>
 									</div>
 								</div>
 								{(!!main.tags?.length || action) && (

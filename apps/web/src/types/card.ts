@@ -1,6 +1,8 @@
 export interface Card {
 	id: number | string;
 	image?: string;
+	/** 사진이 깨질 때 대신 보일 사진 */
+	fallbackImage?: string | null;
 	header: string | React.ReactNode;
 	main: {
 		title?: string;

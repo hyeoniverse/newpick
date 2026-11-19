@@ -669,6 +669,8 @@ describe('파이프라인', () => {
 				),
 			} as never,
 			{ saveEmbeddings } as never,
+			// 대체 사진: 첫 소식의 사진 검색어로 찾는다
+			{ forNewsletter: jest.fn().mockResolvedValue('https://images.pexels.com/photos/1/a.jpeg?w=800') } as never,
 		);
 
 		await service.summarizeText(news as never, 1, false);
@@ -691,6 +693,8 @@ describe('파이프라인', () => {
 			undefined,
 			// 다시 쓸 뉴스레터: 평소엔 없음(새로 만듦)
 			undefined,
+			// 사진이 깨질 때 대신 보일 사진
+			'https://images.pexels.com/photos/1/a.jpeg?w=800',
 		);
 		// 같은 사건 묶기로 계산한 임베딩은 기사 링크로 남긴다 (추천 기사에서 다시 쓴다)
 		expect(saveEmbeddings).toHaveBeenCalledWith([{ link: 'l2', embedding: [0.1, 0.2] }]);
@@ -728,6 +732,7 @@ describe('파이프라인', () => {
 			{ write } as never,
 			{} as never,
 			{ recentTags: jest.fn().mockResolvedValue([]) } as never,
+			{} as never,
 			{} as never,
 		);
 

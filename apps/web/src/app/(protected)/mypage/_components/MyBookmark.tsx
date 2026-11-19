@@ -139,7 +139,7 @@ function MyBookmark() {
 								aria-hidden
 								draggable={false}
 							>
-								<Thumb src={getFirstImage(bookmark.newsImg)} className="thumb" />
+								<Thumb src={getFirstImage(bookmark.newsImg)} fallback={bookmark.newsFallbackImg} className="thumb" />
 							</Link>
 							<div className="content">
 								<Link href={ROUTES.article(bookmark.id)} className="main" draggable={false}>

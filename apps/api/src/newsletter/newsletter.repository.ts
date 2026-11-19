@@ -33,6 +33,7 @@ export class NewsletterRepo {
 				subtitle: true,
 				keywords: true,
 				imageUrl: true,
+				fallbackImageUrl: true,
 				categoryId: true,
 				viewcount: true,
 				createdAt: true,
@@ -113,7 +114,7 @@ export class NewsletterRepo {
 			// 목록 카드에는 본문 앞부분만 쓰므로 400자만 (LongText 전체를 보내지 않음)
 			this.prisma.$queryRaw<
 				Array<Omit<Newsletter, 'contentAsHTML' | 'usedNews'>>
-			>`SELECT id, title, subtitle, keywords, imageUrl, categoryId, viewcount, createdAt,
+			>`SELECT id, title, subtitle, keywords, imageUrl, fallbackImageUrl, categoryId, viewcount, createdAt,
                LEFT(content, 400) AS content
         FROM newsletters ${where} ${orderBy}
         LIMIT ${params.limit} OFFSET ${params.offset}`,

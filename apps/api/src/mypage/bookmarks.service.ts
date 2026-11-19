@@ -7,6 +7,7 @@ const BOOKMARK_NEWSLETTER = {
 	id: true,
 	title: true,
 	imageUrl: true,
+	fallbackImageUrl: true,
 	content: true,
 	createdAt: true,
 	viewcount: true,
@@ -25,6 +26,7 @@ const toBookmarkItem = ({
 		id: number;
 		title: string;
 		imageUrl: string | null;
+		fallbackImageUrl: string | null;
 		content: string | null;
 		createdAt: Date;
 		viewcount: number;
@@ -37,6 +39,8 @@ const toBookmarkItem = ({
 	id: newsletter.id,
 	newsTitle: newsletter.title,
 	newsImg: newsletter.imageUrl || null,
+	/** 사진이 깨질 때 대신 보일 사진 */
+	newsFallbackImg: newsletter.fallbackImageUrl,
 	newsCreatedAt: newsletter.createdAt,
 	newsSummary: newsletter.content ? newsletter.content.substring(0, 100) + '...' : null,
 	category: newsletter.category,

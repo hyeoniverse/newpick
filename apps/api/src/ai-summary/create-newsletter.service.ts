@@ -24,6 +24,8 @@ export class CreateNewsletterService {
 		 * 스크랩에 꺼내 둔 소식 제목 · 사진 · 태그는 비워, 다음에 목록을 볼 때 새 본문에서 다시 꺼낸다 (관리자 고치기와 같게)
 		 */
 		replaceId?: number,
+		/** 사진이 깨질 때 대신 보일 사진 (FallbackImagesService). 못 찾았으면 null: 매시 채우기가 다시 시도 */
+		fallbackImageUrl: string | null = null,
 	): Promise<Newsletter> {
 		if (replaceId) {
 			const replaced = await this.prisma.newsletter.update({
@@ -36,6 +38,7 @@ export class CreateNewsletterService {
 					usedNews,
 					imageUrl: imgUrl,
 					keywords,
+					fallbackImageUrl,
 				},
 			});
 			await this.prisma.highlight.updateMany({
@@ -61,6 +64,7 @@ export class CreateNewsletterService {
 				viewcount: 0,
 				imageUrl: imgUrl,
 				keywords,
+				fallbackImageUrl,
 			},
 		});
 

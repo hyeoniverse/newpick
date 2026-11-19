@@ -14,6 +14,8 @@ export interface Newsletter {
   /** 본문 HTML (api newsletter-html.ts 구조). 아주 예전 뉴스레터는 null */
   contentAsHTML: string | null;
   imageUrl: string | null;
+  /** 사진이 깨질 때 대신 보일 사진 (키워드로 Pexels에서 찾음, 줄인 크기). 아직 못 찾았으면 null */
+  fallbackImageUrl: string | null;
   categoryId: number;
   viewcount: number;
   /** 쓴 기사 링크, 쉼표로 이음 */

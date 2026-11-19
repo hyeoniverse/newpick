@@ -132,6 +132,7 @@ function Article({ initial }: Props) {
 							content={newsletterHTML}
 							newsId={newsletterContent.id}
 							articleImage={newsletterContent.imageUrl ?? `${DEFAULT_IMAGES.MONO}`}
+							fallbackImage={newsletterContent.fallbackImageUrl}
 							related={relatedNews}
 						/>
 					</Suspense>
