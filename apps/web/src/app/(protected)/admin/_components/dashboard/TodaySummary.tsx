@@ -11,7 +11,8 @@ import { usd, when } from '../../_lib/format';
 export default function TodaySummary({ data }: { data: DashboardData }) {
 	const { today, from, to, periodQuery } = useAdminQuery();
 	const { crawling, newsletters, summaryLogs, mail, aiCost } = data;
-	const recipients = mail.byDay.reduce((sum, row) => sum + row.recipients, 0);
+	// 날짜별 받은 사람 수를 더하면 보낸 메일 수(사람 × 날). 받은 사람은 api가 기간 전체에서 따로 센다
+	const sent = mail.byDay.reduce((sum, row) => sum + row.recipients, 0);
 	const singleDay = from === to;
 	const days = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) + 1;
 	return (
@@ -49,8 +50,10 @@ export default function TodaySummary({ data }: { data: DashboardData }) {
 				</div>
 				<div>
 					<dt>메일 받은 사람</dt>
-					<dd>{recipients.toLocaleString()}명</dd>
-					<span className="sub">구독 중 {mail.activeSubscribers.toLocaleString()}명</span>
+					<dd>{mail.recipients.toLocaleString()}명</dd>
+					<span className="sub">
+						보낸 메일 {sent.toLocaleString()}통 · 구독 중 {mail.activeSubscribers.toLocaleString()}명
+					</span>
 					<MoreLink href={`${ROUTES.admin.mail}${periodQuery}`}>발송 기록 보기 →</MoreLink>
 				</div>
 			</dl>

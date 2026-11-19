@@ -41,6 +41,9 @@ export interface Dashboard {
   };
   mail: {
     activeSubscribers: number;
+    /** 기간 동안 받은 서로 다른 사람 수 (날짜별 recipients를 더한 것이 아님) */
+    recipients: number;
+    /** 날짜별 받은 사람 수. 더하면 보낸 메일 수(사람 × 날) */
     byDay: { day: string; recipients: number }[];
   };
 }

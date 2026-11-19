@@ -133,3 +133,22 @@ describe('DashboardService AI 기록: 분야별 시도 묶음', () => {
 		expect(byId.get(4)).toBeNull();
 	});
 });
+
+describe('DashboardService 메일 받은 사람', () => {
+	it('기간 동안 받은 사람은 서로 다른 사람 수 (한 사람이 3일 받으면 1명, 날짜별 합 3은 보낸 메일 수)', async () => {
+		const { service, prisma } = setup();
+		// 쿼리 글자로 구분: 날짜별(GROUP BY)은 하루 1명씩 3일, 기간 전체는 1명
+		prisma.$queryRaw.mockImplementation(async (strings: TemplateStringsArray) =>
+			strings.join('').includes('GROUP BY')
+				? [
+						{ day: '2026-10-03', recipients: 1n },
+						{ day: '2026-10-02', recipients: 1n },
+						{ day: '2026-10-01', recipients: 1n },
+					]
+				: [{ recipients: 1n }],
+		);
+		const { mail } = await service.getDashboard('2026-10-01', '2026-10-07');
+		expect(mail.recipients).toBe(1);
+		expect(mail.byDay.reduce((sum, row) => sum + row.recipients, 0)).toBe(3);
+	});
+});
