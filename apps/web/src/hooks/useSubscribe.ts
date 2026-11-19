@@ -6,12 +6,17 @@ import { useToast } from '@/hooks/useToast';
 import { fetchSubscription, startSubscription, pauseSubscription, cancelSubscription } from '@/api/subscription';
 import { fetchInterests, updateInterests } from '@/api/interests';
 import { ToastType } from '@/types/toast';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 // 실패는 mutation의 onError에서 토스트 한 번으로 알립니다. (호출하는 쪽은 성공 여부만 받습니다)
 const handleError = (message: string, showToast: (msg: string, type: ToastType) => void) => showToast(message, 'error');
 
-// 구독 상태 조회 훅
+/**
+ * 구독 상태 조회 훅. 로그인 표시 쿠키가 있을 때만 부른다: 로그인하지 않은 방문자도 부르면 401 → 토큰 갱신 401로
+ * 콘솔 오류가 둘 남아 Lighthouse 권장사항이 깎였다. 결과는 예전과 같게 null(구독 안 함 · 모름)
+ */
 const useSubscribeStatus = () => {
+	const signedIn = useAuthStore((state) => state.session === 'in');
 	const {
 		data: subscriptionStatus,
 		isLoading: isStatusLoading,
@@ -22,12 +27,12 @@ const useSubscribeStatus = () => {
 			const status = await fetchSubscription();
 			return status;
 		},
-		enabled: true,
+		enabled: signedIn,
 		retry: 1,
 		staleTime: 1000 * 60 * 5,
 	});
 
-	return { status: subscriptionStatus, isStatusLoading, refetchStatus };
+	return { status: signedIn ? subscriptionStatus : null, isStatusLoading, refetchStatus };
 };
 
 // 구독 관련 mutation 훅

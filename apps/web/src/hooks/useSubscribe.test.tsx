@@ -6,6 +6,7 @@ import { useSubscribe } from '@/hooks/useSubscribe';
 import { User } from '@/types/user';
 import * as subscriptionApi from '@/api/subscription';
 import * as interestsApi from '@/api/interests';
+import { useAuthStore } from '@/stores/useAuthStore';
 
 const showToast = vi.fn();
 const refetchUser = vi.fn().mockResolvedValue(undefined);
@@ -35,6 +36,23 @@ function setup(status: boolean | null) {
 beforeEach(() => {
 	vi.clearAllMocks();
 	user = { id: 1, isSubscribed: null };
+	useAuthStore.setState({ session: 'in' });
+});
+
+describe('useSubscribe: 구독 상태 조회', () => {
+	it('로그인하지 않은 방문자는 부르지 않고 null (예전에는 401 → 토큰 갱신 401로 콘솔 오류 둘)', async () => {
+		useAuthStore.setState({ session: 'out' });
+		const { result } = setup(true);
+		await new Promise((r) => setTimeout(r, 20));
+		expect(api.fetchSubscription).not.toHaveBeenCalled();
+		expect(result.current.status).toBeNull();
+	});
+
+	it('로그인했으면 불러온 값', async () => {
+		const { result } = setup(true);
+		await waitFor(() => expect(result.current.status).toBe(true));
+		expect(api.fetchSubscription).toHaveBeenCalled();
+	});
 });
 
 describe('useSubscribe: 실패는 토스트 한 번으로 알리고 false를 돌려준다', () => {
