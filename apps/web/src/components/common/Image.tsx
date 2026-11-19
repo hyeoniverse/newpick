@@ -28,6 +28,11 @@ interface Props {
 	 * 주면 fallback · 기본 그림 대신 이것을 그린다
 	 */
 	fallbackNode?: React.ReactNode;
+	/**
+	 * 화면에서 보이는 폭 (img sizes). 주면 그 폭에 맞는 사진을 고른다. 없으면 width의 1배 · 2배 사진 중에서 골라,
+	 * 휴대폰 목록의 64px 썸네일도 828px짜리를 받았다 (#292)
+	 */
+	sizes?: string;
 	className?: string;
 }
 
@@ -55,6 +60,7 @@ export default function Image({
 	placeholder = 'surface',
 	fallback,
 	fallbackNode,
+	sizes,
 	className,
 }: Props) {
 	const [isLoaded, setIsLoaded] = useState(false);
@@ -84,6 +90,7 @@ export default function Image({
 				width={width}
 				height={height}
 				priority={priority}
+				sizes={sizes}
 				unoptimized={unoptimized}
 				style={{ objectFit: isDefault ? 'contain' : objectFit }}
 				onLoad={() => setIsLoaded(true)}
