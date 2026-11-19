@@ -28,6 +28,8 @@ function HeightAutoImg({ src, height, className, aspectratio = 'auto' }: Props) 
 			{/* next/image fill이 넣는 position: absolute · height: 100%를 덮어써 폭에 맞춰 늘어나게 */}
 			<Image
 				src={shown}
+				// 기본 그림은 최적화를 거치지 않는다 (Image.tsx와 같은 까닭)
+				unoptimized={shown === DEFAULT_IMAGES.MONO}
 				alt="news-img"
 				quality={75}
 				sizes="(max-width: 1023px) 100vw, (max-width: 1200px) 50vw, 33vw"
