@@ -101,6 +101,11 @@ export const env = {
 		return Number(read('AI_FALLBACK_DAILY_USD') ?? 0.1);
 	},
 
+	/** 줄인 사진 캐시 폴더 (GET /images). 컨테이너를 새로 띄우면 비지만 다시 만들면 된다 */
+	get imageCacheDir() {
+		return read('IMAGE_CACHE_DIR') ?? '/tmp/newpick-images';
+	},
+
 	/** 소식 사진 (없으면 그 출처는 건너뜀) */
 	get pexelsApiKey() {
 		return read('PEXELS_API_KEY');

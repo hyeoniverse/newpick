@@ -22,25 +22,27 @@ describe('Image', () => {
 	it('원래 사진 → 대신할 사진(키워드 사진) → 기본 그림, 기본 그림도 깨지면 더 바꾸지 않는다', () => {
 		render(<Image src={BROKEN} alt="썸네일" fallback={STOCK} />);
 		fail();
-		expect(srcOf()).toBe(STOCK);
+		expect(srcOf()).toContain(STOCK);
 		fail();
 		expect(srcOf()).toMatch(new RegExp(`${DEFAULT_IMAGES.MONO}$`));
 		fail();
 		expect(srcOf()).toMatch(new RegExp(`${DEFAULT_IMAGES.MONO}$`));
 	});
 
-	it('대신 보이는 사진은 사진 최적화(/_next/image)를 거치지 않는다 (최적화가 실패해도 보이게)', () => {
+	it('키워드 사진도 사진 줄이기를 거치고(제3자 쿠키 없게), 기본 그림만 거치지 않는다 (줄이기가 안 될 때도 보이게)', () => {
 		render(<Image src={BROKEN} alt="썸네일" fallback={STOCK} />);
 		expect(srcOf()).toContain('/_next/image');
 		fail();
-		expect(srcOf()).not.toContain('/_next/image');
+		expect(srcOf()).toContain('/_next/image');
+		expect(srcOf()).toContain(STOCK);
 		fail();
 		expect(srcOf()).not.toContain('/_next/image');
+		expect(srcOf()).toMatch(new RegExp(`${DEFAULT_IMAGES.MONO}$`));
 	});
 
 	it('원래 사진이 없으면(기본 그림을 넘김) 대신할 사진부터', () => {
 		render(<Image src={DEFAULT_IMAGES.MONO} alt="썸네일" fallback={STOCK} />);
-		expect(srcOf()).toBe(STOCK);
+		expect(srcOf()).toContain(STOCK);
 	});
 
 	it('주소가 바뀌면 새 주소부터 다시 시도한다', () => {

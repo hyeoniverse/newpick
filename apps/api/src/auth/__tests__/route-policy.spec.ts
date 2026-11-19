@@ -16,6 +16,7 @@ import { SubscriberController } from 'src/subscriber/subscriber.controller';
 import { UnsubscribeController } from 'src/subscriber/unsubscribe.controller';
 import { EditionController } from 'src/edition/edition.controller';
 import { AnalyticsController } from 'src/analytics/analytics.controller';
+import { ImagesController } from 'src/images/images.controller';
 
 /**
  * 모든 라우트의 접근 정책. 라우트를 추가·삭제하거나 정책을 바꾸면 이 표도 함께 바꿔야 테스트가 통과합니다.
@@ -130,6 +131,9 @@ const EXPECTED: Record<string, Policy> = {
 	'GET health': 'public',
 	'GET contact': 'public',
 
+	// 사진 줄이기: 화면의 <img>가 로그인 없이 부른다
+	'GET images': 'public',
+
 	'POST scheduler/toggle/crawling': 'admin',
 	'POST scheduler/toggle/ai-summary': 'admin',
 	'POST scheduler/toggle/mail-send': 'admin',
@@ -177,6 +181,7 @@ describe('라우트 접근 정책', () => {
 		StatsController,
 		EditionController,
 		AnalyticsController,
+		ImagesController,
 	]);
 
 	it('모든 라우트가 정해진 정책과 일치한다', () => {
