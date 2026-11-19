@@ -18,12 +18,20 @@ export class ImagesController {
 
 	@Public()
 	@SkipThrottle()
-	@Get(['i.webp', ''])
+	@Get('i.webp')
 	async get(@Query('url') url: string, @Query('w') w: string, @Query('q') q: string, @Res() res: Response) {
 		if (!url) throw new AppException('BAD_REQUEST', '사진 주소(url)가 필요합니다.');
 		const { body, contentType } = await this.images.resize(url, Number(w), Number(q ?? 75));
 		// 같은 주소 · 폭 · 품질이면 언제나 같은 사진이라 1년 동안 다시 받지 않게. 실패(404 등)에는 붙이지 않는다:
 		// 원본이 잠깐 안 될 때 그 실패가 오래 남지 않게
 		res.set('Cache-Control', 'public, max-age=31536000, immutable').type(contentType).send(body);
+	}
+
+	/** 예전 주소 /images?… (웹이 /images/i.webp로 바꾸기 전 배포와 그 사이 브라우저 캐시용) */
+	@Public()
+	@SkipThrottle()
+	@Get()
+	legacy(@Query('url') url: string, @Query('w') w: string, @Query('q') q: string, @Res() res: Response) {
+		return this.get(url, w, q, res);
 	}
 }
