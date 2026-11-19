@@ -13,6 +13,8 @@ export default function TodaySummary({ data }: { data: DashboardData }) {
 	const { crawling, newsletters, summaryLogs, mail, aiCost } = data;
 	// 날짜별 받은 사람 수를 더하면 보낸 메일 수(사람 × 날). 받은 사람은 api가 기간 전체에서 따로 센다
 	const sent = mail.byDay.reduce((sum, row) => sum + row.recipients, 0);
+	// 배포 순서: 웹(Vercel)이 api보다 먼저 바뀌어 잠깐 이전 api 응답을 받으면 recipients가 없다. 그때는 예전처럼 날짜별 합으로
+	const recipients = mail.recipients ?? sent;
 	const singleDay = from === to;
 	const days = Math.round((new Date(to).getTime() - new Date(from).getTime()) / 86400000) + 1;
 	return (
@@ -50,7 +52,7 @@ export default function TodaySummary({ data }: { data: DashboardData }) {
 				</div>
 				<div>
 					<dt>메일 받은 사람</dt>
-					<dd>{mail.recipients.toLocaleString()}명</dd>
+					<dd>{recipients.toLocaleString()}명</dd>
 					<span className="sub">
 						보낸 메일 {sent.toLocaleString()}통 · 구독 중 {mail.activeSubscribers.toLocaleString()}명
 					</span>
