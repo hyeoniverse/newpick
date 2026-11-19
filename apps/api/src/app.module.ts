@@ -27,6 +27,7 @@ import { CoopMiddleware } from 'src/middleware/coop.middleware';
 
 import { EditionModule } from 'src/edition/edition.module';
 import { SiteCacheModule } from 'src/site-cache/site-cache.module';
+import { ImagesModule } from 'src/images/images.module';
 import { AnalyticsModule } from 'src/analytics/analytics.module';
 import { env } from 'src/config/env';
 import { THROTTLE } from 'src/common/throttle';
@@ -58,6 +59,7 @@ import { THROTTLE } from 'src/common/throttle';
 		NewsletterModule,
 		EditionModule, // 구독 메일 편집 (#55)
 		SiteCacheModule, // 웹 사이트 캐시 비우기 (#73)
+		ImagesModule, // 사진 줄이기 (Vercel 사진 최적화 대신)
 	],
 	controllers: [AppController], // 컨트롤러 등록
 	providers: [

@@ -4,8 +4,14 @@ const nextConfig: NextConfig = {
 	// distDir 제거
 	// distDir: 'build', <- 이 부분이 문제가 될 수 있습니다
 
+	// 사진 줄이기는 api 서버에서 (src/utils/imageLoader.ts). 브라우저가 쓸 api 주소는 빌드할 때 API_URL에서
+	env: {
+		NEXT_PUBLIC_IMAGE_URL: process.env.NEXT_PUBLIC_IMAGE_URL ?? process.env.API_URL ?? 'http://localhost:3001',
+	},
 	// 이미지 설정
 	images: {
+		loader: 'custom',
+		loaderFile: './src/utils/imageLoader.ts',
 		remotePatterns: [
 			{
 				protocol: 'https',

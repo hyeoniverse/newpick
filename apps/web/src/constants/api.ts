@@ -3,6 +3,12 @@ import type { JobEndpoint } from '@newpick/shared';
 export const BACK_URL = process.env.API_URL || 'http://localhost:3001';
 
 /**
+ * 사진 줄이기 주소 (api GET /images, utils/imageLoader.ts). 브라우저가 api에서 바로 받는다.
+ * next.config가 빌드할 때 API_URL을 넣어 준다 (Vercel 환경 변수를 따로 두지 않게)
+ */
+export const IMAGE_URL = process.env.NEXT_PUBLIC_IMAGE_URL || 'http://localhost:3001';
+
+/**
  * 브라우저는 /api(Next rewrites 프록시)를 거쳐 백엔드에 요청합니다.
  * 같은 도메인으로 요청하므로 인증 쿠키가 프론트 도메인에 저장되고, 별도 CORS·쿠키 도메인 설정이 필요 없습니다.
  */
