@@ -161,6 +161,7 @@ npm run build
 | [docs/api-errors.md](docs/api-errors.md) | api 오류 응답 모양과 code |
 | [docs/visual-diff.md](docs/visual-diff.md) · [docs/api-snapshot.md](docs/api-snapshot.md) | 바꾸기 전 · 후 비교 도구 (화면 · api 응답) |
 | [docs/baseline.md](docs/baseline.md) | 측정값 (번들 크기 · 의존성 취약점 · 테스트) |
+| [docs/performance.md](docs/performance.md) | 모바일 성능: 측정 방법 · 찾은 원인 · 전 · 후 |
 | [docs/v1/](docs/v1) | 팀 프로젝트(v1) 당시 README |
 
 - v1 원본 레포: [Devcourse-NewPick/front](https://github.com/Devcourse-NewPick/front), [Devcourse-NewPick/back](https://github.com/Devcourse-NewPick/back). 이 레포의 `v1-team-final` 태그까지가 팀 작업이며, 커밋 메시지의 PR 번호는 원본 레포의 PR을 가리킵니다.
