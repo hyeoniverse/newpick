@@ -65,6 +65,11 @@
 		font-variant-numeric: tabular-nums;
 	}
 
+	/* 날짜 하나짜리 기본 칸: 폭을 다 차지하지 않게 (기간의 한 칸 · 시각 칸과 어울리는 폭). 좁은 곳에서는 그 폭에 맞춰 줄어든다 */
+	&:where(:not([data-range]):not([data-size='small'])) {
+		max-width: 15rem;
+	}
+
 	/* 작은 칸 (data-size=small): 하나는 9.5rem, 기간은 칸마다 9.5rem (flex-basis만 주면 Safari가 바깥 줄의 폭을 0으로 잡아 줄이 바뀐다) */
 	&:where([data-size='small']) {
 		width: 9.5rem;
