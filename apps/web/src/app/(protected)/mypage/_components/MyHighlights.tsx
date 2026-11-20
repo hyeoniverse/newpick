@@ -5,6 +5,7 @@ import { ROUTES } from '@/constants/routes';
 import { LuHighlighter } from 'react-icons/lu';
 import { useHeader } from '@/hooks/useHeader';
 import { useFolders } from '@/hooks/useFolders';
+import { useTaste } from '@/hooks/useHighlights';
 import { useToggleSet } from '@/hooks/useToggleSet';
 import EmptyState from '@/components/common/EmptyState';
 import ErrorState from '@/components/common/ErrorState';
@@ -49,9 +50,12 @@ export default function MyHighlights() {
 	const { set: openBlocks, add: openBlock } = useToggleSet<number>();
 	// 달 막대가 붙는 높이: 헤더가 보이면 그 아래
 	const { headerHeight } = useHeader();
-	const { data: folders = [] } = useFolders();
+	const { data: folders = [], isPending: foldersPending } = useFolders();
+	// 맨 위 '요즘 관심 있게 본 주제'(MyTaste)가 같은 열쇠로 받는다. 기다리지 않으면 뒤늦게 끼어들어 아래가 밀렸다 (CLS 0.073)
+	const { isPending: tastePending } = useTaste();
 
-	if (isPending) return <Skeleton />;
+	// 폴더 줄 · 관심 주제도 다 받은 뒤에 그린다: 목록이 먼저 오면 뒤늦게 늘어나는 만큼 아래 목록이 밀렸다 (#307)
+	if (isPending || foldersPending || tastePending) return <Skeleton />;
 	if (isError) return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
 	const first = data.pages[0];
 	if (first.counts.all === 0) {
