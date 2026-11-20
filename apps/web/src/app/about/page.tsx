@@ -14,10 +14,11 @@ import ExploreSection from '@/app/about/_components/ExploreSection';
 import WhoSection from '@/app/about/_components/WhoSection';
 import HowToUseSection from '@/app/about/_components/HowToUseSection';
 import Logos from '@/app/about/_components/Logos';
+import SecuritySection from '@/app/about/_components/SecuritySection';
 import ScrollReveal from '@/app/about/_components/ScrollReveal';
 
-/** 섹션 안에서 하나씩 나타날 것: 숫자, 가치, 질문, 팀원·한 일 */
-const REVEAL_ITEMS = '#about-numbers .item, [aria-label="자주 묻는 질문"] .item, .member, .work';
+/** 섹션 안에서 하나씩 나타날 것: 숫자, 가치, 보안 카드, 질문, 팀원·한 일 */
+const REVEAL_ITEMS = '#about-numbers .item, #about-security .card, [aria-label="자주 묻는 질문"] .item, .member, .work';
 
 export const metadata: Metadata = pageMetadata('시작하기', META.about, ROUTES.about);
 
@@ -33,6 +34,7 @@ async function AboutPage() {
 			<PersonalSection />
 			<HowToUseSection />
 			<Logos />
+			<SecuritySection />
 			<FaqSection />
 			<ExploreSection />
 			<WhoSection />

@@ -2339,3 +2339,96 @@
 		}
 	}
 }
+
+/* app/about/_components/SecuritySection.tsx: 내 정보, 이렇게 지킵니다 (카드 여섯 장 · PC 3칸 · 태블릿 2칸 · 휴대폰 1칸) */
+.np-about-security-section-security {
+	word-break: keep-all;
+
+	.cards {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		@variant tablet {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		@variant mobile {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.card {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+		padding: 1.75rem 1.5rem;
+		border: 1px solid var(--np-color-border);
+		border-radius: 12px;
+		background: var(--np-color-background);
+
+		/* 공통 li::before(빈 칸)가 카드 안에 줄을 하나 더 만들지 않게 */
+		&::before {
+			content: none;
+		}
+	}
+
+	.icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		margin-bottom: 0.25rem;
+		border-radius: 9999px;
+		background: var(--np-color-tertiary);
+		color: var(--np-color-primary);
+
+		svg {
+			width: 1.375rem;
+			height: 1.375rem;
+		}
+	}
+
+	.title {
+		margin: 0;
+		font-size: var(--np-font-size-medium);
+		font-weight: 700;
+		color: var(--np-color-text);
+	}
+
+	.text {
+		margin: 0;
+		font-size: var(--np-font-size-small);
+		line-height: 1.7;
+		color: var(--np-color-sub-text);
+	}
+
+	.links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem 1.5rem;
+		margin: 1.75rem 0 0;
+	}
+
+	.link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-size: var(--np-font-size-small);
+		font-weight: 600;
+		color: var(--np-color-primary);
+
+		&:hover {
+			text-decoration: underline;
+		}
+
+		svg {
+			width: 1rem;
+			height: 1rem;
+		}
+	}
+}
