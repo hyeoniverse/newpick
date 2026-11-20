@@ -45,13 +45,14 @@ function MyBookmark() {
 		...(sort !== 'bookmarked' && { sort }),
 	}).toString();
 	const { data, isPending, isError, error, refetch, fetchNextPage, isFetchingNextPage } = useBookmarkPages(filters);
-	const { data: folders = [] } = useFolders();
+	const { data: folders = [], isPending: foldersPending } = useFolders();
 	const move = useMoveBookmarksMutation();
 	// 끄는 중인 북마크. 끄는 동안 폴더 줄 · 화면 위 폴더 칸에 놓으면 옮긴다
 	const [dragging, setDragging] = useState<number | null>(null);
 
 	// 마이페이지는 로그인해야 들어오므로(가드) 사용자 정보를 받는 중이거나 목록을 받는 중이면 자리만 채운다 (#17)
-	if (!user || isPending) {
+	// 폴더 줄도 다 받은 뒤에 그린다: 목록이 먼저 오면 폴더 칩이 뒤늦게 여러 줄로 늘며 아래 목록이 밀렸다 (#307, CLS 0.059)
+	if (!user || isPending || foldersPending) {
 		return (
 			<div className="np-mypage-my-bookmark-my-bookmark" aria-busy>
 				<div className="trend-cards">

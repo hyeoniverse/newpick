@@ -62,7 +62,7 @@ export default function MySubscribe() {
 	const [folder, setFolder] = useState<FolderFilter>('all');
 	const [starred, setStarred] = useState(false);
 	const [order, setOrder] = useState<'desc' | 'asc'>('desc');
-	const { data: folders = [] } = useFolders();
+	const { data: folders = [], isPending: foldersPending } = useFolders();
 	const mark = useMarkMail();
 	// 끄는 중인 메일 (보낸 시각). 끄는 동안 폴더 줄 · 화면 위 폴더 칸에 놓으면 옮긴다
 	const [dragging, setDragging] = useState<string | null>(null);
@@ -103,7 +103,8 @@ export default function MySubscribe() {
 
 	if (isError) return <ErrorState inline {...errorStateFor(statusOf(error))} onRetry={() => refetch()} />;
 
-	if (!user || isPending || !data) {
+	// 폴더 줄도 다 받은 뒤에 그린다: 목록이 먼저 오면 폴더 칩이 뒤늦게 여러 줄로 늘며 아래 목록이 밀렸다 (#307, CLS 0.059)
+	if (!user || isPending || foldersPending || !data) {
 		return (
 			<div className="np-mypage-my-subscribe-my-subscribe" aria-busy>
 				<div className="cards">

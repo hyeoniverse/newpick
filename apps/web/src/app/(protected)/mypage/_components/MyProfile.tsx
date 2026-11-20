@@ -13,26 +13,26 @@ import Text from '@/components/common/Text';
 import { LuChevronRight } from 'react-icons/lu';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import SubscribeToggle from '@/app/(protected)/mypage/_components/profile/SubscribeToggle';
+import type { Profile as ProfileData } from '@newpick/shared';
 
 /** 프로필 아래 한눈에: 받은 메일 · 북마크 · 스크랩 수를 폭 가득 세 칸으로. 누르면 그 탭으로 */
-function Summary() {
-	const { user } = useAuth();
+function Summary({ userId }: { userId: number | undefined }) {
 	const { setActiveTab } = useTab();
 	const { data: mails } = useQuery({
-		queryKey: queryKeys.mails.count(user?.id),
+		queryKey: queryKeys.mails.count(userId),
 		queryFn: fetchMyMailCount,
-		enabled: !!user,
+		enabled: !!userId,
 	});
 	// 개수만 필요하니 한 개짜리 쪽으로 (목록 전체를 받지 않게)
 	const { data: bookmarks } = useQuery({
-		queryKey: queryKeys.bookmarks.count(user?.id),
+		queryKey: queryKeys.bookmarks.count(userId),
 		queryFn: fetchBookmarkCount,
-		enabled: !!user,
+		enabled: !!userId,
 	});
 	const { data: highlights } = useQuery({
-		queryKey: queryKeys.highlights.count(user?.id),
+		queryKey: queryKeys.highlights.count(userId),
 		queryFn: fetchHighlightCount,
-		enabled: !!user,
+		enabled: !!userId,
 	});
 	const items = [
 		{ tab: 'subscriptions', label: '받은 메일', count: mails?.counts.all },
@@ -56,8 +56,13 @@ function Summary() {
 	);
 }
 
-function Profile() {
-	const { user } = useAuth();
+/**
+ * initialProfile: 서버가 로그인 쿠키로 받아 둔 프로필 (#307). 브라우저가 받기 전에도 사진 · 이름을 그려
+ * 첫 HTML에 들어간다. 브라우저가 받은 값(user)이 오면 그것을 쓰고, 로그아웃하면 쓰지 않는다
+ */
+function Profile({ initialProfile = null }: { initialProfile?: ProfileData | null }) {
+	const { user: fetched, session } = useAuth();
+	const user = fetched ?? (session === 'out' ? null : initialProfile);
 
 	return (
 		<div className="np-mypage-my-profile-profile">
@@ -77,7 +82,7 @@ function Profile() {
 					<div className="subscribe" aria-hidden>
 						<span className="toggle-loading" />
 					</div>
-					<Summary />
+					<Summary userId={undefined} />
 				</>
 			)}
 			{user && (
@@ -109,9 +114,10 @@ function Profile() {
 						</div>
 					</div>
 					<div className="subscribe">
-						<SubscribeToggle />
+						{/* 구독 상태는 브라우저가 받은 뒤에 (서버 프로필에는 없다). 그동안 같은 크기 자리 */}
+						{fetched ? <SubscribeToggle /> : <span className="toggle-loading" aria-hidden />}
 					</div>
-					<Summary />
+					<Summary userId={user.id} />
 				</>
 			)}
 		</div>
