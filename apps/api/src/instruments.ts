@@ -14,7 +14,10 @@ if (dsn) {
 		dsn,
 		integrations: [nodeProfilingIntegration()],
 		tracesSampleRate: 0.1,
-		profilesSampleRate: 0.1,
+		// Sentry 10부터 프로파일링은 '세션' 단위 (profilesSampleRate가 없어짐). 서버 하나라 세션 비율은 1로 두고,
+		// 표본으로 고른 요청(tracesSampleRate 10%)이 도는 동안만 프로파일한다 (trace)
+		profileSessionSampleRate: 1,
+		profileLifecycle: 'trace',
 		environment: env.nodeEnv,
 	});
 } else {
