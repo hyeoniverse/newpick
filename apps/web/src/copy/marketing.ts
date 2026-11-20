@@ -86,6 +86,16 @@ export const ABOUT = {
 	security: {
 		title: '내 정보, 이렇게 지킵니다',
 		sub: '뉴스레터 하나 읽는 데에도 내 정보가 쓰입니다. 뉴픽이 그 정보를 어떻게 다루는지 숨기지 않고 적었습니다.',
+		/** 요청 하나가 내 정보에 닿기까지 지나는 관문 (스크롤하면 차례로 켜진다) */
+		pathTitle: '요청 하나가 내 정보에 닿기까지',
+		gates: [
+			{ icon: 'cloud', name: 'Cloudflare', text: '서버는 문을 열지 않고, 이곳을 거친 요청만 받습니다' },
+			{ icon: 'user', name: '로그인 확인', text: '모든 요청이 기본으로 거치고, 꼭 필요한 곳만 엽니다' },
+			{ icon: 'shield', name: '권한', text: '관리자 기능은 따로, 120개 경로를 자동 테스트로' },
+			{ icon: 'gauge', name: '요청 제한', text: '사람마다 따로 세어 한 사람이 모두를 막지 못하게' },
+			{ icon: 'filter', name: '입력 검증', text: '정해진 모양이 아니면 들어오지 못합니다' },
+		],
+		vault: { name: '내 정보', text: '원문 대신 알아볼 수 없게 바꾼 값으로' },
 		items: [
 			{
 				icon: 'key',
@@ -119,7 +129,7 @@ export const ABOUT = {
 			},
 		],
 		privacy: '개인정보 처리방침',
-		detail: '보안 설계 자세히 보기 (GitHub)',
+		detail: '보안 설계 문서 보기 (GitHub)',
 	},
 	faq: [
 		{
