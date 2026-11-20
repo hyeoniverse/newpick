@@ -1,0 +1,85 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-label="뉴픽 한눈에: 보안 · 운영 · AI 비용 · 성능">
+  <style>
+    text { font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", "Segoe UI", sans-serif; }
+    .tile { fill: #ffffff; stroke: #e6e4f2; stroke-width: 1.5; }
+    .label { font-size: 15px; font-weight: 700; fill: #3610e1; letter-spacing: 0.04em; }
+    .big { font-size: 46px; font-weight: 800; fill: #111111; }
+    .unit { font-size: 18px; font-weight: 700; fill: #111111; }
+    .sub { font-size: 15px; fill: #5c5c66; }
+    .note { font-size: 13px; fill: #8a8a96; }
+    .bar-bg { fill: #efedfb; }
+    .bar { fill: #3610e1; }
+    .bar-old { fill: #c9c4ef; }
+  </style>
+
+  <!-- 1. 보안 -->
+  <rect class="tile" x="1" y="1" width="288" height="418" rx="18"/>
+  <circle cx="44" cy="48" r="20" fill="#efedfb"/>
+  <path d="M44 34 l12 5 v8 c0 8-5 13-12 16 c-7-3-12-8-12-16 v-8 z" fill="none" stroke="#3610e1" stroke-width="2.4" stroke-linejoin="round"/>
+  <path d="M38.5 48 l4 4 l7-8" fill="none" stroke="#3610e1" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  <text class="label" x="76" y="54">SECURITY</text>
+  <text class="big" x="28" y="138">120</text>
+  <text class="unit" x="118" y="138">개 경로</text>
+  <text class="sub" x="28" y="166">권한을 테스트로 고정 (기본 거부)</text>
+  <text class="big" x="28" y="246">4</text>
+  <text class="unit" x="60" y="246">건</text>
+  <text class="sub" x="28" y="274">직접 점검해 찾고 고친 취약점</text>
+  <text class="sub" x="28" y="330">의존성 취약점</text>
+  <rect class="bar-bg" x="28" y="344" width="232" height="12" rx="6"/>
+  <rect class="bar-old" x="28" y="344" width="232" height="12" rx="6" opacity="0.55"/>
+  <text x="260" y="338" text-anchor="end" font-size="12" font-weight="700" fill="#8a8a96">171</text>
+  <text x="28" y="374" font-size="13" font-weight="800" fill="#3610e1">0</text>
+  <text class="note" x="44" y="374">api 171 → 0 · 웹 35 → 0</text>
+  <rect class="bar" x="28" y="344" width="6" height="12" rx="3"/>
+
+  <!-- 2. 운영 -->
+  <rect class="tile" x="304" y="1" width="288" height="418" rx="18"/>
+  <circle cx="347" cy="48" r="20" fill="#efedfb"/>
+  <rect x="335" y="38" width="24" height="20" rx="3" fill="none" stroke="#3610e1" stroke-width="2.4"/>
+  <path d="M340 45 h14 M340 51 h9" stroke="#3610e1" stroke-width="2.4" stroke-linecap="round"/>
+  <text class="label" x="379" y="54">OPERATIONS · 30일</text>
+  <text class="big" x="331" y="138">35,361</text>
+  <text class="sub" x="331" y="166">매시 모은 기사</text>
+  <text class="big" x="331" y="246">144</text>
+  <text class="unit" x="420" y="246">편</text>
+  <text class="sub" x="331" y="274">AI가 쓴 뉴스레터 · 6개 분야</text>
+  <text class="sub" x="331" y="330">예약 작업</text>
+  <text class="note" x="331" y="356">수집 매시 · 요약 08:30 · 메일 08:40</text>
+  <text class="note" x="331" y="380">실패한 분야는 그날 안에서 자동 재시도</text>
+
+  <!-- 3. AI 비용 -->
+  <rect class="tile" x="607" y="1" width="288" height="418" rx="18"/>
+  <circle cx="650" cy="48" r="20" fill="#efedfb"/>
+  <text x="650" y="56" text-anchor="middle" font-size="22" font-weight="800" fill="#3610e1">$</text>
+  <text class="label" x="682" y="54">AI COST · 30일</text>
+  <text class="big" x="634" y="138">$11.15</text>
+  <text class="sub" x="634" y="166">하루 약 $0.37</text>
+  <text class="sub" x="634" y="226">비용을 줄인 설계</text>
+  <rect class="bar-bg" x="634" y="244" width="232" height="34" rx="8"/>
+  <rect x="634" y="244" width="92" height="34" rx="8" fill="#3610e1"/>
+  <text x="680" y="266" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">고르기</text>
+  <text x="796" y="266" text-anchor="middle" font-size="13" font-weight="700" fill="#3610e1">쓰기 (고른 것만)</text>
+  <text class="note" x="634" y="300">가벼운 모델이 고르고 Claude는 쓰기만</text>
+  <text class="sub" x="634" y="340">맞춤 글은 무료 할당 오픈 모델 우선</text>
+  <text class="note" x="634" y="364">+ 하루 비용 상한</text>
+
+  <!-- 4. 성능 · 품질 -->
+  <rect class="tile" x="910" y="1" width="289" height="418" rx="18"/>
+  <circle cx="953" cy="48" r="20" fill="#efedfb"/>
+  <path d="M942 54 a11 11 0 1 1 22 0" fill="none" stroke="#3610e1" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M953 54 l6 -7" stroke="#3610e1" stroke-width="2.4" stroke-linecap="round"/>
+  <text class="label" x="985" y="54">PERFORMANCE</text>
+  <text class="sub" x="937" y="104">휴대폰 상세 화면 LCP</text>
+  <rect class="bar-old" x="937" y="118" width="232" height="16" rx="8"/>
+  <text class="note" x="937" y="152">전 4.6초</text>
+  <rect class="bar" x="937" y="164" width="50" height="16" rx="8"/>
+  <text x="997" y="177" font-size="15" font-weight="800" fill="#111111">1.0초</text>
+  <text class="note" x="937" y="200">공개 화면 모두 2.1초 이하 · 권장사항 100</text>
+  <text class="sub" x="937" y="258">테스트 (QUALITY)</text>
+  <text class="big" x="937" y="314">445</text>
+  <text class="unit" x="1032" y="314">api</text>
+  <text class="big" x="1078" y="314">213</text>
+  <text class="unit" x="1166" y="314">웹</text>
+  <text class="note" x="937" y="344">처음 0개 → 단위 · E2E, PR마다 CI</text>
+  <text class="note" x="937" y="368">순환 import 0 · api strict · any 0</text>
+</svg>

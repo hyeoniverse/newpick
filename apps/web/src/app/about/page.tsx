@@ -14,6 +14,7 @@ import ExploreSection from '@/app/about/_components/ExploreSection';
 import WhoSection from '@/app/about/_components/WhoSection';
 import HowToUseSection from '@/app/about/_components/HowToUseSection';
 import Logos from '@/app/about/_components/Logos';
+import SecuritySection from '@/app/about/_components/SecuritySection';
 import ScrollReveal from '@/app/about/_components/ScrollReveal';
 
 /** 섹션 안에서 하나씩 나타날 것: 숫자, 가치, 질문, 팀원·한 일 */
@@ -33,6 +34,7 @@ async function AboutPage() {
 			<PersonalSection />
 			<HowToUseSection />
 			<Logos />
+			<SecuritySection />
 			<FaqSection />
 			<ExploreSection />
 			<WhoSection />
