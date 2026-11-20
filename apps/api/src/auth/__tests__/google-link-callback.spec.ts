@@ -23,6 +23,7 @@ const setup = (link: Record<string, unknown> | null, linkUserId = 7) => {
 				googleSub: 'g-new',
 				email: 'new@gmail.com',
 				username: 'n',
+				profileImg: 'https://lh3/p.jpg',
 				emailVerified: true,
 				...user,
 			},
@@ -41,7 +42,11 @@ describe('Google 콜백: 다른 Google 계정으로 바꾸기', () => {
 		});
 		await controller.googleCallback(req({}), res as never);
 
-		expect(auth.linkGoogleAccount).toHaveBeenCalledWith(7, 'g-new', 'new@gmail.com');
+		// 새 Google 계정의 이름 · 사진도 넘긴다
+		expect(auth.linkGoogleAccount).toHaveBeenCalledWith(7, 'g-new', 'new@gmail.com', {
+			username: 'n',
+			profileImg: 'https://lh3/p.jpg',
+		});
 		expect(res.clearCookie.mock.calls[0][0]).toBe('google_link');
 		expect(mail.sendHtmlMail.mock.calls[0][0]).toBe('old@gmail.com');
 		expect(res.redirect).toHaveBeenCalledWith('http://web/mypage?tab=settings&google=linked');

@@ -35,15 +35,23 @@ export class AuthService {
 	) {
 		if (!googleSub || !email || !username) return null; // 유효한 사용자만 저장
 
+		// 이름 · 사진은 로그인할 때마다 Google 계정에 맞춘다 (사이트에는 고치는 곳이 없다).
+		// 예전에는 처음 가입할 때만 저장해, Google에서 사진을 바꾸거나 지워도 예전 사진이 계속 보였다.
+		// 사진을 지웠으면 null: 사람 모양 기본 그림이 보인다
+		const profile = { username, profileImg: profileImg || null };
+
 		const bySub = await this.prisma.user.findUnique({ where: { googleSub } });
-		if (bySub) return bySub;
+		if (bySub) {
+			if (bySub.username === profile.username && bySub.profileImg === profile.profileImg) return bySub;
+			return this.prisma.user.update({ where: { id: bySub.id }, data: profile });
+		}
 
 		const byEmail = await this.prisma.user.findUnique({ where: { email } });
 		if (byEmail) {
 			if (byEmail.googleSub) return null;
 			return this.prisma.user.update({
 				where: { id: byEmail.id },
-				data: { googleSub },
+				data: { googleSub, ...profile },
 			});
 		}
 
@@ -65,12 +73,14 @@ export class AuthService {
 
 	/**
 	 * 로그인한 계정을 다른 Google 계정으로 바꾼다: 로그인 연결(googleSub)과 이메일을 함께.
-	 * 주소는 Google이 확인한 것이라 인증 코드가 필요 없다. 새 Google 계정 · 그 주소를 다른 뉴픽 계정이 쓰면 바꾸지 않는다 (합치지 않음)
+	 * 주소는 Google이 확인한 것이라 인증 코드가 필요 없다. 새 Google 계정 · 그 주소를 다른 뉴픽 계정이 쓰면 바꾸지 않는다 (합치지 않음).
+	 * 이름 · 사진도 새 Google 계정 것으로 (예전에는 연결 · 이메일만 바뀌어 예전 계정의 사진이 남았다)
 	 */
 	async linkGoogleAccount(
 		userId: number,
 		googleSub: string,
 		email: string,
+		profile: { username: string | null; profileImg: string | null } = { username: null, profileImg: null },
 	): Promise<{ status: 'linked'; oldEmail: string; email: string } | { status: 'same' | 'taken' | 'failed' }> {
 		const me = await this.prisma.user.findUnique({
 			where: { id: userId },
@@ -91,7 +101,13 @@ export class AuthService {
 		await this.prisma.$transaction([
 			this.prisma.user.update({
 				where: { id: userId },
-				data: { googleSub, email },
+				data: {
+					googleSub,
+					email,
+					// 이름이 없는 Google 계정이면 지금 이름을 그대로 둔다
+					...(profile.username && { username: profile.username }),
+					profileImg: profile.profileImg || null,
+				},
 			}),
 			// 받는 주소 바꾸기를 하던 중이었으면 그만둔다
 			this.prisma.emailChange.deleteMany({ where: { userId } }),
