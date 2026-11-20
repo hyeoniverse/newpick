@@ -186,13 +186,33 @@ describe('AuthService 로그인한 기기', () => {
 });
 
 describe('AuthService Google 로그인', () => {
-	const user = { id: 3, email: 'me@example.com', googleSub: 'g-1' };
+	const user = { id: 3, email: 'me@example.com', googleSub: 'g-1', username: 'n', profileImg: null };
 
-	it('Google 계정 ID로 찾는다 (이메일을 바꿨어도 같은 계정)', async () => {
+	it('Google 계정 ID로 찾는다 (이메일을 바꿨어도 같은 계정), 이름 · 사진이 같으면 고치지 않는다', async () => {
 		const { prisma, service } = setup();
 		prisma.user.findUnique.mockResolvedValueOnce(user);
 		expect(await service.validateOrCreateGoogleUser('g-1', 'old@gmail.com', 'n', '')).toBe(user);
 		expect(prisma.user.create).not.toHaveBeenCalled();
+		expect(prisma.user.update).not.toHaveBeenCalled();
+	});
+
+	it('로그인할 때마다 이름 · 사진을 Google 계정에 맞춘다 (예전에는 처음 가입할 때만 저장)', async () => {
+		const { prisma, service } = setup();
+		prisma.user.findUnique.mockResolvedValueOnce({ ...user, profileImg: 'https://lh3/old.jpg' });
+		prisma.user.update.mockResolvedValue({ ...user, username: '새 이름', profileImg: 'https://lh3/new.jpg' });
+		await service.validateOrCreateGoogleUser('g-1', 'me@example.com', '새 이름', 'https://lh3/new.jpg');
+		expect(prisma.user.update).toHaveBeenCalledWith({
+			where: { id: 3 },
+			data: { username: '새 이름', profileImg: 'https://lh3/new.jpg' },
+		});
+	});
+
+	it('Google에서 사진을 지웠으면 null로 (사람 모양 기본 그림)', async () => {
+		const { prisma, service } = setup();
+		prisma.user.findUnique.mockResolvedValueOnce({ ...user, profileImg: 'https://lh3/old.jpg' });
+		prisma.user.update.mockResolvedValue(user);
+		await service.validateOrCreateGoogleUser('g-1', 'me@example.com', 'n', null);
+		expect(prisma.user.update).toHaveBeenCalledWith({ where: { id: 3 }, data: { username: 'n', profileImg: null } });
 	});
 
 	it('ID를 저장하기 전에 가입한 사용자는 이메일로 찾아 ID를 채운다', async () => {
@@ -203,7 +223,7 @@ describe('AuthService Google 로그인', () => {
 		await service.validateOrCreateGoogleUser('g-1', 'me@example.com', 'n', '');
 		expect(prisma.user.update).toHaveBeenCalledWith({
 			where: { id: 3 },
-			data: { googleSub: 'g-1' },
+			data: { googleSub: 'g-1', username: 'n', profileImg: null },
 		});
 	});
 
@@ -246,14 +266,20 @@ describe('AuthService 다른 Google 계정으로 바꾸기', () => {
 		prisma.user.findUnique = lookup();
 		prisma.user.update.mockResolvedValue({});
 
-		expect(await service.linkGoogleAccount(7, 'g-new', 'new@gmail.com')).toEqual({
+		expect(
+			await service.linkGoogleAccount(7, 'g-new', 'new@gmail.com', {
+				username: '새 계정',
+				profileImg: 'https://lh3/new.jpg',
+			}),
+		).toEqual({
 			status: 'linked',
 			oldEmail: 'old@gmail.com',
 			email: 'new@gmail.com',
 		});
+		// 이름 · 사진도 새 Google 계정 것으로 (예전에는 예전 계정 사진이 남았다)
 		expect(prisma.user.update).toHaveBeenCalledWith({
 			where: { id: 7 },
-			data: { googleSub: 'g-new', email: 'new@gmail.com' },
+			data: { googleSub: 'g-new', email: 'new@gmail.com', username: '새 계정', profileImg: 'https://lh3/new.jpg' },
 		});
 		expect(prisma.emailChange.deleteMany).toHaveBeenCalledWith({
 			where: { userId: 7 },

@@ -56,7 +56,7 @@ export class AuthController {
 		if (req.cookies?.[GOOGLE_LINK_COOKIE]) res.clearCookie(GOOGLE_LINK_COOKIE, authCookieOptions());
 		if (linkUserId) {
 			if (!googleSub || !email || !emailVerified) return res.redirect(linkResultUrl('failed'));
-			const result = await this.authService.linkGoogleAccount(linkUserId, googleSub, email);
+			const result = await this.authService.linkGoogleAccount(linkUserId, googleSub, email, { username, profileImg });
 			if (result.status === 'linked' && result.oldEmail !== result.email)
 				await notifyEmailChanged(this.mail, result.oldEmail, result.email, 'Google 계정 변경');
 			return res.redirect(linkResultUrl(result.status));
