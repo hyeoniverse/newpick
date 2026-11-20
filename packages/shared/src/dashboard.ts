@@ -1,6 +1,18 @@
 import type { JobName, JobRun } from './jobs';
 import type { Schedule } from './schedule';
 
+/** AI 요약 자동 재시도 예정 */
+export interface SummaryRetry {
+  /** 다시 시도할 시각 (ISO) */
+  at: string;
+  /** 그 뉴스레터의 날 (KST, 지난 날짜 다시 만들기면 그날) */
+  day: string;
+  /** 다시 만들 관심사 이름 */
+  categories: string[];
+  /** 몇 번째 자동 재시도인가 (1부터) */
+  attempt: number;
+}
+
 /** 관리자 대시보드 (GET /scheduler/dashboard): 기간 안의 수집 · 발행 · AI 비용 · 발송과 예약 작업 상태 */
 export interface Dashboard {
   range: { from: string; to: string };
@@ -10,6 +22,11 @@ export interface Dashboard {
     enabled: Record<JobName, boolean>;
     schedule: Schedule;
     runs: Record<JobName, JobRun>;
+    /**
+     * AI 요약에서 실패한 관심사의 다음 자동 재시도 (없으면 null). 작업이 끝난 뒤 5 · 10 · 20 · 30분, 그 뒤로 1시간마다 그날 안에서.
+     * 이전 api는 보내지 않으므로 없을 수 있다
+     */
+    summaryRetry?: SummaryRetry | null;
   };
   crawling: { count: number; latestAt: string | null };
   newsletters: {

@@ -1,5 +1,5 @@
 import { ADMIN } from '@/copy';
-import type { ClockTime, JobName, JobStatus, Schedule } from '@newpick/shared';
+import type { ClockTime, JobName, JobStatus, JobTrigger, Schedule } from '@newpick/shared';
 import { pad2 } from '@/utils/formatter';
 
 /* 예약 작업 이름 · 결과 이름표 · 시각 문구 (#198): 대시보드 · 실행 기록 화면이 같이 쓴다 */
@@ -21,6 +21,13 @@ export const RUN_STATUS_LABEL: Record<JobStatus, string> = {
 	partial: '일부 실패',
 	failed: '실패',
 	skipped: '건너뜀',
+};
+
+/** 실행이 무엇으로 시작됐나 */
+export const TRIGGER_LABEL: Record<JobTrigger, string> = {
+	schedule: '예약',
+	manual: '지금 실행',
+	retry: '자동 재시도',
 };
 
 /** 요일 (0 = 일요일). 7은 매일 */

@@ -132,3 +132,143 @@ describe('사이트 캐시 (#73)', () => {
 		expect(siteCache.refresh).not.toHaveBeenCalled();
 	});
 });
+
+describe('자동 재시도: 그래도 실패한 관심사는 작업이 끝난 뒤 계속 다시', () => {
+	// 날짜만 낮 12시(KST)로 고정한다: 자정 가까이 돌리면 '오늘이 끝나 그만둠'이 되어 결과가 시각에 따라 달라진다. 타이머는 진짜
+	const NOON = new Date('2026-11-20T12:00:00+09:00');
+	const onlyDate = {
+		doNotFake: [
+			'setTimeout',
+			'clearTimeout',
+			'setInterval',
+			'clearInterval',
+			'setImmediate',
+			'nextTick',
+			'queueMicrotask',
+		] as const,
+	};
+	beforeEach(() => jest.useFakeTimers({ now: NOON, ...onlyDate } as never));
+	afterEach(() => jest.useRealTimers());
+
+	/** 자동 재시도 간격을 바로(0ms)로 줄이고 다음 실행이 끝나기를 기다린다 */
+	const instant = (summaryJob: unknown) => {
+		(summaryJob as { autoRetryDelayMs: (m: number) => number }).autoRetryDelayMs = () => 0;
+	};
+	const nextRun = async (summaryJob: { isSummaryRunning(): boolean }) => {
+		await new Promise((resolve) => setTimeout(resolve, 5));
+		while (summaryJob.isSummaryRunning()) await new Promise((resolve) => setTimeout(resolve, 5));
+	};
+
+	it('빠른 재시도 2번까지 실패하면 5분 뒤 자동 재시도를 잡고, 실행 기록에 알린다', async () => {
+		const { summaryJob, prisma } = setup(2);
+		const before = Date.now();
+		await summaryJob.makeAiSummary();
+		const retry = summaryJob.getAutoRetry();
+		expect(retry).toMatchObject({ categories: ['정치'], attempt: 1 });
+		const wait = new Date(retry!.at).getTime() - before;
+		expect(wait).toBeGreaterThanOrEqual(5 * 60 * 1000 - 1000);
+		expect(wait).toBeLessThan(5 * 60 * 1000 + 5000);
+		const finished = prisma.jobRun.update.mock.calls.at(-1)[0].data;
+		expect(finished.status).toBe('partial');
+		expect(finished.message).toMatch(/실패: 정치 · \d\d:\d\d에 자동 재시도/);
+	});
+
+	it('자동 재시도는 실패한 관심사만, 실행 기록에는 자동 재시도로 남고, 되면 계획을 지운다', async () => {
+		const { summaryJob, crawlingRepository, aiSummaryService, prisma } = setup(0);
+		instant(summaryJob);
+		// 정치(2)만 처음 3번(첫 시도 + 빠른 재시도 2번) 실패, 그 뒤 성공
+		let politicsCalls = 0;
+		crawlingRepository.getCrawledNewsBetween.mockImplementation(async (_s, _e, categoryId: number) => {
+			if (categoryId === 2 && ++politicsCalls <= 3) throw new Error('Mongo timeout');
+			return [{ title: `뉴스${categoryId}` }];
+		});
+		await summaryJob.makeAiSummary();
+		expect(summaryJob.getAutoRetry()?.categories).toEqual(['정치']);
+		aiSummaryService.summarizeText.mockClear();
+
+		await nextRun(summaryJob);
+		expect(aiSummaryService.summarizeText.mock.calls.map((call) => call[1])).toEqual([2]);
+		expect(summaryJob.getAutoRetry()).toBeNull();
+		const started = prisma.jobRun.create.mock.calls.at(-1)[0].data;
+		expect(started.trigger).toBe('retry');
+		expect(prisma.jobRun.update.mock.calls.at(-1)[0].data.status).toBe('success');
+	});
+
+	it('계속 실패하면 횟수를 올려 간격을 늘린다 (5 → 10분)', async () => {
+		const { summaryJob } = setup(2);
+		const delays: number[] = [];
+		// 첫 자동 재시도만 바로, 그다음은 멀리 (0으로 두면 기다리는 사이 재시도가 계속 이어져 횟수가 흔들렸다)
+		(summaryJob as unknown as { autoRetryDelayMs: (m: number) => number }).autoRetryDelayMs = (minutes) => {
+			delays.push(minutes);
+			return delays.length === 1 ? 0 : 60 * 60 * 1000;
+		};
+		await summaryJob.makeAiSummary();
+		await nextRun(summaryJob);
+		expect(summaryJob.getAutoRetry()?.attempt).toBe(2);
+		expect(delays).toEqual([5, 10]);
+		// 남은 재시도는 끈다 (테스트가 끝난 뒤 돌지 않게)
+		summaryJob.toggleAiSummaryScheduler(false);
+	});
+
+	it('다음 시각이 오늘(KST)을 넘으면 그만둔다 (다음 날은 예약 실행이 새로 만든다)', async () => {
+		jest.useFakeTimers({ now: new Date('2026-11-20T23:58:00+09:00'), ...onlyDate } as never);
+		const { summaryJob } = setup(2);
+		await summaryJob.makeAiSummary();
+		expect(summaryJob.getAutoRetry()).toBeNull();
+	});
+
+	it('스케줄러를 끄면 기다리던 자동 재시도를 그만둔다', async () => {
+		const { summaryJob } = setup(2);
+		await summaryJob.makeAiSummary();
+		expect(summaryJob.getAutoRetry()).not.toBeNull();
+		summaryJob.toggleAiSummaryScheduler(false);
+		expect(summaryJob.getAutoRetry()).toBeNull();
+	});
+});
+
+describe("날짜 하나 고쳐 채우기 (관리자 '빠진 날')", () => {
+	it('고른 빠진 관심사만 만든다 (그날 없는 관심사 전부가 아니라)', async () => {
+		const { scheduler, aiSummaryService } = setup(0);
+		await scheduler.manualFixDay(undefined, [3], []);
+		expect(aiSummaryService.summarizeText.mock.calls.map((call) => call[1])).toEqual([3]);
+	});
+
+	it('만들기가 끝난 뒤 고른 뉴스레터를 하나씩 다시 쓴다 (요약은 한 번에 하나라 차례로)', async () => {
+		const { scheduler, aiSummaryService, jobRuns } = setup(0);
+		const markManual = jest.spyOn(jobRuns, 'markManual');
+		const at = new Date('2026-11-19T08:30:00+09:00');
+		await scheduler.manualFixDay(
+			at,
+			[],
+			[
+				{ id: 11, at, categoryId: 1 },
+				{ id: 12, at, categoryId: 2 },
+			],
+		);
+		const calls = aiSummaryService.summarizeText.mock.calls as unknown[][];
+		// [뉴스, 관심사, test, morningSince, at, replaceId]
+		expect(calls.map((call) => [call[1], call[5]])).toEqual([
+			[1, 11],
+			[2, 12],
+		]);
+		expect(markManual).toHaveBeenCalledTimes(2);
+	});
+
+	it('다시 쓸 뉴스레터는 그날 것만 (다른 날이면 시작하기 전에 거절)', async () => {
+		const { summaryJob, prisma } = setup(0);
+		prisma.newsletter.findUnique.mockResolvedValue({
+			createdAt: new Date('2026-11-18T08:30:00+09:00'),
+			categoryId: 1,
+		});
+		jest.useFakeTimers({
+			now: new Date('2026-11-20T12:00:00+09:00'),
+			doNotFake: ['setTimeout', 'setImmediate', 'nextTick'],
+		} as never);
+		try {
+			await expect(summaryJob.regenerateTarget(5, '2026-11-19')).rejects.toThrow('2026-11-19에 발행된 것이 아닙니다');
+			await expect(summaryJob.regenerateTarget(5, '2026-11-18')).resolves.toMatchObject({ categoryId: 1 });
+		} finally {
+			jest.useRealTimers();
+		}
+	});
+});

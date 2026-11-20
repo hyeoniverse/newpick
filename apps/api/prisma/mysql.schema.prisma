@@ -250,7 +250,7 @@ model JobRun {
   id         Int       @id @default(autoincrement())
   /// crawling · summary · mail
   job        String    @db.VarChar(20)
-  /// schedule(예약) · manual(관리자가 지금 실행)
+  /// schedule(예약) · manual(관리자가 지금 실행) · retry(실패한 관심사 자동 재시도)
   trigger    String    @default("schedule") @db.VarChar(20)
   /// running · success · partial · failed · skipped
   status     String    @db.VarChar(20)

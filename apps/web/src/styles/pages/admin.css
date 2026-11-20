@@ -860,9 +860,19 @@
 
 	.job-run {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.625rem;
+		gap: 0.25rem 0.625rem;
 		min-width: 0;
+	}
+
+	/* AI 요약 자동 재시도 예정: 설명 아래 줄, 설명과 같은 자리에서 시작 (배지 폭 + 간격) */
+	.job-retry {
+		flex-basis: 100%;
+		padding-left: calc(4.75rem + 0.625rem);
+		font-size: var(--np-font-size-extra-small);
+		color: var(--np-color-text);
+		word-break: keep-all;
 	}
 
 	/* 배지 글자(성공 · 건너뜀 · 기록 없음 · 일부 실패…) 길이와 상관없이 설명이 같은 자리에서 시작하게 */
@@ -910,6 +920,15 @@
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
+
+		/* 지금 실행 아래에 빠진 날: 같은 폭으로 세로 */
+		&.stacked {
+			flex-direction: column;
+			align-items: stretch;
+			/* 두 단추를 긴 쪽 폭으로 맞춘다 (휴대폰에서도 화면 폭까지 늘지 않게) */
+			width: max-content;
+			--btn-width: 100%;
+		}
 	}
 
 	/* 켜짐 · 꺼짐 스위치 */
@@ -2410,13 +2429,141 @@
 	}
 }
 
-/* 빠진 날 채우기 창의 날짜 칸 (Dashboard.tsx FillDay) */
+/*
+ * 빠진 날 채우기 · 다시 쓰기 창 (dashboard/FillDay.tsx). 시트가 스크롤되지 않게 짧게: 날짜는 칩 격자, 관심사는 3칸, 제목은 한 줄.
+ * 높이는 가장 긴 상태(2단계)에 맞춰 고정한다: 불러오는 중 · 1단계 · 2단계를 오갈 때 시트 높이가 바뀌지 않게.
+ * 넘치면 빠진 날 목록 · 다시 쓰기 목록(.filler) 안에서만 스크롤
+ */
 .np-admin-dashboard-fill-day {
 	display: flex;
 	width: 100%;
+	height: 18.75rem;
 	flex-direction: column;
-	gap: 0.375rem;
+	gap: 0.625rem;
 	text-align: left;
+
+	.group {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		min-width: 0;
+		margin: 0;
+		padding: 0.625rem 0.75rem;
+		border: 0;
+		border-radius: 8px;
+		background: var(--np-color-surface);
+
+		/* 남는 높이를 받고, 넘치면 이 안에서만 스크롤 */
+		&.filler {
+			flex: 1 1 auto;
+			min-height: 0;
+			overflow-y: auto;
+			overscroll-behavior: contain;
+		}
+	}
+
+	legend,
+	.legend {
+		float: left;
+		width: 100%;
+		margin: 0;
+		padding: 0;
+		font-size: var(--np-font-size-extra-small);
+		font-weight: 700;
+		color: var(--np-color-sub-text);
+	}
+
+	.empty,
+	.note {
+		margin: 0;
+		font-size: var(--np-font-size-extra-small);
+		color: var(--np-color-sub-text);
+	}
+
+	/* 1단계: 빠진 날 칩 격자 (PC 3칸 · 휴대폰 2칸). 날이 많으면 이 안에서만 스크롤 */
+	.days {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.375rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		@variant mobile {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+
+		li::before {
+			content: none;
+		}
+	}
+
+	.day {
+		display: flex;
+		width: 100%;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.125rem;
+		padding: 0.5rem 0.625rem;
+		border: 1px solid var(--np-color-border);
+		border-radius: 8px;
+		background: var(--np-color-background);
+		text-align: left;
+		cursor: pointer;
+
+		&:hover {
+			border-color: var(--np-color-primary);
+		}
+
+		.when {
+			font-size: var(--np-font-size-small);
+			font-weight: 700;
+			font-variant-numeric: tabular-nums;
+			color: var(--np-color-text);
+		}
+
+		.what {
+			font-size: var(--np-font-size-extra-small);
+			color: var(--np-color-sub-text);
+		}
+	}
+
+	/* 2단계: 고른 날 + 날짜 다시 고르기 */
+	.picked-day {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+
+		.back {
+			display: inline-flex;
+			align-items: center;
+			gap: 0.25rem;
+			padding: 0;
+			font-size: var(--np-font-size-small);
+			color: var(--np-color-primary);
+			cursor: pointer;
+		}
+	}
+
+	/* 빠진 관심사: 이름이 짧아 3칸으로 */
+	.checks {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 0.5rem;
+	}
+
+	/* 다시 쓸 뉴스레터: 제목은 한 줄로 자른다 (전체 제목은 마우스를 올리면) */
+	.title-check {
+		min-width: 0;
+
+		.text {
+			min-width: 0;
+			overflow: hidden;
+			white-space: nowrap;
+			text-overflow: ellipsis;
+		}
+	}
 }
 
 /* 확인 창: 만들 분야 (Dashboard.tsx MissingCategories) */

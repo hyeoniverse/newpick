@@ -501,6 +501,7 @@ export class DashboardService {
 					summary: runOf('summary'),
 					mail: runOf('mail'),
 				},
+				summaryRetry: status.summaryRetry,
 			},
 			crawling: {
 				count: crawled,

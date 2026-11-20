@@ -13,7 +13,7 @@ import { PeriodHeaderFilter, SortHeader } from './HeaderFilter';
 import { useAdminQuery } from './period';
 import { when } from '../_lib/format';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
-import { JOB_LABEL, RUN_STATUS_LABEL } from '../_lib/jobs';
+import { JOB_LABEL, RUN_STATUS_LABEL, TRIGGER_LABEL } from '../_lib/jobs';
 
 /** 표 칸 폭 (정하지 않은 칸은 나머지) */
 const COLS = ['10rem', '6.5rem', '5rem', '6rem', '6.5rem', undefined];
@@ -92,7 +92,7 @@ export default function JobRunsList() {
 									<tr key={run.id}>
 										<td className="nowrap num">{when(run.startedAt, today)}</td>
 										<td className="nowrap">{JOB_LABEL[run.job] ?? run.job}</td>
-										<td className="nowrap">{run.trigger === 'manual' ? '지금 실행' : '예약'}</td>
+										<td className="nowrap">{TRIGGER_LABEL[run.trigger] ?? '예약'}</td>
 										<td className="nowrap">
 											<StatusBadge tone={toneOf(run.status)}>{RUN_STATUS_LABEL[run.status] ?? run.status}</StatusBadge>
 										</td>

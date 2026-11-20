@@ -48,16 +48,19 @@ export function useJobActions(schedule: Schedule | undefined, refresh: () => voi
 			}
 		},
 
-		// 빠진 날 채우기: 고른 날에 뉴스레터가 없는 관심사만 그날 기사 · 그날 날짜로 (서버가 있는 관심사는 건너뛴다)
+		// 빠진 날 채우기 · 다시 쓰기: 고른 날의 빠진 관심사를 만들고, 고른 뉴스레터를 다시 쓴다 (서버가 한 편씩 차례로)
 		fillDay: () =>
 			openModal(
 				<FillDay
 					onCancel={closeModal}
-					onConfirm={async (date) => {
+					onConfirm={async (target) => {
 						closeModal();
 						try {
-							await rerunSummary({ date });
-							showToast(ADMIN.jobs.fillStarted(date), 'success');
+							await rerunSummary(target);
+							showToast(
+								ADMIN.jobs.fillStarted(target.date, target.categoryIds.length + target.newsletterIds.length),
+								'success',
+							);
 							refreshSoon();
 						} catch (error) {
 							showToast(errorMessage(error, COMMON.startFailed), 'error');

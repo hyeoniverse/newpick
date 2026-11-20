@@ -46,10 +46,16 @@ export const toggleJob = (job: JobName, enable: boolean) =>
 export const runJobNow = (job: JobName) => apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW(JOB_ENDPOINT[job]), { method: 'POST' });
 /**
  * AI 요약 다시 만들기: date(지난 날 · 그날 없는 관심사만), categoryId(그 관심사만), newsletterId(그 뉴스레터를 다시 작성).
+ * date와 categoryIds · newsletterIds를 함께 주면 그날 고른 빠진 관심사를 만들고 고른 뉴스레터를 다시 쓴다 (빠진 날 창).
  * 그날 이미 있는 관심사는 서버가 건너뛴다
  */
-export const rerunSummary = (target: { date?: string; categoryId?: number | null; newsletterId?: number }) =>
-	apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW(JOB_ENDPOINT.summary), { method: 'POST', body: target });
+export const rerunSummary = (target: {
+	date?: string;
+	categoryId?: number | null;
+	newsletterId?: number;
+	categoryIds?: number[];
+	newsletterIds?: number[];
+}) => apiFetch(API_ENDPOINTS.ADMIN.RUN_NOW(JOB_ENDPOINT.summary), { method: 'POST', body: target });
 export const refreshSiteCache = () =>
 	apiFetch<{ data: { refreshedAt: string } }>(API_ENDPOINTS.ADMIN.SITE_CACHE_REFRESH(), { method: 'POST' }).then(
 		(r) => r.data,

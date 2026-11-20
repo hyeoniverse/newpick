@@ -17,7 +17,8 @@ describe('작업 실행 기록 (#21)', () => {
 		expect(jobRuns.getRuns().summary).toMatchObject({
 			running: false,
 			status: 'partial',
-			message: '뉴스레터 2편 생성 · 실패: 정치',
+			// 끝에 '· HH:mm에 자동 재시도'가 붙는다 (자정 가까이면 붙지 않음)
+			message: expect.stringMatching(/^뉴스레터 2편 생성 · 실패: 정치( · \d\d:\d\d에 자동 재시도)?$/),
 		});
 	});
 
@@ -80,7 +81,8 @@ describe('실행 기록 DB (#21)', () => {
 			where: { id: 41 },
 			data: expect.objectContaining({
 				status: 'partial',
-				message: '뉴스레터 2편 생성 · 실패: 정치',
+				// 끝에 '· HH:mm에 자동 재시도'가 붙는다 (자정 가까이면 붙지 않음)
+				message: expect.stringMatching(/^뉴스레터 2편 생성 · 실패: 정치( · \d\d:\d\d에 자동 재시도)?$/),
 			}),
 		});
 	});

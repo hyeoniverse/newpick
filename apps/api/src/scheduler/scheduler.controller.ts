@@ -98,7 +98,7 @@ export class SchedulerController {
 		};
 	}
 	@Post(`manual/${JOB_ENDPOINT.summary}`)
-	async startAiSummary(@Body() { date, categoryId, newsletterId }: ManualSummaryDto = {}) {
+	async startAiSummary(@Body() { date, categoryId, newsletterId, categoryIds, newsletterIds }: ManualSummaryDto = {}) {
 		// 요약은 한 번에 하나: 도는 중에 누르면 새로 시작하지 않고 그 실행에 합쳐져 버려서, 알려 주고 거절한다
 		if (this.summaryJob.isSummaryRunning()) {
 			throw new AppException('BAD_REQUEST', 'AI 요약이 이미 진행 중입니다. 완료된 후 다시 시도해 주십시오.');
@@ -110,6 +110,22 @@ export class SchedulerController {
 			return {
 				success: true,
 				message: `#${newsletterId} 뉴스레터를 다시 쓰기 시작했습니다.`,
+			};
+		}
+		// 날짜 하나 고쳐 채우기 (빠진 날): 고른 빠진 관심사를 만들고, 고른 뉴스레터를 하나씩 다시 쓴다
+		if (date && (categoryIds || newsletterIds)) {
+			const at = this.summaryJob.backfillMoment(date);
+			// 다시 쓸 뉴스레터는 그날 것이어야 하고, 너무 오래되면 400 (시작하기 전에 모두 확인)
+			const rewrites = await Promise.all(
+				(newsletterIds ?? []).map(async (id) => ({ id, ...(await this.summaryJob.regenerateTarget(id, date)) })),
+			);
+			if (!categoryIds?.length && !rewrites.length) {
+				throw new AppException('BAD_REQUEST', '만들거나 다시 쓸 항목을 하나 이상 골라 주십시오.');
+			}
+			void this.schedulerService.manualFixDay(at, categoryIds, rewrites);
+			return {
+				success: true,
+				message: `${date} 뉴스레터 ${categoryIds?.length ?? 0}편 만들기 · ${rewrites.length}편 다시 쓰기를 시작했습니다.`,
 			};
 		}
 		// 날짜가 맞지 않으면 시작하기 전에 400 (앞날 · 기사가 지워진 날)
