@@ -61,7 +61,8 @@ services:
       mongo: { condition: service_healthy }
 
   tunnel:
-    image: cloudflare/cloudflared:latest
+    # 판과 이미지 해시를 고정한다 (latest면 다시 받을 때마다 모르는 판이 들어온다, 공급망). 올릴 때는 둘 다 바꾼다
+    image: cloudflare/cloudflared:2026.10.7@sha256:4955524aeaa379e154023d5a027c250f7b35041a2e7e950cf13f144bc9b9c5ba
     restart: unless-stopped
     logging: *logging
     command: tunnel --no-autoupdate run

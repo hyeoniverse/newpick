@@ -3,6 +3,8 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20';
 import { missingGoogleEnv } from './google-oauth.guard';
 import { env } from 'src/config/env';
+import type { StateStore } from 'passport-oauth2';
+import { CookieStateStore } from './oauth-state';
 
 /** Google 로그인 콜백에서 req.user에 들어가는 값 */
 export type GoogleUser = {
@@ -24,6 +26,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 			clientSecret: env.google.clientSecret ?? NOT_CONFIGURED,
 			callbackURL: env.google.redirectUri ?? NOT_CONFIGURED,
 			scope: ['email', 'profile'],
+			// 로그인 CSRF 막기: 구글로 보낼 때 state를 만들어 httpOnly 쿠키에 두고, 돌아오면 같은지 본다 (oauth-state.ts)
+			// (타입의 오버로드는 인자 2 · 3 · 4개 모두를 요구하지만, passport-oauth2는 실제 함수의 인자 개수로 하나를 골라 부른다)
+			store: new CookieStateStore() as unknown as StateStore,
 		});
 		const missing = missingGoogleEnv();
 		if (missing.length) {

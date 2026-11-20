@@ -17,7 +17,8 @@ import { CategoryModule } from 'src/category/category.module'; // 카테고리 �
 import { SentryModule } from '@sentry/nestjs/setup';
 import { APP_FILTER, APP_GUARD } from '@nestjs/core';
 import { ApiExceptionFilter } from 'src/common/errors/api-exception.filter';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { ClientThrottlerGuard } from 'src/common/client-throttler.guard';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
 import { validateEnv } from 'src/config/env.validation';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -67,9 +68,10 @@ import { THROTTLE } from 'src/common/throttle';
 			provide: APP_FILTER,
 			useClass: ApiExceptionFilter, // 모든 오류를 { statusCode, code, message } 한 모양으로
 		},
-		// 순서대로 실행: 요청 제한 → 로그인 확인(@Public 제외)
-		{ provide: APP_GUARD, useClass: ThrottlerGuard },
+		// 순서대로 실행: 로그인 확인(@Public 제외) → 요청 제한. 요청 제한이 로그인한 사람을 사용자 id로 세려면
+		// req.user가 먼저 있어야 한다 (common/client-throttler.guard.ts)
 		{ provide: APP_GUARD, useClass: JwtAuthGuard },
+		{ provide: APP_GUARD, useClass: ClientThrottlerGuard },
 	], // 서비스 등록
 })
 export class AppModule implements NestModule {
