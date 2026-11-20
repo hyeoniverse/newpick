@@ -84,14 +84,39 @@ describe('ImagesService', () => {
 		expect(service.fetcher).not.toHaveBeenCalled();
 	});
 
-	it('리디렉션 끝 주소가 허용하지 않은 곳이면 받지 않는다', async () => {
+	it('리디렉션은 직접 따라가고, 다음 주소가 허용하지 않은 곳이면 그 주소로는 요청하지 않는다 (SSRF)', async () => {
 		const service = new ImagesService();
-		service.fetcher = jest.fn(async () => {
-			const res = await imageResponse();
-			Object.defineProperty(res, 'url', { value: 'http://10.0.0.1/secret.jpg' });
-			return res;
-		}) as never;
+		const fetcher = jest.fn(async (url: string) =>
+			url === NAVER
+				? new Response(null, { status: 302, headers: { location: 'http://169.254.169.254/latest/meta-data/' } })
+				: imageResponse(),
+		);
+		service.fetcher = fetcher as never;
 		expect(await codeOf(service.resize(NAVER, 256, 75))).toBe('BAD_REQUEST');
+		// 내부 주소로는 한 번도 요청하지 않았다 (예전에는 fetch가 따라간 뒤에 거절)
+		expect(fetcher.mock.calls.map((call) => call[0])).toEqual([NAVER]);
+		expect((fetcher.mock.calls[0] as unknown[])[1]).toMatchObject({ redirect: 'manual' });
+	});
+
+	it('허용한 출처 사이의 리디렉션은 따라가 받는다 (상대 주소도)', async () => {
+		const service = new ImagesService();
+		const next = 'https://imgnews.pstatic.net/image/032/2026/11/18/b.jpg';
+		const fetcher = jest.fn(async (url: string) =>
+			url === NAVER
+				? new Response(null, { status: 301, headers: { location: '/image/032/2026/11/18/b.jpg' } })
+				: imageResponse(),
+		);
+		service.fetcher = fetcher as never;
+		expect(await codeOf(service.resize(NAVER, 256, 75))).toBe('ok');
+		expect(fetcher.mock.calls.map((call) => call[0])).toEqual([NAVER, next]);
+	});
+
+	it('리디렉션이 너무 많으면 멈춘다 (끝없이 돌지 않게)', async () => {
+		const service = new ImagesService();
+		const fetcher = jest.fn(async () => new Response(null, { status: 302, headers: { location: NAVER } }));
+		service.fetcher = fetcher as never;
+		expect(await codeOf(service.resize(NAVER, 256, 75))).toBe('BAD_REQUEST');
+		expect(fetcher).toHaveBeenCalledTimes(4);
 	});
 
 	it('원본이 없거나(지워진 기사 사진) 사진이 아니면 404: 웹이 대신할 사진으로 넘어간다', async () => {

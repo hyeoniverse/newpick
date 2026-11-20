@@ -26,6 +26,8 @@ export const ALLOWED_WIDTHS = new Set([16, 32, 48, 64, 96, 128, 256, 384, 640, 7
 /** 원본 크기 상한 · 받기 시간 제한 */
 const MAX_SOURCE_BYTES = 15 * 1024 * 1024;
 const FETCH_TIMEOUT_MS = 10_000;
+/** 따라갈 리디렉션 수 (CDN의 주소 바꿈 한두 번이면 충분하다) */
+const MAX_REDIRECTS = 3;
 
 export type ResizedImage = { body: Buffer; contentType: string };
 
@@ -87,13 +89,28 @@ export class ImagesService {
 		return { body, contentType: 'image/webp' };
 	}
 
-	/** 원본 받기. 원본이 없으면(지워진 기사 사진) 404: 웹이 대신할 사진으로 넘어간다 */
+	/**
+	 * 원본 받기. 원본이 없으면(지워진 기사 사진) 404: 웹이 대신할 사진으로 넘어간다.
+	 * 리디렉션은 직접 따라간다(redirect: 'manual'): 다음 주소를 **요청하기 전에** 허용한 곳인지 본다.
+	 * 예전에는 fetch가 리디렉션을 끝까지 따라간 뒤 끝 주소만 봐서, 허용한 사이트의 열린 리디렉트를 거치면
+	 * 내부 주소(169.254.169.254 · 10.x 등)로 요청은 이미 나간 뒤였다 (응답만 버림, SSRF)
+	 */
 	private async download(source: URL): Promise<Buffer> {
-		const res = await this.fetcher(source.href, { signal: AbortSignal.timeout(FETCH_TIMEOUT_MS) }).catch((error) => {
-			throw new AppException('NOT_FOUND', `사진을 받지 못했습니다: ${errorMessage(error)}`);
-		});
-		// 리디렉션을 따라간 끝 주소도 허용한 곳이어야 한다 (허용한 곳을 거쳐 내부 주소로 가지 않게)
-		if (res.url && res.url !== source.href) this.sourceUrl(res.url);
+		let url = source;
+		let res: Response | undefined;
+		for (let hop = 0; ; hop++) {
+			res = await this.fetcher(url.href, {
+				redirect: 'manual',
+				signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+			}).catch((error) => {
+				throw new AppException('NOT_FOUND', `사진을 받지 못했습니다: ${errorMessage(error)}`);
+			});
+			const location = res.status >= 300 && res.status < 400 ? res.headers.get('location') : null;
+			if (!location) break;
+			if (hop >= MAX_REDIRECTS) throw new AppException('BAD_REQUEST', '사진 원본의 리디렉션이 너무 많습니다.');
+			// 다음 주소도 허용한 출처 · https여야 한다 (아니면 요청하지 않고 거절)
+			url = this.sourceUrl(new URL(location, url).href);
+		}
 		if (!res.ok) throw new AppException('NOT_FOUND', `사진 원본 ${res.status}`);
 		if (!res.headers.get('content-type')?.startsWith('image/')) throw new AppException('NOT_FOUND', '사진이 아닙니다.');
 		if (Number(res.headers.get('content-length') ?? 0) > MAX_SOURCE_BYTES) {
