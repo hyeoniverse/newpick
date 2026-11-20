@@ -28,5 +28,13 @@
     "next": {
       "postcss": "^8.5.33"
     }
+  },
+  "allowScripts": {
+    "@prisma/client": true,
+    "@prisma/engines": true,
+    "prisma": true,
+    "@vercel/speed-insights": true,
+    "unrs-resolver": true,
+    "fsevents": true
   }
 }
