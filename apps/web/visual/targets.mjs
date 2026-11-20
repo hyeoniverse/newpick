@@ -99,6 +99,32 @@ export const OPEN_STATES = [
 		},
 	},
 	{
+		name: 'date-picker',
+		path: '/admin/ui',
+		modes: ['desk-light', 'mobile'],
+		run: async (page) => {
+			const input = page.getByPlaceholder('날짜 선택').first();
+			await input.scrollIntoViewIfNeeded();
+			await input.click();
+		},
+	},
+	{
+		// 기간 '직접 지정' 달력 (관리자 대시보드)
+		name: 'period-picker',
+		path: '/admin',
+		modes: ['desk-light', 'mobile'],
+		run: async (page) => {
+			await page.getByRole('button', { name: '직접 지정' }).first().click();
+			await page.locator('.react-datepicker__input-container input').first().click();
+		},
+	},
+	{
+		name: 'profile-menu',
+		path: '/',
+		modes: ['desk-light'],
+		run: async (page) => page.getByRole('button', { name: '내 계정 메뉴' }).first().click(),
+	},
+	{
 		name: 'sort-select',
 		path: '/mypage?tab=bookmarks',
 		modes: ['desk-light', 'mobile'],
