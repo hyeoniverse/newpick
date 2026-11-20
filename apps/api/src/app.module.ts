@@ -74,6 +74,7 @@ import { THROTTLE } from 'src/common/throttle';
 })
 export class AppModule implements NestModule {
 	configure(consumer: MiddlewareConsumer) {
-		consumer.apply(ConfigLoggerMiddleware, CoopMiddleware).forRoutes('*');
+		// Express 5(NestJS 11) 경로 문법: 모든 경로는 '*'가 아니라 이름 붙인 와일드카드 '{*path}'
+		consumer.apply(ConfigLoggerMiddleware, CoopMiddleware).forRoutes('{*path}');
 	}
 }

@@ -1,5 +1,4 @@
 import * as Sentry from '@sentry/nestjs';
-import { nodeProfilingIntegration } from '@sentry/profiling-node';
 import * as dotenv from 'dotenv';
 import { env } from 'src/config/env';
 
@@ -10,11 +9,10 @@ const dsn = env.sentryDsn;
 
 // DSN이 없으면 Sentry 없이 실행합니다 (로컬 개발, 비용 절감 배포).
 if (dsn) {
+	// 오류 기록 + 성능 추적(요청 10%)만. 프로파일(함수 단위 CPU 시간)은 쓰지 않아 뺐다 (#330, 필요하면 @sentry/profiling-node를 다시 넣는다)
 	Sentry.init({
 		dsn,
-		integrations: [nodeProfilingIntegration()],
 		tracesSampleRate: 0.1,
-		profilesSampleRate: 0.1,
 		environment: env.nodeEnv,
 	});
 } else {
