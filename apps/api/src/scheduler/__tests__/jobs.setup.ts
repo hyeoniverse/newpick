@@ -82,7 +82,7 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
 			),
 		},
 		// 그날 이미 있는 뉴스레터 (기본 없음)
-		newsletter: { findMany: jest.fn().mockResolvedValue([]) },
+		newsletter: { findMany: jest.fn().mockResolvedValue([]), findUnique: jest.fn() },
 		jobRun: {
 			updateMany: jest.fn().mockResolvedValue({ count: 0 }),
 			create: jest.fn().mockResolvedValue({ id: 41 }),

@@ -12,6 +12,8 @@ interface ModalProps {
 	onConfirmClick?: () => void; // 확인 버튼 클릭 핸들러
 	/** 설명 아래 단추 위에 넣을 것 (예: 고르기 칸) */
 	children?: React.ReactNode;
+	/** 확인 단추를 누를 수 없게 (고른 것이 없을 때 등) */
+	confirmDisabled?: boolean;
 }
 
 /* 버튼은 폭을 나눠 꽉 채운다. 높이는 Button의 변수로 (Button 안의 크기 규칙이 이 변수를 읽는다) */
@@ -27,6 +29,7 @@ function ModalContent({
 	onCancelClick,
 	onConfirmClick,
 	children,
+	confirmDisabled,
 }: ModalProps) {
 	return (
 		<div className="flex w-full flex-col items-center gap-6 whitespace-pre-line pt-2">
@@ -56,7 +59,7 @@ function ModalContent({
 					</Button>
 				)}
 				{filledButton && (
-					<Button scheme="primary" size="medium" onClick={onConfirmClick} style={SPLIT}>
+					<Button scheme="primary" size="medium" onClick={onConfirmClick} disabled={confirmDisabled} style={SPLIT}>
 						{filledButton}
 					</Button>
 				)}

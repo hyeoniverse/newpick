@@ -11,7 +11,7 @@ import MoreLink from '@/components/common/MoreLink';
 import StatusBadge, { toneOf } from '@/components/common/StatusBadge';
 import { useAdminQuery } from '../period';
 import { when } from '../../_lib/format';
-import { JOB_LABEL, RUN_STATUS_LABEL, scheduleText } from '../../_lib/jobs';
+import { JOB_LABEL, RUN_STATUS_LABEL, scheduleText, TRIGGER_LABEL } from '../../_lib/jobs';
 import type { JobActions } from './useJobActions';
 
 /** 예약 작업: 켜기 · 끄기 스위치, 언제 도는지, 마지막 실행 결과, 지금 실행 · 빠진 날, 시간 설정 */
@@ -87,21 +87,21 @@ export default function JobsTable({
 									{run.running
 										? `${when(run.startedAt, today)} 시작`
 										: run.finishedAt
-											? `${when(run.finishedAt, today)}${run.trigger === 'manual' ? ' · 지금 실행' : ''} · ${run.message}`
+											? `${when(run.finishedAt, today)}${run.trigger && run.trigger !== 'schedule' ? ` · ${TRIGGER_LABEL[run.trigger]}` : ''} · ${run.message}`
 											: ADMIN.jobs.noRunsYet}
 								</span>
+								{/* AI 요약에서 실패한 관심사는 작업이 끝난 뒤 자동으로 다시 시도한다: 다음 시각 · 관심사 */}
+								{job === 'summary' && scheduler.summaryRetry && (
+									<span className="job-retry">
+										{ADMIN.jobs.retryPlanned(
+											when(scheduler.summaryRetry.at, today),
+											scheduler.summaryRetry.categories.join(', '),
+											scheduler.summaryRetry.attempt,
+										)}
+									</span>
+								)}
 							</div>
 							<div className="job-actions">
-								<Button
-									scheme="monoOutline"
-									size="small"
-									icon={<LuPlay aria-hidden />}
-									iconPosition="left"
-									onClick={() => runNow(job)}
-									disabled={run.running}
-								>
-									지금 실행
-								</Button>
 								{job === 'summary' && (
 									<Button
 										scheme="monoOutline"
@@ -114,6 +114,16 @@ export default function JobsTable({
 										빠진 날
 									</Button>
 								)}
+								<Button
+									scheme="monoOutline"
+									size="small"
+									icon={<LuPlay aria-hidden />}
+									iconPosition="left"
+									onClick={() => runNow(job)}
+									disabled={run.running}
+								>
+									지금 실행
+								</Button>
 							</div>
 						</li>
 					);

@@ -113,6 +113,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 			mailing: this.mailJob.enabled,
 			mailSendCycle: this.getMailSendCycle(),
 			runs: this.jobRuns.getRuns(),
+			summaryRetry: this.summaryJob.getAutoRetry(),
 		};
 	}
 
@@ -135,6 +136,29 @@ export class SchedulerService implements OnApplicationBootstrap {
 			this.logger.error(`수동 AI 요약 실패: ${errorMessage(error)}`);
 		}
 	}
+	/**
+	 * 날짜 하나 고쳐 채우기 (관리자 '빠진 날'): 고른 빠진 관심사를 만든 뒤, 고른 뉴스레터를 하나씩 다시 쓴다.
+	 * 요약은 한 번에 하나만 돌므로 차례로 기다린다. 하나가 실패해도 나머지는 계속한다 (실행 기록은 하나씩 남는다)
+	 */
+	async manualFixDay(
+		at: Date | undefined,
+		categoryIds: number[] | undefined,
+		rewrites: { id: number; at: Date; categoryId: number }[],
+	) {
+		try {
+			if (!categoryIds || categoryIds.length) {
+				this.jobRuns.markManual('summary');
+				await (categoryIds ? this.summaryJob.makeCategories(at, categoryIds) : this.summaryJob.makeAiSummary(at));
+			}
+			for (const rewrite of rewrites) {
+				this.jobRuns.markManual('summary');
+				await this.summaryJob.makeAiSummary(rewrite.at, rewrite.categoryId, rewrite.id);
+			}
+		} catch (error) {
+			this.logger.error(`빠진 날 고쳐 채우기 실패: ${errorMessage(error)}`);
+		}
+	}
+
 	async manualStartMailSend() {
 		this.logger.debug('메일 발송 수동 시작');
 		this.jobRuns.markManual('mail');

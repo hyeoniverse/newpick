@@ -62,7 +62,12 @@ export class JobRunsService {
 
 	/** 다음 실행을 관리자의 '지금 실행'으로 남긴다 */
 	markManual(name: JobName) {
-		this.nextTrigger[name] = 'manual';
+		this.markTrigger(name, 'manual');
+	}
+
+	/** 다음 실행이 무엇으로 시작됐는지 남긴다 (예: 실패한 관심사의 자동 재시도) */
+	markTrigger(name: JobName, trigger: JobTrigger) {
+		this.nextTrigger[name] = trigger;
 	}
 
 	/** 이번 실행이 예약인지 '지금 실행'인지 (한 번 쓰면 비운다) */

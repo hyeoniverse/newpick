@@ -83,10 +83,10 @@ function Modal({ onClose }: Props) {
 		handleClose();
 	};
 
+	// 바깥 막을 직접 눌렀을 때만 닫는다. 시트 안 날짜 달력처럼 body에 따로 그린(portal) 것의 클릭도 React에서는 여기로 올라와,
+	// '시트 밖'으로 보고 닫으면 달력에서 날짜를 고르는 순간 시트가 닫혔다
 	const handleOverlayClick = (e: React.MouseEvent) => {
-		if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
-			handleClose();
-		}
+		if (e.target === e.currentTarget) handleClose();
 	};
 
 	const handleKeydown = useCallback(
