@@ -28,26 +28,18 @@
 		color: var(--np-color-sub-text);
 	}
 
-	/* 시 · 분 두 줄: 달력과 같은 얇은 테두리 · 8px 모서리 · 그림자 없음 */
+	/* 시 · 분 두 줄: 달력과 같은 얇은 테두리 · 8px 모서리 · 그림자 없음.
+	   top layer(popover)에 띄우고 자리는 useTopLayer가 칸 옆으로 잡는다 (#313) */
 	.panel {
-		position: absolute;
-		top: calc(100% + 0.25rem);
-		left: 0;
-		z-index: var(--np-z-popover);
+		position: fixed;
 		display: grid;
 		grid-template-columns: 1fr 1fr;
 		gap: 0.25rem;
-		width: 100%;
 		min-width: 8.5rem;
 		padding: 0.375rem;
 		border: 1px solid var(--np-color-border);
 		border-radius: 8px;
 		background: var(--np-color-background);
-
-		&.upward {
-			top: auto;
-			bottom: calc(100% + 0.25rem);
-		}
 	}
 
 	ul {

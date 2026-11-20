@@ -28,12 +28,9 @@
 		}
 	}
 
+	/* 펼친 목록: top layer(popover)에 띄우고 자리 · 폭은 useTopLayer가 칸에 맞춘다 (#313) */
 	.options-list {
-		position: absolute;
-		top: calc(100% + 0.375rem);
-		left: 0;
-		z-index: var(--np-z-popover);
-		width: 100%;
+		position: fixed;
 		max-height: 16rem;
 		margin: 0;
 		padding: 0.375rem;
@@ -45,13 +42,15 @@
 		background: var(--np-color-background);
 		box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 
-		visibility: hidden;
-		opacity: 0;
-		transform: translateY(-0.25rem);
 		transition:
 			opacity 0.15s ease,
-			transform 0.15s ease,
-			visibility 0.15s;
+			transform 0.15s ease;
+
+		/* 열릴 때 살짝 내려오며 나타난다 (popover가 보이기 시작하는 첫 모습) */
+		@starting-style {
+			opacity: 0;
+			transform: translateY(-0.25rem);
+		}
 	}
 
 	/* 펼침 (data-open) */
@@ -62,12 +61,6 @@
 		.select-arrow {
 			transform: rotate(180deg);
 		}
-	}
-
-	&:where([data-open]) .options-list {
-		visibility: visible;
-		opacity: 1;
-		transform: translateY(0);
 	}
 
 	/* 작은 칸: 거르기 칩과 같은 높이 · 둥근 모서리, 글자 폭만큼. 펼친 목록은 오른쪽 끝에 맞춘다 */
@@ -88,10 +81,7 @@
 		}
 
 		.options-list {
-			left: auto;
-			right: 0;
 			width: max-content;
-			min-width: 100%;
 		}
 
 		.option-item {
