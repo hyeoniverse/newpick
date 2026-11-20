@@ -40,14 +40,73 @@ AI가 그날의 기사를 읽고 분야별로 중요한 소식만 골라 정리�
 
 ## 목차
 
-[한눈에](#한눈에) · [화면 둘러보기](#화면-둘러보기) · [주요 기능](#주요-기능) · [동작 흐름](#동작-흐름) · [운영 숫자](#운영-숫자) · [AI 설계](#ai-설계) · [아키텍처](#아키텍처) · [데이터 모델](#데이터-모델) · [v1 → v2](#v1--v2-팀-프로젝트를-운영-서비스로) · [모바일 성능](#모바일-성능-292) · [운영하며 해결한 문제](#운영하며-해결한-문제) · [개발](#개발)
+[한눈에](#한눈에) · [보안](#보안) · [화면 둘러보기](#화면-둘러보기) · [주요 기능](#주요-기능) · [동작 흐름](#동작-흐름) · [운영 숫자](#운영-숫자) · [AI 설계](#ai-설계) · [아키텍처](#아키텍처) · [데이터 모델](#데이터-모델) · [v1 → v2](#v1--v2-팀-프로젝트를-운영-서비스로) · [모바일 성능](#모바일-성능-292) · [운영하며 해결한 문제](#운영하며-해결한-문제) · [개발](#개발)
 
 ## 한눈에
 
+- 🔐 **보안을 기본값으로, 그리고 직접 점검**: 모든 API를 로그인 필요로 두고 공개 · 관리자 API를 열어 주는 방식(기본 거부), 라우트 **120개**의 권한을 테스트로 고정. 세션 토큰은 httpOnly 쿠키 · 서버에는 해시만. 배포 구조를 따라 점검해 **취약점 4개를 찾아 고침**(요청 제한이 전체 공용 · 로그인 CSRF · SSRF · 이미지 고정). 의존성 취약점 api **171 → 0** · 웹 **35 → 0** → [보안](#보안)
 - 🗞️ **혼자 만들고 매일 운영하는 서비스**: 매시 기사를 모으고(최근 30일 **35,361건**), 매일 아침 6개 분야 뉴스레터를 AI가 써서 발행합니다(30일 **144편**). 수집 · 요약 · 메일은 예약 작업으로 돌고, 실패는 대시보드와 Sentry로 봅니다.
 - 💸 **AI 비용을 설계로 줄임**: 모든 기사를 비싼 모델에 넣지 않고 가벼운 모델로 먼저 고른 뒤 쓰기, 맞춤 글은 무료 할당의 오픈 모델 우선 + 하루 비용 상한. 30일 AI 비용 **$11.15**(하루 약 $0.37).
-- 🧹 **두 번의 리팩토링**: 팀 코드를 측정 → 안전망 → 정리 순으로. 순환 import · 서로 import하는 모듈 0, api `strict: true` · `any` 0, 테스트 0 → api **423** · 웹 **192** · E2E.
+- 🧹 **두 번의 리팩토링**: 팀 코드를 측정 → 안전망 → 정리 순으로. 순환 import · 서로 import하는 모듈 0, api `strict: true` · `any` 0, 테스트 0 → api **445** · 웹 **213** · E2E.
 - ⚡ **모바일 성능을 재서 원인부터**: 공개 화면 모두 휴대폰 LCP **2.1초 이하**(실제로 느리게 잰 값), Lighthouse 권장사항 **100**. 상세는 서버(UTC)와 브라우저(KST)의 날짜 차이로 화면 전체를 다시 그리던 것을 찾아 LCP 4.6 → 1.0초.
+
+## 보안
+
+혼자 운영하는 서비스라 **사고가 나면 막아 줄 사람이 없다**는 전제로, 기본값을 안전한 쪽에 두고 그 규칙을 테스트 · 검사로 잠갔습니다. 아래는 모두 지금 코드에 있는 것입니다.
+
+```mermaid
+flowchart LR
+  B["브라우저"] -->|"HTTPS"| V["웹 (Vercel)<br/>frame-ancestors CSP"]
+  V -->|"/api 프록시<br/>같은 사이트 쿠키"| CF["Cloudflare"]
+  B -->|"사진만 /images"| CF
+  CF --> T["Cloudflare Tunnel<br/>(서버는 인바운드 포트 없음)"]
+  T --> A["api (NestJS)<br/>기본 거부 · 사람별 요청 제한<br/>입력 검증 · 오류 숨김"]
+  A --> DB[("MySQL · MongoDB<br/>같은 VM 안에서만")]
+```
+
+### 위협별 대응
+
+| 위협 | 대응 | 어디서 · 어떻게 확인 |
+| --- | --- | --- |
+| **권한 없는 API 호출** | 전역 `JwtAuthGuard`로 모든 라우트가 로그인 필요(기본 거부). 공개는 `@Public`, 관리자는 `@AdminOnly`로 하나씩 열어 줌. v1의 위험한 API(인증 없이 데이터를 바꾸던 것)는 삭제하고, 관리자 권한을 스스로 올리던 경로를 막음 | `route-policy.spec.ts`가 라우트 **120개**(공개 25 · 로그인 49 · 관리자 46)의 정책을 표로 고정 → 라우트를 추가하거나 정책이 바뀌면 테스트가 실패 |
+| **세션 탈취 (XSS로 토큰 훔치기)** | access · refresh token은 `httpOnly` · `Secure` · `SameSite=Lax` 쿠키. 스크립트가 읽을 수 있는 쿠키(`logged_in`)는 로그인 여부 표시뿐, 토큰이 아님 | `auth/cookie-options.ts` |
+| **토큰 유출 시 피해** | DB에는 refresh token 원문 대신 **SHA-256 해시**만 저장. 갱신할 때마다 새 토큰으로 교체(rotation), 동시 요청은 60초 유예. 로그인한 기기 목록 · 기기별 로그아웃 · 다른 기기 모두 로그아웃 | `auth/auth.service.ts` · 마이페이지 '로그인한 기기' |
+| **XSS (AI가 쓴 본문)** | 뉴스레터 본문은 저장된 HTML이라, 그리기 전에 DOMPurify로 정리. v1에서 본문을 그대로 넣던 XSS를 고침 | `utils/sanitizeHtml.ts` (서버 · 브라우저 같은 규칙, 테스트) |
+| **SSRF (사진 서버)** | 사진 줄이기 api는 **허용한 출처(뉴스 사진 CDN 등) · https · 정해진 폭만** 받음. 리디렉션은 직접 따라가며(`redirect: 'manual'`) **다음 주소를 요청하기 전에** 허용 목록 확인(최대 3번), 이미지 형식 · 크기 · 시간 제한 | `images/images.service.ts` (테스트: 내부 주소로 요청 0번) |
+| **클릭재킹** | `Content-Security-Policy: frame-ancestors 'self' https://*.hyeoniverse.com` | `apps/web/next.config.ts` |
+| **CSRF** | 쿠키는 `SameSite=Lax`, 브라우저는 같은 사이트의 `/api` 프록시로만 요청. CORS는 프론트 주소 하나만 · 자격 증명 허용 | `main.ts` CORS · `next.config.ts` rewrites |
+| **로그인 CSRF** | Google 로그인에 `state`: 무작위 32바이트를 httpOnly 쿠키(10분)에 두고 돌아오면 `timingSafeEqual`로 비교, 쿠키는 한 번 쓰고 지움. 다른 사람이 받은 로그인 콜백 주소를 열어도 거절 | `auth/oauth-state.ts` (테스트) |
+| **요청 폭주 · 무차별 대입** | 요청 횟수 제한을 **로그인한 사용자 id** 또는 Cloudflare의 **`CF-Connecting-IP`**로 셈(접속자가 꾸밀 수 있는 `X-Forwarded-For`는 쓰지 않음). 기본 1분 120회, 이메일 인증 코드 보내기 1분 5회 · 확인 1분 10회 | `common/client-throttler.guard.ts` · `common/throttle.ts` (테스트) |
+| **입력 조작** | 전역 `ValidationPipe`(`whitelist` · `forbidNonWhitelisted`): DTO에 없는 칸이 오면 400. DB는 Prisma · Mongoose만, 문자열로 만드는 SQL(`$queryRawUnsafe`) **0곳** | api 응답 비교 도구로 오류 응답까지 확인 |
+| **내부 정보 노출** | 모든 오류를 `{ statusCode, code, message }` 한 모양으로. 500은 내부 메시지 · 스택을 응답에 싣지 않고 로그 · Sentry로만 | `common/errors/api-exception.filter.ts` · [docs/api-errors.md](docs/api-errors.md) |
+| **위조된 수신 거부 · 인증 코드 맞히기** | 수신 거부 링크는 **HMAC-SHA256 서명**(비교는 `timingSafeEqual`), 메일 머리글로 원클릭 수신 거부(RFC 8058). 이메일 변경 코드는 `crypto.randomInt` 6자리를 해시로 저장 · 10분 · **5번 틀리면 다시 받기** · 다시 보내기는 1분 뒤 | `subscriber/unsubscribe-token.ts` · `mypage/email-change.service.ts` (테스트) |
+| **비밀값 · 설정 실수** | 비밀값은 환경 변수로만(`.env*`는 git 제외). 서버가 켜질 때 필수 값 · 형식 · 짝을 검사하고 틀리면 시작하지 않음 | `config/env.validation.ts` |
+| **서버 노출** | 서버는 인바운드 포트를 열지 않고 Cloudflare Tunnel로만 연결. DB는 같은 VM 안 Docker 네트워크에서만 | [docs/deployment.md](docs/deployment.md) |
+| **공급망 · 의존성** | 의존성 취약점을 0으로 유지(api **171 → 0**, 웹 **35 → 0**, 개발 도구 포함). npm 11 설치 스크립트 **허용 목록**(`allowScripts`)으로 목록에 없는 패키지는 설치 때 코드를 돌리지 못함. 운영 컨테이너 이미지는 판 · 해시(`@sha256`)로 고정. 잠금 파일 하나 · CI는 `npm ci` | `npm audit` · `ops/compose.yml` · [docs/baseline.md](docs/baseline.md) |
+| **배포 권한** | GitHub Actions의 배포 키는 서버 `authorized_keys`에서 `command=`로 **배포 스크립트 하나만** 돌게 묶음(셸 · 포트 포워딩 없음), 보내는 것은 이미지 태그뿐 | [docs/deployment.md](docs/deployment.md) |
+| **개인정보** | 비밀번호를 받지 않음(Google 로그인). 모으는 항목 · 맡기는 업체를 실제 코드 · 배포 기준으로 처리방침에 적음. 탈퇴하면 회원 정보 · 관심사 · 구독 · 북마크 · 발송 기록을 한 번에 파기 | [개인정보 처리방침](https://newpick.hyeoniverse.com/privacy) · `common/delete-account.ts` |
+
+### 직접 점검해 찾고 고친 것 ([#332](https://github.com/hyeoniverse/newpick/pull/332))
+
+README를 쓰려고 "이 방어가 **이 배포 구조에서** 실제로 동작하는가"를 요청이 들어오는 길(브라우저 → Vercel → Cloudflare → Tunnel → api)을 따라 하나씩 확인했습니다. 코드만 보면 맞아 보이던 방어 중 넷이 구조 때문에 비어 있었습니다.
+
+| | 찾은 것 | 왜 생겼나 | 고친 것 | 확인 |
+| --- | --- | --- | --- | --- |
+| 1 | **요청 횟수 제한이 사실상 전체 공용** (위험 높음: 한 사람이 모두를 막을 수 있음, 인증 코드 제한도 공용) | 제한이 `req.ip` 기준인데, api는 Tunnel 뒤라 `req.ip`가 늘 cloudflared 컨테이너 하나 | 로그인한 요청은 사용자 id, 그 밖은 `CF-Connecting-IP`(서버에 인바운드 포트가 없어 모든 요청이 Cloudflare를 거치고, Cloudflare가 덮어써 꾸밀 수 없음). 사용자 id를 쓰려고 전역 가드 순서를 '로그인 확인 → 요청 제한'으로 | 테스트 5개 · 로컬에서 A가 121번째에 429일 때 B는 200 |
+| 2 | **Google 로그인에 `state` 없음** (로그인 CSRF) | passport 기본 설정에 세션 저장소가 없어 state를 쓰지 않음 | 쿠키 기반 state 저장소를 passport-oauth2 `store`로 | 테스트 6개 · 위조한 state는 구글에 확인하지 않고 바로 거절 |
+| 3 | **사진 서버 SSRF**: 리디렉션을 따라간 뒤에 끝 주소만 검사 | `fetch`가 리디렉션을 자동으로 따라가, 허용한 사이트의 열린 리디렉트를 거치면 내부 주소로 요청이 이미 나감 | `redirect: 'manual'`로 한 단계씩, 다음 주소를 요청하기 **전에** 검사 | 테스트 3개 · `169.254.169.254`로 요청 0번 |
+| 4 | **운영 이미지가 `latest`** (공급망) | 다시 받을 때마다 모르는 판 | `cloudflared:2026.10.7@sha256:…` | 서버에 적용 · 헬스 체크 |
+
+**고치다 찾은 버그도 남깁니다**: 2번을 처음 고쳤을 때 단위 테스트 · 가짜 코드 시험은 모두 통과했는데, 실제 Google 로그인은 실패했습니다. 로그인 경로에 임시 기록을 남겨 보니 state 확인 결과로 돌려준 문자열을 passport-oauth2가 **PKCE `code_verifier`로 착각해** 구글에 보내고 있었습니다(`TokenError: code_verifier or verifier is not needed`). 가짜 코드 시험은 어차피 코드 확인 단계에서 실패해 이 버그를 가렸습니다. 확인 결과를 `true`로 바꾸고 테스트로 고정했고, **보안 수정은 실제 흐름으로 끝까지 확인한다**는 것을 규칙으로 삼았습니다.
+
+**다음 과제**: CSP에 `script-src` 등을 더해 XSS의 2차 방어 만들기(Next.js 인라인 스크립트에 nonce가 필요해 따로 진행).
+
+### 일하는 방식
+
+- **배포 구조를 따라 점검합니다**: 코드 한 줄이 아니라 요청이 실제로 지나는 길(프록시 · Tunnel · 컨테이너)에서 방어가 동작하는지 봅니다 (위 #332)
+- **규칙은 사람 대신 검사가 지킵니다**: 라우트 권한 표(테스트), 입력 검증(전역 파이프), 오류 모양(필터), 의존성(`npm audit`), 설정(시작할 때 검사)
+- **바꾸기 전 · 후를 비교합니다**: 프레임워크를 올릴 때(NestJS 10 → 11, Express 4 → 5) api 응답 44개와 오류 응답(검증 400 · 없는 경로 404 · CORS · 깨진 JSON)을 두 판에서 같은지 확인 ([#330](https://github.com/hyeoniverse/newpick/pull/330))
+- **판 올림에서 숨은 위험을 찾습니다**: NestJS 11로 올릴 때 설치 위치가 바뀌어 입력 검증 패키지(`class-validator`)를 못 찾고 api가 켜지자마자 멈출 문제를 테스트에서 찾아 고침 (#330)
 
 ## 화면 둘러보기
 
@@ -261,7 +320,7 @@ erDiagram
 | api 타입 | `strictNullChecks` · `noImplicitAny` 꺼짐 | `strict: true`, `any` 0곳 |
 | 도구 | 두 앱의 포맷 · ESLint 판이 다름 | 같은 Prettier · ESLint 9 |
 | 겹치는 층 (z-index) | 9999 · 1000 · 1001 · 999 … 숫자 경쟁 | 이름 붙인 층(sticky < header < modal < popover < toast) |
-| 테스트 | api 362 · 웹 109 | api **423** · 웹 **192** · E2E 5개 묶음 |
+| 테스트 | api 362 · 웹 109 | api **445** · 웹 **213** · E2E 5개 묶음 |
 
 정한 규칙은 lint · 검사 스크립트로 잠가 다시 흐트러지지 않게 했습니다 ([docs/structure.md](docs/structure.md)).
 
