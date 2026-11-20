@@ -1,6 +1,6 @@
 import type { MailPlan } from 'src/edition/mail-plan';
 import { Inject, Injectable, Logger } from '@nestjs/common';
-import nodemailer from 'nodemailer';
+import nodemailer, { type Transporter, type TransportOptions } from 'nodemailer';
 import PQueue from '@esm2cjs/p-queue';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { NODEMAILER } from './constants';
@@ -51,7 +51,7 @@ export type BulkMailResult = {
 
 @Injectable()
 export class MailService {
-	private readonly transporter: nodemailer.Transporter;
+	private readonly transporter: Transporter;
 	private readonly from = env.mailUser;
 	/** 재시도 간격 기준값. 테스트에서 0으로 바꿉니다. */
 	protected retryBaseDelay = RETRY_BASE_DELAY;
@@ -60,7 +60,7 @@ export class MailService {
 
 	constructor(
 		private readonly prisma: MysqlPrismaService,
-		@Inject(NODEMAILER) config: nodemailer.TransportOptions,
+		@Inject(NODEMAILER) config: TransportOptions,
 	) {
 		this.transporter = nodemailer.createTransport(config);
 	}
