@@ -3,6 +3,7 @@
 import React, { useState, useRef, useCallback, useId } from 'react';
 import { LuChevronDown, LuCheck } from 'react-icons/lu';
 import { useDismiss } from '@/hooks/useDismiss';
+import { useTopLayer } from '@/hooks/useTopLayer';
 
 interface Props {
 	id?: string;
@@ -42,6 +43,8 @@ const InputSelect: React.FC<Props> = ({
 	const [isOpen, setIsOpen] = useState(false);
 	const [active, setActive] = useState(-1);
 	const selectRef = useRef<HTMLDivElement>(null);
+	const buttonRef = useRef<HTMLButtonElement>(null);
+	const listRef = useRef<HTMLUListElement>(null);
 	const autoId = useId();
 	const buttonId = id ?? autoId;
 	const listId = `${buttonId}-list`;
@@ -94,6 +97,15 @@ const InputSelect: React.FC<Props> = ({
 
 	// 바깥을 누르면 닫기 (Esc는 위 키 처리가 맡는다)
 	useDismiss({ open: isOpen, refs: [selectRef], onClose: close, escape: false });
+	// 펼친 목록은 top layer로 (#313). 작은 칸은 글자 폭만큼 · 칸 오른쪽 끝에 맞추고, 기본은 칸과 같은 폭
+	useTopLayer({
+		open: isOpen,
+		anchorRef: buttonRef,
+		panelRef: listRef,
+		gap: 6,
+		align: size === 'small' ? 'end' : 'start',
+		width: size === 'small' ? 'min' : 'exact',
+	});
 
 	return (
 		<div ref={selectRef} data-open={isOpen || undefined} className={`np-select ${size} ${className ?? ''}`}>
@@ -103,6 +115,7 @@ const InputSelect: React.FC<Props> = ({
 				</label>
 			)}
 			<button
+				ref={buttonRef}
 				id={buttonId}
 				type="button"
 				name={name}
@@ -117,7 +130,14 @@ const InputSelect: React.FC<Props> = ({
 				<span>{selected?.label ?? placeholder}</span>
 				<LuChevronDown className="select-arrow" aria-hidden />
 			</button>
-			<ul id={listId} className="options-list" role="listbox" aria-label={label ?? ariaLabel ?? placeholder}>
+			<ul
+				ref={listRef}
+				id={listId}
+				popover="manual"
+				className="options-list"
+				role="listbox"
+				aria-label={label ?? ariaLabel ?? placeholder}
+			>
 				{options.map((option, i) => (
 					<li
 						key={option.value}

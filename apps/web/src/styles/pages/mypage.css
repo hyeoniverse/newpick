@@ -2154,9 +2154,9 @@
 
 /* app/(protected)/mypage/_components/folders/FolderMenu.tsx */
 /* body에 띄우는 메뉴 (자리는 style로) */
+/* top layer(popover)에 띄우고 자리는 useTopLayer가 단추 옆으로 잡는다 (#313) */
 .np-mypage-folder-menu-menu {
 	position: fixed;
-	z-index: var(--np-z-popover);
 	display: flex;
 	flex-direction: column;
 	min-width: 13rem;

@@ -3,6 +3,7 @@
 import type { FieldSize } from '@/types/ui';
 import { useEffect, useId, useRef, useState } from 'react';
 import { useDismiss } from '@/hooks/useDismiss';
+import { useTopLayer } from '@/hooks/useTopLayer';
 import { LuClock } from 'react-icons/lu';
 import { pad2 } from '@/utils/formatter';
 
@@ -27,9 +28,9 @@ interface Props {
 export default function TimePicker({ value, onChange, label, minuteStep = 5, size = 'medium', className }: Props) {
 	const id = useId();
 	const [open, setOpen] = useState(false);
-	// 아래 자리가 모자라면 위로 연다
-	const [upward, setUpward] = useState(false);
 	const rootRef = useRef<HTMLDivElement>(null);
+	const buttonRef = useRef<HTMLButtonElement>(null);
+	const panelRef = useRef<HTMLDivElement>(null);
 	const [hour, minute] = value.split(':').map(Number);
 	const steps = Array.from({ length: Math.ceil(60 / minuteStep) }, (_, i) => i * minuteStep);
 	// 간격에 없는 분(예: 08:07)도 목록에 보이게
@@ -37,6 +38,8 @@ export default function TimePicker({ value, onChange, label, minuteStep = 5, siz
 
 	// 바깥을 누르거나 Esc면 닫기. Esc는 시각 목록만 닫고, 이 칸을 담은 시트(모달)까지 닫히지 않게 멈춘다
 	useDismiss({ open, refs: [rootRef], onClose: () => setOpen(false), escape: 'stop' });
+	// 칸 바로 아래(자리가 모자라면 위)에 top layer로 띄운다: 담은 시트 · 표의 z-index · overflow에 가리지 않게 (#313)
+	useTopLayer({ open, anchorRef: buttonRef, panelRef, width: 'exact' });
 
 	// 열면 고른 시 · 분이 보이게
 	useEffect(() => {
@@ -56,22 +59,19 @@ export default function TimePicker({ value, onChange, label, minuteStep = 5, siz
 				</label>
 			)}
 			<button
+				ref={buttonRef}
 				id={id}
 				type="button"
 				className="np-field-control time-input"
 				aria-haspopup="listbox"
 				aria-expanded={open}
-				onClick={(event) => {
-					const { bottom } = event.currentTarget.getBoundingClientRect();
-					setUpward(window.innerHeight - bottom < 220);
-					setOpen((prev) => !prev);
-				}}
+				onClick={() => setOpen((prev) => !prev)}
 			>
 				<LuClock className="clock-icon" aria-hidden />
 				{value}
 			</button>
 			{open && (
-				<div className={upward ? 'panel upward' : 'panel'}>
+				<div ref={panelRef} popover="manual" className="panel">
 					<ul role="listbox" aria-label="시">
 						{Array.from({ length: 24 }, (_, h) => (
 							<li key={h}>

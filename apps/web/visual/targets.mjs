@@ -57,6 +57,53 @@ export const OPEN_STATES = [
 		modes: ['desk-light', 'mobile'],
 		run: async (page) => page.getByRole('button', { name: '로그인' }).first().click(),
 	},
+	// 떠 있는 목록 · 메뉴 (top layer, #313): 열었을 때 자리 · 겹침
+	{
+		name: 'time-picker',
+		path: '/admin/ui',
+		modes: ['desk-light', 'mobile'],
+		run: async (page) => {
+			const button = page.locator('.np-time-picker .time-input').first();
+			await button.scrollIntoViewIfNeeded();
+			await button.click();
+		},
+	},
+	{
+		name: 'header-select',
+		path: '/admin/ui',
+		modes: ['desk-light', 'mobile'],
+		run: async (page) => {
+			const button = page.locator('button[aria-label^="관심사 거르기"]').first();
+			await button.scrollIntoViewIfNeeded();
+			await button.click();
+		},
+	},
+	{
+		name: 'select',
+		path: '/admin/ui',
+		modes: ['desk-light', 'mobile'],
+		run: async (page) => {
+			const button = page.locator('.np-select .select-display').first();
+			await button.scrollIntoViewIfNeeded();
+			await button.click();
+		},
+	},
+	{
+		name: 'folder-menu',
+		path: '/mypage?tab=bookmarks',
+		modes: ['desk-light', 'mobile'],
+		run: async (page) => {
+			const button = page.locator('.np-mypage-folder-menu-folder-menu .trigger').nth(1);
+			await button.scrollIntoViewIfNeeded();
+			await button.click();
+		},
+	},
+	{
+		name: 'sort-select',
+		path: '/mypage?tab=bookmarks',
+		modes: ['desk-light', 'mobile'],
+		run: async (page) => page.locator('.np-select.small .select-display').first().click(),
+	},
 ];
 
 /** 찍는 방식: [이름, 폭, 테마] */
