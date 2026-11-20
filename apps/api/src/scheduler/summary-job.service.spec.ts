@@ -197,14 +197,15 @@ describe('자동 재시도: 그래도 실패한 관심사는 작업이 끝난 �
 	it('계속 실패하면 횟수를 올려 간격을 늘린다 (5 → 10분)', async () => {
 		const { summaryJob } = setup(2);
 		const delays: number[] = [];
+		// 첫 자동 재시도만 바로, 그다음은 멀리 (0으로 두면 기다리는 사이 재시도가 계속 이어져 횟수가 흔들렸다)
 		(summaryJob as unknown as { autoRetryDelayMs: (m: number) => number }).autoRetryDelayMs = (minutes) => {
 			delays.push(minutes);
-			return 0;
+			return delays.length === 1 ? 0 : 60 * 60 * 1000;
 		};
 		await summaryJob.makeAiSummary();
 		await nextRun(summaryJob);
 		expect(summaryJob.getAutoRetry()?.attempt).toBe(2);
-		expect(delays.slice(0, 2)).toEqual([5, 10]);
+		expect(delays).toEqual([5, 10]);
 		// 남은 재시도는 끈다 (테스트가 끝난 뒤 돌지 않게)
 		summaryJob.toggleAiSummaryScheduler(false);
 	});

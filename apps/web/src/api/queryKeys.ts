@@ -98,6 +98,8 @@ export const queryKeys = {
 			all: ['adminNewsletters'] as const,
 			list: (query: string) => ['adminNewsletters', query] as const,
 			day: (date: string) => ['adminNewsletters', 'day', date] as const,
+			/** 빠진 날 찾기: 기간 안 뉴스레터 전부 */
+			range: (from: string, to: string) => ['adminNewsletters', 'range', from, to] as const,
 		},
 		newsletter: (id: number) => ['adminNewsletter', id] as const,
 		stats: (kind: 'subscribers' | 'cost' | 'traffic' | 'delivery' | 'page', query: string) =>

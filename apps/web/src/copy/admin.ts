@@ -48,6 +48,7 @@ export const ADMIN = {
 		fillStarted: (date: string, count: number) =>
 			`${date} 뉴스레터 ${count}편 작업을 시작했습니다. 한 편에 1~2분 소요되며, 한 편씩 차례로 진행됩니다.`,
 		noMissing: '그날 빠진 관심사가 없습니다.',
+		noMissingDays: '최근에 관심사가 빠진 날이 없습니다. 다시 쓰려면 아래에서 날짜를 고르십시오.',
 		retryPlanned: (time: string, categories: string, attempt: number) =>
 			`${time}에 자동 재시도 (${attempt}번째) · ${categories}`,
 		runTitle: (job: string) => `${job}을 지금 실행하시겠습니까?`,
@@ -59,7 +60,8 @@ export const ADMIN = {
 		checking: '확인 중입니다.',
 		allDone: '모든 분야가 이미 생성되어 대상이 없습니다.',
 		fillBody:
-			'선택한 날짜에 수집된 기사로 작업합니다. 빠진 관심사는 처음부터 선택되어 있으며 새로 생성해 해당 날짜로 게시합니다. 이미 있는 뉴스레터를 선택하면 내용을 다시 작성합니다(주소 · 발행일 · 조회수는 유지, 직접 수정한 내용은 사라짐). 구독 메일은 발송하지 않으며, 한 편마다 Claude 비용이 발생합니다.',
+			'고른 날의 빠진 관심사를 새로 만들고, 고른 뉴스레터는 다시 씁니다. 구독 메일은 보내지 않으며 한 편마다 Claude 비용이 발생합니다.',
+		rewriteNote: '주소 · 발행일 · 조회수는 그대로이고, 직접 고친 내용은 사라집니다.',
 	},
 	edit: {
 		required: '제목과 요약은 비울 수 없습니다.',

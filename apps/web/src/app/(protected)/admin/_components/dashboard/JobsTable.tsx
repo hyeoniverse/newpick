@@ -101,7 +101,18 @@ export default function JobsTable({
 									</span>
 								)}
 							</div>
-							<div className="job-actions">
+							{/* AI 요약은 지금 실행 아래에 빠진 날 (세로) */}
+							<div className={job === 'summary' ? 'job-actions stacked' : 'job-actions'}>
+								<Button
+									scheme="monoOutline"
+									size="small"
+									icon={<LuPlay aria-hidden />}
+									iconPosition="left"
+									onClick={() => runNow(job)}
+									disabled={run.running}
+								>
+									지금 실행
+								</Button>
 								{job === 'summary' && (
 									<Button
 										scheme="monoOutline"
@@ -114,16 +125,6 @@ export default function JobsTable({
 										빠진 날
 									</Button>
 								)}
-								<Button
-									scheme="monoOutline"
-									size="small"
-									icon={<LuPlay aria-hidden />}
-									iconPosition="left"
-									onClick={() => runNow(job)}
-									disabled={run.running}
-								>
-									지금 실행
-								</Button>
 							</div>
 						</li>
 					);
