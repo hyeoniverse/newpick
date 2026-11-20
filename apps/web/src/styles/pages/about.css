@@ -1905,17 +1905,19 @@
 		}
 	}
 
-	/* 접는 v1: 머리 줄 전체가 버튼. 펼치면 화살표가 돌고 글자가 바뀐다 */
-	details.version {
-		summary {
+	/* 접는 v1: 머리 줄 전체가 버튼. 펼치면 화살표가 돌고 글자가 바뀌며, 팀 목록이 높이 0에서 내용 높이까지 부드럽게 펼쳐진다
+	   (grid-template-rows 0fr → 1fr: 높이를 몰라도 전환된다. 시작하기 메뉴 아코디언과 같은 방식) */
+	.v1 {
+		.v1-toggle {
+			width: 100%;
 			margin: 0;
-			cursor: pointer;
-			list-style: none;
+			padding: 0;
+			border: 0;
 			border-radius: 9999px;
-
-			&::-webkit-details-marker {
-				display: none;
-			}
+			background: none;
+			font: inherit;
+			text-align: left;
+			cursor: pointer;
 
 			&:hover .toggle {
 				color: #ffffff;
@@ -1936,22 +1938,34 @@
 			font-weight: 700;
 			white-space: nowrap;
 
-			.toggle-text::before {
-				content: '펼쳐 보기';
-			}
-
 			svg {
-				transition: transform 0.25s ease;
+				transition: transform 0.35s ease;
 			}
 		}
 
-		&[open] {
-			summary {
-				margin-bottom: 2rem;
-			}
+		.v1-body {
+			display: grid;
+			grid-template-rows: 0fr;
+			opacity: 0;
+			transition:
+				grid-template-rows 0.45s ease,
+				opacity 0.3s ease;
+		}
 
-			.toggle-text::before {
-				content: '접기';
+		.v1-inner {
+			min-height: 0;
+			overflow: hidden;
+		}
+
+		/* 머리 줄과 팀 목록 사이 간격은 안쪽 여백으로 (접히면 같이 0이 되게) */
+		.teams {
+			padding-top: 2rem;
+		}
+
+		&[data-open] {
+			.v1-body {
+				grid-template-rows: 1fr;
+				opacity: 1;
 			}
 
 			.toggle svg {
@@ -1960,9 +1974,14 @@
 		}
 
 		@media (prefers-reduced-motion: reduce) {
-			.toggle svg {
+			.toggle svg,
+			.v1-body {
 				transition: none;
 			}
+		}
+
+		@variant mobile {
+			font-size: var(--np-font-size-extra-small);
 		}
 	}
 
@@ -2341,291 +2360,76 @@
 }
 
 /* app/about/_components/SecuritySection.tsx: 내 정보, 이렇게 지킵니다.
-   화면 폭 전체의 어두운 띠(테마와 상관없이 늘 어둡게, 금고 안 느낌) 위에 옅은 실선 격자 → 요청이 지나는 길 → 약속 카드 */
+   화면 폭 전체의 연회색 띠(핵심 기능과 같은 surface) 안에서, 장면이 화면에 붙은 채(sticky) 스크롤하는 동안
+   큰 숫자 · 설명 · 뒤의 영문 이름이 여섯 장면으로 바뀐다. 색은 모두 사이트 토큰 */
 .np-about-security-section-security {
-	/* 띠 안에서는 글자 · 선 색을 어두운 바탕에 맞춘다 (BorderTitle · 제목도 이 값을 쓴다) */
-	--np-color-text: #f4f5ff;
-	--np-color-sub-text: #a3a8c9;
-	--np-color-border: rgba(255, 255, 255, 0.12);
-	--sec-accent: #8f7bff;
-	--sec-bg: #0c0d1d;
 	--gutter: max(1rem, calc((100vw - 1024px) / 2));
-
 	width: 100vw;
 	margin-left: calc(50% - 50vw);
-	padding: 7rem var(--gutter) 6rem;
-	color: var(--np-color-text);
+	background: var(--np-color-surface);
 	word-break: keep-all;
-	background:
-		radial-gradient(60rem 30rem at 85% 0%, rgba(143, 123, 255, 0.22), transparent 70%),
-		linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px) 0 0 / 2.5rem 2.5rem,
-		linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px) 0 0 / 2.5rem 2.5rem,
-		var(--sec-bg);
 
-	@variant tablet {
-		padding: 5rem var(--gutter) 4rem;
-	}
-
-	.path-title {
-		margin: 0 0 1.5rem;
-		font-size: var(--np-font-size-small);
-		font-weight: 700;
-		letter-spacing: 0.02em;
-		color: var(--sec-accent);
-	}
-
-	/* 요청이 지나는 길: PC는 가로로 여섯 칸, 태블릿 이하는 세로로. 
-	   --lit: 이 칸까지 요청이 왔는가(0~1). 진행도 × 칸 수 - 순서를 0~1로 자른다 */
-	.path {
-		--progress: 0;
+	/* 붙는 구간: 장면 수 × 화면 높이 0.75. 그동안 아래 stage가 헤더 밑에 붙어 있다 */
+	.track {
 		position: relative;
+		height: calc(var(--n) * 75vh);
+	}
+
+	/* 위: 제목 / 가운데: 큰 숫자 | 장면 글 / 아래: 색인, 맨 아래: 링크 */
+	.stage {
+		position: sticky;
+		top: 4rem;
 		display: grid;
-		grid-template-columns: repeat(var(--steps), minmax(0, 1fr));
-		gap: 1rem;
-		margin: 0 0 4.5rem;
-		padding: 0;
-		list-style: none;
-
-		@variant tablet {
-			grid-template-columns: 1fr;
-			gap: 1.25rem;
-			padding-left: 0.25rem;
-		}
-	}
-
-	/* 노드들을 잇는 선과, 지나온 만큼 채워지는 선 · 움직이는 요청 점 */
-	.rail {
-		position: absolute;
-		top: 1.5rem;
-		left: calc(100% / var(--steps) / 2);
-		right: calc(100% / var(--steps) / 2);
-		height: 2px;
-		background: var(--np-color-border);
-
-		@variant tablet {
-			/* 노드 가운데: 왼쪽 여백 0.25rem + 칸(3.5rem)의 절반 */
-			top: 1.5rem;
-			bottom: 1.5rem;
-			left: calc(2rem - 1px);
-			right: auto;
-			width: 2px;
-			height: auto;
-		}
-	}
-
-	.fill {
-		position: absolute;
-		inset: 0;
-		background: linear-gradient(90deg, var(--sec-accent), #4fd1c5);
-		transform-origin: left center;
-		transform: scaleX(var(--progress));
-
-		@variant tablet {
-			background: linear-gradient(180deg, var(--sec-accent), #4fd1c5);
-			transform-origin: center top;
-			transform: scaleY(var(--progress));
-		}
-	}
-
-	.packet {
-		position: absolute;
-		top: 50%;
-		left: calc(var(--progress) * 100%);
-		width: 0.875rem;
-		height: 0.875rem;
-		border-radius: 9999px;
-		background: #fff;
-		box-shadow:
-			0 0 0 4px rgba(143, 123, 255, 0.35),
-			0 0 18px rgba(143, 123, 255, 0.9);
-		transform: translate(-50%, -50%);
-
-		@variant tablet {
-			top: calc(var(--progress) * 100%);
-			left: 50%;
-		}
-	}
-
-	.gate {
-		--lit: clamp(0, (var(--progress) * (var(--steps) - 1) - var(--i)) * 4 + 1, 1);
-		position: relative;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.5rem;
-		text-align: center;
-
-		/* 공통 li::before(빈 칸) 없애기 */
-		&::before {
-			content: none;
-		}
-
-		@variant tablet {
-			display: grid;
-			grid-template-columns: 3.5rem 1fr;
-			grid-template-rows: auto auto;
-			align-items: center;
-			column-gap: 1rem;
-			row-gap: 0.125rem;
-			text-align: left;
-		}
-	}
-
-	.node {
-		position: relative;
-		z-index: 1;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		width: 3rem;
-		height: 3rem;
-		border: 1px solid color-mix(in srgb, var(--sec-accent) calc(var(--lit) * 100%), var(--np-color-border));
-		border-radius: 0.875rem;
-		background: color-mix(in srgb, var(--sec-accent) calc(var(--lit) * 22%), var(--sec-bg));
-		box-shadow: 0 0 calc(var(--lit) * 24px) rgba(143, 123, 255, calc(var(--lit) * 0.55));
-		color: color-mix(in srgb, #fff calc(var(--lit) * 100%), var(--np-color-sub-text));
-		transition:
-			background 0.2s,
-			box-shadow 0.2s;
-
-		@variant tablet {
-			grid-row: span 2;
-			justify-self: center;
-		}
-
-		.glyph {
-			width: 1.375rem;
-			height: 1.375rem;
-		}
-
-		/* 지나가면 오른쪽 위에 작은 확인 표시 */
-		.tick {
-			position: absolute;
-			top: -0.375rem;
-			right: -0.375rem;
-			width: 1.125rem;
-			height: 1.125rem;
-			padding: 0.125rem;
-			border-radius: 9999px;
-			background: #4fd1c5;
-			color: var(--sec-bg);
-			opacity: var(--lit);
-			transform: scale(calc(0.4 + var(--lit) * 0.6));
-		}
-	}
-
-	.name {
-		margin-top: 0.375rem;
-		font-size: var(--np-font-size-small);
-		font-weight: 700;
-		opacity: calc(0.45 + var(--lit) * 0.55);
-
-		@variant tablet {
-			margin-top: 0;
-			align-self: end;
-		}
-	}
-
-	.gate .text {
-		font-size: var(--np-font-size-extra-small);
-		line-height: 1.55;
-		color: var(--np-color-sub-text);
-		opacity: calc(0.35 + var(--lit) * 0.65);
-
-		@variant tablet {
-			align-self: start;
-		}
-	}
-
-	/* 맨 끝 '내 정보': 금고는 강조색으로 조금 크게 */
-	.vault .node {
-		border-radius: 9999px;
-	}
-
-	@media (prefers-reduced-motion: reduce) {
-		.path {
-			--progress: 1 !important;
-		}
-	}
-
-	/* 약속 여섯 가지: 번호 · 아이콘 · 제목 · 설명 (PC 3칸 · 태블릿 2칸 · 휴대폰 1칸) */
-	.cards {
-		display: grid;
-		grid-template-columns: repeat(3, minmax(0, 1fr));
-		gap: 1px;
-		margin: 0;
-		padding: 0;
+		grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+		grid-template-rows: auto minmax(0, 1fr) auto auto;
+		column-gap: 3rem;
+		height: calc(100vh - 4rem);
+		height: calc(100svh - 4rem);
+		padding: 2.5rem var(--gutter) 2rem;
 		overflow: hidden;
-		border: 1px solid var(--np-color-border);
-		border-radius: 16px;
-		background: var(--np-color-border);
-		list-style: none;
 
 		@variant tablet {
-			grid-template-columns: repeat(2, minmax(0, 1fr));
-		}
-
-		@variant mobile {
-			grid-template-columns: 1fr;
-		}
-	}
-
-	.card {
-		display: flex;
-		flex-direction: column;
-		gap: 0.625rem;
-		padding: 1.75rem 1.5rem;
-		background: rgba(12, 13, 29, 0.92);
-		transition: background 0.2s;
-
-		&::before {
-			content: none;
-		}
-
-		&:hover {
-			background: rgba(28, 26, 58, 0.95);
-		}
-
-		.head {
-			display: flex;
-			align-items: center;
-			justify-content: space-between;
-			margin-bottom: 0.5rem;
-		}
-
-		.no {
-			font-size: var(--np-font-size-extra-small);
-			font-weight: 700;
-			font-variant-numeric: tabular-nums;
-			color: var(--sec-accent);
-		}
-
-		.icon {
-			width: 1.375rem;
-			height: 1.375rem;
-			color: var(--np-color-sub-text);
-		}
-
-		.title {
-			margin: 0;
-			font-size: var(--np-font-size-medium);
-			font-weight: 700;
-			color: var(--np-color-text);
-		}
-
-		.text {
-			margin: 0;
-			font-size: var(--np-font-size-small);
-			line-height: 1.7;
-			color: var(--np-color-sub-text);
+			grid-template-columns: minmax(0, 1fr);
+			grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+			padding-top: 1.5rem;
+			padding-bottom: 1.5rem;
 		}
 	}
 
+	.top {
+		position: relative;
+		grid-column: 1 / -1;
+	}
+
+	.border-title {
+		margin-bottom: 1.5rem;
+
+		@variant tablet {
+			margin-bottom: 0.875rem;
+		}
+	}
+
+	.heading {
+		margin: 0;
+		font-size: clamp(1.5rem, 2.6vw, 2.25rem);
+		font-weight: 800;
+		line-height: 1.2;
+		color: var(--np-color-text);
+	}
+
+	/* 문서 · 처리방침 링크: 색인 아래 왼쪽 (오른쪽 아래의 위 · 아래 이동 단추와 겹치지 않게) */
 	.links {
+		grid-column: 1 / -1;
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.75rem 1.5rem;
-		margin: 2.5rem 0 0;
+		align-items: center;
+		gap: 0.5rem 1.25rem;
+		margin: 1.75rem 0 0;
+
+		/* 휴대폰: 이동 단추(두 칸 높이)보다 색인이 위에 오도록 조금 더 띄운다 */
+		@variant tablet {
+			margin-top: 3.25rem;
+		}
 	}
 
 	.link {
@@ -2634,10 +2438,10 @@
 		gap: 0.375rem;
 		font-size: var(--np-font-size-small);
 		font-weight: 600;
-		color: var(--np-color-sub-text);
+		color: var(--np-color-primary);
 
 		&:hover {
-			color: var(--np-color-text);
+			text-decoration: underline;
 		}
 
 		svg {
@@ -2645,17 +2449,320 @@
 			height: 1rem;
 		}
 
-		/* 보안 설계 문서는 버튼처럼 */
+		/* 보안 설계 문서는 사이트 버튼처럼 (강조색 바탕 · 각진 모서리) */
 		&.primary {
-			padding: 0.75rem 1.125rem;
-			border: 1px solid var(--sec-accent);
-			border-radius: 9999px;
-			background: rgba(143, 123, 255, 0.14);
-			color: var(--np-color-text);
+			padding: 0.625rem 1.125rem;
+			background: var(--np-color-primary);
+			color: var(--np-color-background);
 
 			&:hover {
-				background: rgba(143, 123, 255, 0.26);
+				text-decoration: none;
+				filter: brightness(1.08);
 			}
+		}
+
+		@variant tablet {
+			font-size: var(--np-font-size-extra-small);
+
+			&.primary {
+				padding: 0.5rem 0.875rem;
+			}
+		}
+	}
+
+	/* 뒤에 깔리는 큰 영문 이름: 옆에서 밀려 들어오고 지난 이름은 반대로 밀려난다 */
+	.backwords {
+		position: absolute;
+		inset: 0;
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	.backword {
+		position: absolute;
+		/* 제목 아래 · 큰 숫자 뒤쪽 (아래 색인과 겹치지 않게 위쪽에) */
+		top: 22%;
+		right: var(--gutter);
+		font-size: clamp(4.5rem, 13vw, 12rem);
+		font-weight: 800;
+		line-height: 1;
+		letter-spacing: 0.06em;
+		white-space: nowrap;
+		color: color-mix(in srgb, var(--np-color-text) 5%, transparent);
+		opacity: 0;
+		transform: translateX(5rem);
+		transition:
+			opacity 0.6s ease,
+			transform 0.8s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+		&[data-state='passed'] {
+			transform: translateX(-5rem);
+		}
+
+		&[data-state='active'] {
+			opacity: 1;
+			transform: none;
+		}
+
+		/* 휴대폰: 장면 글과 색인 사이의 빈자리에. 그 자리가 없는 낮은 화면에서는 숨긴다 */
+		@variant tablet {
+			top: auto;
+			bottom: 21%;
+			/* 모든 단어가 같은 크기. 가장 긴 7자(SESSION · PRIVACY)가 화면 폭에 꽉 차는 크기, 빈자리 높이는 넘지 않게 */
+			font-size: min(calc((100vw - 2rem) / 5.3), 17vh);
+			letter-spacing: 0.02em;
+		}
+
+		@media (max-width: 1023px) and (max-height: 760px) {
+			display: none;
+		}
+	}
+
+	.figures {
+		position: relative;
+		align-self: center;
+		height: clamp(11rem, 34vh, 19rem);
+
+		@variant tablet {
+			height: clamp(8.5rem, 24vh, 12rem);
+			margin-top: 1rem;
+		}
+
+		/* 낮은 휴대폰 화면: 장면 글이 색인에 닿지 않게 숫자 칸을 줄인다 */
+		@media (max-width: 1023px) and (max-height: 760px) {
+			height: 7rem;
+			margin-top: 0.5rem;
+		}
+	}
+
+	/* 숫자 하나: 아래에서 올라와 자리 잡고, 다음 장면이 오면 위로 빠진다 */
+	.figure {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-wrap: wrap;
+		align-content: center;
+		align-items: baseline;
+		column-gap: 0.75rem;
+		margin: 0;
+		opacity: 0;
+		transform: translateY(35%);
+		transition:
+			opacity 0.45s ease,
+			transform 0.7s cubic-bezier(0.2, 0.8, 0.2, 1);
+
+		&[data-state='passed'] {
+			transform: translateY(-35%);
+		}
+
+		&[data-state='active'] {
+			opacity: 1;
+			transform: none;
+		}
+	}
+
+	.value {
+		font-size: clamp(7rem, 17vw, 14rem);
+		font-weight: 800;
+		line-height: 0.9;
+		letter-spacing: -0.04em;
+		font-variant-numeric: tabular-nums;
+		color: var(--np-color-primary);
+
+		@variant tablet {
+			font-size: clamp(5.5rem, 32vw, 9rem);
+		}
+
+		@media (max-width: 1023px) and (max-height: 760px) {
+			font-size: 5.25rem;
+		}
+	}
+
+	.unit {
+		font-size: clamp(1.5rem, 3vw, 2.5rem);
+		font-weight: 800;
+		color: var(--np-color-text);
+	}
+
+	.caption {
+		flex-basis: 100%;
+		margin-top: 0.75rem;
+		font-size: var(--np-font-size-medium);
+		font-weight: 700;
+		color: var(--np-color-text);
+
+		@variant tablet {
+			margin-top: 0.375rem;
+			font-size: var(--np-font-size-small);
+		}
+	}
+
+	/* 장면 글: 한자리에 겹쳐 두고, 지금 장면만 아래에서 올라오며 보인다 (지난 장면은 위로 사라진다) */
+	.steps {
+		position: relative;
+		align-self: center;
+		min-height: 12rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+
+		@variant tablet {
+			min-height: 10.5rem;
+			margin-top: 1.5rem;
+		}
+	}
+
+	.step {
+		position: absolute;
+		inset: 0;
+		opacity: 0;
+		transform: translateY(1.75rem);
+		transition:
+			opacity 0.45s ease,
+			transform 0.45s ease;
+		pointer-events: none;
+
+		&::before {
+			content: none;
+		}
+
+		&[data-state='passed'] {
+			transform: translateY(-1.75rem);
+		}
+
+		&[data-state='active'] {
+			opacity: 1;
+			transform: none;
+			pointer-events: auto;
+		}
+	}
+
+	.ring-name {
+		margin: 0 0 0.5rem;
+		font-size: var(--np-font-size-small);
+		font-weight: 700;
+		color: var(--np-color-primary);
+	}
+
+	.step-title {
+		margin: 0 0 0.75rem;
+		font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+		font-weight: 800;
+		line-height: 1.3;
+		color: var(--np-color-text);
+	}
+
+	.step-text {
+		margin: 0;
+		max-width: 30rem;
+		font-size: var(--np-font-size-medium);
+		line-height: 1.7;
+		color: var(--np-color-sub-text);
+
+		@variant tablet {
+			font-size: var(--np-font-size-small);
+		}
+	}
+
+	/* 아래 색인: 여섯 칸 단추. 지나온 칸과 지금 칸은 위 선이 강조색으로 차고, 누르면 그 장면으로 */
+	.index {
+		position: relative;
+		grid-column: 1 / -1;
+		align-self: end;
+		display: grid;
+		grid-template-columns: repeat(var(--n), minmax(0, 1fr));
+		gap: 0.5rem;
+	}
+
+	.index-item {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 0.125rem;
+		min-height: 2.75rem;
+		padding: 0.875rem 0 0.25rem;
+		border: 0;
+		background: none;
+		font-size: var(--np-font-size-small);
+		font-weight: 700;
+		text-align: left;
+		white-space: nowrap;
+		color: var(--np-color-sub-text);
+		cursor: pointer;
+		transition: color 0.4s ease;
+
+		&::before,
+		&::after {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 2px;
+			background: var(--np-color-border);
+			transition: height 0.2s ease;
+		}
+
+		&::after {
+			background: var(--np-color-primary);
+			transform: scaleX(0);
+			transform-origin: left center;
+			transition:
+				transform 0.5s ease,
+				height 0.2s ease;
+		}
+
+		&[data-state='passed']::after,
+		&[data-state='active']::after {
+			transform: scaleX(1);
+		}
+
+		&[data-state='active'] {
+			color: var(--np-color-text);
+		}
+
+		&:hover {
+			color: var(--np-color-text);
+
+			&::before,
+			&::after {
+				height: 4px;
+			}
+		}
+
+		&:focus-visible {
+			outline: 2px solid var(--np-color-primary);
+			outline-offset: 2px;
+		}
+	}
+
+	.index-no {
+		font-size: var(--np-font-size-extra-small);
+		color: var(--np-color-primary);
+	}
+
+	/* 휴대폰: 이름은 화면 읽기 프로그램에만 (번호만 보인다) */
+	.index-name {
+		@variant tablet {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+	}
+
+	/* 움직임 줄이기: 전환 없이 바로 바뀐다 */
+	@media (prefers-reduced-motion: reduce) {
+		.step,
+		.backword,
+		.figure,
+		.index-item,
+		.index-item::before,
+		.index-item::after {
+			transition: none;
 		}
 	}
 }

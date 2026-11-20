@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { ABOUT } from '@/copy';
 import { TEAMS, V1, V2 } from '@/content/about';
 import { LuChevronDown, LuExternalLink } from 'react-icons/lu';
@@ -59,6 +60,7 @@ function MemberCard({
  * (전에는 테마 바탕색을 글자에 써서 다크 모드에서 이름이 보이지 않았다)
  */
 export default function WhoSection() {
+	const [v1Open, setV1Open] = useState(false);
 	return (
 		<div className="np-about-who-section-who-section" data-track-section="about-who">
 			<FullWidthPanel background="mono" className="panel">
@@ -90,38 +92,49 @@ export default function WhoSection() {
 						</div>
 					</section>
 
-					{/* v1: 지난 팀 프로젝트. 기본은 접어 두고 눌러서 펼친다 */}
-					<details className="version">
-						<summary className="version-head">
+					{/* v1: 지난 팀 프로젝트. 기본은 접어 두고 눌러서 펼친다 (높이가 부드럽게 늘고 줄어드는 아코디언) */}
+					<section className="version v1" data-open={v1Open || undefined} aria-label="v1">
+						<button
+							type="button"
+							className="version-head v1-toggle"
+							aria-expanded={v1Open}
+							aria-controls="who-v1-teams"
+							onClick={() => setV1Open((open) => !open)}
+						>
 							<span className="version-chip">v1</span>
 							<span className="period">{V1.period}</span>
 							<span className="label">
 								{V1.label} · {TEAMS.reduce((sum, team) => sum + team.members.length, 0)}명
 							</span>
 							<span className="toggle">
-								<span className="toggle-text" aria-hidden />
+								<span className="toggle-text">{v1Open ? '접기' : '펼쳐 보기'}</span>
 								<LuChevronDown aria-hidden />
 							</span>
-						</summary>
-						<div className="teams">
-							{TEAMS.map((team) => (
-								<section key={team.role} className="team" aria-label={team.role}>
-									<h3 className="team-name">
-										<span className="dot" style={{ background: team.color }} aria-hidden />
-										{team.role}
-										<span className="count">{team.members.length}명</span>
-									</h3>
-									<ul className="members">
-										{team.members.map((member) => (
-											<li key={member.name}>
-												<MemberCard {...member} variant="row" />
-											</li>
-										))}
-									</ul>
-								</section>
-							))}
+						</button>
+						{/* 접혀 있으면 inert: 보이지 않는 팀원 링크로 Tab이 들어가거나 화면 읽기가 읽지 않게 */}
+						<div id="who-v1-teams" className="v1-body" inert={!v1Open}>
+							<div className="v1-inner">
+								<div className="teams">
+									{TEAMS.map((team) => (
+										<section key={team.role} className="team" aria-label={team.role}>
+											<h3 className="team-name">
+												<span className="dot" style={{ background: team.color }} aria-hidden />
+												{team.role}
+												<span className="count">{team.members.length}명</span>
+											</h3>
+											<ul className="members">
+												{team.members.map((member) => (
+													<li key={member.name}>
+														<MemberCard {...member} variant="row" />
+													</li>
+												))}
+											</ul>
+										</section>
+									))}
+								</div>
+							</div>
 						</div>
-					</details>
+					</section>
 				</div>
 			</FullWidthPanel>
 		</div>
