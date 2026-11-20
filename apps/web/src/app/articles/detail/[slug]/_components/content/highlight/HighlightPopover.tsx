@@ -1,6 +1,7 @@
 'use client';
 
 import { ACTIONS, LOGIN } from '@/copy';
+import { useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { LuHighlighter, LuMessageSquarePlus, LuTrash2 } from 'react-icons/lu';
 import { useAuth } from '@/hooks/useAuth';
@@ -8,12 +9,15 @@ import { useOpenLogin } from '@/hooks/useOpenLogin';
 import { useHighlightMutations } from '@/hooks/useHighlights';
 import { useConfirmRemoveHighlights } from '@/hooks/useConfirmRemoveHighlights';
 import { cx } from '@/styles/tw';
+import { raiseInTopLayer, showInTopLayer } from '@/utils/topLayer';
 import type { Box } from '../../../_lib/highlightDom';
 import type { Picked, Popover } from './useHighlightPopover';
 
 /**
  * 고른 글 · 형광펜의 창 (#198): 도구 막대(스크랩 · 메모) · 새 메모 · 내 스크랩(중요 표시 · 메모 고치기 · 지우기).
- * 데스크톱은 글에 붙이고(문서 좌표라 스크롤하면 글과 함께), 휴대폰은 아래 시트. 본문 스타일이 붙지 않게 body에 띄운다
+ * 데스크톱은 글에 붙이고(문서 좌표라 스크롤하면 글과 함께), 휴대폰은 아래 시트. 본문 스타일이 붙지 않게 body에 띄운다.
+ * 창과 휴대폰 시트 뒤 막은 popover로 top layer에 올린다 (#313): 머리글 · 아래 단추보다 위, z-index 없음.
+ * top layer에서 position: absolute는 문서 맨 위를 기준으로 하므로, 데스크톱 창은 지금처럼 문서 좌표로 둔다
  */
 export default function HighlightPopover({
 	newsletterId,
@@ -52,11 +56,30 @@ export default function HighlightPopover({
 
 	// 휴대폰에서 메모 · 내 스크랩은 뒤에 오버레이를 깔고 그곳을 누르면 닫는다 (도구 막대는 고른 글이 보이게 깔지 않는다)
 	const dim = isMobile && popover.kind !== 'toolbar';
+	const boxRef = useRef<HTMLDivElement>(null);
+	// 도구 막대에서 메모로 바뀌어 막이 나중에 올라오면 막이 창을 덮으므로, 창을 다시 맨 위로
+	useLayoutEffect(() => {
+		if (dim) raiseInTopLayer(boxRef.current);
+	}, [dim]);
 
 	return createPortal(
 		<>
-			{dim && <div className="np-articles-highlight-layer-dim" data-highlight-popover aria-hidden onClick={close} />}
+			{dim && (
+				<div
+					ref={showInTopLayer}
+					popover="manual"
+					className="np-articles-highlight-layer-dim"
+					data-highlight-popover
+					aria-hidden
+					onClick={close}
+				/>
+			)}
 			<div
+				ref={(el) => {
+					boxRef.current = el;
+					showInTopLayer(el);
+				}}
+				popover="manual"
 				style={
 					isMobile ? undefined : placeNear(popover.kind === 'saved' ? popover.rect : popover.picked.rect, popover.kind)
 				}
