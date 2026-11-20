@@ -87,6 +87,8 @@ describe('useTopLayer (#313)', () => {
 
 	it('popover를 모르는 브라우저에서는 아무것도 하지 않는다 (제자리에 그림)', () => {
 		const panel = document.createElement('div');
+		// 테스트 환경은 popover를 흉내 내므로(src/test/popover.ts) 이 요소만 모르는 것처럼
+		Object.defineProperty(panel, 'showPopover', { value: undefined });
 		renderHook(() =>
 			useTopLayer({
 				open: true,

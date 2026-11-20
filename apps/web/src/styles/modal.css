@@ -11,10 +11,9 @@
 		animation: fade-out 0.25s ease-in forwards;
 	}
 
-	/* 바깥: 뒤 화면을 아주 약간만 어둡게 + 살짝 흐리게. 누르면 닫힌다 */
+	/* 바깥: 뒤 화면을 아주 약간만 어둡게 + 살짝 흐리게. 누르면 닫힌다. top layer(popover)라 z-index 없이 페이지 위 (#313) */
 	position: fixed;
 	inset: 0;
-	z-index: var(--np-z-modal);
 	background: rgba(0, 0, 0, 0.08);
 	/* 접두어(-webkit-)는 빌드가 붙인다. 둘 다 적으면 빌드가 합치며 접두어 쪽만 남겨 크롬에서 흐림이 사라진다 */
 	backdrop-filter: blur(4px);

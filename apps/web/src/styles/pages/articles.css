@@ -2268,17 +2268,16 @@
 /* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx */
 /* 휴대폰 시트 뒤 어둡게 */
 .np-articles-highlight-layer-dim {
+	/* top layer(popover): 창보다 먼저 올려 창 바로 아래 (#313) */
 	position: fixed;
 	inset: 0;
-	z-index: var(--np-z-scrim);
 	background: rgba(0, 0, 0, 0.35);
 }
 
 /* app/articles/detail/[slug]/_components/content/HighlightLayer.tsx */
 .np-articles-highlight-layer-popover {
-	/* 문서 기준으로 띄워 글과 함께 스크롤된다 (body에 붙여 둔다) */
+	/* 문서 기준으로 띄워 글과 함께 스크롤된다 (top layer에서 absolute의 기준은 문서 맨 위 · #313) */
 	position: absolute;
-	z-index: var(--np-z-modal);
 	display: flex;
 	flex-direction: column;
 	max-width: min(22rem, calc(100vw - 2rem));

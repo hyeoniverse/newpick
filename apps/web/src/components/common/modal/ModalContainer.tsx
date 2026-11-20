@@ -3,6 +3,7 @@
 import { useModal } from '@/hooks/useModal';
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { showInTopLayer } from '@/utils/topLayer';
 
 interface Props {
 	onClose?: () => void; // 모달을 닫을 때 실행되는 함수
@@ -19,7 +20,10 @@ const FOCUSABLE =
 
 /**
  * 모든 모달은 화면 아래에서 올라오는 시트다 (#52).
- * 닫기: 핸들 끌어 내리기·핸들 탭(키보드 포함)·Esc·바깥 누르기. 열려 있는 동안 뒤 화면은 스크롤되지 않는다
+ * 닫기: 핸들 끌어 내리기·핸들 탭(키보드 포함)·Esc·바깥 누르기. 열려 있는 동안 뒤 화면은 스크롤되지 않는다.
+ * 바깥 막(.np-modal)은 popover로 top layer에 올린다 (#313): 머리글 · 뒤로 가기 막대 등 페이지의 어떤 층보다 위, z-index 없음.
+ * <dialog showModal()>은 시트 밖을 모두 비활성(inert)으로 만들어, 시트가 열린 동안 뜬 토스트를 누를 수도 · 읽어 줄 수도 없어서 쓰지 않는다.
+ * 그래서 포커스 가두기 · Esc · 뒤 화면 스크롤 막기는 여기서 직접 한다
  */
 function Modal({ onClose }: Props) {
 	const { isOpen, content, size, closeModal } = useModal();
@@ -150,6 +154,8 @@ function Modal({ onClose }: Props) {
 
 	return createPortal(
 		<div
+			ref={showInTopLayer}
+			popover="manual"
 			className={`np-modal ${isAnimating ? 'fade-out' : 'fade-in'}`}
 			onClick={handleOverlayClick}
 			onAnimationEnd={handleAnimationEnd}

@@ -37,6 +37,13 @@ describe('시트 (#52)', () => {
 		expect(screen.getByText('구독 완료')).toBeTruthy();
 	});
 
+	it('바깥 막은 top layer(popover)에 올라간다: 머리글 · 뒤로 가기 막대보다 위, z-index 없음 (#313)', () => {
+		open();
+		const layer = dialog().parentElement!;
+		expect(layer.getAttribute('popover')).toBe('manual');
+		expect(layer.matches(':popover-open')).toBe(true);
+	});
+
 	it('모든 모달은 X 버튼 없이 핸들이 있는 시트, large는 넓은 시트', () => {
 		open();
 		expect(screen.queryByRole('button', { name: 'Close modal' })).toBeNull();

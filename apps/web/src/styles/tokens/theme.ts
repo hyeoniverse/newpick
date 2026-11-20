@@ -453,7 +453,8 @@ const fontVars = (step?: keyof typeof fontSteps) =>
  * 페이지 전체에서 겹치는 층 (아래에 적은 것일수록 위에 그린다). 화면 CSS는 숫자 대신 var(--np-z-…)를 쓴다.
  * 예전에는 999 · 1000 · 1001 · 9999처럼 "더 큰 숫자"로 겨뤄, 숫자를 작게(30) 둔 시간 고르기가 뒤로 가기 막대(900)에 가려졌다.
  * 부품 안에서만 겹치는 것(형광펜 띠를 글자 뒤에 · 표의 고정 열 등 -1 ~ 10)은 그 부품 안의 숫자로 둔다 (docs/structure.md).
- * 고르기 · 메뉴 목록(시간 · 날짜 · select · 표 머리 · 폴더)은 층 대신 브라우저 top layer에 띄운다 (hooks/useTopLayer.ts, #313)
+ * 떠서 페이지를 덮는 것(고르기 · 메뉴 목록 · 아래에서 올라오는 시트 · 형광펜 창 · 토스트)은 층 대신 브라우저 top layer에 띄운다.
+ * top layer는 연 순서대로 쌓여(나중에 연 것이 위) 숫자가 필요 없다 (hooks/useTopLayer.ts · utils/topLayer.ts, #313)
  */
 export const Z_LAYERS = {
 	/** 스크롤해도 따라붙는 막대 (뒤로 가기 막대) */
@@ -462,12 +463,6 @@ export const Z_LAYERS = {
 	float: 200,
 	/** 머리글 */
 	header: 300,
-	/** 시트 뒤를 어둡게 덮는 막 */
-	scrim: 400,
-	/** 아래에서 올라오는 시트 · 형광펜 팝오버 */
-	modal: 500,
-	/** 알림 (토스트) */
-	toast: 700,
 	/** 본문 바로가기 (키보드로 처음 Tab) */
 	skipLink: 800,
 } as const;

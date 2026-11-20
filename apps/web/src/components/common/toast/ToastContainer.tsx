@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import type { ToastPosition } from '@/types/toast';
 import { useMount } from '@/hooks/useMount';
 import { useToast } from '@/hooks/useToast';
 import { headerBottom } from '@/utils/headerBottom';
+import { hideFromTopLayer, raiseInTopLayer } from '@/utils/topLayer';
 
 import { cx } from '@/styles/tw';
 import Toast from '@/components/common/toast/Toast';
@@ -27,6 +28,15 @@ const ToastContainer = React.memo(() => {
 	const { toasts, position } = useToast();
 	const containerRef = useRef<HTMLDivElement>(null);
 	const isTop = position.includes('top');
+	const newest = toasts.at(-1)?.id;
+
+	// 토스트는 top layer에 띄운다 (#313): 열린 시트 · 형광펜 시트 위에 나오고, 그 안의 링크 · 닫기도 누를 수 있다.
+	// top layer는 나중에 올린 것이 위라, 새 토스트가 올 때마다 맨 위로 다시 올린다 (토스트가 떠 있는 동안 시트가 열렸어도 그 위로)
+	useLayoutEffect(() => {
+		const container = containerRef.current;
+		if (newest === undefined) hideFromTopLayer(container);
+		else raiseInTopLayer(container);
+	}, [isMounted, newest]);
 
 	// 위쪽 토스트는 헤더와 펼친 메뉴(프로필·모바일 메뉴·아래 메뉴) 아래에 둔다.
 	// 헤더는 스크롤로 접히고 메뉴는 애니메이션으로 펼쳐지므로, 토스트가 떠 있는 동안 매 프레임 잰다
@@ -51,9 +61,10 @@ const ToastContainer = React.memo(() => {
 	return createPortal(
 		<div
 			ref={containerRef}
+			popover="manual"
 			// left: 50%로 두면 남은 폭(화면 절반)에 맞춰 줄어들어 짧은 문구도 꺾인다. 내용 폭에 맞춘다
 			className={cx(
-				'pointer-events-none fixed z-(--np-z-toast) flex w-max max-w-[calc(100vw-2rem)] flex-col gap-2 [&>div]:pointer-events-auto',
+				'pointer-events-none fixed flex w-max max-w-[calc(100vw-2rem)] flex-col gap-2 [&>div]:pointer-events-auto',
 				POSITION[position] ?? POSITION['center-top'],
 			)}
 		>
