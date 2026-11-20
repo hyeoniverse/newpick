@@ -1,11 +1,12 @@
 /*
  * 펼침 메뉴 (components/common/Dropdown.tsx): 머리글 프로필 메뉴(.auth) · 태블릿 이하 메뉴(.drawer)와 그 세 줄 단추.
- * 안의 공통 Button(.item)의 여백 · 폭을 덮어써서 @layer components에 두고, 선택자 우선순위를 전(styled-components)과 같게 둔다
+ * 안의 공통 Button(.item)의 여백 · 폭을 덮어써서 @layer components에 두고, 선택자 우선순위를 전(styled-components)과 같게 둔다.
+ * 머리글 안에서만 열리므로 따로 z-index를 두지 않고 머리글 층(--np-z-header)을 따른다. top layer로 옮기지 않은 것은
+ * 닫힐 때의 애니메이션(줄이 아래부터 접힘 · 작아지며 사라짐)을 모든 브라우저에서 지키기 위해서다 (#313)
  */
 .np-dropdown {
 	position: relative;
 	cursor: pointer;
-	z-index: var(--np-z-popover);
 
 	/* 메뉴 칸은 넘친 부분을 잘라 내므로 포커스 테두리를 안쪽에 그린다 */
 	.panel :focus-visible {
@@ -46,7 +47,6 @@
 			box-shadow: var(--np-shadow-medium);
 			border: 1px solid var(--np-color-border);
 			border-radius: 8px;
-			z-index: var(--np-z-popover);
 			white-space: nowrap;
 
 			visibility: hidden;

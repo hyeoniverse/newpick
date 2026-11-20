@@ -73,7 +73,7 @@ npm workspaces 모노레포입니다. 잠금 파일은 루트 `package-lock.json
 - 라이브러리 CSS(Swiper 등)는 화면 CSS보다 아래 층(base)에 **한 번만** 불러옵니다.
 - 색 · 글자 크기는 `styles/tokens/tokens.css`의 `var(--np-…)` (라이트 · 다크 · 화면 폭에 따라 바뀌는 값이 한곳에서 나옴).
 - 테두리 · 밑줄에 점선은 쓰지 않습니다 (실선 또는 바탕색).
-- **겹치는 층(z-index)**: 페이지 전체에서 겹치는 것은 숫자 대신 이름 붙인 층 `var(--np-z-…)`를 씁니다 (`styles/tokens/theme.ts`의 `Z_LAYERS` → `tokens.css`). 아래일수록 위에 그립니다: `sticky`(뒤로 가기 막대) < `float`(구석 단추) < `header` < `scrim`(시트 뒤 막) < `modal`(시트) < `popover`(시간 · 날짜 · select · 메뉴, 시트 안에서도 보이게) < `toast` < `skip-link`. Tailwind는 `z-(--np-z-header)`. 부품 안에서만 겹치는 것(글자 뒤 형광펜 띠 `-1`, 표의 고정 열 `1 · 2` 등)만 작은 숫자로 둡니다.
+- **겹치는 층(z-index)**: 페이지 전체에서 겹치는 것은 숫자 대신 이름 붙인 층 `var(--np-z-…)`를 씁니다 (`styles/tokens/theme.ts`의 `Z_LAYERS` → `tokens.css`). 아래일수록 위에 그립니다: `sticky`(뒤로 가기 막대) < `float`(구석 단추) < `header` < `scrim`(시트 뒤 막) < `modal`(시트) < `toast` < `skip-link`. 고르기 · 메뉴 목록(시간 · 날짜 · select · 표 머리 · 폴더)은 층 대신 **top layer**에 띄웁니다: 띄울 요소에 `popover="manual"`을 달고 `hooks/useTopLayer.ts`가 단추 옆에 붙입니다(날짜 달력은 `CalendarLayer`). top layer는 어떤 z-index · `overflow: hidden`보다도 위라 시트 안에서 열어도 가리지 않습니다. 머리글 펼침 메뉴는 머리글 안에서만 열려 머리글 층을 따릅니다. Tailwind는 `z-(--np-z-header)`. 부품 안에서만 겹치는 것(글자 뒤 형광펜 띠 `-1`, 표의 고정 열 `1 · 2` 등)만 작은 숫자로 둡니다.
 
 ### 테스트 · 비교 도구
 
