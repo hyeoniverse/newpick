@@ -35,8 +35,8 @@ export default function StartSubscription() {
 	};
 
 	const handleCancel = async () => {
-		await cancelSubscription();
-		handleSelectInterests();
+		// 해지에 실패하면(알림은 mutation이 띄움) 고른 관심사를 그대로 둔다
+		if (await cancelSubscription()) handleSelectInterests();
 		closeModal();
 	};
 

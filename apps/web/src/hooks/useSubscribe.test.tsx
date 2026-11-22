@@ -139,3 +139,36 @@ describe('useSubscribe: 성공과 입력 검사', () => {
 		expect(showToast).toHaveBeenCalledWith(message, 'warning');
 	});
 });
+
+describe('useSubscribe: 일시정지 · 관심사 바꾸기', () => {
+	it('일시정지를 다시 켜면 관심사를 보내지 않는다 (예전에는 []를 보내 관심사가 모두 지워지고 메일이 오지 않았다)', async () => {
+		api.startSubscription.mockResolvedValue(undefined);
+		user = { id: 1, isSubscribed: false };
+		const { result } = setup(false);
+		await waitFor(() => expect(result.current.status).toBe(false));
+
+		await act(async () => {
+			await result.current.toggleSubscribe();
+		});
+
+		expect(api.startSubscription).toHaveBeenCalledWith(undefined);
+	});
+
+	it('구독 중 관심사를 바꾸면 사용자 · 관심사를 다시 받는다 (화면이 예전 선택으로 돌아가지 않게)', async () => {
+		api.updateInterests.mockResolvedValue(['IT']);
+		user = { id: 1, isSubscribed: true };
+		const { result } = setup(true);
+		await waitFor(() => expect(result.current.status).toBe(true));
+		const before = api.fetchInterests.mock.calls.length;
+
+		let ok: boolean | undefined;
+		await act(async () => {
+			ok = await result.current.handleSubscribe({ interests: ['IT'], isChecked: false });
+		});
+
+		expect(ok).toBe(true);
+		expect(api.updateInterests).toHaveBeenCalled();
+		expect(refetchUser).toHaveBeenCalled();
+		expect(api.fetchInterests.mock.calls.length).toBeGreaterThan(before);
+	});
+});
