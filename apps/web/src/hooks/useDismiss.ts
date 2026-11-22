@@ -19,8 +19,9 @@ type Options = {
 	/** 창 크기가 바뀌면 닫기 */
 	resize?: boolean;
 	/**
-	 * 바깥을 눌러 닫을 때 그 클릭이 뒤 화면(링크 · 카드)까지 가지 않게 막기.
-	 * 클릭을 받지 않는 오버레이(::before)를 깐 메뉴처럼, 바깥을 누르는 것이 '닫기'로만 보이는 곳에 켠다
+	 * 바깥을 눌러 닫을 때 그 클릭이 뒤 화면(링크 · 카드 · 메일)까지 가지 않게 막기 (기본 켬).
+	 * 떠 있는 목록 · 메뉴는 모두 바깥을 누르면 '닫기'만 한다 (브라우저 기본 select와 같다). 포커스는 그대로 옮겨 간다.
+	 * 예전에는 오버레이를 깐 메뉴에서만 켜, 폴더 메뉴를 닫으려고 누른 곳의 메일이 같이 열렸다
 	 */
 	blockClickThrough?: boolean;
 };
@@ -55,7 +56,7 @@ export function useDismiss({
 	afterEscape,
 	scroll,
 	resize = false,
-	blockClickThrough = false,
+	blockClickThrough = true,
 }: Options) {
 	// 그릴 때마다 새로 만든 함수여도 듣기를 다시 걸지 않게 최신 값만 들고 있는다
 	const latest = useRef({ refs, onClose, afterEscape });

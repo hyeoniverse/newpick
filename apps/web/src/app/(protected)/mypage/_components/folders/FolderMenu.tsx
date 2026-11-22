@@ -47,7 +47,8 @@ export default function FolderMenu({
 	const boxRef = useRef<HTMLDivElement>(null);
 	const menuRef = useRef<HTMLDivElement>(null);
 
-	// 실제로 스크롤하거나(40px 넘게) 크기가 바뀌면 닫는다 (누를 때 생기는 작은 움직임은 무시)
+	// 실제로 스크롤하거나(40px 넘게) 크기가 바뀌면 닫는다 (누를 때 생기는 작은 움직임은 무시).
+	// 바깥을 눌러 닫을 때 그 클릭은 뒤로 가지 않는다 (useDismiss 기본)
 	useDismiss({ open, refs: [boxRef], onClose: () => setOpen(false), scroll: 40, resize: true });
 	// 단추 바로 아래에, 아래 자리가 모자라면(화면 아래쪽 카드 · 메일 줄) 위로. 화면 아래 막대에서는 늘 위로
 	useTopLayer({ open, anchorRef: boxRef, panelRef: menuRef, gap: 6, align, vertical: up ? 'up' : 'auto' });
