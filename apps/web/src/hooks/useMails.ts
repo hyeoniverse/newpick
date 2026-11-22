@@ -8,6 +8,9 @@ import { useSignedInUser } from '@/components/common/auth/InitialProfile';
 
 export { MAIL_PAGE_SIZE };
 
+/** 받은 메일 · 폴더 목록을 받은 뒤 다시 받지 않는 시간 */
+const LIST_STALE_MS = 30_000;
+
 /**
  * 마이페이지 받은 메일 (#230): 묶음 단위로 받아 아래로 이어 붙이고, 달로 건너뛰면 위로는 앞 묶음.
  * filters: 'starred=true&folder=3' 같은 쿼리. startOffset: 고른 달의 첫 메일 순번
@@ -21,6 +24,8 @@ export function useMailPages(filters: string, startOffset = 0) {
 		pageSize: MAIL_PAGE_SIZE,
 		startOffset,
 		enabled: !!user,
+		// 서버가 첫 쪽을 넣어 준 직후 또 받지 않게 (1GB 서버에서 무거운 요청이 두 번 갔다). 표시를 바꾸면 따로 다시 받는다
+		staleTime: LIST_STALE_MS,
 	});
 }
 

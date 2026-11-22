@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { JSDOM } from 'jsdom';
 
 /**
@@ -183,10 +184,32 @@ const watchOf = (root: Element, stories: ParsedStory[]) => {
 	return [...root.querySelectorAll('section.watch li')].map((li) => text(li)).filter(Boolean);
 };
 
+/**
+ * 읽은 결과를 본문 HTML의 해시로 기억해 둔다. JSDOM으로 읽는 데 시간이 걸려, 마이페이지 받은 메일 10통(뉴스레터 약 60편)을
+ * 1GB 서버에서 그릴 때 수 초가 걸렸다. 본문이 같으면 결과도 같으므로(다시 만들면 해시가 바뀜) 오래된 결과를 줄 일이 없다
+ */
+const PARSE_CACHE_MAX = 500;
+const parseCache = new Map<string, ParsedNewsletter>();
+
 /** 구조가 없는 예전 뉴스레터(#43 이전)는 소식이 빈 채로 돌려준다. 메일은 제목·요약만 쓴다 */
 export function parseNewsletterHtml(html?: string | null): ParsedNewsletter {
+	if (!html) return { briefing: '', stories: [], watch: [], morning: [] };
+	const key = createHash('sha1').update(html).digest('base64');
+	let parsed = parseCache.get(key);
+	if (parsed) {
+		// 오래 안 쓴 것부터 지우도록 맨 뒤로
+		parseCache.delete(key);
+	} else {
+		parsed = parseHtml(html);
+		if (parseCache.size >= PARSE_CACHE_MAX) parseCache.delete(parseCache.keys().next().value!);
+	}
+	parseCache.set(key, parsed);
+	// 부르는 쪽이 고쳐도 기억해 둔 결과는 그대로이게 복사본을
+	return structuredClone(parsed);
+}
+
+function parseHtml(html: string): ParsedNewsletter {
 	const empty = { briefing: '', stories: [], watch: [], morning: [] };
-	if (!html) return empty;
 	const root = new JSDOM(html).window.document.querySelector('.newsletter');
 	if (!root) return empty;
 	const all = [...root.querySelectorAll('article.story')]

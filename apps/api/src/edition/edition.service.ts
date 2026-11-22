@@ -295,10 +295,19 @@ export class EditionService {
 						const { start, end } = kstDayRange(by.date, by.date);
 						return { createdAt: { gte: start, lte: end } };
 					})();
+		// 쓰는 열만: 기사 목록(usedNews) · 키워드 · 사진 같은 큰 열은 메일 짜임새에 쓰지 않는다
 		const newsletters = await this.prisma.newsletter.findMany({
 			where,
 			orderBy: [{ categoryId: 'asc' }, { createdAt: 'desc' }],
-			include: { category: { select: { name: true } } },
+			select: {
+				id: true,
+				categoryId: true,
+				title: true,
+				subtitle: true,
+				content: true,
+				contentAsHTML: true,
+				category: { select: { name: true } },
+			},
 		});
 
 		const seen = new Set<number>();

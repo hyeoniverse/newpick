@@ -13,12 +13,15 @@ export function useBidirectionalPages<T, P extends Page<T>>({
 	pageSize,
 	startOffset = 0,
 	enabled = true,
+	staleTime,
 }: {
 	queryKey: QueryKey;
 	fetchPage: (offset: number, limit: number) => Promise<P>;
 	pageSize: number;
 	startOffset?: number;
 	enabled?: boolean;
+	/** 받은 뒤 이만큼은 다시 받지 않는다 (서버가 미리 넣어 준 첫 쪽을 화면이 뜨자마자 또 받지 않게) */
+	staleTime?: number;
 }) {
 	return useInfiniteQuery({
 		queryKey,
@@ -27,6 +30,7 @@ export function useBidirectionalPages<T, P extends Page<T>>({
 		getNextPageParam: (last) => (last.offset + last.items.length < last.total ? last.offset + pageSize : undefined),
 		getPreviousPageParam: (first) => (first.offset > 0 ? Math.max(0, first.offset - pageSize) : undefined),
 		enabled,
+		staleTime,
 		placeholderData: (previous) => previous,
 	});
 }
