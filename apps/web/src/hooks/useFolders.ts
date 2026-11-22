@@ -33,6 +33,8 @@ export function useFolders() {
 		queryKey: queryKeys.folders.list(user?.id),
 		queryFn: fetchFolders,
 		enabled: !!user,
+		// 마이페이지 첫 화면은 서버가 넣어 준다. 바로 또 받지 않게 (바꾸면 따로 다시 받는다)
+		staleTime: 30_000,
 	});
 }
 
