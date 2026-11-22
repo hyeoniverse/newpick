@@ -2,6 +2,9 @@ import type { MailsPage } from '@newpick/shared';
 import { apiFetch } from '@/api/client';
 import { API_ENDPOINTS } from '@/constants/api';
 
+/** 한 번에 받아 오는 메일 수 (무한 스크롤 한 묶음, 서버는 20통까지) */
+export const MAIL_PAGE_SIZE = 10;
+
 /** 마이페이지 받은 메일 */
 
 /** 받은 메일 한 쪽. filters: 폴더 · 중요 등 쿼리 */

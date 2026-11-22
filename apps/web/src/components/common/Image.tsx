@@ -90,6 +90,9 @@ export default function Image({
 				width={width}
 				height={height}
 				priority={priority}
+				// priority만으로는 요청 순위가 '낮음'이라 글꼴 · JS 뒤로 밀렸다(마이페이지 프로필 사진, 휴대폰 LCP 4.6초).
+				// 첫 화면 사진은 미리 받기(preload)와 함께 순위도 '높음'으로
+				fetchPriority={priority ? 'high' : undefined}
 				sizes={sizes}
 				unoptimized={unoptimized}
 				style={{ objectFit: isDefault ? 'contain' : objectFit }}

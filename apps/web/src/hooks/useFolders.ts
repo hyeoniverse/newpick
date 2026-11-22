@@ -4,7 +4,7 @@ import type { Folder } from '@newpick/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { errorMessage } from '@/api/client';
 import { createFolder, deleteFolder, fetchFolders, renameFolder, type FolderContents } from '@/api/folders';
-import { useAuth } from '@/hooks/useAuth';
+import { useSignedInUser } from '@/components/common/auth/InitialProfile';
 import { useToast } from '@/hooks/useToast';
 
 /** 폴더 (#123): 스크랩 · 북마크 · 받은 메일이 같이 쓰는 주제 폴더. 폴더마다 탭별 개수 */
@@ -28,7 +28,7 @@ const FOLDER_CONTENT_KEYS = [
 ];
 
 export function useFolders() {
-	const { user } = useAuth();
+	const user = useSignedInUser();
 	return useQuery({
 		queryKey: queryKeys.folders.list(user?.id),
 		queryFn: fetchFolders,

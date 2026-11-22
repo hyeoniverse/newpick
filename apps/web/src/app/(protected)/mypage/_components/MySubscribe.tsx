@@ -9,6 +9,7 @@ import { MAIL_PAGE_SIZE, useMailPages, useMarkMail } from '@/hooks/useMails';
 import { uniqueItems, useInfiniteSentinel } from '@/hooks/useBidirectionalPages';
 import { useTab } from '@/hooks/useTab';
 import { useAuth } from '@/hooks/useAuth';
+import { useSignedInUser } from '@/components/common/auth/InitialProfile';
 import { useSubscribe } from '@/hooks/useSubscribe';
 import { useModal } from '@/hooks/useModal';
 import { useHeader } from '@/hooks/useHeader';
@@ -51,9 +52,11 @@ const sentText = (iso: string) =>
  * 예전엔 오늘 내 관심사 뉴스레터를 보여 줘, 관심사를 바꾼 뒤엔 받은 적 없는 것이 섞였다
  */
 export default function MySubscribe() {
-	const { user } = useAuth();
+	// 브라우저가 프로필을 받기 전에는 서버 프로필로: 첫 쪽을 서버가 미리 받아 두어(page.tsx) 첫 HTML에 목록이 들어간다
+	const user = useSignedInUser();
+	const { user: fetched } = useAuth();
 	const { setActiveTab } = useTab();
-	const { status: isSubscribed = user?.isSubscribed } = useSubscribe();
+	const { status: isSubscribed = fetched?.isSubscribed } = useSubscribe();
 	const { openModal } = useModal();
 	// 달 막대가 붙는 높이: 헤더가 보이면(위로 스크롤) 그 아래, 숨으면 맨 위
 	const { headerHeight } = useHeader();
@@ -265,7 +268,9 @@ export default function MySubscribe() {
 																			alt=""
 																			ratio="wide"
 																			borderRadius="medium"
-																			priority={false}
+																			// 맨 위 메일의 사진만 먼저 · 바로 보이게: 큰 화면에서는 첫 화면의 가장 큰 그림(LCP)인데,
+																			// 나중에 받고 서서히 나타나 5초쯤에 잡혔다
+																			priority={mail.sentAt === data.items[0]?.sentAt}
 																		/>
 																	) : (
 																		<LuNewspaper />
