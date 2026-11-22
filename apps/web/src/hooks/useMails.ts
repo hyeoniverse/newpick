@@ -1,20 +1,20 @@
 import { COMMON } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchMyMails, markMail } from '@/api/mails';
-import { useAuth } from '@/hooks/useAuth';
+import { fetchMyMails, MAIL_PAGE_SIZE, markMail } from '@/api/mails';
 import { useToast } from '@/hooks/useToast';
 import { useBidirectionalPages } from '@/hooks/useBidirectionalPages';
+import { useSignedInUser } from '@/components/common/auth/InitialProfile';
 
-/** 한 번에 받아 오는 메일 수 (무한 스크롤 한 묶음, 서버는 20통까지) */
-export const MAIL_PAGE_SIZE = 10;
+export { MAIL_PAGE_SIZE };
 
 /**
  * 마이페이지 받은 메일 (#230): 묶음 단위로 받아 아래로 이어 붙이고, 달로 건너뛰면 위로는 앞 묶음.
  * filters: 'starred=true&folder=3' 같은 쿼리. startOffset: 고른 달의 첫 메일 순번
  */
 export function useMailPages(filters: string, startOffset = 0) {
-	const { user } = useAuth();
+	// 서버가 받아 둔 프로필로도: 첫 쪽을 서버가 미리 받아 두면(마이페이지 page) 브라우저가 프로필을 받기 전에 그린다
+	const user = useSignedInUser();
 	return useBidirectionalPages({
 		queryKey: queryKeys.mails.page(user?.id, filters, startOffset),
 		fetchPage: (offset, limit) => fetchMyMails(offset, limit, filters),

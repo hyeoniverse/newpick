@@ -111,6 +111,9 @@ export default function Header() {
 													src={user.profileImg}
 													alt=""
 													ratio="square"
+													// 지름 40px(size-10). 크기를 안 적으면 기본 400px로 잡혀 828px 사진을 받았다
+													width={40}
+													height={40}
 													// 사진을 못 받아도 뉴스 기본 그림이 아니라 사람 모양
 													fallbackNode={<AvatarPlaceholder />}
 												/>

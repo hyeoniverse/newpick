@@ -25,7 +25,11 @@ export function Section<T>({
 			{state.data ? (
 				children(state.data)
 			) : (
-				<p className="state">{state.isError ? COMMON.loadFailed : COMMON.loading}</p>
+				// 불러오는 동안은 화면 높이만큼 자리를 잡는다: 한 줄이었다가 그래프 · 표로 길어지며 아래 영역을 밀었다(CLS 0.3).
+				// 화면 밖에서 밀리는 것은 CLS에 들어가지 않는다
+				<p className={state.isError ? 'state' : 'state pending'}>
+					{state.isError ? COMMON.loadFailed : COMMON.loading}
+				</p>
 			)}
 		</section>
 	);

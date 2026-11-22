@@ -1717,6 +1717,11 @@
 		padding: 2rem 0;
 		text-align: center;
 		color: var(--np-color-sub-text);
+
+		/* 불러오는 중: 화면 높이만큼 자리 (StatsParts.Section) */
+		&.pending {
+			min-height: 100vh;
+		}
 	}
 
 	/* 숫자 칸: 대시보드와 같은 모양 */
