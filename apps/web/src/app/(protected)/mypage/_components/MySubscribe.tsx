@@ -243,6 +243,8 @@ export default function MySubscribe() {
 																/>
 																<FolderMenu
 																	className="mail-folder"
+																	icon
+																	align="end"
 																	label={
 																		folder === 'all' && mail.folderId
 																			? `폴더 · ${folderName.get(mail.folderId)}`
