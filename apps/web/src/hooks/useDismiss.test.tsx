@@ -85,10 +85,10 @@ describe('useDismiss', () => {
 		expect(onClose).toHaveBeenCalledTimes(2);
 	});
 
-	it('blockClickThrough면 바깥을 눌러 닫을 때 그 클릭은 막고, 다음 클릭은 그대로', () => {
+	it('바깥을 눌러 닫을 때 그 클릭은 막고, 다음 클릭은 그대로 (기본)', () => {
 		const onClose = vi.fn();
 		const reached = vi.fn();
-		const { getByTestId } = render(<Popup open onClose={onClose} blockClickThrough />);
+		const { getByTestId } = render(<Popup open onClose={onClose} />);
 		const outside = getByTestId('outside');
 		outside.addEventListener('click', reached);
 
@@ -108,9 +108,9 @@ describe('useDismiss', () => {
 		);
 	});
 
-	it('blockClickThrough가 없으면 닫으면서 그 클릭도 뒤로 간다 (기본)', () => {
+	it('blockClickThrough={false}면 닫으면서 그 클릭도 뒤로 간다', () => {
 		const reached = vi.fn();
-		const { getByTestId } = render(<Popup open onClose={() => {}} />);
+		const { getByTestId } = render(<Popup open onClose={() => {}} blockClickThrough={false} />);
 		const outside = getByTestId('outside');
 		outside.addEventListener('click', reached);
 		fireEvent.mouseDown(outside);
