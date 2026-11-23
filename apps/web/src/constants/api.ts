@@ -125,6 +125,8 @@ export const API_ENDPOINTS = {
 	},
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
+		/** 뉴스레터 발행 시각 (매일 AI 요약을 시작하는 시각, KST). 누구나 */
+		PUBLISH_TIME: `${API_URL}/schedule/publish-time`,
 		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,
 		LIST: (limit: number, offset: number, popular?: boolean) =>
 			popular
