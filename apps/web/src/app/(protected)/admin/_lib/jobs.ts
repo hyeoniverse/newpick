@@ -28,6 +28,7 @@ export const TRIGGER_LABEL: Record<JobTrigger, string> = {
 	schedule: '예약',
 	manual: '지금 실행',
 	retry: '자동 재시도',
+	catchup: '놓친 실행',
 };
 
 /** 요일 (0 = 일요일). 7은 매일 */

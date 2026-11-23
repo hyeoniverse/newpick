@@ -14,7 +14,7 @@ export const JOB_ENDPOINT = {
 export type JobEndpoint = (typeof JOB_ENDPOINT)[JobName];
 
 /** schedule: 예약 시각에 · manual: 관리자가 지금 실행 · retry: 실패한 관심사를 작업이 끝난 뒤 자동으로 다시 (AI 요약) */
-export type JobTrigger = 'schedule' | 'manual' | 'retry';
+export type JobTrigger = 'schedule' | 'manual' | 'retry' | 'catchup';
 
 /** 끝난 실행의 결과. success: 다 됨 · partial: 일부 실패 · failed: 실패 · skipped: 꺼져 있거나 할 일이 없어 건너뜀 */
 export const JOB_RESULTS = ['success', 'partial', 'failed', 'skipped'] as const;

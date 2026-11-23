@@ -49,6 +49,8 @@ export class SummaryJobService {
 	private isAiSummaryEnabled = true;
 	/** 진행 중인 뉴스레터 생성. 메일 발송은 이것이 끝나기를 기다린다 (#55) */
 	private summaryRun: Promise<void> | null = null;
+	/** 돌고 있는 실행이 오늘 전체 만들기인지 (지난 날짜 · 고른 분야 · 다시 쓰기가 아니면) */
+	private summaryRunIsToday = false;
 	/** 요약 다시 시도 간격. 테스트에서 0으로 바꾼다 */
 	protected summaryRetryDelayMs = SUMMARY_RETRY_DELAY_MS;
 	/** 작업이 끝난 뒤의 자동 재시도 (없으면 null) */
@@ -87,8 +89,16 @@ export class SummaryJobService {
 		return this.start(at, categoryIds);
 	}
 
-	private start(at?: Date, categoryIds?: number[], replaceId?: number, auto = false) {
-		if (this.summaryRun) return this.summaryRun;
+	private start(at?: Date, categoryIds?: number[], replaceId?: number, auto = false): Promise<void> {
+		const today = !at && !categoryIds && !replaceId;
+		if (this.summaryRun) {
+			// 오늘 전체 만들기(예약 · 따라잡기 · 지금 실행)가 지난 날짜 · 고른 분야 작업 뒤에 오면 버리지 않고 끝난 뒤에 돈다
+			// (#341: 관리자가 빠진 날을 고치는 중에 예약 시각이 오면 그날 요약이 기록도 없이 사라졌다)
+			if (today && !this.summaryRunIsToday)
+				return this.summaryRun.then(() => this.start(at, categoryIds, replaceId, auto));
+			return this.summaryRun;
+		}
+		this.summaryRunIsToday = today;
 		this.summaryRun = this.runAiSummary(at, categoryIds, replaceId, auto).finally(() => {
 			this.summaryRun = null;
 		});
@@ -289,10 +299,12 @@ export class SummaryJobService {
 			const again = retried ? ` · 다시 시도로 ${retried}편` : '';
 			const next = this.autoRetry ? ` · ${kstStamp(this.autoRetry.runAt).slice(11, 16)}에 자동 재시도` : '';
 			const failedText = failedCategories.length ? ` · 실패: ${failedCategories.join(', ')}${next}` : '';
+			// 오늘 것을 하나도 만들지 못했고 이미 있던 것도 없으면(요약할 뉴스가 없음 · 수집이 멈춤) 실패로 (#341: '0편 생성 · 성공'이었다)
+			const nothing = !replaceId && !backfill && generatedNewsletter.length === 0 && skipped === 0;
 			this.jobRuns.finishRun(
 				'summary',
-				failedCategories.length === 0 ? 'success' : generatedNewsletter.length > 0 ? 'partial' : 'failed',
-				made + again + failedText,
+				failedCategories.length === 0 && !nothing ? 'success' : generatedNewsletter.length > 0 ? 'partial' : 'failed',
+				made + (nothing && !failedCategories.length ? ' · 요약할 뉴스 없음' : '') + again + failedText,
 			);
 
 			// 새 글이 생겼으면 사이트 첫 화면·목록이 10분 기다리지 않고 바로 보여 주게 (#73)
