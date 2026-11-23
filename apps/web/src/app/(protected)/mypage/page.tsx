@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import type { Folder, MailsPage } from '@newpick/shared';
 import { dehydrate, HydrationBoundary, QueryClient } from '@tanstack/react-query';
 import { MYPAGE_NAVIGATION } from '@/constants/navigation';
@@ -10,6 +11,12 @@ import TabNavigation from '@/components/common/TabNavigation';
 import MyTabs from '@/app/(protected)/mypage/_components/MyTabs';
 import { InitialProfileProvider } from '@/components/common/auth/InitialProfile';
 import { fetchProfileOnServer, fetchWithCookieOnServer } from '@/api/serverProfile';
+
+/** 내 정보 화면이라 검색에 싣지 않는다 (관리자 화면과 같게). robots.txt 차단만으로는 링크가 걸리면 주소가 검색 결과에 뜰 수 있다 */
+export const metadata: Metadata = {
+	title: '마이페이지',
+	robots: { index: false, follow: false },
+};
 
 /** 첫 탭: 주소에 ?tab=이 없거나 받은 메일일 때 */
 const FIRST_TAB = MYPAGE_NAVIGATION[0].link;
