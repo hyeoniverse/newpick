@@ -1,5 +1,13 @@
 import Link from 'next/link';
-import type { HomeMostRead, HomeMostScrapped, HomeRisingTag, HomeStory, HomeThread, HomeTopic } from '@newpick/shared';
+import type {
+	HomeContinuing,
+	HomeMostRead,
+	HomeMostScrapped,
+	HomeRisingTag,
+	HomeStory,
+	HomeThread,
+	HomeTopic,
+} from '@newpick/shared';
 import { ROUTES } from '@/constants/routes';
 import Image from '@/components/common/Image';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
@@ -12,7 +20,7 @@ const COPY = HOME.today;
 /**
  * 홈 '오늘' 칸들 (GET /edition/today, 서버에서 받아 그린다). 이미 만든 편집본 · 조회 · 스크랩 · 태그를 모은 것이라 AI 호출이 없다.
  * 칸마다 모양을 다르게 한다 (같은 제목 · 같은 카드 줄이 이어지면 단조롭다):
- * 핵심 3줄은 세 줄 목록 띠, 최신 트렌드는 주제 카드, 흐름은 분야를 잇는 줄, 많이 보는 것은 세 칸 순위.
+ * 핵심 3줄은 세 줄 목록 띠, 최신 트렌드는 주제 카드, 흐름은 분야를 잇는 세로 줄, 이어지는 이야기는 날짜를 잇는 가로 줄, 많이 보는 것은 세 칸 순위.
  * 데이터가 비면 그 칸은 그리지 않는다
  */
 
@@ -209,6 +217,117 @@ export function ThreadsSection({ threads }: { threads: HomeThread[] }) {
 				</div>
 			</div>
 		</FullWidthPanel>
+	);
+}
+
+/** 사건이 처음 나온 날부터 마지막 소식까지 며칠째인지 (같은 날이면 1) */
+const daysBetween = (from: string, to: string) =>
+	Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / (24 * 60 * 60 * 1000)) + 1;
+
+/** 날짜 축에 두는 날 수 (그보다 오래된 마디는 뺀다) */
+const AXIS_DAYS = 7;
+
+/**
+ * 이어지는 이야기: 날짜 축 표. 가로축은 날짜(사건들에 나오는 날만), 사건마다 한 줄.
+ * 처음 나온 날부터 가장 새 소식까지 실선으로 잇고, 소식이 있는 날에 점과 제목을 둔다 (가장 새 소식만 채운 점 + 새로 나온 것 한 줄).
+ * 여러 사건이 언제 시작해 얼마나 이어졌는지 한눈에 견준다. 좁은 화면은 표를 가로로 밀어 본다
+ */
+export function ContinuingSection({ stories }: { stories: HomeContinuing[] }) {
+	if (!stories.length) return null;
+	const dates = [...new Set(stories.flatMap(({ steps }) => steps.map((step) => step.date)))].sort().slice(-AXIS_DAYS);
+	const latestDate = dates[dates.length - 1];
+	return (
+		<section className={SECTION} data-track-section="home-continuing">
+			<SectionHeader eyebrow={COPY.eyebrow.continuing} title={COPY.continuing} note={COPY.continuingNote} />
+			<div className="w-full overflow-x-auto">
+				<div
+					role="table"
+					aria-label={COPY.continuing}
+					className="grid min-w-[calc(8rem+var(--days)*10rem)] grid-cols-[8rem_repeat(var(--days),minmax(0,1fr))] tablet:min-w-[calc(7rem+var(--days)*11rem)] tablet:grid-cols-[7rem_repeat(var(--days),minmax(0,1fr))] mobile:min-w-[calc(4rem+var(--days)*9rem)] mobile:grid-cols-[4rem_repeat(var(--days),minmax(0,1fr))]"
+					style={{ '--days': dates.length } as React.CSSProperties}
+				>
+					<div role="row" className="contents">
+						<span role="columnheader" className="border-b border-light-grey" />
+						{dates.map((date) => (
+							<span
+								key={date}
+								role="columnheader"
+								className={cx(
+									'border-b border-light-grey px-3 pb-2 text-small',
+									date === latestDate ? 'font-semi-bold text-primary' : 'text-sub-text',
+								)}
+							>
+								{monthDay(date)}
+							</span>
+						))}
+					</div>
+					{stories.map(({ steps }) => {
+						const shown = steps.filter((step) => dates.includes(step.date));
+						const byDate = new Map(shown.map((step) => [step.date, step]));
+						const first = dates.indexOf(shown[0].date);
+						const last = dates.indexOf(shown[shown.length - 1].date);
+						const latest = steps[steps.length - 1];
+						return (
+							<div key={storyKey(steps[0])} role="row" className="contents">
+								<span role="rowheader" className="flex flex-col gap-1 border-b border-light-grey py-4 pr-3 mobile:pr-1">
+									<span className="text-small font-semi-bold text-primary">{latest.category}</span>
+									<span className="text-small text-sub-text">
+										{COPY.continuingDays(daysBetween(steps[0].date, latest.date))}
+									</span>
+								</span>
+								{dates.map((date, col) => {
+									const step = byDate.get(date);
+									const isLatest = step === latest;
+									return (
+										<div key={date} role="cell" className="relative border-b border-light-grey px-3 py-4">
+											{/* 사건을 잇는 실선: 첫 마디의 점에서 마지막 마디의 점까지 (칸 가운데가 아니라 점 높이) */}
+											{col >= first && col <= last && (
+												<span
+													aria-hidden
+													className={cx(
+														'absolute top-[calc(1rem+5px)] h-px bg-primary/40',
+														col === first ? 'left-[calc(0.75rem+5px)]' : 'left-0',
+														col === last ? 'right-[calc(100%-0.75rem-5px)]' : 'right-0',
+													)}
+												/>
+											)}
+											{step && (
+												<Link
+													href={ROUTES.article(step.newsletterId)}
+													className="group relative flex flex-col gap-1.5 text-inherit no-underline"
+												>
+													<span
+														aria-hidden
+														className={cx(
+															'size-[11px] rounded-full border-2 border-primary',
+															isLatest ? 'bg-primary' : 'bg-background',
+														)}
+													/>
+													<span
+														className={cx(
+															'line-clamp-3 text-small leading-snug group-hover:underline',
+															isLatest ? 'font-bold' : 'font-semi-bold',
+														)}
+													>
+														{step.heading}
+													</span>
+													{/* 가장 새 소식만: 앞 소식보다 새로 나온 것 */}
+													{isLatest && step.reason && (
+														<span className="line-clamp-3 text-[0.75rem] leading-relaxed text-sub-text">
+															{step.reason}
+														</span>
+													)}
+												</Link>
+											)}
+										</div>
+									);
+								})}
+							</div>
+						);
+					})}
+				</div>
+			</div>
+		</section>
 	);
 }
 

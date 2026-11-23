@@ -3,8 +3,7 @@ import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AiService, AiUnavailable } from 'src/ai/ai.service';
 import { AppException } from 'src/common/errors/app.exception';
 import { kstDayRange, kstDaysAgo } from 'src/common/kst';
-import type { MailFollow } from 'src/edition/mail-plan';
-import { ParsedNewsletter, parseNewsletterHtml, ParsedStory, storyText } from 'src/ai-summary/newsletter-parse';
+import { parseNewsletterHtml } from 'src/ai-summary/newsletter-parse';
 import {
 	acceptedFrom,
 	candidatesFor,
@@ -12,20 +11,12 @@ import {
 	JUDGE_SCHEMA,
 	JUDGE_SYSTEM,
 	judgePrompt,
+	MailFollow,
 	NewStory,
+	allStories,
+	textOf,
 } from './detect';
-
-/**
- * 판정 · 임베딩에 쓰는 소식 글 (제목 · 리드 · 본문 앞부분).
- * '관전 포인트'가 있으면 앞에 둔다: 후속 판정이 독자가 기다리는 그 일을 기준으로 찾게
- */
-const textOf = (story: ParsedStory) =>
-	[story.next && `관전 포인트: ${story.next}`, story.heading, story.lead, storyText(story, 600)]
-		.filter(Boolean)
-		.join('\n');
-
-/** 화면의 소식 순서: 아침 속보 다음 본문 소식 (후속 지켜보기 소식 번호의 기준) */
-const allStories = (parsed: ParsedNewsletter) => [...parsed.morning, ...parsed.stories];
+import { STORY_SOURCE_SELECT, StoryLinksService } from './story-links.service';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -47,6 +38,7 @@ export class FollowsService {
 	constructor(
 		private readonly prisma: MysqlPrismaService,
 		private readonly ai: AiService,
+		private readonly storyLinks: StoryLinksService,
 	) {}
 
 	/**
@@ -258,27 +250,15 @@ export class FollowsService {
 
 		const newsletters = await this.prisma.newsletter.findMany({
 			where: { createdAt: { gte: start, lte: end } },
-			select: {
-				id: true,
-				contentAsHTML: true,
-				category: { select: { name: true } },
-			},
+			select: STORY_SOURCE_SELECT,
 		});
-		const fresh = newsletters.flatMap((n) =>
-			allStories(parseNewsletterHtml(n.contentAsHTML)).map((story, i) => ({
-				newsletterId: n.id,
-				storyIndex: i + 1,
-				category: n.category.name,
-				heading: story.heading,
-				text: textOf(story),
-			})),
-		);
-		if (!fresh.length) return { follows: follows.length, checked: 0, updates: 0 };
+		if (!newsletters.length) return { follows: follows.length, checked: 0, updates: 0 };
 
 		let stories: NewStory[];
 		try {
-			const vectors = await this.ai.embed(fresh.map((s) => s.text));
-			stories = fresh.map((s, i) => ({ ...s, vector: vectors[i] }));
+			// 오늘 소식의 임베딩은 이어지는 이야기와 함께 쓴다 (먼저 계산해 뒀으면 그대로)
+			stories = await this.storyLinks.storiesOf(newsletters);
+			if (!stories.length) return { follows: follows.length, checked: 0, updates: 0 };
 			// 지켜보는 소식의 임베딩은 처음 한 번만 계산해 둔다
 			const missing = follows.filter((f) => !asVector(f.embedding));
 			if (missing.length) {

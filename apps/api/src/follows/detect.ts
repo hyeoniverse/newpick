@@ -1,4 +1,31 @@
 import { cosine } from 'src/ai-summary/article-prep';
+import { ParsedNewsletter, ParsedStory, storyText } from 'src/ai-summary/newsletter-parse';
+
+/**
+ * 판정 · 임베딩에 쓰는 소식 글 (제목 · 리드 · 본문 앞부분).
+ * '관전 포인트'가 있으면 앞에 둔다: 후속 판정이 독자가 기다리는 그 일을 기준으로 찾게
+ */
+export const textOf = (story: ParsedStory) =>
+	[story.next && `관전 포인트: ${story.next}`, story.heading, story.lead, storyText(story, 600)]
+		.filter(Boolean)
+		.join('\n');
+
+/** 화면의 소식 순서: 아침 속보 다음 본문 소식 (후속 지켜보기 소식 번호의 기준) */
+export const allStories = (parsed: ParsedNewsletter) => [...parsed.morning, ...parsed.stories];
+
+/** 메일에 싣는 후속 한 건 (FollowsService.forMail → 메일 '지켜보던 소식의 후속') */
+export type MailFollow = {
+	/** 지켜보던 소식 제목 */
+	followed: string;
+	/** 지켜보던 소식이 실린 뉴스레터 (원문 링크) */
+	followedNewsletterId: number;
+	/** 이어진 새 소식 제목 */
+	heading: string;
+	/** 어떻게 이어지는지 한 줄 (없으면 빈 문자열) */
+	reason: string;
+	newsletterId: number;
+	category: string;
+};
 
 /**
  * 후속 지켜보기 판정. 지켜보는 소식마다 오늘 새 소식 가운데
