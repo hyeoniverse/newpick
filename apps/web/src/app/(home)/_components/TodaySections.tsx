@@ -96,6 +96,15 @@ function TopicLabel({ topic }: { topic: HomeTopic }) {
  * 예전에는 최근 발행분 소식을 중요도 · 조회로 줄 세운 것이라 아래 최신 뉴스레터와 같은 소식을 한 번 더 보여 줬다.
  * 모양은 잡지형: 첫 주제는 큰 사진으로, 나머지는 옆에 작은 사진 목록
  */
+/** 최신 트렌드 소식의 분야 · 날짜 (최근 3일 가운데 어느 날 소식인지) */
+function StoryMeta({ story }: { story: HomeTopic['stories'][number] }) {
+	return (
+		<span className="text-small text-sub-text">
+			{story.category} · {monthDay(story.date)}
+		</span>
+	);
+}
+
 export function TopicTrendSection({ topics }: { topics: HomeTopic[] }) {
 	const [lead, ...rest] = topics;
 	if (!lead) return null;
@@ -123,6 +132,7 @@ export function TopicTrendSection({ topics }: { topics: HomeTopic[] }) {
 							{leadStory.heading}
 						</strong>
 						{leadStory.line && <span className="leading-relaxed text-sub-text">{leadStory.line}</span>}
+						<StoryMeta story={leadStory} />
 					</Link>
 					<Link
 						href={ROUTES.articlesByKeyword(lead.tag)}
@@ -146,6 +156,7 @@ export function TopicTrendSection({ topics }: { topics: HomeTopic[] }) {
 											{story.heading}
 										</strong>
 										{story.line && <span className="line-clamp-2 text-small text-sub-text">{story.line}</span>}
+										<StoryMeta story={story} />
 									</span>
 									{story.image && (
 										<Image
@@ -326,6 +337,7 @@ function RankList<T>({
 	items,
 	keyOf,
 	render,
+	empty,
 }: {
 	title: string;
 	/** 세는 기간 (제목 옆에 작게) */
@@ -333,6 +345,8 @@ function RankList<T>({
 	items: T[];
 	keyOf: (item: T) => string;
 	render: (item: T) => { href: string; label: string; meta: string };
+	/** 비었을 때 칸을 빼지 않고 보일 안내 (없으면 빈 목록) */
+	empty?: { title: string; text: string };
 }) {
 	return (
 		<div className="flex min-w-0 flex-col gap-3">
@@ -340,7 +354,13 @@ function RankList<T>({
 				{title}
 				<span className="text-small font-regular text-sub-text">{period}</span>
 			</h3>
-			<ol className="m-0 flex list-none flex-col gap-3 p-0">
+			{!items.length && empty && (
+				<p className="m-0 flex flex-col gap-1 rounded-surface bg-surface p-5 text-small leading-relaxed text-sub-text">
+					<strong className="text-medium font-semi-bold text-text">{empty.title}</strong>
+					{empty.text}
+				</p>
+			)}
+			<ol className="m-0 flex list-none flex-col gap-3 p-0 empty:hidden">
 				{items.map((item, i) => {
 					const { href, label, meta } = render(item);
 					return (
@@ -385,6 +405,7 @@ export function PopularSection({
 	mostScrapped: HomeMostScrapped[];
 }) {
 	if (!risingTags.length && !mostRead.length && !mostScrapped.length) return null;
+	// 뜨는 태그 · 많이 읽은 것은 없으면 빼고, 많이 스크랩한 칸은 비어도 안내를 둔다
 	const column = 'min-w-0 border-l border-light-grey pl-8 first:border-l-0 first:pl-0 tablet:border-l-0 tablet:pl-0';
 	return (
 		<section className={SECTION} data-track-section="home-popular">
@@ -434,21 +455,21 @@ export function PopularSection({
 						/>
 					</div>
 				)}
-				{mostScrapped.length > 0 && (
-					<div className={column}>
-						<RankList
-							title={COPY.mostScrapped}
-							period={COPY.mostScrappedPeriod}
-							items={mostScrapped}
-							keyOf={(item) => `${item.newsletterId}-${item.heading}`}
-							render={(item) => ({
-								href: ROUTES.article(item.newsletterId),
-								label: item.heading,
-								meta: `${item.category} · ${COPY.scraps(item.scraps)}`,
-							})}
-						/>
-					</div>
-				)}
+				{/* 스크랩이 아직 없어도 칸은 두고 안내를 보인다 (세 칸이 늘 가지런하게) */}
+				<div className={column}>
+					<RankList
+						title={COPY.mostScrapped}
+						period={COPY.mostScrappedPeriod}
+						items={mostScrapped}
+						keyOf={(item) => `${item.newsletterId}-${item.heading}`}
+						render={(item) => ({
+							href: ROUTES.article(item.newsletterId),
+							label: item.heading,
+							meta: `${item.category} · ${COPY.scraps(item.scraps)}`,
+						})}
+						empty={{ title: COPY.mostScrappedEmptyTitle, text: COPY.mostScrappedEmpty }}
+					/>
+				</div>
 			</div>
 		</section>
 	);

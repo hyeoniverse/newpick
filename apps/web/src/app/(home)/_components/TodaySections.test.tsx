@@ -19,7 +19,17 @@ const story = (newsletterId: number, heading: string, importance: number) => ({
 const today: HomeToday = {
 	date: '2026-11-23',
 	topLines: [story(10, '반도체', 5), story(20, '환율', 4), story(30, '금리', 3)],
-	topics: [{ tag: 'AI', recent: 3, usual: 0, stories: [story(40, 'AI 규제', 2), story(41, 'AI 반도체', 2)] }],
+	topics: [
+		{
+			tag: 'AI',
+			recent: 3,
+			usual: 0,
+			stories: [
+				{ ...story(40, 'AI 규제', 2), date: '2026-11-22' },
+				{ ...story(41, 'AI 반도체', 2), date: '2026-11-21' },
+			],
+		},
+	],
 	threads: [
 		{
 			title: '수출과 환율',
@@ -85,6 +95,8 @@ describe('홈 오늘 칸', () => {
 			'/articles/detail/40',
 		);
 		expect(screen.getByRole('link', { name: '#AI 소식 더 보기' }).getAttribute('href')).toBe('/articles?keyword=AI');
+		// 소식마다 분야 · 날짜
+		expect(screen.getByText('IT · 11월 22일')).toBeTruthy();
 	});
 
 	it('제목에 오늘을 넣지 않고, 편집본 날짜는 발행일로 따로 (아침 발행 전에는 어제 것이다)', () => {
@@ -147,7 +159,7 @@ describe('홈 오늘 칸', () => {
 		expect(container.innerHTML).toBe('');
 	});
 
-	it('뜨는 태그는 평균보다 늘어난 횟수(처음이면 NEW, 평소 1.4번이던 태그가 2번이면 +1), 비어 있는 칸(스크랩)은 빠진다', () => {
+	it('뜨는 태그는 평균보다 늘어난 횟수(처음이면 NEW, 평소 1.4번이던 태그가 2번이면 +1), 많이 스크랩한 칸은 비어도 안내를 둔다', () => {
 		render(<PopularSection risingTags={today.risingTags} mostRead={today.mostRead} mostScrapped={[]} />);
 		expect(screen.getByRole('link', { name: /#반도체/ }).textContent).toBe('#반도체+3');
 		expect(screen.getByRole('link', { name: /#농어민/ }).textContent).toBe('#농어민+1');
@@ -165,6 +177,7 @@ describe('홈 오늘 칸', () => {
 		expect(screen.getByRole('link', { name: /#농어민/ }).className).toContain('text-[1.25rem]');
 		expect(screen.getByRole('heading', { level: 3, name: /지금 뜨는 태그\s*최근 3일/ })).toBeTruthy();
 		expect(screen.getByRole('heading', { level: 3, name: /많이 읽은 뉴스레터\s*최근 7일/ })).toBeTruthy();
-		expect(screen.queryByText('많이 스크랩한 소식')).toBeNull();
+		expect(screen.getByRole('heading', { level: 3, name: /많이 스크랩한 소식\s*최근 30일/ })).toBeTruthy();
+		expect(screen.getByText('아직 스크랩된 소식이 없어요')).toBeTruthy();
 	});
 });

@@ -231,7 +231,8 @@ export class HomeService {
 						line: story.lead,
 						importance: story.importance ?? 0,
 						image: story.image?.url ?? null,
-					} satisfies HomeStory,
+						date: toKstDate(row.createdAt),
+					} satisfies HomeTopic['stories'][number],
 				}));
 			});
 		const used = new Set<string>();
