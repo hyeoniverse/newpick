@@ -9,6 +9,22 @@ export const HOME = {
 	},
 	categoryCard: (category: string) => `${category} 분야의 최신 뉴스레터를 보내 드려요.`,
 	quickLead: '고른 분야의 뉴스레터를 메일로 보내 드려요.',
+	/** 홈 '나를 위한 소식' (로그인했을 때, PersonalSection) */
+	personal: {
+		eyebrow: 'FOR YOU',
+		title: '나를 위한 소식',
+		follows: '지켜보는 소식의 새 소식',
+		tags: '팔로우한 태그 새 소식',
+		manage: '지켜보기 · 태그 관리',
+		new: 'NEW',
+		followOf: (heading: string) => `${heading}에 이어진 소식`,
+		followsEmptyTitle: '아직 구독한 소식이 없어요',
+		followsEmpty: "소식 옆 '후속 지켜보기'를 누르면, 그 소식에 이어진 새 소식을 여기서 모아 보여 드려요.",
+		followsAction: '뉴스레터 보러 가기',
+		tagsEmptyTitle: '아직 팔로우한 태그가 없어요',
+		tagsEmpty: '태그를 팔로우하면, 그 태그가 붙은 새 뉴스레터를 여기서 보여 드려요.',
+		tagsAction: '태그 둘러보기',
+	},
 	/** 홈 '오늘' 칸 (TodaySections). 제목에 '오늘'을 넣지 않는다: 아침 발행 전에는 가장 최근 편집본이 어제 것이다 */
 	today: {
 		/** 칸 제목 위 작은 꼬리표 */
@@ -17,7 +33,7 @@ export const HOME = {
 		/** 핵심 3줄이 어느 날 편집본에서 나왔는지 */
 		basis: (day: string) => `${day} 기준`,
 		trend: '최신 트렌드',
-		trendNote: '최근 3일 동안 뜨는 주제와 그 주제의 소식이에요',
+		trendNote: '최근 3일 동안 떠오르는 이슈를 모았어요',
 		topicCount: (n: number) => `소식 ${n}개`,
 		topicMore: (tag: string) => `#${tag} 소식 더 보기`,
 		threads: '분야를 넘는 흐름',
