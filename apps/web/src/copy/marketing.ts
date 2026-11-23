@@ -9,6 +9,20 @@ export const HOME = {
 	},
 	categoryCard: (category: string) => `${category} 분야의 최신 뉴스레터를 보내 드려요.`,
 	quickLead: '고른 분야의 뉴스레터를 메일로 보내 드려요.',
+	/** 홈 '나를 위한 소식' (로그인했을 때, PersonalSection) */
+	personal: {
+		eyebrow: 'FOR YOU',
+		title: '나를 위한 소식',
+		follows: '지켜보는 소식의 새 소식',
+		tags: '팔로우한 태그 새 소식',
+		more: '모두 보기',
+		new: 'NEW',
+		followOf: (heading: string) => `${heading}에 이어진 소식`,
+		followsEmpty: "소식 옆 '후속 지켜보기'를 누르면, 그 소식에 이어진 새 소식을 여기서 모아 보여 드려요.",
+		followsAction: '뉴스레터 보러 가기',
+		tagsEmpty: '태그를 팔로우하면, 그 태그가 붙은 새 뉴스레터를 여기서 보여 드려요.',
+		tagsAction: '태그 둘러보기',
+	},
 	/** 홈 '오늘' 칸 (TodaySections). 제목에 '오늘'을 넣지 않는다: 아침 발행 전에는 가장 최근 편집본이 어제 것이다 */
 	today: {
 		/** 칸 제목 위 작은 꼬리표 */

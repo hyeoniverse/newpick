@@ -43,6 +43,7 @@ export function sectionName(name: string) {
 		'home-hero': '홈 소개',
 		'home-trend': '홈 오늘의 뉴스레터',
 		'home-today-lines': '홈 핵심 3줄',
+		'home-personal': '홈 나를 위한 소식',
 		'home-today-trend': '홈 최신 트렌드',
 		'home-threads': '홈 분야를 넘는 흐름',
 		'home-popular': '홈 지금 뜨는 소식',
