@@ -20,7 +20,7 @@ export function SectionHeader({
 	aside?: React.ReactNode;
 }) {
 	return (
-		<div className="flex w-full flex-wrap items-end justify-between gap-x-6 gap-y-1">
+		<div className="flex w-full flex-wrap items-end justify-between gap-x-6 gap-y-1" data-io-head>
 			<div className="flex flex-col gap-1">
 				<span className={cx('text-small font-semi-bold tracking-[0.08em]', inverse ? 'opacity-80' : 'text-primary')}>
 					{eyebrow}

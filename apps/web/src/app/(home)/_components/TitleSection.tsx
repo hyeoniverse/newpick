@@ -13,6 +13,7 @@ import Marquee from '@/components/common/slider/Marquee';
 import Title from '@/components/common/Title';
 import { cx } from '@/styles/tw';
 import { useEffect, useRef } from 'react';
+import { useStackPanel } from '@/hooks/useStackPanel';
 
 interface Props {
 	className?: string;
@@ -73,69 +74,32 @@ const fillForLoop = (articles: IArticleDetail[]) =>
 		? articles
 		: Array.from({ length: Math.ceil(MIN_LOOP_SLIDES / articles.length) }, () => articles).flat();
 
-/** 아래 판이 다 덮을 때 패널이 줄어드는 정도 (1 → 0.9) */
-const SHRINK = 0.1;
-
 /**
- * 아래 판이 패널을 얼마나 덮었는지 (0 ~ 1): 판의 위 끝이 패널의 위 끝에 닿으면 1.
- * @param scrolled 스크롤한 거리
- * @param distance 판이 패널 위 끝까지 올라오는 데 필요한 스크롤 거리 (처음 판 위치 − 패널이 멈춘 위치)
+ * 새로고침이면 맨 위에서 시작한다: 서버 HTML을 읽는 동안(브라우저가 스크롤 자리를 되살리기 전) 돈다.
+ * 되살리기를 잠깐 끄고 맨 위로 바로 올린 뒤(사이트의 부드러운 스크롤을 타지 않게 instant), 다 불러오면 다시 켠다 (다른 화면에서 '뒤로 가기'로 올 때는 지금처럼 보던 자리로)
  */
-export const coverProgress = (scrolled: number, distance: number) =>
-	distance > 0 ? Math.min(1, Math.max(0, scrolled / distance)) : 0;
+const RELOAD_TO_TOP_SCRIPT = `(function(){try{if(performance.getEntriesByType('navigation')[0]?.type!=='reload')return;history.scrollRestoration='manual';var toTop=function(){window.scrollTo({top:0,behavior:'instant'})};toTop();addEventListener('DOMContentLoaded',toTop,{once:true});addEventListener('load',function(){toTop();setTimeout(function(){history.scrollRestoration='auto'},0)},{once:true})}catch(e){}})()`;
 
 /**
  * 홈 첫 화면 패널 (로고 · 제목 · 설명 · 배너 두 줄).
  * - 시작 애니메이션: 로고가 'NP'에서 NewPick으로 펼쳐진 뒤, 사진들이 로고에서 퍼져 나와 제 칸으로 날아가 띠가 되고 흐르기 시작한다.
  *   제목 · 설명은 사진이 거의 모였을 때 나타난다 (CSS, 움직임 줄이기 설정이면 없음)
+ * - 새로고침하면 맨 위에서 시작한다 (시작 애니메이션부터 다시)
  * - 스크롤: 패널은 처음 자리에 그대로 멈춰 있고, 아래 칸(page.tsx의 np-home-cover)이 위로 올라와 덮는다.
- *   덮이는 만큼 패널은 작아지고 흐려져 사라진다 (움직임 줄이기 설정이면 흐려지기만)
+ *   덮이는 만큼 패널은 작아지고 흐려져 사라진다 (useStackPanel)
  */
 function TitleSection({ className, firstArticles, secondArticles }: Props) {
 	const panel = useRef<HTMLDivElement>(null);
 
+	useStackPanel(panel, 'start');
+
 	useEffect(() => {
 		const el = panel.current;
-		const cover = el?.nextElementSibling as HTMLElement | null;
-		if (!el || !cover) return;
-		const still = window.matchMedia('(prefers-reduced-motion: reduce)');
-		let distance = 0;
-		let frame = 0;
-
-		const paint = () => {
-			frame = 0;
-			const p = coverProgress(window.scrollY, distance);
-			el.style.opacity = String(1 - p);
-			el.style.transform = still.matches || p === 0 ? '' : `scale(${1 - SHRINK * p})`;
-		};
-		// 멈출 자리 = 스크롤하지 않았을 때 패널의 위치 (머리글 · 위 여백 아래). 그 자리에서 바로 멈춰 움직이지 않는다
-		const place = () => {
-			el.style.top = '';
-			el.style.position = 'relative';
-			const top = el.getBoundingClientRect().top + window.scrollY;
-			el.style.position = '';
-			el.style.top = `${top}px`;
-			distance = cover.getBoundingClientRect().top + window.scrollY - top;
-			paint();
-		};
-		const onScroll = () => {
-			if (!frame) frame = requestAnimationFrame(paint);
-		};
+		if (!el) return;
 		placeFlights(el);
 		// 처음 그린 뒤 글꼴 · 스크롤 막대 등으로 칸 자리가 바뀔 수 있어, 사진이 날기 직전에 한 번 더 잰다
 		const remeasure = window.setTimeout(() => placeFlights(el), FLY_REMEASURE_MS);
-		place();
-		const observer = new ResizeObserver(place);
-		observer.observe(el);
-		window.addEventListener('resize', place);
-		window.addEventListener('scroll', onScroll, { passive: true });
-		return () => {
-			observer.disconnect();
-			window.removeEventListener('resize', place);
-			window.removeEventListener('scroll', onScroll);
-			cancelAnimationFrame(frame);
-			window.clearTimeout(remeasure);
-		};
+		return () => window.clearTimeout(remeasure);
 	}, []);
 
 	return (
@@ -144,6 +108,7 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 			data-track-section="home-title"
 			className={cx('np-home-title-section-title-section np-intro sticky top-0 z-0 origin-[50%_30%]', className)}
 		>
+			<script dangerouslySetInnerHTML={{ __html: RELOAD_TO_TOP_SCRIPT }} />
 			<MorphLogo className="logo" role="img" aria-label="NewPick" />
 			<Title size="extraLarge" weight="medium" className="title-text">
 				AI 뉴스레터 서비스 뉴픽

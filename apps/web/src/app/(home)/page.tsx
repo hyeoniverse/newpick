@@ -4,6 +4,8 @@ import { fetchArticleList } from '@/api/article';
 import { fetchHomeToday } from '@/api/edition';
 import { isBuildPhase } from '@/constants/site';
 import { cx } from '@/styles/tw';
+import InOut from '@/components/common/InOut';
+import StackPanel from '@/components/common/StackPanel';
 
 import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
@@ -49,24 +51,53 @@ export default async function HomePage() {
 					'before:absolute before:inset-y-0 before:left-1/2 before:-z-1 before:w-screen before:-translate-x-1/2 before:bg-background',
 				)}
 			>
-				<HeroSection />
-				<hr />
 				{/*
-				  순서: 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 분야별(오늘의 뉴스레터) → 분야를 넘어(흐름) → 주제별(최신 트렌드) → 반응(지금 뜨는 소식).
-				  최신 트렌드는 뜨는 태그로 묶은 칸이라 같은 데이터를 쓰는 '지금 뜨는 소식' 바로 위에 둔다. 편집본이 없으면 '오늘' 칸은 빠진다
+				  구독 칸 위의 칸들은 한 장의 판: 아래 끝까지 본 뒤 멈추고, 구독 칸이 아래에서 올라와 덮는 동안 작아지고 흐려진다 (첫 화면 패널과 같은 동작)
 				*/}
-				{today && <KeyLinesSection date={today.date} stories={today.topLines} />}
-				{/* 로그인했을 때만: 지켜보는 소식 · 팔로우한 태그의 새 소식 */}
-				<PersonalSection />
-				<TrendSection />
-				{today && (
-					<>
-						<ThreadsSection threads={today.threads} />
-						<TopicTrendSection topics={today.topics} />
-						<PopularSection risingTags={today.risingTags} mostRead={today.mostRead} mostScrapped={today.mostScrapped} />
-					</>
-				)}
-				<SubscribeSection />
+				<StackPanel>
+					<HeroSection />
+					<hr />
+					{/*
+					  순서: 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 분야별(오늘의 뉴스레터) → 분야를 넘어(흐름) → 주제별(최신 트렌드) → 반응(지금 뜨는 소식).
+					  최신 트렌드는 뜨는 태그로 묶은 칸이라 같은 데이터를 쓰는 '지금 뜨는 소식' 바로 위에 둔다. 편집본이 없으면 '오늘' 칸은 빠진다
+					*/}
+					{/* 칸마다 스크롤 등장 · 퇴장 (InOut: 칸마다 모양이 다르다) */}
+					{today && (
+						<InOut kind="lines">
+							<KeyLinesSection date={today.date} stories={today.topLines} />
+						</InOut>
+					)}
+					{/* 로그인했을 때만: 지켜보는 소식 · 팔로우한 태그의 새 소식 */}
+					<InOut kind="personal">
+						<PersonalSection />
+					</InOut>
+					<InOut kind="trend">
+						<TrendSection />
+					</InOut>
+					{today && (
+						<>
+							<InOut kind="threads">
+								<ThreadsSection threads={today.threads} />
+							</InOut>
+							<InOut kind="topics">
+								<TopicTrendSection topics={today.topics} />
+							</InOut>
+							<InOut kind="popular">
+								<PopularSection
+									risingTags={today.risingTags}
+									mostRead={today.mostRead}
+									mostScrapped={today.mostScrapped}
+								/>
+							</InOut>
+						</>
+					)}
+				</StackPanel>
+				{/* 구독 칸: 바탕을 화면 끝까지 깔고 위에 놓여, 올라오며 위 판을 덮는다 */}
+				<div className="relative z-1 isolate before:absolute before:inset-y-0 before:left-1/2 before:-z-1 before:w-screen before:-translate-x-1/2 before:bg-background">
+					<InOut kind="subscribe">
+						<SubscribeSection />
+					</InOut>
+				</div>
 			</div>
 		</div>
 	);

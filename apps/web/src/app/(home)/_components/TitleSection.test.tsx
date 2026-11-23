@@ -1,6 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import TitleSection, { coverProgress, FLY_SLIDES, flyFrom } from './TitleSection';
+import { coverProgress } from '@/hooks/useStackPanel';
+import TitleSection, { FLY_SLIDES, flyFrom } from './TitleSection';
 
 vi.mock('@/components/common/Image', () => ({ default: () => null }));
 // jsdom에는 없다
