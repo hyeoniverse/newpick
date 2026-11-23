@@ -5,6 +5,7 @@ import ImageViewer, { type ViewerImage } from '@/components/common/ImageViewer';
 import SubscribeInduce from '@/components/common/article/SubscribeInduce';
 import HeightAutoImg from '@/components/common/HeightAutoImg';
 import OpenGraphCard from './OpenGraphCard';
+import CoverMosaic, { coverPhotos } from './CoverMosaic';
 import { sanitizeHtml } from '@/utils/sanitizeHtml';
 import { linkDebateSources } from '@/utils/debateSources';
 import HighlightLayer from './HighlightLayer';
@@ -12,7 +13,7 @@ import FollowLayer from './FollowLayer';
 import { cx } from '@/styles/tw';
 import imageLoader from '@/utils/imageLoader';
 
-/** 크게 볼 수 있는 본문 사진: 소식 사진 (#49) */
+/** 크게 볼 수 있는 본문 사진: 소식 사진 (#49). 맨 위 대표 사진은 이 사진들의 모자이크 (CoverMosaic), 소식 사진이 없는 글만 예전 대표 사진 한 장 */
 const STORY_IMAGE = '.story-image img';
 
 /**
@@ -63,7 +64,10 @@ function ArticleContent({
 	const bodyRef = useRef<HTMLDivElement>(null);
 	const [viewing, setViewing] = useState<ViewerImage | null>(null);
 	// 본문 HTML은 내용이 바뀔 때만 새로 만든다: 사진 보기를 열고 닫을 때마다 본문이 통째로 다시 그려져 사진 요소 · 스크랩 표시가 바뀌었다
-	const html = useMemo(() => ({ __html: zoomableImages(sanitizeHtml(linkDebateSources(content))) }), [content]);
+	const { html, photos } = useMemo(() => {
+		const clean = sanitizeHtml(linkDebateSources(content));
+		return { html: { __html: zoomableImages(clean) }, photos: coverPhotos(clean) };
+	}, [content]);
 
 	// 소식 사진은 틀(16:9)에 맞춰 잘려 보여, 누르면(키보드 Enter · Space도) 잘리지 않은 전체를 크게 본다 (zoomableImages)
 	const openImage = (target: EventTarget) => {
@@ -90,21 +94,30 @@ function ArticleContent({
 
 	return (
 		<div className={cx('np-articles-article-content-container', className)}>
-			{articleImage && (
+			{photos.length > 0 ? (
 				<div className="image-wrapper" data-track-section="detail-image">
-					{/* 대표 사진도 누르면 같은 뷰어로 크게 (화면이 좁으면 작게 보여서) */}
-					<button
-						type="button"
-						aria-label="대표 사진 크게 보기"
-						className="block w-full cursor-zoom-in border-0 bg-transparent p-0"
-						onClick={(e) => {
-							const img = e.currentTarget.querySelector('img');
-							if (img) setViewing({ src: largeCover(img), alt: '대표 사진', from: img });
-						}}
-					>
-						<HeightAutoImg src={articleImage} fallback={fallbackImage} height={'auto'} />
-					</button>
+					<CoverMosaic
+						photos={photos}
+						onOpen={(photo, img) => setViewing({ src: photo.src, alt: photo.alt, caption: photo.caption, from: img })}
+					/>
 				</div>
+			) : (
+				articleImage && (
+					<div className="image-wrapper" data-track-section="detail-image">
+						{/* 대표 사진도 누르면 같은 뷰어로 크게 (화면이 좁으면 작게 보여서) */}
+						<button
+							type="button"
+							aria-label="대표 사진 크게 보기"
+							className="block w-full cursor-zoom-in border-0 bg-transparent p-0"
+							onClick={(e) => {
+								const img = e.currentTarget.querySelector('img');
+								if (img) setViewing({ src: largeCover(img), alt: '대표 사진', from: img });
+							}}
+						>
+							<HeightAutoImg src={articleImage} fallback={fallbackImage} height={'auto'} />
+						</button>
+					</div>
+				)
 			)}
 			<article className="np-articles-article-content-newsletter-content">
 				{/* 방문 통계 (#131): 본문의 브리핑 · 소식을 구역으로 센다 */}
