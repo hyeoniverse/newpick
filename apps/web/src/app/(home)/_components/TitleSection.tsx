@@ -29,6 +29,45 @@ const MIN_LOOP_SLIDES = 20;
 const MARQUEE_IMAGE = 186;
 /** 첫 화면에 보이는 앞쪽 칸 수 (휴대폰 2~3칸 · PC 7~8칸): 이 칸들만 먼저 받고 바로 보인다 */
 const PRIORITY_SLIDES = 4;
+/** 시작 애니메이션에서 로고에서 퍼져 나와 제 칸으로 날아가는 앞쪽 칸 수 (PC 첫 화면 7~8칸). 그 뒤 칸은 화면 밖이라 그냥 나타난다 */
+export const FLY_SLIDES = 8;
+
+/**
+ * 시작 애니메이션: 칸마다 퍼져 나올 때의 기울기와 출발 차례.
+ * 무작위 대신 순번으로 정해 서버 · 브라우저 화면이 같다
+ */
+export const flyFrom = (index: number, row: 0 | 1) => {
+	const n = index + row * 3;
+	return {
+		'--fr': `${((n * 29) % 9) * 4 - 16}deg`,
+		// 한 장씩 조금씩 늦게 출발
+		'--i': String(index),
+	} as React.CSSProperties;
+};
+
+/**
+ * 출발점: 날아갈 사진마다 제 칸 가운데에서 로고 가운데까지의 거리 (--bx · --by).
+ * 사진 칸 자리는 브라우저에서만 알 수 있어 잰다. 움직이는 사진이 아니라 그 바깥 칸(.slide)을 재서, 날아가는 중의 위치가 섞이지 않는다
+ */
+const placeFlights = (panel: HTMLElement) => {
+	const logo = panel.querySelector('.logo');
+	const photos = [...panel.querySelectorAll<HTMLElement>('.np-marquee .row:first-child [data-fly]')];
+	if (!logo || !photos.length) return;
+	const center = (el: Element) => {
+		const r = el.getBoundingClientRect();
+		return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
+	};
+	const from = center(logo);
+	photos.forEach((photo) => {
+		const slot = center(photo.parentElement ?? photo);
+		photo.style.setProperty('--bx', `${from.x - slot.x}px`);
+		photo.style.setProperty('--by', `${from.y - slot.y}px`);
+	});
+};
+
+/** 사진이 날기 시작하기 조금 전 (home.css --np-intro-fly-start 1.2초) */
+const FLY_REMEASURE_MS = 1100;
+
 const fillForLoop = (articles: IArticleDetail[]) =>
 	articles.length === 0 || articles.length >= MIN_LOOP_SLIDES
 		? articles
@@ -47,7 +86,8 @@ export const coverProgress = (scrolled: number, distance: number) =>
 
 /**
  * 홈 첫 화면 패널 (로고 · 제목 · 설명 · 배너 두 줄).
- * - 시작 애니메이션: 로고가 'NP'에서 NewPick으로 펼쳐진 뒤 나머지가 차례로 나타난다 (CSS, 움직임 줄이기 설정이면 없음)
+ * - 시작 애니메이션: 로고가 'NP'에서 NewPick으로 펼쳐진 뒤, 사진들이 로고에서 퍼져 나와 제 칸으로 날아가 띠가 되고 흐르기 시작한다.
+ *   제목 · 설명은 사진이 거의 모였을 때 나타난다 (CSS, 움직임 줄이기 설정이면 없음)
  * - 스크롤: 패널은 처음 자리에 그대로 멈춰 있고, 아래 칸(page.tsx의 np-home-cover)이 위로 올라와 덮는다.
  *   덮이는 만큼 패널은 작아지고 흐려져 사라진다 (움직임 줄이기 설정이면 흐려지기만)
  */
@@ -81,6 +121,9 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 		const onScroll = () => {
 			if (!frame) frame = requestAnimationFrame(paint);
 		};
+		placeFlights(el);
+		// 처음 그린 뒤 글꼴 · 스크롤 막대 등으로 칸 자리가 바뀔 수 있어, 사진이 날기 직전에 한 번 더 잰다
+		const remeasure = window.setTimeout(() => placeFlights(el), FLY_REMEASURE_MS);
 		place();
 		const observer = new ResizeObserver(place);
 		observer.observe(el);
@@ -91,6 +134,7 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 			window.removeEventListener('resize', place);
 			window.removeEventListener('scroll', onScroll);
 			cancelAnimationFrame(frame);
+			window.clearTimeout(remeasure);
 		};
 	}, []);
 
@@ -111,7 +155,13 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 			</p>
 			<Marquee dir="rtl">
 				{fillForLoop(firstArticles).map((article, index) => (
-					<Link key={`${article.id}-${index}`} href={ROUTES.article(article.id)} className="image-link">
+					<Link
+						key={`${article.id}-${index}`}
+						href={ROUTES.article(article.id)}
+						className="image-link"
+						data-fly={index < FLY_SLIDES ? '' : undefined}
+						style={index < FLY_SLIDES ? flyFrom(index, 0) : undefined}
+					>
 						<Image
 							src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
 							fallback={article.fallbackImageUrl}
@@ -127,7 +177,13 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 			</Marquee>
 			<Marquee dir="ltr">
 				{fillForLoop(secondArticles).map((article, index) => (
-					<Link key={`${article.id}-${index}`} href={ROUTES.article(article.id)} className="image-link">
+					<Link
+						key={`${article.id}-${index}`}
+						href={ROUTES.article(article.id)}
+						className="image-link"
+						data-fly={index < FLY_SLIDES ? '' : undefined}
+						style={index < FLY_SLIDES ? flyFrom(index, 1) : undefined}
+					>
 						<Image
 							src={getFirstImage(article.imageUrl || '') || DEFAULT_IMAGES.MONO}
 							fallback={article.fallbackImageUrl}

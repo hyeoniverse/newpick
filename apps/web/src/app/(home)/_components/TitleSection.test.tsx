@@ -1,6 +1,6 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import TitleSection, { coverProgress } from './TitleSection';
+import TitleSection, { coverProgress, FLY_SLIDES, flyFrom } from './TitleSection';
 
 vi.mock('@/components/common/Image', () => ({ default: () => null }));
 // jsdom에는 없다
@@ -37,5 +37,20 @@ describe('홈 첫 화면 패널', () => {
 		const panel = container.querySelector('[data-track-section="home-title"]')!;
 		expect(panel.className).toContain('np-intro');
 		expect(panel.className).toContain('sticky');
+	});
+
+	it(`사진: 앞쪽 ${FLY_SLIDES}칸만 로고에서 퍼져 나와 날아가고, 기울기 · 차례는 순번으로 정해져 늘 같다 (줄마다 기울기가 다름)`, () => {
+		const article = (id: number) => ({ id, title: `기사 ${id}`, imageUrl: '' }) as never;
+		const { container } = render(
+			<TitleSection
+				firstArticles={Array.from({ length: 20 }, (_, i) => article(i + 1))}
+				secondArticles={Array.from({ length: 20 }, (_, i) => article(i + 21))}
+			/>,
+		);
+		const firstRows = container.querySelectorAll('.np-marquee .row:first-child');
+		expect([...firstRows].map((row) => row.querySelectorAll('[data-fly]').length)).toEqual([FLY_SLIDES, FLY_SLIDES]);
+		expect(flyFrom(3, 0)).toEqual(flyFrom(3, 0));
+		expect(flyFrom(3, 0)).not.toEqual(flyFrom(3, 1));
+		expect(Object.keys(flyFrom(0, 0))).toEqual(['--fr', '--i']);
 	});
 });
