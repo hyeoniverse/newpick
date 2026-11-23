@@ -1,6 +1,6 @@
 import { SUBSCRIPTION } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
-import { useMutation, UseMutationOptions, useQuery } from '@tanstack/react-query';
+import { useMutation, UseMutationOptions, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/useToast';
 import { fetchSubscription, startSubscription, pauseSubscription, cancelSubscription } from '@/api/subscription';
@@ -73,8 +73,9 @@ const useSubscribeMutation = (refreshSubscription: () => void) => {
 
 // 구독 관심사 훅
 const useSubscribeInterests = () => {
-	const { user } = useAuth();
+	const { user, refetchUser } = useAuth();
 	const { showToast } = useToast();
+	const queryClient = useQueryClient();
 
 	const {
 		data: interests,
@@ -88,8 +89,14 @@ const useSubscribeInterests = () => {
 		staleTime: 1000 * 60 * 5,
 	});
 
+	// 바꾼 관심사를 다시 받는다: 안 그러면 user.interests가 예전 값으로 남아 설정 화면이 예전 선택으로 돌아가고,
+	// 그대로 '완료'를 누르면 서버 값까지 예전으로 되돌아간다
 	const updateMutation = useMutation({
 		mutationFn: updateInterests,
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: queryKeys.subscription.interests });
+			await refetchUser();
+		},
 		onError: () => handleError(SUBSCRIPTION.interestsFailed, showToast),
 	});
 
@@ -139,7 +146,8 @@ export const useSubscribe = () => {
 			await startMutation.mutateAsync(interests);
 			startMutation.reset();
 		});
-	const handleReStart = () => run(() => startMutation.mutateAsync([]));
+	// 일시정지 → 다시 켜기: 관심사는 보내지 않아 지금 것을 그대로 둔다 ([]를 보내면 모두 지워진다)
+	const handleReStart = () => run(() => startMutation.mutateAsync(undefined));
 	const handlePause = () => run(() => pauseMutation.mutateAsync());
 	const handleCancel = () => run(() => cancelMutation.mutateAsync());
 	const handleUpdate = (newInterests: string[]) => run(() => updateMutation.mutateAsync(newInterests));

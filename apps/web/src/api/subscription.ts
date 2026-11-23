@@ -21,11 +21,12 @@ export const fetchSubscription = async (): Promise<boolean | null> => {
 };
 
 /**
- * 구독 시작 요청 API
+ * 구독 시작 요청 API. interests를 빼면(일시정지 → 다시 켜기) 서버가 지금 관심사를 그대로 둔다.
+ * 빈 배열을 보내면 관심사가 모두 지워져 메일이 가지 않으므로 보내지 않는다
  */
-export const startSubscription = async (interests: string[]): Promise<void> => {
-	const interestsId = mapTitleToId(interests).filter((id) => id !== 0);
-	await apiFetch(API_ENDPOINTS.SUBSCRIBERS.START(), { method: 'POST', body: { interests: interestsId } });
+export const startSubscription = async (interests?: string[]): Promise<void> => {
+	const body = interests ? { interests: mapTitleToId(interests).filter((id) => id !== 0) } : {};
+	await apiFetch(API_ENDPOINTS.SUBSCRIBERS.START(), { method: 'POST', body });
 };
 
 /**
