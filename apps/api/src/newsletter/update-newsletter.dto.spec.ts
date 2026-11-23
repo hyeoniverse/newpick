@@ -1,3 +1,5 @@
+// newsletter.dto의 @Type이 reflect-metadata를 쓴다 (다른 spec이 먼저 불러 주지 않아도 되게)
+import 'reflect-metadata';
 import { plainToInstance } from 'class-transformer';
 import { validateSync } from 'class-validator';
 import { UpdateNewsletterDto } from './newsletter.dto';
