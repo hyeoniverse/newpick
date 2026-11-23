@@ -356,6 +356,7 @@ describe('EditionService (#55)', () => {
 			dailyEdition: {
 				findUnique: jest.fn().mockResolvedValue(saved),
 				upsert: jest.fn(),
+				update: jest.fn(),
 			},
 			aiProcessLog: { create: jest.fn().mockResolvedValue({}) },
 			newsletter: {
@@ -413,6 +414,30 @@ describe('EditionService (#55)', () => {
 		const edition = await service.ensureEdition('2026-10-27');
 		expect(claude.generate).not.toHaveBeenCalled();
 		expect(edition!.editorial).toBe(editorial);
+	});
+
+	it('저장한 뒤 그날 뉴스레터가 바뀌었으면(실패했던 분야를 나중에 만듦) 다시 편집해 고친다 (#341)', async () => {
+		const old = { ranking: {}, duplicates: [], threads: [] };
+		// 처음 저장할 때는 IT만 있었다
+		const { service, prisma, claude } = setup({ newsletterIds: [11], editorial: old, token: 100 });
+		const edition = await service.ensureEdition('2026-10-27');
+
+		expect(claude.generate).toHaveBeenCalledTimes(1);
+		expect(edition!.sources.map((s) => s.newsletterId)).toEqual([11, 20]);
+		expect(edition!.editorial).not.toBe(old);
+		expect(prisma.dailyEdition.update).toHaveBeenCalledWith({
+			where: { date: '2026-10-27' },
+			data: expect.objectContaining({ newsletterIds: [11, 20], token: { increment: 1234 } }),
+		});
+	});
+
+	it('다시 편집이 실패하면 옛 편집 대신 편집 없이 돌려준다 (옛 목록 기준이라)', async () => {
+		const { service, prisma, claude } = setup({ newsletterIds: [11], editorial: { ranking: {} }, token: 100 });
+		claude.generate.mockRejectedValue(new Error('overloaded'));
+		const edition = await service.ensureEdition('2026-10-27');
+		expect(edition).toMatchObject({ editorial: null });
+		expect(edition!.sources.map((s) => s.newsletterId)).toEqual([11, 20]);
+		expect(prisma.dailyEdition.update).not.toHaveBeenCalled();
 	});
 
 	it('편집 호출이 실패해도 편집 없이 돌려주고, 저장하지 않는다 (다음에 다시 시도)', async () => {

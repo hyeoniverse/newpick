@@ -108,24 +108,35 @@ export class EditionService {
 
 	/**
 	 * 그 날짜(KST)의 편집본. 처음이면 그날 뉴스레터로 편집해 저장하고, 있으면 그대로 쓴다 (다시 보내도 호출 없음).
+	 * 저장한 뒤 그날 뉴스레터가 바뀌었으면(실패했던 분야를 나중에 만듦 · 새로 만듦 · 지움) 다시 편집한다 (#341: 예전에는
+	 * 처음 저장한 목록을 계속 써서, 늦게 만든 분야가 그날 메일에 영영 들어가지 않았다).
 	 * 그날 뉴스레터가 없으면 null. 편집 호출이 실패해도 편집 없이 돌려준다 (메일은 나간다)
 	 */
 	async ensureEdition(date = kstDaysAgo(0)): Promise<Edition | null> {
 		const saved = await this.prisma.dailyEdition.findUnique({
 			where: { date },
 		});
-		if (saved) {
-			return {
-				date,
-				sources: await this.loadSources({
-					ids: saved.newsletterIds as number[],
-				}),
-				editorial: saved.editorial as Editorial | null,
-			};
-		}
-
 		const sources = await this.loadSources({ date });
 		if (!sources.length) return null;
+
+		if (saved) {
+			const savedIds = new Set(saved.newsletterIds as number[]);
+			const same = sources.length === savedIds.size && sources.every((s) => savedIds.has(s.newsletterId));
+			if (same) return { date, sources, editorial: saved.editorial as Editorial | null };
+			try {
+				const { editorial, tokens } = await this.edit(sources);
+				await this.prisma.dailyEdition.update({
+					where: { date },
+					data: { newsletterIds: sources.map((s) => s.newsletterId), editorial, token: { increment: tokens } },
+				});
+				this.logger.log(`그날 뉴스레터가 바뀌어 다시 편집 (${date})`);
+				return { date, sources, editorial };
+			} catch (error) {
+				// 저장한 편집은 옛 목록 기준이라 쓰지 않는다. 다음 발송 때 다시 편집한다
+				this.logger.error(`다시 편집 실패, 편집 없이 보냅니다 (${date}): ${errorMessage(error)}`);
+				return { date, sources, editorial: null };
+			}
+		}
 
 		try {
 			const { editorial, tokens } = await this.edit(sources);
