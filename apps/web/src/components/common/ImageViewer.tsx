@@ -38,6 +38,14 @@ function morphFrom(thumb: HTMLImageElement, big: HTMLImageElement) {
 	};
 }
 
+/**
+ * 화면에 꽉 차게(위아래 8rem 여백 안에서 비율 그대로). 작은 사진(원본 폭 500px 등)은 본문에 보이던 것보다 작게 떠서 늘린다
+ */
+function fitScreen(big: HTMLImageElement) {
+	if (!big.naturalWidth || !big.naturalHeight) return;
+	big.style.width = `min(100%, calc((100dvh - 8rem) * ${big.naturalWidth / big.naturalHeight}))`;
+}
+
 /** 움직임 줄이기 설정이거나 움직임을 못 그리는 곳(테스트 환경 등)이면 바로 열고 닫는다 */
 const reducedMotion = () =>
 	typeof Element.prototype.animate !== 'function' ||
@@ -77,12 +85,14 @@ export default function ImageViewer({ image, onClose }: { image: ViewerImage | n
 		opener.current = document.activeElement as HTMLElement | null;
 		closing.current = false;
 		dialog.showModal();
-		if (reducedMotion()) return;
-		fade(1);
 		const big = imgRef.current;
+		if (!big) return;
+		const motion = !reducedMotion();
+		if (motion) fade(1);
 		const thumb = image.from;
-		if (!big || !thumb) return;
-		const play = () => {
+		const show = () => {
+			fitScreen(big);
+			if (!motion || !thumb) return;
 			const start = morphFrom(thumb, big);
 			if (!start) return;
 			big.animate([start, { transform: 'none', clipPath: 'inset(0px round 8px)' }], {
@@ -91,8 +101,8 @@ export default function ImageViewer({ image, onClose }: { image: ViewerImage | n
 			});
 		};
 		// 본문에서 이미 받은 사진이라 대개 바로 그려진다. 아니면 받은 뒤에
-		if (big.complete && big.naturalWidth) play();
-		else big.addEventListener('load', play, { once: true });
+		if (big.complete && big.naturalWidth) show();
+		else big.addEventListener('load', show, { once: true });
 	}, [image, mounted]);
 
 	useEffect(() => {
@@ -123,7 +133,7 @@ export default function ImageViewer({ image, onClose }: { image: ViewerImage | n
 			ref={ref}
 			// 바탕이 늘 검정이라 안쪽(강조색 · 단추)은 다크 테마 색으로 (라이트의 진한 보라는 검정에 묻힌다)
 			data-theme="dark"
-			className="np-image-viewer m-0 h-dvh max-h-none w-screen max-w-none overflow-hidden border-0 bg-transparent p-0 backdrop:bg-transparent"
+			className="np-image-viewer m-0 h-full max-h-none w-full max-w-none overflow-hidden border-0 bg-transparent p-0 backdrop:bg-transparent"
 			aria-label={image ? `사진 크게 보기: ${image.alt}` : undefined}
 			// Esc: 브라우저가 바로 닫지 않게 하고 되돌아가는 움직임 뒤에 닫는다
 			onCancel={(e) => {
@@ -173,7 +183,15 @@ export default function ImageViewer({ image, onClose }: { image: ViewerImage | n
 				</figure>
 			)}
 			<div ref={closeRef} className="absolute top-3 right-3">
-				<Button scheme="outline" size="small" icon={<LuX aria-hidden />} onClick={close} aria-label="닫기" />
+				<Button
+					scheme="outline"
+					size="small"
+					// 정사각형: 글자 없는 아이콘 단추라 양옆 여백을 빼고 가로 · 세로를 같게 (36px)
+					className="size-9 justify-center px-0"
+					icon={<LuX aria-hidden />}
+					onClick={close}
+					aria-label="닫기"
+				/>
 			</div>
 		</dialog>,
 		document.body,

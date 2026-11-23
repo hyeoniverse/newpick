@@ -10,6 +10,7 @@ import { linkDebateSources } from '@/utils/debateSources';
 import HighlightLayer from './HighlightLayer';
 import FollowLayer from './FollowLayer';
 import { cx } from '@/styles/tw';
+import imageLoader from '@/utils/imageLoader';
 
 /** 크게 볼 수 있는 본문 사진: 소식 사진 (#49) */
 const STORY_IMAGE = '.story-image img';
@@ -24,6 +25,20 @@ export function zoomableImages(html: string) {
 		(_, start: string, before: string, alt: string) =>
 			`${start}${before}alt="${alt}" role="button" tabindex="0" aria-label="${alt || '사진'} 크게 보기"`,
 	);
+}
+
+/**
+ * 대표 사진은 칸 폭에 맞춰 줄인 사진(api /images, next/image)이라 휴대폰에서는 작다. 뷰어에는 같은 사진을 큰 폭(1200)으로.
+ * 줄인 사진이 아니면(받지 못해 대신 보인 사진 등) 보이는 그대로
+ */
+function largeCover(img: HTMLImageElement) {
+	const shown = img.currentSrc || img.src;
+	try {
+		const original = new URL(shown).searchParams.get('url');
+		return original ? imageLoader({ src: original, width: 1200 }) : shown;
+	} catch {
+		return shown;
+	}
 }
 
 interface NewsletterContentProps {
@@ -77,7 +92,18 @@ function ArticleContent({
 		<div className={cx('np-articles-article-content-container', className)}>
 			{articleImage && (
 				<div className="image-wrapper" data-track-section="detail-image">
-					<HeightAutoImg src={articleImage} fallback={fallbackImage} height={'auto'} />
+					{/* 대표 사진도 누르면 같은 뷰어로 크게 (화면이 좁으면 작게 보여서) */}
+					<button
+						type="button"
+						aria-label="대표 사진 크게 보기"
+						className="block w-full cursor-zoom-in border-0 bg-transparent p-0"
+						onClick={(e) => {
+							const img = e.currentTarget.querySelector('img');
+							if (img) setViewing({ src: largeCover(img), alt: '대표 사진', from: img });
+						}}
+					>
+						<HeightAutoImg src={articleImage} fallback={fallbackImage} height={'auto'} />
+					</button>
 				</div>
 			)}
 			<article className="np-articles-article-content-newsletter-content">

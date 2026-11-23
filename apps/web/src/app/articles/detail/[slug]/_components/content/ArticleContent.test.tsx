@@ -48,6 +48,16 @@ describe('ArticleContent: 사진 크게 보기', () => {
 		expect(dialog.hasAttribute('open')).toBe(false);
 	});
 
+	it('맨 위 대표 사진도 누르면 같은 뷰어로 연다 (출처 없이)', () => {
+		render(<ArticleContent content={story('디지털세')} articleImage="https://img.test/cover.jpg" />);
+		fireEvent.click(screen.getByRole('button', { name: '대표 사진 크게 보기' }));
+
+		const dialog = screen.getByRole('dialog', { name: '사진 크게 보기: 대표 사진' });
+		expect(dialog.hasAttribute('open')).toBe(true);
+		expect(dialog.querySelector('img')?.getAttribute('src')).toContain('cover.jpg');
+		expect(dialog.querySelector('figcaption')).toBeNull();
+	});
+
 	it('키보드(Enter)로도 연다', () => {
 		render(<ArticleContent content={story('디지털세')} />);
 		fireEvent.keyDown(screen.getByRole('button', { name: '디지털세 크게 보기' }), { key: 'Enter' });
