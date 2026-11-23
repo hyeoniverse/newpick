@@ -22,6 +22,10 @@ beforeAll(() => {
 });
 afterEach(cleanup);
 
+/** 본문 소식 사진 (맨 위 모자이크 칸도 같은 이름이라 img로 가린다) */
+const bodyImage = (alt: string) =>
+	screen.getAllByRole('button', { name: `${alt} 크게 보기` }).find((el) => el.tagName === 'IMG')!;
+
 describe('zoomableImages', () => {
 	it('소식 사진만 누를 수 있는 단추로 (이름: … 크게 보기)', () => {
 		const html = zoomableImages(`${story('디지털세')}<p><img src="x.png" alt="다른 사진"></p>`);
@@ -33,7 +37,7 @@ describe('zoomableImages', () => {
 describe('ArticleContent: 사진 크게 보기', () => {
 	it('소식 사진을 누르면 잘리지 않은 전체를 출처와 함께 띄우고, 닫으면 사라진다', () => {
 		render(<ArticleContent content={story('디지털세')} />);
-		fireEvent.click(screen.getByRole('button', { name: '디지털세 크게 보기' }));
+		fireEvent.click(bodyImage('디지털세'));
 
 		const dialog = screen.getByRole('dialog', { name: '사진 크게 보기: 디지털세' });
 		expect(dialog.hasAttribute('open')).toBe(true);
@@ -48,8 +52,8 @@ describe('ArticleContent: 사진 크게 보기', () => {
 		expect(dialog.hasAttribute('open')).toBe(false);
 	});
 
-	it('맨 위 대표 사진도 누르면 같은 뷰어로 연다 (출처 없이)', () => {
-		render(<ArticleContent content={story('디지털세')} articleImage="https://img.test/cover.jpg" />);
+	it('소식 사진이 없는 글은 예전 대표 사진 한 장, 누르면 같은 뷰어로 (출처 없이)', () => {
+		render(<ArticleContent content="<p>사진 없는 글</p>" articleImage="https://img.test/cover.jpg" />);
 		fireEvent.click(screen.getByRole('button', { name: '대표 사진 크게 보기' }));
 
 		const dialog = screen.getByRole('dialog', { name: '사진 크게 보기: 대표 사진' });
@@ -58,15 +62,35 @@ describe('ArticleContent: 사진 크게 보기', () => {
 		expect(dialog.querySelector('figcaption')).toBeNull();
 	});
 
+	it('맨 위는 소식 사진 모자이크: 중요한 순, 칸마다 언론사, 누르면 그 사진을 출처와 함께 크게', () => {
+		const content =
+			story('덜 중요').replace('<article class="story">', '<article class="story" data-importance="2">') +
+			story('제목 소식')
+				.replace('<article class="story">', '<article class="story" data-importance="5">')
+				.replace('photo.jpg', 'lead.jpg');
+		render(<ArticleContent content={content} articleImage="https://img.test/cover.jpg" />);
+
+		const tiles = screen.getAllByRole('button', { name: /크게 보기$/ }).filter((b) => b.tagName === 'BUTTON');
+		expect(tiles.map((t) => t.getAttribute('aria-label'))).toEqual(['제목 소식 크게 보기', '덜 중요 크게 보기']);
+		expect(tiles[0].textContent).toBe('한국일보');
+		// 예전 대표 사진(articleImage)은 쓰지 않는다
+		expect(screen.queryByRole('button', { name: '대표 사진 크게 보기' })).toBeNull();
+
+		fireEvent.click(tiles[0]);
+		const dialog = screen.getByRole('dialog', { name: '사진 크게 보기: 제목 소식' });
+		expect(dialog.querySelector('img')?.getAttribute('src')).toBe('https://img.test/lead.jpg');
+		expect(within(dialog).getByRole('link', { name: '한국일보' }).getAttribute('href')).toBe('https://news.test/1');
+	});
+
 	it('키보드(Enter)로도 연다', () => {
 		render(<ArticleContent content={story('디지털세')} />);
-		fireEvent.keyDown(screen.getByRole('button', { name: '디지털세 크게 보기' }), { key: 'Enter' });
+		fireEvent.keyDown(bodyImage('디지털세'), { key: 'Enter' });
 		expect(screen.getByRole('dialog').hasAttribute('open')).toBe(true);
 	});
 
 	it('다시 그려져도 본문은 그대로 둔다 (예전에는 제목을 지나 스크롤만 해도 본문이 통째로 바뀌어 사진을 다시 받았다)', () => {
 		const { rerender } = render(<ArticleContent content={story('디지털세')} />);
-		const img = screen.getByRole('button', { name: '디지털세 크게 보기' });
+		const img = bodyImage('디지털세');
 		rerender(<ArticleContent content={story('디지털세')} className="again" />);
 		expect(img.isConnected).toBe(true);
 	});
