@@ -38,8 +38,8 @@ export interface HomeRisingTag {
  * 핵심 3줄(중요도) · 최신 뉴스레터(분야) · 지금 뜨는 소식(조회 · 스크랩)과 묶는 기준이 다르다
  */
 export interface HomeTopic extends HomeRisingTag {
-  /** 그 태그가 붙은 최근 3일 소식 (새것부터) */
-  stories: HomeStory[];
+  /** 그 태그가 붙은 최근 3일 소식 (새것부터). date: 그 소식이 나온 날 (KST) */
+  stories: (HomeStory & { date: string })[];
 }
 
 /** 많이 읽은 뉴스레터 (최근 7일 상세 화면 조회) */
