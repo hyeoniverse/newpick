@@ -14,7 +14,7 @@ export interface ViewerImage {
 
 /**
  * 사진 크게 보기 (공통, 기사 상세에서 시작). 본문 사진은 틀(16:9)에 맞춰 잘려 보이므로, 누르면 잘리지 않은 전체를 띄운다.
- * 바탕은 테마 바탕색(라이트: 흰색)을 반투명으로 깔고 뒤 화면을 흐리게. 닫기는 공통 아이콘 단추
+ * 바탕은 테마와 상관없이 검정 반투명 + 뒤 화면 흐림. 닫기는 공통 아이콘 단추
  * <dialog showModal()>: top layer라 머리글 · 막대보다 위, 뒤 화면은 비활성, Esc로 닫힘(브라우저 기본).
  * 바깥 · 사진을 눌러도 닫는다. 출처 링크는 눌러도 닫지 않는다
  */
@@ -42,7 +42,7 @@ export default function ImageViewer({ image, onClose }: { image: ViewerImage | n
 	return createPortal(
 		<dialog
 			ref={ref}
-			className="np-image-viewer m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-background/75 p-0 backdrop-blur-md backdrop:bg-transparent"
+			className="np-image-viewer m-0 h-dvh max-h-none w-screen max-w-none border-0 bg-black/75 p-0 backdrop-blur-md backdrop:bg-transparent"
 			aria-label={image ? `사진 크게 보기: ${image.alt}` : undefined}
 			onClose={() => {
 				onClose();
@@ -63,7 +63,7 @@ export default function ImageViewer({ image, onClose }: { image: ViewerImage | n
 						className="block h-auto max-h-[calc(100dvh-7rem)] w-auto max-w-full cursor-zoom-out rounded-[8px] object-contain shadow-lg"
 					/>
 					{image.caption && (
-						<figcaption className="text-small text-sub-text">
+						<figcaption className="text-small text-white/80">
 							{image.caption.href ? (
 								<a
 									href={image.caption.href}
@@ -80,7 +80,11 @@ export default function ImageViewer({ image, onClose }: { image: ViewerImage | n
 					)}
 				</figure>
 			)}
-			<IconButton onClick={close} aria-label="닫기" className="absolute top-3 right-3 text-text">
+			<IconButton
+				onClick={close}
+				aria-label="닫기"
+				className="absolute top-3 right-3 border border-solid border-white/70 text-white hover:bg-white/15 [&_svg]:size-5 [&_svg]:text-white"
+			>
 				<LuX aria-hidden />
 			</IconButton>
 		</dialog>,
