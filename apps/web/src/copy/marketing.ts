@@ -28,7 +28,7 @@ export const HOME = {
 	/** 홈 '오늘' 칸 (TodaySections). 제목에 '오늘'을 넣지 않는다: 아침 발행 전에는 가장 최근 편집본이 어제 것이다 */
 	today: {
 		/** 칸 제목 위 작은 꼬리표 */
-		eyebrow: { lines: 'BRIEFING', trend: 'TRENDING', threads: 'CONNECTED', popular: 'POPULAR' },
+		eyebrow: { lines: 'BRIEFING', trend: 'TRENDING', threads: 'CONNECTED', continuing: 'TIMELINE', popular: 'POPULAR' },
 		lines: '핵심 3줄',
 		/** 핵심 3줄이 어느 날 편집본에서 나왔는지 */
 		basis: (day: string) => `${day} 기준`,
@@ -37,6 +37,10 @@ export const HOME = {
 		topicCount: (n: number) => `소식 ${n}개`,
 		topicMore: (tag: string) => `#${tag} 소식 더 보기`,
 		threads: '분야를 넘는 흐름',
+		continuing: '이어지는 이야기',
+		continuingNote: '며칠째 이어지는 사건을 날짜순으로 모았어요',
+		/** 사건이 처음 나온 날부터 오늘 소식까지 며칠째인지 */
+		continuingDays: (n: number) => `${n}일째`,
 		newsletters: '오늘의 뉴스레터',
 		/** 오늘 뉴스레터가 아직 없는 분야 */
 		pending: '아직 준비 중이에요',

@@ -42,6 +42,19 @@ export interface HomeTopic extends HomeRisingTag {
   stories: (HomeStory & { date: string })[];
 }
 
+/**
+ * 이어지는 이야기: 오늘 소식에서 같은 사건의 앞 소식을 거슬러 올라간 며칠짜리 사건 (오래된 것부터, 마지막이 오늘 소식).
+ * 날짜를 넘어 잇는다는 점이 분야를 넘는 흐름(같은 날 여러 분야)과 다르다
+ */
+export interface HomeContinuing {
+  steps: (Pick<HomeStory, 'newsletterId' | 'storyIndex' | 'category' | 'heading'> & {
+    /** 그 소식이 나온 날 (KST) */
+    date: string;
+    /** 앞 소식보다 새로 나온 것 한 줄 (첫 소식 · 판정 모델이 못 쓴 날은 빈 문자열) */
+    reason: string;
+  })[];
+}
+
 /** 많이 읽은 뉴스레터 (최근 7일 상세 화면 조회) */
 export interface HomeMostRead {
   newsletterId: number;
@@ -67,6 +80,8 @@ export interface HomeToday {
   /** 최신 트렌드: 뜨는 주제마다 그 주제의 최근 소식 */
   topics: HomeTopic[];
   threads: HomeThread[];
+  /** 이어지는 이야기: 며칠째 이어지는 사건 (긴 것부터) */
+  continuing: HomeContinuing[];
   risingTags: HomeRisingTag[];
   mostRead: HomeMostRead[];
   mostScrapped: HomeMostScrapped[];

@@ -1,4 +1,5 @@
 import type {
+	HomeContinuing,
 	HomeMostRead,
 	HomeMostScrapped,
 	HomeRisingTag,
@@ -11,13 +12,15 @@ import { parseNewsletterHtml } from 'src/ai-summary/newsletter-parse';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { kstDayRange, toKstDate } from 'src/common/kst';
+import { allStories } from 'src/follows/detect';
+import { chainOf, LINK_LIMITS, LinkRow, refOf } from 'src/follows/story-links';
 import { EditionService } from './edition.service';
 import { storyRef } from './editor';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** 결과를 이만큼 들고 있는다 (홈은 ISR 10분이라 그보다 짧게) */
 const CACHE_MS = 5 * 60 * 1000;
-const LIMITS = { topLines: 3, topics: 4, topicStories: 3, risingTags: 8, mostRead: 5, mostScrapped: 5 };
+const LIMITS = { topLines: 3, topics: 4, topicStories: 3, continuing: 3, risingTags: 8, mostRead: 5, mostScrapped: 5 };
 /** 최근 며칠의 조회 · 스크랩을 셀지 */
 const READ_DAYS = 7;
 const SCRAP_DAYS = 30;
@@ -82,8 +85,9 @@ export class HomeService {
 		const ranked = [...stories].sort((a, b) => b.importance - a.importance);
 		const topLines = ranked.slice(0, LIMITS.topLines);
 
-		const [{ tags: risingTags, topics }, mostRead, mostScrapped] = await Promise.all([
+		const [{ tags: risingTags, topics }, continuing, mostRead, mostScrapped] = await Promise.all([
 			this.rising(edition.date),
+			this.continuing(ranked),
 			this.mostRead(new Date(now.getTime() - READ_DAYS * DAY_MS)),
 			this.mostScrapped(new Date(now.getTime() - SCRAP_DAYS * DAY_MS)),
 		]);
@@ -99,7 +103,71 @@ export class HomeService {
 			}))
 			.filter((thread) => thread.stories.length > 0);
 
-		return { date: edition.date, topLines, topics, threads, risingTags, mostRead, mostScrapped };
+		return { date: edition.date, topLines, topics, threads, continuing, risingTags, mostRead, mostScrapped };
+	}
+
+	/**
+	 * 이어지는 이야기: 오늘 소식마다 저장된 연결(story_links)을 거슬러 올라가 며칠짜리 사건으로.
+	 * 긴 것(며칠째인지)부터, 같으면 오늘 소식이 중요한 것부터. 같은 사건에서 시작한 사슬은 하나만
+	 * @param stories 오늘 소식 (중요도 순)
+	 */
+	private async continuing(stories: HomeStory[]): Promise<HomeContinuing[]> {
+		const links = new Map<string, LinkRow>();
+		let frontier = stories.map(({ newsletterId, storyIndex }) => ({ newsletterId, storyIndex }));
+		// 단계마다 한 번: 오늘 소식의 앞 소식, 그 앞 소식, …
+		for (let step = 1; step < LINK_LIMITS.maxSteps && frontier.length; step++) {
+			const rows = await this.prisma.storyLink.findMany({
+				where: { OR: frontier },
+				select: { newsletterId: true, storyIndex: true, prevNewsletterId: true, prevStoryIndex: true, reason: true },
+			});
+			frontier = [];
+			for (const row of rows) {
+				const ref = refOf(row.newsletterId, row.storyIndex);
+				if (links.has(ref)) continue;
+				links.set(ref, row);
+				frontier.push({ newsletterId: row.prevNewsletterId, storyIndex: row.prevStoryIndex });
+			}
+		}
+		const chains = stories.map((story) => chainOf(story, links)).filter((steps) => steps.length);
+		if (!chains.length) return [];
+
+		// 단계마다 제목 · 분야 · 날짜는 지금 뉴스레터 본문에서 (다시 쓴 뉴스레터면 그 소식이 없을 수 있다)
+		const ids = [...new Set(chains.flat().map((s) => s.newsletterId))];
+		const newsletters = await this.prisma.newsletter.findMany({
+			where: { id: { in: ids } },
+			select: { id: true, createdAt: true, contentAsHTML: true, category: { select: { name: true } } },
+		});
+		const byId = new Map(
+			newsletters.map((n) => [
+				n.id,
+				{
+					date: toKstDate(n.createdAt),
+					category: n.category.name,
+					stories: allStories(parseNewsletterHtml(n.contentAsHTML)),
+				},
+			]),
+		);
+		const result: HomeContinuing[] = [];
+		const roots = new Set<string>();
+		const sorted = chains
+			.map((steps, order) => ({ steps, order }))
+			.sort((a, b) => b.steps.length - a.steps.length || a.order - b.order);
+		for (const { steps } of sorted) {
+			const root = refOf(steps[0].newsletterId, steps[0].storyIndex);
+			if (roots.has(root)) continue;
+			const full = steps.map((step) => {
+				const newsletter = byId.get(step.newsletterId);
+				const story = newsletter?.stories[step.storyIndex - 1];
+				return newsletter && story
+					? { ...step, heading: story.heading, category: newsletter.category, date: newsletter.date }
+					: null;
+			});
+			if (full.some((step) => !step)) continue;
+			roots.add(root);
+			result.push({ steps: full as HomeContinuing['steps'] });
+			if (result.length >= LIMITS.continuing) break;
+		}
+		return result;
 	}
 
 	/** 상세 화면 조회 수 (뉴스레터 id → 수) */

@@ -166,7 +166,7 @@
  * 홈 칸 등장 · 퇴장 (components/common/InOut.tsx · hooks/useInOut.ts).
  * 차례는 모든 칸이 위에서 아래로 (--n 화면 높이 차례, --c 같은 줄 안 왼쪽부터), 움직임은 칸마다 다르다 (data-io-item 모양):
  * settle 내려앉기 · focus 흐릿했다 또렷하게 · unroll/reveal 위에서 아래로 펼쳐짐 · unfold 위에서 접혔다 펴짐 ·
- * flap 위 모서리를 축으로 넘어옴 · line 세로선이 그어짐 · dot 점이 찍힘 · rain 비처럼 떨어져 튕김 · thud 툭 떨어짐 · cascade 왼쪽부터 차례로 내려앉음.
+ * flap 위 모서리를 축으로 넘어옴 · line 세로선이 그어짐 · trace 가로선이 왼쪽부터 그어짐 · step 왼쪽부터 차례로 내려앉음 · dot 점이 찍힘 · rain 비처럼 떨어져 튕김 · thud 툭 떨어짐 · cascade 왼쪽부터 차례로 내려앉음.
  * 퇴장은 같은 방향(아래로)으로 짧게, 끝 모습(숨김)을 유지한다
  */
 .np-io {
@@ -184,6 +184,9 @@
 		&:nth-child(3n + 1) {
 			--r: -3deg;
 		}
+	}
+	[data-io-item='trace'] {
+		transform-origin: 0 50%;
 	}
 	[data-io-item='flap'],
 	[data-io-item='unfold'],
@@ -230,6 +233,12 @@
 		[data-io-item='line']::before {
 			animation: np-io-line 0.5s ease-out calc(var(--io-in) + 0.3s) both;
 		}
+		[data-io-item='step'] {
+			animation: np-io-settle 0.55s cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--io-in) + var(--c, 0) * 0.15s) both;
+		}
+		[data-io-item='trace'] {
+			animation: np-io-trace 0.6s ease-out calc(var(--io-in) + var(--c, 0) * 0.15s + 0.1s) both;
+		}
 		[data-io-item='dot'] {
 			animation: np-io-dot 0.4s cubic-bezier(0.3, 1.6, 0.5, 1) calc(var(--io-in) + 0.25s) both;
 		}
@@ -246,7 +255,13 @@
 
 	&[data-leaving] {
 		[data-io-head],
-		:is([data-io-item='settle'], [data-io-item='thud'], [data-io-item='cascade'], [data-io-item='dot']) {
+		:is(
+			[data-io-item='settle'],
+			[data-io-item='thud'],
+			[data-io-item='cascade'],
+			[data-io-item='dot'],
+			[data-io-item='step']
+		) {
 			animation: np-io-settle-out 0.4s ease-in var(--io-out, 0s) forwards;
 		}
 		[data-io-item='focus'] {
@@ -262,6 +277,10 @@
 		[data-io-item='flap'] {
 			transform-origin: 50% 100%;
 			animation: np-io-flap-out 0.45s ease-in calc(var(--io-out) + var(--c, 0) * 0.04s) forwards;
+		}
+		[data-io-item='trace'] {
+			transform-origin: 100% 50%;
+			animation: np-io-trace-out 0.35s ease-in forwards;
 		}
 		[data-io-item='line']::before {
 			transform-origin: 50% 100%;
@@ -355,6 +374,16 @@
 @keyframes np-io-line-out {
 	to {
 		transform: scaleY(0);
+	}
+}
+@keyframes np-io-trace {
+	from {
+		transform: scaleX(0);
+	}
+}
+@keyframes np-io-trace-out {
+	to {
+		transform: scaleX(0);
 	}
 }
 @keyframes np-io-dot {

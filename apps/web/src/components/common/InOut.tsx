@@ -4,7 +4,7 @@ import { useRef } from 'react';
 import { type InOutPart, useInOut } from '@/hooks/useInOut';
 
 /** 칸 이름 (styles/pages/home.css .np-io, 차례로 나타날 것을 고르는 데 쓴다) */
-export type InOutKind = 'lines' | 'personal' | 'trend' | 'threads' | 'topics' | 'popular' | 'subscribe';
+export type InOutKind = 'lines' | 'personal' | 'trend' | 'continuing' | 'threads' | 'topics' | 'popular' | 'subscribe';
 
 /**
  * 칸마다 움직일 것과 모양 (styles/pages/home.css [data-io-item=…]). 차례는 모두 화면 높이 순서(위에서 아래로),
@@ -22,6 +22,13 @@ const PARTS: Record<InOutKind, InOutPart[]> = {
 	trend: [
 		['.trend-header', 'settle'],
 		['.trend-cards > *', 'flap'],
+	],
+	// 날짜 축 표: 날짜가 왼쪽부터 차례로 나오고, 사건 줄마다(위에서 아래로) 실선이 왼쪽에서 오른쪽으로 그어지며 그날 소식이 하나씩 나온다
+	continuing: [
+		['[role="columnheader"]', 'step'],
+		['[role="rowheader"]', 'settle'],
+		['[role="cell"] > span[aria-hidden]', 'trace'],
+		['[role="cell"] > a', 'step'],
 	],
 	// 잇는 세로선이 위에서 아래로 그어지고, 점이 차례로 찍힌다
 	threads: [
