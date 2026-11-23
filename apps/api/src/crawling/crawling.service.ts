@@ -105,6 +105,8 @@ export class CrawlingService {
 			return crawlingResultData;
 		} catch (error) {
 			this.logger.error(`Error during crawling: ${errorMessage(error)}`);
+			// 하나도 못 모았으면 실패로 올린다 (#341: 원본 사이트를 아예 못 읽어도 '0건 수집 · 성공'으로 남았다)
+			if (crawlingResultData.length === 0) throw error;
 			// 실패 전까지 모은 결과는 그대로 저장합니다. (undefined를 반환하면 호출부에서 .length 오류)
 			return crawlingResultData;
 		}

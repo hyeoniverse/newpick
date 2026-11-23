@@ -86,6 +86,8 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
 		// 그날 이미 있는 뉴스레터 (기본 없음)
 		newsletter: { findMany: jest.fn().mockResolvedValue([]), findUnique: jest.fn() },
 		jobRun: {
+			// 놓친 실행 따라잡기: 그 뒤 실행 기록 수 (기본 0 = 놓침)
+			count: jest.fn().mockResolvedValue(0),
 			updateMany: jest.fn().mockResolvedValue({ count: 0 }),
 			create: jest.fn().mockResolvedValue({ id: 41 }),
 			update: jest.fn().mockResolvedValue({}),
@@ -126,6 +128,7 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
 		summaryJob,
 		mailJob,
 		fallbackImages as never,
+		prisma as never,
 	);
 	// 요약 다시 시도 사이 쉬는 시간은 테스트에서 없앤다
 	(summaryJob as unknown as { summaryRetryDelayMs: number }).summaryRetryDelayMs = 0;

@@ -81,3 +81,17 @@ describe('분야 고르기', () => {
 		expect(saved.map((n) => n.link)).toEqual(['b', 'c']);
 	});
 });
+
+describe('원본을 못 읽을 때 (#341)', () => {
+	const serviceWith = (fetchDocument: jest.Mock) =>
+		new CrawlingService(
+			{ fetchDocument, setDelay: jest.fn(), setQueue: jest.fn(async () => []) } as never,
+			{ findExistingLinks: jest.fn().mockResolvedValue(new Set()) } as never,
+			{} as never,
+		);
+
+	it('하나도 못 모으고 오류가 나면 실패로 올린다 (예전에는 0건 수집 · 성공)', async () => {
+		const service = serviceWith(jest.fn().mockRejectedValue(new Error('ECONNRESET')));
+		await expect(service.crawlingNews()).rejects.toThrow('ECONNRESET');
+	});
+});

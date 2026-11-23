@@ -12,6 +12,8 @@ import { ScheduleConfigService } from './schedule-config.service';
 import { SummaryJobService } from './summary-job.service';
 import { errorMessage } from 'src/common/error-message';
 import { FallbackImagesService } from 'src/ai-summary/fallback-images.service';
+import { MysqlPrismaService } from 'src/prisma/mysql.service';
+import { passedToday } from './catch-up';
 
 const MAIL_JOB_NAME = 'sendNewsletter';
 const CRAWL_JOB_NAME = 'startCrawling';
@@ -40,6 +42,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 		private readonly summaryJob: SummaryJobService,
 		private readonly mailJob: MailJobService,
 		private readonly fallbackImages: FallbackImagesService,
+		private readonly prisma: MysqlPrismaService,
 	) {}
 
 	/**
@@ -58,6 +61,40 @@ export class SchedulerService implements OnApplicationBootstrap {
 		const { hour, minute, day } = schedule.mail;
 		add(MAIL_JOB_NAME, mailCron(hour, day, minute), () => this.mailJob.sendEmailSummary());
 		this.logger.log(`예약 시간: ${JSON.stringify(schedule)} (${KST})`);
+		// 부팅을 막지 않게 뒤에서 (배포 상태 확인이 기다린다)
+		if (this.autoRun)
+			void this.catchUp(schedule).catch((error) =>
+				this.logger.error(`놓친 실행 따라잡기 실패: ${errorMessage(error)}`),
+			);
+	}
+
+	/**
+	 * 놓친 실행 따라잡기 (#341): cron은 꺼져 있던 동안의 예약 시각을 다시 돌리지 않아, 배포 · 재시작이 예약 시각과 겹치면
+	 * 그날 요약 · 메일이 통째로 빠졌다. 오늘(KST) 예약 시각이 지났는데 그 뒤 실행 기록이 없으면 지금 돌린다.
+	 * - 요약: 실패로 끝난 기록(재시작으로 중단 포함)만 있어도 다시 돈다. 이미 만든 분야는 건너뛰어 두 번 만들지 않는다
+	 * - 메일: 기록이 하나도 없을 때만. 보내다 끊긴 경우는 관리자가 확인하고 '지금 실행'(오늘 받은 사람은 건너뜀)
+	 * - 요약을 먼저 끝내고 메일 (메일이 요약을 기다리기도 한다)
+	 */
+	async catchUp(schedule: Schedule, now = new Date()) {
+		const summaryAt = passedToday(schedule.summary, now);
+		if (summaryAt && !(await this.ranSince('summary', summaryAt, { ignoreFailed: true }))) {
+			this.logger.warn('오늘 AI 요약을 놓쳐 지금 실행합니다.');
+			this.jobRuns.markTrigger('summary', 'catchup');
+			await this.summaryJob.makeAiSummary();
+		}
+		const mailAt = passedToday(schedule.mail, now, schedule.mail.day);
+		if (mailAt && !(await this.ranSince('mail', mailAt, { ignoreFailed: false }))) {
+			this.logger.warn('오늘 메일 발송을 놓쳐 지금 실행합니다.');
+			this.jobRuns.markTrigger('mail', 'catchup');
+			await this.mailJob.sendEmailSummary();
+		}
+	}
+
+	private async ranSince(job: 'summary' | 'mail', since: Date, { ignoreFailed }: { ignoreFailed: boolean }) {
+		const count = await this.prisma.jobRun.count({
+			where: { job, startedAt: { gte: since }, ...(ignoreFailed && { status: { not: 'failed' } }) },
+		});
+		return count > 0;
 	}
 
 	/**

@@ -1,5 +1,6 @@
 import type { JobName, JobResult, JobRun, JobTrigger } from '@newpick/shared';
 import { Injectable, Logger } from '@nestjs/common';
+import * as Sentry from '@sentry/nestjs';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { errorMessage } from 'src/common/error-message';
 
@@ -102,6 +103,13 @@ export class JobRunsService {
 	}
 
 	finishRun(name: JobName, status: JobResult, message: string) {
+		// 실패 · 일부 실패는 Sentry로도 (#341: 예약 작업 오류는 로그로만 남아 알 수 없었다). DSN이 없으면 아무 일도 하지 않는다
+		if (status === 'failed' || status === 'partial') {
+			Sentry.captureMessage(`예약 작업 ${name} ${status}: ${message}`, {
+				level: status === 'failed' ? 'error' : 'warning',
+				tags: { job: name },
+			});
+		}
 		const run = this.runs[name];
 		const finishedAt = new Date();
 		// 꺼져 있어 바로 건너뛴 경우는 시작 시각도 지금

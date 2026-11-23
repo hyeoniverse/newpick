@@ -272,3 +272,22 @@ describe("날짜 하나 고쳐 채우기 (관리자 '빠진 날')", () => {
 		}
 	});
 });
+
+describe('실패로 남기기 · 버리지 않기 (#341)', () => {
+	it('요약할 뉴스가 하나도 없으면(수집이 멈춤) 성공이 아니라 실패로 남긴다', async () => {
+		const { summaryJob, crawlingRepository, jobRuns } = setup(0);
+		crawlingRepository.getCrawledNewsBetween.mockResolvedValue([]);
+		const finish = jest.spyOn(jobRuns, 'finishRun');
+		await summaryJob.makeAiSummary();
+		expect(finish).toHaveBeenCalledWith('summary', 'failed', expect.stringContaining('요약할 뉴스 없음'));
+	});
+
+	it('지난 날짜 작업이 도는 중에 오늘 전체 만들기가 오면 버리지 않고 끝난 뒤에 돈다', async () => {
+		const { summaryJob, aiSummaryService } = setup(0);
+		const backfill = summaryJob.makeAiSummary(new Date(Date.now() - 2 * 86400000));
+		const today = summaryJob.makeAiSummary();
+		await Promise.all([backfill, today]);
+		// 지난 날짜 3편 + 오늘 3편
+		expect(aiSummaryService.summarizeText).toHaveBeenCalledTimes(6);
+	});
+});
