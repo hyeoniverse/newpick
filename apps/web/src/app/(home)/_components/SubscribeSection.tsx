@@ -93,8 +93,10 @@ const SubscribeSection = () => {
 					</Title>
 					<Text size="small">{HOME.quickLead}</Text>
 					<div className="main">
+						{/* 칸이 화면에 있는 동안 빛이 지나가며 반짝이게 (styles/pages/home.css .np-subscribe-cta) */}
 						<Button
 							type="submit"
+							className="np-subscribe-cta"
 							scheme="primary"
 							style={{
 								width: '100%',
