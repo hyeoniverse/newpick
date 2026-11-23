@@ -410,3 +410,8 @@
 		transform: translateX(50%);
 	}
 }
+
+/* 사진 크게 보기 (components/common/ImageViewer.tsx): 열려 있는 동안 뒤 화면은 스크롤되지 않게 */
+html:has(dialog.np-image-viewer[open]) {
+	overflow: hidden;
+}

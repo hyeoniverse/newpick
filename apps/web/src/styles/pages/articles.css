@@ -1812,6 +1812,13 @@
 				margin: 0;
 				border-radius: 8px;
 				background: var(--np-color-surface);
+				/* 누르면 잘리지 않은 전체를 크게 본다 (ImageViewer) */
+				cursor: zoom-in;
+
+				&:focus-visible {
+					outline: 2px solid var(--np-color-primary);
+					outline-offset: 2px;
+				}
 			}
 
 			figcaption {

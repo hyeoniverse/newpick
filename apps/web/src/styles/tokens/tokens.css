@@ -68,7 +68,8 @@
 	--np-shadow-heavy: 0px 10px 15px rgba(0, 0, 0, 0.1);
 }
 
-:root[data-theme='dark'] {
+:root[data-theme='dark'],
+[data-theme='dark'] {
 	--np-color-primary: #9ca9ff;
 	--np-color-secondary: #6980ff;
 	--np-color-background: #121212;
