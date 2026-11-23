@@ -9,3 +9,4 @@ export * from './admin';
 export * from './mails';
 export * from './schedule';
 export * from './dashboard';
+export * from './home';

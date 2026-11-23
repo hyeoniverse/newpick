@@ -161,6 +161,7 @@ const EXPECTED: Record<string, Policy> = {
 	'GET scheduler/mail-send-cycle': 'admin',
 
 	'GET edition/preview': 'public',
+	'GET edition/today': 'public',
 };
 
 describe('라우트 접근 정책', () => {

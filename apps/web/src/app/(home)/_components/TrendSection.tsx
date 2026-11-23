@@ -7,6 +7,7 @@ import Text from '@/components/common/Text';
 import Skeleton from '@/components/common/loader/Skeleton';
 import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import BorderTitle from '@/components/common/BorderTitle';
+import { HOME } from '@/copy';
 import { useTrends } from '@/hooks/useTrends';
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
@@ -17,7 +18,8 @@ const TrendSection = () => {
 	return (
 		<section className="np-home-trend-section-trend-section" data-track-section="home-trend">
 			<div className="trend-header">
-				<BorderTitle text="오늘의 트렌드"></BorderTitle>
+				{/* 오늘 나온 분야별 뉴스레터 (조회 많은 순). '오늘의 트렌드'는 소식 단위 칸(TodaySections)이 맡는다 */}
+				<BorderTitle text={HOME.today.newsletters}></BorderTitle>
 			</div>
 			{isLoading ? (
 				<div className="placeholder">
