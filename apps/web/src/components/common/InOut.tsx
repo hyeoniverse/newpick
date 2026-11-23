@@ -48,9 +48,10 @@ const PARTS: Record<InOutKind, InOutPart[]> = {
 		['ol > li', 'settle'],
 		['ol > li a > span:first-child', 'thud'],
 	],
-	// 칸 전체는 판으로 아래에서 올라오고(StackPanel), 그 안의 카드가 왼쪽부터 차례로 내려앉는다
+	// 칸 전체는 판으로 아래에서 올라오고(StackPanel), 분야 카드는 첫 카드 자리에 겹쳐 있다가 오른쪽으로 한 장씩 펼쳐진다.
+	// 슬라이더에 지금 보이는 카드만 (다음 페이지 카드가 보이는 영역을 가로질러 지나가지 않게)
 	subscribe: [
-		['.cards > .card', 'cascade'],
+		['.cards > .card', 'spread', '.cards'],
 		['.subscription-form', 'settle'],
 	],
 };

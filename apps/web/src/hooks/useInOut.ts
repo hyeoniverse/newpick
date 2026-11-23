@@ -7,8 +7,11 @@ const ROW = 24;
 /** 화면 위 · 아래에서 이만큼 안쪽 띠에 들어오면 등장, 벗어나면 퇴장 (벗어난 뒤에도 이 여백만큼은 보여서 퇴장이 보인다) */
 const BAND = '-15% 0px -15% 0px';
 
-/** 칸 안에서 움직일 것: [CSS 선택자, 모양 이름(data-io-item 값)] */
-export type InOutPart = [selector: string, role: string];
+/**
+ * 칸 안에서 움직일 것: [CSS 선택자, 모양 이름(data-io-item 값), 보이는 영역(선택)].
+ * 보이는 영역을 주면 그 안에(가로로) 놓인 것만 움직인다: 슬라이더의 다음 페이지처럼 가려진 것이 지나가는 모습이 보이지 않게
+ */
+export type InOutPart = [selector: string, role: string, within?: string];
 
 /**
  * 화면 높이 순서로 차례 매기기: 위에 있는 것이 먼저, 같은 줄(높이 차이 ROW 안)은 같은 차례.
@@ -38,12 +41,17 @@ export function useInOut(ref: React.RefObject<HTMLElement | null>, parts: InOutP
 		if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
 		const mark = () => {
-			const targets = parts.flatMap(([selector, role]) =>
-				[...el.querySelectorAll<HTMLElement>(selector)].map((item) => ({
-					item,
-					role,
-					box: item.getBoundingClientRect(),
-				})),
+			const targets = parts.flatMap(([selector, role, within]) =>
+				[...el.querySelectorAll<HTMLElement>(selector)].flatMap((item) => {
+					const box = item.getBoundingClientRect();
+					const area = within ? item.closest(within)?.getBoundingClientRect() : undefined;
+					if (area && (box.left >= area.right - 1 || box.right <= area.left + 1)) {
+						// 보이는 영역 밖: 움직이지 않고 그대로 둔다
+						delete item.dataset.ioItem;
+						return [];
+					}
+					return [{ item, role, box }];
+				}),
 			);
 			const steps = rowSteps(targets.map((t) => t.box.top));
 			targets.forEach(({ item, role, box }, i) => {
