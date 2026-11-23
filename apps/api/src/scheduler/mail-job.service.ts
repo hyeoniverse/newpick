@@ -14,6 +14,7 @@ import { JobRunsService } from './job-runs.service';
 import { SUMMARY_WINDOW_HOURS } from './schedule';
 import { SummaryJobService } from './summary-job.service';
 import { errorMessage } from 'src/common/error-message';
+import { kstDayRange } from 'src/common/kst';
 
 /** 오늘 편집한 소식 (없는 날은 메일을 보내지 않으므로 여기서는 늘 있다) */
 type Edition = NonNullable<Awaited<ReturnType<EditionService['ensureEdition']>>>;
@@ -23,6 +24,8 @@ type Subscriber = Awaited<ReturnType<SubscriberService['getSubscribers']>>[numbe
 @Injectable()
 export class MailJobService {
 	private isMailSendEnabled = true;
+	/** 보내는 중인 실행. 겹쳐 돌지 않게 한다 (#341: 예약 발송 중 '지금 실행' · 두 번 누름이 그대로 두 번 보냈다) */
+	private sending: Promise<void> | null = null;
 
 	private readonly logger = new Logger(MailJobService.name);
 
@@ -42,11 +45,27 @@ export class MailJobService {
 		return this.isMailSendEnabled;
 	}
 
+	get isSending() {
+		return this.sending !== null;
+	}
+
 	/**
 	 * 구독 메일 발송 (기본: 매일 08:40 KST). cron 등록은 onApplicationBootstrap에서 합니다.
 	 * 구독자마다 고른 분야로 오늘 소식을 엮은 한 통을 보냅니다 (#55)
 	 */
 	async sendEmailSummary() {
+		if (this.sending) {
+			// 앞 실행의 기록을 덮어쓰지 않게 새 실행 기록도 만들지 않는다
+			this.logger.warn('이미 메일을 보내는 중이라 이번 실행은 건너뜁니다.');
+			return;
+		}
+		this.sending = this.runSend().finally(() => {
+			this.sending = null;
+		});
+		return this.sending;
+	}
+
+	private async runSend() {
 		if (!this.isMailSendEnabled) {
 			this.logger.log('메일 발송 스케줄러가 비활성화되었습니다.');
 			this.jobRuns.finishRun('mail', 'skipped', '스케줄러가 꺼져 있어 건너뜀');
@@ -94,11 +113,20 @@ export class MailJobService {
 			return;
 		}
 
+		// 오늘(KST) 이미 받은 주소는 뺀다 (#341): 발송 도중 재시작된 뒤 다시 돌리거나 '지금 실행'을 눌러도 한 사람이 같은 날 두 통을 받지 않게
+		const alreadySent = await this.sentToday(validSubscribers.map((subscriber) => subscriber.email));
+		const recipients = validSubscribers.filter((subscriber) => !alreadySent.has(subscriber.email));
+		if (recipients.length === 0) {
+			this.logger.log('오늘 메일을 모두 이미 받았습니다.');
+			this.jobRuns.finishRun('mail', 'skipped', `오늘 이미 받음 ${alreadySent.size}`);
+			return;
+		}
+
 		// 사람마다 붙일 칸: 맞춤 순서 · 추천 기사 · 지켜보던 소식의 후속 · 팔로우한 태그
-		const plans = await this.buildPlans(edition, validSubscribers);
+		const plans = await this.buildPlans(edition, recipients);
 
 		const result = await this.mailService.sendBulkMail(
-			validSubscribers.map((subscriber) => ({
+			recipients.map((subscriber) => ({
 				email: subscriber.email,
 				interests: subscriber.interests,
 				name: subscriber.name,
@@ -114,12 +142,26 @@ export class MailJobService {
 				),
 		);
 
-		this.logger.log(`발송 결과 ${result.success}건 성공, ${result.failed}건 실패, ${result.skipped}건 해당 없음`);
+		const already = alreadySent.size ? ` · 오늘 이미 받음 ${alreadySent.size}` : '';
+		this.logger.log(
+			`발송 결과 ${result.success}건 성공, ${result.failed}건 실패, ${result.skipped}건 해당 없음${already}`,
+		);
 		this.jobRuns.finishRun(
 			'mail',
 			result.failed === 0 ? 'success' : result.success > 0 ? 'partial' : 'failed',
-			`성공 ${result.success} · 실패 ${result.failed} · 해당 없음 ${result.skipped}`,
+			`성공 ${result.success} · 실패 ${result.failed} · 해당 없음 ${result.skipped}${already}`,
 		);
+	}
+
+	/** 오늘(KST) 받은 메일 기록이 있는 주소. 기록은 보낸 직후에 남는다 (MailService.archive) */
+	private async sentToday(emails: string[]): Promise<Set<string>> {
+		const { start, end } = kstDayRange(new Date(), new Date());
+		const rows = await this.prisma.emailArchive.findMany({
+			where: { email: { in: emails }, sentAt: { gte: start, lte: end } },
+			select: { email: true },
+			distinct: ['email'],
+		});
+		return new Set(rows.map((row) => row.email));
 	}
 
 	/**

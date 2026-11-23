@@ -152,6 +152,9 @@ model EmailArchive {
 
   newsletter Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
 
+  /// 마이페이지 받은 메일 · 오늘 이미 받았는지(#341) · 탈퇴 · 이메일 변경은 주소로, 대시보드는 날짜로 찾는다
+  @@index([email, sentAt])
+  @@index([sentAt])
   @@map("email_archives")
 }
 
