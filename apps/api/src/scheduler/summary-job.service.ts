@@ -49,6 +49,7 @@ export class SummaryJobService {
 	private isAiSummaryEnabled = true;
 	/** 진행 중인 뉴스레터 생성. 메일 발송은 이것이 끝나기를 기다린다 (#55) */
 	private summaryRun: Promise<void> | null = null;
+	private readonly todayDoneListeners: (() => void)[] = [];
 	/** 돌고 있는 실행이 오늘 전체 만들기인지 (지난 날짜 · 고른 분야 · 다시 쓰기가 아니면) */
 	private summaryRunIsToday = false;
 	/** 요약 다시 시도 간격. 테스트에서 0으로 바꾼다 */
@@ -103,6 +104,16 @@ export class SummaryJobService {
 			this.summaryRun = null;
 		});
 		return this.summaryRun;
+	}
+
+	/** 오늘(KST) 자동 재시도를 기다리는 분야 (#341: 메일은 이 분야를 고른 사람의 뉴스레터를 미룬다) */
+	pendingCategories(now = new Date()): Category[] {
+		return this.autoRetry?.day === toKstDate(now) ? [...this.autoRetry.categories] : [];
+	}
+
+	/** 오늘 만들기(예약 · 재시도 · 따라잡기 · 지금 실행)가 끝날 때마다 부를 것. 메일 작업이 미룬 사람에게 보내려고 쓴다 */
+	onTodayDone(listener: () => void) {
+		this.todayDoneListeners.push(listener);
 	}
 
 	/** 다음 자동 재시도 (대시보드). 없으면 null */
@@ -317,6 +328,8 @@ export class SummaryJobService {
 
 			// 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
 			await this.editionService.ensureEdition();
+			// 재시도 계획 · 편집본이 정해진 뒤에 알린다 (기다리지 않는다: 메일은 이 실행이 끝나기를 기다린다)
+			for (const listener of this.todayDoneListeners) listener();
 
 			// 후속 지켜보기: 오늘 소식이 누군가 지켜보는 소식의 후속인지 판정 (실패해도 요약은 끝난 것)
 			if (generatedNewsletter.length > 0) {

@@ -263,3 +263,104 @@ describe('같은 날 두 번 보내지 않기 (#341)', () => {
 		expect(mailJob.isSending).toBe(false);
 	});
 });
+
+describe('못 만든 분야는 미루고 알린 뒤, 만들어지면 보내기 (#341)', () => {
+	// IT(1) · 정치(2) · 경제(3). 정치가 실패해 자동 재시도를 기다리는 중
+	const politics = { id: 2, name: '정치' };
+	const source = (categoryId: number) => ({ newsletterId: categoryId * 10, categoryId, stories: [] });
+	const editionOf = (...categoryIds: number[]) => ({
+		date: '2026-11-23',
+		editorial: null,
+		sources: categoryIds.map(source),
+	});
+	const people = [
+		{ email: 'it@example.com', interests: [1, 3], name: 'it', userId: 1 },
+		{ email: 'pol@example.com', interests: [2], name: 'pol', userId: 2 },
+		{ email: 'mix@example.com', interests: [1, 2], name: 'mix', userId: 3 },
+	];
+
+	function start() {
+		const ctx = setup(0, editionOf(1, 3));
+		ctx.subscriberService.getSubscribers.mockResolvedValue(people);
+		const pending = jest.spyOn(ctx.summaryJob, 'pendingCategories').mockReturnValue([politics]);
+		const finish = jest.spyOn(ctx.jobRuns, 'finishRun');
+		const sentEdition = () =>
+			ctx.mailService.sendBulkMail.mock.calls.flatMap(([list]) => (list as { email: string }[]).map((s) => s.email));
+		const notices = () => ctx.mailService.sendHtmlMail.mock.calls.map((call) => `${call[0]} ${call[3]}`);
+		return { ...ctx, pending, finish, sentEdition, notices };
+	}
+
+	it('못 만든 분야를 하나라도 고른 사람은 뉴스레터를 미루고 늦어진다고 알린다', async () => {
+		const { mailJob, sentEdition, notices, finish } = start();
+		await mailJob.sendEmailSummary();
+
+		expect(sentEdition()).toEqual(['it@example.com']);
+		expect(notices()).toEqual([
+			'pol@example.com [뉴픽] 오늘 뉴스레터가 조금 늦어집니다',
+			'mix@example.com [뉴픽] 오늘 뉴스레터가 조금 늦어집니다',
+		]);
+		expect(finish).toHaveBeenLastCalledWith('mail', 'success', expect.stringContaining('미룸 2(안내 2)'));
+	});
+
+	it('재시도로 만들어지면 미룬 사람에게만 보낸다 (이미 받은 사람 · 안내는 다시 보내지 않음)', async () => {
+		const { mailJob, pending, editionService, prisma, sentEdition, notices } = start();
+		await mailJob.sendEmailSummary();
+
+		pending.mockReturnValue([]);
+		editionService.ensureEdition.mockResolvedValue(editionOf(1, 2, 3));
+		prisma.emailArchive.findMany.mockResolvedValue([{ email: 'it@example.com' }]);
+		await mailJob.sendHeld();
+
+		expect(sentEdition()).toEqual(['it@example.com', 'pol@example.com', 'mix@example.com']);
+		expect(notices()).toHaveLength(2);
+		// 모두 보냈으니 더 미룬 사람이 없다
+		await mailJob.sendHeld();
+		expect(sentEdition()).toHaveLength(3);
+	});
+
+	it('재시도가 또 실패하면 계속 미루고, 안내는 하루 한 번만', async () => {
+		const { mailJob, prisma, sentEdition, notices } = start();
+		await mailJob.sendEmailSummary();
+		prisma.emailArchive.findMany.mockResolvedValue([{ email: 'it@example.com' }]);
+		await mailJob.sendHeld();
+
+		expect(sentEdition()).toEqual(['it@example.com']);
+		expect(notices()).toHaveLength(2);
+	});
+
+	it('재시도를 포기하면 있는 분야로라도 보내고, 고른 분야가 하나도 없으면 못 만들었다고 알린다', async () => {
+		const { mailJob, pending, prisma, sentEdition, notices } = start();
+		await mailJob.sendEmailSummary();
+
+		pending.mockReturnValue([]); // 오늘이 끝나 재시도를 그만둠
+		prisma.emailArchive.findMany.mockResolvedValue([{ email: 'it@example.com' }]);
+		await mailJob.sendHeld();
+
+		// mix는 IT만이라도, pol은 정치뿐이라 안내
+		expect(sentEdition()).toEqual(['it@example.com', 'mix@example.com']);
+		expect(notices().at(-1)).toBe('pol@example.com [뉴픽] 오늘 뉴스레터를 보내 드리지 못했습니다');
+	});
+
+	it('오늘 뉴스레터가 하나도 없어도 재시도를 기다리면 늦어진다고 알린다', async () => {
+		const { mailJob, editionService, pending, sentEdition, notices } = start();
+		editionService.ensureEdition.mockResolvedValue(null);
+		pending.mockReturnValue([{ id: 1, name: 'IT' }, politics, { id: 3, name: '경제' }]);
+		await mailJob.sendEmailSummary();
+
+		expect(sentEdition()).toEqual([]);
+		expect(notices()).toHaveLength(3);
+	});
+
+	it('미룬 사람이 없으면 오늘 만들기가 끝나도 보내지 않는다', async () => {
+		const { mailJob, mailService } = start();
+		await mailJob.sendHeld();
+		expect(mailService.sendBulkMail).not.toHaveBeenCalled();
+	});
+
+	it('오늘 만들기(재시도 포함)가 끝나면 미룬 사람에게 보낼 수 있는지 본다', async () => {
+		const { mailJob, summaryJob } = start();
+		const sendHeld = jest.spyOn(mailJob, 'sendHeld').mockResolvedValue(undefined);
+		await summaryJob.makeAiSummary();
+		expect(sendHeld).toHaveBeenCalledTimes(1);
+	});
+});
