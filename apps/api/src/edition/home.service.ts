@@ -1,4 +1,13 @@
-import type { HomeMostRead, HomeMostScrapped, HomeRisingTag, HomeStory, HomeThread, HomeToday } from '@newpick/shared';
+import type {
+	HomeMostRead,
+	HomeMostScrapped,
+	HomeRisingTag,
+	HomeStory,
+	HomeThread,
+	HomeToday,
+	HomeTopic,
+} from '@newpick/shared';
+import { parseNewsletterHtml } from 'src/ai-summary/newsletter-parse';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { kstDayRange } from 'src/common/kst';
@@ -8,10 +17,22 @@ import { storyRef } from './editor';
 const DAY_MS = 24 * 60 * 60 * 1000;
 /** 결과를 이만큼 들고 있는다 (홈은 ISR 10분이라 그보다 짧게) */
 const CACHE_MS = 5 * 60 * 1000;
-const LIMITS = { topLines: 3, trending: 4, risingTags: 8, mostRead: 5, mostScrapped: 5 };
+const LIMITS = { topLines: 3, topics: 4, topicStories: 3, risingTags: 8, mostRead: 5, mostScrapped: 5 };
 /** 최근 며칠의 조회 · 스크랩을 셀지 */
 const READ_DAYS = 7;
 const SCRAP_DAYS = 30;
+/** 지금 뜨는 태그: 최근 며칠을 그 전 몇 주와 견주고, 최근 며칠에 몇 번 이상 나와야 넣을지 */
+const RISING = { recentDays: 3, baseDays: 28, minCount: 2 };
+/** 본문 HTML의 소식 태그 (article data-tags="a|b") */
+const STORY_TAGS = /data-tags="([^"]*)"/g;
+
+/** 뉴스레터 한 편의 태그: 키워드 + 소식 태그 (한 편에 한 번씩) */
+export function tagsOf(keywords: unknown, html: string | null): Set<string> {
+	const tags = new Set(Array.isArray(keywords) ? (keywords as string[]) : []);
+	for (const [, list] of (html ?? '').matchAll(STORY_TAGS))
+		for (const tag of list.split('|')) if (tag.trim()) tags.add(tag.trim().replace(/&amp;/g, '&'));
+	return tags;
+}
 /** 상세 화면 주소에서 뉴스레터 id */
 const DETAIL_PATH = /^\/articles\/detail\/(\d+)/;
 
@@ -61,22 +82,11 @@ export class HomeService {
 		const ranked = [...stories].sort((a, b) => b.importance - a.importance);
 		const topLines = ranked.slice(0, LIMITS.topLines);
 
-		const { start: todayStart } = kstDayRange(now, now);
-		const [viewsToday, risingTags, mostRead, mostScrapped] = await Promise.all([
-			this.detailViews(todayStart),
-			this.risingTags(edition.date),
+		const [{ tags: risingTags, topics }, mostRead, mostScrapped] = await Promise.all([
+			this.rising(edition.date),
 			this.mostRead(new Date(now.getTime() - READ_DAYS * DAY_MS)),
 			this.mostScrapped(new Date(now.getTime() - SCRAP_DAYS * DAY_MS)),
 		]);
-
-		// 오늘의 트렌드: 중요도(1~5)와 오늘 조회(가장 많이 본 뉴스레터를 1로)를 반씩. 3줄에 나온 소식은 빼고, 사진 있는 소식을 앞에
-		const maxViews = Math.max(1, ...viewsToday.values());
-		const shown = new Set(topLines);
-		const score = (s: HomeStory) => (s.importance / 5) * 0.5 + ((viewsToday.get(s.newsletterId) ?? 0) / maxViews) * 0.5;
-		const trending = stories
-			.filter((s) => !shown.has(s))
-			.sort((a, b) => Number(!!b.image) - Number(!!a.image) || score(b) - score(a))
-			.slice(0, LIMITS.trending);
 
 		const threads: HomeThread[] = (edition.editorial?.threads ?? [])
 			.map((thread) => ({
@@ -89,7 +99,7 @@ export class HomeService {
 			}))
 			.filter((thread) => thread.stories.length > 0);
 
-		return { date: edition.date, topLines, trending, threads, risingTags, mostRead, mostScrapped };
+		return { date: edition.date, topLines, topics, threads, risingTags, mostRead, mostScrapped };
 	}
 
 	/** 상세 화면 조회 수 (뉴스레터 id → 수) */
@@ -107,26 +117,70 @@ export class HomeService {
 		return views;
 	}
 
-	/** 지금 뜨는 태그: 그날(편집본 날짜) 뉴스레터 태그 수와 그 전 7일 하루 평균을 견줘, 늘어난 만큼 순서대로 */
-	private async risingTags(date: string): Promise<HomeRisingTag[]> {
-		const { start, end } = kstDayRange(date, date);
-		const weekStart = new Date(start.getTime() - 7 * DAY_MS);
+	/**
+	 * 지금 뜨는 태그와 주제별 트렌드.
+	 * 태그: 최근 3일(편집본 날짜까지) 동안 나온 횟수를 그 전 4주의 하루 평균과 견줘 늘어난 만큼 순서대로.
+	 * 최근 3일에 2번 이상 나온 것만 (한 번 스친 태그는 뺀다). 뉴스레터 키워드와 소식 태그(data-tags)를 함께, 한 편에 한 번씩 센다.
+	 * 주제: 위쪽 태그마다 그 태그가 붙은(또는 제목 · 리드에 그 말이 나오는) 최근 3일 소식을 새것부터
+	 */
+	private async rising(date: string): Promise<{ tags: HomeRisingTag[]; topics: HomeTopic[] }> {
+		const { start: dayStart, end } = kstDayRange(date, date);
+		// KST 하루는 늘 24시간이라 날짜를 빼는 대신 시간으로
+		const recentStart = new Date(dayStart.getTime() - (RISING.recentDays - 1) * DAY_MS);
+		const baseStart = new Date(recentStart.getTime() - RISING.baseDays * DAY_MS);
 		const rows = await this.prisma.newsletter.findMany({
-			where: { createdAt: { gte: weekStart, lte: end } },
-			select: { keywords: true, createdAt: true },
+			where: { createdAt: { gte: baseStart, lte: end } },
+			select: { id: true, keywords: true, contentAsHTML: true, createdAt: true, category: { select: { name: true } } },
 		});
-		const today = new Map<string, number>();
-		const before = new Map<string, number>();
+		const recent = new Map<string, number>();
+		const base = new Map<string, number>();
 		for (const row of rows) {
-			const target = row.createdAt >= start ? today : before;
-			for (const tag of new Set(Array.isArray(row.keywords) ? (row.keywords as string[]) : []))
-				target.set(tag, (target.get(tag) ?? 0) + 1);
+			const target = row.createdAt >= recentStart ? recent : base;
+			for (const tag of tagsOf(row.keywords, row.contentAsHTML)) target.set(tag, (target.get(tag) ?? 0) + 1);
 		}
-		return [...today]
-			.map(([tag, count]) => ({ tag, today: count, average: Math.round(((before.get(tag) ?? 0) / 7) * 10) / 10 }))
-			.filter((t) => t.today > t.average)
-			.sort((a, b) => b.today - b.average - (a.today - a.average) || b.today - a.today)
+		const usualOf = (tag: string) => Math.round(((base.get(tag) ?? 0) / RISING.baseDays) * RISING.recentDays * 10) / 10;
+		const tags = [...recent]
+			.filter(([, count]) => count >= RISING.minCount)
+			.map(([tag, count]) => ({ tag, recent: count, usual: usualOf(tag) }))
+			.filter((t) => t.recent > t.usual)
+			.sort((a, b) => b.recent - b.usual - (a.recent - a.usual) || b.recent - a.recent)
 			.slice(0, LIMITS.risingTags);
+
+		// 최근 3일 소식 (새 뉴스레터부터, 한 편 안에서는 실린 순)
+		const recentStories = rows
+			.filter((row) => row.createdAt >= recentStart)
+			.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+			.flatMap((row) => {
+				const parsed = parseNewsletterHtml(row.contentAsHTML);
+				return [...parsed.morning, ...parsed.stories].map((story, i) => ({
+					tags: story.tags ?? [],
+					text: `${story.heading} ${story.lead}`,
+					home: {
+						newsletterId: row.id,
+						storyIndex: i + 1,
+						category: row.category.name,
+						heading: story.heading,
+						line: story.lead,
+						importance: story.importance ?? 0,
+						image: story.image?.url ?? null,
+					} satisfies HomeStory,
+				}));
+			});
+		const used = new Set<string>();
+		const topics: HomeTopic[] = [];
+		for (const tag of tags) {
+			if (topics.length >= LIMITS.topics) break;
+			const stories = recentStories
+				.filter((s) => s.tags.includes(tag.tag) || s.text.includes(tag.tag))
+				.filter((s) => !used.has(`${s.home.newsletterId}-${s.home.storyIndex}`))
+				.slice(0, LIMITS.topicStories)
+				.map((s) => s.home);
+			// 소식이 하나뿐인 주제는 묶음이라 하기 어려워 뺀다
+			if (stories.length < 2) continue;
+			stories.forEach((s) => used.add(`${s.newsletterId}-${s.storyIndex}`));
+			topics.push({ ...tag, stories });
+		}
+		return { tags, topics };
 	}
 
 	/** 많이 읽은 뉴스레터: 최근 상세 화면 조회 순 */

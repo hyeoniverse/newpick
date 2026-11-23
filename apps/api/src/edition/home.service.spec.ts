@@ -33,6 +33,17 @@ const edition = {
 	},
 };
 
+/** 뉴스레터 본문 HTML에 소식 하나 (태그 data-tags) */
+const storyHtml = (heading: string, tags: string) =>
+	`<div class="newsletter"><article class="story story-analysis" data-tags="${tags}"><h2>${heading}</h2><p class="lead">${heading} 리드</p></article></div>`;
+const row = (id: number, keywords: string[], contentAsHTML: string | null, at: string) => ({
+	id,
+	keywords,
+	contentAsHTML,
+	createdAt: new Date(at),
+	category: { name: '경제' },
+});
+
 function setup() {
 	const prisma = {
 		pageView: {
@@ -47,10 +58,21 @@ function setup() {
 			findMany: jest.fn(async (args: { select: { keywords?: boolean } }) =>
 				args.select.keywords
 					? [
-							// 그날(11-23 KST) 2편, 그 전 7일 1편
-							{ keywords: ['반도체', '환율'], createdAt: new Date('2026-11-23T00:00:00Z') },
-							{ keywords: ['반도체'], createdAt: new Date('2026-11-23T01:00:00Z') },
-							{ keywords: ['환율', '반도체'], createdAt: new Date('2026-11-20T00:00:00Z') },
+							// 최근 3일(11-21~23 KST): 반도체 3편 · 환율 2편(한 편은 소식 태그로만) · 금리 1편 · 코스피 2편
+							row(101, ['반도체', '코스피'], storyHtml('반도체 수출 석 달째 증가', '반도체'), '2026-11-23T01:00:00Z'),
+							row(102, ['반도체', '금리'], storyHtml('반도체 공급망 재편', '반도체'), '2026-11-22T01:00:00Z'),
+							row(
+								103,
+								['반도체', '코스피'],
+								storyHtml('환율 급등에 수입물가 비상', '환율|반도체'),
+								'2026-11-21T01:00:00Z',
+							),
+							row(104, ['환율'], storyHtml('원화 약세 이어져', '환율'), '2026-11-21T02:00:00Z'),
+							// 그 전 4주: 반도체 1편, 코스피는 매일 (평소 3일에 3번 → 뜨는 태그 아님)
+							row(90, ['반도체'], null, '2026-11-10T01:00:00Z'),
+							...Array.from({ length: 28 }, (_, i) =>
+								row(200 + i, ['코스피'], null, new Date(Date.UTC(2026, 9, 24 + i, 1)).toISOString()),
+							),
 						]
 					: [
 							{ id: 20, title: '경제 뉴스레터', category: { name: '경제' } },
@@ -101,9 +123,22 @@ describe('HomeService.today (홈 오늘 묶음)', () => {
 		]);
 	});
 
-	it('오늘의 트렌드: 3줄과 겹치지 않고, 사진 있는 소식 먼저', async () => {
+	it('최신 트렌드(주제별): 뜨는 태그마다 그 태그가 붙은 최근 3일 소식을 새것부터, 소식이 겹치거나 하나뿐인 주제는 뺀다', async () => {
 		const today = await setup().service.today(NOW);
-		expect(today!.trending.map((s) => s.heading)).toEqual(['AI 규제']);
+		// 반도체: 101 · 102 · 103 (103은 소식 태그로). 환율은 103이 이미 반도체에 쓰여 104 하나만 남아 빠진다
+		expect(
+			today!.topics.map((t) => [t.tag, t.recent, t.stories.map((s) => [s.newsletterId, s.heading, s.category])]),
+		).toEqual([
+			[
+				'반도체',
+				3,
+				[
+					[101, '반도체 수출 석 달째 증가', '경제'],
+					[102, '반도체 공급망 재편', '경제'],
+					[103, '환율 급등에 수입물가 비상', '경제'],
+				],
+			],
+		]);
 	});
 
 	it('분야를 넘는 흐름: 소식 번호를 제목 · 분야로 풀고, 없는 소식은 뺀다', async () => {
@@ -120,11 +155,12 @@ describe('HomeService.today (홈 오늘 묶음)', () => {
 		]);
 	});
 
-	it('지금 뜨는 태그: 그날 수가 지난 7일 하루 평균보다 많은 것, 많이 는 순', async () => {
+	it('지금 뜨는 태그: 최근 3일을 그 전 4주와 견줘 늘어난 순, 최근 3일 2번 이상만, 소식 태그도 센다', async () => {
 		const today = await setup().service.today(NOW);
+		// 금리(1번)는 빠지고, 코스피는 평소(4주 하루 평균 × 3 = 3번)만큼이라 빠진다
 		expect(today!.risingTags).toEqual([
-			{ tag: '반도체', today: 2, average: 0.1 },
-			{ tag: '환율', today: 1, average: 0.1 },
+			{ tag: '반도체', recent: 3, usual: 0.1 },
+			{ tag: '환율', recent: 2, usual: 0 },
 		]);
 	});
 

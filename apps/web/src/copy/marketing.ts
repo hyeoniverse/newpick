@@ -9,24 +9,35 @@ export const HOME = {
 	},
 	categoryCard: (category: string) => `${category} 분야의 최신 뉴스레터를 보내 드려요.`,
 	quickLead: '고른 분야의 뉴스레터를 메일로 보내 드려요.',
-	/** 홈 '오늘' 칸 (TodaySections) */
+	/** 홈 '오늘' 칸 (TodaySections). 제목에 '오늘'을 넣지 않는다: 아침 발행 전에는 가장 최근 편집본이 어제 것이다 */
 	today: {
-		lines: '오늘의 3줄',
-		linesNote: (day: string) => `${day} 모든 분야에서`,
-		trend: '오늘의 트렌드',
-		trendNote: '중요도 · 지금 많이 보는 순',
+		/** 칸 제목 위 작은 꼬리표 */
+		eyebrow: { lines: 'BRIEFING', trend: 'TRENDING', threads: 'CONNECTED', popular: 'POPULAR' },
+		lines: '핵심 3줄',
+		/** 핵심 3줄이 어느 날 편집본에서 나왔는지 */
+		basis: (day: string) => `${day} 기준`,
+		trend: '최신 트렌드',
+		trendNote: '최근 3일 동안 뜨는 주제와 그 주제의 소식이에요',
+		topicCount: (n: number) => `소식 ${n}개`,
+		topicMore: (tag: string) => `#${tag} 소식 더 보기`,
 		threads: '분야를 넘는 흐름',
 		newsletters: '오늘의 뉴스레터',
-		popular: '지금 많이 보는 것',
+		/** 오늘 뉴스레터가 아직 없는 분야 */
+		pending: '아직 준비 중이에요',
+		popular: '지금 뜨는 소식',
 		risingTags: '지금 뜨는 태그',
-		risingNew: '새로',
-		risingTimes: (times: number) => `${times}배`,
-		risingNote: '오늘 나온 횟수를 지난 7일 하루 평균과 견줘요.',
+		risingPeriod: '최근 3일',
+		risingNew: 'NEW',
+		risingMore: (more: number) => `+${more}`,
+		risingNote: '최근 3일 동안 평소(그 전 4주)보다 자주 나온 태그예요. 숫자는 평소보다 더 나온 횟수예요.',
 		mostRead: '많이 읽은 뉴스레터',
+		mostReadPeriod: '최근 7일',
 		mostScrapped: '많이 스크랩한 소식',
+		mostScrappedPeriod: '최근 30일',
 		views: (n: number) => `조회 ${n}`,
 		scraps: (n: number) => `스크랩 ${n}`,
 	},
+
 	trial: {
 		lead: '관심 분야를 고르면 매일 아침 받게 될 메일을 오늘 발행본으로 미리 보여 드려요.',
 		pickOne: '관심 분야를 하나 이상 골라 주세요.',

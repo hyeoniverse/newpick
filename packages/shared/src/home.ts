@@ -21,12 +21,25 @@ export interface HomeThread {
   stories: Pick<HomeStory, 'newsletterId' | 'storyIndex' | 'category' | 'heading'>[];
 }
 
-/** 지금 뜨는 태그: 오늘 나온 횟수와 지난 7일 하루 평균 */
+/**
+ * 지금 뜨는 태그: 최근 3일 동안 나온 횟수와, 그 전 4주 하루 평균으로 본 '평소 3일' 횟수.
+ * 하루만 보면 하루 6편이라 횟수가 1~2뿐이어서 처음 나온 태그가 거의 전부 '새로'가 되고 매일 뒤바뀌었다
+ */
 export interface HomeRisingTag {
   tag: string;
-  today: number;
-  /** 지난 7일 하루 평균 (0이면 새로 나온 태그) */
-  average: number;
+  /** 최근 3일 동안 나온 뉴스레터 수 (뉴스레터 키워드 · 소식 태그, 한 편에 한 번) */
+  recent: number;
+  /** 그 전 4주 하루 평균 × 3 (0이면 그 4주 동안 없던 태그) */
+  usual: number;
+}
+
+/**
+ * 최신 트렌드 = 주제별: 지금 뜨는 태그 하나와 그 주제를 다룬 최근 소식들 (분야 · 날짜를 가리지 않는다).
+ * 핵심 3줄(중요도) · 최신 뉴스레터(분야) · 지금 뜨는 소식(조회 · 스크랩)과 묶는 기준이 다르다
+ */
+export interface HomeTopic extends HomeRisingTag {
+  /** 그 태그가 붙은 최근 3일 소식 (새것부터) */
+  stories: HomeStory[];
 }
 
 /** 많이 읽은 뉴스레터 (최근 7일 상세 화면 조회) */
@@ -51,8 +64,8 @@ export interface HomeToday {
   date: string;
   /** 오늘의 3줄: 중요도 순 상위 3개 */
   topLines: HomeStory[];
-  /** 오늘의 트렌드: 중요도와 오늘 조회를 함께 본 소식 (3줄과 겹치지 않게) */
-  trending: HomeStory[];
+  /** 최신 트렌드: 뜨는 주제마다 그 주제의 최근 소식 */
+  topics: HomeTopic[];
   threads: HomeThread[];
   risingTags: HomeRisingTag[];
   mostRead: HomeMostRead[];

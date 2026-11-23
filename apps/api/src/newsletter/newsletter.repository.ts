@@ -4,6 +4,9 @@ import { Prisma, Newsletter } from '@prisma/client';
 import dayjs from 'dayjs';
 import { kstDayRange } from 'src/common/kst';
 
+/** 분야별 최신 뉴스레터를 찾는 기간 (가장 최근 날 포함 며칠) */
+const LATEST_DAYS = 7;
+
 @Injectable()
 export class NewsletterRepo {
 	constructor(private readonly prisma: MysqlPrismaService) {}
@@ -273,16 +276,22 @@ export class NewsletterRepo {
 	 * 예전에는 분야마다 '가장 최근'이라, 오늘 어느 분야가 생성되지 않으면 며칠 전 뉴스레터가 섞여 보였다.
 	 * 오늘 것이 아직 없으면(아침 생성 전) 어제 것만 보인다
 	 */
+	/**
+	 * 분야마다 가장 최근 뉴스레터 한 편 (홈 최신 뉴스레터 · 뉴스 화면 배너). 가장 최근 것이 나온 날부터 7일 안에서만.
+	 * 예전에는 가장 최근 날 하루치만 보여, 그날 못 만든 분야(실패 · 재시도 중)가 있으면 카드가 6개보다 적었다.
+	 * 7일보다 오래된 분야는 빼서 한참 지난 글이 최신처럼 섞이지 않게 한다
+	 */
 	async getLatestNewslettersForAllCategories(): Promise<Newsletter[]> {
 		const latest = await this.prisma.newsletter.findFirst({
 			orderBy: { createdAt: 'desc' },
 			select: { createdAt: true },
 		});
 		if (!latest) return [];
-		const { start, end } = kstDayRange(latest.createdAt, latest.createdAt);
+		const { end } = kstDayRange(latest.createdAt, latest.createdAt);
+		const start = new Date(end.getTime() + 1 - LATEST_DAYS * 24 * 60 * 60 * 1000);
 		const newsletters = await this.prisma.newsletter.findMany({
 			where: { createdAt: { gte: start, lte: end } },
-			// 같은 날 다시 만든 분야는 가장 늦게 만든 것으로
+			// 분야마다 가장 늦게 만든 것 (같은 날 다시 만든 분야도)
 			orderBy: [{ categoryId: 'asc' }, { createdAt: 'desc' }],
 		});
 		const seen = new Set<number>();

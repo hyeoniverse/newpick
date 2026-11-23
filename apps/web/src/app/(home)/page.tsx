@@ -8,7 +8,12 @@ import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
 import TitleSection from '@/app/(home)/_components/TitleSection';
-import { PopularSection, TodayTop } from '@/app/(home)/_components/TodaySections';
+import {
+	KeyLinesSection,
+	PopularSection,
+	ThreadsSection,
+	TopicTrendSection,
+} from '@/app/(home)/_components/TodaySections';
 
 /** 뉴스레터는 하루 한 번 만들어지므로 10분마다 다시 만듭니다. */
 export const revalidate = 600;
@@ -34,11 +39,18 @@ export default async function HomePage() {
 			<TitleSection firstArticles={firstArticles} secondArticles={secondArticles} />
 			<HeroSection />
 			<hr />
-			{/* 오늘의 3줄 · 오늘의 트렌드 · 분야를 넘는 흐름 (편집본이 없으면 빠진다) */}
-			<TodayTop today={today} />
+			{/*
+			  순서: 한눈에(핵심 3줄) → 분야별(오늘의 뉴스레터) → 분야를 넘어(흐름) → 주제별(최신 트렌드) → 반응(지금 뜨는 소식).
+			  최신 트렌드는 뜨는 태그로 묶은 칸이라 같은 데이터를 쓰는 '지금 뜨는 소식' 바로 위에 둔다. 편집본이 없으면 '오늘' 칸은 빠진다
+			*/}
+			{today && <KeyLinesSection date={today.date} stories={today.topLines} />}
 			<TrendSection />
 			{today && (
-				<PopularSection risingTags={today.risingTags} mostRead={today.mostRead} mostScrapped={today.mostScrapped} />
+				<>
+					<ThreadsSection threads={today.threads} />
+					<TopicTrendSection topics={today.topics} />
+					<PopularSection risingTags={today.risingTags} mostRead={today.mostRead} mostScrapped={today.mostScrapped} />
+				</>
 			)}
 			<SubscribeSection />
 		</div>
