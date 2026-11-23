@@ -14,7 +14,8 @@ import { JobRunsService } from './job-runs.service';
 import { SUMMARY_WINDOW_HOURS } from './schedule';
 import { SummaryJobService } from './summary-job.service';
 import { errorMessage } from 'src/common/error-message';
-import { kstDayRange } from 'src/common/kst';
+import { kstDayRange, kstDaysAgo } from 'src/common/kst';
+import { gaveUpNoticeMail, holdNoticeMail } from 'src/mail/hold-mail';
 
 /** 오늘 편집한 소식 (없는 날은 메일을 보내지 않으므로 여기서는 늘 있다) */
 type Edition = NonNullable<Awaited<ReturnType<EditionService['ensureEdition']>>>;
@@ -26,6 +27,11 @@ export class MailJobService {
 	private isMailSendEnabled = true;
 	/** 보내는 중인 실행. 겹쳐 돌지 않게 한다 (#341: 예약 발송 중 '지금 실행' · 두 번 누름이 그대로 두 번 보냈다) */
 	private sending: Promise<void> | null = null;
+	/**
+	 * 오늘 뉴스레터를 미룬 사람 (#341): 주소 → 미룬 분야 이름. 안내는 한 번만 보내고, 재시도로 그 분야가 만들어지면 보낸다.
+	 * 메모리에만 있어 그 사이 서버가 다시 시작되면 잊는다 (관리자가 '지금 실행', 오늘 받은 사람은 건너뜀)
+	 */
+	private held: { day: string; waiting: Map<string, string[]> } | null = null;
 
 	private readonly logger = new Logger(MailJobService.name);
 
@@ -39,7 +45,20 @@ export class MailJobService {
 		private readonly recommendService: RecommendService,
 		private readonly summaryJob: SummaryJobService,
 		private readonly jobRuns: JobRunsService,
-	) {}
+	) {
+		// 재시도 등으로 오늘 만들기가 끝나면, 미뤘던 사람에게 보낼 수 있는지 본다
+		this.summaryJob.onTodayDone(() => {
+			void this.sendHeld().catch((error) => this.logger.error(`미룬 메일 보내기 실패: ${errorMessage(error)}`));
+		});
+	}
+
+	/** 오늘 미룬 사람이 있으면 다시 보낸다 (이미 받은 사람은 건너뛰고, 아직 기다리는 분야를 고른 사람은 또 미룬다) */
+	async sendHeld() {
+		if (this.held?.day !== kstDaysAgo(0) || this.held.waiting.size === 0) return;
+		this.logger.log(`미뤘던 ${this.held.waiting.size}명에게 보낼 수 있는지 봅니다.`);
+		this.jobRuns.markTrigger('mail', 'retry');
+		await this.sendEmailSummary();
+	}
 
 	get enabled() {
 		return this.isMailSendEnabled;
@@ -105,9 +124,11 @@ export class MailJobService {
 			return;
 		}
 
-		// 오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게)
+		// 오늘 나온 뉴스레터가 없으면 보내지 않는다 (어제 메일을 다시 보내지 않게). 다만 재시도를 기다리는 분야가 있으면
+		// 그 분야를 고른 사람에게 늦어진다고 알린다
 		const edition = await this.editionService.ensureEdition();
-		if (!edition) {
+		const pending = this.summaryJob.pendingCategories();
+		if (!edition && !pending.length) {
 			this.logger.warn('오늘 나온 뉴스레터가 없어 메일을 보내지 않습니다.');
 			this.jobRuns.finishRun('mail', 'skipped', '오늘 나온 뉴스레터 없음');
 			return;
@@ -122,10 +143,73 @@ export class MailJobService {
 			return;
 		}
 
+		// 미루기 (#341): 아직 못 만든(재시도를 기다리는) 분야를 하나라도 고른 사람은 빠진 채로 보내지 않고, 늦어진다고 알린 뒤
+		// 재시도로 만들어지면 보낸다. 재시도를 끝내 포기하면(기다리는 분야가 없어짐) 있는 분야로 보내고,
+		// 고른 분야가 하나도 없으면 오늘은 못 만들었다고 알린다
+		const day = kstDaysAgo(0);
+		if (this.held?.day !== day) this.held = { day, waiting: new Map() };
+		const waiting = this.held.waiting;
+		const pendingIds = new Set(pending.map((category) => category.id));
+		const covered = new Set(edition?.sources.map((source) => source.categoryId) ?? []);
+		const hold = recipients.filter((subscriber) => subscriber.interests.some((id) => pendingIds.has(id)));
+		const holdSet = new Set(hold);
+		const gaveUp = recipients.filter(
+			(subscriber) =>
+				!holdSet.has(subscriber) &&
+				waiting.has(subscriber.email) &&
+				!subscriber.interests.some((id) => covered.has(id)),
+		);
+		const gaveUpSet = new Set(gaveUp);
+		const send = recipients.filter((subscriber) => !holdSet.has(subscriber) && !gaveUpSet.has(subscriber));
+
+		const result =
+			edition && send.length ? await this.sendEdition(edition, send) : { success: 0, failed: 0, skipped: 0 };
+
+		const newlyHeld = hold.filter((subscriber) => !waiting.has(subscriber.email));
+		for (const subscriber of hold) {
+			const names = pending.filter((category) => subscriber.interests.includes(category.id)).map((c) => c.name);
+			waiting.set(subscriber.email, names);
+		}
+		const notified = await this.notify(newlyHeld, (subscriber) => holdNoticeMail(waiting.get(subscriber.email)!));
+		const sorry = await this.notify(gaveUp, (subscriber) => gaveUpNoticeMail(waiting.get(subscriber.email)!));
+		for (const subscriber of [...send, ...gaveUp]) waiting.delete(subscriber.email);
+
+		const already = alreadySent.size ? ` · 오늘 이미 받음 ${alreadySent.size}` : '';
+		const held = hold.length ? ` · 미룸 ${hold.length}(안내 ${notified})` : '';
+		const missed = gaveUp.length ? ` · 못 만들어 안내 ${sorry}` : '';
+		const summary = `성공 ${result.success} · 실패 ${result.failed} · 해당 없음 ${result.skipped}${held}${missed}${already}`;
+		this.logger.log(`발송 결과 ${summary}`);
+		this.jobRuns.finishRun(
+			'mail',
+			result.failed === 0 ? 'success' : result.success > 0 ? 'partial' : 'failed',
+			summary,
+		);
+	}
+
+	/** 안내 메일 (늦어짐 · 못 만듦). 한 명이 실패해도 나머지는 보내고, 보낸 수를 돌려준다 */
+	private async notify(
+		subscribers: Subscriber[],
+		build: (subscriber: Subscriber) => { subject: string; html: string },
+	) {
+		let sent = 0;
+		for (const subscriber of subscribers) {
+			const { subject, html } = build(subscriber);
+			try {
+				await this.mailService.sendHtmlMail(subscriber.email, '', html, subject);
+				sent++;
+			} catch (error) {
+				this.logger.warn(`안내 메일 실패 ${subscriber.email}: ${errorMessage(error)}`);
+			}
+		}
+		return sent;
+	}
+
+	/** 편집본으로 사람마다 한 통 (맞춤 · 추천 · 후속 · 팔로우한 태그를 붙여) */
+	private async sendEdition(edition: Edition, recipients: Subscriber[]) {
 		// 사람마다 붙일 칸: 맞춤 순서 · 추천 기사 · 지켜보던 소식의 후속 · 팔로우한 태그
 		const plans = await this.buildPlans(edition, recipients);
 
-		const result = await this.mailService.sendBulkMail(
+		return this.mailService.sendBulkMail(
 			recipients.map((subscriber) => ({
 				email: subscriber.email,
 				interests: subscriber.interests,
@@ -140,16 +224,6 @@ export class MailJobService {
 					subscriber.userId,
 					subscriber.userId !== undefined ? plans.get(subscriber.userId) : null,
 				),
-		);
-
-		const already = alreadySent.size ? ` · 오늘 이미 받음 ${alreadySent.size}` : '';
-		this.logger.log(
-			`발송 결과 ${result.success}건 성공, ${result.failed}건 실패, ${result.skipped}건 해당 없음${already}`,
-		);
-		this.jobRuns.finishRun(
-			'mail',
-			result.failed === 0 ? 'success' : result.success > 0 ? 'partial' : 'failed',
-			`성공 ${result.success} · 실패 ${result.failed} · 해당 없음 ${result.skipped}${already}`,
 		);
 	}
 

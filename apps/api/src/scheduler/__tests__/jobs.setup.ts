@@ -145,6 +145,7 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
 		recommendService,
 		followsService,
 		mailService,
+		subscriberService,
 		siteCache,
 		prisma,
 		registry,
