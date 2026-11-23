@@ -106,16 +106,21 @@ const CardSlider = ({
 		}
 	};
 
+	// 마우스를 올려 두었거나 안에 키보드 초점이 있으면 자동으로 넘기지 않는다 (읽던 카드가 바뀌지 않게). 벗어나면 처음부터 다시 센다
+	const [hovered, setHovered] = useState(false);
+	const [focused, setFocused] = useState(false);
+	const paused = hovered || focused;
+
 	// 자동 스크롤 기능
 	useEffect(() => {
-		if (type !== 'main') return;
+		if (type !== 'main' || paused) return;
 
 		const interval = setInterval(() => {
 			handleScroll('right');
 		}, autoScrollInterval);
 
 		return () => clearInterval(interval);
-	}, [currentIndex, autoScrollInterval, handleScroll, type]);
+	}, [currentIndex, autoScrollInterval, handleScroll, type, paused]);
 
 	// 화면 폭이 바뀌면 카드 폭도 바뀌므로 지금 카드 자리로 다시 맞춘다 (전에는 다음에 넘길 때까지 카드가 걸쳐 보였다)
 	const indexRef = useRef(currentIndex);
@@ -159,7 +164,17 @@ const CardSlider = ({
 	}, []);
 
 	return (
-		<div className={`np-card-slider ${className ?? ''}`} data-type={type}>
+		<div
+			className={`np-card-slider ${className ?? ''}`}
+			data-type={type}
+			onPointerEnter={(e) => e.pointerType === 'mouse' && setHovered(true)}
+			onPointerLeave={() => setHovered(false)}
+			// 키보드 초점만 (마우스로 화살표를 누르면 단추에 초점이 남아 계속 멈춰 있었다)
+			onFocus={(e) => setFocused(e.target.matches(':focus-visible'))}
+			onBlur={(e) => {
+				if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setFocused(false);
+			}}
+		>
 			<div className="cards" ref={cardContainerRef}>
 				{data.map((item, index) => (
 					<Card
