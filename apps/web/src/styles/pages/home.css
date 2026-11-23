@@ -287,3 +287,138 @@
 		}
 	}
 }
+
+/*
+ * 홈 시작 애니메이션 (app/(home)/_components/TitleSection.tsx, components/common/icons/LogoSVG.tsx MorphLogo).
+ * 1. 로고: 가운데에 크게 'NP'(N과 P가 겹친 모바일 로고 모양)로 나타나 → N · P가 제자리로 벌어지며 e · w · i · c · k가 채워지고 → 원래 크기로
+ * 2. 로고가 끝나면 제목 · 설명 · 배너 두 줄 · 아래 칸이 차례로 올라온다
+ * 같은 세션에 이미 봤으면(html[data-intro-seen]) · 움직임 줄이기 설정이면 처음부터 끝 모습
+ */
+.np-intro {
+	--np-intro-logo: 1.3s;
+	--np-intro-rest: 1.15s;
+
+	.logo {
+		transform-origin: center;
+		animation: np-intro-logo var(--np-intro-logo) ease-in-out both;
+	}
+
+	/* N은 오른쪽(P와 겹친 자리)에서, P는 거의 제자리에서: 둘이 겹친 'NP'가 로고 가운데에 오도록 (viewBox 단위) */
+	[data-letter='N'] {
+		--np-intro-from: 48px;
+		animation: np-intro-split var(--np-intro-logo) cubic-bezier(0.65, 0, 0.35, 1) both;
+	}
+	[data-letter='P'] {
+		--np-intro-from: -2px;
+		animation: np-intro-split var(--np-intro-logo) cubic-bezier(0.65, 0, 0.35, 1) both;
+	}
+	[data-letter='e'],
+	[data-letter='w'],
+	[data-letter='i'],
+	[data-letter='c'],
+	[data-letter='k'] {
+		transform-box: fill-box;
+		transform-origin: center;
+		animation: np-intro-letter var(--np-intro-logo) ease-out both;
+	}
+	[data-letter='w'],
+	[data-letter='c'] {
+		animation-delay: 0.05s;
+	}
+	[data-letter='k'] {
+		animation-delay: 0.1s;
+	}
+
+	.title-text,
+	> p,
+	.np-marquee {
+		animation: np-intro-rise 0.6s ease-out both;
+	}
+	.title-text {
+		animation-delay: var(--np-intro-rest);
+	}
+	> p {
+		animation-delay: calc(var(--np-intro-rest) + 0.1s);
+	}
+	.np-marquee {
+		animation-delay: calc(var(--np-intro-rest) + 0.2s);
+	}
+	.np-marquee + .np-marquee {
+		animation-delay: calc(var(--np-intro-rest) + 0.3s);
+	}
+}
+
+/* 아래 칸(덮는 판)은 배너 뒤에 */
+.np-home-cover {
+	animation: np-intro-rise 0.6s ease-out calc(1.15s + 0.4s) both;
+}
+
+/* 끌 때는 시작 애니메이션을 단 요소만 (.np-intro * 로 끄면 배너 띠 .track의 흐름까지 멈춘다) */
+:root[data-intro-seen] {
+	.np-intro :is(.logo, [data-letter], .title-text, .np-marquee),
+	.np-intro > p,
+	.np-home-cover {
+		animation: none;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.np-intro :is(.logo, [data-letter], .title-text, .np-marquee),
+	.np-intro > p,
+	.np-home-cover {
+		animation: none;
+	}
+}
+
+@keyframes np-intro-logo {
+	0% {
+		opacity: 0;
+		transform: scale(1.5);
+	}
+	20% {
+		opacity: 1;
+		transform: scale(1.8);
+	}
+	70% {
+		transform: scale(1.8);
+	}
+	100% {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes np-intro-split {
+	0%,
+	30% {
+		transform: translateX(var(--np-intro-from));
+	}
+	65%,
+	100% {
+		transform: none;
+	}
+}
+
+@keyframes np-intro-letter {
+	0%,
+	38% {
+		opacity: 0;
+		transform: scaleX(0.3);
+	}
+	68%,
+	100% {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+@keyframes np-intro-rise {
+	from {
+		opacity: 0;
+		transform: translateY(1rem);
+	}
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}

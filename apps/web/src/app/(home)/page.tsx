@@ -3,6 +3,7 @@ import type { HomeToday } from '@newpick/shared';
 import { fetchArticleList } from '@/api/article';
 import { fetchHomeToday } from '@/api/edition';
 import { isBuildPhase } from '@/constants/site';
+import { cx } from '@/styles/tw';
 
 import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
@@ -38,24 +39,36 @@ export default async function HomePage() {
 	return (
 		<div className="np-home-page">
 			<TitleSection firstArticles={firstArticles} secondArticles={secondArticles} />
-			<HeroSection />
-			<hr />
 			{/*
-			  순서: 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 분야별(오늘의 뉴스레터) → 분야를 넘어(흐름) → 주제별(최신 트렌드) → 반응(지금 뜨는 소식).
-			  최신 트렌드는 뜨는 태그로 묶은 칸이라 같은 데이터를 쓰는 '지금 뜨는 소식' 바로 위에 둔다. 편집본이 없으면 '오늘' 칸은 빠진다
+			  첫 화면 패널(로고 · 배너 두 줄)은 제자리에 멈추고, 아래 칸들이 한 장의 판이 되어 위로 올라와 덮는다.
+			  판의 바탕은 화면 끝까지(배너 띠가 화면 너비라 그것까지 가리게), 위쪽은 둥근 모서리 + 그림자로 덮는 것이 보이게
 			*/}
-			{today && <KeyLinesSection date={today.date} stories={today.topLines} />}
-			{/* 로그인했을 때만: 지켜보는 소식 · 팔로우한 태그의 새 소식 */}
-			<PersonalSection />
-			<TrendSection />
-			{today && (
-				<>
-					<ThreadsSection threads={today.threads} />
-					<TopicTrendSection topics={today.topics} />
-					<PopularSection risingTags={today.risingTags} mostRead={today.mostRead} mostScrapped={today.mostScrapped} />
-				</>
-			)}
-			<SubscribeSection />
+			<div
+				className={cx(
+					'np-home-cover relative z-1 isolate pt-10',
+					'before:absolute before:inset-y-0 before:left-1/2 before:-z-1 before:w-screen before:-translate-x-1/2',
+					'before:rounded-t-[2rem] before:bg-background before:shadow-[0_-12px_32px_rgb(0_0_0/0.08)]',
+				)}
+			>
+				<HeroSection />
+				<hr />
+				{/*
+				  순서: 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 분야별(오늘의 뉴스레터) → 분야를 넘어(흐름) → 주제별(최신 트렌드) → 반응(지금 뜨는 소식).
+				  최신 트렌드는 뜨는 태그로 묶은 칸이라 같은 데이터를 쓰는 '지금 뜨는 소식' 바로 위에 둔다. 편집본이 없으면 '오늘' 칸은 빠진다
+				*/}
+				{today && <KeyLinesSection date={today.date} stories={today.topLines} />}
+				{/* 로그인했을 때만: 지켜보는 소식 · 팔로우한 태그의 새 소식 */}
+				<PersonalSection />
+				<TrendSection />
+				{today && (
+					<>
+						<ThreadsSection threads={today.threads} />
+						<TopicTrendSection topics={today.topics} />
+						<PopularSection risingTags={today.risingTags} mostRead={today.mostRead} mostScrapped={today.mostScrapped} />
+					</>
+				)}
+				<SubscribeSection />
+			</div>
 		</div>
 	);
 }
