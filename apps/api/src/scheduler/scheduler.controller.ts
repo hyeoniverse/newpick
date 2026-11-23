@@ -138,6 +138,8 @@ export class SchedulerController {
 	}
 	@Post(`manual/${JOB_ENDPOINT.mail}`)
 	startMailSend() {
+		if (this.mailJob.isSending)
+			throw new AppException('CONFLICT', '메일을 보내는 중입니다. 끝난 뒤에 다시 시도해 주십시오.');
 		this.schedulerService.manualStartMailSend();
 		return {
 			success: true,

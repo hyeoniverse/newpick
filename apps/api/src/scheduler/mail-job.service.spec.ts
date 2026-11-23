@@ -228,3 +228,38 @@ describe('구독 메일 (#55)', () => {
 		expect(mailService.sendBulkMail).toHaveBeenCalledTimes(1);
 	});
 });
+
+describe('같은 날 두 번 보내지 않기 (#341)', () => {
+	const edition = { date: '2026-10-27', sources: [], editorial: null };
+
+	it('오늘(KST) 이미 받은 주소는 빼고 보낸다 (발송 도중 재시작된 뒤 다시 돌려도)', async () => {
+		const { mailJob, mailService, prisma } = setup(0, edition);
+		prisma.emailArchive.findMany.mockResolvedValue([{ email: 'a@example.com' }]);
+		await mailJob.sendEmailSummary();
+
+		expect(mailService.sendBulkMail).not.toHaveBeenCalled();
+		const where = prisma.emailArchive.findMany.mock.calls[0][0].where;
+		expect(where.email.in).toEqual(['a@example.com']);
+		// 오늘 KST 하루 (00:00 ~ 23:59:59.999, 24시간)
+		expect(where.sentAt.lte.getTime() - where.sentAt.gte.getTime()).toBe(24 * 3600 * 1000 - 1);
+	});
+
+	it('보내는 중에 다시 실행하면 건너뛴다 (예약 발송 중 지금 실행 · 두 번 누름)', async () => {
+		const { mailJob, mailService } = setup(0, edition);
+		let release!: () => void;
+		mailService.sendBulkMail.mockImplementationOnce(
+			() => new Promise((resolve) => (release = () => resolve({ success: 1, failed: 0, skipped: 0 }))),
+		);
+
+		const first = mailJob.sendEmailSummary();
+		// 첫 실행이 발송 단계에 닿을 때까지
+		while (!mailService.sendBulkMail.mock.calls.length) await new Promise((r) => setTimeout(r, 0));
+		expect(mailJob.isSending).toBe(true);
+		await mailJob.sendEmailSummary();
+		release();
+		await first;
+
+		expect(mailService.sendBulkMail).toHaveBeenCalledTimes(1);
+		expect(mailJob.isSending).toBe(false);
+	});
+});
