@@ -106,7 +106,8 @@ export function PeriodTitle({ id }: { id?: string }) {
 			showToast(ADMIN.period.reversed, 'error');
 			return;
 		}
-		if (days > MAX_RANGE_DAYS) {
+		// 끝 날짜도 하루로 센다 (api kstRange와 같게): 예전에는 날짜 차이 92(93일)까지 받아 api가 400을 냈다 (#340)
+		if (days + 1 > MAX_RANGE_DAYS) {
 			showToast(ADMIN.period.tooLong(MAX_RANGE_DAYS), 'error');
 			return;
 		}

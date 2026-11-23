@@ -53,8 +53,12 @@ export class NewsletterQueryDto {
 }
 
 /** 관리자 뉴스레터 고치기 (#31). 보낸 항목만 바꾼다 */
+/** 앞뒤 공백을 자른 뒤 길이를 잰다 (#340: 공백만 보낸 제목 · 요약이 1자 검사를 통과해 빈 값으로 저장됐다) */
+const trimmed = () => Transform(({ value }) => (typeof value === 'string' ? value.trim() : value));
+
 export class UpdateNewsletterDto {
 	@IsOptional()
+	@trimmed()
 	@IsString({ message: 'title은 문자열이어야 합니다.' })
 	@Length(1, 100, { message: '제목은 1~100자여야 합니다.' })
 	title?: string;
@@ -66,6 +70,7 @@ export class UpdateNewsletterDto {
 
 	/** 요약 (목록 · 카드 설명) */
 	@IsOptional()
+	@trimmed()
 	@IsString({ message: 'content는 문자열이어야 합니다.' })
 	@Length(1, 2000, { message: '요약은 1~2000자여야 합니다.' })
 	content?: string;

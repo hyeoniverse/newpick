@@ -161,15 +161,17 @@ export default function TagsAdmin() {
 			onDone: refresh,
 		});
 
-	const deleteRule = async (rule: TagRule) => {
-		try {
-			await deleteTagRule(rule.id);
-			showToast(ADMIN.tags.ruleDeleted, 'info');
-			refresh();
-		} catch (error) {
-			showToast(errorMessage(error, COMMON.deleteFailed), 'error');
-		}
-	};
+	// 규칙 지우기도 묻는다 (#340: 태그 지우기 · 합치기와 달리 바로 지워졌다)
+	const deleteRule = (rule: TagRule) =>
+		confirm({
+			title: ADMIN.tags.ruleDeleteTitle,
+			content: ADMIN.tags.ruleDeleteBody,
+			confirmLabel: ACTIONS.remove,
+			run: () => deleteTagRule(rule.id),
+			success: ADMIN.tags.ruleDeleted,
+			failure: COMMON.deleteFailed,
+			onDone: refresh,
+		});
 
 	const since = kstDate(29);
 

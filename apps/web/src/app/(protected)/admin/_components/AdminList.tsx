@@ -1,6 +1,7 @@
 'use client';
 
 import { COMMON } from '@/copy';
+import { useEffect } from 'react';
 import { useQuery, type QueryKey } from '@tanstack/react-query';
 import Pagination from '@/components/common/Pagination';
 import { useSortQuery } from './HeaderFilter';
@@ -32,7 +33,7 @@ export function useAdminList<T extends { total: number }>({
 	sort?: boolean;
 	pageSize?: number;
 }) {
-	const { from, to, page } = useAdminQuery();
+	const { from, to, page, set } = useAdminQuery();
 	const sortQuery = useSortQuery();
 	const query = new URLSearchParams({
 		...(period && { from, to }),
@@ -48,6 +49,14 @@ export function useAdminList<T extends { total: number }>({
 		queryFn: () => fetch(query.toString()),
 		placeholderData: (previous) => previous,
 	});
+
+	// 지금 쪽이 마지막 쪽보다 뒤면(마지막 쪽의 마지막 줄을 지움 · 거르기로 줄어듦) 마지막 쪽으로 (#340: 남은 줄이 있는데 "없습니다"가 보였다)
+	const total = result.data?.total;
+	const lastPage = total === undefined ? page : Math.max(1, Math.ceil(total / pageSize));
+	useEffect(() => {
+		if (!result.isPlaceholderData && page > lastPage) set({ page: lastPage });
+	}, [page, lastPage, result.isPlaceholderData, set]);
+
 	return { ...result, pageSize };
 }
 
