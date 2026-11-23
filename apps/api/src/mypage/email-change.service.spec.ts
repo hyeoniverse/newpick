@@ -10,6 +10,14 @@ const setup = () => {
 			findUnique: jest.fn(),
 			update: jest.fn().mockResolvedValue({}),
 		},
+		emailArchive: {
+			deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+			updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+		},
+		mailPlan: {
+			deleteMany: jest.fn().mockResolvedValue({ count: 0 }),
+			updateMany: jest.fn().mockResolvedValue({ count: 0 }),
+		},
 		emailChange: {
 			findUnique: jest.fn().mockResolvedValue(null),
 			upsert: jest.fn().mockResolvedValue({}),
@@ -90,6 +98,22 @@ describe('EmailChangeService 코드 확인', () => {
 		});
 		expect(prisma.emailChange.delete).toHaveBeenCalled();
 		expect(mail.sendHtmlMail.mock.calls[0][0]).toBe('old@example.com');
+	});
+
+	it('받은 메일 기록 · 맞춤 메일 계획을 새 주소로 같은 트랜잭션에서 옮긴다 (#340: 바꾸면 받은 메일이 사라졌다)', async () => {
+		const { prisma, service } = setup();
+		prisma.user.findUnique = users('old@example.com');
+		prisma.emailChange.findUnique.mockResolvedValue(pending());
+
+		await service.verify(7, '123456');
+
+		const move = { where: { email: 'old@example.com' }, data: { email: 'new@example.com' } };
+		expect(prisma.emailArchive.updateMany).toHaveBeenCalledWith(move);
+		expect(prisma.mailPlan.updateMany).toHaveBeenCalledWith(move);
+		// 새 주소에 남아 있던 기록은 예전 계정(지금 그 주소를 쓰는 계정 없음)의 것이라 먼저 지운다
+		expect(prisma.emailArchive.deleteMany).toHaveBeenCalledWith({ where: { email: 'new@example.com' } });
+		expect(prisma.mailPlan.deleteMany).toHaveBeenCalledWith({ where: { email: 'new@example.com' } });
+		expect(prisma.$transaction.mock.calls[0][0]).toHaveLength(6);
 	});
 
 	it('틀리면 남은 횟수를 알려 주고, 다 틀리면 코드를 버린다', async () => {

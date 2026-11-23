@@ -114,6 +114,7 @@ export class EmailChangeService {
 					data: { email: pending.newEmail },
 				}),
 				this.prisma.emailChange.delete({ where: { userId } }),
+				...(before ? this.moveMailRecords(before.email, pending.newEmail) : []),
 			]);
 		} catch (error) {
 			// 코드를 받은 사이에 다른 계정이 같은 주소로 가입한 경우
@@ -136,5 +137,20 @@ export class EmailChangeService {
 
 	private discard(userId: number) {
 		return this.prisma.emailChange.deleteMany({ where: { userId } });
+	}
+
+	/**
+	 * 받은 메일 기록(email_archives) · 맞춤 메일 계획(mail_plans)은 이메일 문자열로 묶여 있어 주소와 함께 옮긴다 (#340).
+	 * 예전에는 옮기지 않아 바꾼 뒤 받은 메일이 마이페이지에서 사라지고, 탈퇴해도 옛 주소의 기록이 남아
+	 * 나중에 그 주소로 가입한 다른 사람에게 보일 수 있었다.
+	 * 새 주소에 이미 남은 기록은 지금 그 주소를 쓰는 계정이 없으니(assertAvailable) 예전 계정의 것이라 먼저 지운다
+	 */
+	private moveMailRecords(from: string, to: string) {
+		return [
+			this.prisma.emailArchive.deleteMany({ where: { email: to } }),
+			this.prisma.mailPlan.deleteMany({ where: { email: to } }),
+			this.prisma.emailArchive.updateMany({ where: { email: from }, data: { email: to } }),
+			this.prisma.mailPlan.updateMany({ where: { email: from }, data: { email: to } }),
+		];
 	}
 }

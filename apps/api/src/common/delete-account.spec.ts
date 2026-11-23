@@ -29,6 +29,12 @@ function prismaMock(
 				return 'archives';
 			}),
 		},
+		mailPlan: {
+			deleteMany: jest.fn((args) => {
+				ops.push(`mailPlan.deleteMany ${args.where.email}`);
+				return 'plans';
+			}),
+		},
 		$transaction: jest.fn(async (list: unknown[]) => {
 			ops.push(`transaction(${list.length})`);
 			return [{ count: 3 }, { id: user?.id }];
@@ -38,11 +44,16 @@ function prismaMock(
 }
 
 describe('회원 탈퇴 (#65)', () => {
-	it('메일 발송 기록(이메일로 저장)과 회원을 한 트랜잭션으로 지운다', async () => {
+	it('메일 발송 기록 · 맞춤 메일 계획(이메일로 저장)과 회원을 한 트랜잭션으로 지운다 (#340: 계획이 남았다)', async () => {
 		const { prisma, ops } = prismaMock({ id: 7, email: 'a@example.com' });
 		const result = await deleteAccount(prisma as never, 7);
 
-		expect(ops).toEqual(['emailArchive.deleteMany a@example.com', 'user.delete 7', 'transaction(2)']);
+		expect(ops).toEqual([
+			'emailArchive.deleteMany a@example.com',
+			'mailPlan.deleteMany a@example.com',
+			'user.delete 7',
+			'transaction(3)',
+		]);
 		expect(result).toEqual({ id: 7, deletedEmailArchives: 3 });
 	});
 
@@ -55,9 +66,10 @@ describe('회원 탈퇴 (#65)', () => {
 		await deleteAccount(prisma as never, 7);
 		expect(ops).toEqual([
 			'emailArchive.deleteMany a@example.com',
+			'mailPlan.deleteMany a@example.com',
 			'user.delete 7',
 			'subscriptionEvent.create cancel',
-			'transaction(3)',
+			'transaction(4)',
 		]);
 	});
 
