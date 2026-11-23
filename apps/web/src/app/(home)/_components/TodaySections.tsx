@@ -213,81 +213,108 @@ export function ThreadsSection({ threads }: { threads: HomeThread[] }) {
 const daysBetween = (from: string, to: string) =>
 	Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / (24 * 60 * 60 * 1000)) + 1;
 
+/** 날짜 축에 두는 날 수 (그보다 오래된 마디는 뺀다) */
+const AXIS_DAYS = 7;
+
 /**
- * 이어지는 이야기: 오늘 소식에서 같은 사건의 앞 소식을 거슬러 올라간 것을 날짜순 가로 줄로 (휴대폰은 세로).
- * 분야를 넘는 흐름(같은 날 여러 분야를 세로로 잇는다)과 달리 시간 축이라 가로로 둔다. 마지막 마디(가장 새 소식)만 채운 점
+ * 이어지는 이야기: 날짜 축 표. 가로축은 날짜(사건들에 나오는 날만), 사건마다 한 줄.
+ * 처음 나온 날부터 가장 새 소식까지 실선으로 잇고, 소식이 있는 날에 점과 제목을 둔다 (가장 새 소식만 채운 점 + 새로 나온 것 한 줄).
+ * 여러 사건이 언제 시작해 얼마나 이어졌는지 한눈에 견준다. 좁은 화면은 표를 가로로 밀어 본다
  */
 export function ContinuingSection({ stories }: { stories: HomeContinuing[] }) {
 	if (!stories.length) return null;
+	const dates = [...new Set(stories.flatMap(({ steps }) => steps.map((step) => step.date)))].sort().slice(-AXIS_DAYS);
+	const latestDate = dates[dates.length - 1];
 	return (
 		<section className={SECTION} data-track-section="home-continuing">
 			<SectionHeader eyebrow={COPY.eyebrow.continuing} title={COPY.continuing} note={COPY.continuingNote} />
-			<div className="flex w-full flex-col gap-5">
-				{stories.map(({ steps }) => {
-					const first = steps[0];
-					const last = steps[steps.length - 1];
-					return (
-						<article
-							key={storyKey(first)}
-							className="flex flex-col gap-5 rounded-surface border border-light-grey p-6 mobile:p-5"
-						>
-							<span className="flex items-center gap-2 text-small">
-								<span className="rounded-full bg-primary px-2.5 py-0.5 font-semi-bold text-background">
-									{COPY.continuingDays(daysBetween(first.date, last.date))}
-								</span>
-								<span className="font-semi-bold text-primary">{last.category}</span>
-							</span>
-							<ol
-								className="m-0 grid list-none grid-cols-[repeat(var(--steps),minmax(0,1fr))] gap-x-6 p-0 mobile:grid-cols-1"
-								style={{ '--steps': steps.length } as React.CSSProperties}
+			<div className="w-full overflow-x-auto">
+				<div
+					role="table"
+					aria-label={COPY.continuing}
+					className="grid min-w-[calc(8rem+var(--days)*10rem)] grid-cols-[8rem_repeat(var(--days),minmax(0,1fr))] tablet:min-w-[calc(7rem+var(--days)*11rem)] tablet:grid-cols-[7rem_repeat(var(--days),minmax(0,1fr))] mobile:min-w-[calc(4rem+var(--days)*9rem)] mobile:grid-cols-[4rem_repeat(var(--days),minmax(0,1fr))]"
+					style={{ '--days': dates.length } as React.CSSProperties}
+				>
+					<div role="row" className="contents">
+						<span role="columnheader" className="border-b border-light-grey" />
+						{dates.map((date) => (
+							<span
+								key={date}
+								role="columnheader"
+								className={cx(
+									'border-b border-light-grey px-3 pb-2 text-small',
+									date === latestDate ? 'font-semi-bold text-primary' : 'text-sub-text',
+								)}
 							>
-								{steps.map((step, i) => {
-									const latest = i === steps.length - 1;
+								{monthDay(date)}
+							</span>
+						))}
+					</div>
+					{stories.map(({ steps }) => {
+						const shown = steps.filter((step) => dates.includes(step.date));
+						const byDate = new Map(shown.map((step) => [step.date, step]));
+						const first = dates.indexOf(shown[0].date);
+						const last = dates.indexOf(shown[shown.length - 1].date);
+						const latest = steps[steps.length - 1];
+						return (
+							<div key={storyKey(steps[0])} role="row" className="contents">
+								<span role="rowheader" className="flex flex-col gap-1 border-b border-light-grey py-4 pr-3 mobile:pr-1">
+									<span className="text-small font-semi-bold text-primary">{latest.category}</span>
+									<span className="text-small text-sub-text">
+										{COPY.continuingDays(daysBetween(steps[0].date, latest.date))}
+									</span>
+								</span>
+								{dates.map((date, col) => {
+									const step = byDate.get(date);
+									const isLatest = step === latest;
 									return (
-										<li
-											key={storyKey(step)}
-											className={cx(
-												// 마디를 잇는 실선: 가로(다음 마디까지, 칸 사이 간격 포함) · 휴대폰은 세로
-												'relative pt-6 before:absolute before:top-[5px] before:left-0 before:h-px before:w-[calc(100%+1.5rem)] before:bg-light-grey',
-												'mobile:pt-0 mobile:pb-4 mobile:pl-6 mobile:before:top-2 mobile:before:left-[5px] mobile:before:h-full mobile:before:w-px',
-												'last:before:hidden mobile:last:pb-0',
-											)}
-										>
-											<span
-												className={cx(
-													'absolute top-0 left-0 size-[11px] rounded-full border-2 border-primary mobile:top-1.5',
-													latest ? 'bg-primary' : 'bg-background',
-												)}
-												aria-hidden
-											/>
-											<Link
-												href={ROUTES.article(step.newsletterId)}
-												className="group flex flex-col gap-1 text-inherit no-underline"
-											>
-												<span className={cx('text-small', latest ? 'font-semi-bold text-primary' : 'text-sub-text')}>
-													{monthDay(step.date)}
-													{step.category !== last.category && ` · ${step.category}`}
-												</span>
-												<strong
+										<div key={date} role="cell" className="relative border-b border-light-grey px-3 py-4">
+											{/* 사건을 잇는 실선: 첫 마디의 점에서 마지막 마디의 점까지 (칸 가운데가 아니라 점 높이) */}
+											{col >= first && col <= last && (
+												<span
+													aria-hidden
 													className={cx(
-														'line-clamp-2 leading-snug group-hover:underline',
-														latest ? 'font-bold' : 'font-semi-bold',
+														'absolute top-[calc(1rem+5px)] h-px bg-primary/40',
+														col === first ? 'left-[calc(0.75rem+5px)]' : 'left-0',
+														col === last ? 'right-[calc(100%-0.75rem-5px)]' : 'right-0',
 													)}
+												/>
+											)}
+											{step && (
+												<Link
+													href={ROUTES.article(step.newsletterId)}
+													className="group relative flex flex-col gap-1.5 text-inherit no-underline"
 												>
-													{step.heading}
-												</strong>
-												{/* 앞 소식보다 새로 나온 것 (첫 마디는 사건의 시작이라 없다) */}
-												{step.reason && (
-													<span className="line-clamp-3 text-small leading-relaxed text-sub-text">{step.reason}</span>
-												)}
-											</Link>
-										</li>
+													<span
+														aria-hidden
+														className={cx(
+															'size-[11px] rounded-full border-2 border-primary',
+															isLatest ? 'bg-primary' : 'bg-background',
+														)}
+													/>
+													<span
+														className={cx(
+															'line-clamp-3 text-small leading-snug group-hover:underline',
+															isLatest ? 'font-bold' : 'font-semi-bold',
+														)}
+													>
+														{step.heading}
+													</span>
+													{/* 가장 새 소식만: 앞 소식보다 새로 나온 것 */}
+													{isLatest && step.reason && (
+														<span className="line-clamp-3 text-[0.75rem] leading-relaxed text-sub-text">
+															{step.reason}
+														</span>
+													)}
+												</Link>
+											)}
+										</div>
 									);
 								})}
-							</ol>
-						</article>
-					);
-				})}
+							</div>
+						);
+					})}
+				</div>
 			</div>
 		</section>
 	);

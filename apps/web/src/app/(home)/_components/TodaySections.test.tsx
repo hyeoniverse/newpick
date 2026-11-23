@@ -31,8 +31,22 @@ const today: HomeToday = {
 		{
 			steps: [
 				{ newsletterId: 3, storyIndex: 1, category: '사회', heading: '압수수색', date: '2026-11-21', reason: '' },
-				{ newsletterId: 5, storyIndex: 2, category: '정치', heading: '여야 공방', date: '2026-11-22', reason: '여야가 맞섰다' },
-				{ newsletterId: 10, storyIndex: 1, category: '사회', heading: '구속영장 발부', date: '2026-11-23', reason: '법원이 영장을 발부했다' },
+				{
+					newsletterId: 5,
+					storyIndex: 2,
+					category: '정치',
+					heading: '여야 공방',
+					date: '2026-11-22',
+					reason: '여야가 맞섰다',
+				},
+				{
+					newsletterId: 10,
+					storyIndex: 1,
+					category: '사회',
+					heading: '구속영장 발부',
+					date: '2026-11-23',
+					reason: '법원이 영장을 발부했다',
+				},
 			],
 		},
 	],
@@ -79,20 +93,45 @@ describe('홈 오늘 칸', () => {
 		expect(screen.getByText('11월 22일 기준')).toBeTruthy();
 	});
 
-	it('이어지는 이야기: 날짜순 마디, 며칠째인지, 앞 소식보다 새로 나온 것 (첫 마디는 없음), 분야가 바뀐 마디만 분야를 붙인다', () => {
-		render(<ContinuingSection stories={today.continuing} />);
+	it('이어지는 이야기: 가로축은 사건들에 나오는 날, 사건마다 한 줄 (며칠째 · 소식이 있는 날에 제목, 가장 새 소식만 새로 나온 것)', () => {
+		const stories = [
+			...today.continuing,
+			{
+				steps: [
+					{ newsletterId: 6, storyIndex: 1, category: '경제', heading: '환율 급등', date: '2026-11-22', reason: '' },
+					{
+						newsletterId: 20,
+						storyIndex: 1,
+						category: '경제',
+						heading: '환율 1,400원',
+						date: '2026-11-23',
+						reason: '',
+					},
+				],
+			},
+		];
+		render(<ContinuingSection stories={stories} />);
 		expect(screen.getByRole('heading', { level: 2, name: '이어지는 이야기' })).toBeTruthy();
-		expect(screen.getByText('3일째')).toBeTruthy();
-		const links = screen.getAllByRole('link');
-		expect(links.map((a) => a.getAttribute('href'))).toEqual([
-			'/articles/detail/3',
-			'/articles/detail/5',
-			'/articles/detail/10',
+		expect(screen.getAllByRole('columnheader').map((c) => c.textContent)).toEqual([
+			'',
+			'11월 21일',
+			'11월 22일',
+			'11월 23일',
 		]);
-		expect(links.map((a) => a.textContent)).toEqual([
-			'11월 21일압수수색',
-			'11월 22일 · 정치여야 공방여야가 맞섰다',
-			'11월 23일구속영장 발부법원이 영장을 발부했다',
+		const [, first, second] = screen.getAllByRole('row');
+		expect(first.querySelector('[role="rowheader"]')?.textContent).toBe('사회3일째');
+		expect([...first.querySelectorAll('[role="cell"]')].map((c) => c.textContent)).toEqual([
+			'압수수색',
+			'여야 공방',
+			'구속영장 발부법원이 영장을 발부했다',
+		]);
+		expect(first.querySelector('a')?.getAttribute('href')).toBe('/articles/detail/3');
+		// 늦게 시작한 사건은 앞 날짜 칸이 비어 있다
+		expect(second.querySelector('[role="rowheader"]')?.textContent).toBe('경제2일째');
+		expect([...second.querySelectorAll('[role="cell"]')].map((c) => c.textContent)).toEqual([
+			'',
+			'환율 급등',
+			'환율 1,400원',
 		]);
 	});
 
