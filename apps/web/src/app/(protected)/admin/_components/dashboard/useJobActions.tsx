@@ -38,10 +38,23 @@ export function useJobActions(schedule: Schedule | undefined, refresh: () => voi
 				/>,
 			),
 
+		// 켜기는 바로, 끄기는 묻고 (#340: 메일 발송을 스위치 한 번에 끌 수 있었다)
 		toggle: async (job: JobName, enable: boolean) => {
+			if (!enable) {
+				confirm({
+					title: ADMIN.jobs.disableTitle(JOB_LABEL[job]),
+					content: ADMIN.jobs.disableBody,
+					confirmLabel: ADMIN.jobs.turnOff,
+					run: () => toggleJob(job, false),
+					success: ADMIN.jobs.disabled(JOB_LABEL[job]),
+					failure: COMMON.changeFailed,
+					onDone: refresh,
+				});
+				return;
+			}
 			try {
-				await toggleJob(job, enable);
-				showToast(enable ? ADMIN.jobs.enabled(JOB_LABEL[job]) : ADMIN.jobs.disabled(JOB_LABEL[job]), 'info');
+				await toggleJob(job, true);
+				showToast(ADMIN.jobs.enabled(JOB_LABEL[job]), 'info');
 				refresh();
 			} catch (error) {
 				showToast(errorMessage(error, COMMON.changeFailed), 'error');

@@ -45,6 +45,9 @@ export const ADMIN = {
 		scheduleSaved: '예약 시간을 바꿨습니다. 다음 실행부터 적용됩니다.',
 		enabled: (job: string) => `${job}을 켰습니다.`,
 		disabled: (job: string) => `${job}을 껐습니다. 서버를 다시 시작하면 다시 켜집니다.`,
+		disableTitle: (job: string) => `${job} 예약 실행을 끄시겠습니까?`,
+		disableBody: '끄면 예약한 시각에 실행하지 않습니다. 서버를 다시 시작하면 다시 켜집니다.',
+		turnOff: '끄기',
 		fillStarted: (date: string, count: number) =>
 			`${date} 뉴스레터 ${count}편 작업을 시작했습니다. 한 편에 1~2분 소요되며, 한 편씩 차례로 진행됩니다.`,
 		noMissing: '그날 빠진 관심사가 없습니다.',
@@ -106,6 +109,8 @@ export const ADMIN = {
 		deleted: (tag: string, changed: number) =>
 			`#${tag}을(를) 삭제했습니다. 뉴스레터 ${changed}편의 태그를 수정했습니다.`,
 		ruleDeleted: '규칙을 삭제했습니다. 앞으로 발행하는 뉴스레터부터 적용됩니다.',
+		ruleDeleteTitle: '이 규칙을 삭제하시겠습니까?',
+		ruleDeleteBody: '이미 바꾼 태그는 그대로이고, 앞으로 발행하는 뉴스레터부터 이 규칙을 적용하지 않습니다.',
 		pickToMerge: '합칠 태그를 골라 주십시오.',
 		rulesDesc: '새 뉴스레터를 저장할 때 태그에 적용됩니다. 지워도 이미 바꾼 태그는 그대로입니다.',
 		noRules: '아직 규칙이 없습니다. 태그를 합치거나 삭제하면 규칙이 만들어집니다.',
