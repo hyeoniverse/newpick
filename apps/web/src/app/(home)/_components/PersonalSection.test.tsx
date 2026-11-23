@@ -83,8 +83,10 @@ describe('나를 위한 소식', () => {
 		).toEqual(['코스피 급락', '룰라 4선']);
 	});
 
-	it('아무것도 지켜보지 · 팔로우하지 않았으면 어떻게 하면 모이는지 안내', () => {
+	it('아무것도 지켜보지 · 팔로우하지 않았으면 없다고 알리고, 어떻게 하면 모이는지 안내', () => {
 		render(<PersonalSection />);
+		expect(screen.getByText('아직 구독한 소식이 없어요')).toBeTruthy();
+		expect(screen.getByText('아직 팔로우한 태그가 없어요')).toBeTruthy();
 		expect(screen.getByRole('link', { name: '뉴스레터 보러 가기' }).getAttribute('href')).toBe('/articles');
 		expect(screen.getByRole('link', { name: '태그 둘러보기' }).getAttribute('href')).toBe('/tags');
 	});

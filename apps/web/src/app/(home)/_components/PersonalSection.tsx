@@ -13,10 +13,11 @@ const COPY = HOME.personal;
 /** 칸마다 보이는 수 */
 const LIMIT = 3;
 
-/** 빈 칸 안내: 어떻게 하면 여기에 소식이 모이는지 */
-function Empty({ text, href, action }: { text: string; href: string; action: string }) {
+/** 빈 칸 안내: 아직 없다는 것 + 어떻게 하면 여기에 소식이 모이는지 */
+function Empty({ title, text, href, action }: { title: string; text: string; href: string; action: string }) {
 	return (
 		<p className="m-0 flex flex-col gap-2 rounded-surface bg-surface p-5 text-small leading-relaxed text-sub-text">
+			<strong className="text-medium font-semi-bold text-text">{title}</strong>
 			{text}
 			<Link href={href} className="self-start font-semi-bold text-primary no-underline hover:underline">
 				{action}
@@ -93,7 +94,12 @@ export default function PersonalSection() {
 							))}
 						</ul>
 					) : (
-						<Empty text={COPY.followsEmpty} href={ROUTES.articles} action={COPY.followsAction} />
+						<Empty
+							title={COPY.followsEmptyTitle}
+							text={COPY.followsEmpty}
+							href={ROUTES.articles}
+							action={COPY.followsAction}
+						/>
 					)}
 				</Column>
 				<Column title={COPY.tags} more={tags.length ? ROUTES.mypage('follows') : undefined}>
@@ -117,7 +123,7 @@ export default function PersonalSection() {
 							))}
 						</ul>
 					) : (
-						<Empty text={COPY.tagsEmpty} href={ROUTES.tags} action={COPY.tagsAction} />
+						<Empty title={COPY.tagsEmptyTitle} text={COPY.tagsEmpty} href={ROUTES.tags} action={COPY.tagsAction} />
 					)}
 				</Column>
 			</div>
