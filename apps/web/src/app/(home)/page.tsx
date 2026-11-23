@@ -1,5 +1,6 @@
 import { ArticleDetail as IArticleDetail } from '@/types/article';
 import { fetchArticleList } from '@/api/article';
+import { isBuildPhase } from '@/constants/site';
 
 import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
@@ -15,6 +16,9 @@ export default async function HomePage() {
 		const { data } = await fetchArticleList(40);
 		fetchedArticles = data;
 	} catch (error) {
+		// 운영 중 다시 만들 때 실패하면 던져서 Next가 이전에 만든 화면을 계속 쓰게 한다 (#340: 예전에는 빈 사진 띠를
+		// 10분 동안 저장했다). 빌드 중에는 api가 없을 수 있어 빈 목록으로 만든다
+		if (!isBuildPhase()) throw error;
 		console.error('❌ 뉴스레터 리스트 불러오기 실패:', error);
 	}
 	const firstArticles = fetchedArticles.slice(0, 20);

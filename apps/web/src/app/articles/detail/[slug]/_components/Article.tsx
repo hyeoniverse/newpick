@@ -26,7 +26,7 @@ import { ArticleInfo as IArticleInfo } from '@/types/article';
 import { stripCodeFence } from '@/utils/stripCodeFence';
 import { DEFAULT_IMAGES } from '@/constants/images';
 import { parseUrls, extractStories } from '@/utils/parseArticles';
-import Skeleton from '@/components/common/loader/Skeleton';
+import Skeleton, { SkeletonBlock } from '@/components/common/loader/Skeleton';
 import ErrorState from '@/components/common/ErrorState';
 import { DELETED_NEWSLETTER, errorStateFor, statusOf } from '@/copy/errors';
 import { cx } from '@/styles/tw';
@@ -65,8 +65,17 @@ function Article({ initial }: Props) {
 		);
 	}
 
+	// 서버에서 못 받아 브라우저가 다시 받는 동안(최대 몇 초) 빈 화면 대신 자리 (#340)
 	if (!articleContent) {
-		return null;
+		return (
+			<div className="flex flex-col gap-3 py-6" role="status" aria-label="뉴스레터를 불러오는 중">
+				<SkeletonBlock $width="30%" $height="1rem" />
+				<SkeletonBlock $width="80%" $height="2rem" />
+				<SkeletonBlock $height="16rem" />
+				<SkeletonBlock $width="90%" />
+				<SkeletonBlock $width="70%" />
+			</div>
+		);
 	}
 	const newsletterHTML = stripCodeFence(articleContent.newsletter.contentAsHTML, 'html');
 	const newsletterContent = articleContent.newsletter;

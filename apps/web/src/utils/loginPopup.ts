@@ -50,6 +50,9 @@ const loggedIn = () => readCookie(COOKIES.sessionHint) === '1';
 
 const POLL_MS = 1000;
 
+/** 기다리는 중인 로그인. '다시 열기'는 같은 이름의 창을 다시 띄우고 이 기다림을 같이 쓴다 (#340: 누를 때마다 확인이 쌓였다) */
+let waiting: Promise<LoginPopupResult> | null = null;
+
 /**
  * 팝업으로 로그인하고 결과를 기다린다. 팝업이 막혔으면 바로 'blocked'.
  * 팝업의 방송(성공 · 실패)이나, 로그인 표시 쿠키가 새로 생긴 것 중 먼저 오는 쪽으로 끝낸다.
@@ -64,15 +67,17 @@ export function openLoginPopup(): Promise<LoginPopupResult> {
 		`popup=yes,width=${WIDTH},height=${HEIGHT},left=${left},top=${top}`,
 	);
 	if (!popup) return Promise.resolve('blocked');
+	if (waiting) return waiting;
 
 	const wasLoggedIn = loggedIn();
-	return new Promise((resolve) => {
+	waiting = new Promise((resolve) => {
 		const channel = 'BroadcastChannel' in window ? new BroadcastChannel(LOGIN_CHANNEL) : null;
 		const finish = (result: LoginPopupResult) => {
 			channel?.close();
 			clearInterval(timer);
 			window.removeEventListener('focus', check);
 			document.removeEventListener('visibilitychange', check);
+			waiting = null;
 			resolve(result);
 		};
 		const check = () => {
@@ -83,4 +88,5 @@ export function openLoginPopup(): Promise<LoginPopupResult> {
 		window.addEventListener('focus', check);
 		document.addEventListener('visibilitychange', check);
 	});
+	return waiting;
 }

@@ -40,3 +40,6 @@ export function pageMetadata(title: string, description: string, path: string) {
 		},
 	};
 }
+
+/** `next build`로 미리 그리는 중인가 (그때는 api가 없을 수 있다). Next가 빌드 중에 NEXT_PHASE를 넣는다 */
+export const isBuildPhase = () => process.env.NEXT_PHASE === 'phase-production-build';

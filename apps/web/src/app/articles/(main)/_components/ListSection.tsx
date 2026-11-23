@@ -15,6 +15,8 @@ import BookmarkIcon from '@/components/common/icons/BookmarkIcon';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { LuSearchX } from 'react-icons/lu';
 import EmptyState from '@/components/common/EmptyState';
+import ErrorState from '@/components/common/ErrorState';
+import { errorStateFor, statusOf } from '@/copy/errors';
 import { mapIdToTitle } from '@/utils/mapInterests';
 import { parseArticles } from '@/utils/parseArticles';
 import { fetchSearchNewsletters } from '@/api/article';
@@ -36,6 +38,8 @@ export default function ListSection() {
 	const [total, setTotal] = useState<number | null>(null);
 	const [isLoading, setIsLoading] = useState(false); // 데이터 로딩 상태
 	const [hasMore, setHasMore] = useState(true); // 더 불러올 데이터가 있는지 여부
+	// 첫 묶음을 못 받았을 때의 오류: 빈 칸 대신 안내와 '다시 시도' (#340)
+	const [firstError, setFirstError] = useState<unknown>(null);
 	const observerRef = useRef<HTMLDivElement | null>(null);
 	// 처음 불러오기와 화면 끝 감지가 같은 순간에 부르면, isLoading(state)은 다음 렌더링에야 바뀌어
 	// 둘 다 요청을 보낸다 (요청 2번·실패 알림 2번). ref로 바로 막는다
@@ -66,10 +70,14 @@ export default function ListSection() {
 				const existingIds = new Set(prev.map((article) => article.id));
 				return [...prev, ...newArticles.filter((article) => !existingIds.has(article.id))];
 			});
-		} catch {
-			// 실패한 채로 두면 화면 끝에 닿을 때마다 다시 요청하므로, 더 불러오지 않고 알립니다.
+		} catch (error) {
+			// 이전 필터의 요청이 늦게 실패한 것이면 무시한다 (새 필터의 무한 스크롤을 막지 않게)
+			if (requestKey !== keyRef.current) return;
+			// 실패한 채로 두면 화면 끝에 닿을 때마다 다시 요청하므로, 더 불러오지 않는다.
+			// 첫 묶음이면 목록 자리에 안내를, 이어 받던 중이면 알림만
 			setHasMore(false);
-			showToast(ARTICLES.loadMoreFailed, 'error');
+			if (offsetRef.current === 0) setFirstError(error);
+			else showToast(ARTICLES.loadMoreFailed, 'error');
 		} finally {
 			loadingRef.current = false;
 			setIsLoading(false);
@@ -84,9 +92,16 @@ export default function ListSection() {
 		setArticles([]);
 		setTotal(null);
 		setHasMore(true);
+		setFirstError(null);
 		loadMoreArticles();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [key]);
+
+	const retryFirst = () => {
+		setFirstError(null);
+		setHasMore(true);
+		loadMoreArticles();
+	};
 
 	// 무한 스크롤을 처리하는 Intersection Observer
 	useEffect(() => {
@@ -207,7 +222,9 @@ export default function ListSection() {
 				{!tags.length && sortButtons('inline')}
 				{tags.length > 0 && sortButtons('row')}
 			</div>
-			{total === 0 && !isLoading ? (
+			{firstError && !isLoading ? (
+				<ErrorState inline {...errorStateFor(statusOf(firstError))} onRetry={retryFirst} />
+			) : total === 0 && !isLoading ? (
 				<EmptyState
 					icon={LuSearchX}
 					title={ARTICLES.searchEmpty.title}
