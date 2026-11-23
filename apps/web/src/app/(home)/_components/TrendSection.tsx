@@ -24,16 +24,17 @@ function PendingCard({ category }: { category: string }) {
 	return (
 		// 분야는 그림 안에 분야 아이콘으로 (뉴스 화면 배너와 같은 아이콘). 아래에 또 적으면 같은 말이 두 번
 		<div className="np-ratio-wide relative flex w-full flex-col items-center justify-center gap-3 overflow-hidden rounded-[8px] bg-neutral">
-			{/* 배너처럼 오른쪽 아래에 크게 · 옅게. 강조색은 이 아이콘에만 (회색만 쓰면 비어 보였다, 글자는 회색 그대로) */}
-			<span className="absolute -right-4 -bottom-6 text-[8rem] text-primary opacity-10" aria-hidden>
+			{/* 배너처럼 오른쪽 아래에 크게 · 옅게 (회색: 비어 있는 자리라는 느낌은 바탕이 맡는다) */}
+			<span className="absolute -right-4 -bottom-6 text-[8rem] text-light-grey opacity-15" aria-hidden>
 				{CATEGORY_ICONS[category]}
 			</span>
 			<PCLogo className="relative h-6 text-light-grey" aria-hidden />
 			<span className="relative flex items-center gap-1.5 text-small text-light-grey">
-				<span className="flex text-medium" aria-hidden>
+				{/* 강조색은 분야(작은 아이콘 · 이름)에만: 실제 카드의 분야 이름과 같은 색이라 6칸이 가지런하다 */}
+				<span className="flex text-medium text-primary" aria-hidden>
 					{CATEGORY_ICONS[category]}
 				</span>
-				<span className="font-semi-bold">{category}</span>
+				<span className="font-semi-bold text-primary">{category}</span>
 				<span>· {HOME.today.pending}</span>
 			</span>
 		</div>
