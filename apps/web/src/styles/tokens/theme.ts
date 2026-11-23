@@ -489,7 +489,8 @@ export const tokensCss = () => {
 		'/* 테마 색: <html data-theme>(머리의 스크립트가 그리기 전에 정한다)에 따라 바뀐다 */',
 		block(':root', themeVars(lightTheme)),
 		'',
-		block(":root[data-theme='dark']", `${themeVars(darkTheme)}\ncolor-scheme: dark;`),
+		// 테마와 상관없이 어두운 바탕에 뜨는 곳(사진 크게 보기 등)은 그 요소에 data-theme='dark'를 달아 안쪽만 다크 색으로
+		block(":root[data-theme='dark'],\n[data-theme='dark']", `${themeVars(darkTheme)}\ncolor-scheme: dark;`),
 		'',
 		'/* 글자 크기: 화면이 좁아지면 한 단계씩 줄어든다 (theme.fontSize · theme.heading) */',
 		block(':root', fontVars()),

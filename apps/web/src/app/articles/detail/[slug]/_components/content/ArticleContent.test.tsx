@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import ArticleContent, { zoomableImages } from './ArticleContent';
 
@@ -38,7 +38,11 @@ describe('ArticleContent: 사진 크게 보기', () => {
 		const dialog = screen.getByRole('dialog', { name: '사진 크게 보기: 디지털세' });
 		expect(dialog.hasAttribute('open')).toBe(true);
 		expect(dialog.querySelector('img')?.getAttribute('src')).toBe('https://img.test/photo.jpg');
-		expect(screen.getByRole('link', { name: '사진 한국일보' }).getAttribute('href')).toBe('https://news.test/1');
+		// 출처: '사진' + 언론사 이름(강조색 링크)
+		const source = within(dialog).getByRole('link', { name: '한국일보' });
+		expect(source.getAttribute('href')).toBe('https://news.test/1');
+		expect(source.className).toContain('text-primary');
+		expect(within(dialog).getByText(/사진/).tagName).toBe('FIGCAPTION');
 
 		fireEvent.click(screen.getByRole('button', { name: '닫기' }));
 		expect(dialog.hasAttribute('open')).toBe(false);

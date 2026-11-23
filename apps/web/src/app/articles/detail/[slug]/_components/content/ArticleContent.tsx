@@ -59,7 +59,16 @@ function ArticleContent({
 		setViewing({
 			src: img.currentSrc || img.src,
 			alt: img.alt,
-			caption: caption?.textContent ? { text: caption.textContent.trim(), href: link?.href } : undefined,
+			caption: caption?.textContent
+				? link?.textContent
+					? {
+							label: caption.textContent.replace(link.textContent, '').trim() || undefined,
+							source: link.textContent.trim(),
+							href: link.href,
+						}
+					: { source: caption.textContent.trim() }
+				: undefined,
+			from: img,
 		});
 		return true;
 	};
