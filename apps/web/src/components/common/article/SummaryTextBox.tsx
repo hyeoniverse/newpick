@@ -1,6 +1,8 @@
 import { LuChevronRight } from 'react-icons/lu';
 import { summaryItems } from '@/utils/summaryItems';
 import { cx } from '@/styles/tw';
+import { beginAutoScroll } from '@/utils/autoScroll';
+import { useHeaderStore } from '@/stores/useHeaderStore';
 
 /** 본문 소식 (상세: 본문 HTML에서 꺼낸 것). 제목과 리드(그 소식의 핵심 한 문장)를 그대로 보여 준다 */
 interface SummaryStory {
@@ -47,13 +49,17 @@ function Marked({ text }: { text: string }) {
 /**
  * 본문의 i번째 소식으로 (움직임 줄이기 설정이면 바로).
  * 스크롤하는 동안 본문이 다시 그려지기도 하고(요소가 바뀐다) 위쪽 사진이 늦게 불러와져 소식이 아래로 밀리기도 해서,
- * 다 간 뒤 3초 동안 0.1초마다 그 소식을 다시 찾아 자리를 맞춘다 (사용자가 스크롤하면 그만)
+ * 다 간 뒤 3초 동안 0.1초마다 그 소식을 다시 찾아 자리를 맞춘다 (사용자가 스크롤하면 그만).
+ * 가는 동안 헤더는 가는 방향에 맞춰 한 번만 접거나 펴고, 스크롤 방향에 반응하지 않게 붙잡는다 (#342)
  */
 function goToStory(selector: string, index: number) {
 	const find = () => document.querySelectorAll<HTMLElement>(selector)[index];
 	const first = find();
 	if (!first) return;
 	const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+	const endAutoScroll = beginAutoScroll();
+	// 아래로 가면 접고, 위로 가면 편다 (사용자가 그만큼 스크롤했을 때와 같게)
+	useHeaderStore.getState().setOpen(first.getBoundingClientRect().top < 0);
 	first.scrollIntoView({ behavior: still ? 'auto' : 'smooth', block: 'start' });
 
 	// 사이트 전체가 scroll-behavior: smooth라 맞출 때는 'instant'로 (auto면 또 천천히 움직이다 다시 어긋난다)
@@ -66,18 +72,24 @@ function goToStory(selector: string, index: number) {
 		}
 	};
 	let timer = 0;
+	let stopped = false;
 	const stop = () => {
+		stopped = true;
 		window.clearInterval(timer);
 		window.removeEventListener('wheel', stop);
 		window.removeEventListener('touchstart', stop);
 		window.removeEventListener('keydown', stop);
+		endAutoScroll();
 	};
 	window.addEventListener('wheel', stop, { passive: true });
 	window.addEventListener('touchstart', stop, { passive: true });
 	window.addEventListener('keydown', stop);
 	// 부드럽게 가는 동안은 건드리지 않는다
+	// 그 사이 사용자가 스크롤했으면 자리 맞추기를 시작하지 않는다 (예전에는 시작해, 사용자가 스크롤하는 동안 3초 내내
+	// 소식 자리로 되돌려 화면이 위아래로 흔들리고 헤더가 펼쳐졌다 접히기를 반복했다)
 	window.setTimeout(
 		() => {
+			if (stopped) return;
 			timer = window.setInterval(settle, 100);
 			window.setTimeout(stop, 3000);
 		},

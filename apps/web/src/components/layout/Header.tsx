@@ -25,6 +25,7 @@ import ThemeSwitcher from '@/components/layout/header/ThemeSwitcher';
 import { useUnseenFollows } from '@/hooks/useFollows';
 import AvatarPlaceholder from '@/components/common/AvatarPlaceholder';
 import HeaderSearch, { HeaderSearchFallback } from '@/components/layout/header/HeaderSearch';
+import { isAutoScrolling } from '@/utils/autoScroll';
 
 /* 프로필 원 (사진은 overflow: hidden. 새 후속 소식 점은 원 바깥 칸에) */
 const USER_CIRCLE = 'relative flex size-10 items-center justify-center overflow-hidden rounded-[50%]';
@@ -43,6 +44,11 @@ export default function Header() {
 
 	const handleScroll = useCallback(() => {
 		const currentScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+		// 코드가 스크롤하는 동안(목차로 소식 찾아가기)은 방향을 보지 않는다. 기준만 따라가 끝난 뒤 튀지 않게
+		if (isAutoScrolling()) {
+			lastScrollY.current = currentScrollY;
+			return;
+		}
 		const documentHeight = document.documentElement.scrollHeight;
 		const windowHeight = window.innerHeight;
 
