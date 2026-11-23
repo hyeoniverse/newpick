@@ -1,4 +1,5 @@
 import type { ArticlePick } from 'src/recommend/pick';
+import type { MailFollow } from 'src/follows/detect';
 
 /** 메일 계획 타입 (#199에서 personalize · personal-note에서 떼어 냄): 맞춤 순서 · 맞춤 글 · 추천 기사 · 태그 · 후속 칸 */
 
@@ -17,18 +18,8 @@ export type MailPlan = {
 };
 
 /** 메일에 싣는 후속 하나 */
-export type MailFollow = {
-	/** 지켜보던 소식 제목 */
-	followed: string;
-	/** 지켜보던 소식이 실린 뉴스레터 (원문 링크) */
-	followedNewsletterId: number;
-	/** 이어진 새 소식 제목 */
-	heading: string;
-	/** 어떻게 이어지는지 한 줄 (없으면 빈 문자열) */
-	reason: string;
-	newsletterId: number;
-	category: string;
-};
+/** 메일에 싣는 후속 한 건 (후속 지켜보기가 만든다) */
+export type { MailFollow };
 
 /** 팔로우한 태그 하나의 그날 소식 */
 export type TagNews = {

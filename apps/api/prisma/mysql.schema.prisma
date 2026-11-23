@@ -112,6 +112,9 @@ model Newsletter {
   archives   EmailArchive[]
   follows    StoryFollow[]
   followUps  FollowUpdate[]
+  vectors    StoryVector[]
+  links      StoryLink[]    @relation("StoryLinkNext")
+  linkedFrom StoryLink[]    @relation("StoryLinkPrev")
 
   /// 지난 뉴스레터 검색 (#20). 실제 인덱스는 한국어를 2글자씩 나누는 ngram 파서로 만든다(마이그레이션 SQL)
   @@fulltext([title, subtitle, content], map: "newsletters_search_idx")
@@ -415,16 +418,16 @@ model MailMark {
 /// 후속 지켜보기: 사용자가 뉴스레터 속 소식 하나를 지켜본다. 이어지는 새 소식이 나오면 follow_updates에 쌓인다.
 /// 판정용으로 그 소식의 제목 · 글을 그때 그대로 남긴다 (뉴스레터가 고쳐져도 지켜본 내용 기준)
 model StoryFollow {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   userId       Int
   newsletterId Int
   /// 뉴스레터 안 소식 순서 (1부터)
   storyIndex   Int
-  heading      String   @db.VarChar(200)
-  text         String   @db.Text
+  heading      String    @db.VarChar(200)
+  text         String    @db.Text
   /// 판정용 임베딩 (bge-m3). 처음 판정할 때 한 번 계산해 둔다
   embedding    Json?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
   /// 오래 조용한 소식에 '계속 지켜보기'를 누른 때. 조용한 날 수와 더 찾을 기간을 이때부터 다시 센다
   keptAt       DateTime?
 
@@ -449,6 +452,44 @@ model TagFollow {
 
   @@unique([userId, tag])
   @@map("tag_follows")
+}
+
+/// 소식 임베딩 (bge-m3): 후속 판정 · 이어지는 이야기가 함께 쓴다. 소식마다 한 번 계산해 두고,
+/// 뉴스레터를 다시 써서 제목이 바뀌면 다시 계산한다
+model StoryVector {
+  newsletterId Int
+  /// 뉴스레터 안 소식 순서 (1부터, 아침 속보 다음 본문 소식)
+  storyIndex   Int
+  /// 계산할 때의 소식 제목 (다시 쓴 뉴스레터인지 알아보는 데 쓴다)
+  heading      String   @db.VarChar(200)
+  vector       Json
+  createdAt    DateTime @default(now())
+
+  newsletter Newsletter @relation(fields: [newsletterId], references: [id], onDelete: Cascade)
+
+  @@id([newsletterId, storyIndex])
+  @@map("story_vectors")
+}
+
+/// 이어지는 이야기: 이 소식이 며칠 전 어느 소식의 새 진전인지 (바로 앞 하나만, 하루 한 번 판정).
+/// 앞 소식의 앞 소식을 따라가면 며칠에 걸친 사건 하나가 된다
+model StoryLink {
+  newsletterId     Int
+  storyIndex       Int
+  prevNewsletterId Int
+  prevStoryIndex   Int
+  /// 앞 소식보다 무엇이 새로 나왔는지 한 줄 (판정 모델이 쓴 것, 없으면 빈 문자열)
+  reason           String   @db.VarChar(300)
+  /// 임베딩 유사도
+  score            Float
+  createdAt        DateTime @default(now())
+
+  newsletter     Newsletter @relation("StoryLinkNext", fields: [newsletterId], references: [id], onDelete: Cascade)
+  prevNewsletter Newsletter @relation("StoryLinkPrev", fields: [prevNewsletterId], references: [id], onDelete: Cascade)
+
+  @@id([newsletterId, storyIndex])
+  @@index([prevNewsletterId])
+  @@map("story_links")
 }
 
 /// 지켜보는 소식에 이어진 새 소식 (하루 한 번 판정)

@@ -7,6 +7,7 @@ import { kstDayRange, kstStamp, toKstDate } from 'src/common/kst';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { EditionService } from 'src/edition/edition.service';
 import { FollowsService } from 'src/follows/follows.service';
+import { StoryLinksService } from 'src/follows/story-links.service';
 import { MailService } from 'src/mail/mail.service';
 import { SiteCacheService } from 'src/site-cache/site-cache.service';
 import { env } from 'src/config/env';
@@ -67,6 +68,7 @@ export class SummaryJobService {
 		private readonly prisma: MysqlPrismaService,
 		private readonly editionService: EditionService,
 		private readonly followsService: FollowsService,
+		private readonly storyLinks: StoryLinksService,
 		private readonly siteCache: SiteCacheService,
 		private readonly scheduleConfig: ScheduleConfigService,
 		private readonly jobRuns: JobRunsService,
@@ -331,8 +333,10 @@ export class SummaryJobService {
 			// 재시도 계획 · 편집본이 정해진 뒤에 알린다 (기다리지 않는다: 메일은 이 실행이 끝나기를 기다린다)
 			for (const listener of this.todayDoneListeners) listener();
 
-			// 후속 지켜보기: 오늘 소식이 누군가 지켜보는 소식의 후속인지 판정 (실패해도 요약은 끝난 것)
 			if (generatedNewsletter.length > 0) {
+				// 이어지는 이야기: 오늘 소식을 지난 며칠 같은 사건 소식과 잇는다 (홈 '이어지는 이야기'). 오늘 소식 임베딩도 여기서 계산해 둔다
+				await this.storyLinks.link().catch((error) => this.logger.warn(`이어지는 이야기 판정 실패: ${error.message}`));
+				// 후속 지켜보기: 오늘 소식이 누군가 지켜보는 소식의 후속인지 판정 (실패해도 요약은 끝난 것)
 				await this.followsService
 					.detect()
 					.catch((error) => this.logger.warn(`후속 지켜보기 판정 실패: ${error.message}`));

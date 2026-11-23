@@ -52,6 +52,8 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
 		detect: jest.fn().mockResolvedValue({}),
 		forMail: jest.fn().mockResolvedValue(new Map()),
 	};
+	// 이어지는 이야기 판정 (뉴스레터를 만든 날만)
+	const storyLinks = { link: jest.fn().mockResolvedValue({}) };
 	const recommendService = {
 		forUsers: jest.fn().mockResolvedValue(new Map()),
 		forTags: jest.fn().mockResolvedValue(new Map()),
@@ -103,6 +105,7 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
 		prisma as never,
 		editionService as never,
 		followsService as never,
+		storyLinks as never,
 		siteCache as never,
 		scheduleConfig,
 		jobRuns,
@@ -134,6 +137,7 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
 	(summaryJob as unknown as { summaryRetryDelayMs: number }).summaryRetryDelayMs = 0;
 	return {
 		scheduler,
+		storyLinks,
 		scheduleConfig,
 		jobRuns,
 		summaryJob,

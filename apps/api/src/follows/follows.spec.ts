@@ -2,6 +2,7 @@ import { renderNewsletterHtml } from 'src/ai-summary/newsletter-html';
 import { AiUnavailable } from 'src/ai/ai.service';
 import { acceptedFrom, candidatesFor, FOLLOW_LIMITS, judgePrompt } from './detect';
 import { FollowsService } from './follows.service';
+import { StoryLinksService } from './story-links.service';
 
 const story = (heading: string) => ({
 	template: 'brief' as const,
@@ -93,9 +94,15 @@ describe('FollowsService', () => {
 				updateMany: jest.fn().mockResolvedValue({ count: 1 }),
 			},
 			followUpdate: { createMany: jest.fn().mockResolvedValue({ count: 1 }) },
+			// 소식 임베딩: 저장된 것 없음 (오늘 소식은 새로 계산해 둔다)
+			storyVector: { findMany: jest.fn().mockResolvedValue([]), upsert: jest.fn().mockResolvedValue({}) },
 		};
 		const ai = { embed: jest.fn(), generate: jest.fn() };
-		const service = new FollowsService(prisma as never, ai as never);
+		const service = new FollowsService(
+			prisma as never,
+			ai as never,
+			new StoryLinksService(prisma as never, ai as never),
+		);
 		return { prisma, ai, service };
 	};
 
@@ -182,6 +189,7 @@ describe('FollowsService', () => {
 	const today = () => [
 		{
 			id: 30,
+			createdAt: new Date('2026-10-31T00:00:00Z'),
 			contentAsHTML: html('더존비즈온 침투 경로 확인', '야구 결과'),
 			category: { name: 'IT' },
 		},
