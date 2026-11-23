@@ -34,52 +34,63 @@ const fillForLoop = (articles: IArticleDetail[]) =>
 		? articles
 		: Array.from({ length: Math.ceil(MIN_LOOP_SLIDES / articles.length) }, () => articles).flat();
 
-/** 한 번 본 시작 애니메이션은 같은 탭(세션)에서 다시 틀지 않는다 */
-export const INTRO_SEEN_KEY = 'np-intro-seen';
-/** 시작 애니메이션 전체 길이 (styles/pages/home.css의 마지막 요소가 끝나는 때, ms) */
-const INTRO_MS = 2000;
-/**
- * 서버가 만든 HTML을 읽는 동안 바로 돈다 (그리기 전): 이번 세션에 이미 봤으면 html에 data-intro-seen을 달아 애니메이션을 끈다.
- * 다른 화면에서 홈으로 옮겨 올 때는 이 스크립트가 다시 돌지 않지만, html의 표시는 그대로 남아 있다
- */
-const INTRO_SEEN_SCRIPT = `try{if(sessionStorage.getItem('${INTRO_SEEN_KEY}'))document.documentElement.dataset.introSeen='1'}catch(e){}`;
+/** 아래 판이 다 덮을 때 패널이 줄어드는 정도 (1 → 0.9) */
+const SHRINK = 0.1;
 
 /**
- * 패널이 화면보다 길면 아래 끝이 화면 아래에 닿을 때부터 멈추도록 (짧으면 맨 위에서 멈춘다).
- * 그래야 배너 두 줄을 다 본 뒤에 아래 칸이 올라와 덮는다
+ * 아래 판이 패널을 얼마나 덮었는지 (0 ~ 1): 판의 위 끝이 패널의 위 끝에 닿으면 1.
+ * @param scrolled 스크롤한 거리
+ * @param distance 판이 패널 위 끝까지 올라오는 데 필요한 스크롤 거리 (처음 판 위치 − 패널이 멈춘 위치)
  */
-export const stickyTop = (viewport: number, panel: number) => Math.min(0, viewport - panel);
+export const coverProgress = (scrolled: number, distance: number) =>
+	distance > 0 ? Math.min(1, Math.max(0, scrolled / distance)) : 0;
 
 /**
  * 홈 첫 화면 패널 (로고 · 제목 · 설명 · 배너 두 줄).
  * - 시작 애니메이션: 로고가 'NP'에서 NewPick으로 펼쳐진 뒤 나머지가 차례로 나타난다 (CSS, 움직임 줄이기 설정이면 없음)
- * - 스크롤: 패널은 제자리에 멈춰 있고, 아래 칸(page.tsx의 np-home-cover)이 위로 올라와 덮는다
+ * - 스크롤: 패널은 처음 자리에 그대로 멈춰 있고, 아래 칸(page.tsx의 np-home-cover)이 위로 올라와 덮는다.
+ *   덮이는 만큼 패널은 작아지고 흐려져 사라진다 (움직임 줄이기 설정이면 흐려지기만)
  */
 function TitleSection({ className, firstArticles, secondArticles }: Props) {
 	const panel = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
 		const el = panel.current;
-		if (!el) return;
+		const cover = el?.nextElementSibling as HTMLElement | null;
+		if (!el || !cover) return;
+		const still = window.matchMedia('(prefers-reduced-motion: reduce)');
+		let distance = 0;
+		let frame = 0;
+
+		const paint = () => {
+			frame = 0;
+			const p = coverProgress(window.scrollY, distance);
+			el.style.opacity = String(1 - p);
+			el.style.transform = still.matches || p === 0 ? '' : `scale(${1 - SHRINK * p})`;
+		};
+		// 멈출 자리 = 스크롤하지 않았을 때 패널의 위치 (머리글 · 위 여백 아래). 그 자리에서 바로 멈춰 움직이지 않는다
 		const place = () => {
-			el.style.top = `${stickyTop(window.innerHeight, el.offsetHeight)}px`;
+			el.style.top = '';
+			el.style.position = 'relative';
+			const top = el.getBoundingClientRect().top + window.scrollY;
+			el.style.position = '';
+			el.style.top = `${top}px`;
+			distance = cover.getBoundingClientRect().top + window.scrollY - top;
+			paint();
+		};
+		const onScroll = () => {
+			if (!frame) frame = requestAnimationFrame(paint);
 		};
 		place();
 		const observer = new ResizeObserver(place);
 		observer.observe(el);
 		window.addEventListener('resize', place);
-		// 끝까지 본 뒤에는 같은 세션에서 다시 틀지 않는다
-		const seen = window.setTimeout(() => {
-			try {
-				sessionStorage.setItem(INTRO_SEEN_KEY, '1');
-			} catch {
-				// 저장소를 못 쓰면 다음에도 튼다
-			}
-		}, INTRO_MS);
+		window.addEventListener('scroll', onScroll, { passive: true });
 		return () => {
 			observer.disconnect();
 			window.removeEventListener('resize', place);
-			window.clearTimeout(seen);
+			window.removeEventListener('scroll', onScroll);
+			cancelAnimationFrame(frame);
 		};
 	}, []);
 
@@ -87,9 +98,8 @@ function TitleSection({ className, firstArticles, secondArticles }: Props) {
 		<div
 			ref={panel}
 			data-track-section="home-title"
-			className={cx('np-home-title-section-title-section np-intro sticky top-0 z-0', className)}
+			className={cx('np-home-title-section-title-section np-intro sticky top-0 z-0 origin-[50%_30%]', className)}
 		>
-			<script dangerouslySetInnerHTML={{ __html: INTRO_SEEN_SCRIPT }} />
 			<MorphLogo className="logo" role="img" aria-label="NewPick" />
 			<Title size="extraLarge" weight="medium" className="title-text">
 				AI 뉴스레터 서비스 뉴픽

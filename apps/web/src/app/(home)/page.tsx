@@ -41,13 +41,12 @@ export default async function HomePage() {
 			<TitleSection firstArticles={firstArticles} secondArticles={secondArticles} />
 			{/*
 			  첫 화면 패널(로고 · 배너 두 줄)은 제자리에 멈추고, 아래 칸들이 한 장의 판이 되어 위로 올라와 덮는다.
-			  판의 바탕은 화면 끝까지(배너 띠가 화면 너비라 그것까지 가리게), 위쪽은 둥근 모서리 + 그림자로 덮는 것이 보이게
+			  판의 바탕은 화면 끝까지 (배너 띠가 화면 너비라 그것까지 가리게). 덮이는 패널은 작아지고 흐려진다 (TitleSection)
 			*/}
 			<div
 				className={cx(
 					'np-home-cover relative z-1 isolate pt-10',
-					'before:absolute before:inset-y-0 before:left-1/2 before:-z-1 before:w-screen before:-translate-x-1/2',
-					'before:rounded-t-[2rem] before:bg-background before:shadow-[0_-12px_32px_rgb(0_0_0/0.08)]',
+					'before:absolute before:inset-y-0 before:left-1/2 before:-z-1 before:w-screen before:-translate-x-1/2 before:bg-background',
 				)}
 			>
 				<HeroSection />
