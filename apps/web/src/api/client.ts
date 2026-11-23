@@ -32,13 +32,22 @@ type ApiOptions = Omit<RequestInit, 'body'> & {
 	retryOnUnauthorized?: boolean;
 };
 
-let refreshing: Promise<boolean> | null = null;
+/**
+ * 서버(page · layout · route)에서 api를 기다리는 기본 최대 시간. 넘으면 오류로 끝내 각 화면의 오류 처리로 간다.
+ * 예전에는 시간 제한이 없어 api가 응답 없이 멈추면 서버 렌더링도 같이 멈췄다 (#340). signal을 주면 그것을 쓴다
+ */
+const SERVER_TIMEOUT_MS = 5000;
+
+/** ok: 새 토큰 받음 · expired: 로그인이 끝남 · unknown: api에 닿지 못했거나 5xx (로그인이 끝났는지 모름) */
+type RefreshOutcome = 'ok' | 'expired' | 'unknown';
+
+let refreshing: Promise<RefreshOutcome> | null = null;
 
 /** 동시에 여러 요청이 401을 받아도 refresh는 한 번만 보냅니다. */
-function refreshSession(): Promise<boolean> {
+function refreshSession(): Promise<RefreshOutcome> {
 	refreshing ??= fetch(API_ENDPOINTS.AUTH.REFRESH(), { credentials: 'include' })
-		.then((response) => response.ok)
-		.catch(() => false)
+		.then((response): RefreshOutcome => (response.ok ? 'ok' : response.status >= 500 ? 'unknown' : 'expired'))
+		.catch((): RefreshOutcome => 'unknown')
 		.finally(() => {
 			refreshing = null;
 		});
@@ -49,6 +58,7 @@ async function send(url: string, { body, headers, ...init }: ApiOptions) {
 	const isJson = body !== undefined && !(body instanceof FormData);
 	return fetch(url, {
 		credentials: 'include',
+		...(typeof window === 'undefined' && { signal: AbortSignal.timeout(SERVER_TIMEOUT_MS) }),
 		...init,
 		headers: {
 			Accept: 'application/json',
@@ -84,10 +94,12 @@ export async function apiFetch<T = void>(url: string, options: ApiOptions = {}):
 		response.status === 401 &&
 		retryOnUnauthorized &&
 		typeof window !== 'undefined' &&
-		url !== API_ENDPOINTS.AUTH.REFRESH() &&
-		(await refreshSession())
+		url !== API_ENDPOINTS.AUTH.REFRESH()
 	) {
-		response = await send(url, options);
+		const outcome = await refreshSession();
+		if (outcome === 'ok') response = await send(url, options);
+		// 갱신하러 api에 닿지 못했으면 401(로그인 끝남)이 아니라 503으로 알린다: 화면이 로그아웃 상태로 바뀌지 않게 (#340)
+		else if (outcome === 'unknown') throw new ApiError(503, 'Service Unavailable');
 	}
 
 	if (!response.ok) {

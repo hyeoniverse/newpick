@@ -10,6 +10,9 @@ import { COOKIES } from '@/constants/storage';
  * 2. 로그인이 필요한 경로인데 토큰이 없으면 홈으로 보냅니다.
  * 3. 로그인 표시 쿠키를 토큰 상태에 맞춥니다. 갱신에 실패하면 지우고,
  *    토큰은 있는데 표시 쿠키가 없으면(이 쿠키가 생기기 전에 로그인한 경우) 채웁니다.
+ * 4. api에 닿지 못했거나(시간 초과 · 네트워크) 5xx면 로그인이 끝났는지 알 수 없으므로 아무것도 지우지 않고 그대로
+ *    보낸다 (#340: 예전에는 잠깐의 장애에도 표시 쿠키를 지우고 홈으로 보내 로그아웃된 것처럼 보였다).
+ *    화면은 브라우저에서 다시 토큰을 갱신해 그린다
  */
 export async function middleware(request: NextRequest) {
 	const hasAccess = request.cookies.has(COOKIES.access);
@@ -22,6 +25,7 @@ export async function middleware(request: NextRequest) {
 
 	if (!hasAccess && refreshToken) {
 		const result = await refreshSession(request, refreshToken);
+		if (result.ok === 'unknown') return NextResponse.next();
 		if (result.ok) response = result.response;
 		else failedSetCookies = result.setCookies;
 		authenticated = result.ok;
@@ -57,7 +61,14 @@ function withClearedHint(response: NextResponse, clearHint: boolean, setCookies:
 	return response;
 }
 
-type RefreshResult = { ok: true; response: NextResponse } | { ok: false; setCookies: string[] };
+/** api가 토큰 갱신을 기다리는 최대 시간 */
+const REFRESH_TIMEOUT_MS = 3000;
+
+type RefreshResult =
+	| { ok: true; response: NextResponse }
+	| { ok: false; setCookies: string[] }
+	/** api에 닿지 못함 · 5xx: 로그인이 끝났는지 모름 */
+	| { ok: 'unknown' };
 
 async function refreshSession(request: NextRequest, refreshToken: string): Promise<RefreshResult> {
 	try {
@@ -65,7 +76,9 @@ async function refreshSession(request: NextRequest, refreshToken: string): Promi
 			// 로그인한 기기 목록이 웹 서버가 아니라 사용자 브라우저를 보이게
 			headers: { Cookie: `${COOKIES.refresh}=${refreshToken}`, 'User-Agent': request.headers.get('user-agent') ?? '' },
 			cache: 'no-store',
+			signal: AbortSignal.timeout(REFRESH_TIMEOUT_MS),
 		});
+		if (result.status >= 500) return { ok: 'unknown' };
 		const setCookies = result.headers.getSetCookie();
 		if (!result.ok) return { ok: false, setCookies };
 
@@ -80,7 +93,7 @@ async function refreshSession(request: NextRequest, refreshToken: string): Promi
 		setCookies.forEach((cookie) => response.headers.append('Set-Cookie', cookie));
 		return { ok: true, response };
 	} catch {
-		return { ok: false, setCookies: [] };
+		return { ok: 'unknown' };
 	}
 }
 
