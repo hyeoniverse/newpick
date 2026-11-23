@@ -7,6 +7,7 @@ import { SummaryJobService } from './summary-job.service';
 import { MailJobService } from './mail-job.service';
 import { SchedulerController } from './scheduler.controller';
 import { DashboardController } from './dashboard.controller';
+import { PublishTimeController } from './publish-time.controller';
 import { DashboardService } from './dashboard.service';
 import { MailModule } from 'src/mail/mail.module';
 import { CrawlingModule } from 'src/crawling/crawling.module';
@@ -37,6 +38,6 @@ import { RecommendModule } from 'src/recommend/recommend.module';
 		MailJobService,
 		DashboardService,
 	],
-	controllers: [SchedulerController, DashboardController],
+	controllers: [SchedulerController, DashboardController, PublishTimeController],
 })
 export class SchedulerModule {}

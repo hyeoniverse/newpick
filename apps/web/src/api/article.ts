@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from '@/constants/api';
 import { apiFetch } from '@/api/client';
+import type { ClockTime } from '@newpick/shared';
 import { NEWSLETTER_CACHE_TAG } from '@/constants/cache';
 import { ArticleDetail, ArticleInfo, NewsInfo } from '@/types/article';
 
@@ -27,6 +28,9 @@ export const fetchTrendList = async (categoryId?: number) => {
 	});
 	return trends.data;
 };
+
+/** 뉴스레터 발행 시각 (KST, 예: { hour: 8, minute: 30 }). 관리자가 바꾸면 바뀐다 */
+export const fetchPublishTime = async () => (await apiFetch<{ data: ClockTime }>(API_ENDPOINTS.NEWSLETTER.PUBLISH_TIME)).data;
 
 export const fetchArticleByCategory = async (category: number, limit: number = 5, offset: number = 0) =>
 	apiFetch<ArticleList>(API_ENDPOINTS.NEWSLETTER.CATEGORY(category, limit, offset));

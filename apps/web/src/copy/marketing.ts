@@ -50,6 +50,8 @@ export const HOME = {
 		mostReadPeriod: '최근 7일',
 		mostScrapped: '많이 스크랩한 소식',
 		mostScrappedPeriod: '최근 30일',
+		mostScrappedEmptyTitle: '아직 스크랩된 소식이 없어요',
+		mostScrappedEmpty: '뉴스레터를 읽다가 마음에 드는 소식을 스크랩해 보세요. 많이 스크랩된 소식이 여기에 모여요.',
 		views: (n: number) => `조회 ${n}`,
 		scraps: (n: number) => `스크랩 ${n}`,
 	},

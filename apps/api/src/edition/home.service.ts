@@ -10,7 +10,7 @@ import type {
 import { parseNewsletterHtml } from 'src/ai-summary/newsletter-parse';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
-import { kstDayRange } from 'src/common/kst';
+import { kstDayRange, toKstDate } from 'src/common/kst';
 import { EditionService } from './edition.service';
 import { storyRef } from './editor';
 
@@ -163,7 +163,8 @@ export class HomeService {
 						line: story.lead,
 						importance: story.importance ?? 0,
 						image: story.image?.url ?? null,
-					} satisfies HomeStory,
+						date: toKstDate(row.createdAt),
+					} satisfies HomeTopic['stories'][number],
 				}));
 			});
 		const used = new Set<string>();
