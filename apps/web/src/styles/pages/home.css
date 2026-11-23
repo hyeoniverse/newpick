@@ -568,8 +568,14 @@
 	flex-direction: column;
 	justify-content: center;
 	/* 머리글 높이는 고정값으로: --header-height는 머리글이 숨으면 0이 되어, 스크롤하는 동안 패널 높이가 바뀐다 */
-	min-height: calc(100svh - 3rem);
-	padding-top: 2rem;
+	/* 속보 띠가 있으면 그 높이도 뺀다 (BreakingBanner가 --np-breaking-band를 알린다): 띠 때문에 제목 · 설명이 밀려 내려가지 않게 */
+	min-height: calc(100svh - 3rem - var(--np-breaking-band, 0px));
+	/*
+	 * 내용은 가운데보다 위에 (아래 여백이 위보다 10rem 많아 5rem 위로).
+	 * 띠 높이만큼 아래 여백을 더해, 띠가 있어도 내용이 띠가 없을 때와 같은 자리에 오게
+	 */
+	padding-top: 0;
+	padding-bottom: calc(var(--np-breaking-band, 0px) + 10rem);
 
 	.logo {
 		color: var(--np-color-primary);

@@ -11,7 +11,7 @@ import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
 import TitleSection from '@/app/(home)/_components/TitleSection';
-import BreakingBanner from '@/app/(home)/_components/BreakingBanner';
+import BreakingBand, { BreakingCard } from '@/components/common/Breaking';
 import PersonalSection from '@/app/(home)/_components/PersonalSection';
 import {
 	ContinuingSection,
@@ -42,8 +42,8 @@ export default async function HomePage() {
 
 	return (
 		<div className="np-home-page">
-			{/* 속보가 나가 있으면 첫 화면 위에 띠 (브라우저에서 1분마다 확인) */}
-			<BreakingBanner />
+			{/* 속보가 나가 있으면 맨 위에 늘 보이는 띠 (브라우저에서 1분마다 확인). 큰 속보 칸은 체험하기 아래 */}
+			<BreakingBand />
 			<TitleSection firstArticles={firstArticles} secondArticles={secondArticles} />
 			{/*
 			  첫 화면 패널(로고 · 배너 두 줄)은 제자리에 멈추고, 아래 칸들이 한 장의 판이 되어 위로 올라와 덮는다.
@@ -60,11 +60,13 @@ export default async function HomePage() {
 				*/}
 				<StackPanel>
 					<HeroSection />
+					{/* 속보가 나가 있으면 체험하기 바로 아래에 사진을 쓴 큰 칸 */}
+					<BreakingCard />
 					<hr />
 					{/*
-					  순서: 체험(CTA) → 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 본편(오늘의 뉴스레터) → 맥락(이어지는 이야기 · 분야를 넘는 흐름) → 발견(최신 트렌드 · 지금 뜨는 소식) → 구독.
+					  순서: 체험(CTA) → 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 본편(오늘의 뉴스레터) → 맥락(이어지는 소식 · 분야를 넘는 흐름) → 발견(최신 트렌드 · 지금 뜨는 소식) → 구독.
 					  - 나를 위한 소식은 비어 있는 날이 많아(후속은 매일 생기지 않는다) 모두가 보는 핵심 3줄 아래에 둔다
-					  - 이어지는 이야기는 방금 본 오늘 소식이 며칠 전 어디서 시작됐는지라 뉴스레터 바로 다음, 편집 해설인 흐름은 그 뒤
+					  - 이어지는 소식는 방금 본 오늘 소식이 며칠 전 어디서 시작됐는지라 뉴스레터 바로 다음, 편집 해설인 흐름은 그 뒤
 					  - 최신 트렌드는 뜨는 태그로 묶은 칸이라 같은 데이터를 쓰는 '지금 뜨는 소식' 바로 위. 편집본이 없으면 '오늘' 칸은 빠진다
 					*/}
 					{/* 칸마다 스크롤 등장 · 퇴장 (InOut: 칸마다 모양이 다르다) */}

@@ -16,6 +16,7 @@ export const HOME = {
 			minutes < 1 ? '방금' : minutes < 60 ? `${minutes}분 전` : `${Math.floor(minutes / 60)}시간 전`,
 		more: '자세히',
 		less: '접기',
+		close: '속보 닫기',
 		articles: '관련 기사',
 	},
 	/** 홈 '나를 위한 소식' (로그인했을 때, PersonalSection) */
@@ -46,7 +47,7 @@ export const HOME = {
 		topicCount: (n: number) => `소식 ${n}개`,
 		topicMore: (tag: string) => `#${tag} 소식 더 보기`,
 		threads: '분야를 넘는 흐름',
-		continuing: '이어지는 이야기',
+		continuing: '이어지는 소식',
 		continuingNote: '최근 연속적으로 이어지는 사건을 시간순으로 보여드려요',
 		/** 사건이 처음 나온 날부터 오늘 소식까지 며칠째인지 */
 		continuingDays: (n: number) => `${n}일째`,
