@@ -42,6 +42,11 @@ export type Story = {
 	sources: number[];
 	/** 원출처 사진이 없을 때 Pexels·Unsplash에서 찾을 영어 검색어 */
 	imageQuery: string;
+	/**
+	 * 중요도 1~5 (클수록 중요). 제목이 다루는 소식 = 가장 높은 소식이고, 대표 사진(모자이크)도 이 순서로 고른다.
+	 * 예전 뉴스레터에는 없다
+	 */
+	importance?: number;
 	/** 쓰기가 끝난 뒤 서버가 붙인다 (story-images.ts) */
 	image?: StoryImage;
 };

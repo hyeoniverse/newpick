@@ -59,6 +59,8 @@ const STORY_SCHEMA = {
 		tags: { type: 'array', items: { type: 'string' } },
 		sources: { type: 'array', items: { type: 'integer' } },
 		imageQuery: { type: 'string' },
+		/** 중요도 1~5 (클수록 중요). 제목 소식 · 대표 사진 순서 */
+		importance: { type: 'integer' },
 		/** 오늘 아침 속보 기사로 쓴 소식이면 true. 아침 속보도 같은 소식 스키마로 받는다 (스키마를 두 번 넣으면 문법 한도를 넘었다) */
 		morning: { type: 'boolean' },
 	},
@@ -78,6 +80,7 @@ const STORY_SCHEMA = {
 		'tags',
 		'sources',
 		'imageQuery',
+		'importance',
 		'morning',
 	],
 	additionalProperties: false,
