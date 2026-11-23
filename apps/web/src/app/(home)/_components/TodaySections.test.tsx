@@ -1,7 +1,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import type { HomeToday } from '@newpick/shared';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { KeyLinesSection, PopularSection, ThreadsSection, TopicTrendSection } from './TodaySections';
+import { ContinuingSection, KeyLinesSection, PopularSection, ThreadsSection, TopicTrendSection } from './TodaySections';
 
 vi.mock('@/components/common/Image', () => ({ default: () => null }));
 afterEach(cleanup);
@@ -25,6 +25,15 @@ const today: HomeToday = {
 			title: '수출과 환율',
 			text: '반도체 수출이 늘며',
 			stories: [{ newsletterId: 10, storyIndex: 1, category: 'IT', heading: '반도체' }],
+		},
+	],
+	continuing: [
+		{
+			steps: [
+				{ newsletterId: 3, storyIndex: 1, category: '사회', heading: '압수수색', date: '2026-11-21', reason: '' },
+				{ newsletterId: 5, storyIndex: 2, category: '정치', heading: '여야 공방', date: '2026-11-22', reason: '여야가 맞섰다' },
+				{ newsletterId: 10, storyIndex: 1, category: '사회', heading: '구속영장 발부', date: '2026-11-23', reason: '법원이 영장을 발부했다' },
+			],
 		},
 	],
 	risingTags: [
@@ -70,12 +79,30 @@ describe('홈 오늘 칸', () => {
 		expect(screen.getByText('11월 22일 기준')).toBeTruthy();
 	});
 
+	it('이어지는 이야기: 날짜순 마디, 며칠째인지, 앞 소식보다 새로 나온 것 (첫 마디는 없음), 분야가 바뀐 마디만 분야를 붙인다', () => {
+		render(<ContinuingSection stories={today.continuing} />);
+		expect(screen.getByRole('heading', { level: 2, name: '이어지는 이야기' })).toBeTruthy();
+		expect(screen.getByText('3일째')).toBeTruthy();
+		const links = screen.getAllByRole('link');
+		expect(links.map((a) => a.getAttribute('href'))).toEqual([
+			'/articles/detail/3',
+			'/articles/detail/5',
+			'/articles/detail/10',
+		]);
+		expect(links.map((a) => a.textContent)).toEqual([
+			'11월 21일압수수색',
+			'11월 22일 · 정치여야 공방여야가 맞섰다',
+			'11월 23일구속영장 발부법원이 영장을 발부했다',
+		]);
+	});
+
 	it('소식 · 주제 · 흐름이 비면 그 칸은 그리지 않는다', () => {
 		const { container } = render(
 			<>
 				<KeyLinesSection date={today.date} stories={[]} />
 				<TopicTrendSection topics={[]} />
 				<ThreadsSection threads={[]} />
+				<ContinuingSection stories={[]} />
 			</>,
 		);
 		expect(container.innerHTML).toBe('');

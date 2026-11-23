@@ -10,6 +10,7 @@ import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
 import TitleSection from '@/app/(home)/_components/TitleSection';
 import PersonalSection from '@/app/(home)/_components/PersonalSection';
 import {
+	ContinuingSection,
 	KeyLinesSection,
 	PopularSection,
 	ThreadsSection,
@@ -41,7 +42,7 @@ export default async function HomePage() {
 			<HeroSection />
 			<hr />
 			{/*
-			  순서: 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 분야별(오늘의 뉴스레터) → 분야를 넘어(흐름) → 주제별(최신 트렌드) → 반응(지금 뜨는 소식).
+			  순서: 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 분야별(오늘의 뉴스레터) → 분야를 넘어(흐름) → 날짜를 넘어(이어지는 이야기) → 주제별(최신 트렌드) → 반응(지금 뜨는 소식).
 			  최신 트렌드는 뜨는 태그로 묶은 칸이라 같은 데이터를 쓰는 '지금 뜨는 소식' 바로 위에 둔다. 편집본이 없으면 '오늘' 칸은 빠진다
 			*/}
 			{today && <KeyLinesSection date={today.date} stories={today.topLines} />}
@@ -51,6 +52,8 @@ export default async function HomePage() {
 			{today && (
 				<>
 					<ThreadsSection threads={today.threads} />
+					{/* 같은 날 분야를 넘는 흐름 다음에, 날짜를 넘어 이어지는 사건 */}
+					<ContinuingSection stories={today.continuing ?? []} />
 					<TopicTrendSection topics={today.topics} />
 					<PopularSection risingTags={today.risingTags} mostRead={today.mostRead} mostScrapped={today.mostScrapped} />
 				</>

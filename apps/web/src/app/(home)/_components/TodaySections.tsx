@@ -1,5 +1,13 @@
 import Link from 'next/link';
-import type { HomeMostRead, HomeMostScrapped, HomeRisingTag, HomeStory, HomeThread, HomeTopic } from '@newpick/shared';
+import type {
+	HomeContinuing,
+	HomeMostRead,
+	HomeMostScrapped,
+	HomeRisingTag,
+	HomeStory,
+	HomeThread,
+	HomeTopic,
+} from '@newpick/shared';
 import { ROUTES } from '@/constants/routes';
 import Image from '@/components/common/Image';
 import FullWidthPanel from '@/components/common/FullWidthPanel';
@@ -12,7 +20,7 @@ const COPY = HOME.today;
 /**
  * 홈 '오늘' 칸들 (GET /edition/today, 서버에서 받아 그린다). 이미 만든 편집본 · 조회 · 스크랩 · 태그를 모은 것이라 AI 호출이 없다.
  * 칸마다 모양을 다르게 한다 (같은 제목 · 같은 카드 줄이 이어지면 단조롭다):
- * 핵심 3줄은 세 줄 목록 띠, 최신 트렌드는 주제 카드, 흐름은 분야를 잇는 줄, 많이 보는 것은 세 칸 순위.
+ * 핵심 3줄은 세 줄 목록 띠, 최신 트렌드는 주제 카드, 흐름은 분야를 잇는 세로 줄, 이어지는 이야기는 날짜를 잇는 가로 줄, 많이 보는 것은 세 칸 순위.
  * 데이터가 비면 그 칸은 그리지 않는다
  */
 
@@ -198,6 +206,90 @@ export function ThreadsSection({ threads }: { threads: HomeThread[] }) {
 				</div>
 			</div>
 		</FullWidthPanel>
+	);
+}
+
+/** 사건이 처음 나온 날부터 마지막 소식까지 며칠째인지 (같은 날이면 1) */
+const daysBetween = (from: string, to: string) =>
+	Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / (24 * 60 * 60 * 1000)) + 1;
+
+/**
+ * 이어지는 이야기: 오늘 소식에서 같은 사건의 앞 소식을 거슬러 올라간 것을 날짜순 가로 줄로 (휴대폰은 세로).
+ * 분야를 넘는 흐름(같은 날 여러 분야를 세로로 잇는다)과 달리 시간 축이라 가로로 둔다. 마지막 마디(가장 새 소식)만 채운 점
+ */
+export function ContinuingSection({ stories }: { stories: HomeContinuing[] }) {
+	if (!stories.length) return null;
+	return (
+		<section className={SECTION} data-track-section="home-continuing">
+			<SectionHeader eyebrow={COPY.eyebrow.continuing} title={COPY.continuing} note={COPY.continuingNote} />
+			<div className="flex w-full flex-col gap-5">
+				{stories.map(({ steps }) => {
+					const first = steps[0];
+					const last = steps[steps.length - 1];
+					return (
+						<article
+							key={storyKey(first)}
+							className="flex flex-col gap-5 rounded-surface border border-light-grey p-6 mobile:p-5"
+						>
+							<span className="flex items-center gap-2 text-small">
+								<span className="rounded-full bg-primary px-2.5 py-0.5 font-semi-bold text-background">
+									{COPY.continuingDays(daysBetween(first.date, last.date))}
+								</span>
+								<span className="font-semi-bold text-primary">{last.category}</span>
+							</span>
+							<ol
+								className="m-0 grid list-none grid-cols-[repeat(var(--steps),minmax(0,1fr))] gap-x-6 p-0 mobile:grid-cols-1"
+								style={{ '--steps': steps.length } as React.CSSProperties}
+							>
+								{steps.map((step, i) => {
+									const latest = i === steps.length - 1;
+									return (
+										<li
+											key={storyKey(step)}
+											className={cx(
+												// 마디를 잇는 실선: 가로(다음 마디까지, 칸 사이 간격 포함) · 휴대폰은 세로
+												'relative pt-6 before:absolute before:top-[5px] before:left-0 before:h-px before:w-[calc(100%+1.5rem)] before:bg-light-grey',
+												'mobile:pt-0 mobile:pb-4 mobile:pl-6 mobile:before:top-2 mobile:before:left-[5px] mobile:before:h-full mobile:before:w-px',
+												'last:before:hidden mobile:last:pb-0',
+											)}
+										>
+											<span
+												className={cx(
+													'absolute top-0 left-0 size-[11px] rounded-full border-2 border-primary mobile:top-1.5',
+													latest ? 'bg-primary' : 'bg-background',
+												)}
+												aria-hidden
+											/>
+											<Link
+												href={ROUTES.article(step.newsletterId)}
+												className="group flex flex-col gap-1 text-inherit no-underline"
+											>
+												<span className={cx('text-small', latest ? 'font-semi-bold text-primary' : 'text-sub-text')}>
+													{monthDay(step.date)}
+													{step.category !== last.category && ` · ${step.category}`}
+												</span>
+												<strong
+													className={cx(
+														'line-clamp-2 leading-snug group-hover:underline',
+														latest ? 'font-bold' : 'font-semi-bold',
+													)}
+												>
+													{step.heading}
+												</strong>
+												{/* 앞 소식보다 새로 나온 것 (첫 마디는 사건의 시작이라 없다) */}
+												{step.reason && (
+													<span className="line-clamp-3 text-small leading-relaxed text-sub-text">{step.reason}</span>
+												)}
+											</Link>
+										</li>
+									);
+								})}
+							</ol>
+						</article>
+					);
+				})}
+			</div>
+		</section>
 	);
 }
 
