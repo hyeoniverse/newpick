@@ -11,10 +11,10 @@ import { DatePicker } from '@/components/common/datepicker/DatePicker';
 import InputCheck from '@/components/common/InputCheck';
 import ModalContent from '@/components/common/modal/ModalContent';
 import { kstDate, kstDateOf } from '@/utils/formatter';
-import type { NewsletterListItem } from '@newpick/shared';
+import { BACKFILL_MAX_DAYS, type NewsletterListItem } from '@newpick/shared';
 
-/** 모은 기사가 남아 있는 날 수 (그보다 오래된 날은 만들 재료가 없다) */
-const KEEP_DAYS = 29;
+/** 모은 기사가 남아 있는 날 수 (그보다 오래된 날은 만들 재료가 없다). api 검사와 같은 값 */
+const KEEP_DAYS = BACKFILL_MAX_DAYS;
 const CATEGORY_LIST = CATEGORIES.filter((category) => category.id !== 0);
 
 export interface FixDayTarget {
@@ -101,7 +101,7 @@ function useDayRows(date: string | null) {
 /**
  * 빠진 날 채우기 · 다시 쓰기 창. 1단계: 빠진 날을 자동으로 늘어놓고(다른 날은 달력으로) 날짜를 고른다.
  * 2단계: 그날 관심사를 모두 보여 준다. 빠진 관심사는 처음부터 골라 두고(새로 만들기),
- * 이미 있는 뉴스레터는 골라서 다시 쓴다 (내용이 마음에 들지 않을 때). 모은 기사가 남아 있는 29일 전부터 오늘까지
+ * 이미 있는 뉴스레터는 골라서 다시 쓴다 (내용이 마음에 들지 않을 때). 다시 만들 수 있는 28일 전부터 오늘까지
  */
 export default function FillDay({
 	onCancel,

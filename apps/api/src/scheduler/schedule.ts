@@ -32,8 +32,9 @@ export const summaryWindow = (crawl: ClockTime, now = new Date()) => ({
 });
 export const minutesOf = ({ hour, minute }: ClockTime) => hour * 60 + minute;
 
-/** 모은 기사가 남아 있는 날수 (MongoDB TTL 30일). 그보다 오래된 날은 다시 만들 재료가 없다 */
-export const BACKFILL_MAX_DAYS = 29;
+/** 다시 만들 수 있는 가장 오래된 날 (#341: 29 → 28일, 웹과 같은 값을 쓰게 공유 패키지로) */
+import { BACKFILL_MAX_DAYS } from '@newpick/shared';
+export { BACKFILL_MAX_DAYS };
 
 /**
  * 지난 날짜(YYYY-MM-DD, KST)를 다시 만들 때 그날의 발행 시각: 그날 예약된 요약 시각.

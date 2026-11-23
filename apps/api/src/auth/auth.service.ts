@@ -1,4 +1,7 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { Cron } from '@nestjs/schedule';
+import { dailyCron } from 'src/common/cron';
+import { KST } from 'src/common/kst';
 import { JwtService } from '@nestjs/jwt';
 import { createHash, randomUUID } from 'node:crypto';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
@@ -16,6 +19,8 @@ export type RotatedSession = { userId: number; refreshToken?: string };
 
 @Injectable()
 export class AuthService {
+	private readonly logger = new Logger(AuthService.name);
+
 	constructor(
 		private readonly jwtService: JwtService,
 		private readonly prisma: MysqlPrismaService,
@@ -132,6 +137,17 @@ export class AuthService {
 
 	private expiresAt() {
 		return new Date(Date.now() + REFRESH_TOKEN_MAX_AGE);
+	}
+
+	/**
+	 * 만료된 로그인 세션을 매일 새벽에 지운다 (#341): 예전에는 그 사람이 다시 로그인할 때만 지워, 돌아오지 않는 사람의
+	 * 세션(기기 정보 포함)이 끝없이 남았다
+	 */
+	@Cron(dailyCron({ hour: 4, minute: 40 }), { timeZone: KST })
+	async purgeExpiredSessions() {
+		const { count } = await this.prisma.oAuthToken.deleteMany({ where: { expiresAt: { lt: new Date() } } });
+		if (count) this.logger.log(`만료된 로그인 세션 ${count}건 삭제`);
+		return count;
 	}
 
 	/** 로그인: 이 기기의 세션을 새로 만든다. 다른 기기의 세션은 그대로, 만료된 것만 정리 */
