@@ -29,3 +29,15 @@ describe('parseNewsletterHtml: 읽은 결과 기억', () => {
 		expect(parseNewsletterHtml(null)).toEqual({ briefing: '', stories: [], watch: [], morning: [] });
 	});
 });
+
+describe('parseNewsletterHtml: 소식 중요도 (#360 data-importance)', () => {
+	it('있으면 숫자로, 없으면(예전 뉴스레터) 빈 칸', () => {
+		const { stories } = parseNewsletterHtml(
+			'<div class="newsletter"><article class="story story-analysis" data-importance="5"><h2>새 소식</h2></article><article class="story story-analysis"><h2>예전 소식</h2></article></div>',
+		);
+		expect(stories.map((s) => [s.heading, s.importance])).toEqual([
+			['새 소식', 5],
+			['예전 소식', undefined],
+		]);
+	});
+});

@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArticleSummary as IArticleSummary } from '@/types/article';
 import { CATEGORIES } from '@/constants/categories';
 
-import { LuCoffee, LuCpu, LuGlobe, LuLandmark, LuNewspaper, LuTrendingUp, LuUsers } from 'react-icons/lu';
+import { CATEGORY_ICONS } from '@/constants/categoryIcons';
 import Title from '@/components/common/Title';
 import Text from '@/components/common/Text';
 import CardSlider from '@/components/common/slider/CardSlider';
@@ -24,17 +24,6 @@ export interface CategoryStats {
 	/** 최근 7일 발행 편 수 */
 	weekCount: number;
 }
-
-/** 띠 오른쪽에 크게·옅게 까는 분야 아이콘 */
-const CATEGORY_ICONS: Record<string, React.ReactNode> = {
-	전체: <LuNewspaper />,
-	IT: <LuCpu />,
-	정치: <LuLandmark />,
-	경제: <LuTrendingUp />,
-	사회: <LuUsers />,
-	생활: <LuCoffee />,
-	세계: <LuGlobe />,
-};
 
 interface Props {
 	trends?: IArticleSummary[];

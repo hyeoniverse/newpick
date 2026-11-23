@@ -120,6 +120,8 @@ export const API_ENDPOINTS = {
 	EDITION: {
 		/** 고른 분야로 엮은 구독 메일 미리보기 (#55). 생성 없음 */
 		PREVIEW: (categoryIds: number[]) => `${API_URL}/edition/preview?categories=${categoryIds.join(',')}`,
+		/** 홈 '오늘' 묶음: 3줄 · 트렌드 · 흐름 · 뜨는 태그 · 많이 읽은 · 많이 스크랩한 (AI 호출 없음) */
+		TODAY: `${API_URL}/edition/today`,
 	},
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,

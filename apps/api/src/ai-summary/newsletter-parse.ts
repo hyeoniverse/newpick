@@ -36,6 +36,8 @@ export type ParsedStory = {
 	next?: string;
 	/** 소식 태그 (article data-tags, 예전 뉴스레터에는 없다) */
 	tags?: string[];
+	/** 쓰기 모델이 매긴 중요도 1~5 (article data-importance, #360 이전 뉴스레터에는 없다) */
+	importance?: number;
 };
 
 export type ParsedNewsletter = {
@@ -153,6 +155,9 @@ function parseStory(article: Element): ParsedStory {
 		sources: credit ? sourceLinks(credit) : [],
 		...(article.querySelector('p.next span') && {
 			next: text(article.querySelector('p.next span')),
+		}),
+		...(Number(article.getAttribute('data-importance')) > 0 && {
+			importance: Number(article.getAttribute('data-importance')),
 		}),
 		...(article.getAttribute('data-tags') && {
 			tags: article

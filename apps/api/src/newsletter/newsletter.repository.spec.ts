@@ -34,11 +34,12 @@ describe('뉴스레터 고치기', () => {
 describe('오늘의 트렌드', () => {
 	const at = (iso: string) => new Date(iso);
 
-	it('가장 최근 뉴스레터가 나온 날(KST)의 것만, 분야마다 가장 늦게 만든 한 편', async () => {
+	it('분야마다 가장 최근 한 편: 그날 못 만든 분야는 며칠 전 것으로 (가장 최근 날부터 7일 안)', async () => {
 		const findMany = jest.fn().mockResolvedValue([
 			{ id: 12, categoryId: 1, createdAt: at('2026-10-31T00:30:00Z') },
 			{ id: 11, categoryId: 1, createdAt: at('2026-10-30T23:40:00Z') },
-			{ id: 13, categoryId: 3, createdAt: at('2026-10-30T23:35:00Z') },
+			// 3번 분야는 10월 31일에 못 만들어 이틀 전 것
+			{ id: 9, categoryId: 3, createdAt: at('2026-10-28T23:35:00Z') },
 		]);
 		const prisma = {
 			newsletter: {
@@ -49,14 +50,14 @@ describe('오늘의 트렌드', () => {
 		};
 		const result = await new NewsletterRepo(prisma as never).getLatestNewslettersForAllCategories();
 
-		// 10월 31일(KST) 하루만: 며칠 전 다른 분야 뉴스레터가 섞이지 않는다
+		// 10월 25일 0시 ~ 10월 31일 끝(KST): 7일보다 오래된 분야는 빠진다
 		expect(findMany.mock.calls[0][0].where).toEqual({
 			createdAt: {
-				gte: at('2026-10-30T15:00:00Z'),
+				gte: at('2026-10-24T15:00:00Z'),
 				lte: at('2026-10-31T14:59:59.999Z'),
 			},
 		});
-		expect(result.map((n) => n.id)).toEqual([12, 13]);
+		expect(result.map((n) => n.id)).toEqual([12, 9]);
 	});
 
 	it('뉴스레터가 하나도 없으면 빈 목록', async () => {
