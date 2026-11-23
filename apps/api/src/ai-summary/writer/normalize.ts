@@ -123,6 +123,10 @@ export function debateOf(list: Claim[] = []): Claim[] {
 }
 
 /** 소식 하나 정리: 글머리 · 따옴표 · 강조 개수 · 항목 수 제한, 기사 번호를 원래 번호로 */
+/** 중요도는 1~5 정수로. 빠졌거나 이상하면 가운데(3) */
+export const importanceOf = (value: unknown) =>
+	typeof value === 'number' && Number.isFinite(value) ? Math.min(5, Math.max(1, Math.round(value))) : 3;
+
 const normalizeStories = (list: Story[] = [], toOriginal: (n: number) => number | undefined, max: number) =>
 	list
 		.map((s) => {
@@ -147,6 +151,7 @@ const normalizeStories = (list: Story[] = [], toOriginal: (n: number) => number 
 				next: plain(s.next ?? '').slice(0, LIMITS.next * 2),
 				tags: keywords(s.tags ?? []).slice(0, LIMITS.storyTags.max),
 				imageQuery: s.imageQuery.trim(),
+				importance: importanceOf(s.importance),
 				sources: [
 					...new Set(
 						s.sources

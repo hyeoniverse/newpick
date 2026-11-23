@@ -172,7 +172,7 @@ describe('오늘 아침 속보 (05시 이후 보도는 뉴스레터 맨 위에 �
 			{ source: '연합뉴스', link: 'https://n.news/2' },
 		]);
 		expect(html).toContain(
-			'<div class="newsletter"><section class="morning"><h3>오늘 아침 속보</h3><article class="story story-analysis"><p class="kicker"><span class="index">01</span>',
+			'<div class="newsletter"><section class="morning"><h3>오늘 아침 속보</h3><article class="story story-analysis" data-importance="3"><p class="kicker"><span class="index">01</span>',
 		);
 		// 본문 소식은 아침 다음 번호
 		expect(html).toContain('<span class="index">02</span>');

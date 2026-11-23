@@ -9,6 +9,7 @@ import { CrawledNews } from 'src/crawling/schema/crawling.schema';
 import { NewsletterWriterService } from './newsletter-writer.service';
 import { renderNewsletterHtml } from './newsletter-html';
 import { StoryImageService } from './story-images';
+import type { Story } from './writer/types';
 import { FallbackImagesService } from './fallback-images.service';
 import { TagsService } from 'src/tags/tags.service';
 import { KST } from 'src/common/kst';
@@ -21,6 +22,19 @@ import { errorMessage } from 'src/common/error-message';
 export function usedArticles(news: CrawledNews[], sources: number[]) {
 	const used = sources.map((n) => news[n - 1]).filter(Boolean);
 	return used.length ? used : news;
+}
+
+/**
+ * 뉴스레터 사진 목록 (imageUrl, 쉼표로 이음): 중요한 소식(importance가 높은 순, 같으면 실린 순)의 사진을 먼저, 그 뒤에 쓴 기사의 나머지 사진.
+ * 목록 카드 · 메일 · 북마크는 첫 사진을 쓰고, 상세 화면 대표 사진(모자이크)은 본문 소식 사진을 이 순서로 쓴다
+ */
+export function coverImages(stories: Story[], articleImages: string[]) {
+	const ranked = stories
+		.map((story, order) => ({ story, order }))
+		.sort((a, b) => (b.story.importance ?? 3) - (a.story.importance ?? 3) || a.order - b.order)
+		.map(({ story }) => story.image?.url)
+		.filter((url): url is string => !!url);
+	return [...new Set([...ranked, ...articleImages.filter(Boolean)])];
 }
 
 /** 최근 소재로 보는 기간 (이 안에 다룬 소식은 새 진전이 있을 때만 다시 쓴다) */
@@ -153,11 +167,17 @@ export class AiSummaryService {
 			// 아침 속보에 쓴 기사도 '쓴 기사'로 남겨 다음 뉴스레터에 다시 실리지 않게
 			const used = usedArticles(news, [...stories.flatMap((s) => s.sources), ...morning.flatMap((m) => m.sources)]);
 			const newslinks = used.map((item) => item.link).toString();
-			const imageUrl = used.map((item) => item.images).toString();
-			// 상세 화면 맨 위 대표 이미지와 같은 사진은 소식에 다시 쓰지 않는다 (#49)
-			const hero = used.flatMap((item) => item.images ?? []).find(Boolean);
-			const withImages = await this.storyImageService.attach(taggedStories, news, hero);
-			const html = renderNewsletterHtml({ ...written, morning: taggedMorning, stories: withImages }, news);
+			// 소식마다 사진 (아침 속보도: 제목 소식이 아침 속보일 수 있어 대표 사진 모자이크에 필요하다).
+			// 예전에는 대표 사진(쓴 기사 가운데 사진이 있는 첫 기사의 첫 사진)을 따로 두고 소식에는 다른 사진을 썼는데(#49),
+			// 첫 기사가 아침 속보 · 덜 중요한 소식이면 제목과 동떨어졌다. 이제 대표 사진 = 중요한 소식의 사진
+			const withImages = await this.storyImageService.attach([...taggedMorning, ...taggedStories], news);
+			const morningWithImages = withImages.slice(0, taggedMorning.length);
+			const storiesWithImages = withImages.slice(taggedMorning.length);
+			const imageUrl = coverImages(
+				withImages,
+				used.flatMap((item) => item.images ?? []),
+			).toString();
+			const html = renderNewsletterHtml({ ...written, morning: morningWithImages, stories: storiesWithImages }, news);
 			this.logger.debug(
 				`뉴스레터 작성 완료: 소식 ${stories.length}개, 아침 속보 ${morning.length}개, 기사 ${news.length}건 중 ${used.length}건 사용`,
 			);
