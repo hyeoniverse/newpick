@@ -493,6 +493,21 @@
 	}
 }
 
+/* 홈 속보 띠 (BreakingBanner): '속보' 앞 빨간 점이 천천히 깜빡여 눈에 띄게 */
+.np-breaking-dot {
+	animation: np-breaking-blink 1.6s ease-in-out infinite;
+}
+@keyframes np-breaking-blink {
+	50% {
+		opacity: 0.25;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.np-breaking-dot {
+		animation: none;
+	}
+}
+
 /* app/(home)/_components/SubscribeSection.tsx */
 .np-home-subscribe-section-subscribe {
 	width: 100%;

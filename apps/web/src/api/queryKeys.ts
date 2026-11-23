@@ -21,6 +21,8 @@ export const queryKeys = {
 	},
 	trends: ['trends'] as const,
 	publishTime: ['publishTime'] as const,
+	/** 홈 속보 띠 */
+	breakingLatest: ['breakingLatest'] as const,
 
 	// ---- 로그인 없이 쓰지만 사람마다 다른 것 ----
 	editionPreview: (ids: number[]) => ['edition-preview', ids] as const,

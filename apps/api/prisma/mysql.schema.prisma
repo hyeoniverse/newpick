@@ -232,6 +232,8 @@ model ScheduleConfig {
   crawlMinute   Int      @default(0)
   summaryHour   Int      @default(8)
   summaryMinute Int      @default(30)
+  /// 속보 자동 발송 (관리자 › 속보 스위치). 끄면 새 후보는 모두 보류로 남는다
+  breakingAuto  Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -512,11 +514,11 @@ model FollowUpdate {
   @@map("follow_updates")
 }
 
-/// 속보 후보 (매시 수집 뒤 판정): 관리자가 확인(승인 · 기각)한 뒤에만 속보 뉴스레터로 만들어 보낸다
+/// 속보 후보 (매시 수집 뒤 판정): 잠깐(취소할 시간) 기다렸다가 저절로 보낸다. 그 사이 관리자가 '보내지 않기'로 막을 수 있다
 model BreakingAlert {
   id         Int       @id @default(autoincrement())
-  /// pending 확인 대기 · approved 승인 · rejected 기각 · sent 발송함
-  status     String    @default("pending") @db.VarChar(16)
+  /// scheduled 발송 예정 · held 보류(자동 발송 꺼짐 · 하루 상한, 관리자가 직접 보낼 수 있음) · canceled 보내지 않음 · sent 발송함
+  status     String    @default("scheduled") @db.VarChar(16)
   /// 속보 점수 (1~10, 판정 모델이 매김. 9 이상만 후보로 남는다)
   score      Int
   /// 사건 한 줄 (판정 모델이 씀)
@@ -526,10 +528,13 @@ model BreakingAlert {
   /// 관련 기사 [{ title, link, source }]
   articles   Json
   detectedAt DateTime  @default(now())
-  /// 승인 · 기각한 때와 관리자
+  /// 보낼 시각 (발송 예정일 때). '지금 바로 보내기'면 그때로 당긴다
+  sendAt     DateTime?
+  /// 관리자가 보내지 않기 · 지금 보내기를 누른 때와 관리자
   decidedAt  DateTime?
   decidedBy  Int?
 
   @@index([detectedAt])
+  @@index([status, sendAt])
   @@map("breaking_alerts")
 }

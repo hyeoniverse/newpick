@@ -41,9 +41,10 @@ export const API_ENDPOINTS = {
 		TAG_RULE: (id: number) => `${API_URL}/admin/tags/rules/${id}`,
 		TAG_MERGE: () => `${API_URL}/admin/tags/merge`,
 		TAG_REMOVE: () => `${API_URL}/admin/tags/remove`,
-		/** 속보 후보: 목록 · 승인 · 기각 (승인해도 아직 보내지 않는다) */
+		/** 속보: 목록 · 보내지 않기 · 지금 바로 보내기 · 자동 발송 켜기 · 끄기 */
 		BREAKING: () => `${API_URL}/admin/breaking`,
-		BREAKING_DECIDE: (id: number, decision: 'approve' | 'reject') => `${API_URL}/admin/breaking/${id}/${decision}`,
+		BREAKING_DECIDE: (id: number, decision: 'cancel' | 'send') => `${API_URL}/admin/breaking/${id}/${decision}`,
+		BREAKING_AUTO: () => `${API_URL}/admin/breaking/auto`,
 		/** 관리자 대시보드: 스케줄러 · 수집 · 발행 · AI 요약 기록 · 발송 (#21) */
 		DASHBOARD: () => `${API_URL}/scheduler/dashboard`,
 		/** 상세 목록 (기간 · 쪽 등 쿼리스트링을 붙여 부른다) */
@@ -128,6 +129,8 @@ export const API_ENDPOINTS = {
 	},
 	NEWSLETTER: {
 		BASE: `${API_URL}/newsletters`,
+		/** 홈 속보 띠: 나간 속보 가운데 가장 최근 것 (없으면 null). 누구나 */
+		BREAKING_LATEST: `${API_URL}/breaking/latest`,
 		/** 뉴스레터 발행 시각 (매일 AI 요약을 시작하는 시각, KST). 누구나 */
 		PUBLISH_TIME: `${API_URL}/schedule/publish-time`,
 		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,

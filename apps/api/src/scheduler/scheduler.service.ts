@@ -128,7 +128,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 		this.jobRuns.startRun('crawling');
 		try {
 			const created = await this.crawlingService.crawling();
-			// 새로 모은 기사로 속보 후보를 판정한다 (후보는 관리자가 확인해야 보낸다). 실패해도 수집은 성공
+			// 새로 모은 기사로 속보를 판정한다 (찾으면 취소할 시간 뒤 저절로 나간다). 실패해도 수집은 성공
 			const breaking = await this.breaking.detect(created).catch((error) => {
 				this.logger.warn(`속보 판정 실패: ${errorMessage(error)}`);
 				return 0;
@@ -136,7 +136,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 			this.jobRuns.finishRun(
 				'crawling',
 				'success',
-				`기사 ${created?.length ?? 0}건 수집` + (breaking ? ` · 속보 후보 ${breaking}건 (확인 대기)` : ''),
+				`기사 ${created?.length ?? 0}건 수집` + (breaking ? ` · 속보 ${breaking}건 (관리자 › 속보)` : ''),
 			);
 			// 수집 뒤 대체 사진이 비어 있는 뉴스레터를 조금씩 채운다. 실패해도 수집 결과에는 영향이 없다
 			await this.fallbackImages

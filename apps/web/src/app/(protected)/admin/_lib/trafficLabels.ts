@@ -39,6 +39,8 @@ export function sectionName(name: string) {
 		'detail-popular': '인기 뉴스레터',
 		'detail-prev-next': '이전 · 다음 글',
 		'detail-latest': '최신 뉴스레터',
+		'home-breaking': '홈 속보',
+		'home-breaking-band': '홈 속보 띠',
 		'home-title': '홈 첫 화면',
 		'home-hero': '홈 소개',
 		'home-trend': '홈 오늘의 뉴스레터',

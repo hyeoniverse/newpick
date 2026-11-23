@@ -115,7 +115,7 @@ describe('실행 기록 DB (#21)', () => {
 describe('수집 뒤 속보 판정', () => {
 	const flush = () => new Promise((r) => setImmediate(r));
 
-	it('새로 모은 기사로 속보 후보를 판정하고, 후보가 있으면 수집 기록에 적는다 (판정이 실패해도 수집은 성공)', async () => {
+	it('새로 모은 기사로 속보를 판정하고, 찾으면 수집 기록에 적는다 (판정이 실패해도 수집은 성공)', async () => {
 		const { scheduler, breaking, prisma } = setup(0);
 		const created = [{ title: '대통령 비상계엄 선포' }];
 		(scheduler as unknown as { crawlingService: unknown }).crawlingService = {
@@ -126,7 +126,7 @@ describe('수집 뒤 속보 판정', () => {
 		await flush();
 		expect(breaking.detect).toHaveBeenCalledWith(created);
 		expect(JSON.stringify(prisma.jobRun.update.mock.calls.at(-1))).toContain(
-			'기사 1건 수집 · 속보 후보 2건 (확인 대기)',
+			'기사 1건 수집 · 속보 2건 (관리자 › 속보)',
 		);
 
 		breaking.detect.mockRejectedValueOnce(new Error('down'));

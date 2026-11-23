@@ -1,4 +1,4 @@
-import type { BreakingAlert } from '@newpick/shared';
+import type { BreakingAdminView } from '@newpick/shared';
 import {
 	JOB_ENDPOINT,
 	type AdminArticlePage,
@@ -112,7 +112,9 @@ export const fetchDeliveryStats = (query: string) => data<DeliveryStats>(API_END
 export const fetchTasteStats = () => data<TasteStats>(API_ENDPOINTS.ADMIN.STATS('taste', ''));
 export const fetchPageStats = (query: string) => data<PageStats>(API_ENDPOINTS.ADMIN.STATS('page', query));
 
-// ---- 속보 후보 ----
-export const fetchBreaking = () => data<BreakingAlert[]>(API_ENDPOINTS.ADMIN.BREAKING());
-export const decideBreaking = (id: number, decision: 'approve' | 'reject') =>
+// ---- 속보 ----
+export const fetchBreaking = () => data<BreakingAdminView>(API_ENDPOINTS.ADMIN.BREAKING());
+export const decideBreaking = (id: number, decision: 'cancel' | 'send') =>
 	apiFetch(API_ENDPOINTS.ADMIN.BREAKING_DECIDE(id, decision), { method: 'POST' });
+export const setBreakingAuto = (auto: boolean) =>
+	apiFetch(API_ENDPOINTS.ADMIN.BREAKING_AUTO(), { method: 'PUT', body: { auto } });

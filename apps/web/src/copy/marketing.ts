@@ -9,6 +9,15 @@ export const HOME = {
 	},
 	categoryCard: (category: string) => `${category} 분야의 최신 뉴스레터를 보내 드려요.`,
 	quickLead: '고른 분야의 뉴스레터를 메일로 보내 드려요.',
+	/** 홈 속보 띠 (BreakingBanner): 나간 속보 가운데 가장 최근 것 */
+	breaking: {
+		label: '속보',
+		ago: (minutes: number) =>
+			minutes < 1 ? '방금' : minutes < 60 ? `${minutes}분 전` : `${Math.floor(minutes / 60)}시간 전`,
+		more: '자세히',
+		less: '접기',
+		articles: '관련 기사',
+	},
 	/** 홈 '나를 위한 소식' (로그인했을 때, PersonalSection) */
 	personal: {
 		eyebrow: 'FOR YOU',
@@ -38,7 +47,7 @@ export const HOME = {
 		topicMore: (tag: string) => `#${tag} 소식 더 보기`,
 		threads: '분야를 넘는 흐름',
 		continuing: '이어지는 이야기',
-		continuingNote: '며칠째 이어지는 사건을 날짜순으로 모았어요',
+		continuingNote: '최근 연속적으로 이어지는 사건을 시간순으로 보여드려요',
 		/** 사건이 처음 나온 날부터 오늘 소식까지 며칠째인지 */
 		continuingDays: (n: number) => `${n}일째`,
 		newsletters: '오늘의 뉴스레터',

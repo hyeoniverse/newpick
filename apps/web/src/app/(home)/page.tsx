@@ -11,6 +11,7 @@ import HeroSection from '@/app/(home)/_components/HeroSection';
 import TrendSection from '@/app/(home)/_components/TrendSection';
 import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
 import TitleSection from '@/app/(home)/_components/TitleSection';
+import BreakingBanner from '@/app/(home)/_components/BreakingBanner';
 import PersonalSection from '@/app/(home)/_components/PersonalSection';
 import {
 	ContinuingSection,
@@ -41,6 +42,8 @@ export default async function HomePage() {
 
 	return (
 		<div className="np-home-page">
+			{/* 속보가 나가 있으면 첫 화면 위에 띠 (브라우저에서 1분마다 확인) */}
+			<BreakingBanner />
 			<TitleSection firstArticles={firstArticles} secondArticles={secondArticles} />
 			{/*
 			  첫 화면 패널(로고 · 배너 두 줄)은 제자리에 멈추고, 아래 칸들이 한 장의 판이 되어 위로 올라와 덮는다.

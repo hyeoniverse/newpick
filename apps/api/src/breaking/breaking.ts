@@ -1,5 +1,6 @@
 /**
- * 속보 판정 규칙 (호출 없음). 매시 수집한 새 기사 제목을 한 번에 모아 판정 모델에 묻고, 아주 엄격한 기준을 넘는 사건만 후보로 남긴다.
+ * 속보 판정 규칙 (호출 없음). 매시 수집한 새 기사 제목을 한 번에 모아 판정 모델에 묻고, 아주 엄격한 기준을 넘는 사건만 남긴다.
+ * 남긴 속보는 잠깐(holdMinutes) 뒤 저절로 나간다: 속보는 빨라야 해서 관리자 승인을 기다리지 않고, 판정이 틀렸을 때만 그 사이에 막는다.
  * 속보는 정말 큰 일만: 계엄 · 전쟁 · 대형 참사, 전 국민에게 바로 영향을 주는 긴급 결정(수능 긴급 대책 등) 수준
  */
 export const BREAKING_LIMITS = {
@@ -15,10 +16,16 @@ export const BREAKING_LIMITS = {
 	sameEvent: 0.8,
 	/** 관련 기사로 남길 수 */
 	articles: 5,
+	/** 판정 뒤 이만큼 기다렸다가 저절로 보낸다: 그 사이 관리자가 '보내지 않기'로 막을 수 있다 (분) */
+	holdMinutes: 5,
+	/** 하루(KST)에 저절로 보내는 최대 수. 넘으면 보류로 남는다 (관리자가 직접 보낼 수는 있다) */
+	dailyLimit: 3,
+	/** 홈 속보 띠에 보이는 시간 (감지한 뒤, 시간) */
+	noticeHours: 24,
 };
 
 /** 판정에 보낼 기사 */
-export type BreakingInput = { title: string; link: string; source: string; category: string };
+export type BreakingInput = { title: string; link: string; source: string; category: string; image?: string };
 
 export const BREAKING_SYSTEM =
 	'You are a very strict Korean news desk chief. You decide whether any event deserves a breaking-news alert sent to every subscriber. Almost nothing does. Reply in Korean.';
