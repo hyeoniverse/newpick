@@ -1,6 +1,7 @@
 import { COMMON } from '@/copy';
 import { queryKeys } from '@/api/queryKeys';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { type InfiniteData, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { MailsPage } from '@newpick/shared';
 import { fetchMyMails, MAIL_PAGE_SIZE, markMail } from '@/api/mails';
 import { useToast } from '@/hooks/useToast';
 import { useBidirectionalPages } from '@/hooks/useBidirectionalPages';
@@ -35,7 +36,23 @@ export function useMarkMail() {
 	const { showToast } = useToast();
 	return useMutation({
 		mutationFn: (body: { sentAt: string; starred?: boolean; folderId?: number | null }) => markMail(body),
-		onSuccess: () => {
+		// 중요 표시는 화면에 먼저 바꿔 둔다 (#340): 다시 받기 전에 별을 한 번 더 누르면 예전 값으로 같은 요청을 또 보내 꺼지지 않았다
+		onMutate: async ({ sentAt, starred }) => {
+			if (starred === undefined) return;
+			await queryClient.cancelQueries({ queryKey: queryKeys.mails.all });
+			queryClient.setQueriesData<InfiniteData<MailsPage>>({ queryKey: queryKeys.mails.all }, (data) =>
+				data?.pages
+					? {
+							...data,
+							pages: data.pages.map((page) => ({
+								...page,
+								items: page.items.map((mail) => (mail.sentAt === sentAt ? { ...mail, starred } : mail)),
+							})),
+						}
+					: data,
+			);
+		},
+		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.mails.all });
 			queryClient.invalidateQueries({ queryKey: queryKeys.folders.all });
 		},
