@@ -1,7 +1,6 @@
 import { Controller, Delete, Get, Param, ParseIntPipe, Req, Post, Res, UseGuards } from '@nestjs/common';
 import type { Response, Request } from 'express';
 import { AuthService } from './auth.service';
-import { AuthGuard } from '@nestjs/passport';
 import { GoogleOAuthGuard, loginFailedUrl } from './google-oauth.guard';
 import { AppException } from 'src/common/errors/app.exception';
 import {
@@ -100,36 +99,34 @@ export class AuthController {
 
 		if (!refreshToken) throw expired();
 
-		try {
-			const session = await this.authService.rotateSession(refreshToken, req.headers['user-agent']);
-			if (!session) throw expired();
-			const { userId } = session;
+		// DB 오류 같은 예외는 그대로 500으로 둔다: 예전에는 모두 '만료'로 바꿔 표시 쿠키를 지워,
+		// refresh token이 멀쩡한데도 화면이 로그아웃 상태가 됐다 (#340)
+		const session = await this.authService.rotateSession(refreshToken, req.headers['user-agent']);
+		if (!session) throw expired();
+		const { userId } = session;
 
-			const newAccessToken = await this.authService.generateAccessToken(userId);
+		const newAccessToken = await this.authService.generateAccessToken(userId);
 
-			res.cookie('access_token', newAccessToken, authCookieOptions(ACCESS_TOKEN_MAX_AGE));
+		res.cookie('access_token', newAccessToken, authCookieOptions(ACCESS_TOKEN_MAX_AGE));
 
-			// 바로 전 토큰으로 온 늦은 탭이면 새 refresh token은 먼저 온 응답이 이미 내려 줬다
-			if (session.refreshToken) {
-				res.cookie('refresh_token', session.refreshToken, authCookieOptions(REFRESH_TOKEN_MAX_AGE));
-			}
-
-			res.cookie(SESSION_HINT_COOKIE, '1', sessionHintCookieOptions(REFRESH_TOKEN_MAX_AGE));
-
-			// 토큰은 HttpOnly 쿠키로만 전달합니다. (응답 본문에 담으면 스크립트에서 읽을 수 있음)
-			return res.json({ message: 'Token refreshed' });
-		} catch (error) {
-			if (error instanceof AppException) throw error;
-			throw expired();
+		// 바로 전 토큰으로 온 늦은 탭이면 새 refresh token은 먼저 온 응답이 이미 내려 줬다
+		if (session.refreshToken) {
+			res.cookie('refresh_token', session.refreshToken, authCookieOptions(REFRESH_TOKEN_MAX_AGE));
 		}
+
+		res.cookie(SESSION_HINT_COOKIE, '1', sessionHintCookieOptions(REFRESH_TOKEN_MAX_AGE));
+
+		// 토큰은 HttpOnly 쿠키로만 전달합니다. (응답 본문에 담으면 스크립트에서 읽을 수 있음)
+		return res.json({ message: 'Token refreshed' });
 	}
 
+	/**
+	 * 로그아웃은 access token 없이도 된다 (#340): 30분 넘게 다른 요청이 없으면 브라우저가 access token 쿠키를 지워,
+	 * 예전에는 401 → '로그아웃 실패'만 반복됐다. 지울 세션은 refresh token 쿠키로 찾는다
+	 */
+	@Public()
 	@Post('logout')
-	@UseGuards(AuthGuard('jwt'))
 	async logout(@Req() req: Request, @Res() res: Response) {
-		const user = req.user as { id: number };
-		if (!user?.id) throw new AppException('UNAUTHORIZED');
-
 		// 이 기기의 세션만 지운다 (다른 기기 로그인은 그대로. 실패하면 ApiExceptionFilter가 500으로 기록·응답)
 		await this.authService.removeSession(req.cookies['refresh_token']);
 

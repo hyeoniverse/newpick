@@ -8,6 +8,7 @@ import { User } from '@/types/user';
 import { AUTH } from '@/constants/numbers';
 import { isProtectedPath } from '@/constants/routes';
 import { fetchUser, logoutUser } from '@/api/auth';
+import { ApiError } from '@/api/client';
 
 import { useToast } from '@/hooks/useToast';
 import { useAuthStore } from '@/stores/useAuthStore';
@@ -25,6 +26,14 @@ const PUBLIC_QUERY_ROOTS = new Set([
 	'allKeywords',
 	'trends',
 ]);
+
+/**
+ * 프로필 조회 실패 가운데 로그인이 정말 끝난 경우: 토큰 갱신까지 실패(401)했거나 탈퇴한 계정.
+ * 그 밖(api 재시작 중 · 5xx · 네트워크)은 다시 시도하고 로그인 상태를 지우지 않는다 (#340: 예전에는 잠깐의 장애에도
+ * 로그아웃 상태로 굳어, 새로 고칠 때까지 로그인 버튼 · 401 화면이 보였다)
+ */
+export const endsSession = (error: unknown) =>
+	error instanceof ApiError && (error.status === 401 || error.code === 'USER_NOT_FOUND');
 
 /** 이 계정의 조회 결과를 모두 지운다 (공개 결과만 남김) */
 export function clearAccountQueries(queryClient: QueryClient) {
@@ -72,7 +81,8 @@ export const useAuth = () => {
 		// 로그인 표시 쿠키가 있을 때만 조회합니다. 비로그인 방문자는 백엔드를 호출하지 않습니다.
 		enabled: session === 'in',
 		staleTime: AUTH.STALE_TIME,
-		retry: 1,
+		// 로그인이 끝난 경우는 바로, 잠깐의 장애는 3번까지 다시 (간격은 React Query 기본: 1 · 2 · 4초)
+		retry: (failureCount, error) => !endsSession(error) && failureCount < 3,
 	});
 
 	// OAuth 리다이렉트 후 사용자 정보 가져오기
@@ -84,11 +94,11 @@ export const useAuth = () => {
 		}
 	}, [router, refetchUser]);
 
-	// 조회 결과를 스토어에 반영합니다. 실패하면(토큰 갱신까지 실패) 로그아웃 상태로 바꿉니다.
+	// 조회 결과를 스토어에 반영합니다. 로그인이 끝난 실패(endsSession)일 때만 로그아웃 상태로 바꿉니다.
 	useEffect(() => {
 		if (userStatus === 'success' && userData) {
 			setUser(userData);
-		} else if (userStatus === 'error' || userError) {
+		} else if (userStatus === 'error' && endsSession(userError)) {
 			clearUser();
 		}
 	}, [userStatus, userData, setUser, userError, clearUser]);

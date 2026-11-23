@@ -146,3 +146,25 @@ describe('apiFetch', () => {
 		expect(callsTo(fetchMock, REFRESH)).toBe(1);
 	});
 });
+
+describe('apiFetch: 토큰 갱신 중 장애 (#340)', () => {
+	it.each([
+		['refresh가 5xx', () => json(500)],
+		[
+			'refresh가 네트워크 오류',
+			() => {
+				throw new TypeError('Failed to fetch');
+			},
+		],
+	])('%s면 401이 아니라 503으로 알린다 (로그인이 끝난 것으로 보지 않게)', async (_, refresh) => {
+		mockFetch({
+			'/api/mypage/profile': [() => json(401, { message: 'Unauthorized' })],
+			[REFRESH]: [refresh],
+		});
+
+		const error = (await apiFetch('/api/mypage/profile').catch((e) => e)) as ApiError;
+
+		expect(error).toBeInstanceOf(ApiError);
+		expect(error.status).toBe(503);
+	});
+});

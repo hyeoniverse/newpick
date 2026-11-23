@@ -1,7 +1,8 @@
 import { QueryClient } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 import { queryKeys } from '@/api/queryKeys';
-import { clearAccountQueries } from '@/hooks/useAuth';
+import { ApiError } from '@/api/client';
+import { clearAccountQueries, endsSession } from '@/hooks/useAuth';
 
 describe('clearAccountQueries (로그아웃 · 탈퇴)', () => {
 	it('계정별 결과는 모두 지우고 공개 결과만 남긴다 (열쇠는 queryKeys에서)', () => {
@@ -37,5 +38,18 @@ describe('clearAccountQueries (로그아웃 · 탈퇴)', () => {
 
 		for (const key of personal) expect(client.getQueryData(key)).toBeUndefined();
 		for (const key of shared) expect(client.getQueryData(key)).toBe('data');
+	});
+});
+
+describe('endsSession: 로그아웃 상태로 바꿀 실패인가 (#340)', () => {
+	it('토큰 갱신까지 실패(401)했거나 탈퇴한 계정이면 끝', () => {
+		expect(endsSession(new ApiError(401, 'Unauthorized'))).toBe(true);
+		expect(endsSession(new ApiError(404, '회원 정보를 찾을 수 없습니다.', { code: 'USER_NOT_FOUND' }))).toBe(true);
+	});
+
+	it('api 장애 · 네트워크 오류는 끝이 아니다 (로그인 상태를 지우지 않음)', () => {
+		expect(endsSession(new ApiError(503, 'Service Unavailable'))).toBe(false);
+		expect(endsSession(new ApiError(500, 'Internal Server Error'))).toBe(false);
+		expect(endsSession(new TypeError('Failed to fetch'))).toBe(false);
 	});
 });
