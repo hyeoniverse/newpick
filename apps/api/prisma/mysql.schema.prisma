@@ -194,6 +194,8 @@ model AiProcessLog {
   categoryId   Int?
 
   @@index([categoryId, createdAt])
+  /// 대시보드 · 통계는 기간(createdAt)만으로 찾는다 (#341)
+  @@index([createdAt])
   @@map("ai_process_logs")
 }
 

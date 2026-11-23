@@ -22,6 +22,10 @@ function prismaMock(
 				ops.push(`subscriptionEvent.create ${args.data.type}`);
 				return 'event';
 			}),
+			updateMany: jest.fn((args) => {
+				ops.push(`subscriptionEvent.updateMany ${args.where.userId}`);
+				return 'anonymize';
+			}),
 		},
 		emailArchive: {
 			deleteMany: jest.fn((args) => {
@@ -52,7 +56,8 @@ describe('회원 탈퇴 (#65)', () => {
 			'emailArchive.deleteMany a@example.com',
 			'mailPlan.deleteMany a@example.com',
 			'user.delete 7',
-			'transaction(3)',
+			'subscriptionEvent.updateMany 7',
+			'transaction(4)',
 		]);
 		expect(result).toEqual({ id: 7, deletedEmailArchives: 3 });
 	});
@@ -69,8 +74,18 @@ describe('회원 탈퇴 (#65)', () => {
 			'mailPlan.deleteMany a@example.com',
 			'user.delete 7',
 			'subscriptionEvent.create cancel',
-			'transaction(4)',
+			'subscriptionEvent.updateMany 7',
+			'transaction(5)',
 		]);
+	});
+
+	it('구독 기록은 지우지 않고 회원 번호만 알 수 없는 음수 번호로 바꾼다 (#341 처리방침 · 통계는 사람 단위로 남음)', async () => {
+		const { prisma } = prismaMock({ id: 7, email: 'a@example.com', subscribers: [{ status: 'active' }] });
+		await deleteAccount(prisma as never, 7);
+		const { where, data } = prisma.subscriptionEvent.updateMany.mock.calls[0][0];
+		expect(where).toEqual({ userId: 7 });
+		expect(data.userId).toBeLessThan(0);
+		expect(Number.isInteger(data.userId)).toBe(true);
 	});
 
 	it('없는 회원이면 404, 아무것도 지우지 않는다', async () => {
