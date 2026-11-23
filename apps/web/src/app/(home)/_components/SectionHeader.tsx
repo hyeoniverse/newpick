@@ -10,11 +10,14 @@ export function SectionHeader({
 	title,
 	note,
 	inverse = false,
+	aside,
 }: {
 	eyebrow: string;
 	title: string;
 	note?: string;
 	inverse?: boolean;
+	/** 오른쪽에 설명 대신 둘 것 (예: 관리 화면으로 가는 링크) */
+	aside?: React.ReactNode;
 }) {
 	return (
 		<div className="flex w-full flex-wrap items-end justify-between gap-x-6 gap-y-1">
@@ -24,7 +27,7 @@ export function SectionHeader({
 				</span>
 				<h2 className="m-0 text-[1.625rem] leading-tight font-bold mobile:text-[1.375rem]">{title}</h2>
 			</div>
-			{note && <span className={cx('text-small', inverse ? 'opacity-80' : 'text-sub-text')}>{note}</span>}
+			{aside ?? (note && <span className={cx('text-small', inverse ? 'opacity-80' : 'text-sub-text')}>{note}</span>)}
 		</div>
 	);
 }

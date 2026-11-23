@@ -15,7 +15,7 @@ export const HOME = {
 		title: '나를 위한 소식',
 		follows: '지켜보는 소식의 새 소식',
 		tags: '팔로우한 태그 새 소식',
-		more: '모두 보기',
+		manage: '지켜보기 · 태그 관리',
 		new: 'NEW',
 		followOf: (heading: string) => `${heading}에 이어진 소식`,
 		followsEmptyTitle: '아직 구독한 소식이 없어요',
@@ -33,7 +33,7 @@ export const HOME = {
 		/** 핵심 3줄이 어느 날 편집본에서 나왔는지 */
 		basis: (day: string) => `${day} 기준`,
 		trend: '최신 트렌드',
-		trendNote: '최근 3일 동안 뜨는 주제와 그 주제의 소식이에요',
+		trendNote: '최근 3일 동안 떠오르는 이슈를 모았어요',
 		topicCount: (n: number) => `소식 ${n}개`,
 		topicMore: (tag: string) => `#${tag} 소식 더 보기`,
 		threads: '분야를 넘는 흐름',

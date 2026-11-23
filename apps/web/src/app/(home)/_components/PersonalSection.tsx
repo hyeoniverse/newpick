@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { LuChevronRight } from 'react-icons/lu';
 import { ROUTES } from '@/constants/routes';
 import { HOME } from '@/copy';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,17 +27,10 @@ function Empty({ title, text, href, action }: { title: string; text: string; hre
 	);
 }
 
-function Column({ title, more, children }: { title: string; more?: string; children: React.ReactNode }) {
+function Column({ title, children }: { title: string; children: React.ReactNode }) {
 	return (
 		<div className="flex min-w-0 flex-col gap-3">
-			<div className="flex items-baseline justify-between gap-3">
-				<h3 className="m-0 text-medium font-semi-bold">{title}</h3>
-				{more && (
-					<Link href={more} className="shrink-0 text-small text-sub-text no-underline hover:text-primary">
-						{COPY.more}
-					</Link>
-				)}
-			</div>
+			<h3 className="m-0 text-medium font-semi-bold">{title}</h3>
 			{children}
 		</div>
 	);
@@ -67,9 +61,22 @@ export default function PersonalSection() {
 
 	return (
 		<section className={SECTION} data-track-section="home-personal">
-			<SectionHeader eyebrow={COPY.eyebrow} title={COPY.title} />
+			<SectionHeader
+				eyebrow={COPY.eyebrow}
+				title={COPY.title}
+				// 마이페이지 '지켜보기'에서 지켜보는 소식 · 팔로우한 태그를 함께 관리한다 (비어 있어도 늘 보이는 진입점)
+				aside={
+					<Link
+						href={ROUTES.mypage('follows')}
+						className="inline-flex items-center gap-1 text-small font-semi-bold text-primary no-underline hover:underline"
+					>
+						{COPY.manage}
+						<LuChevronRight aria-hidden />
+					</Link>
+				}
+			/>
 			<div className="grid w-full grid-cols-2 gap-10 tablet:grid-cols-1 tablet:gap-8">
-				<Column title={COPY.follows} more={updates.length ? ROUTES.mypage('follows') : undefined}>
+				<Column title={COPY.follows}>
 					{updates.length ? (
 						<ul className="m-0 flex list-none flex-col p-0">
 							{updates.map((update) => (
@@ -102,7 +109,7 @@ export default function PersonalSection() {
 						/>
 					)}
 				</Column>
-				<Column title={COPY.tags} more={tags.length ? ROUTES.mypage('follows') : undefined}>
+				<Column title={COPY.tags}>
 					{tags.length ? (
 						<ul className="m-0 flex list-none flex-col p-0">
 							{tags.map(({ tag, latest }) => (

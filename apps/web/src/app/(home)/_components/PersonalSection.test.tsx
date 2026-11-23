@@ -87,6 +87,8 @@ describe('나를 위한 소식', () => {
 		render(<PersonalSection />);
 		expect(screen.getByText('아직 구독한 소식이 없어요')).toBeTruthy();
 		expect(screen.getByText('아직 팔로우한 태그가 없어요')).toBeTruthy();
+		// 비어 있어도 관리 화면으로 가는 진입점
+		expect(screen.getByRole('link', { name: '지켜보기 · 태그 관리' }).getAttribute('href')).toBe('/mypage?tab=follows');
 		expect(screen.getByRole('link', { name: '뉴스레터 보러 가기' }).getAttribute('href')).toBe('/articles');
 		expect(screen.getByRole('link', { name: '태그 둘러보기' }).getAttribute('href')).toBe('/tags');
 	});
