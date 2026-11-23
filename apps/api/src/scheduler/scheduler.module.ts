@@ -17,6 +17,7 @@ import { CategoryModule } from 'src/category/category.module';
 import { EditionModule } from 'src/edition/edition.module';
 import { TasteModule } from 'src/taste/taste.module';
 import { RecommendModule } from 'src/recommend/recommend.module';
+import { BreakingModule } from 'src/breaking/breaking.module';
 
 @Module({
 	imports: [
@@ -29,6 +30,7 @@ import { RecommendModule } from 'src/recommend/recommend.module';
 		TasteModule,
 		FollowsModule,
 		RecommendModule,
+		BreakingModule,
 	],
 	providers: [
 		SchedulerService,

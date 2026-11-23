@@ -95,6 +95,7 @@ export const queryKeys = {
 		subscribers: (query: string) => ['adminSubscribers', query] as const,
 		categories: ['adminCategories'] as const,
 		tagRules: ['tagRules'] as const,
+		breaking: ['adminBreaking'] as const,
 		newsletters: {
 			all: ['adminNewsletters'] as const,
 			list: (query: string) => ['adminNewsletters', query] as const,

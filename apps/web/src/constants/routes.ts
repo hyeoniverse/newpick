@@ -36,6 +36,7 @@ export const ROUTES = {
 		subscribers: '/admin/subscribers',
 		categories: '/admin/categories',
 		tags: '/admin/tags',
+		breaking: '/admin/breaking',
 		ui: '/admin/ui',
 	},
 } as const;

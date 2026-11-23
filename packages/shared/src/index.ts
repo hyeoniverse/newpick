@@ -10,3 +10,4 @@ export * from './mails';
 export * from './schedule';
 export * from './dashboard';
 export * from './home';
+export * from './breaking';

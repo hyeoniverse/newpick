@@ -511,3 +511,25 @@ model FollowUpdate {
   @@unique([followId, newsletterId, storyIndex])
   @@map("follow_updates")
 }
+
+/// 속보 후보 (매시 수집 뒤 판정): 관리자가 확인(승인 · 기각)한 뒤에만 속보 뉴스레터로 만들어 보낸다
+model BreakingAlert {
+  id         Int       @id @default(autoincrement())
+  /// pending 확인 대기 · approved 승인 · rejected 기각 · sent 발송함
+  status     String    @default("pending") @db.VarChar(16)
+  /// 속보 점수 (1~10, 판정 모델이 매김. 9 이상만 후보로 남는다)
+  score      Int
+  /// 사건 한 줄 (판정 모델이 씀)
+  headline   String    @db.VarChar(200)
+  /// 왜 속보인지 (판정 모델이 씀)
+  reason     String    @db.Text
+  /// 관련 기사 [{ title, link, source }]
+  articles   Json
+  detectedAt DateTime  @default(now())
+  /// 승인 · 기각한 때와 관리자
+  decidedAt  DateTime?
+  decidedBy  Int?
+
+  @@index([detectedAt])
+  @@map("breaking_alerts")
+}

@@ -41,6 +41,9 @@ export const API_ENDPOINTS = {
 		TAG_RULE: (id: number) => `${API_URL}/admin/tags/rules/${id}`,
 		TAG_MERGE: () => `${API_URL}/admin/tags/merge`,
 		TAG_REMOVE: () => `${API_URL}/admin/tags/remove`,
+		/** 속보 후보: 목록 · 승인 · 기각 (승인해도 아직 보내지 않는다) */
+		BREAKING: () => `${API_URL}/admin/breaking`,
+		BREAKING_DECIDE: (id: number, decision: 'approve' | 'reject') => `${API_URL}/admin/breaking/${id}/${decision}`,
 		/** 관리자 대시보드: 스케줄러 · 수집 · 발행 · AI 요약 기록 · 발송 (#21) */
 		DASHBOARD: () => `${API_URL}/scheduler/dashboard`,
 		/** 상세 목록 (기간 · 쪽 등 쿼리스트링을 붙여 부른다) */

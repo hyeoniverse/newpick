@@ -1,5 +1,23 @@
 /** 관리자 화면 */
 export const ADMIN = {
+	/** 관리자 › 속보 (후보 확인) */
+	breaking: {
+		title: '속보 후보',
+		lead: '매시 수집한 기사에서 속보급(9점 이상)으로 판정한 사건입니다. 확인하기 전에는 보내지 않습니다. 승인한 속보를 뉴스레터로 만들어 보내는 기능은 다음 단계에서 붙습니다.',
+		empty: '아직 속보 후보가 없습니다. 대부분의 시간에는 없는 것이 정상입니다.',
+		loadFailed: '속보 후보를 불러오지 못했습니다.',
+		score: (n: number) => `${n}점`,
+		status: { pending: '확인 대기', approved: '승인', rejected: '기각', sent: '발송함' },
+		approve: '승인',
+		reject: '기각',
+		approveTitle: '이 속보를 승인할까요?',
+		approveContent: '승인한 속보는 다음 단계(발송)가 붙으면 속보 받기를 켠 구독자에게 보내집니다.',
+		rejectTitle: '이 후보를 기각할까요?',
+		approved: '속보를 승인했습니다.',
+		rejected: '속보 후보를 기각했습니다.',
+		decideFailed: '처리하지 못했습니다.',
+		articles: '관련 기사',
+	},
 	dashboardLoadFailed: '대시보드를 불러오지 못했습니다.',
 	cache: {
 		cleared: '사이트 캐시를 비웠습니다. 다음 접속부터 새 내용이 보입니다.',
