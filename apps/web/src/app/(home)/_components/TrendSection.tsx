@@ -12,6 +12,7 @@ import { useTrends } from '@/hooks/useTrends';
 import { CATEGORIES } from '@/constants/categories';
 import { kstDate, monthDay } from '@/utils/formatter';
 import { PCLogo } from '@/components/common/icons/LogoSVG';
+import { CATEGORY_ICONS } from '@/constants/categoryIcons';
 const LazyCard = lazy(() => import('@/components/common/Card'));
 
 /**
@@ -21,13 +22,20 @@ const LazyCard = lazy(() => import('@/components/common/Card'));
  */
 function PendingCard({ category }: { category: string }) {
 	return (
-		// 카드(Card)와 같은 간격: 사진 아래 16px에 분야
-		<div className="flex flex-col gap-4">
-			<div className="np-ratio-wide flex w-full flex-col items-center justify-center gap-3 rounded-[8px] bg-neutral">
-				<PCLogo className="h-6 text-light-grey" aria-hidden />
-				<span className="text-small text-light-grey">{HOME.today.pending}</span>
-			</div>
-			<span className="text-small font-semi-bold text-primary">{category}</span>
+		// 분야는 그림 안에 분야 아이콘으로 (뉴스 화면 배너와 같은 아이콘). 아래에 또 적으면 같은 말이 두 번
+		<div className="np-ratio-wide relative flex w-full flex-col items-center justify-center gap-3 overflow-hidden rounded-[8px] bg-neutral">
+			{/* 배너처럼 오른쪽 아래에 크게 · 옅게. 강조색은 이 아이콘에만 (회색만 쓰면 비어 보였다, 글자는 회색 그대로) */}
+			<span className="absolute -right-4 -bottom-6 text-[8rem] text-primary opacity-10" aria-hidden>
+				{CATEGORY_ICONS[category]}
+			</span>
+			<PCLogo className="relative h-6 text-light-grey" aria-hidden />
+			<span className="relative flex items-center gap-1.5 text-small text-light-grey">
+				<span className="flex text-medium" aria-hidden>
+					{CATEGORY_ICONS[category]}
+				</span>
+				<span className="font-semi-bold">{category}</span>
+				<span>· {HOME.today.pending}</span>
+			</span>
 		</div>
 	);
 }

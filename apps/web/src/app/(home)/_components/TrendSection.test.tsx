@@ -40,6 +40,8 @@ describe('오늘의 뉴스레터', () => {
 		expect(screen.getByText('정치 뉴스레터')).toBeTruthy();
 		// 경제는 11월 22일 것이라 오늘 자리에 넣지 않는다
 		expect(screen.queryByText('경제 뉴스레터')).toBeNull();
-		expect(screen.getAllByText('아직 준비 중이에요')).toHaveLength(4);
+		expect(screen.getAllByText('아직 준비 중이에요', { exact: false })).toHaveLength(4);
+		// 준비 중 자리에 분야 이름
+		expect(screen.getByText('경제').parentElement?.textContent).toBe('경제· 아직 준비 중이에요');
 	});
 });
