@@ -109,9 +109,12 @@ export default async function HomePage() {
 				  위 판은 마지막 칸(지금 뜨는 소식)이 화면 위쪽까지 올라온 뒤 멈추고(useStackPanel 'bottom'), 위쪽 여백(30svh)만큼 더 스크롤하면 덮인다.
 				  예전에는 판 아래 끝이 화면 아래에 닿자마자 멈춰, 지금 뜨는 소식이 화면 아래에 걸린 채 덮였다 (여백은 판 뒤라 보이지 않는다).
 				  높이는 '화면 − footer'로, 맨 아래까지 내리면 구독 칸과 footer가 화면을 꼭 채운다 (footer 높이는 MainLayout이 알린다).
-				  위에 붙는 머리글 · 속보 띠만큼 위 여백을 두고, 파란 띠는 그 바로 아래 맨 위에 붙는다 (남는 공간은 카드 아래)
+				  위에 붙는 속보 띠만큼 위 여백을 두고, 파란 띠는 그 바로 아래 맨 위에 붙는다 (남는 공간은 카드 아래).
+				  머리글 높이는 넣지 않는다: 맨 아래에서 머리글이 열리고 닫힐 때마다 여백 → 페이지 길이 → 스크롤 자리가 바뀌어,
+				  머리글이 그걸 위로 스크롤한 것으로 보고 다시 열리기를 끝없이 되풀이했다 (e2e 빠른 구독이 '움직이는 단추'로 실패).
+				  맨 아래까지 내려오면 머리글은 숨어 있어 파란 띠가 속보 띠 바로 아래에 붙고, 조금 올려 머리글이 열리면 띠 위쪽을 잠깐 가린다
 				*/}
-				<div className="relative z-1 isolate mt-[30svh] flex min-h-[calc(100svh-var(--np-footer-height,0px))] flex-col pt-[calc(var(--header-height,0px)+var(--np-breaking-band,0px))] before:absolute before:inset-y-0 before:left-1/2 before:-z-1 before:w-screen before:-translate-x-1/2 before:bg-background">
+				<div className="relative z-1 isolate mt-[30svh] flex min-h-[calc(100svh-var(--np-footer-height,0px))] flex-col pt-[var(--np-breaking-band,0px)] before:absolute before:inset-y-0 before:left-1/2 before:-z-1 before:w-screen before:-translate-x-1/2 before:bg-background">
 					<InOut kind="subscribe">
 						<SubscribeSection />
 					</InOut>
