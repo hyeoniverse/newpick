@@ -21,7 +21,7 @@ const COPY = ADMIN.breaking;
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 /** 지난 속보 표 칸 폭: 감지 · 상태 · 점수 · 사건 · 관련 기사 */
-const COLS = ['7rem', '6rem', '4rem', undefined, '16rem'];
+const COLS = ['9.5rem', '6.5rem', '4rem', undefined, '16rem'];
 
 /** 아직 안 나간 것: 보류, 또는 보낼 시각 전인 발송 예정 (보내지 않기 · 지금 보내기를 누를 수 있다) */
 const isOpen = (alert: BreakingAlert, now: number) =>

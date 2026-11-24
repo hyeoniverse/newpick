@@ -513,10 +513,12 @@
 	width: 100%;
 	display: flex;
 	flex-direction: column;
-	margin-top: 6rem;
-	margin-bottom: 4rem;
-
+	/*
+	 * 메인 맨 아래에서 footer와 함께 화면을 채우는 칸(page.tsx) 안에서: 파란 띠는 맨 위(머리글 · 속보 띠 바로 아래)에 붙고,
+	 * 카드는 원래 크기 그대로 (칸을 늘려 채우면 슬라이더까지 늘어나 카드가 길어졌다). 남는 공간은 카드 아래 흰 바탕
+	 */
 	.content {
+		padding-bottom: 2rem;
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;

@@ -104,8 +104,14 @@ export default async function HomePage() {
 						</>
 					)}
 				</StackPanel>
-				{/* 구독 칸: 바탕을 화면 끝까지 깔고 위에 놓여, 올라오며 위 판을 덮는다 */}
-				<div className="relative z-1 isolate before:absolute before:inset-y-0 before:left-1/2 before:-z-1 before:w-screen before:-translate-x-1/2 before:bg-background">
+				{/*
+				  구독 칸: 바탕을 화면 끝까지 깔고 위에 놓여, 올라오며 위 판을 덮는다.
+				  위 판은 마지막 칸(지금 뜨는 소식)이 화면 위쪽까지 올라온 뒤 멈추고(useStackPanel 'bottom'), 위쪽 여백(30svh)만큼 더 스크롤하면 덮인다.
+				  예전에는 판 아래 끝이 화면 아래에 닿자마자 멈춰, 지금 뜨는 소식이 화면 아래에 걸린 채 덮였다 (여백은 판 뒤라 보이지 않는다).
+				  높이는 '화면 − footer'로, 맨 아래까지 내리면 구독 칸과 footer가 화면을 꼭 채운다 (footer 높이는 MainLayout이 알린다).
+				  위에 붙는 머리글 · 속보 띠만큼 위 여백을 두고, 파란 띠는 그 바로 아래 맨 위에 붙는다 (남는 공간은 카드 아래)
+				*/}
+				<div className="relative z-1 isolate mt-[30svh] flex min-h-[calc(100svh-var(--np-footer-height,0px))] flex-col pt-[calc(var(--header-height,0px)+var(--np-breaking-band,0px))] before:absolute before:inset-y-0 before:left-1/2 before:-z-1 before:w-screen before:-translate-x-1/2 before:bg-background">
 					<InOut kind="subscribe">
 						<SubscribeSection />
 					</InOut>

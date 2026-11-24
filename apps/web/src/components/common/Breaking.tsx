@@ -86,7 +86,7 @@ export function BreakingCard() {
 			data-track-section="home-breaking"
 			aria-label={COPY.label}
 			className={cx(
-				'mb-12 grid items-center gap-8 tablet:grid-cols-1 tablet:gap-5',
+				'mb-56 grid items-center gap-8 tablet:grid-cols-1 tablet:gap-5 mobile:mb-32',
 				data.image ? 'grid-cols-[1.15fr_1fr]' : 'grid-cols-1',
 			)}
 		>

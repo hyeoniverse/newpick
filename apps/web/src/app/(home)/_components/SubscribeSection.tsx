@@ -43,7 +43,8 @@ const SubscribeSection = () => {
 
 	return (
 		<section className="np-home-subscribe-section-subscribe" data-track-section="home-subscribe">
-			<FullWidthPanel>
+			{/* 띠 높이는 그대로, 위 바깥 여백만 없애 메인 맨 아래에서 파란 띠가 맨 위에 붙게. 아래 여백은 원래(4rem)보다 조금 넉넉히(4.5rem) */}
+			<FullWidthPanel className="mt-0 mb-18 mobile:mb-12">
 				<Title as="h2" size="extraLarge" weight="bold" color="background">
 					📩 지금 뉴스레터 시작하기
 				</Title>

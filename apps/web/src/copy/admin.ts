@@ -8,7 +8,7 @@ export const ADMIN = {
 		empty: '아직 속보가 없습니다. 대부분의 시간에는 없는 것이 정상입니다.',
 		loadFailed: '속보를 불러오지 못했습니다.',
 		score: (n: number) => `${n}점`,
-		status: { scheduled: '발송 예정', held: '보류', canceled: '보내지 않음', sent: '발송함' },
+		status: { scheduled: '발송 예정', held: '보류', canceled: '미발행', sent: '발송함' },
 		/** 위 칸: 지금 막을 수 있는 속보 (발송 예정 · 보류) */
 		openTitle: '지금 막을 수 있는 속보',
 		openEmpty: '지금 막을 수 있는 속보가 없습니다.',

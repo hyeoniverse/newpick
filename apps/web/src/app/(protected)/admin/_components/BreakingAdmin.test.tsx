@@ -70,7 +70,7 @@ describe('관리자 › 속보', () => {
 		);
 		expect(rows).toEqual([
 			['발행', '10', '이미 나간 속보'],
-			['보내지 않음', '10', '보내지 않은 후보'],
+			['미발행', '10', '보내지 않은 후보'],
 		]);
 
 		fireEvent.click(screen.getAllByRole('button', { name: '보내지 않기' })[0]);
