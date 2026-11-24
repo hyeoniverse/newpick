@@ -23,6 +23,8 @@ export const queryKeys = {
 	publishTime: ['publishTime'] as const,
 	/** 홈 속보 띠 */
 	breakingLatest: ['breakingLatest'] as const,
+	breakingOff: (token: string) => ['breakingOff', token] as const,
+	breakingMail: ['breaking-mail'] as const,
 
 	// ---- 로그인 없이 쓰지만 사람마다 다른 것 ----
 	editionPreview: (ids: number[]) => ['edition-preview', ids] as const,

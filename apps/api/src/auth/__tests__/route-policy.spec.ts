@@ -17,6 +17,7 @@ import { UnsubscribeController } from 'src/subscriber/unsubscribe.controller';
 import { EditionController } from 'src/edition/edition.controller';
 import { AnalyticsController } from 'src/analytics/analytics.controller';
 import { ImagesController } from 'src/images/images.controller';
+import { BreakingAdminController, BreakingController } from 'src/breaking/breaking.controller';
 
 /**
  * 모든 라우트의 접근 정책. 라우트를 추가·삭제하거나 정책을 바꾸면 이 표도 함께 바꿔야 테스트가 통과합니다.
@@ -26,6 +27,17 @@ import { ImagesController } from 'src/images/images.controller';
  */
 const EXPECTED: Record<string, Policy> = {
 	'GET /': 'public',
+
+	// 속보: 관리자 › 속보는 관리자만. 홈 속보 띠 · 지난 속보 · 메일의 '속보만 받지 않기'(토큰)는 로그인 없이
+	'GET admin/breaking': 'admin',
+	'POST admin/breaking/:id/cancel': 'admin',
+	'POST admin/breaking/:id/send': 'admin',
+	'PUT admin/breaking/auto': 'admin',
+	'GET breaking': 'public',
+	'GET breaking/latest': 'public',
+	'GET breaking/off': 'public',
+	'POST breaking/off': 'public',
+	'GET breaking/:id': 'public',
 
 	// 방문 기록 받기 (#131): 로그인 없이
 	'POST analytics/collect': 'public',
@@ -78,6 +90,9 @@ const EXPECTED: Record<string, Policy> = {
 	'GET mypage/highlights': 'auth',
 	'GET mypage/highlights/page': 'auth',
 	'GET mypage/bookmarks/page': 'auth',
+	// 속보 메일 설정 (받기 · 밤에도 바로 받기)
+	'GET mypage/breaking-mail': 'auth',
+	'PUT mypage/breaking-mail': 'auth',
 	'GET mypage/taste': 'auth',
 	'POST mypage/highlights': 'auth',
 	'POST mypage/highlights/delete': 'auth',
@@ -184,6 +199,8 @@ describe('라우트 접근 정책', () => {
 		EditionController,
 		AnalyticsController,
 		ImagesController,
+		BreakingAdminController,
+		BreakingController,
 	]);
 
 	it('모든 라우트가 정해진 정책과 일치한다', () => {

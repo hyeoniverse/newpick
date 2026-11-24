@@ -19,6 +19,11 @@ export const ROUTES = {
 	terms: '/terms',
 	privacy: '/privacy',
 	unsubscribe: '/unsubscribe',
+	/** 지난 속보 · 속보 하나 (메일의 '뉴픽에서 보기') */
+	breakingArchive: '/breaking',
+	breaking: (id: number | string) => `/breaking/${id}`,
+	/** 메일의 '속보만 받지 않기' (?token=) */
+	breakingOff: '/breaking/off',
 	loginPopup: '/login-popup',
 	mypage: (tab?: MypageTab) => (tab ? `/mypage?tab=${tab}` : '/mypage'),
 	admin: {

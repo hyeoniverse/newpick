@@ -142,6 +142,8 @@ export class MailService {
 	 * 기록이 실패해도 메일은 이미 나갔으므로 다시 보내지 않는다 (같은 메일 두 번 방지)
 	 */
 	private async archive(email: string, newsletterIds: number[], plan?: MailPlan | null) {
+		// 엮은 뉴스레터가 없는 메일(속보)은 남기지 않는다: 이 기록이 있으면 매일 메일이 '오늘 이미 받음'으로 빠진다
+		if (!newsletterIds.length && !plan) return;
 		const sentAt = new Date();
 		try {
 			await this.prisma.emailArchive.createMany({

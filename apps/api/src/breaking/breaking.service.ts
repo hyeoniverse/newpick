@@ -1,5 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
-import type { BreakingAdminView, BreakingArticle, BreakingNotice, BreakingStatus } from '@newpick/shared';
+import type {
+	BreakingAdminView,
+	BreakingArchiveItem,
+	BreakingArticle,
+	BreakingNotice,
+	BreakingStatus,
+} from '@newpick/shared';
+import type { BreakingAlert as BreakingRow } from '@prisma/client';
+import { maskEmail } from 'src/subscriber/subscriber.service';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AiService } from 'src/ai/ai.service';
 import { MailService } from 'src/mail/mail.service';
@@ -29,7 +37,8 @@ const articlesOf = (value: unknown): BreakingArticle[] => (Array.isArray(value) 
  * 속보 찾기 · 자동 발송 예약 (속보 뉴스레터 1단계).
  * 매시 수집 뒤 새 기사 제목을 판정해 기준(BREAKING_LIMITS.minScore)을 넘는 사건을 '발송 예정'으로 두고(holdMinutes 뒤),
  * 운영자에게 알린다. 그 사이 관리자가 '보내지 않기'로 막거나 '지금 바로 보내기'로 당길 수 있다.
- * 자동 발송이 꺼져 있거나 하루 상한을 넘으면 '보류'로 남는다. 메일로 실제 보내는 것은 2단계 (홈 속보 띠는 이 단계부터 보인다)
+ * 자동 발송이 꺼져 있거나 하루 상한을 넘으면 '보류'로 남는다. 메일로 보내는 것은 BreakingSendService (2단계).
+ * 나간 속보는 홈 속보 띠 · 큰 칸과 사이트의 지난 속보(/breaking)에 보인다
  */
 @Injectable()
 export class BreakingService {
@@ -204,6 +213,9 @@ export class BreakingService {
 				detectedAt: row.detectedAt.toISOString(),
 				sendAt: row.sendAt?.toISOString() ?? null,
 				decidedAt: row.decidedAt?.toISOString() ?? null,
+				sentAt: row.sentAt?.toISOString() ?? null,
+				recipients: row.recipients,
+				nightPending: row.nightPending,
 			})),
 		};
 	}
@@ -227,27 +239,72 @@ export class BreakingService {
 		throw new AppException(exists ? 'CONFLICT' : 'NOT_FOUND');
 	}
 
-	/** 홈 속보 띠: 나간 속보 가운데 가장 최근 것 (취소할 시간이 지났거나 발송함, 감지한 지 noticeHours 안). 없으면 null */
+	/** 홈 속보 띠: 나간 속보 가운데 가장 최근 것 (취소할 시간이 지났거나 메일 보냄, 감지한 지 noticeHours 안). 없으면 null */
 	async latestNotice(now = new Date()): Promise<BreakingNotice | null> {
 		const row = await this.prisma.breakingAlert.findFirst({
 			where: {
 				detectedAt: { gte: new Date(now.getTime() - BREAKING_LIMITS.noticeHours * HOUR) },
-				OR: [{ status: 'sent' }, { status: 'scheduled', sendAt: { lte: now } }],
+				...published(now),
 			},
 			orderBy: { detectedAt: 'desc' },
 		});
-		if (!row) return null;
-		const articles = articlesOf(row.articles);
-		return {
-			id: row.id,
-			headline: row.headline,
-			reason: row.reason,
-			articles,
-			detectedAt: row.detectedAt.toISOString(),
-			image: articles.find((a) => a.image)?.image ?? null,
-		};
+		return row ? noticeOf(row) : null;
+	}
+
+	/** 지난 속보 (사이트 /breaking): 나간 속보, 새것부터 */
+	async archive(now = new Date()): Promise<BreakingArchiveItem[]> {
+		const rows = await this.prisma.breakingAlert.findMany({
+			where: published(now),
+			orderBy: { detectedAt: 'desc' },
+			take: ARCHIVE_SIZE,
+		});
+		return rows.map(noticeOf);
+	}
+
+	/** 지난 속보 하나 (메일의 '뉴픽에서 보기'). 아직 나가지 않았거나(발송 예정 · 보류) 미발행이면 없음 */
+	async archiveItem(id: number, now = new Date()): Promise<BreakingArchiveItem> {
+		const row = await this.prisma.breakingAlert.findFirst({ where: { id, ...published(now) } });
+		if (!row) throw new AppException('NOT_FOUND');
+		return noticeOf(row);
+	}
+
+	/** 메일의 '속보만 받지 않기' 확인 화면: 가린 주소 · 지금 받는지. 아무것도 바꾸지 않는다 (메일 검사기가 미리 열어도) */
+	async offTarget(userId: number) {
+		const user = await this.prisma.user.findUnique({
+			where: { id: userId },
+			select: { email: true, breakingMail: true },
+		});
+		return user ? { email: maskEmail(user.email), receiving: user.breakingMail } : null;
+	}
+
+	/** 속보 메일만 끈다 (매일 메일은 그대로). 여러 번 불러도 같은 결과 */
+	async turnOff(userId: number) {
+		const { count } = await this.prisma.user.updateMany({
+			where: { id: userId, breakingMail: true },
+			data: { breakingMail: false },
+		});
+		if (count) this.logger.log(`속보 메일 끄기: 회원 ${userId}`);
+		return { turnedOff: count > 0 };
 	}
 }
+
+/** 지난 속보 한 번에 보이는 수 (하루 최대 3건이라 몇 주치) */
+const ARCHIVE_SIZE = 60;
+
+/** 나간 속보: 메일 보냄, 또는 취소할 시간이 지난 발송 예정 (메일 회차가 돌기 전 잠깐) */
+const published = (now: Date) => ({ OR: [{ status: 'sent' }, { status: 'scheduled', sendAt: { lte: now } }] });
+
+const noticeOf = (row: BreakingRow): BreakingNotice => {
+	const articles = articlesOf(row.articles);
+	return {
+		id: row.id,
+		headline: row.headline,
+		reason: row.reason,
+		articles,
+		detectedAt: row.detectedAt.toISOString(),
+		image: articles.find((a) => a.image)?.image ?? null,
+	};
+};
 
 const escape = (text: string) =>
 	text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');

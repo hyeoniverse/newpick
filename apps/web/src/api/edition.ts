@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from '@/constants/api';
-import type { BreakingNotice, HomeToday } from '@newpick/shared';
+import type { BreakingArchiveItem, BreakingNotice, HomeToday } from '@newpick/shared';
 import { ApiError, apiFetch } from '@/api/client';
 
 export type EditionPreview = { date: string; subject: string; html: string };
@@ -29,3 +29,25 @@ export const fetchHomeToday = async () => {
 /** 홈 속보 띠: 나간 속보 가운데 가장 최근 것 (없으면 null). 브라우저에서 1분마다 부른다 */
 export const fetchBreakingLatest = async () =>
 	(await apiFetch<{ data: BreakingNotice | null }>(API_ENDPOINTS.NEWSLETTER.BREAKING_LATEST)).data;
+
+/** 지난 속보 (서버에서, 1분마다 새로) */
+export const fetchBreakingArchive = async () =>
+	(
+		await apiFetch<{ data: BreakingArchiveItem[] }>(API_ENDPOINTS.NEWSLETTER.BREAKING_ARCHIVE, {
+			next: { revalidate: 60 },
+		})
+	).data;
+
+/** 속보 하나. 없거나 아직 나가지 않았으면 null */
+export const fetchBreakingItem = async (id: string) => {
+	try {
+		return (
+			await apiFetch<{ data: BreakingArchiveItem }>(API_ENDPOINTS.NEWSLETTER.BREAKING_ITEM(id), {
+				next: { revalidate: 60 },
+			})
+		).data;
+	} catch (error) {
+		if (error instanceof ApiError && (error.status === 404 || error.status === 400)) return null;
+		throw error;
+	}
+};

@@ -1,5 +1,6 @@
 import { API_ENDPOINTS } from '@/constants/api';
 import { mapTitleToId } from '@/utils/mapInterests';
+import type { BreakingMailSettings } from '@newpick/shared';
 import { apiFetch } from '@/api/client';
 
 type SubscriptionStatus = { active: boolean; status: 'active' | 'paused' | 'cancelled' | 'none' };
@@ -48,6 +49,20 @@ export const fetchPersonalMail = () => apiFetch<{ enabled: boolean }>(API_ENDPOI
 
 export const savePersonalMail = (enabled: boolean) =>
 	apiFetch<{ enabled: boolean }>(API_ENDPOINTS.MY.PERSONAL_MAIL(), { method: 'PUT', body: { enabled } });
+
+/** 속보 메일 설정: 받기 · 밤에도 바로 받기 */
+export const fetchBreakingMail = () => apiFetch<BreakingMailSettings>(API_ENDPOINTS.MY.BREAKING_MAIL());
+
+export const saveBreakingMail = (next: Partial<BreakingMailSettings>) =>
+	apiFetch<BreakingMailSettings>(API_ENDPOINTS.MY.BREAKING_MAIL(), { method: 'PUT', body: next });
+
+/** 메일의 '속보만 받지 않기' (로그인 없이 token으로): 누구인지 · 지금 받는지 · 끄기 */
+export const fetchBreakingOffTarget = (token: string) =>
+	apiFetch<{ data: { email: string; receiving: boolean } }>(API_ENDPOINTS.NEWSLETTER.BREAKING_OFF(token)).then(
+		(r) => r.data,
+	);
+export const turnOffBreakingByToken = (token: string) =>
+	apiFetch(API_ENDPOINTS.NEWSLETTER.BREAKING_OFF(token), { method: 'POST' });
 
 /** 메일의 구독 해지 링크 (로그인 없이 token으로): 누구의 구독인지 · 해지하기 */
 export const fetchUnsubscribeTarget = (token: string) =>

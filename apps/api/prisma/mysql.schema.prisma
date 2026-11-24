@@ -21,6 +21,10 @@ model User {
   notificationPreferences Json?
   /// 맞춤 메일 (#123): 끄면 북마크 · 스크랩으로 고르지 않고 구독한 분야의 뉴스레터를 분야별로 받는다
   personalMail            Boolean  @default(true)
+  /// 속보 메일 받기 (속보 뉴스레터 2단계). 구독 중일 때만 보낸다. 메일의 '속보만 끄기'로도 끈다
+  breakingMail            Boolean  @default(true)
+  /// 밤(22시~7시)에도 속보를 바로 받기. 끄면(기본) 밤에 나간 속보는 아침 7시에 받는다
+  breakingNight           Boolean  @default(false)
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
 
@@ -516,23 +520,28 @@ model FollowUpdate {
 
 /// 속보 후보 (매시 수집 뒤 판정): 잠깐(취소할 시간) 기다렸다가 저절로 보낸다. 그 사이 관리자가 '보내지 않기'로 막을 수 있다
 model BreakingAlert {
-  id         Int       @id @default(autoincrement())
-  /// scheduled 발송 예정 · held 보류(자동 발송 꺼짐 · 하루 상한, 관리자가 직접 보낼 수 있음) · canceled 보내지 않음 · sent 발송함
-  status     String    @default("scheduled") @db.VarChar(16)
+  id           Int       @id @default(autoincrement())
+  /// scheduled 발송 예정 · held 보류(자동 발송 꺼짐 · 하루 상한, 관리자가 직접 보낼 수 있음) · canceled 미발행 · sent 메일 보냄
+  status       String    @default("scheduled") @db.VarChar(16)
   /// 속보 점수 (1~10, 판정 모델이 매김. 9 이상만 후보로 남는다)
-  score      Int
+  score        Int
   /// 사건 한 줄 (판정 모델이 씀)
-  headline   String    @db.VarChar(200)
+  headline     String    @db.VarChar(200)
   /// 왜 속보인지 (판정 모델이 씀)
-  reason     String    @db.Text
+  reason       String    @db.Text
   /// 관련 기사 [{ title, link, source }]
-  articles   Json
-  detectedAt DateTime  @default(now())
+  articles     Json
+  detectedAt   DateTime  @default(now())
   /// 보낼 시각 (발송 예정일 때). '지금 바로 보내기'면 그때로 당긴다
-  sendAt     DateTime?
+  sendAt       DateTime?
   /// 관리자가 보내지 않기 · 지금 보내기를 누른 때와 관리자
-  decidedAt  DateTime?
-  decidedBy  Int?
+  decidedAt    DateTime?
+  decidedBy    Int?
+  /// 메일을 보낸 때와 받은 사람 수 (밤에 미룬 사람은 아침에 더한다)
+  sentAt       DateTime?
+  recipients   Int       @default(0)
+  /// 밤에 나가 '밤에도 바로 받기'를 끈 사람에게는 아직 안 보냄: 아침 7시에 보낸다
+  nightPending Boolean   @default(false)
 
   @@index([detectedAt])
   @@index([status, sendAt])

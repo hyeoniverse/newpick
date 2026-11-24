@@ -54,6 +54,8 @@ const serviceWith = (prisma: ReturnType<typeof fakePrisma>, edition: unknown = {
 	return {
 		getPersonalMail: account.getPersonalMail.bind(account),
 		setPersonalMail: account.setPersonalMail.bind(account),
+		getBreakingMail: account.getBreakingMail.bind(account),
+		setBreakingMail: account.setBreakingMail.bind(account),
 		getProfile: account.getProfile.bind(account),
 		getInterests: account.getInterests.bind(account),
 		updateInterests: account.updateInterests.bind(account),
@@ -75,6 +77,20 @@ describe('마이페이지: 맞춤 메일 · 프로필 · 북마크', () => {
 		expect(prisma.user.update).toHaveBeenCalledWith({
 			where: { id: 7 },
 			data: { personalMail: false },
+		});
+	});
+
+	it('속보 메일 설정: 없으면 받기 켜짐 · 밤에는 아침에, 바꿀 때는 보낸 것만', async () => {
+		const prisma = fakePrisma();
+		prisma.user.findUnique.mockResolvedValueOnce(null);
+		const service = serviceWith(prisma);
+		expect(await service.getBreakingMail(7)).toEqual({ enabled: true, night: false });
+		prisma.user.update.mockResolvedValueOnce({ breakingMail: true, breakingNight: true });
+		expect(await service.setBreakingMail(7, { night: true })).toEqual({ enabled: true, night: true });
+		expect(prisma.user.update).toHaveBeenCalledWith({
+			where: { id: 7 },
+			data: { breakingNight: true },
+			select: { breakingMail: true, breakingNight: true },
 		});
 	});
 

@@ -22,7 +22,22 @@ export const BREAKING_LIMITS = {
 	dailyLimit: 3,
 	/** 홈 속보 띠에 보이는 시간 (감지한 뒤, 시간) */
 	noticeHours: 24,
+	/** 밤 (KST, 시): 이 사이에는 '밤에도 바로 받기'를 켠 사람에게만 바로 보내고, 나머지는 아침(nightEnd시)에 */
+	nightStart: 22,
+	nightEnd: 7,
+	/** 보낼 시각이 이만큼 지났으면(서버가 멈춰 있었음 등) 메일은 보내지 않는다: 늦은 속보는 속보가 아니다 (시간) */
+	staleHours: 3,
+	/** 밤에 미룬 속보를 아침에 보내는 것은 감지한 지 이만큼 안일 때만 (시간) */
+	morningHours: 12,
 };
+
+/** 지금이 밤인가 (KST) */
+export function isNight(now: Date) {
+	const hour = Number(
+		new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Seoul', hour: 'numeric', hourCycle: 'h23' }).format(now),
+	);
+	return hour >= BREAKING_LIMITS.nightStart || hour < BREAKING_LIMITS.nightEnd;
+}
 
 /** 판정에 보낼 기사 */
 export type BreakingInput = { title: string; link: string; source: string; category: string; image?: string };

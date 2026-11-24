@@ -1,13 +1,15 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import type { BreakingNotice } from '@newpick/shared';
 import { LuChevronDown, LuX } from 'react-icons/lu';
 import { queryKeys } from '@/api/queryKeys';
 import { fetchBreakingLatest } from '@/api/edition';
 import Image from '@/components/common/Image';
-import { HOME } from '@/copy';
+import { BREAKING, HOME } from '@/copy';
+import { ROUTES } from '@/constants/routes';
 import { cx } from '@/styles/tw';
 import { beginAutoScroll } from '@/utils/autoScroll';
 
@@ -47,8 +49,8 @@ const writeDismissed = (ids: number[]) => {
 
 const minutesSince = (iso: string) => Math.max(0, Math.floor((Date.now() - Date.parse(iso)) / MINUTE));
 
-/** '속보' 표시: 빨강은 천천히 깜빡이는 점에만 (띠 · 칸 전체를 빨갛게 하면 사이트 색과 따로 논다) */
-function Label({ minutes }: { minutes?: number }) {
+/** '속보' 표시: 빨강은 천천히 깜빡이는 점에만 (띠 · 칸 전체를 빨갛게 하면 사이트 색과 따로 논다). 지난 속보 화면도 쓴다 */
+export function Label({ minutes }: { minutes?: number }) {
 	return (
 		<span className="flex shrink-0 items-center gap-2.5 text-small font-bold">
 			<span className="np-breaking-dot size-2 rounded-full bg-error" aria-hidden />
@@ -58,7 +60,8 @@ function Label({ minutes }: { minutes?: number }) {
 	);
 }
 
-function Articles({ notice }: { notice: BreakingNotice }) {
+/** 관련 기사 (원문 링크 · 언론사) */
+export function Articles({ notice }: { notice: BreakingNotice }) {
 	return (
 		<ul className="m-0 flex list-none flex-col gap-1 p-0 text-small">
 			{notice.articles.map((article) => (
@@ -106,6 +109,9 @@ export function BreakingCard() {
 				<h2 className="m-0 text-[2rem] leading-tight font-bold break-keep mobile:text-[1.5rem]">{data.headline}</h2>
 				{data.reason && <p className="m-0 leading-relaxed text-sub-text">{data.reason}</p>}
 				<Articles notice={data} />
+				<Link href={ROUTES.breakingArchive} className="w-fit text-small font-semi-bold text-primary">
+					{BREAKING.archive.back} →
+				</Link>
 			</div>
 		</section>
 	);
@@ -205,6 +211,9 @@ export default function BreakingBand({ closable = false }: { closable?: boolean 
 						<div className="flex flex-col gap-2 pb-4 text-small">
 							{data.reason && <p className="m-0 leading-relaxed opacity-85">{data.reason}</p>}
 							<Articles notice={data} />
+							<Link href={ROUTES.breakingArchive} className="w-fit font-semi-bold text-inherit underline">
+								{BREAKING.archive.back} →
+							</Link>
 						</div>
 					</div>
 				</div>

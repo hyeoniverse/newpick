@@ -1,11 +1,11 @@
-import type { Profile } from '@newpick/shared';
+import type { BreakingMailSettings, Profile } from '@newpick/shared';
 import { Injectable } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { getInterestIds, replaceInterestsOps, validateCategoryIds } from 'src/common/user-interests';
 import { deleteAccount } from 'src/common/delete-account';
 import { AppException } from 'src/common/errors/app.exception';
 
-/** 마이페이지 계정: 프로필 · 맞춤 메일 설정 · 관심사 · 탈퇴. 북마크는 BookmarksService, 받은 메일은 MyMailsService */
+/** 마이페이지 계정: 프로필 · 맞춤 메일 · 속보 메일 설정 · 관심사 · 탈퇴. 북마크는 BookmarksService, 받은 메일은 MyMailsService */
 @Injectable()
 export class MyPageService {
 	constructor(private readonly prisma: MysqlPrismaService) {}
@@ -30,6 +30,28 @@ export class MyPageService {
 			data: { personalMail: enabled },
 		});
 		return { enabled };
+	}
+
+	/** 속보 메일 설정 (속보 뉴스레터 2단계) */
+	async getBreakingMail(userId: number): Promise<BreakingMailSettings> {
+		const user = await this.prisma.user.findUnique({
+			where: { id: userId },
+			select: { breakingMail: true, breakingNight: true },
+		});
+		return { enabled: user?.breakingMail ?? true, night: user?.breakingNight ?? false };
+	}
+
+	/** 보낸 것만 바꾼다 */
+	async setBreakingMail(userId: number, next: Partial<BreakingMailSettings>): Promise<BreakingMailSettings> {
+		const user = await this.prisma.user.update({
+			where: { id: userId },
+			data: {
+				...(next.enabled !== undefined && { breakingMail: next.enabled }),
+				...(next.night !== undefined && { breakingNight: next.night }),
+			},
+			select: { breakingMail: true, breakingNight: true },
+		});
+		return { enabled: user.breakingMail, night: user.breakingNight };
 	}
 
 	/**

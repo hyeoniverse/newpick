@@ -6,6 +6,7 @@ import { crawlCron, dailyCron, mailCron } from 'src/common/cron';
 import { KST } from 'src/common/kst';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { BreakingService } from 'src/breaking/breaking.service';
+import { BreakingSendService } from 'src/breaking/breaking-send.service';
 import { env } from 'src/config/env';
 import { JobRunsService } from './job-runs.service';
 import { MailJobService } from './mail-job.service';
@@ -19,6 +20,9 @@ import { passedToday } from './catch-up';
 const MAIL_JOB_NAME = 'sendNewsletter';
 const CRAWL_JOB_NAME = 'startCrawling';
 const SUMMARY_JOB_NAME = 'makeAiSummary';
+/** 속보 메일: 1분마다 보낼 차례가 된 속보를 보낸다 (시각을 바꾸는 작업이 아니라 늘 같음) */
+const BREAKING_JOB_NAME = 'sendBreaking';
+const EVERY_MINUTE = '* * * * *';
 
 /**
  * 예약 작업 조립 (#21): 수집 · AI 요약 · 메일을 cron에 걸고, 시각을 바꾸면 다시 건다. 상태 모으기 · '지금 실행'.
@@ -45,6 +49,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 		private readonly fallbackImages: FallbackImagesService,
 		private readonly prisma: MysqlPrismaService,
 		private readonly breaking: BreakingService,
+		private readonly breakingSend: BreakingSendService,
 	) {}
 
 	/**
@@ -62,6 +67,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 		add(SUMMARY_JOB_NAME, dailyCron(schedule.summary), () => this.summaryJob.makeAiSummary());
 		const { hour, minute, day } = schedule.mail;
 		add(MAIL_JOB_NAME, mailCron(hour, day, minute), () => this.mailJob.sendEmailSummary());
+		add(BREAKING_JOB_NAME, EVERY_MINUTE, () => this.breakingSend.tick());
 		this.logger.log(`예약 시간: ${JSON.stringify(schedule)} (${KST})`);
 		// 부팅을 막지 않게 뒤에서 (배포 상태 확인이 기다린다)
 		if (this.autoRun)

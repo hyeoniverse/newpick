@@ -23,6 +23,9 @@ const alert = (id: number, status: string, sendAt: string | null, headline: stri
 	detectedAt: minutesFromNow(-1),
 	sendAt,
 	decidedAt: null,
+	sentAt: null,
+	recipients: 0,
+	nightPending: false,
 });
 const decideBreaking = vi.fn().mockResolvedValue({});
 const setBreakingAuto = vi.fn().mockResolvedValue({});
@@ -37,6 +40,7 @@ vi.mock('@/api/admin', () => ({
 				alert(3, 'held', null, '전국 휴교령'),
 				alert(2, 'scheduled', minutesFromNow(-10), '이미 나간 속보'),
 				alert(1, 'canceled', null, '보내지 않은 후보'),
+				{ ...alert(0, 'sent', minutesFromNow(-90), '밤에 나간 속보'), recipients: 1234, nightPending: true },
 			],
 		}),
 	decideBreaking: (...args: unknown[]) => decideBreaking(...args),
@@ -71,6 +75,8 @@ describe('관리자 › 속보', () => {
 		expect(rows).toEqual([
 			['발행', '10', '이미 나간 속보'],
 			['미발행', '10', '보내지 않은 후보'],
+			// 메일을 보냈으면 받은 사람 수, 밤에 미룬 사람이 남았으면 아침 추가 발송
+			['발행 · 메일 1,234명 · 아침 7시 추가 발송', '10', '밤에 나간 속보'],
 		]);
 
 		fireEvent.click(screen.getAllByRole('button', { name: '보내지 않기' })[0]);
