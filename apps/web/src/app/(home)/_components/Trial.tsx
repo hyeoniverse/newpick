@@ -81,6 +81,7 @@ export default function Trial() {
 						<Text size="medium" weight="semiBold">
 							{HOME.trial.pickOne}
 						</Text>
+						<div className="extra" />
 					</div>
 				) : isLoading ? (
 					<Skeleton />
@@ -92,9 +93,11 @@ export default function Trial() {
 						<Text size="medium" weight="semiBold">
 							{HOME.trial.loadFailed}
 						</Text>
-						<Button scheme="outline" size="small" onClick={() => refetch()}>
-							다시 불러오기
-						</Button>
+						<div className="extra">
+							<Button scheme="outline" size="small" onClick={() => refetch()}>
+								다시 불러오기
+							</Button>
+						</div>
 					</div>
 				) : !data ? (
 					<div className="info">
@@ -104,9 +107,11 @@ export default function Trial() {
 						<Text size="medium" weight="semiBold">
 							{HOME.trial.none}
 						</Text>
-						<Text size="small" color="subText">
-							{HOME.trial.publishTime}
-						</Text>
+						<div className="extra">
+							<Text size="small" color="subText">
+								{HOME.trial.publishTime}
+							</Text>
+						</div>
 					</div>
 				) : (
 					<MailView subject={data.subject} html={data.html} title="구독 메일 미리보기" />

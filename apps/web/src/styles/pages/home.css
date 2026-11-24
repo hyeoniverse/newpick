@@ -748,6 +748,17 @@
 				color: var(--np-color-error);
 			}
 		}
+
+		/*
+		 * 제목 아래 덧붙이는 자리 (발행 시각 안내 · 다시 불러오기 단추). 비어 있어도 같은 높이를 두어,
+		 * 상태가 바뀌어도 가운데 놓인 아이콘 · 제목이 위아래로 움직이지 않게
+		 */
+		.extra {
+			display: flex;
+			align-items: flex-start;
+			justify-content: center;
+			min-height: 2.25rem;
+		}
 	}
 }
 
