@@ -96,6 +96,7 @@ export default function AdminHome() {
 							[ROUTES.admin.subscribers, '구독자'],
 							[ROUTES.admin.categories, '관심사'],
 							[ROUTES.admin.tags, '태그'],
+							[ROUTES.admin.breaking, '속보'],
 						].map(([href, label]) => (
 							<Link key={href} href={href}>
 								<Button scheme="monoOutline" size="small">

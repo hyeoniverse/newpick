@@ -21,6 +21,8 @@ export const queryKeys = {
 	},
 	trends: ['trends'] as const,
 	publishTime: ['publishTime'] as const,
+	/** 홈 속보 띠 */
+	breakingLatest: ['breakingLatest'] as const,
 
 	// ---- 로그인 없이 쓰지만 사람마다 다른 것 ----
 	editionPreview: (ids: number[]) => ['edition-preview', ids] as const,
@@ -95,6 +97,7 @@ export const queryKeys = {
 		subscribers: (query: string) => ['adminSubscribers', query] as const,
 		categories: ['adminCategories'] as const,
 		tagRules: ['tagRules'] as const,
+		breaking: ['adminBreaking'] as const,
 		newsletters: {
 			all: ['adminNewsletters'] as const,
 			list: (query: string) => ['adminNewsletters', query] as const,

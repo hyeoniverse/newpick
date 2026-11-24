@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from '@/constants/api';
-import type { HomeToday } from '@newpick/shared';
+import type { BreakingNotice, HomeToday } from '@newpick/shared';
 import { ApiError, apiFetch } from '@/api/client';
 
 export type EditionPreview = { date: string; subject: string; html: string };
@@ -25,3 +25,7 @@ export const fetchHomeToday = async () => {
 		throw error;
 	}
 };
+
+/** 홈 속보 띠: 나간 속보 가운데 가장 최근 것 (없으면 null). 브라우저에서 1분마다 부른다 */
+export const fetchBreakingLatest = async () =>
+	(await apiFetch<{ data: BreakingNotice | null }>(API_ENDPOINTS.NEWSLETTER.BREAKING_LATEST)).data;

@@ -105,7 +105,7 @@ describe('홈 오늘 칸', () => {
 		expect(screen.getByText('11월 22일 기준')).toBeTruthy();
 	});
 
-	it('이어지는 이야기: 가로축은 사건들에 나오는 날, 사건마다 한 줄 (며칠째 · 소식이 있는 날에 제목, 가장 새 소식만 새로 나온 것)', () => {
+	it('이어지는 소식: 가로축은 사건들에 나오는 날, 사건마다 한 줄 (며칠째 · 소식이 있는 날에 제목, 가장 새 소식만 새로 나온 것)', () => {
 		const stories = [
 			...today.continuing,
 			{
@@ -123,7 +123,7 @@ describe('홈 오늘 칸', () => {
 			},
 		];
 		render(<ContinuingSection stories={stories} />);
-		expect(screen.getByRole('heading', { level: 2, name: '이어지는 이야기' })).toBeTruthy();
+		expect(screen.getByRole('heading', { level: 2, name: '이어지는 소식' })).toBeTruthy();
 		expect(screen.getAllByRole('columnheader').map((c) => c.textContent)).toEqual([
 			'',
 			'11월 21일',

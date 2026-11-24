@@ -1,6 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
+import { usePathname } from 'next/navigation';
 import { useHeader } from '@/hooks/useHeader';
+import BreakingBand from '@/components/common/Breaking';
+import { ROUTES } from '@/constants/routes';
 import Header from '@/components/layout/Header';
 import Footer from '@/components/layout/Footer';
 import ScrollButtons from '@/components/common/ScrollButtons';
@@ -15,6 +19,20 @@ interface Props {
 
 export default function Layout({ children, contactEmail }: Props) {
 	const { headerHeight } = useHeader();
+	const pathname = usePathname();
+	const showBand = pathname !== ROUTES.home && !pathname.startsWith(ROUTES.admin.home);
+
+	// footer 높이를 페이지에 알린다: 메인 맨 아래 구독 칸이 footer와 함께 화면을 꼭 채우게 (home page.tsx)
+	useEffect(() => {
+		const footer = document.querySelector('footer');
+		if (!footer) return;
+		const root = document.documentElement;
+		const set = () => root.style.setProperty('--np-footer-height', `${footer.offsetHeight}px`);
+		set();
+		const observer = 'ResizeObserver' in window ? new ResizeObserver(set) : null;
+		observer?.observe(footer);
+		return () => observer?.disconnect();
+	}, []);
 
 	return (
 		<div
@@ -32,6 +50,8 @@ export default function Layout({ children, contactEmail }: Props) {
 			<Header />
 			{/* 최대 폭 = 내용 1024px + 좌우 여백 */}
 			<main id="main" className="content mx-auto w-full max-w-[calc(1024px+5rem)] mobile:max-w-none" tabIndex={-1}>
+				{/* 속보: 메인 밖의 페이지에서도 맨 위에 (닫을 수 있음). 메인은 page.tsx가 늘 보이는 띠를 따로 둔다, 관리자 화면에는 없다 */}
+				{showBand && <BreakingBand closable />}
 				{children}
 			</main>
 			<ScrollButtons />

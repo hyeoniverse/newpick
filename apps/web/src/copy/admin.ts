@@ -1,5 +1,41 @@
 /** 관리자 화면 */
 export const ADMIN = {
+	/** 관리자 › 속보: 찾으면 잠깐 뒤 저절로 나간다. 잘못 판정했을 때만 막는다 */
+	breaking: {
+		title: '속보',
+		lead: (hold: number, limit: number) =>
+			`매시 수집한 기사에서 속보급(9점 이상)으로 판정한 사건입니다. 찾으면 ${hold}분 뒤 저절로 나가며(홈 속보 띠 · 메일), 그 사이 '보내지 않기'로 막을 수 있습니다. 하루 ${limit}건이 넘으면 보류로 남습니다. 메일 발송은 다음 단계에서 붙습니다.`,
+		empty: '아직 속보가 없습니다. 대부분의 시간에는 없는 것이 정상입니다.',
+		loadFailed: '속보를 불러오지 못했습니다.',
+		score: (n: number) => `${n}점`,
+		status: { scheduled: '발송 예정', held: '보류', canceled: '미발행', sent: '발송함' },
+		/** 위 칸: 지금 막을 수 있는 속보 (발송 예정 · 보류) */
+		openTitle: '지금 막을 수 있는 속보',
+		openEmpty: '지금 막을 수 있는 속보가 없습니다.',
+		/** 발송 예정: 남은 시간(분:초) 뒤에 붙는 말 */
+		untilSend: '뒤 발송',
+		heldNote: '보류: 자동으로 나가지 않습니다. 직접 보내거나 보내지 않을 수 있습니다.',
+		/** 아래 표: 지난 속보 */
+		historyTitle: '지난 속보',
+		historyEmpty: '지난 속보가 없습니다.',
+		col: { detected: '감지', status: '상태', score: '점수', headline: '사건', articles: '관련 기사' },
+		more: (n: number) => `외 ${n}건`,
+		out: '발행',
+		auto: '자동 발송',
+		autoOn: '속보 자동 발송을 켰습니다.',
+		autoOff: '속보 자동 발송을 껐습니다. 새 속보는 보류로 남습니다.',
+		autoFailed: '자동 발송 설정을 바꾸지 못했습니다.',
+		cancel: '보내지 않기',
+		send: '지금 바로 보내기',
+		cancelTitle: '이 속보를 보내지 않을까요?',
+		sendTitle: '이 속보를 지금 보낼까요?',
+		sendContent: '취소할 시간을 기다리지 않고 바로 나갑니다 (홈 속보 띠 · 메일).',
+		canceled: '이 속보는 보내지 않습니다.',
+		sent: '속보를 지금 보냅니다.',
+		decideFailed: '처리하지 못했습니다.',
+		articles: '관련 기사',
+	},
+
 	dashboardLoadFailed: '대시보드를 불러오지 못했습니다.',
 	cache: {
 		cleared: '사이트 캐시를 비웠습니다. 다음 접속부터 새 내용이 보입니다.',

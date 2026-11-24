@@ -493,15 +493,32 @@
 	}
 }
 
+/* 홈 속보 띠 (BreakingBanner): '속보' 앞 빨간 점이 천천히 깜빡여 눈에 띄게 */
+.np-breaking-dot {
+	animation: np-breaking-blink 1.6s ease-in-out infinite;
+}
+@keyframes np-breaking-blink {
+	50% {
+		opacity: 0.25;
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.np-breaking-dot {
+		animation: none;
+	}
+}
+
 /* app/(home)/_components/SubscribeSection.tsx */
 .np-home-subscribe-section-subscribe {
 	width: 100%;
 	display: flex;
 	flex-direction: column;
-	margin-top: 6rem;
-	margin-bottom: 4rem;
-
+	/*
+	 * 메인 맨 아래에서 footer와 함께 화면을 채우는 칸(page.tsx) 안에서: 파란 띠는 맨 위(머리글 · 속보 띠 바로 아래)에 붙고,
+	 * 카드는 원래 크기 그대로 (칸을 늘려 채우면 슬라이더까지 늘어나 카드가 길어졌다). 남는 공간은 카드 아래 흰 바탕
+	 */
 	.content {
+		padding-bottom: 2rem;
 		display: flex;
 		flex-direction: row;
 		justify-content: space-between;
@@ -553,8 +570,14 @@
 	flex-direction: column;
 	justify-content: center;
 	/* 머리글 높이는 고정값으로: --header-height는 머리글이 숨으면 0이 되어, 스크롤하는 동안 패널 높이가 바뀐다 */
-	min-height: calc(100svh - 3rem);
-	padding-top: 2rem;
+	/* 속보 띠가 있으면 그 높이도 뺀다 (BreakingBanner가 --np-breaking-band를 알린다): 띠 때문에 제목 · 설명이 밀려 내려가지 않게 */
+	min-height: calc(100svh - 3rem - var(--np-breaking-band, 0px));
+	/*
+	 * 내용은 가운데보다 위에 (아래 여백이 위보다 10rem 많아 5rem 위로).
+	 * 띠 높이만큼 아래 여백을 더해, 띠가 있어도 내용이 띠가 없을 때와 같은 자리에 오게
+	 */
+	padding-top: 0;
+	padding-bottom: calc(var(--np-breaking-band, 0px) + 10rem);
 
 	.logo {
 		color: var(--np-color-primary);
@@ -724,6 +747,17 @@
 			&.error {
 				color: var(--np-color-error);
 			}
+		}
+
+		/*
+		 * 제목 아래 덧붙이는 자리 (발행 시각 안내 · 다시 불러오기 단추). 비어 있어도 같은 높이를 두어,
+		 * 상태가 바뀌어도 가운데 놓인 아이콘 · 제목이 위아래로 움직이지 않게
+		 */
+		.extra {
+			display: flex;
+			align-items: flex-start;
+			justify-content: center;
+			min-height: 2.25rem;
 		}
 	}
 }

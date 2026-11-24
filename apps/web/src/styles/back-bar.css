@@ -5,7 +5,8 @@
  */
 .np-back-bar {
 	position: sticky;
-	top: calc(3rem + 0.75rem);
+	/* 속보 띠가 있으면 그 아래에 붙는다 (components/common/Breaking.tsx가 --np-breaking-band를 알린다) */
+	top: calc(3rem + 0.75rem + var(--np-breaking-band, 0px));
 	z-index: var(--np-z-sticky);
 	display: flex;
 	align-items: stretch;
@@ -15,7 +16,7 @@
 	transition: top 0.3s ease;
 
 	&:where([data-folded]) {
-		top: 0.75rem;
+		top: calc(0.75rem + var(--np-breaking-band, 0px));
 	}
 
 	/* 제목 한 줄: 버튼과 같은 높이의 칸, 배경을 깔아 본문 위에서도 읽히게 */
