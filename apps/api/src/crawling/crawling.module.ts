@@ -4,9 +4,10 @@ import { CrawlingService } from './crawling.service';
 import { CrawlingController } from './crawling.controller';
 import { CrawledNewsModule } from './crawled-news.module';
 import { CategoryModule } from 'src/category/category.module';
+import { PipelineModule } from 'src/pipeline/pipeline.module';
 
 @Module({
-	imports: [CrawledNewsModule, CategoryModule],
+	imports: [CrawledNewsModule, CategoryModule, PipelineModule],
 	providers: [CrawlerService, CrawlingService],
 	exports: [CrawlingService, CrawledNewsModule],
 	controllers: [CrawlingController],

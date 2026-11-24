@@ -1,9 +1,10 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { CrawlerService } from './crawler.service';
 import { CrawlingRepository } from './crawling.repository';
 import { CrawledNews } from './schema/crawling.schema';
 import { FindCategoryService } from 'src/category/find-category.service';
 import { errorMessage } from 'src/common/error-message';
+import { PipelineLiveService } from 'src/pipeline/pipeline-live.service';
 
 /**
  * 분야 첫 화면에서 한 번에 가져오는 '최신 기사' 목록 수 (시간순, 헤드라인 아래).
@@ -37,6 +38,8 @@ export class CrawlingService {
 		private readonly crawlerService: CrawlerService,
 		private readonly crawlingRepository: CrawlingRepository,
 		private readonly findCategoryService: FindCategoryService,
+		/** 홈 '지금 뉴픽은'에 진행을 알린다 (수집이 돌 때만 반영된다) */
+		@Optional() private readonly pipeline?: PipelineLiveService,
 	) {}
 
 	private readonly logger = new Logger(CrawlingService.name);
@@ -52,21 +55,30 @@ export class CrawlingService {
 
 	async crawling() {
 		const crawledData = await this.crawlingNews();
+		this.pipeline?.step('crawl', 'classify', { state: 'running', progress: [0, crawledData.length] });
+		let classifiedCount = 0;
 		if (crawledData.length) {
 			// 카테고리 분류. 고르기에 실패한 기사만 빼고 저장한다
 			// (예전엔 한 건만 실패해도 Promise.all이 통째로 실패해 그 회차에 아무것도 저장되지 않았다. 뺀 기사는 다음 회차에 다시 모은다)
 			const classified: (CrawledNews | null)[] = await this.crawlerService.setQueue(
 				crawledData.map((data: CrawledNews) => async () => {
-					if (data.category.length) return data;
+					const tick = () =>
+						this.pipeline?.step('crawl', 'classify', { progress: [++classifiedCount, crawledData.length] });
+					if (data.category.length) {
+						tick();
+						return data;
+					}
 					try {
 						const setCategory = await this.findCategoryService.findCategory(data.content);
 						this.logger.log(setCategory);
+						tick();
 						if (!setCategory?.categoryName) return null;
 						return {
 							...data,
 							category: [...data.category, setCategory.categoryName],
 						} as CrawledNews;
 					} catch (error) {
+						tick();
 						this.logger.warn(`분야 고르기 실패: ${(error as Error).message}`);
 						return null;
 					}
@@ -77,14 +89,18 @@ export class CrawlingService {
 			if (skipped) this.logger.warn(`분야를 고르지 못한 기사 ${skipped}건은 저장하지 않음 (다음 수집 때 다시)`);
 			const createdData = await this.crawlingRepository.createCrawledNews(checkNewsCategory);
 			this.logger.log(`Successfully created ${createdData.length} items`);
+			this.pipeline?.step('crawl', 'classify', { state: 'done', count: createdData.length });
 			return createdData;
 		}
+		// 새 기사가 없었다
+		this.pipeline?.step('crawl', 'classify', { state: 'done', count: 0 });
 	}
 
 	async crawlingNews(): Promise<CrawledNews[]> {
 		const crawlingResultData: CrawledNews[] = [];
+		this.pipeline?.step('crawl', 'fetch', { state: 'running', count: 0, progress: [0, this.links.length] });
 		try {
-			for (const link of this.links) {
+			for (const [index, link] of this.links.entries()) {
 				// 섹션 페이지의 헤드라인 + 최신 기사 목록
 				const document = await this.crawlerService.fetchDocument(link);
 				const crawlingNews = sectionLinks(document);
@@ -99,7 +115,12 @@ export class CrawlingService {
 				);
 				// 크롤링 최종 결과 배열에 저장
 				crawlingResultData.push(...crawlingNewsDetail.filter((news) => news != null));
+				this.pipeline?.step('crawl', 'fetch', {
+					count: crawlingResultData.length,
+					progress: [index + 1, this.links.length],
+				});
 			}
+			this.pipeline?.step('crawl', 'fetch', { state: 'done' });
 			// 크롤링 결과 확인
 			this.logger.log(`Successfully crawled ${crawlingResultData.length} items`);
 			return crawlingResultData;

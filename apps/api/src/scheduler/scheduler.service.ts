@@ -1,5 +1,5 @@
 import type { Schedule } from '@newpick/shared';
-import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
+import { Injectable, Logger, OnApplicationBootstrap, Optional } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
 import { CronJob, CronTime } from 'cron';
 import { crawlCron, dailyCron, mailCron } from 'src/common/cron';
@@ -7,6 +7,7 @@ import { KST } from 'src/common/kst';
 import { CrawlingService } from 'src/crawling/crawling.service';
 import { BreakingService } from 'src/breaking/breaking.service';
 import { BreakingSendService } from 'src/breaking/breaking-send.service';
+import { PipelineLiveService } from 'src/pipeline/pipeline-live.service';
 import { env } from 'src/config/env';
 import { JobRunsService } from './job-runs.service';
 import { MailJobService } from './mail-job.service';
@@ -50,6 +51,8 @@ export class SchedulerService implements OnApplicationBootstrap {
 		private readonly prisma: MysqlPrismaService,
 		private readonly breaking: BreakingService,
 		private readonly breakingSend: BreakingSendService,
+		/** 홈 '지금 뉴픽은': 수집 과정 · 다음 예약 시각 */
+		@Optional() private readonly pipeline?: PipelineLiveService,
 	) {}
 
 	/**
@@ -69,6 +72,10 @@ export class SchedulerService implements OnApplicationBootstrap {
 		add(MAIL_JOB_NAME, mailCron(hour, day, minute), () => this.mailJob.sendEmailSummary());
 		add(BREAKING_JOB_NAME, EVERY_MINUTE, () => this.breakingSend.tick());
 		this.logger.log(`예약 시간: ${JSON.stringify(schedule)} (${KST})`);
+		this.pipeline?.setNextTimes(() => ({
+			crawl: this.nextRun(CRAWL_JOB_NAME),
+			summary: this.nextRun(SUMMARY_JOB_NAME),
+		}));
 		// 부팅을 막지 않게 뒤에서 (배포 상태 확인이 기다린다)
 		if (this.autoRun)
 			void this.catchUp(schedule).catch((error) =>
@@ -117,6 +124,16 @@ export class SchedulerService implements OnApplicationBootstrap {
 		return this.scheduleConfig.getSchedule();
 	}
 
+	/** 다음 예약 시각 (ISO). 예약 작업이 꺼져 있으면(로컬 등) null */
+	private nextRun(name: string) {
+		if (!this.autoRun) return null;
+		try {
+			return this.schedulerRegistry.getCronJob(name).nextDate().toJSDate().toISOString();
+		} catch {
+			return null;
+		}
+	}
+
 	private reschedule(name: string, cronTime: string) {
 		const job = this.schedulerRegistry.getCronJob(name);
 		job.setTime(new CronTime(cronTime, KST));
@@ -132,13 +149,26 @@ export class SchedulerService implements OnApplicationBootstrap {
 
 		this.logger.debug(`크롤링 스케줄러가 활성화되었습니다.`);
 		this.jobRuns.startRun('crawling');
+		this.pipeline?.begin('crawl');
 		try {
 			const created = await this.crawlingService.crawling();
+			// 홈 '지금 뉴픽은': 분야별 건수 · 키워드 · 같은 사건 묶음 (AI 생성 호출 없음, 실패해도 수집은 성공)
+			if (this.pipeline) {
+				const pipeline = this.pipeline;
+				pipeline.step('crawl', 'cluster', { state: 'running' });
+				await pipeline
+					.describe('crawl', created ?? [])
+					.catch((error) => this.logger.warn(`과정 보기 실패: ${errorMessage(error)}`));
+				pipeline.step('crawl', 'cluster', { state: 'done' });
+				pipeline.step('crawl', 'breaking', { state: 'running' });
+			}
 			// 새로 모은 기사로 속보를 판정한다 (찾으면 취소할 시간 뒤 저절로 나간다). 실패해도 수집은 성공
 			const breaking = await this.breaking.detect(created).catch((error) => {
 				this.logger.warn(`속보 판정 실패: ${errorMessage(error)}`);
 				return 0;
 			});
+			this.pipeline?.step('crawl', 'breaking', { state: 'done', count: breaking });
+			await this.pipeline?.finish('crawl', 'done');
 			this.jobRuns.finishRun(
 				'crawling',
 				'success',
@@ -150,6 +180,7 @@ export class SchedulerService implements OnApplicationBootstrap {
 				.catch((error) => this.logger.warn(`대체 사진 채우기 실패: ${errorMessage(error)}`));
 		} catch (error) {
 			this.jobRuns.finishRun('crawling', 'failed', errorMessage(error));
+			await this.pipeline?.finish('crawl', 'failed');
 			throw error;
 		}
 	}

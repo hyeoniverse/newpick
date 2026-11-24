@@ -134,4 +134,27 @@ describe('수집 뒤 속보 판정', () => {
 		await flush();
 		expect(JSON.stringify(prisma.jobRun.update.mock.calls.at(-1))).toContain('success');
 	});
+	it("홈 '지금 뉴픽은': 수집을 시작 · 끝낼 때 과정을 남기고, 모은 기사로 건수 · 키워드 · 묶음을 채운다 (실패하면 실패로)", async () => {
+		const { scheduler, breaking } = setup(0);
+		const pipeline = {
+			begin: jest.fn(),
+			step: jest.fn(),
+			describe: jest.fn().mockResolvedValue(undefined),
+			finish: jest.fn(),
+		};
+		const self = scheduler as unknown as { crawlingService: unknown; pipeline: unknown };
+		self.pipeline = pipeline;
+		const created = [{ title: '코스피 급락', category: ['경제'] }];
+		self.crawlingService = { crawling: jest.fn().mockResolvedValue(created) };
+		breaking.detect.mockResolvedValueOnce(1);
+		await scheduler.startCrawling();
+		expect(pipeline.begin).toHaveBeenCalledWith('crawl');
+		expect(pipeline.describe).toHaveBeenCalledWith('crawl', created);
+		expect(pipeline.step).toHaveBeenCalledWith('crawl', 'breaking', { state: 'done', count: 1 });
+		expect(pipeline.finish).toHaveBeenLastCalledWith('crawl', 'done');
+
+		self.crawlingService = { crawling: jest.fn().mockRejectedValue(new Error('naver down')) };
+		await expect(scheduler.startCrawling()).rejects.toThrow('naver down');
+		expect(pipeline.finish).toHaveBeenLastCalledWith('crawl', 'failed');
+	});
 });

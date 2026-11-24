@@ -135,6 +135,8 @@ export const API_ENDPOINTS = {
 		BREAKING_LATEST: `${API_URL}/breaking/latest`,
 		/** 지난 속보: 나간 속보 목록 · 하나 (누구나) */
 		BREAKING_ARCHIVE: `${API_URL}/breaking`,
+		/** 홈 '지금 뉴픽은': 수집 · 뉴스레터 만들기 과정 (누구나) */
+		PIPELINE_LIVE: `${API_URL}/pipeline/live`,
 		BREAKING_ITEM: (id: number | string) => `${API_URL}/breaking/${id}`,
 		/** 메일의 '속보만 받지 않기' (로그인 없이 token으로): GET 대상 확인 · POST 끄기 */
 		BREAKING_OFF: (token: string) => `${API_URL}/breaking/off?token=${encodeURIComponent(token)}`,

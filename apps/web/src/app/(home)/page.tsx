@@ -13,6 +13,7 @@ import SubscribeSection from '@/app/(home)/_components/SubscribeSection';
 import TitleSection from '@/app/(home)/_components/TitleSection';
 import BreakingBand, { BreakingCard } from '@/components/common/Breaking';
 import PersonalSection from '@/app/(home)/_components/PersonalSection';
+import LiveSection from '@/app/(home)/_components/LiveSection';
 import {
 	ContinuingSection,
 	KeyLinesSection,
@@ -64,7 +65,7 @@ export default async function HomePage() {
 					<BreakingCard />
 					<hr />
 					{/*
-					  순서: 체험(CTA) → 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 본편(오늘의 뉴스레터) → 맥락(이어지는 소식 · 분야를 넘는 흐름) → 발견(최신 트렌드 · 지금 뜨는 소식) → 구독.
+					  순서: 체험(CTA) → 한눈에(핵심 3줄) → 나를 위한 소식(로그인) → 본편(오늘의 뉴스레터) → 맥락(이어지는 소식 · 분야를 넘는 흐름) → 발견(최신 트렌드 · 지금 뜨는 소식) → 만드는 과정(지금 뉴픽은) → 구독.
 					  - 나를 위한 소식은 비어 있는 날이 많아(후속은 매일 생기지 않는다) 모두가 보는 핵심 3줄 아래에 둔다
 					  - 이어지는 소식는 방금 본 오늘 소식이 며칠 전 어디서 시작됐는지라 뉴스레터 바로 다음, 편집 해설인 흐름은 그 뒤
 					  - 최신 트렌드는 뜨는 태그로 묶은 칸이라 같은 데이터를 쓰는 '지금 뜨는 소식' 바로 위. 편집본이 없으면 '오늘' 칸은 빠진다
@@ -103,10 +104,14 @@ export default async function HomePage() {
 							</InOut>
 						</>
 					)}
+					{/* 뉴픽이 소식을 만드는 과정 (수집 · 뉴스레터 만들기, 도는 동안 실시간). 발견 칸들 뒤, 구독 바로 앞: 어떻게 만드는지 본 뒤 구독으로 */}
+					<InOut kind="live">
+						<LiveSection />
+					</InOut>
 				</StackPanel>
 				{/*
 				  구독 칸: 바탕을 화면 끝까지 깔고 위에 놓여, 올라오며 위 판을 덮는다.
-				  위 판은 마지막 칸(지금 뜨는 소식)이 화면 위쪽까지 올라온 뒤 멈추고(useStackPanel 'bottom'), 위쪽 여백(30svh)만큼 더 스크롤하면 덮인다.
+				  위 판은 마지막 칸(지금 뉴픽은)이 화면 위쪽까지 올라온 뒤 멈추고(useStackPanel 'bottom'), 위쪽 여백(30svh)만큼 더 스크롤하면 덮인다.
 				  예전에는 판 아래 끝이 화면 아래에 닿자마자 멈춰, 지금 뜨는 소식이 화면 아래에 걸린 채 덮였다 (여백은 판 뒤라 보이지 않는다).
 				  높이는 '화면 − footer'로, 맨 아래까지 내리면 구독 칸과 footer가 화면을 꼭 채운다 (footer 높이는 MainLayout이 알린다).
 				  위에 붙는 속보 띠만큼 위 여백을 두고, 파란 띠는 그 바로 아래 맨 위에 붙는다 (남는 공간은 카드 아래).

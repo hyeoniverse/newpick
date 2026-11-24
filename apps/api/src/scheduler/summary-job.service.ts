@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Optional } from '@nestjs/common';
 import { MysqlPrismaService } from 'src/prisma/mysql.service';
 import { AiSummaryService } from 'src/ai-summary/ai-summary.service';
 import { CategoryRepository } from 'src/category/category.repository';
@@ -6,6 +6,7 @@ import { AppException } from 'src/common/errors/app.exception';
 import { kstDayRange, kstStamp, toKstDate } from 'src/common/kst';
 import { CrawlingRepository } from 'src/crawling/crawling.repository';
 import { EditionService } from 'src/edition/edition.service';
+import { PipelineLiveService } from 'src/pipeline/pipeline-live.service';
 import { FollowsService } from 'src/follows/follows.service';
 import { StoryLinksService } from 'src/follows/story-links.service';
 import { MailService } from 'src/mail/mail.service';
@@ -72,6 +73,8 @@ export class SummaryJobService {
 		private readonly siteCache: SiteCacheService,
 		private readonly scheduleConfig: ScheduleConfigService,
 		private readonly jobRuns: JobRunsService,
+		/** 홈 '지금 뉴픽은': 오늘 뉴스레터 만들기 과정 (지난 날짜 · 한 분야 · 다시 쓰기는 빼고) */
+		@Optional() private readonly pipeline?: PipelineLiveService,
 	) {}
 
 	get enabled() {
@@ -212,11 +215,26 @@ export class SummaryJobService {
 			return;
 		}
 		this.jobRuns.startRun('summary');
+		// 오늘 전 분야를 만드는 실행만 홈 과정 보기에 (지난 날짜 · 한 분야 · 다시 쓰기는 관리자 작업)
+		const live = !backfill && !replaceId && !categoryIds ? this.pipeline : undefined;
+		live?.begin('summary');
 
 		try {
 			const categoryList = (await this.categoryRepository.findAll()).filter(
 				(category) => !categoryIds || categoryIds.includes(category.id),
 			);
+			for (const category of categoryList) live?.category('summary', category.name, { state: 'waiting' });
+			live?.step('summary', 'newsletters', { state: 'running', progress: [0, categoryList.length], count: 0 });
+			// 분야마다 끝난 상태 (실패한 분야는 다시 시도해 바뀔 수 있다)
+			const settled = new Set<string>();
+			const settle = (category: { name: string }, state: 'done' | 'skipped' | 'failed', count?: number) => {
+				settled.add(category.name);
+				live?.category('summary', category.name, { state, ...(count !== undefined && { count }) });
+				live?.step('summary', 'newsletters', {
+					progress: [settled.size, categoryList.length],
+					count: generatedNewsletter.length,
+				});
+			};
 			const generatedNewsletter: { content: string }[] = [];
 			// 그날의 뉴스만: 어제 수집 시각부터 지금까지 처음 모은 기사 (예전엔 지난 7일 전부라 지난 소식이 다시 실렸다)
 			const {
@@ -241,13 +259,16 @@ export class SummaryJobService {
 				// 다시 쓰기는 이미 있는 그 뉴스레터를 바꾸는 것이라 건너뛰지 않는다
 				if (!replaceId && done.has(category.id)) {
 					this.logger.log(`카테고리 ${category.name}: ${day}에 이미 있어 건너뜀`);
+					settle(category, 'skipped');
 					return null;
 				}
 				const news = await this.crawlingRepository.getCrawledNewsBetween(startDate, endDate, category.id);
 				if (news.length === 0) {
 					this.logger.warn(`카테고리 ${category.name}: 요약할 뉴스 없음`);
+					settle(category, 'skipped', 0);
 					return null;
 				}
+				live?.category('summary', category.name, { state: 'running', count: news.length });
 				const newsletter = await this.aiSummaryService.summarizeText(
 					news,
 					category.id,
@@ -261,6 +282,7 @@ export class SummaryJobService {
 				if (newsletter.newsletter && 'content' in newsletter.newsletter)
 					generatedNewsletter.push(newsletter.newsletter);
 				this.logger.log(`카테고리 ${category.name}: 뉴스 ${news.length}건 요약`);
+				settle(category, 'done', news.length);
 				return true;
 			};
 
@@ -271,6 +293,7 @@ export class SummaryJobService {
 					await summarize(category);
 				} catch (error) {
 					failed.push(category);
+					settle(category, 'failed');
 					this.logger.error(`카테고리 ${category.name} 요약 실패: ${errorMessage(error)}`);
 				}
 			}
@@ -328,19 +351,25 @@ export class SummaryJobService {
 				return;
 			}
 
+			live?.step('summary', 'newsletters', { state: generatedNewsletter.length || !failed.length ? 'done' : 'failed' });
 			// 오늘 나온 전 분야 소식을 한 번 편집해 둔다 (구독 메일·미리보기에 씀)
+			live?.step('summary', 'edition', { state: 'running' });
 			await this.editionService.ensureEdition();
+			live?.step('summary', 'edition', { state: 'done' });
 			// 재시도 계획 · 편집본이 정해진 뒤에 알린다 (기다리지 않는다: 메일은 이 실행이 끝나기를 기다린다)
 			for (const listener of this.todayDoneListeners) listener();
 
 			if (generatedNewsletter.length > 0) {
+				live?.step('summary', 'links', { state: 'running' });
 				// 이어지는 이야기: 오늘 소식을 지난 며칠 같은 사건 소식과 잇는다 (홈 '이어지는 이야기'). 오늘 소식 임베딩도 여기서 계산해 둔다
 				await this.storyLinks.link().catch((error) => this.logger.warn(`이어지는 이야기 판정 실패: ${error.message}`));
 				// 후속 지켜보기: 오늘 소식이 누군가 지켜보는 소식의 후속인지 판정 (실패해도 요약은 끝난 것)
 				await this.followsService
 					.detect()
 					.catch((error) => this.logger.warn(`후속 지켜보기 판정 실패: ${error.message}`));
+				live?.step('summary', 'links', { state: 'done' });
 			}
+			await live?.finish('summary', generatedNewsletter.length || !failed.length ? 'done' : 'failed');
 
 			// 새 글이 생겼으면 사이트 첫 화면·목록이 10분 기다리지 않고 바로 보여 주게 (#73)
 			if (generatedNewsletter.length > 0) {
@@ -368,6 +397,7 @@ export class SummaryJobService {
 			}
 			// 뉴스레터는 이미 만들어졌고 뒤의 편집 · 캐시 · 알림에서 실패했을 수도 있어 실패로 덮어쓴다
 			this.jobRuns.finishRun('summary', 'failed', errorMessage(error));
+			await live?.finish('summary', 'failed');
 		}
 	}
 
