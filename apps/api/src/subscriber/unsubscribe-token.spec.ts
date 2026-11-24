@@ -26,6 +26,13 @@ describe('원클릭 해지 토큰 (#18)', () => {
 		}
 	});
 
+	it("용도가 다르면 무효: '속보만 끄기' 토큰으로 구독을 해지할 수 없고, 반대도 마찬가지", () => {
+		const off = createUnsubscribeToken(22, 'breaking-off');
+		expect(verifyUnsubscribeToken(off, 'breaking-off')).toBe(22);
+		expect(verifyUnsubscribeToken(off)).toBeNull();
+		expect(verifyUnsubscribeToken(createUnsubscribeToken(22), 'breaking-off')).toBeNull();
+	});
+
 	it('비밀 값이 바뀌면 예전 토큰은 무효', () => {
 		const token = createUnsubscribeToken(22);
 		process.env.UNSUBSCRIBE_SECRET = 'rotated';

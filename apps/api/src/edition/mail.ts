@@ -271,3 +271,6 @@ export function renderEditionMail(
 
 	return `<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${esc(edition.subject)}</title></head><body style="margin:0;padding:0;background:${C.page};">${preheader}<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${C.page};font-family:${FONT};"><tr><td align="center" style="padding:20px 8px;"><table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:600px;border-collapse:separate;">${header}${threads}${personal}${sections}${articles}${watch}${footer}</table></td></tr></table></body></html>`;
 }
+
+/** 다른 메일(속보 등)도 같은 색 · 글꼴로 */
+export { C as MAIL_COLORS, FONT as MAIL_FONT, esc as escapeMail };

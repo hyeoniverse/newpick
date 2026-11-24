@@ -14,6 +14,7 @@ export * from './mails';
 export * from './account';
 export * from './articles';
 export * from './unsubscribe';
+export * from './breaking';
 export * from './marketing';
 export * from './meta';
 export * from './admin';

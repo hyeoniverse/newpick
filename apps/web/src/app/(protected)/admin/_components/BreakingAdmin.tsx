@@ -21,7 +21,7 @@ const COPY = ADMIN.breaking;
 const SECOND = 1000;
 const MINUTE = 60 * SECOND;
 /** 지난 속보 표 칸 폭: 감지 · 상태 · 점수 · 사건 · 관련 기사 */
-const COLS = ['9.5rem', '6.5rem', '4rem', undefined, '16rem'];
+const COLS = ['9.5rem', '9rem', '4rem', undefined, '16rem'];
 
 /** 아직 안 나간 것: 보류, 또는 보낼 시각 전인 발송 예정 (보내지 않기 · 지금 보내기를 누를 수 있다) */
 const isOpen = (alert: BreakingAlert, now: number) =>
@@ -33,8 +33,14 @@ const clock = (ms: number) => {
 	return `${pad2(Math.floor(seconds / 60))}:${pad2(seconds % 60)}`;
 };
 
-/** 지난 속보의 상태 이름: 보낼 시각이 지난 발송 예정은 '발행' */
-const pastLabel = (alert: BreakingAlert) => (alert.status === 'scheduled' ? COPY.out : COPY.status[alert.status]);
+/** 지난 속보의 상태 이름: 보낼 시각이 지난 발송 예정은 '발행'(메일 회차 전 잠깐), 메일을 보냈으면 받은 사람 수 · 아침 추가 발송 */
+const pastLabel = (alert: BreakingAlert) => {
+	if (alert.status === 'scheduled') return COPY.out;
+	if (alert.status !== 'sent') return COPY.status[alert.status];
+	return [COPY.status.sent, COPY.recipients(alert.recipients), alert.nightPending && COPY.nightPending]
+		.filter(Boolean)
+		.join(' · ');
+};
 
 /**
  * 관리자 › 속보: 위에는 지금 막을 수 있는 속보(발송 예정 · 보류)를 크게, 아래에는 지난 속보를 표로.
@@ -189,7 +195,7 @@ export default function BreakingAdmin() {
 											return (
 												<tr key={alert.id}>
 													<td className="nowrap num">{when(alert.detectedAt, today)}</td>
-													<td className="nowrap">{pastLabel(alert)}</td>
+													<td>{pastLabel(alert)}</td>
 													<td className="nowrap num">{alert.score}</td>
 													<td className="content" title={alert.reason}>
 														{alert.headline}

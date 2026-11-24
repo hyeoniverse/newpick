@@ -56,6 +56,8 @@ describe('BreakingService', () => {
 			},
 			// 자동 발송 스위치 (행이 없으면 켜짐)
 			scheduleConfig: { findUnique: jest.fn().mockResolvedValue(null), upsert: jest.fn().mockResolvedValue({}) },
+			// 메일의 '속보만 받지 않기'
+			user: { findUnique: jest.fn(), updateMany: jest.fn().mockResolvedValue({ count: 1 }) },
 		};
 		const ai = { generate: jest.fn(), embed: jest.fn() };
 		const mail = { sendHtmlMail: jest.fn().mockResolvedValue({}) };
@@ -198,6 +200,38 @@ describe('BreakingService', () => {
 		const { where } = prisma.breakingAlert.findFirst.mock.calls[1][0];
 		expect(where.OR).toEqual([{ status: 'sent' }, { status: 'scheduled', sendAt: { lte: now } }]);
 		expect(where.detectedAt.gte).toEqual(new Date('2026-11-23T12:00:00Z'));
+	});
+
+	it('지난 속보: 나간 것만(메일 보냄 · 보낼 시각이 지난 발송 예정), 하나를 볼 때도 같은 조건이고 없으면 NOT_FOUND', async () => {
+		const { prisma, service } = setup();
+		const now = new Date('2026-11-24T12:00:00Z');
+		prisma.breakingAlert.findMany.mockResolvedValueOnce([
+			{ id: 3, headline: 'h', reason: 'r', articles: [], detectedAt: now },
+		]);
+		expect(await service.archive(now)).toEqual([
+			{ id: 3, headline: 'h', reason: 'r', articles: [], detectedAt: now.toISOString(), image: null },
+		]);
+		expect(prisma.breakingAlert.findMany.mock.calls[0][0].where.OR).toEqual([
+			{ status: 'sent' },
+			{ status: 'scheduled', sendAt: { lte: now } },
+		]);
+		prisma.breakingAlert.findFirst.mockResolvedValueOnce(null);
+		await expect(service.archiveItem(9, now)).rejects.toMatchObject({ code: 'NOT_FOUND' });
+		expect(prisma.breakingAlert.findFirst.mock.calls[0][0].where).toMatchObject({ id: 9 });
+	});
+
+	it("'속보만 받지 않기': 확인은 가린 주소 · 받는지(바꾸지 않음), 끄기는 여러 번 불러도 같은 결과", async () => {
+		const { prisma, service } = setup();
+		prisma.user.findUnique.mockResolvedValueOnce({ email: 'hello@test.dev', breakingMail: true });
+		expect(await service.offTarget(1)).toEqual({ email: 'he***@test.dev', receiving: true });
+		expect(prisma.user.updateMany).not.toHaveBeenCalled();
+		expect(await service.turnOff(1)).toEqual({ turnedOff: true });
+		expect(prisma.user.updateMany).toHaveBeenCalledWith({
+			where: { id: 1, breakingMail: true },
+			data: { breakingMail: false },
+		});
+		prisma.user.updateMany.mockResolvedValueOnce({ count: 0 });
+		expect(await service.turnOff(1)).toEqual({ turnedOff: false });
 	});
 
 	it('자동 발송 끄기 · 켜기는 설정 행에 남긴다', async () => {

@@ -135,6 +135,7 @@ export function setup(failingCategoryId: number, edition: unknown = null) {
 		fallbackImages as never,
 		prisma as never,
 		breaking as never,
+		{ tick: jest.fn().mockResolvedValue(undefined) } as never,
 	);
 	// 요약 다시 시도 사이 쉬는 시간은 테스트에서 없앤다
 	(summaryJob as unknown as { summaryRetryDelayMs: number }).summaryRetryDelayMs = 0;

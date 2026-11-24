@@ -26,7 +26,7 @@ import {
 	folderOf,
 	UpdateHighlightDto,
 } from './dto/highlight.dto';
-import { PersonalMailDto } from './dto/personal-mail.dto';
+import { BreakingMailDto, PersonalMailDto } from './dto/personal-mail.dto';
 import { TagFollowDto } from './dto/tag-follow.dto';
 import { TagFollowsService } from './tag-follows.service';
 import type { AuthedRequest } from 'src/auth/authed-request';
@@ -164,6 +164,18 @@ export class MyPageController {
 	@Put('personal-mail')
 	async setPersonalMail(@Req() req: AuthedRequest, @Body() body: PersonalMailDto) {
 		return this.myPageService.setPersonalMail(this.userIdOf(req), body.enabled);
+	}
+
+	/** 속보 메일 설정: 받기 · 밤에도 바로 받기 */
+	@Get('breaking-mail')
+	async getBreakingMail(@Req() req: AuthedRequest) {
+		return this.myPageService.getBreakingMail(this.userIdOf(req));
+	}
+
+	/** 속보 메일 설정 바꾸기: 다음 속보부터 */
+	@Put('breaking-mail')
+	async setBreakingMail(@Req() req: AuthedRequest, @Body() body: BreakingMailDto) {
+		return this.myPageService.setBreakingMail(this.userIdOf(req), body);
 	}
 
 	/** 이메일 바꾸기 1단계: 새 주소로 6자리 인증 코드 (1분에 한 번) */

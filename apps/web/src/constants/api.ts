@@ -69,6 +69,8 @@ export const API_ENDPOINTS = {
 		TAG_FOLLOW: (tag: string) => `${API_URL}/mypage/tag-follows/${encodeURIComponent(tag)}`,
 		/** 맞춤 메일 켜짐 여부 (GET) · 켜기 · 끄기 (PUT { enabled }) */
 		PERSONAL_MAIL: () => `${API_URL}/mypage/personal-mail`,
+		/** 속보 메일 설정 (GET) · 바꾸기 (PUT { enabled?, night? }) */
+		BREAKING_MAIL: () => `${API_URL}/mypage/breaking-mail`,
 		BOOKMARKS: () => `${API_URL}/mypage/bookmarks`,
 		/** 내가 실제로 받은 메일 (보낸 시각별 한 통씩) */
 		MAILS: (offset: number, limit: number, filters = '') =>
@@ -131,6 +133,11 @@ export const API_ENDPOINTS = {
 		BASE: `${API_URL}/newsletters`,
 		/** 홈 속보 띠: 나간 속보 가운데 가장 최근 것 (없으면 null). 누구나 */
 		BREAKING_LATEST: `${API_URL}/breaking/latest`,
+		/** 지난 속보: 나간 속보 목록 · 하나 (누구나) */
+		BREAKING_ARCHIVE: `${API_URL}/breaking`,
+		BREAKING_ITEM: (id: number | string) => `${API_URL}/breaking/${id}`,
+		/** 메일의 '속보만 받지 않기' (로그인 없이 token으로): GET 대상 확인 · POST 끄기 */
+		BREAKING_OFF: (token: string) => `${API_URL}/breaking/off?token=${encodeURIComponent(token)}`,
 		/** 뉴스레터 발행 시각 (매일 AI 요약을 시작하는 시각, KST). 누구나 */
 		PUBLISH_TIME: `${API_URL}/schedule/publish-time`,
 		VIEW_COUNT: (newsletterId: number) => `${API_URL}/newsletters/viewcount/${newsletterId}`,

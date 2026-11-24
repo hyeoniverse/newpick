@@ -4,11 +4,11 @@ export const ADMIN = {
 	breaking: {
 		title: '속보',
 		lead: (hold: number, limit: number) =>
-			`매시 수집한 기사에서 속보급(9점 이상)으로 판정한 사건입니다. 찾으면 ${hold}분 뒤 저절로 나가며(홈 속보 띠 · 메일), 그 사이 '보내지 않기'로 막을 수 있습니다. 하루 ${limit}건이 넘으면 보류로 남습니다. 메일 발송은 다음 단계에서 붙습니다.`,
+			`매시 수집한 기사에서 속보급(9점 이상)으로 판정한 사건입니다. 찾으면 ${hold}분 뒤 저절로 나가며(메일 · 홈 속보 띠 · 지난 속보), 그 사이 '보내지 않기'로 막을 수 있습니다. 하루 ${limit}건이 넘으면 보류로 남습니다. 메일은 속보 메일을 켠 구독자에게 보내고, 밤(22시~7시)에는 '밤에도 바로 받기'를 켠 사람에게만 바로, 나머지는 아침 7시에 보냅니다.`,
 		empty: '아직 속보가 없습니다. 대부분의 시간에는 없는 것이 정상입니다.',
 		loadFailed: '속보를 불러오지 못했습니다.',
 		score: (n: number) => `${n}점`,
-		status: { scheduled: '발송 예정', held: '보류', canceled: '미발행', sent: '발송함' },
+		status: { scheduled: '발송 예정', held: '보류', canceled: '미발행', sent: '발행' },
 		/** 위 칸: 지금 막을 수 있는 속보 (발송 예정 · 보류) */
 		openTitle: '지금 막을 수 있는 속보',
 		openEmpty: '지금 막을 수 있는 속보가 없습니다.',
@@ -21,6 +21,9 @@ export const ADMIN = {
 		col: { detected: '감지', status: '상태', score: '점수', headline: '사건', articles: '관련 기사' },
 		more: (n: number) => `외 ${n}건`,
 		out: '발행',
+		/** 발행 뒤 메일 받은 사람 수 · 밤에 미뤄 아침에 보낼 차례 */
+		recipients: (n: number) => `메일 ${n.toLocaleString()}명`,
+		nightPending: '아침 7시 추가 발송',
 		auto: '자동 발송',
 		autoOn: '속보 자동 발송을 켰습니다.',
 		autoOff: '속보 자동 발송을 껐습니다. 새 속보는 보류로 남습니다.',
