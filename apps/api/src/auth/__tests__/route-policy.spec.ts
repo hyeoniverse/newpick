@@ -18,6 +18,7 @@ import { EditionController } from 'src/edition/edition.controller';
 import { AnalyticsController } from 'src/analytics/analytics.controller';
 import { ImagesController } from 'src/images/images.controller';
 import { BreakingAdminController, BreakingController } from 'src/breaking/breaking.controller';
+import { PipelineController } from 'src/pipeline/pipeline.controller';
 
 /**
  * 모든 라우트의 접근 정책. 라우트를 추가·삭제하거나 정책을 바꾸면 이 표도 함께 바꿔야 테스트가 통과합니다.
@@ -38,6 +39,8 @@ const EXPECTED: Record<string, Policy> = {
 	'GET breaking/off': 'public',
 	'POST breaking/off': 'public',
 	'GET breaking/:id': 'public',
+	// 홈 '지금 뉴픽은': 수집 · 뉴스레터 만들기 과정 (건수 · 키워드 · 묶음만)
+	'GET pipeline/live': 'public',
 
 	// 방문 기록 받기 (#131): 로그인 없이
 	'POST analytics/collect': 'public',
@@ -201,6 +204,7 @@ describe('라우트 접근 정책', () => {
 		ImagesController,
 		BreakingAdminController,
 		BreakingController,
+		PipelineController,
 	]);
 
 	it('모든 라우트가 정해진 정책과 일치한다', () => {

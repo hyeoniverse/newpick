@@ -19,6 +19,37 @@ export const HOME = {
 		close: '속보 닫기',
 		articles: '관련 기사',
 	},
+	/** 홈 '지금 뉴픽은' (LiveSection): 수집 · 뉴스레터 만들기 과정. 기사 제목 대신 건수 · 키워드 · 묶음만 */
+	live: {
+		title: '지금 뉴픽은',
+		crawling: '새 기사를 모으고 있어요',
+		summarizing: '오늘 뉴스레터를 만들고 있어요',
+		startedAt: (time: string) => `${time} 시작`,
+		lastCrawl: (time: string) => `마지막 수집 ${time}`,
+		nextCrawl: (time: string) => `다음 수집 ${time}`,
+		categories: '분야별 새 기사',
+		keywords: '많이 나온 낱말',
+		clusters: '같은 사건 묶음',
+		clustersEmpty: '이번에는 여러 곳이 함께 다룬 사건이 없어요.',
+		keywordsEmpty: '아직 여러 번 나온 낱말이 없어요.',
+		size: (n: number) => `${n}건`,
+		summary: '오늘 아침 뉴스레터',
+		summaryAt: (time: string) => `${time} 만듦`,
+		nextSummary: (time: string) => `다음 ${time}`,
+		note: '매시 정각에 네이버 뉴스 6개 분야의 새 기사를 모아요. 언론사 기사 제목 대신 건수와 낱말만 보여 드려요.',
+		state: { waiting: '기다림', running: '진행 중', done: '끝남', failed: '실패', skipped: '건너뜀' },
+		detail: {
+			fetchRunning: (done: number, total: number) => `${done}/${total} 분야`,
+			fetch: (n: number) => `새 기사 ${n}건`,
+			classifyRunning: (done: number, total: number) => `${done}/${total}건`,
+			classify: (n: number) => `${n}건 저장`,
+			cluster: (n: number) => `묶음 ${n}개`,
+			breaking: (n: number) => (n ? `속보 ${n}건` : '속보 없음'),
+			newsletters: (done: number, total: number) => `${done}/${total} 분야`,
+			edition: '3줄 · 흐름',
+			links: '지난 소식과 잇기',
+		},
+	},
 	/** 홈 '나를 위한 소식' (로그인했을 때, PersonalSection) */
 	personal: {
 		eyebrow: 'FOR YOU',
@@ -38,7 +69,14 @@ export const HOME = {
 	/** 홈 '오늘' 칸 (TodaySections). 제목에 '오늘'을 넣지 않는다: 아침 발행 전에는 가장 최근 편집본이 어제 것이다 */
 	today: {
 		/** 칸 제목 위 작은 꼬리표 */
-		eyebrow: { lines: 'BRIEFING', trend: 'TRENDING', threads: 'CONNECTED', continuing: 'TIMELINE', popular: 'POPULAR' },
+		eyebrow: {
+			lines: 'BRIEFING',
+			trend: 'TRENDING',
+			threads: 'CONNECTED',
+			continuing: 'TIMELINE',
+			popular: 'POPULAR',
+			live: 'LIVE',
+		},
 		lines: '핵심 3줄',
 		/** 핵심 3줄이 어느 날 편집본에서 나왔는지 */
 		basis: (day: string) => `${day} 기준`,

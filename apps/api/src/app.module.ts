@@ -1,5 +1,6 @@
 import { FollowsModule } from 'src/follows/follows.module';
 import { BreakingModule } from 'src/breaking/breaking.module';
+import { PipelineModule } from 'src/pipeline/pipeline.module';
 import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -55,6 +56,7 @@ import { THROTTLE } from 'src/common/throttle';
 		MyPageModule, // 마이페이지 모듈
 		FollowsModule, // 후속 지켜보기
 		BreakingModule, // 속보 뉴스레터 (후보 판정 · 관리자 확인)
+		PipelineModule, // 홈 '지금 뉴픽은' (수집 · 뉴스레터 만들기 과정)
 		AdminModule, // 관리자 페이지 모듈
 		MailModule, // 메일 모듈
 		CategoryModule, // 카테고리 모듈

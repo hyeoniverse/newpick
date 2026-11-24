@@ -23,6 +23,7 @@ export const queryKeys = {
 	publishTime: ['publishTime'] as const,
 	/** 홈 속보 띠 */
 	breakingLatest: ['breakingLatest'] as const,
+	pipelineLive: ['pipelineLive'] as const,
 	breakingOff: (token: string) => ['breakingOff', token] as const,
 	breakingMail: ['breaking-mail'] as const,
 

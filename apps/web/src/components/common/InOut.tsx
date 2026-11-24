@@ -4,7 +4,8 @@ import { useRef } from 'react';
 import { type InOutPart, useInOut } from '@/hooks/useInOut';
 
 /** 칸 이름 (styles/pages/home.css .np-io, 차례로 나타날 것을 고르는 데 쓴다) */
-export type InOutKind = 'lines' | 'personal' | 'trend' | 'continuing' | 'threads' | 'topics' | 'popular' | 'subscribe';
+export type InOutKind =
+	'lines' | 'personal' | 'trend' | 'continuing' | 'threads' | 'topics' | 'popular' | 'live' | 'subscribe';
 
 /**
  * 칸마다 움직일 것과 모양 (styles/pages/home.css [data-io-item=…]). 차례는 모두 화면 높이 순서(위에서 아래로),
@@ -47,6 +48,13 @@ const PARTS: Record<InOutKind, InOutPart[]> = {
 		['ul > li', 'rain'],
 		['ol > li', 'settle'],
 		['ol > li a > span:first-child', 'thud'],
+	],
+	// 단계 동그라미가 왼쪽부터 차례로 찍히고 사이 실선이 그어진 뒤, 막대 · 낱말 · 묶음이 내려앉는다
+	live: [
+		['ol > li', 'step'],
+		['[data-live-line]', 'trace'],
+		['.grid > div > h3', 'settle'],
+		['.grid li', 'cascade'],
 	],
 	// 칸 전체는 판으로 아래에서 올라오고(StackPanel), 분야 카드는 첫 카드 자리에 겹쳐 있다가 오른쪽으로 한 장씩 펼쳐진다.
 	// 슬라이더에 지금 보이는 카드만 (다음 페이지 카드가 보이는 영역을 가로질러 지나가지 않게)

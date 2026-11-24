@@ -18,6 +18,7 @@ import { EditionModule } from 'src/edition/edition.module';
 import { TasteModule } from 'src/taste/taste.module';
 import { RecommendModule } from 'src/recommend/recommend.module';
 import { BreakingModule } from 'src/breaking/breaking.module';
+import { PipelineModule } from 'src/pipeline/pipeline.module';
 
 @Module({
 	imports: [
@@ -31,6 +32,7 @@ import { BreakingModule } from 'src/breaking/breaking.module';
 		FollowsModule,
 		RecommendModule,
 		BreakingModule,
+		PipelineModule,
 	],
 	providers: [
 		SchedulerService,

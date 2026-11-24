@@ -547,3 +547,14 @@ model BreakingAlert {
   @@index([status, sendAt])
   @@map("breaking_alerts")
 }
+
+/// 홈 '지금 뉴픽은': 마지막 수집 · 뉴스레터 만들기 과정 (kind마다 한 행). 서버를 다시 켜도 마지막 결과를 보여 주게
+model PipelineSnapshot {
+  /// crawl 매시 수집 · summary 매일 아침 뉴스레터 만들기
+  kind      String   @id @db.VarChar(16)
+  /// PipelineRun (건수 · 키워드 · 묶음, 기사 제목은 없음)
+  data      Json
+  updatedAt DateTime @updatedAt
+
+  @@map("pipeline_snapshots")
+}

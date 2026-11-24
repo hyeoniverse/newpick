@@ -1,5 +1,5 @@
 import { API_ENDPOINTS } from '@/constants/api';
-import type { BreakingArchiveItem, BreakingNotice, HomeToday } from '@newpick/shared';
+import type { BreakingArchiveItem, BreakingNotice, HomeToday, PipelineLive } from '@newpick/shared';
 import { ApiError, apiFetch } from '@/api/client';
 
 export type EditionPreview = { date: string; subject: string; html: string };
@@ -51,3 +51,7 @@ export const fetchBreakingItem = async (id: string) => {
 		throw error;
 	}
 };
+
+/** 홈 '지금 뉴픽은': 마지막(또는 지금 도는) 수집 · 뉴스레터 만들기 (브라우저에서, 도는 동안 몇 초마다) */
+export const fetchPipelineLive = async () =>
+	(await apiFetch<{ data: PipelineLive }>(API_ENDPOINTS.NEWSLETTER.PIPELINE_LIVE)).data;
